@@ -1,0 +1,14 @@
+* Org-roam
+
+Rudimentary Roam replica in org-mode. Dependent on deft being setup properly.
+
+** Usage
+
+#+begin_src emacs-lisp
+  (use-package org-roam
+    :after deft org
+    :straight (:host "github" :repo "jethrokuan/org-roam")
+    :bind
+    ("C-c n l" . org-roam-get-linked-files)
+    ("C-c n i" . org-roam-insert))
+#+end_src
