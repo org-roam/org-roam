@@ -25,3 +25,5 @@
 	           files)
      search-term
      3)))
+
+(provide 'org-roam)
