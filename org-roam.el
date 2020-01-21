@@ -10,11 +10,31 @@
 (defcustom org-roam-zettel-indicator "§"
   "Indicator in front of a zettel.")
 
-(defvar org-roam-backlinks-buffer "*org-roam-backlinks*"
-  "Backlink buffer name.")
+(defvar org-roam-buffer "*org-roam*"
+  "Org-roam buffer name.")
+
+(defcustom org-roam-position 'right
+  "Position of org-roam buffer.
+
+Valid values are
+ * left,
+ * right."
+  :type '(choice (const left)
+                 (const right))
+  :group 'org-roam)
 
 (defvar org-roam-hash-backlinks nil
   "Cache containing backlinks for org-roam buffers.")
+
+(define-inline org-roam-current-visibility ()
+  "Return whether the current visibility state of the org-roam buffer.
+Valid states are 'visible, 'exists and 'none."
+  (declare (side-effect-free t))
+  (inline-quote
+   (cond
+    ((get-buffer-window org-roam-buffer) 'visible)
+    ((get-buffer org-roam-buffer) 'exists)
+    (t 'none))))
 
 (defun org-roam-insert (file-name)
   "Finds a file, inserts it as a link with the base file name as the link name."
@@ -87,25 +107,14 @@ SLUG is the short file name, without a path or a file extension."
   (interactive)
   (org-roam-new-file-named (format-time-string "%Y-%m-%d" (current-time))))
 
-(defun org-roam-backlinks-split ()
-  "Split window and show backlinks."
-  (when (= (length (window-list)) 1)
-    (split-window-right))
-  (other-window 1)
-  (switch-to-buffer org-roam-backlinks-buffer)
-  (other-window -1))
-
-(defun org-roam-backlinks ()
+(defun org-roam-update ()
   (interactive)
   "Show the backlinks for the current org-buffer."
   (unless org-roam-hash-backlinks
     (org-roam-build-backlinks))
-  (get-buffer-create org-roam-backlinks-buffer)
-  (unless (get-buffer-window org-roam-backlinks-buffer)
-    (org-roam-backlinks-split))
   (let* ((file (file-name-nondirectory (buffer-file-name (current-buffer))))
          (backlinks (ht-get org-roam-hash-backlinks file)))
-    (with-current-buffer org-roam-backlinks-buffer
+    (with-current-buffer org-roam-buffer
       (read-only-mode -1)
       (erase-buffer)
       (org-mode)
@@ -116,5 +125,22 @@ SLUG is the short file name, without a path or a file extension."
               (insert (format "- [[file:%s][%s]]\n" (expand-file-name link deft-directory) link))
               ) backlinks)
       (read-only-mode +1))))
+
+(defun org-roam ()
+  "Initialize org-roam."
+  (interactive)
+  (pcase (org-roam-current-visibility)
+    ('visible nil)
+    ('exists (org-roam-split))
+    ('none (org-roam-split))))
+
+(defun org-roam-split ()
+  (interactive)
+  (org-roam-setup-buffer)
+  (org-roam-update))
+
+(defun org-roam-setup-buffer ()
+  (-> (get-buffer-create org-roam-buffer)
+      (display-buffer-in-side-window `((side . ,org-roam-position)))))
 
 (provide 'org-roam)
