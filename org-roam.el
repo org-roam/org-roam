@@ -4,7 +4,7 @@
   "Indicator in front of a zettel.")
 
 (defun org-roam-insert (file-name)
-  "Finds a file, inserts it as a link with the base file name as the link name, and adds the zd-link-indicator I use to the front."
+  "Finds a file, inserts it as a link with the base file name as the link name."
   (interactive (list (completing-read "File: " (deft-find-all-files-no-prefix))))
   (let ((org-link-file-type 'relative))
     (org-insert-link nil (concat "file:" (concat deft-directory file-name))
@@ -25,5 +25,21 @@
 	           files)
      search-term
      3)))
+
+(defun org-roam-new-file-named (slug)
+  "Create a new file named SLUG.
+SLUG is the short file name, without a path or a file extension."
+  (interactive "sNew filename (without extension): ")
+  (let ((file (deft-absolute-filename slug)))
+    (unless (file-exists-p file)
+      (deft-auto-populate-title-maybe file)
+      (deft-cache-update-file file)
+      (deft-refresh-filter))
+    (deft-open-file file)))
+
+(defun org-roam-today ()
+  "Creates the file for today."
+  (interactive)
+  (org-roam-new-file-named (format-time-string "%Y-%m-%d" (current-time))))
 
 (provide 'org-roam)
