@@ -130,7 +130,7 @@ SLUG is the short file name, without a path or a file extension."
   "Initialize org-roam."
   (interactive)
   (pcase (org-roam-current-visibility)
-    ('visible nil)
+    ('visible (org-roam-update))
     ('exists (org-roam-split))
     ('none (org-roam-split))))
 
