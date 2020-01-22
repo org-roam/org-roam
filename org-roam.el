@@ -14,7 +14,7 @@
   "Org-roam buffer name.")
 
 (defcustom org-roam-position 'right
-  "Position of org-roam buffer.
+  "Position of `org-roam' buffer.
 
 Valid values are
  * left,
@@ -24,7 +24,10 @@ Valid values are
   :group 'org-roam)
 
 (defvar org-roam-hash-backlinks nil
-  "Cache containing backlinks for org-roam buffers.")
+  "Cache containing backlinks for `org-roam' buffers.")
+
+(defvar org-roam-current-file nil
+  "The current file being shown in the `org-roam' buffer.")
 
 (define-inline org-roam-current-visibility ()
   "Return whether the current visibility state of the org-roam buffer.
@@ -37,7 +40,7 @@ Valid states are 'visible, 'exists and 'none."
     (t 'none))))
 
 (defun org-roam-insert (file-name)
-  "Finds a file, inserts it as a link with the base file name as the link name."
+  "Find file `FILE-NAME', insert it as a link with the base file name as the link name."
   (interactive (list (completing-read "File: " (deft-find-all-files-no-prefix))))
   (let ((org-link-file-type 'relative))
     (org-insert-link nil (concat "file:" (concat deft-directory file-name))
@@ -60,7 +63,7 @@ Valid states are 'visible, 'exists and 'none."
      3)))
 
 (defun org-roam-get-links-from-buffer (buffer)
-  "Returns a list of links from an Org buffer."
+  "Return a list of links from an Org BUFFER."
   (with-current-buffer buffer
     (org-element-map (org-element-parse-buffer) 'link
       (lambda (link)
@@ -72,7 +75,7 @@ Valid states are 'visible, 'exists and 'none."
 
 
 (defun org-roam-build-backlinks ()
-  (interactive)
+  "Builds the backlink hash table, saving it into `org-roam-hash-backlinks'."
   (message "building backlinks...")
   (let ((backlinks (ht)))
     (-map (lambda (file)
@@ -92,8 +95,8 @@ Valid states are 'visible, 'exists and 'none."
     (setq org-roam-hash-backlinks backlinks)))
 
 (defun org-roam-new-file-named (slug)
-  "Create a new file named SLUG.
-SLUG is the short file name, without a path or a file extension."
+  "Create a new file named `SLUG'.
+`SLUG' is the short file name, without a path or a file extension."
   (interactive "sNew filename (without extension): ")
   (let ((file (deft-absolute-filename slug)))
     (unless (file-exists-p file)
@@ -107,40 +110,45 @@ SLUG is the short file name, without a path or a file extension."
   (interactive)
   (org-roam-new-file-named (format-time-string "%Y-%m-%d" (current-time))))
 
-(defun org-roam-update ()
+(defun org-roam-update (file)
   (interactive)
   "Show the backlinks for the current org-buffer."
-  (unless org-roam-hash-backlinks
-    (org-roam-build-backlinks))
-  (let* ((file (file-name-nondirectory (buffer-file-name (current-buffer))))
-         (backlinks (ht-get org-roam-hash-backlinks file)))
-    (with-current-buffer org-roam-buffer
-      (read-only-mode -1)
-      (erase-buffer)
-      (org-mode)
-      (make-local-variable 'org-return-follows-link)
-      (setq org-return-follows-link t)
-      (insert (format "Backlinks for %s:\n\n" file))
-      (-map (lambda (link)
-              (insert (format "- [[file:%s][%s]]\n" (expand-file-name link deft-directory) link))
-              ) backlinks)
-      (read-only-mode +1))))
+  (unless (string= org-roam-current-file file)
+    (unless org-roam-hash-backlinks
+      (org-roam-build-backlinks))
+    (let ((backlinks (ht-get org-roam-hash-backlinks file)))
+      (with-current-buffer org-roam-buffer
+        (read-only-mode -1)
+        (erase-buffer)
+        (org-mode)
+        (make-local-variable 'org-return-follows-link)
+        (setq org-return-follows-link t)
+        (insert (format "Backlinks for %s:\n\n" file))
+        (-map (lambda (link)
+                (insert (format "- [[file:%s][%s]]\n" (expand-file-name link deft-directory) link))
+                ) backlinks)
+        (read-only-mode +1))))
+  (setq org-roam-current-file file))
 
 (defun org-roam ()
   "Initialize org-roam."
   (interactive)
+  (add-hook 'post-command-hook 'org-roam-update-buffer)
   (pcase (org-roam-current-visibility)
-    ('visible (org-roam-update))
-    ('exists (org-roam-split))
-    ('none (org-roam-split))))
-
-(defun org-roam-split ()
-  (interactive)
-  (org-roam-setup-buffer)
-  (org-roam-update))
+    ('visible (delete-window (get-buffer-window org-roam-buffer)))
+    ('exists (org-roam-setup-buffer))
+    ('none (org-roam-setup-buffer))))
 
 (defun org-roam-setup-buffer ()
+  "Sets up the org-roam buffer at the side."
   (-> (get-buffer-create org-roam-buffer)
       (display-buffer-in-side-window `((side . ,org-roam-position)))))
+
+(defun org-roam-update-buffer ()
+  (interactive)
+  (when (and (eq major-mode 'org-mode)
+             (not (string= org-roam-current-file (buffer-file-name (current-buffer))))
+             (member (buffer-file-name (current-buffer)) (deft-find-all-files)))
+    (org-roam-update (file-name-nondirectory (buffer-file-name (current-buffer))))))
 
 (provide 'org-roam)
