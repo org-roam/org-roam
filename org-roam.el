@@ -1,6 +1,4 @@
 (require 'deft)
-(require 'dash)
-(require 'ht)
 (require 'async)
 
 (defgroup org-roam nil
@@ -87,13 +85,13 @@ Valid states are 'visible, 'exists and 'none."
 
 (defun org-roam-add-backlink (hash link_a link_b)
   "Adds a backlink link_a <- link_b to hash table `hash'."
-  (let* ((item (ht-get hash link_a))
+  (let* ((item (gethash link_a hash))
          (updated (if item
                       (if (member link_b item)
                           item
                         (cons link_b item))
                     (list link_b))))
-    (ht-set! hash link_a updated)))
+    (puthash link_a updated hash)))
 
 (defun org-roam-build-backlinks ()
   "Builds the backlink hash table, saving it into `org-roam-hash-backlinks'."
@@ -133,7 +131,7 @@ Valid states are 'visible, 'exists and 'none."
       (require 'org)
       (require 'org-element)
       ,(async-inject-variables "org-roam-")
-      (let ((backlinks (make-hash-table)))
+      (let ((backlinks (make-hash-table :test #'equal)))
         (mapcar (lambda (file)
                   (with-temp-buffer
                     (insert-file-contents file)
@@ -182,7 +180,7 @@ Valid states are 'visible, 'exists and 'none."
 (defun org-roam-update (file)
   "Show the backlinks for the current org-buffer."
   (unless (string= org-roam-current-file file)
-    (let ((backlinks (ht-get org-roam-hash-backlinks file)))
+    (let ((backlinks (gethash file org-roam-hash-backlinks)))
       (with-current-buffer org-roam-buffer
         (read-only-mode -1)
         (erase-buffer)
@@ -190,9 +188,9 @@ Valid states are 'visible, 'exists and 'none."
         (make-local-variable 'org-return-follows-link)
         (setq org-return-follows-link t)
         (insert (format "Backlinks for %s:\n\n" file))
-        (-map (lambda (link)
-                (insert (format "- [[file:%s][%s]]\n" (expand-file-name link deft-directory) link))
-                ) backlinks)
+        (mapcar (lambda (link)
+                  (insert (format "- [[file:%s][%s]]\n" (expand-file-name link org-roam-directory) link))
+                  ) backlinks)
         (read-only-mode +1))))
   (setq org-roam-current-file file))
 
@@ -216,8 +214,9 @@ Valid states are 'visible, 'exists and 'none."
 
 (defun org-roam-setup-buffer ()
   "Sets up the org-roam buffer at the side."
-  (-> (get-buffer-create org-roam-buffer)
-      (display-buffer-in-side-window `((side . ,org-roam-position)))))
+  (display-buffer-in-side-window
+   (get-buffer-create org-roam-buffer)
+   `((side . ,org-roam-position))))
 
 (defun org-roam-update-buffer ()
   (interactive)
