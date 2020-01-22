@@ -200,8 +200,9 @@ Valid states are 'visible, 'exists and 'none."
   "Initialize org-roam."
   (interactive)
   (add-hook 'post-command-hook 'org-roam-update-buffer)
-  (setq org-roam-update-timer
-        (run-with-timer 0 (* org-roam-update-interval 60) #'org-roam-build-backlinks-async))
+  (unless org-roam-update-timer
+    (setq org-roam-update-timer
+          (run-with-timer 0 (* org-roam-update-interval 60) #'org-roam-build-backlinks-async)))
   (pcase (org-roam-current-visibility)
     ('visible (delete-window (get-buffer-window org-roam-buffer)))
     ('exists (org-roam-setup-buffer))
