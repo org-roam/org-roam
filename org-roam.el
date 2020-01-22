@@ -44,7 +44,9 @@ Valid states are 'visible, 'exists and 'none."
   (interactive (list (completing-read "File: " (deft-find-all-files-no-prefix))))
   (let ((org-link-file-type 'relative))
     (org-insert-link nil (concat "file:" (concat deft-directory file-name))
-                     (concat org-roam-zettel-indicator (file-name-base file-name)))))
+                     (concat org-roam-zettel-indicator (file-name-base file-name)))
+    (org-roam-add-backlink org-roam-hash-backlinks
+                           file-name (file-name-nondirectory (buffer-file-name (current-buffer))))))
 
 (defun org-roam-get-linked-files ()
   "Show links to this file."
