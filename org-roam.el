@@ -1,3 +1,9 @@
+;;; org-roam.el --- Roam Research replica with Org-mode and Deft
+
+;;; Commentary:
+;;
+
+;;; Code:
 (require 'deft)
 (require 'async)
 
@@ -73,7 +79,7 @@ Valid states are 'visible, 'exists and 'none."
      3)))
 
 (defun org-roam-get-links-from-buffer (buffer)
-  "Return a list of links from an Org BUFFER."
+  "Return a list of links from BUFFER."
   (with-current-buffer buffer
     (org-element-map (org-element-parse-buffer) 'link
       (lambda (link)
@@ -84,7 +90,7 @@ Valid states are 'visible, 'exists and 'none."
             path))))))
 
 (defun org-roam-add-backlink (hash link_a link_b)
-  "Adds a backlink link_a <- link_b to hash table `hash'."
+  "Add a backlink LINK_A <- LINK_B to hash-table HASH."
   (let* ((item (gethash link_a hash))
          (updated (if item
                       (if (member link_b item)
@@ -92,35 +98,6 @@ Valid states are 'visible, 'exists and 'none."
                         (cons link_b item))
                     (list link_b))))
     (puthash link_a updated hash)))
-
-(defun org-roam-build-backlinks ()
-  "Builds the backlink hash table, saving it into `org-roam-hash-backlinks'."
-  (interactive)
-  (let ((backlinks (make-hash-table)))
-    (mapcar (lambda (file)
-              (with-temp-buffer
-                (insert-file-contents file)
-                (mapcar (lambda (link)
-                          (let* ((item (gethash link backlinks))
-                                 (updated (if item
-                                              (if (member (file-name-nondirectory
-                                                           file) item)
-                                                  item
-                                                (cons (file-name-nondirectory
-                                                       file) item))
-                                            (list (file-name-nondirectory
-                                                   file)))))
-                            (puthash link updated backlinks)))
-                        (with-current-buffer (current-buffer)
-                          (org-element-map (org-element-parse-buffer) 'link
-                            (lambda (link)
-                              (let ((type (org-element-property :type link))
-                                    (path (org-element-property :path link)))
-                                (when (and (string= type "file")
-                                           (string= (file-name-extension path) "org"))
-                                  path))))))))
-            (deft-find-all-files))
-    (setq org-roam-hash-backlinks backlinks)))
 
 (defun org-roam-build-backlinks-async ()
   "Builds the backlink hash table asychronously, saving it into `org-roam-hash-backlinks'."
@@ -173,12 +150,12 @@ Valid states are 'visible, 'exists and 'none."
     (deft-open-file file)))
 
 (defun org-roam-today ()
-  "Creates the file for today."
+  "Create the file for today."
   (interactive)
   (org-roam-new-file-named (format-time-string "%Y-%m-%d" (current-time))))
 
 (defun org-roam-update (file)
-  "Show the backlinks for the current org-buffer."
+  "Show the backlinks for given org file `FILE'."
   (unless (string= org-roam-current-file file)
     (let ((backlinks (gethash file org-roam-hash-backlinks)))
       (with-current-buffer org-roam-buffer
@@ -195,7 +172,10 @@ Valid states are 'visible, 'exists and 'none."
   (setq org-roam-current-file file))
 
 (defun org-roam ()
-  "Initialize org-roam."
+  "Initialize `org-roam'.
+1. Setup to auto-update `org-roam-buffer' with the correct information.
+2. Starts the timer to asynchronously build backlinks.
+3. Pops up the window `org-roam-buffer' accordingly."
   (interactive)
   (add-hook 'post-command-hook 'org-roam-update-buffer)
   (unless org-roam-update-timer
@@ -207,18 +187,24 @@ Valid states are 'visible, 'exists and 'none."
     ('none (org-roam-setup-buffer))))
 
 (defun org-roam-stop ()
+  "Cancels auto-building of backlinks."
   (interactive)
   (when org-roam-update-timer
     (cancel-timer org-roam-update-timer)
     (setq org-roam-update-timer nil)))
 
 (defun org-roam-setup-buffer ()
-  "Sets up the org-roam buffer at the side."
+  "Setup the `org-roam' buffer at the `org-roam-position'."
   (display-buffer-in-side-window
    (get-buffer-create org-roam-buffer)
    `((side . ,org-roam-position))))
 
 (defun org-roam-update-buffer ()
+  "Update `org-roam-buffer' with the necessary information.
+This needs to be quick/infrequent, because this is run at
+`post-command-hook'. This is achieved by only checking Org files
+that are amongst deft files, and `org-roam' not already
+displaying information for the correct file."
   (interactive)
   (when (and (eq major-mode 'org-mode)
              (not (string= org-roam-current-file (buffer-file-name (current-buffer))))
@@ -226,3 +212,5 @@ Valid states are 'visible, 'exists and 'none."
     (org-roam-update (file-name-nondirectory (buffer-file-name (current-buffer))))))
 
 (provide 'org-roam)
+
+;;; org-roam.el ends here
