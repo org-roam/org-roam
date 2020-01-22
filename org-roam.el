@@ -34,6 +34,9 @@ Valid values are
 (defvar org-roam-hash-backlinks nil
   "Cache containing backlinks for `org-roam' buffers.")
 
+(defvar org-roam-hash-content nil
+  "Cache containing backlink content for `org-roam' buffers.")
+
 (defvar org-roam-current-file nil
   "The current file being shown in the `org-roam' buffer.")
 
@@ -77,6 +80,23 @@ Valid states are 'visible, 'exists and 'none."
 	           files)
      search-term
      3)))
+(defun org-roam-linked-files-for (file &optional in)
+  "Show links to this file."
+  (let* ((search-term file)
+         (files deft-all-files)
+	       (tnames (mapcar #'file-truename files)))
+    (multi-occur
+     (mapcar (lambda (x)
+	             (with-current-buffer
+		               (or (get-file-buffer x) (find-file-noselect x))
+		             (widen)
+		             (current-buffer)))
+	           files)
+     search-term
+     3)
+    (with-current-buffer (or (get-buffer"*Occur*") (get-buffer-create "*org-roam-scratch"))
+      (buffer-substring (point-min) (point-max)))
+    ))
 
 (defun org-roam-get-links-from-buffer (buffer)
   "Return a list of links from BUFFER."
@@ -105,15 +125,21 @@ Valid states are 'visible, 'exists and 'none."
   (setq org-roam-files (deft-find-all-files))
   (async-start
    `(lambda ()
+      (load-file "~/.emacs.d/.local/straight/build/dash/dash.el")
       (require 'org)
+      (require 'dash)
       (require 'org-element)
       ,(async-inject-variables "org-roam-")
-      (let ((backlinks (make-hash-table :test #'equal)))
-        (mapcar (lambda (file)
+      (let ((backlinks (make-hash-table :test #'equal))
+            (content (make-hash-table :test #'equal)))
+                    (mapcar (lambda (file)
                   (with-temp-buffer
                     (insert-file-contents file)
-                    (mapcar (lambda (link)
-                              (let* ((item (gethash link backlinks))
+                    (mapcar (lambda (link-hl)
+                              (let* ((link (nth 0 link-hl))
+                                     (hl (nth 1 link-hl))
+                                     (item (gethash link backlinks))
+                                     (contents (gethash link content))
                                      (updated (if item
                                                   (if (member (file-name-nondirectory
                                                                file) item)
@@ -121,22 +147,58 @@ Valid states are 'visible, 'exists and 'none."
                                                     (cons (file-name-nondirectory
                                                            file) item))
                                                 (list (file-name-nondirectory
-                                                       file)))))
-                                (puthash link updated backlinks)))
+                                                       file))))
+                                     (updated-contents
+                                      (if contents
+                                          (if (member
+                                               (list (file-name-nondirectory file) hl)
+                                               contents)
+                                              contents
+                                            (cons (list (file-name-nondirectory file) hl) contents)
+                                            )
+                                        (list (list (file-name-nondirectory file) hl))
+                                        )))
+                                (puthash link updated backlinks)
+                                (puthash link updated-contents content)))
                             (with-current-buffer (current-buffer)
-                              (org-element-map (org-element-parse-buffer) 'link
-                                (lambda (link)
-                                  (let ((type (org-element-property :type link))
-                                        (path (org-element-property :path link)))
-                                    (when (and (string= type "file")
-                                               (string= (file-name-extension path) "org"))
-                                      path))))))))
-                org-roam-files)
-        (prin1-to-string backlinks)))
-   (lambda (backlinks)
-     (setq org-roam-hash-backlinks (car (read-from-string
-                                         backlinks)))
+
+                              (let* ( (lst (org-element-map (org-element-parse-buffer) 'link
+                                             (lambda (link)
+                                               (let* ((type (org-element-property :type link))
+                                                      (path (org-element-property :path link))
+                                                      (end (org-element-property :end link))
+                                                      )
+                                                 (when (and (string= type "file")
+                                                            (string= (file-name-extension path) "org"))
+                                                   (goto-char end)
+
+
+                                                   (let*
+                                                       ((heading (progn
+                                                                   (unless (org-before-first-heading-p)
+                                                                     (outline-back-to-heading))
+                                                                   (org-element-at-point) ))
+                                                        (end (if
+                                                                 (org-element-property :contents-end heading)
+                                                                 (org-element-property :contents-end heading)
+                                                               (org-element-property :end heading))))
+                                                     (list (file-name-nondirectory path)
+                                                           (buffer-substring
+                                                            (org-element-property :begin heading)
+                                                            end))))))
+                                             nil nil nil nil))
+                                      (res lst))
+                                (print res)
+                                res)))))
+                            org-roam-files)
+        (setq org-roam-hash-backlinks backlinks)
+        (setq org-roam-hash-content content)
+        (list backlinks content)))
+   (lambda (result)
+     (setq org-roam-hash-backlinks (nth 0 result))
+     (setq org-roam-hash-content (nth 1 result))
      (message "Org-roam backlinks built!"))))
+
 
 (defun org-roam-new-file-named (slug)
   "Create a new file named `SLUG'.
@@ -157,17 +219,46 @@ Valid states are 'visible, 'exists and 'none."
 (defun org-roam-update (file)
   "Show the backlinks for given org file `FILE'."
   (unless (string= org-roam-current-file file)
-    (let ((backlinks (gethash file org-roam-hash-backlinks)))
+    (let ((backlinks (gethash file org-roam-hash-backlinks))
+          (content (gethash file org-roam-hash-content)))
       (with-current-buffer org-roam-buffer
+        (setq-local inhibit-read-only t)
         (read-only-mode -1)
         (erase-buffer)
         (org-mode)
+        (org-indent-mode -1)
         (make-local-variable 'org-return-follows-link)
         (setq org-return-follows-link t)
         (insert (format "Backlinks for %s:\n\n" file))
         (mapcar (lambda (link)
                   (insert (format "- [[file:%s][%s]]\n" (expand-file-name link org-roam-directory) link))
+
                   ) backlinks)
+
+        (org-insert-heading)
+        (insert "Contents")
+	      (insert "\n")
+        (mapcar (lambda (content)
+
+                  (let ((beg) (end))
+                    (insert
+                     (format "** [[file:%s][%s]]"
+                             (expand-file-name (nth 0 content) org-roam-directory)
+                             (nth 0 content)))
+                    (insert "\n")
+                    (insert "#+BEGIN_SRC org")
+                    (insert "\n")
+                    (if (org-kill-is-subtree-p (nth 1 content))
+                        (org-paste-subtree 3 (nth 1 content))
+                      (insert (nth 1 content)))
+                    (org-end-of-subtree)
+                    (insert "\n\n")
+                    (insert "#+END_SRC")
+                    (insert "\n\n")
+                    )) content)
+        (goto-char (point-min))
+        (org-next-visible-heading 1)
+        (outline-hide-leaves)
         (read-only-mode +1))))
   (setq org-roam-current-file file))
 
@@ -186,6 +277,14 @@ Valid states are 'visible, 'exists and 'none."
     ('exists (org-roam-setup-buffer))
     ('none (org-roam-setup-buffer))))
 
+
+(defun org-roam-toggle-hide ()
+  (interactive)
+  (with-current-buffer org-roam-buffer
+    (save-excursion
+      (goto-char (point-min))
+      (org-next-visible-heading 1)
+      (org-cycle))))
 (defun org-roam-stop ()
   "Cancels auto-building of backlinks."
   (interactive)
@@ -206,10 +305,11 @@ This needs to be quick/infrequent, because this is run at
 that are amongst deft files, and `org-roam' not already
 displaying information for the correct file."
   (interactive)
-  (when (and (eq major-mode 'org-mode)
-             (not (string= org-roam-current-file (buffer-file-name (current-buffer))))
-             (member (buffer-file-name (current-buffer)) (deft-find-all-files)))
-    (org-roam-update (file-name-nondirectory (buffer-file-name (current-buffer))))))
+  (while-no-input (redisplay)
+                  (when (and (eq major-mode 'org-mode)
+                             (not (string= org-roam-current-file (buffer-file-name (current-buffer))))
+                             (member (buffer-file-name (current-buffer)) (deft-find-all-files)))
+                    (org-roam-update (file-name-nondirectory (buffer-file-name (current-buffer)))))))
 
 (provide 'org-roam)
 
