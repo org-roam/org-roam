@@ -73,6 +73,15 @@ Valid states are 'visible, 'exists and 'none."
                      (string= (file-name-extension path) "org"))
             path))))))
 
+(defun org-roam-add-backlink (hash link_a link_b)
+  "Adds a backlink link_a <- link_b to hash table `hash'."
+  (let* ((item (ht-get hash link_a))
+         (updated (if item
+                      (if (member link_b item)
+                          item
+                        (cons link_b item))
+                    (list link_b))))
+    (ht-set! hash link_a updated)))
 
 (defun org-roam-build-backlinks ()
   "Builds the backlink hash table, saving it into `org-roam-hash-backlinks'."
@@ -82,14 +91,10 @@ Valid states are 'visible, 'exists and 'none."
             (with-temp-buffer
               (insert-file-contents file)
               (-map (lambda (link)
-                      (let* ((item (ht-get backlinks link))
-                             (added-item (file-name-nondirectory file))
-                             (updated (if (and item)
-                                          (if (member added-item item)
-                                              item
-                                            (cons added-item item))
-                                        (list added-item))))
-                        (ht-set! backlinks link updated)))
+                      (org-roam-add-backlink
+                       backlinks
+                       link (file-name-nondirectory
+                             file)))
                     (org-roam-get-links-from-buffer (current-buffer)))))
           (deft-find-all-files))
     (setq org-roam-hash-backlinks backlinks)))
