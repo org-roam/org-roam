@@ -108,10 +108,20 @@ Valid states are 'visible, 'exists and 'none."
       (require 'org)
       (require 'org-element)
       ,(async-inject-variables "org-roam-")
-      (let ((backlinks (make-hash-table :test #'equal)))
+      (let ((backlinks (make-hash-table :test #'equal))
+            (org-roam-parse-content (lambda (file)
+                                      (with-temp-buffer
+                                        (insert-file-contents file)
+                                        (with-current-buffer (current-buffer)
+                                          (org-element-map (org-element-parse-buffer) 'link
+                                            (lambda (link)
+                                              (let ((type (org-element-property :type link))
+                                                    (path (org-element-property :path link)))
+                                                (when (and (string= type "file")
+                                                           (string= (file-name-extension path) "org"))
+                                                  path)))))))))
         (mapcar (lambda (file)
-                  (with-temp-buffer
-                    (insert-file-contents file)
+                  (let (paths (org-roam-parse-content file))
                     (mapcar (lambda (link)
                               (let* ((item (gethash link backlinks))
                                      (updated (if item
@@ -123,14 +133,7 @@ Valid states are 'visible, 'exists and 'none."
                                                 (list (file-name-nondirectory
                                                        file)))))
                                 (puthash link updated backlinks)))
-                            (with-current-buffer (current-buffer)
-                              (org-element-map (org-element-parse-buffer) 'link
-                                (lambda (link)
-                                  (let ((type (org-element-property :type link))
-                                        (path (org-element-property :path link)))
-                                    (when (and (string= type "file")
-                                               (string= (file-name-extension path) "org"))
-                                      path))))))))
+                            paths)))
                 org-roam-files)
         (prin1-to-string backlinks)))
    (lambda (backlinks)
@@ -206,10 +209,12 @@ This needs to be quick/infrequent, because this is run at
 that are amongst deft files, and `org-roam' not already
 displaying information for the correct file."
   (interactive)
-  (when (and (eq major-mode 'org-mode)
-             (not (string= org-roam-current-file (buffer-file-name (current-buffer))))
-             (member (buffer-file-name (current-buffer)) (deft-find-all-files)))
-    (org-roam-update (file-name-nondirectory (buffer-file-name (current-buffer))))))
+  (while-no-input
+    (redisplay)
+    (when (and (eq major-mode 'org-mode)
+               (not (string= org-roam-current-file (buffer-file-name (current-buffer))))
+               (member (buffer-file-name (current-buffer)) (deft-find-all-files)))
+      (org-roam-update (file-name-nondirectory (buffer-file-name (current-buffer)))))))
 
 (provide 'org-roam)
 
