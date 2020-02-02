@@ -170,22 +170,23 @@ Valid states are 'visible, 'exists and 'none."
 (defun org-roam-update (file)
   "Show the backlinks for given org file `FILE'."
   (unless (string= org-roam-current-file file)
-    (let ((backlinks (gethash file org-roam-hash-backlinks)))
-      (with-current-buffer org-roam-buffer
-        (read-only-mode -1)
-        (erase-buffer)
-        (org-mode)
-        (make-local-variable 'org-return-follows-link)
-        (setq org-return-follows-link t)
-        (insert (format "Backlinks for %s:\n\n" file))
-        (when backlinks
-          (maphash (lambda (link contents)
-                     (insert (format "* [[file:%s][%s]]\n" (expand-file-name link org-roam-directory) link))
-                     (dolist (content contents)
-                       (insert (format "\n\n%s\n\n" content))))
-                   backlinks))
-        (read-only-mode +1))))
-  (setq org-roam-current-file file))
+    (when org-roam-hash-backlinks
+      (let ((backlinks (gethash file org-roam-hash-backlinks)))
+        (with-current-buffer org-roam-buffer
+          (read-only-mode -1)
+          (erase-buffer)
+          (org-mode)
+          (make-local-variable 'org-return-follows-link)
+          (setq org-return-follows-link t)
+          (insert (format "Backlinks for %s:\n\n" file))
+          (when backlinks
+            (maphash (lambda (link contents)
+                       (insert (format "* [[file:%s][%s]]\n" (expand-file-name link org-roam-directory) link))
+                       (dolist (content contents)
+                         (insert (format "\n\n%s\n\n" content))))
+                     backlinks))
+          (read-only-mode +1)))
+      (setq org-roam-current-file file))))
 
 (defun org-roam ()
   "Initialize `org-roam'.
