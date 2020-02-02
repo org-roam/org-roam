@@ -108,6 +108,7 @@ Valid states are 'visible, 'exists and 'none."
    `(lambda ()
       (require 'org)
       (require 'org-element)
+      (require 'subr-x)                 ; temp-fix
       ,(async-inject-variables "org-roam-")
       (let ((backlinks (make-hash-table :test #'equal)))
         (mapcar (lambda (file)
