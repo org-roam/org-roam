@@ -6,6 +6,7 @@
 ;;; Code:
 (require 'deft)
 (require 'async)
+(require 'subr-x)
 
 (defgroup org-roam nil
   "Roam Research replica in Org-mode."
@@ -108,38 +109,47 @@ Valid states are 'visible, 'exists and 'none."
       (require 'org)
       (require 'org-element)
       ,(async-inject-variables "org-roam-")
-      (let ((backlinks (make-hash-table :test #'equal))
-            (org-roam-parse-content (lambda (file)
-                                      (with-temp-buffer
-                                        (insert-file-contents file)
-                                        (with-current-buffer (current-buffer)
-                                          (org-element-map (org-element-parse-buffer) 'link
-                                            (lambda (link)
-                                              (let ((type (org-element-property :type link))
-                                                    (path (org-element-property :path link)))
-                                                (when (and (string= type "file")
-                                                           (string= (file-name-extension path) "org"))
-                                                  path)))))))))
+      (let ((backlinks (make-hash-table :test #'equal)))
         (mapcar (lambda (file)
-                  (let (paths (org-roam-parse-content file))
-                    (mapcar (lambda (link)
-                              (let* ((item (gethash link backlinks))
-                                     (updated (if item
-                                                  (if (member (file-name-nondirectory
-                                                               file) item)
-                                                      item
-                                                    (cons (file-name-nondirectory
-                                                           file) item))
-                                                (list (file-name-nondirectory
-                                                       file)))))
-                                (puthash link updated backlinks)))
-                            paths)))
+                  (let ((items (with-temp-buffer
+                                 (insert-file-contents file)
+                                 (with-current-buffer (current-buffer)
+                                   (org-element-map (org-element-parse-buffer) 'link
+                                     (lambda (link)
+                                       (let ((type (org-element-property :type link))
+                                             (path (org-element-property :path link))
+                                             (start (org-element-property :begin link)))
+                                         (when (and (string= type "file")
+                                                    (string= (file-name-extension path) "org"))
+                                           (goto-char start)
+                                           (let* ((element (org-element-at-point))
+                                                  (content (buffer-substring
+                                                            (or (org-element-property :content-begin element)
+                                                                (org-element-property :begin element))
+                                                            (or (org-element-property :content-end element)
+                                                                (org-element-property :end element)))))
+                                             (list path (string-trim content)))))))))))
+                    (mapcar (lambda (item)
+                              (let* ((path (car item))
+                                     (content (cdr item))
+                                     (relative-file (file-name-nondirectory file))
+                                     (contents-hash (gethash path backlinks)))
+                                (if contents-hash
+                                    (if-let ((contents-list (gethash relative-file contents-hash)))
+                                        (let ((updated (cons content contents-list)))
+                                          (puthash relative-file updated contents-hash)
+                                          (puthash path contents-hash backlinks))
+                                      (puthash relative-file (list content) contents-hash)
+                                      (puthash path contents-hash backlinks))
+                                  (let ((contents-hash (make-hash-table :test #'equal)))
+                                    (puthash relative-file (list content) contents-hash)
+                                    (puthash path contents-hash backlinks)))))
+                            items)))
                 org-roam-files)
         (prin1-to-string backlinks)))
    (lambda (backlinks)
      (setq org-roam-hash-backlinks (car (read-from-string
-                                         backlinks)))
-     (message "Org-roam backlinks built!"))))
+                                         backlinks))))))
 
 (defun org-roam-new-file-named (slug)
   "Create a new file named `SLUG'.
@@ -168,9 +178,12 @@ Valid states are 'visible, 'exists and 'none."
         (make-local-variable 'org-return-follows-link)
         (setq org-return-follows-link t)
         (insert (format "Backlinks for %s:\n\n" file))
-        (mapcar (lambda (link)
-                  (insert (format "- [[file:%s][%s]]\n" (expand-file-name link org-roam-directory) link))
-                  ) backlinks)
+        (when backlinks
+          (maphash (lambda (link contents)
+                     (insert (format "* [[file:%s][%s]]\n" (expand-file-name link org-roam-directory) link))
+                     (dolist (content contents)
+                       (insert (format "\n\n%s\n\n" content))))
+                   backlinks))
         (read-only-mode +1))))
   (setq org-roam-current-file file))
 
@@ -209,12 +222,10 @@ This needs to be quick/infrequent, because this is run at
 that are amongst deft files, and `org-roam' not already
 displaying information for the correct file."
   (interactive)
-  (while-no-input
-    (redisplay)
-    (when (and (eq major-mode 'org-mode)
-               (not (string= org-roam-current-file (buffer-file-name (current-buffer))))
-               (member (buffer-file-name (current-buffer)) (deft-find-all-files)))
-      (org-roam-update (file-name-nondirectory (buffer-file-name (current-buffer)))))))
+  (when (and (eq major-mode 'org-mode)
+             (not (string= org-roam-current-file (buffer-file-name (current-buffer))))
+             (member (buffer-file-name (current-buffer)) (deft-find-all-files)))
+    (org-roam-update (file-name-nondirectory (buffer-file-name (current-buffer))))))
 
 (provide 'org-roam)
 
