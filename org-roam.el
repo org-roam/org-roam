@@ -60,9 +60,10 @@ Valid states are 'visible, 'exists and 'none."
                                       (mapcar (lambda (f)
                                                 (file-name-sans-extension f))
                                               (deft-find-all-files-no-prefix)))))
-  (let ((org-link-file-type 'relative)
-        (file-name (concat file-name ".org")))
-    (org-insert-link nil (concat "file:" (concat deft-directory file-name))
+  (let* ((org-link-file-type 'relative)
+         (file-name (concat file-name ".org"))
+         (file-path (file-relative-name (file-truename (concat deft-directory file-name)))))
+    (org-insert-link nil (concat "file:" file-path)
                      (concat org-roam-zettel-indicator (file-name-base file-name)))
     (org-roam-add-backlink org-roam-hash-backlinks
                            file-name (file-name-nondirectory (buffer-file-name (current-buffer))))))
