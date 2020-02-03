@@ -35,6 +35,9 @@ Valid values are
 (defvar org-roam-hash-backlinks nil
   "Cache containing backlinks for `org-roam' buffers.")
 
+(defvar org-roam-current-file nil
+  "Currently displayed file in `org-roam' buffer.")
+
 (defvar org-roam-update-interval 5
   "Number of minutes to run asynchronous update of backlinks.")
 
@@ -177,15 +180,17 @@ Valid states are 'visible, 'exists and 'none."
         (make-local-variable 'org-return-follows-link)
         (setq org-return-follows-link t)
         (insert (format "Backlinks for %s:\n\n" file))
-        (when backlinks
-          (maphash (lambda (link contents)
-                     (insert (format "* [[file:%s][%s]]\n" (expand-file-name link org-roam-directory) link))
-                     (dolist (content contents)
-                       (insert "#+BEGIN_SRC org\n")
-                       (insert content)
-                       (insert "\n#+END_SRC\n\n")))
-                   backlinks))
-        (org-global-cycle 1)))))
+        (if backlinks
+            (maphash (lambda (link contents)
+                       (insert (format "* [[file:%s][%s]]\n" (expand-file-name link org-roam-directory) link))
+                       (dolist (content contents)
+                         (insert "#+BEGIN_SRC org\n")
+                         (insert content)
+                         (insert "\n#+END_SRC\n\n")))
+                     backlinks)
+          (insert "No backlinks."))
+        (org-global-cycle 1))
+      (setq org-roam-current-file file))))
 
 (defun org-roam ()
   "Initialize `org-roam'.
@@ -223,8 +228,8 @@ This needs to be quick/infrequent, because this is run at
 that are amongst deft files, and `org-roam' not already
 displaying information for the correct file."
   (when (and (eq major-mode 'org-mode)
-             (member (buffer-file-name (current-buffer)) deft-all-files)
-             t)
+             (not (string= org-roam-current-file (buffer-file-name (current-buffer))))
+             (member (buffer-file-name (current-buffer)) deft-all-files))
     (org-roam-update (file-name-nondirectory (buffer-file-name (current-buffer))))))
 
 (provide 'org-roam)
