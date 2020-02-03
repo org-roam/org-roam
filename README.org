@@ -3,9 +3,8 @@
 Rudimentary Roam replica in Org-mode, with some utilities from Deft.
 
 
-#+DOWNLOADED: screenshot @ 2020-02-03 12:07:03
-[[file:images/readme/screenshot2020-02-03_12-07-03_.png]]
-
+#+DOWNLOADED: screenshot @ 2020-02-03 17:10:40
+[[file:images/readme/screenshot2020-02-03_17-10-40_.png]]
 
 ** Usage
 
