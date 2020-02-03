@@ -35,9 +35,6 @@ Valid values are
 (defvar org-roam-hash-backlinks nil
   "Cache containing backlinks for `org-roam' buffers.")
 
-(defvar org-roam-current-file nil
-  "The current file being shown in the `org-roam' buffer.")
-
 (defvar org-roam-update-interval 5
   "Number of minutes to run asynchronous update of backlinks.")
 
@@ -132,12 +129,12 @@ Valid states are 'visible, 'exists and 'none."
                                              (list path (string-trim content)))))))))))
                     (mapcar (lambda (item)
                               (let* ((path (car item))
-                                     (content (cdr item))
+                                     (content (cadr item))
                                      (relative-file (file-name-nondirectory file))
                                      (contents-hash (gethash path backlinks)))
                                 (if contents-hash
                                     (if-let ((contents-list (gethash relative-file contents-hash)))
-                                        (let ((updated (cons content contents-list)))
+                                        (let ((updated (append content contents-list)))
                                           (puthash relative-file updated contents-hash)
                                           (puthash path contents-hash backlinks))
                                       (puthash relative-file (list content) contents-hash)
@@ -151,7 +148,7 @@ Valid states are 'visible, 'exists and 'none."
    (lambda (backlinks)
      (setq org-roam-hash-backlinks (car (read-from-string
                                          backlinks)))
-     (org-roam-update org-roam-current-file t))))
+     (org-roam-update-buffer))))
 
 (defun org-roam-new-file-named (slug)
   "Create a new file named `SLUG'.
@@ -169,27 +166,26 @@ Valid states are 'visible, 'exists and 'none."
   (interactive)
   (org-roam-new-file-named (format-time-string "%Y-%m-%d" (current-time))))
 
-(defun org-roam-update (file &optional no-check)
+(defun org-roam-update (file)
   "Show the backlinks for given org file `FILE'."
-  (setq org-roam-current-file file)
-  (unless (or no-check
-              (string= org-roam-current-file file))
-    (when org-roam-hash-backlinks
-      (let ((backlinks (gethash file org-roam-hash-backlinks)))
-        (with-current-buffer org-roam-buffer
-          (read-only-mode -1)
-          (erase-buffer)
-          (org-mode)
-          (make-local-variable 'org-return-follows-link)
-          (setq org-return-follows-link t)
-          (insert (format "Backlinks for %s:\n\n" file))
-          (when backlinks
-            (maphash (lambda (link contents)
-                       (insert (format "* [[file:%s][%s]]\n" (expand-file-name link org-roam-directory) link))
-                       (dolist (content contents)
-                         (insert (format "\n\n%s\n\n" content))))
-                     backlinks))
-          (read-only-mode +1))))))
+  (when org-roam-hash-backlinks
+    (let ((backlinks (gethash file org-roam-hash-backlinks)))
+      (with-current-buffer org-roam-buffer
+        (read-only-mode -1)
+        (erase-buffer)
+        (org-mode)
+        (make-local-variable 'org-return-follows-link)
+        (setq org-return-follows-link t)
+        (insert (format "Backlinks for %s:\n\n" file))
+        (when backlinks
+          (maphash (lambda (link contents)
+                     (insert (format "* [[file:%s][%s]]\n" (expand-file-name link org-roam-directory) link))
+                     (dolist (content contents)
+                       (insert "#+BEGIN_SRC org\n")
+                       (insert content)
+                       (insert "\n#+END_SRC\n\n")))
+                   backlinks))
+        (org-global-cycle 1)))))
 
 (defun org-roam ()
   "Initialize `org-roam'.
@@ -209,6 +205,7 @@ Valid states are 'visible, 'exists and 'none."
 (defun org-roam-stop ()
   "Cancels auto-building of backlinks."
   (interactive)
+  (remove-hook 'post-command-hook 'org-roam-update-buffer)
   (when org-roam-update-timer
     (cancel-timer org-roam-update-timer)
     (setq org-roam-update-timer nil)))
@@ -225,10 +222,9 @@ This needs to be quick/infrequent, because this is run at
 `post-command-hook'. This is achieved by only checking Org files
 that are amongst deft files, and `org-roam' not already
 displaying information for the correct file."
-  (interactive)
   (when (and (eq major-mode 'org-mode)
-             (not (string= org-roam-current-file (buffer-file-name (current-buffer))))
-             (member (buffer-file-name (current-buffer)) (deft-find-all-files)))
+             (member (buffer-file-name (current-buffer)) deft-all-files)
+             t)
     (org-roam-update (file-name-nondirectory (buffer-file-name (current-buffer))))))
 
 (provide 'org-roam)
