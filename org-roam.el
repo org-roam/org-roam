@@ -235,6 +235,37 @@ displaying information for the correct file."
              (member (buffer-file-name (current-buffer)) deft-all-files))
     (org-roam-update (file-name-nondirectory (buffer-file-name (current-buffer))))))
 
+(defun org-roam-build-graph ()
+  "Build graphviz graph output."
+  (with-temp-buffer
+    (insert "digraph {\n")
+    (maphash
+     (lambda (link backlinks)
+       (maphash
+        (lambda (backlink content)
+          (insert (format "  %s -> %s;\n" (file-name-sans-extension link) (file-name-sans-extension backlink))))
+        backlinks))
+     org-roam-hash-backlinks)
+    (insert "}")
+    (buffer-string)))
+
+(defun org-roam-show-graph (&rest body)
+  (interactive)
+  (declare (indent 0))
+  (let ((buffer (get-buffer-create "*org-roam-graph*"))
+        (temp-dot (expand-file-name "graph.dot" temporary-file-directory))
+        (temp-graph (expand-file-name "graph.png" temporary-file-directory))
+        (graph (org-roam-build-graph)))
+    (with-temp-file temp-dot
+      (insert graph))
+    (shell-command (format "dot %s -Tpng -o %s" temp-dot temp-graph))
+    (with-current-buffer buffer
+      (let ((inhibit-read-only t))
+        (erase-buffer)
+        (insert-image-file temp-graph)
+        (image-mode)))
+    (switch-to-buffer-other-window buffer)))
+
 (provide 'org-roam)
 
 ;;; org-roam.el ends here
