@@ -1,14 +1,31 @@
-* Org-roam
+* Org-roam (⚠ Early in Development)
 
-Rudimentary Roam replica in org-mode. Dependent on deft being setup properly.
+Rudimentary Roam replica in Org-mode, with some utilities from Deft.
+
+
+#+DOWNLOADED: screenshot @ 2020-02-03 12:07:03
+[[file:images/readme/screenshot2020-02-03_12-07-03_.png]]
+
 
 ** Usage
 
 #+begin_src emacs-lisp
+  (use-package deft
+    :after org
+    :bind
+    ("C-c n d" . deft)
+    :custom
+    (deft-recursive t)
+    (deft-use-filter-string-for-filename t)
+    (deft-default-extension "org")
+    (deft-directory "~/org-files/")
+    (deft-use-filename-as-title t))
+
   (use-package org-roam
     :after deft org
     :straight (:host "github" :repo "jethrokuan/org-roam")
     :bind
-    ("C-c n l" . org-roam-get-linked-files)
+    ("C-c n l" . org-roam)
+    ("C-c n t" . org-roam-today)  
     ("C-c n i" . org-roam-insert))
 #+end_src
