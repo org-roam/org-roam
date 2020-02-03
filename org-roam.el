@@ -64,9 +64,7 @@ Valid states are 'visible, 'exists and 'none."
          (file-name (concat file-name ".org"))
          (file-path (file-relative-name (file-truename (concat deft-directory file-name)))))
     (org-insert-link nil (concat "file:" file-path)
-                     (concat org-roam-zettel-indicator (file-name-base file-name)))
-    (org-roam-add-backlink org-roam-hash-backlinks
-                           file-name (file-name-nondirectory (buffer-file-name (current-buffer))))))
+                     (concat org-roam-zettel-indicator (file-name-base file-name)))))
 
 (defun org-roam-get-linked-files ()
   "Show links to this file."
