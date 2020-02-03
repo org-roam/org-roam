@@ -56,8 +56,12 @@ Valid states are 'visible, 'exists and 'none."
 
 (defun org-roam-insert (file-name)
   "Find file `FILE-NAME', insert it as a link with the base file name as the link name."
-  (interactive (list (completing-read "File: " (deft-find-all-files-no-prefix))))
-  (let ((org-link-file-type 'relative))
+  (interactive (list (completing-read "File: "
+                                      (mapcar (lambda (f)
+                                                (file-name-sans-extension f))
+                                              (deft-find-all-files-no-prefix)))))
+  (let ((org-link-file-type 'relative)
+        (file-name (concat file-name ".org")))
     (org-insert-link nil (concat "file:" (concat deft-directory file-name))
                      (concat org-roam-zettel-indicator (file-name-base file-name)))
     (org-roam-add-backlink org-roam-hash-backlinks
