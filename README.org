@@ -1,7 +1,14 @@
 * Org-roam (⚠ Early in Development)
 
-Rudimentary Roam replica in Org-mode, with some utilities from Deft.
+Rudimentary [[https://roamresearch.com/][Roam]] replica in Org-mode. This brings the benefits of the
+graph-like note-taking tool to Org-mode, without custom Org syntax.
 
+Here's a screenshot of ~org-roam~. The ~org-roam~ buffer shows
+backlinks for the active org buffer in the left window, as well as the
+surrounding content in the backlink file.
+
+The backlink database is built asynchronously in the background, so
+there will be no significant slowdown.
 
 #+DOWNLOADED: screenshot @ 2020-02-03 17:10:40
 [[file:images/readme/screenshot2020-02-03_17-10-40_.png]]
