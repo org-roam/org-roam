@@ -150,7 +150,8 @@ Valid states are 'visible, 'exists and 'none."
         (prin1-to-string backlinks)))
    (lambda (backlinks)
      (setq org-roam-hash-backlinks (car (read-from-string
-                                         backlinks))))))
+                                         backlinks)))
+     (org-roam-update org-roam-current-file t))))
 
 (defun org-roam-new-file-named (slug)
   "Create a new file named `SLUG'.
@@ -168,9 +169,11 @@ Valid states are 'visible, 'exists and 'none."
   (interactive)
   (org-roam-new-file-named (format-time-string "%Y-%m-%d" (current-time))))
 
-(defun org-roam-update (file)
+(defun org-roam-update (file &optional no-check)
   "Show the backlinks for given org file `FILE'."
-  (unless (string= org-roam-current-file file)
+  (setq org-roam-current-file file)
+  (unless (or no-check
+              (string= org-roam-current-file file))
     (when org-roam-hash-backlinks
       (let ((backlinks (gethash file org-roam-hash-backlinks)))
         (with-current-buffer org-roam-buffer
@@ -186,8 +189,7 @@ Valid states are 'visible, 'exists and 'none."
                        (dolist (content contents)
                          (insert (format "\n\n%s\n\n" content))))
                      backlinks))
-          (read-only-mode +1)))
-      (setq org-roam-current-file file))))
+          (read-only-mode +1))))))
 
 (defun org-roam ()
   "Initialize `org-roam'.
