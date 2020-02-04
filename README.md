@@ -27,9 +27,10 @@ Here's a screenshot of `org-roam`. The `org-roam` buffer shows
 backlinks for the active org buffer in the left window, as well as the
 surrounding content in the backlink file. The backlink database is
 built asynchronously in the background, and is not noticeable to the
-end user.
+end user. The graph is generated from the link structure, and can be
+used to navigate to the respective files.
 
-![img](images/readme/screenshot2020-02-03_17-10-40_.png)
+![img](images/readme/screen.png)
 
 ## Installation
 
@@ -62,7 +63,8 @@ package manager.
       :bind
       ("C-c n l" . org-roam)
       ("C-c n t" . org-roam-today)
-      ("C-c n i" . org-roam-insert))
+      ("C-c n i" . org-roam-insert)
+      ("C-c n g" . org-roam-show-graph))
 ```
 
 If not using package.el, you can also clone it into your Emacs
