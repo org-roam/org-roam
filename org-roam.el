@@ -146,7 +146,7 @@ Valid states are 'visible, 'exists and 'none."
                                      (contents-hash (gethash path backlinks)))
                                 (if contents-hash
                                     (if-let ((contents-list (gethash relative-file contents-hash)))
-                                        (let ((updated (append content contents-list)))
+                                        (let ((updated (cons content contents-list)))
                                           (puthash relative-file updated contents-hash)
                                           (puthash path contents-hash backlinks))
                                       (puthash relative-file (list content) contents-hash)
