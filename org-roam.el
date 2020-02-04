@@ -185,7 +185,9 @@ Valid states are 'visible, 'exists and 'none."
       (with-current-buffer org-roam-buffer
         (let ((inhibit-read-only t))
           (erase-buffer)
-          (org-mode)
+          (when (not (eq major-mode 'org-mode))
+            (org-mode))
+
           (make-local-variable 'org-return-follows-link)
           (setq org-return-follows-link t)
           (insert (format "Backlinks for %s:\n\n" file))
