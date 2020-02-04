@@ -257,7 +257,9 @@ displaying information for the correct file."
      (lambda (link backlinks)
        (maphash
         (lambda (backlink content)
-          (insert (format " \"%s\" -> \"%s\";\n" (file-name-sans-extension link) (file-name-sans-extension backlink))))
+          (insert (format " \"%s\" -> \"%s\";\n"
+                          (file-name-sans-extension backlink)
+                          (file-name-sans-extension link))))
         backlinks))
      org-roam-hash-backlinks)
     (insert "}")
@@ -275,7 +277,7 @@ displaying information for the correct file."
         (graph (org-roam-build-graph)))
     (with-temp-file temp-dot
       (insert graph))
-    (call-process org-roam-graphviz-executable nil 0 nil (format "%s -Tsvg -o %s" temp-dot temp-graph))
+    (call-process org-roam-graphviz-executable nil 0 nil temp-dot "-Tsvg" "-o" temp-graph)
     (call-process org-roam-graph-viewer nil 0 nil temp-graph)))
 
 (provide 'org-roam)
