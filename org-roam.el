@@ -44,6 +44,12 @@ Valid values are
 (defvar org-roam-update-timer nil
   "Variable containing the timer that periodically updates the buffer.")
 
+(defvar org-roam-graph-viewer (executable-find "firefox")
+  "Path to executable for viewing SVG.")
+
+(defvar org-roam-graphviz-executable (executable-find "dot")
+  "Path to graphviz executable.")
+
 (define-inline org-roam-current-visibility ()
   "Return whether the current visibility state of the org-roam buffer.
 Valid states are 'visible, 'exists and 'none."
@@ -239,11 +245,17 @@ displaying information for the correct file."
   "Build graphviz graph output."
   (with-temp-buffer
     (insert "digraph {\n")
+    (mapcar (lambda (file)
+              (insert
+               (format "  \"%s\" [URL=\"roam://%s\"];\n"
+                       (file-name-nondirectory (file-name-sans-extension file))
+                       file)))
+            (deft-find-all-files))
     (maphash
      (lambda (link backlinks)
        (maphash
         (lambda (backlink content)
-          (insert (format "  %s -> %s;\n" (file-name-sans-extension link) (file-name-sans-extension backlink))))
+          (insert (format " \"%s\" -> \"%s\";\n" (file-name-sans-extension link) (file-name-sans-extension backlink))))
         backlinks))
      org-roam-hash-backlinks)
     (insert "}")
@@ -251,20 +263,18 @@ displaying information for the correct file."
 
 (defun org-roam-show-graph (&rest body)
   (interactive)
+  (unless org-roam-graphviz-executable
+    (setq org-roam-graphviz-executable (executable-find "dot")))
+  (unless org-roam-graphviz-executable
+    (user-error "Can't find graphviz executable. Please check if it is in your path"))
   (declare (indent 0))
-  (let ((buffer (get-buffer-create "*org-roam-graph*"))
-        (temp-dot (expand-file-name "graph.dot" temporary-file-directory))
-        (temp-graph (expand-file-name "graph.png" temporary-file-directory))
+  (let ((temp-dot (expand-file-name "graph.dot" temporary-file-directory))
+        (temp-graph (expand-file-name "graph.svg" temporary-file-directory))
         (graph (org-roam-build-graph)))
     (with-temp-file temp-dot
       (insert graph))
-    (shell-command (format "dot %s -Tpng -o %s" temp-dot temp-graph))
-    (with-current-buffer buffer
-      (let ((inhibit-read-only t))
-        (erase-buffer)
-        (insert-image-file temp-graph)
-        (image-mode)))
-    (switch-to-buffer-other-window buffer)))
+    (call-process org-roam-graphviz-executable nil 0 nil (format "%s -Tsvg -o %s" temp-dot temp-graph))
+    (call-process org-roam-graph-viewer nil 0 nil temp-graph)))
 
 (provide 'org-roam)
 
