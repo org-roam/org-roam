@@ -7,6 +7,7 @@
 (require 'deft)
 (require 'async)
 (require 'subr-x)
+(require 's)
 
 (defgroup org-roam nil
   "Roam Research replica in Org-mode."
@@ -31,6 +32,9 @@ Valid values are
 
 (defvar org-roam-buffer "*org-roam*"
   "Org-roam buffer name.")
+
+(defvar org-roam-preview-content-delimiter "------"
+  "Delimiter for preview content.")
 
 (defvar org-roam-hash-backlinks nil
   "Cache containing backlinks for `org-roam' buffers.")
@@ -187,17 +191,17 @@ Valid states are 'visible, 'exists and 'none."
           (erase-buffer)
           (when (not (eq major-mode 'org-mode))
             (org-mode))
-
           (make-local-variable 'org-return-follows-link)
           (setq org-return-follows-link t)
-          (insert (format "Backlinks for %s:\n\n" file))
+          (insert file)
+          (insert "\n\n* Backlinks\n")
           (if backlinks
               (maphash (lambda (link contents)
-                         (insert (format "* [[file:%s][%s]]\n" (expand-file-name link org-roam-directory) link))
+                         (insert (format "** [[file:%s][%s]]\n" (expand-file-name link org-roam-directory) link))
                          (dolist (content contents)
-                           (insert "#+BEGIN_SRC org\n")
-                           (insert content)
-                           (insert "\n#+END_SRC\n\n")))
+                           (insert (format "%s\n" org-roam-preview-content-delimiter))
+                           (insert (s-replace "\n" " " content))
+                           (insert (format "\n%s\n\n" org-roam-preview-content-delimiter))))
                        backlinks)
             (insert "No backlinks.")))
         (read-only-mode 1))
