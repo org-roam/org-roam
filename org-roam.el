@@ -275,7 +275,7 @@ displaying information for the correct file."
      (lambda (link-id backlinks)
        (maphash
         (lambda (backlink-id content)
-          (insert (format "  %s -> %s;\n" backlink-id link-id)))
+          (insert (format "  \"%s\" -> \"%s\";\n" backlink-id link-id)))
         backlinks))
      org-roam-cache)
     (insert "}")
