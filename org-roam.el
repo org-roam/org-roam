@@ -108,6 +108,8 @@ Valid states are 'visible, 'exists and 'none."
                                       (mapcar #'org-roam--get-id
                                               (org-roam--find-all-files)))))
   (let ((file-path (org-roam--get-file-path id)))
+    (unless (file-exists-p file-path)
+      (make-empty-file file-path))
     (insert (format "[[%s][%s]]"
                     (concat "file:" file-path)
                     (concat org-roam-zettel-indicator id)))))
