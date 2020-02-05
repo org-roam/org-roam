@@ -59,6 +59,7 @@ package manager.
 ```
 (use-package org-roam
       :after deft org
+      :hook (org-mode . org-roam-mode)
       :straight (:host "github" :repo "jethrokuan/org-roam")
       :bind
       ("C-c n l" . org-roam)
