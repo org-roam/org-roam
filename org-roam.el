@@ -254,9 +254,10 @@ displaying information for the correct file."
   (with-current-buffer (window-buffer)
     (when (and (eq major-mode 'org-mode)
                (get-buffer org-roam-buffer)
-               (not (string= org-roam-current-file-id (org-roam--get-id (file-truename (buffer-file-name (current-buffer))))))
-               (member (file-truename (buffer-file-name (current-buffer))) (org-roam--find-all-files)))
-      (org-roam-update (org-roam--get-id (buffer-file-name (current-buffer)))))))
+               (buffer-file-name (window-buffer))
+               (not (string= org-roam-current-file-id (org-roam--get-id (file-truename (buffer-file-name (window-buffer))))))
+               (member (file-truename (buffer-file-name (window-buffer))) (org-roam--find-all-files)))
+      (org-roam-update (org-roam--get-id (buffer-file-name (window-buffer)))))))
 
 (defun org-roam-build-graph ()
   "Build graphviz graph output."
