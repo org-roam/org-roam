@@ -146,7 +146,7 @@ Valid states are 'visible, 'exists and 'none."
                                                                   (org-element-property :begin element))
                                                               (or (org-element-property :content-end element)
                                                                   (org-element-property :end element)))))
-                                               (list file (string-trim content)))))))))))
+                                               (list path (string-trim content)))))))))))
                       (mapcar (lambda (item)
                                 (let* ((link-id (org-roam--get-id (car item)))
                                        (content (cadr item))
