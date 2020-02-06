@@ -233,13 +233,16 @@ Valid states are 'visible, 'exists and 'none."
 
 (defun org-roam--enable ()
   (add-hook 'post-command-hook #'org-roam--maybe-update-buffer -100 t)
-  (setq org-roam-update-timer
-        (run-with-timer 0 (* org-roam-update-interval 60) 'org-roam--build-cache-async))
+  (unless org-roam-update-timer
+    (setq org-roam-update-timer
+          (run-with-timer 0 (* org-roam-update-interval 60) 'org-roam--build-cache-async)))
   (org-roam--maybe-update-buffer))
 
 (defun org-roam--disable ()
   (remove-hook 'post-command-hook #'org-roam--maybe-update-buffer)
-  (cancel-timer org-roam-update-timer))
+  (when org-roam-update-timer
+    (cancel-timer org-roam-update-timer)
+    (setq org-roam-update-timer nil)))
 
 (defun org-roam--setup-buffer ()
   "Setup the `org-roam' buffer at the `org-roam-position'."
