@@ -104,7 +104,7 @@ Valid states are 'visible, 'exists and 'none."
     (file-truename org-roam-directory))))
 
 (defun org-roam-insert (id)
-  "Find file `FILE-NAME', insert it as a link with the base file name as the link name."
+  "Find `ID', and insert a relative org link to it at point."
   (interactive (list (completing-read "File: "
                                       (mapcar #'org-roam--get-id
                                               (org-roam--find-all-files)))))
@@ -114,6 +114,16 @@ Valid states are 'visible, 'exists and 'none."
     (insert (format "[[%s][%s]]"
                     (concat "file:" file-path)
                     (concat org-roam-zettel-indicator id)))))
+
+(defun org-roam-find-file (id)
+  "Find and open file with id `ID'."
+  (interactive (list (completing-read "File: "
+                                      (mapcar #'org-roam--get-id
+                                              (org-roam--find-all-files)))))
+  (let ((file-path (org-roam--get-file-path id)))
+    (unless (file-exists-p file-path)
+      (make-empty-file file-path))
+    (find-file file-path)))
 
 (defun org-roam--build-cache-async ()
   "Builds the cache asychronously, saving it into `org-roam-cache'."
