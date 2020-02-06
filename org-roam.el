@@ -1,26 +1,30 @@
-;;; org-roam.el --- Roam Research replica with Org-mode and Deft
+;;; org-roam.el --- Roam Research replica with Org-mode
 
 ;;; Commentary:
 ;;
 
 ;;; Code:
-(require 'deft)
 (require 'org-roam-polyfill)
 (require 'org-element)
 (require 'async)
 (require 'subr-x)
 (require 's)
 
+;;; Customizations
 (defgroup org-roam nil
   "Roam Research replica in Org-mode."
   :group 'org
   :prefix "org-roam-")
 
-(defvar org-roam-directory deft-directory
-  "Org roam directory.")
+(defcustom org-roam-directory (expand-file-name "~/org-roam/")
+  "Org-roam directory."
+  :type 'directory
+  :group 'org-roam)
 
 (defcustom org-roam-zettel-indicator "§"
-  "Indicator in front of a zettel.")
+  "Indicator in front of a zettel."
+  :type 'string
+  :group 'org-roam)
 
 (defcustom org-roam-position 'right
   "Position of `org-roam' buffer.
@@ -32,11 +36,34 @@ Valid values are
                  (const right))
   :group 'org-roam)
 
-(defvar org-roam-buffer "*org-roam*"
-  "Org-roam buffer name.")
+(defcustom org-roam-buffer "*org-roam*"
+  "Org-roam buffer name."
+  :type 'string
+  :group 'org-roam)
 
-(defvar org-roam-preview-content-delimiter "------"
-  "Delimiter for preview content.")
+(defcustom org-roam-preview-content-delimiter "------"
+  "Delimiter for preview content."
+  :type 'string
+  :group 'org-roam)
+
+(defcustom org-roam-update-interval 5
+  "Number of minutes to run asynchronous update of backlinks."
+  :type 'number
+  :group 'org-roam)
+
+(defcustom org-roam-graph-viewer (executable-find "firefox")
+  "Path to executable for viewing SVG."
+  :type 'string
+  :group 'org-roam)
+
+(defcustom org-roam-graphviz-executable (executable-find "dot")
+  "Path to graphviz executable."
+  :type 'string
+  :group 'org-roam)
+
+;;; Dynamic variables
+(defvar org-roam-update-timer nil
+  "Variable containing the timer that periodically updates the buffer.")
 
 (defvar org-roam-cache nil
   "Cache containing backlinks for `org-roam' buffers.")
@@ -44,28 +71,7 @@ Valid values are
 (defvar org-roam-current-file-id nil
   "Currently displayed file in `org-roam' buffer.")
 
-(defvar org-roam-update-interval 5
-  "Number of minutes to run asynchronous update of backlinks.")
-
-(defvar org-roam-update-timer nil
-  "Variable containing the timer that periodically updates the buffer.")
-
-(defvar org-roam-graph-viewer (executable-find "firefox")
-  "Path to executable for viewing SVG.")
-
-(defvar org-roam-graphviz-executable (executable-find "dot")
-  "Path to graphviz executable.")
-
-(define-inline org-roam-current-visibility ()
-  "Return whether the current visibility state of the org-roam buffer.
-Valid states are 'visible, 'exists and 'none."
-  (declare (side-effect-free t))
-  (inline-quote
-   (cond
-    ((get-buffer-window org-roam-buffer) 'visible)
-    ((get-buffer org-roam-buffer) 'exists)
-    (t 'none))))
-
+;;; Utilities
 (defun org-roam--find-files (dir)
   (if (file-exists-p dir)
       (let ((files (directory-files dir t "." t))
@@ -103,6 +109,7 @@ Valid states are 'visible, 'exists and 'none."
     (file-truename file-path)
     (file-truename org-roam-directory))))
 
+;;; Inserting org-roam links
 (defun org-roam-insert (id)
   "Find `ID', and insert a relative org link to it at point."
   (interactive (list (completing-read "File: "
@@ -115,6 +122,7 @@ Valid states are 'visible, 'exists and 'none."
                     (concat "file:" file-path)
                     (concat org-roam-zettel-indicator id)))))
 
+;;; Finding org-roam files
 (defun org-roam-find-file (id)
   "Find and open file with id `ID'."
   (interactive (list (completing-read "File: "
@@ -125,11 +133,11 @@ Valid states are 'visible, 'exists and 'none."
       (make-empty-file file-path))
     (find-file file-path)))
 
+;;; Building the org-roam cache (asynchronously)
 (defun org-roam--build-cache-async ()
   "Builds the cache asychronously, saving it into `org-roam-cache'."
   (interactive)
   (setq org-roam-files (org-roam--find-all-files))
-  (setq org-roam-directory deft-directory)
   (async-start
    `(lambda ()
       (require 'org)
@@ -188,7 +196,9 @@ Valid states are 'visible, 'exists and 'none."
                                 backlinks)))
      (org-roam--maybe-update-buffer))))
 
-(defun org-roam-new-file-named (slug)
+
+;;; Org-roam daily notes
+(defun org-roam--new-file-named (slug)
   "Create a new file named `SLUG'.
 `SLUG' is the short file name, without a path or a file extension."
   (interactive "sNew filename (without extension): ")
@@ -197,8 +207,10 @@ Valid states are 'visible, 'exists and 'none."
 (defun org-roam-today ()
   "Create the file for today."
   (interactive)
-  (org-roam-new-file-named (format-time-string "%Y-%m-%d" (current-time))))
+  (org-roam--new-file-named (format-time-string "%Y-%m-%d" (current-time))))
 
+
+;;; Org-roam buffer updates
 (defun org-global-props (&optional property buffer)
   "Get the plists of global org properties of current buffer."
   (unless property (setq property "PROPERTY"))
@@ -231,17 +243,35 @@ Valid states are 'visible, 'exists and 'none."
         (read-only-mode 1)))
     (setq org-roam-current-file-id link-id)))
 
+;;; Show/hide the org-roam buffer
+(define-inline org-roam--current-visibility ()
+  "Return whether the current visibility state of the org-roam buffer.
+Valid states are 'visible, 'exists and 'none."
+  (declare (side-effect-free t))
+  (inline-quote
+   (cond
+    ((get-buffer-window org-roam-buffer) 'visible)
+    ((get-buffer org-roam-buffer) 'exists)
+    (t 'none))))
+
+(defun org-roam--setup-buffer ()
+  "Setup the `org-roam' buffer at the `org-roam-position'."
+  (display-buffer-in-side-window
+   (get-buffer-create org-roam-buffer)
+   `((side . ,org-roam-position))))
+
 (defun org-roam ()
   "Initialize `org-roam'.
 1. Setup to auto-update `org-roam-buffer' with the correct information.
 2. Starts the timer to asynchronously build backlinks.
 3. Pops up the window `org-roam-buffer' accordingly."
   (interactive)
-  (pcase (org-roam-current-visibility)
+  (pcase (org-roam--current-visibility)
     ('visible (delete-window (get-buffer-window org-roam-buffer)))
     ('exists (org-roam--setup-buffer))
     ('none (org-roam--setup-buffer))))
 
+;;; The minor mode definition that updates the buffer
 (defun org-roam--enable ()
   (add-hook 'post-command-hook #'org-roam--maybe-update-buffer -100 t)
   (unless org-roam-update-timer
@@ -255,18 +285,10 @@ Valid states are 'visible, 'exists and 'none."
     (cancel-timer org-roam-update-timer)
     (setq org-roam-update-timer nil)))
 
-(defun org-roam--setup-buffer ()
-  "Setup the `org-roam' buffer at the `org-roam-position'."
-  (display-buffer-in-side-window
-   (get-buffer-create org-roam-buffer)
-   `((side . ,org-roam-position))))
-
 (defun org-roam--maybe-update-buffer ()
   "Update `org-roam-buffer' with the necessary information.
 This needs to be quick/infrequent, because this is run at
-`post-command-hook'. This is achieved by only checking Org files
-that are amongst deft files, and `org-roam' not already
-displaying information for the correct file."
+`post-command-hook'."
   (with-current-buffer (window-buffer)
     (when (and (eq major-mode 'org-mode)
                (get-buffer org-roam-buffer)
@@ -275,6 +297,14 @@ displaying information for the correct file."
                (member (file-truename (buffer-file-name (window-buffer))) (org-roam--find-all-files)))
       (org-roam-update (org-roam--get-id (buffer-file-name (window-buffer)))))))
 
+(define-minor-mode org-roam-mode
+  "Global minor mode to automatically update the org-roam buffer."
+  :require 'org-roam
+  (if org-roam-mode
+      (org-roam--enable)
+    (org-roam--disable)))
+
+;;; Building the Graphviz graph
 (defun org-roam-build-graph ()
   "Build graphviz graph output."
   (with-temp-buffer
@@ -310,13 +340,12 @@ displaying information for the correct file."
     (call-process org-roam-graphviz-executable nil 0 nil temp-dot "-Tsvg" "-o" temp-graph)
     (call-process org-roam-graph-viewer nil 0 nil temp-graph)))
 
-(define-minor-mode org-roam-mode
-  "Global minor mode to automatically update the org-roam buffer."
-  :require 'org-roam
-  (if org-roam-mode
-      (org-roam--enable)
-    (org-roam--disable)))
+
 
 (provide 'org-roam)
 
 ;;; org-roam.el ends here
+
+;; Local Variables:
+;; outline-regexp: ";;;+ "
+;; End:

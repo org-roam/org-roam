@@ -34,31 +34,14 @@ used to navigate to the respective files.
 
 ## Installation
 
-You should first have [deft](https://jblevins.org/projects/deft/)
-setup properly. This is only necessary now, and I intend to move away
-from it once it becomes clearer what org-roam should be presenting.
-
-```
-(use-package deft
-      :after org
-      :bind
-      ("C-c n d" . deft)
-      :custom
-      (deft-recursive t)
-      (deft-use-filter-string-for-filename t)
-      (deft-default-extension "org")
-      (deft-directory "~/org-files/")
-      (deft-use-filename-as-title t))
-```
-
-You can then setup org-roam as follows. The recommended method is
-using [use-package](https://github.com/jwiegley/use-package) and
+The recommended method is using
+[use-package](https://github.com/jwiegley/use-package) and
 [straight](https://github.com/raxod502/straight.el), or a similar
 package manager.
 
 ```
 (use-package org-roam
-      :after deft org
+      :after org
       :hook (org-mode . org-roam-mode)
       :straight (:host github :repo "jethrokuan/org-roam")
       :bind
@@ -85,15 +68,15 @@ git clone https://github.com/jethrokuan/org-roam/ ~/.emacs.d/elisp/org-roam
 
 Suppose you want to keep track of all the cool-facts you come across.
 
-1. Open a deft file and start writing about anything. You can choose
+1. Open a org-roam file and start writing about anything. You can choose
    to jot it in your daily file with `org-roam-today`, or pick a file
-   using the deft interface. Anywhere near your cool fact, run `M-x
+   using `org-roam-find-file`. Anywhere near your cool fact, run `M-x
    org-roam-insert` and choose the filename `cool-facts` and then keep
    on writing whatever you want. You can choose to create existing
    files, or create a new file if necessary.
 2. When you open `cool-facts.org` and call `org-roam` you will
    see all the places you have referenced this file. So all the
-   cool-facts you have writen anywhere in your deft database are
+   cool-facts you have writen anywhere in your database are
    easily accessible from here.
 3. Note that `cool-facts.org` doesn't even have to contain any
    content: it can just be used as an index page for referencing all
