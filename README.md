@@ -60,10 +60,11 @@ package manager.
 (use-package org-roam
       :after deft org
       :hook (org-mode . org-roam-mode)
-      :straight (:host "github" :repo "jethrokuan/org-roam")
+      :straight (:host github :repo "jethrokuan/org-roam")
       :bind
-      ("C-c n l" . org-roam)
+      ("C-c n l" . org-roam)      
       ("C-c n t" . org-roam-today)
+      ("C-c n f" . org-roam-find-file)
       ("C-c n i" . org-roam-insert)
       ("C-c n g" . org-roam-show-graph))
 ```
