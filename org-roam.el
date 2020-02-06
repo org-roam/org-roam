@@ -5,6 +5,7 @@
 
 ;;; Code:
 (require 'deft)
+(require 'org-roam-polyfill)
 (require 'org-element)
 (require 'async)
 (require 'subr-x)
