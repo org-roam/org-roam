@@ -44,6 +44,8 @@ package manager.
       :after org
       :hook (org-mode . org-roam-mode)
       :straight (:host github :repo "jethrokuan/org-roam")
+      :custom
+      (org-roam-directory "/path/to/org-files/")
       :bind
       ("C-c n l" . org-roam)      
       ("C-c n t" . org-roam-today)
