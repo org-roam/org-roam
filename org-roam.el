@@ -309,8 +309,7 @@ Valid states are 'visible, 'exists and 'none."
 This needs to be quick/infrequent, because this is run at
 `post-command-hook'."
   (with-current-buffer (window-buffer)
-    (when (and (eq major-mode 'org-mode)
-               (get-buffer org-roam-buffer)
+    (when (and (get-buffer org-roam-buffer)
                (buffer-file-name (window-buffer))
                (not (string= org-roam-current-file-id (org-roam--get-id (file-truename (buffer-file-name (window-buffer))))))
                (member (file-truename (buffer-file-name (window-buffer))) (org-roam--find-all-files)))
