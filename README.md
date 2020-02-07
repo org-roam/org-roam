@@ -84,10 +84,41 @@ Suppose you want to keep track of all the cool-facts you come across.
    content: it can just be used as an index page for referencing all
    cool facts that you've written across your notes!
 
-## Knowledge Bases using Org-Roam
+## Synergistic Packages in the Org Ecosystem
 
-- [Jethro Kuan](https://braindump.jethro.dev/)
-  ([Source](https://github.com/jethrokuan/braindump/tree/master/org))
+A number of packages work well combined with Org-roam:
+
+[Deft](https://jblevins.org/projects/deft/) provides a nice
+interface for browsing and filtering org-roam notes.
+
+```
+(use-package deft
+  :after org
+  :bind
+  ("C-c n d" . deft)
+  :custom
+  (deft-recursive t)
+  (deft-use-filter-string-for-filename t)
+  (deft-default-extension "org")
+  (deft-directory "/path/to/org-roam-files/")
+  (deft-use-filename-as-title t))
+```
+
+[Org-journal](https://github.com/bastibe/org-journal) is a more
+powerful alternative to the simple function `org-roam-today`, that
+provides better journaling capabilities, and a nice calendar interface
+to see all dated entries.
+
+```
+(use-package org-journal
+  :bind
+  ("C-c n j" . org-journal-new-entry)
+  :custom
+  (org-journal-date-prefix "#+TITLE: ")
+  (org-journal-file-format "%Y-%m-%d.org")
+  (org-journal-dir "/path/to/org-roam-files/")
+  (org-journal-date-format "%A, %d %B %Y"))
+```
 
 ## Similar Projects
 
@@ -98,6 +129,11 @@ The main differentiating factor of this project is that links are just
 natural file links, with no dependence on special tagging with e.g.
 org IDs, or special indicators. This constraints the utility of the
 project, but I have thus far found it sufficient.
+
+## Knowledge Bases using Org-Roam
+
+- [Jethro Kuan](https://braindump.jethro.dev/)
+  ([Source](https://github.com/jethrokuan/braindump/tree/master/org))
 
 ## Contributing
 
