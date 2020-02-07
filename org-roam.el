@@ -228,6 +228,16 @@ If called interactively, then PARENTS is non-nil."
   (interactive)
   (org-roam--new-file-named (format-time-string "%Y-%m-%d" (current-time))))
 
+(defun org-roam-tomorrow ()
+  "Create the file for tomorrow."
+  (interactive)
+  (org-roam--new-file-named (format-time-string "%Y-%m-%d" (time-add 86400 (current-time)))))
+
+(defun org-roam-date ()
+  "Create the file for any date using the calendar."
+  (interactive)
+  (let ((time (org-read-date nil 'to-time nil "Date:  ")))
+    (org-roam--new-file-named (format-time-string "%Y-%m-%d" time))))
 
 ;;; Org-roam buffer updates
 (defun org-global-props (&optional property buffer)
