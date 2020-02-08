@@ -106,7 +106,7 @@ If called interactively, then PARENTS is non-nil."
               (setq result (append (org-roam--find-files file) result))))
            ((and (file-readable-p file)
                  (string= (file-name-extension file) "org"))
-            (setq result (cons file result)))))
+            (setq result (cons (file-truename file) result)))))
         result)))
 
 (defun org-roam--find-all-files ()
