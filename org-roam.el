@@ -4,6 +4,7 @@
 ;;
 
 ;;; Code:
+(require 'dash)
 (require 'org-element)
 (require 'async)
 (require 'subr-x)
@@ -395,11 +396,27 @@ Valid states are 'visible, 'exists and 'none."
     ((get-buffer org-roam-buffer) 'exists)
     (t 'none))))
 
+(defun org-roam--set-width (width)
+  "Set the width of the org-roam buffer to `WIDTH'."
+  (unless (one-window-p)
+    (let ((window-size-fixed)
+          (w (max width window-min-width)))
+      (cond
+       ((> (window-width) w)
+        (shrink-window-horizontally  (- (window-width) w)))
+       ((< (window-width) w)
+        (enlarge-window-horizontally (- w (window-width))))))))
+
 (defun org-roam--setup-buffer ()
   "Setup the `org-roam' buffer at the `org-roam-position'."
-  (display-buffer-in-side-window
-   (get-buffer-create org-roam-buffer)
-   `((side . ,org-roam-position))))
+  (save-excursion
+    (-> (get-buffer-create org-roam-buffer)
+        (display-buffer-in-side-window
+         `((side . ,org-roam-position)))
+        (select-window))
+    (org-roam--set-width
+     (round (* (frame-width)
+               org-roam-buffer-width)))))
 
 (defun org-roam ()
   "Pops up the window `org-roam-buffer' accordingly."
