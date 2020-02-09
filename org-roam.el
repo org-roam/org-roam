@@ -36,13 +36,12 @@ Valid values are
                  (const right))
   :group 'org-roam)
 
-(defcustom org-roam-buffer "*org-roam*"
-  "Org-roam buffer name."
-  :type 'string
+(defcustom org-roam-buffer-width 0.33 "Width of `org-roam' buffer."
+  :type 'number
   :group 'org-roam)
 
-(defcustom org-roam-preview-content-delimiter "------"
-  "Delimiter for preview content."
+(defcustom org-roam-buffer "*org-roam*"
+  "Org-roam buffer name."
   :type 'string
   :group 'org-roam)
 
@@ -341,6 +340,18 @@ This is equivalent to removing the node from the graph."
           (org-element-property :value kw)))
       :first-match t)))
 
+(defun org-roam--extract-file-title (file)
+  "Extract the title from `FILE'."
+  (with-temp-buffer
+    (insert-file-contents file)
+    (org-element-map
+        (org-element-parse-buffer)
+        'keyword
+      (lambda (kw)
+        (when (string= (org-element-property :key kw) "TITLE")
+          (org-element-property :value kw)))
+      :first-match t)))
+
 (defun org-roam-update (file-path)
   "Show the backlinks for given org file for file at `FILE-PATH'."
   (when org-roam-cache
@@ -353,16 +364,23 @@ This is equivalent to removing the node from the graph."
             (org-mode))
           (make-local-variable 'org-return-follows-link)
           (setq org-return-follows-link t)
-          (insert title)
-          (insert "\n\n* Backlinks\n")
-          (when-let (backlinks (gethash file-path (plist-get org-roam-cache :backward)))
-            (maphash (lambda (file-from contents)
-                       (insert (format "** [[file:%s][%s]]\n" file-from (org-roam--get-id file-from)))
-                       (dolist (content contents)
-                         (insert (format "%s\n" org-roam-preview-content-delimiter))
-                         (insert (s-replace "\n" " " content))
-                         (insert (format "\n%s\n\n" org-roam-preview-content-delimiter))))
-                     backlinks)))
+          (insert
+           (propertize title 'font-lock-face 'org-document-title))
+          (if-let ((backlinks (gethash file-path (plist-get org-roam-cache :backward))))
+              (progn
+                (insert (format "\n\n* %d Backlinks\n"
+                                (hash-table-count backlinks)))
+                (maphash (lambda (file-from contents)
+                           (insert (format "** [[file:%s][%s]]\n"
+                                           file-from
+                                           (or (org-roam--extract-file-title file-from)
+                                               (org-roam--get-id file-from))))
+                           (dolist (content contents)
+                             (insert (concat (propertize (s-trim (s-replace "\n" " " content))
+                                                         'font-lock-face 'org-block)
+                                             "\n\n"))))
+                         backlinks))
+            (insert "\n\n* No backlinks!")))
         (read-only-mode 1)))
     (setq org-roam-current-file file-path)))
 
