@@ -8,6 +8,7 @@
 (require 'async)
 (require 'subr-x)
 (require 's)
+(require 'f)
 
 ;;; Customizations
 (defgroup org-roam nil
@@ -91,6 +92,12 @@ If called interactively, then PARENTS is non-nil."
   "Currently displayed file in `org-roam' buffer.")
 
 ;;; Utilities
+(defun org-roam--org-roam-file-p ()
+  "Predicate that returns true if file is part of org-roam system."
+  (and (buffer-file-name (current-buffer))
+       (f-child-of-p (file-truename (buffer-file-name (current-buffer)))
+                     org-roam-directory)))
+
 (defun org-roam--find-files (dir)
   (if (file-exists-p dir)
       (let ((files (directory-files dir t "." t))
@@ -301,6 +308,10 @@ Valid states are 'visible, 'exists and 'none."
     ('none (org-roam--setup-buffer))))
 
 ;;; The minor mode definition that updates the buffer
+(defun org-roam--maybe-enable ()
+  (when (org-roam--org-roam-file-p)
+    (org-roam--enable)))
+
 (defun org-roam--enable ()
   (add-hook 'post-command-hook #'org-roam--maybe-update-buffer -100 t)
   (unless org-roam-update-timer
@@ -320,16 +331,16 @@ This needs to be quick/infrequent, because this is run at
 `post-command-hook'."
   (with-current-buffer (window-buffer)
     (when (and (get-buffer org-roam-buffer)
-               (buffer-file-name (window-buffer))
-               (not (string= org-roam-current-file-id (org-roam--get-id (file-truename (buffer-file-name (window-buffer))))))
-               (member (file-truename (buffer-file-name (window-buffer))) (org-roam--find-all-files)))
+               (buffer-file-name (current-buffer))
+               (not (string= org-roam-current-file-id
+                             (org-roam--get-id (file-truename (buffer-file-name (current-buffer)))))))
       (org-roam-update (org-roam--get-id (buffer-file-name (window-buffer)))))))
 
 (define-minor-mode org-roam-mode
   "Global minor mode to automatically update the org-roam buffer."
   :require 'org-roam
   (if org-roam-mode
-      (org-roam--enable)
+      (org-roam--maybe-enable)
     (org-roam--disable)))
 
 ;;; Building the Graphviz graph
