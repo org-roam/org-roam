@@ -409,14 +409,15 @@ Valid states are 'visible, 'exists and 'none."
 
 (defun org-roam--setup-buffer ()
   "Setup the `org-roam' buffer at the `org-roam-position'."
-  (save-excursion
+  (let ((window (get-buffer-window)))
     (-> (get-buffer-create org-roam-buffer)
         (display-buffer-in-side-window
          `((side . ,org-roam-position)))
         (select-window))
     (org-roam--set-width
      (round (* (frame-width)
-               org-roam-buffer-width)))))
+               org-roam-buffer-width)))
+    (select-window window)))
 
 (defun org-roam ()
   "Pops up the window `org-roam-buffer' accordingly."
