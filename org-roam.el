@@ -4,6 +4,7 @@
 ;;
 
 ;;; Code:
+(require 'dash)
 (require 'org-element)
 (require 'async)
 (require 'subr-x)
@@ -36,13 +37,12 @@ Valid values are
                  (const right))
   :group 'org-roam)
 
-(defcustom org-roam-buffer "*org-roam*"
-  "Org-roam buffer name."
-  :type 'string
+(defcustom org-roam-buffer-width 0.33 "Width of `org-roam' buffer."
+  :type 'number
   :group 'org-roam)
 
-(defcustom org-roam-preview-content-delimiter "------"
-  "Delimiter for preview content."
+(defcustom org-roam-buffer "*org-roam*"
+  "Org-roam buffer name."
   :type 'string
   :group 'org-roam)
 
@@ -182,11 +182,12 @@ If `ABSOLUTE', return the absolute file-path. Else, return the relative file-pat
                                                                         (string= (file-name-extension path) "org"))
                                                                (goto-char start)
                                                                (let* ((element (org-element-at-point))
-                                                                      (content (buffer-substring
-                                                                                (or (org-element-property :content-begin element)
-                                                                                    (org-element-property :begin element))
-                                                                                (or (org-element-property :content-end element)
-                                                                                    (org-element-property :end element)))))
+                                                                      (content (or (org-element-property :raw-value element)
+                                                                                   (buffer-substring
+                                                                                    (or (org-element-property :content-begin element)
+                                                                                        (org-element-property :begin element))
+                                                                                    (or (org-element-property :content-end element)
+                                                                                        (org-element-property :end element))))))
                                                                  (list :from file
                                                                        :to (file-truename (expand-file-name path org-roam-directory))
                                                                        :content (string-trim content))))))))))
@@ -268,11 +269,12 @@ Before calling this function, `org-roam-cache' should be already populated."
                      (string= (file-name-extension path) "org"))
             (goto-char start)
             (let* ((element (org-element-at-point))
-                   (content (buffer-substring
-                             (or (org-element-property :content-begin element)
-                                 (org-element-property :begin element))
-                             (or (org-element-property :content-end element)
-                                 (org-element-property :end element)))))
+                   (content (or (org-element-property :raw-value element)
+                                (buffer-substring
+                                 (or (org-element-property :content-begin element)
+                                     (org-element-property :begin element))
+                                 (or (org-element-property :content-end element)
+                                     (org-element-property :end element))))))
               (list :from (file-truename (buffer-file-name (current-buffer)))
                     :to (file-truename (expand-file-name path org-roam-directory))
                     :content (string-trim content)))))))))
@@ -339,6 +341,18 @@ This is equivalent to removing the node from the graph."
           (org-element-property :value kw)))
       :first-match t)))
 
+(defun org-roam--extract-file-title (file)
+  "Extract the title from `FILE'."
+  (with-temp-buffer
+    (insert-file-contents file)
+    (org-element-map
+        (org-element-parse-buffer)
+        'keyword
+      (lambda (kw)
+        (when (string= (org-element-property :key kw) "TITLE")
+          (org-element-property :value kw)))
+      :first-match t)))
+
 (defun org-roam-update (file-path)
   "Show the backlinks for given org file for file at `FILE-PATH'."
   (when org-roam-cache
@@ -351,16 +365,23 @@ This is equivalent to removing the node from the graph."
             (org-mode))
           (make-local-variable 'org-return-follows-link)
           (setq org-return-follows-link t)
-          (insert title)
-          (insert "\n\n* Backlinks\n")
-          (when-let (backlinks (gethash file-path (plist-get org-roam-cache :backward)))
-            (maphash (lambda (file-from contents)
-                       (insert (format "** [[file:%s][%s]]\n" file-from (org-roam--get-id file-from)))
-                       (dolist (content contents)
-                         (insert (format "%s\n" org-roam-preview-content-delimiter))
-                         (insert (s-replace "\n" " " content))
-                         (insert (format "\n%s\n\n" org-roam-preview-content-delimiter))))
-                     backlinks)))
+          (insert
+           (propertize title 'font-lock-face 'org-document-title))
+          (if-let ((backlinks (gethash file-path (plist-get org-roam-cache :backward))))
+              (progn
+                (insert (format "\n\n* %d Backlinks\n"
+                                (hash-table-count backlinks)))
+                (maphash (lambda (file-from contents)
+                           (insert (format "** [[file:%s][%s]]\n"
+                                           file-from
+                                           (or (org-roam--extract-file-title file-from)
+                                               (org-roam--get-id file-from))))
+                           (dolist (content contents)
+                             (insert (concat (propertize (s-trim (s-replace "\n" " " content))
+                                                         'font-lock-face 'org-block)
+                                             "\n\n"))))
+                         backlinks))
+            (insert "\n\n* No backlinks!")))
         (read-only-mode 1)))
     (setq org-roam-current-file file-path)))
 
@@ -375,11 +396,27 @@ Valid states are 'visible, 'exists and 'none."
     ((get-buffer org-roam-buffer) 'exists)
     (t 'none))))
 
+(defun org-roam--set-width (width)
+  "Set the width of the org-roam buffer to `WIDTH'."
+  (unless (one-window-p)
+    (let ((window-size-fixed)
+          (w (max width window-min-width)))
+      (cond
+       ((> (window-width) w)
+        (shrink-window-horizontally  (- (window-width) w)))
+       ((< (window-width) w)
+        (enlarge-window-horizontally (- w (window-width))))))))
+
 (defun org-roam--setup-buffer ()
   "Setup the `org-roam' buffer at the `org-roam-position'."
-  (display-buffer-in-side-window
-   (get-buffer-create org-roam-buffer)
-   `((side . ,org-roam-position))))
+  (save-excursion
+    (-> (get-buffer-create org-roam-buffer)
+        (display-buffer-in-side-window
+         `((side . ,org-roam-position)))
+        (select-window))
+    (org-roam--set-width
+     (round (* (frame-width)
+               org-roam-buffer-width)))))
 
 (defun org-roam ()
   "Pops up the window `org-roam-buffer' accordingly."
