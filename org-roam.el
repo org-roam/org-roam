@@ -182,11 +182,12 @@ If `ABSOLUTE', return the absolute file-path. Else, return the relative file-pat
                                                                         (string= (file-name-extension path) "org"))
                                                                (goto-char start)
                                                                (let* ((element (org-element-at-point))
-                                                                      (content (buffer-substring
-                                                                                (or (org-element-property :content-begin element)
-                                                                                    (org-element-property :begin element))
-                                                                                (or (org-element-property :content-end element)
-                                                                                    (org-element-property :end element)))))
+                                                                      (content (or (org-element-property :raw-value element)
+                                                                                   (buffer-substring
+                                                                                    (or (org-element-property :content-begin element)
+                                                                                        (org-element-property :begin element))
+                                                                                    (or (org-element-property :content-end element)
+                                                                                        (org-element-property :end element))))))
                                                                  (list :from file
                                                                        :to (file-truename (expand-file-name path org-roam-directory))
                                                                        :content (string-trim content))))))))))
@@ -268,11 +269,12 @@ Before calling this function, `org-roam-cache' should be already populated."
                      (string= (file-name-extension path) "org"))
             (goto-char start)
             (let* ((element (org-element-at-point))
-                   (content (buffer-substring
-                             (or (org-element-property :content-begin element)
-                                 (org-element-property :begin element))
-                             (or (org-element-property :content-end element)
-                                 (org-element-property :end element)))))
+                   (content (or (org-element-property :raw-value element)
+                                (buffer-substring
+                                 (or (org-element-property :content-begin element)
+                                     (org-element-property :begin element))
+                                 (or (org-element-property :content-end element)
+                                     (org-element-property :end element))))))
               (list :from (file-truename (buffer-file-name (current-buffer)))
                     :to (file-truename (expand-file-name path org-roam-directory))
                     :content (string-trim content)))))))))
