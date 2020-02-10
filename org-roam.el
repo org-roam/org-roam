@@ -150,7 +150,7 @@ If `ABSOLUTE', return the absolute file-path. Else, return the relative file-pat
   (interactive (list (completing-read "File: "
                                       (mapcar #'org-roam--get-id
                                               (org-roam--find-all-files)))))
-  (let ((file-path (org-roam--get-file-path id)))
+  (let ((file-path (org-roam--get-file-path id t)))
     (unless (file-exists-p file-path)
       (make-empty-file file-path))
     (find-file file-path)))
@@ -311,7 +311,7 @@ This is equivalent to removing the node from the graph."
   "Create a new file named `SLUG'.
 `SLUG' is the short file name, without a path or a file extension."
   (interactive "sNew filename (without extension): ")
-  (find-file (org-roam--get-file-path slug)))
+  (find-file (org-roam--get-file-path slug t)))
 
 (defun org-roam-today ()
   "Create the file for today."
