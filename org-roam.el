@@ -151,6 +151,11 @@ If `ABSOLUTE', return the absolute file-path. Else, return the relative file-pat
     (file-truename file-path)
     (file-truename org-roam-directory))))
 
+(defun org-roam--get-title-or-id (file-path)
+  "Convert `FILE-PATH' to the file title, if it exists. Else, return the id."
+  (or (org-roam--get-title file-path)
+      (org-roam--get-id file-path)))
+
 ;;; Inserting org-roam links
 (defun org-roam-insert ()
   "Insert an org-roam link."
@@ -162,8 +167,7 @@ If `ABSOLUTE', return the absolute file-path. Else, return the relative file-pat
 (defun org-roam--insert-title ()
   "Find `ID', and insert a relative org link to it at point."
   (let* ((completions (mapcar (lambda (file)
-                                (list (or (org-roam--get-title file)
-                                          (org-roam--get-id file))
+                                (list (org-roam--get-title-or-id file)
                                       (org-roam--get-id file)))
                               (org-roam--find-all-files)))
          (title (completing-read "File: " completions))
@@ -441,8 +445,7 @@ This is equivalent to removing the node from the graph."
 (defun org-roam-update (file-path)
   "Show the backlinks for given org file for file at `FILE-PATH'."
   (when org-roam-cache
-    (let ((title (or (org-roam--extract-title (current-buffer))
-                     (org-roam--get-id file-path))))
+    (let ((buffer-title (org-roam--get-title-or-id file-path)))
       (with-current-buffer org-roam-buffer
         (let ((inhibit-read-only t))
           (erase-buffer)
@@ -451,7 +454,7 @@ This is equivalent to removing the node from the graph."
           (make-local-variable 'org-return-follows-link)
           (setq org-return-follows-link t)
           (insert
-           (propertize title 'font-lock-face 'org-document-title))
+           (propertize buffer-title 'font-lock-face 'org-document-title))
           (if-let ((backlinks (gethash file-path (plist-get org-roam-cache :backward))))
               (progn
                 (insert (format "\n\n* %d Backlinks\n"
@@ -459,8 +462,7 @@ This is equivalent to removing the node from the graph."
                 (maphash (lambda (file-from contents)
                            (insert (format "** [[file:%s][%s]]\n"
                                            file-from
-                                           (or (org-roam--extract-file-title file-from)
-                                               (org-roam--get-id file-from))))
+                                           (org-roam--get-title-or-id file-from)))
                            (dolist (content contents)
                              (insert (concat (propertize (s-trim (s-replace "\n" " " content))
                                                          'font-lock-face 'org-block)
