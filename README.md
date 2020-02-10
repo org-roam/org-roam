@@ -46,6 +46,7 @@ package manager.
       :straight (:host github :repo "jethrokuan/org-roam")
       :custom
       (org-roam-directory "/path/to/org-files/")
+      (org-roam-link-representation 'title) ;; or keep it as 'id
       :bind
       ("C-c n l" . org-roam)      
       ("C-c n t" . org-roam-today)
