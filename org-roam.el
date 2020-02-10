@@ -22,11 +22,6 @@
   :type 'directory
   :group 'org-roam)
 
-(defcustom org-roam-zettel-indicator "§"
-  "Indicator in front of a zettel."
-  :type 'string
-  :group 'org-roam)
-
 (defcustom org-roam-position 'right
   "Position of `org-roam' buffer.
 
@@ -45,6 +40,16 @@ Valid values are
  * title."
   :type '(choice (const id)
                  (const title))
+  :group 'org-roam)
+
+(defcustom org-roam-link-id-format "§%s"
+  "The format string used when inserting org-roam links that use id."
+  :type 'string
+  :group 'org-roam)
+
+(defcustom org-roam-link-title-format "%s"
+  "The format string used when inserting org-roam links that use their title."
+  :type 'string
   :group 'org-roam)
 
 (defcustom org-roam-buffer-width 0.33 "Width of `org-roam' buffer."
@@ -179,7 +184,7 @@ If `ABSOLUTE', return the absolute file-path. Else, return the relative file-pat
         (make-empty-file file-path))
       (insert (format "[[%s][%s]]"
                       (concat "file:" file-path)
-                      title)))))
+                      (format org-roam-link-title-format title))))))
 
 (defun org-roam--insert-id ()
   "Find `ID', and insert a relative org link to it at point."
@@ -189,7 +194,7 @@ If `ABSOLUTE', return the absolute file-path. Else, return the relative file-pat
       (make-empty-file file-path))
     (insert (format "[[%s][%s]]"
                     (concat "file:" file-path)
-                    (concat org-roam-zettel-indicator id)))))
+                    (format org-roam-link-id-format id)))))
 
 ;;; Finding org-roam files
 (defun org-roam-find-file ()
