@@ -136,18 +136,20 @@ it will return the title by loading the file."
 
 (defun org-roam--find-all-files ()
   "Return all org-roam files."
-  (org-roam--find-files org-roam-directory))
+  (org-roam--find-files (file-truename org-roam-directory)))
 
 (defun org-roam--get-file-path (id &optional absolute)
   "Convert identifier `ID' to file path.
 
 If `ABSOLUTE', return the absolute file-path. Else, return the relative file-path."
-  (let ((absolute-file-path (expand-file-name
-                             (concat id ".org")
-                             (file-truename org-roam-directory))))
+  (let ((absolute-file-path (file-truename
+                             (expand-file-name
+                              (concat id ".org")
+                              org-roam-directory))))
     (if absolute
         absolute-file-path
-      (file-relative-name absolute-file-path org-roam-directory))))
+      (file-relative-name absolute-file-path
+                          (file-truename org-roam-directory)))))
 
 (defun org-roam--get-id (file-path)
   "Convert `FILE-PATH' to the org-roam id."
