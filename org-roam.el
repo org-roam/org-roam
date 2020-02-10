@@ -99,6 +99,12 @@ If called interactively, then PARENTS is non-nil."
   "Currently displayed file in `org-roam' buffer.")
 
 ;;; Utilities
+(defun org-roam--ensure-cache-built ()
+  "Ensures that org-roam cache is built."
+  (unless org-roam-cache
+    (org-roam--build-cache-async)
+    (user-error "Your Org-Roam cache isn't built yet! Please wait")))
+
 (defun org-roam--org-roam-file-p ()
   "Return t if file is part of org-roam system, false otherwise."
   (and (buffer-file-name (current-buffer))
@@ -452,33 +458,33 @@ This is equivalent to removing the node from the graph."
 
 (defun org-roam-update (file-path)
   "Show the backlinks for given org file for file at `FILE-PATH'."
-  (when org-roam-cache
-    (let ((buffer-title (org-roam--get-title-or-id file-path)))
-      (with-current-buffer org-roam-buffer
-        (let ((inhibit-read-only t))
-          (erase-buffer)
-          (when (not (eq major-mode 'org-mode))
-            (org-mode))
-          (make-local-variable 'org-return-follows-link)
-          (setq org-return-follows-link t)
-          (insert
-           (propertize buffer-title 'font-lock-face 'org-document-title))
-          (if-let ((backlinks (gethash file-path (plist-get org-roam-cache :backward))))
-              (progn
-                (insert (format "\n\n* %d Backlinks\n"
-                                (hash-table-count backlinks)))
-                (maphash (lambda (file-from contents)
-                           (insert (format "** [[file:%s][%s]]\n"
-                                           file-from
-                                           (org-roam--get-title-or-id file-from)))
-                           (dolist (content contents)
-                             (insert (concat (propertize (s-trim (s-replace "\n" " " content))
-                                                         'font-lock-face 'org-block)
-                                             "\n\n"))))
-                         backlinks))
-            (insert "\n\n* No backlinks!")))
-        (read-only-mode 1)))
-    (setq org-roam-current-file file-path)))
+  (org-roam--ensure-cache-built)
+  (let ((buffer-title (org-roam--get-title-or-id file-path)))
+    (with-current-buffer org-roam-buffer
+      (let ((inhibit-read-only t))
+        (erase-buffer)
+        (when (not (eq major-mode 'org-mode))
+          (org-mode))
+        (make-local-variable 'org-return-follows-link)
+        (setq org-return-follows-link t)
+        (insert
+         (propertize buffer-title 'font-lock-face 'org-document-title))
+        (if-let ((backlinks (gethash file-path (plist-get org-roam-cache :backward))))
+            (progn
+              (insert (format "\n\n* %d Backlinks\n"
+                              (hash-table-count backlinks)))
+              (maphash (lambda (file-from contents)
+                         (insert (format "** [[file:%s][%s]]\n"
+                                         file-from
+                                         (org-roam--get-title-or-id file-from)))
+                         (dolist (content contents)
+                           (insert (concat (propertize (s-trim (s-replace "\n" " " content))
+                                                       'font-lock-face 'org-block)
+                                           "\n\n"))))
+                       backlinks))
+          (insert "\n\n* No backlinks!")))
+      (read-only-mode 1)))
+  (setq org-roam-current-file file-path))
 
 ;;; Show/hide the org-roam buffer
 (define-inline org-roam--current-visibility ()
@@ -567,6 +573,7 @@ This needs to be quick/infrequent, because this is run at
 ;;; Building the Graphviz graph
 (defun org-roam-build-graph ()
   "Build graphviz graph output."
+  (org-roam--ensure-cache-built)
   (let ((forward-links (plist-get org-roam-cache :forward)))
     (with-temp-buffer
       (insert "digraph {\n")
