@@ -37,6 +37,16 @@ Valid values are
                  (const right))
   :group 'org-roam)
 
+(defcustom org-roam-link-representation 'id
+  "The value used to represent an org-roam link.
+
+Valid values are
+ * file,
+ * title."
+  :type '(choice (const id)
+                 (const title))
+  :group 'org-roam)
+
 (defcustom org-roam-buffer-width 0.33 "Width of `org-roam' buffer."
   :type 'number
   :group 'org-roam)
@@ -90,6 +100,16 @@ If called interactively, then PARENTS is non-nil."
        (f-child-of-p (file-truename (buffer-file-name (current-buffer)))
                      org-roam-directory)))
 
+(defun org-roam--get-title (file)
+  "Return title of `FILE'.
+
+It first tries the cache. If the cache does not contain the file,
+it will return the title by loading the file."
+  (if-let ((titles-cache (plist-get org-roam-cache :titles)))
+      (or (gethash file titles-cache)
+          (org-roam--extract-file-title file))
+    (org-roam--extract-file-title file)))
+
 (defun org-roam--find-files (dir)
   "Return all org-roam files in `DIR'."
   (if (file-exists-p dir)
@@ -131,13 +151,40 @@ If `ABSOLUTE', return the absolute file-path. Else, return the relative file-pat
     (file-truename file-path)
     (file-truename org-roam-directory))))
 
+(defun org-roam--get-title-or-id (file-path)
+  "Convert `FILE-PATH' to the file title, if it exists. Else, return the id."
+  (or (org-roam--get-title file-path)
+      (org-roam--get-id file-path)))
+
 ;;; Inserting org-roam links
-(defun org-roam-insert (id)
+(defun org-roam-insert ()
+  "Insert an org-roam link."
+  (interactive)
+  (pcase org-roam-link-representation
+    ('id (org-roam--insert-id))
+    ('title (org-roam--insert-title))))
+
+(defun org-roam--insert-title ()
   "Find `ID', and insert a relative org link to it at point."
-  (interactive (list (completing-read "File: "
-                                      (mapcar #'org-roam--get-id
-                                              (org-roam--find-all-files)))))
-  (let ((file-path (org-roam--get-file-path id)))
+  (let* ((completions (mapcar (lambda (file)
+                                (list (org-roam--get-title-or-id file)
+                                      (org-roam--get-id file)))
+                              (org-roam--find-all-files)))
+         (title (completing-read "File: " completions))
+         (id (cadr (assoc title completions))))
+    (unless id
+      (setq id (read-string "Enter new file id: ")))
+    (let ((file-path (org-roam--get-file-path id)))
+      (unless (file-exists-p file-path)
+        (make-empty-file file-path))
+      (insert (format "[[%s][%s]]"
+                      (concat "file:" file-path)
+                      title)))))
+
+(defun org-roam--insert-id ()
+  "Find `ID', and insert a relative org link to it at point."
+  (let* ((id (completing-read "File: " (mapcar #'org-roam--get-id (org-roam--find-all-files))))
+         (file-path (org-roam--get-file-path id)))
     (unless (file-exists-p file-path)
       (make-empty-file file-path))
     (insert (format "[[%s][%s]]"
@@ -145,14 +192,17 @@ If `ABSOLUTE', return the absolute file-path. Else, return the relative file-pat
                     (concat org-roam-zettel-indicator id)))))
 
 ;;; Finding org-roam files
-(defun org-roam-find-file (id)
-  "Find and open file with id `ID'."
-  (interactive (list (completing-read "File: "
-                                      (mapcar #'org-roam--get-id
-                                              (org-roam--find-all-files)))))
-  (let ((file-path (org-roam--get-file-path id t)))
-    (unless (file-exists-p file-path)
-      (make-empty-file file-path))
+(defun org-roam-find-file ()
+  "Find and open an org-roam file."
+  (interactive)
+  (let* ((completions (mapcar (lambda (file)
+                                (list (org-roam--get-title-or-id file) file))
+                              (org-roam--find-all-files)))
+         (title-or-id (completing-read "File: " completions))
+         (file-path (cadr (assoc title-or-id completions))))
+    (unless file-path
+      (let ((id (read-string "Enter new file id: ")))
+        (setq file-path (org-roam--get-file-path id t))))
     (find-file file-path)))
 
 ;;; Building the org-roam cache (asynchronously)
@@ -169,60 +219,83 @@ If `ABSOLUTE', return the absolute file-path. Else, return the relative file-pat
       ,(async-inject-variables "org-roam-files")
       ,(async-inject-variables "org-roam-directory")
       (let ((backward-links (make-hash-table :test #'equal))
-            (forward-links (make-hash-table :test #'equal)))
-        (cl-flet* ((org-roam--parse-content (file) (with-temp-buffer
-                                                     (insert-file-contents file)
-                                                     (with-current-buffer (current-buffer)
-                                                       (org-element-map (org-element-parse-buffer) 'link
-                                                         (lambda (link)
-                                                           (let ((type (org-element-property :type link))
-                                                                 (path (org-element-property :path link))
-                                                                 (start (org-element-property :begin link)))
-                                                             (when (and (string= type "file")
-                                                                        (string= (file-name-extension path) "org"))
-                                                               (goto-char start)
-                                                               (let* ((element (org-element-at-point))
-                                                                      (content (or (org-element-property :raw-value element)
-                                                                                   (buffer-substring
-                                                                                    (or (org-element-property :content-begin element)
-                                                                                        (org-element-property :begin element))
-                                                                                    (or (org-element-property :content-end element)
-                                                                                        (org-element-property :end element))))))
-                                                                 (list :from file
-                                                                       :to (file-truename (expand-file-name path org-roam-directory))
-                                                                       :content (string-trim content))))))))))
-                   (org-roam--process-items (items) (mapcar
-                                                     (lambda (item)
-                                                       (pcase-let ((`(:from ,p-from :to ,p-to :content ,content) item))
-                                                         ;; Build forward-links
-                                                         (let ((links (gethash p-from forward-links)))
-                                                           (if links
-                                                               (puthash p-from
-                                                                        (if (member p-to links)
-                                                                            links
-                                                                          (cons p-to links)) forward-links)
-                                                             (puthash p-from (list p-to) forward-links)))
-                                                         ;; Build backward-links
-                                                         (let ((contents-hash (gethash p-to backward-links)))
-                                                           (if contents-hash
-                                                               (if-let ((contents-list (gethash p-from contents-hash)))
-                                                                   (let ((updated (cons content contents-list)))
-                                                                     (puthash p-from updated contents-hash)
-                                                                     (puthash p-to contents-hash backward-links))
-                                                                 (progn
-                                                                   (puthash p-from (list content) contents-hash)
-                                                                   (puthash p-to contents-hash backward-links)))
-                                                             (let ((contents-hash (make-hash-table :test #'equal)))
-                                                               (puthash p-from (list content) contents-hash)
-                                                               (puthash p-to contents-hash backward-links))))))
-                                                     items)))
+            (forward-links (make-hash-table :test #'equal))
+            (file-titles (make-hash-table :test #'equal)))
+        (cl-flet* ((org-roam--parse-content
+                    (file)
+                    (with-temp-buffer
+                      (insert-file-contents file)
+                      (with-current-buffer (current-buffer)
+                        (org-element-map (org-element-parse-buffer) 'link
+                          (lambda (link)
+                            (let ((type (org-element-property :type link))
+                                  (path (org-element-property :path link))
+                                  (start (org-element-property :begin link)))
+                              (when (and (string= type "file")
+                                         (string= (file-name-extension path) "org"))
+                                (goto-char start)
+                                (let* ((element (org-element-at-point))
+                                       (content (or (org-element-property :raw-value element)
+                                                    (buffer-substring
+                                                     (or (org-element-property :content-begin element)
+                                                         (org-element-property :begin element))
+                                                     (or (org-element-property :content-end element)
+                                                         (org-element-property :end element))))))
+                                  (list :from file
+                                        :to (file-truename (expand-file-name path org-roam-directory))
+                                        :content (string-trim content))))))))))
+                   (org-roam--process-items
+                    (items)
+                    (mapcar
+                     (lambda (item)
+                       (pcase-let ((`(:from ,p-from :to ,p-to :content ,content) item))
+                         ;; Build forward-links
+                         (let ((links (gethash p-from forward-links)))
+                           (if links
+                               (puthash p-from
+                                        (if (member p-to links)
+                                            links
+                                          (cons p-to links)) forward-links)
+                             (puthash p-from (list p-to) forward-links)))
+                         ;; Build backward-links
+                         (let ((contents-hash (gethash p-to backward-links)))
+                           (if contents-hash
+                               (if-let ((contents-list (gethash p-from contents-hash)))
+                                   (let ((updated (cons content contents-list)))
+                                     (puthash p-from updated contents-hash)
+                                     (puthash p-to contents-hash backward-links))
+                                 (progn
+                                   (puthash p-from (list content) contents-hash)
+                                   (puthash p-to contents-hash backward-links)))
+                             (let ((contents-hash (make-hash-table :test #'equal)))
+                               (puthash p-from (list content) contents-hash)
+                               (puthash p-to contents-hash backward-links))))))
+                     items))
+                   (org-roam--extract-title
+                    (buffer)
+                    (with-current-buffer buffer
+                      (org-element-map
+                          (org-element-parse-buffer)
+                          'keyword
+                        (lambda (kw)
+                          (when (string= (org-element-property :key kw) "TITLE")
+                            (org-element-property :value kw)))
+                        :first-match t))))
           (mapcar #'org-roam--process-items
-                  (mapcar #'org-roam--parse-content org-roam-files)))
+                  (mapcar #'org-roam--parse-content org-roam-files))
+          (mapcar (lambda (file)
+                    (with-temp-buffer
+                      (insert-file-contents file)
+                      (when-let ((title (org-roam--extract-title (current-buffer))))
+                        (puthash file title file-titles))))
+                  org-roam-files))
         (list
          :forward forward-links
-         :backward backward-links)))
+         :backward backward-links
+         :titles file-titles)))
    (lambda (cache)
-     (setq org-roam-cache cache))))
+     (setq org-roam-cache cache)
+     (message "Org-roam cache built!"))))
 
 (defun org-roam--insert-item (item)
   "Insert `ITEM' into `org-roam-cache'.
@@ -231,7 +304,8 @@ If `ABSOLUTE', return the absolute file-path. Else, return the relative file-pat
 
 Before calling this function, `org-roam-cache' should be already populated."
   (let ((forward-cache (plist-get org-roam-cache :forward))
-        (backward-cache (plist-get org-roam-cache :backward)))
+        (backward-cache (plist-get org-roam-cache :backward))
+        (title-cache (plist-get org-roam-cache :titles)))
     (pcase-let ((`(:from ,p-from :to ,p-to :content ,content) item))
       ;; Build forward-links
       (let ((links (gethash p-from forward-cache)))
@@ -255,7 +329,8 @@ Before calling this function, `org-roam-cache' should be already populated."
             (puthash p-from (list content) contents-hash)
             (puthash p-to contents-hash backward-cache))))
       (setq org-roam-cache (list :forward forward-cache
-                                 :backward backward-cache)))))
+                                 :backward backward-cache
+                                 :titles title-cache)))))
 
 (defun org-roam--parse-content ()
   "Parse the current buffer, and return a list of items for processing."
@@ -286,8 +361,9 @@ This is equivalent to removing the node from the graph."
   (with-current-buffer (current-buffer)
     (let ((file (file-truename (buffer-file-name buffer)))
           (forward-cache (plist-get org-roam-cache :forward))
-          (backward-cache (plist-get org-roam-cache :backward)))
-      ;; Setup 1: Remove all existing links for file
+          (backward-cache (plist-get org-roam-cache :backward))
+          (titles-cache (plist-get org-roam-cache :titles)))
+      ;; Step 1: Remove all existing links for file
       (when-let ((forward-links (gethash file forward-cache)))
         ;; Delete backlinks to file
         (dolist (link forward-links)
@@ -296,12 +372,28 @@ This is equivalent to removing the node from the graph."
             (puthash link backward-links backward-cache)))
         ;; Clean out forward links
         (remhash file forward-cache))
-      (setq org-roam-cache (list :forward forward-cache :backward backward-cache)))))
+      ;; Step 2: Remove from the title cache
+      (remhash file titles-cache)
+      (setq org-roam-cache (list :forward forward-cache
+                                 :backward backward-cache
+                                 :titles titles-cache)))))
+
+(defun org-roam--update-cache-title (buffer)
+  "Inserts the `TITLE' of file in buffer into the cache."
+  (when-let ((titles-cache (plist-get org-roam-cache :titles))
+             (title (org-roam--extract-title buffer)))
+    (puthash (file-truename (buffer-file-name buffer))
+             title
+             titles-cache)
+    (setq org-roam-cache (plist-put org-roam-cache :titles titles-cache))))
 
 (defun org-roam--update-cache ()
   "Update `org-roam-cache' for the current buffer file."
   (save-excursion
     (org-roam--clear-cache-for-buffer (current-buffer))
+    ;; Insert into title cache
+    (org-roam--update-cache-title (current-buffer))
+    ;; Insert new items
     (let ((items (org-roam--parse-content)))
       (dolist (item items)
         (org-roam--insert-item item)))))
@@ -356,8 +448,7 @@ This is equivalent to removing the node from the graph."
 (defun org-roam-update (file-path)
   "Show the backlinks for given org file for file at `FILE-PATH'."
   (when org-roam-cache
-    (let ((title (or (org-roam--extract-title (current-buffer))
-                     (org-roam--get-id file-path))))
+    (let ((buffer-title (org-roam--get-title-or-id file-path)))
       (with-current-buffer org-roam-buffer
         (let ((inhibit-read-only t))
           (erase-buffer)
@@ -366,7 +457,7 @@ This is equivalent to removing the node from the graph."
           (make-local-variable 'org-return-follows-link)
           (setq org-return-follows-link t)
           (insert
-           (propertize title 'font-lock-face 'org-document-title))
+           (propertize buffer-title 'font-lock-face 'org-document-title))
           (if-let ((backlinks (gethash file-path (plist-get org-roam-cache :backward))))
               (progn
                 (insert (format "\n\n* %d Backlinks\n"
@@ -374,8 +465,7 @@ This is equivalent to removing the node from the graph."
                 (maphash (lambda (file-from contents)
                            (insert (format "** [[file:%s][%s]]\n"
                                            file-from
-                                           (or (org-roam--extract-file-title file-from)
-                                               (org-roam--get-id file-from))))
+                                           (org-roam--get-title-or-id file-from)))
                            (dolist (content contents)
                              (insert (concat (propertize (s-trim (s-replace "\n" " " content))
                                                          'font-lock-face 'org-block)
@@ -457,6 +547,7 @@ This needs to be quick/infrequent, because this is run at
   (with-current-buffer (window-buffer)
     (when (and (get-buffer org-roam-buffer)
                (buffer-file-name (current-buffer))
+               (file-exists-p (file-truename (buffer-file-name (current-buffer))))
                (not (string= org-roam-current-file
                              (file-truename (buffer-file-name (current-buffer))))))
       (org-roam-update (file-truename (buffer-file-name (window-buffer)))))))
