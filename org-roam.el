@@ -192,14 +192,17 @@ If `ABSOLUTE', return the absolute file-path. Else, return the relative file-pat
                     (concat org-roam-zettel-indicator id)))))
 
 ;;; Finding org-roam files
-(defun org-roam-find-file (id)
-  "Find and open file with id `ID'."
-  (interactive (list (completing-read "File: "
-                                      (mapcar #'org-roam--get-id
-                                              (org-roam--find-all-files)))))
-  (let ((file-path (org-roam--get-file-path id t)))
-    (unless (file-exists-p file-path)
-      (make-empty-file file-path))
+(defun org-roam-find-file ()
+  "Find and open an org-roam file."
+  (interactive)
+  (let* ((completions (mapcar (lambda (file)
+                                (list (org-roam--get-title-or-id file) file))
+                              (org-roam--find-all-files)))
+         (title-or-id (completing-read "File: " completions))
+         (file-path (cadr (assoc title-or-id completions))))
+    (unless file-path
+      (let ((id (read-string "Enter new file id: ")))
+        (setq file-path (org-roam--get-file-path id t))))
     (find-file file-path)))
 
 ;;; Building the org-roam cache (asynchronously)
@@ -544,6 +547,7 @@ This needs to be quick/infrequent, because this is run at
   (with-current-buffer (window-buffer)
     (when (and (get-buffer org-roam-buffer)
                (buffer-file-name (current-buffer))
+               (file-exists-p (file-truename (buffer-file-name (current-buffer))))
                (not (string= org-roam-current-file
                              (file-truename (buffer-file-name (current-buffer))))))
       (org-roam-update (file-truename (buffer-file-name (window-buffer)))))))
