@@ -37,6 +37,16 @@ Valid values are
                  (const right))
   :group 'org-roam)
 
+(defcustom org-roam-link-representation 'id
+  "The value used to represent an org-roam link.
+
+Valid values are
+ * file,
+ * title."
+  :type '(choice (const id)
+                 (const title))
+  :group 'org-roam)
+
 (defcustom org-roam-buffer-width 0.33 "Width of `org-roam' buffer."
   :type 'number
   :group 'org-roam)
@@ -90,6 +100,16 @@ If called interactively, then PARENTS is non-nil."
        (f-child-of-p (file-truename (buffer-file-name (current-buffer)))
                      org-roam-directory)))
 
+(defun org-roam--get-title (file)
+  "Return title of `FILE'.
+
+It first tries the cache. If the cache does not contain the file,
+it will return the title by loading the file."
+  (if-let ((titles-cache (plist-get org-roam-cache :titles)))
+      (or (gethash file titles-cache)
+          (org-roam--extract-file-title file))
+    (org-roam--extract-file-title file)))
+
 (defun org-roam--find-files (dir)
   "Return all org-roam files in `DIR'."
   (if (file-exists-p dir)
@@ -132,12 +152,35 @@ If `ABSOLUTE', return the absolute file-path. Else, return the relative file-pat
     (file-truename org-roam-directory))))
 
 ;;; Inserting org-roam links
-(defun org-roam-insert (id)
+(defun org-roam-insert ()
+  "Insert an org-roam link."
+  (interactive)
+  (pcase org-roam-link-representation
+    ('id (org-roam--insert-id))
+    ('title (org-roam--insert-title))))
+
+(defun org-roam--insert-title ()
   "Find `ID', and insert a relative org link to it at point."
-  (interactive (list (completing-read "File: "
-                                      (mapcar #'org-roam--get-id
-                                              (org-roam--find-all-files)))))
-  (let ((file-path (org-roam--get-file-path id)))
+  (let* ((completions (mapcar (lambda (file)
+                                (list (or (org-roam--get-title file)
+                                          (org-roam--get-id file))
+                                      (org-roam--get-id file)))
+                              (org-roam--find-all-files)))
+         (title (completing-read "File: " completions))
+         (id (cadr (assoc title completions))))
+    (unless id
+      (setq id (read-string "Enter new file id: ")))
+    (let ((file-path (org-roam--get-file-path id)))
+      (unless (file-exists-p file-path)
+        (make-empty-file file-path))
+      (insert (format "[[%s][%s]]"
+                      (concat "file:" file-path)
+                      title)))))
+
+(defun org-roam--insert-id ()
+  "Find `ID', and insert a relative org link to it at point."
+  (let* ((id (completing-read "File: " (mapcar #'org-roam--get-id (org-roam--find-all-files))))
+         (file-path (org-roam--get-file-path id)))
     (unless (file-exists-p file-path)
       (make-empty-file file-path))
     (insert (format "[[%s][%s]]"
