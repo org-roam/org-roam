@@ -161,6 +161,18 @@ If `ABSOLUTE', return the absolute file-path. Else, return the relative file-pat
   (or (org-roam--get-title file-path)
       (org-roam--get-id file-path)))
 
+;;; Creating org-roam files
+(defun org-roam--new-file-named (slug)
+  "Create a new file named `SLUG'.
+`SLUG' is the short file name, without a path or a file extension."
+  (interactive "sNew filename (without extension): ")
+  (find-file (org-roam--get-file-path slug t)))
+
+(defun org-roam-new-file ()
+  "Quickly create a new file, using the current timestamp."
+  (interactive)
+  (org-roam--new-file-named (format-time-string "%Y-%m-%d-%H%M%S" (current-time))))
+
 ;;; Inserting org-roam links
 (defun org-roam-insert ()
   "Insert an org-roam link."
@@ -404,12 +416,6 @@ This is equivalent to removing the node from the graph."
         (org-roam--insert-item item)))))
 
 ;;; Org-roam daily notes
-(defun org-roam--new-file-named (slug)
-  "Create a new file named `SLUG'.
-`SLUG' is the short file name, without a path or a file extension."
-  (interactive "sNew filename (without extension): ")
-  (find-file (org-roam--get-file-path slug t)))
-
 (defun org-roam-today ()
   "Create the file for today."
   (interactive)
