@@ -565,7 +565,7 @@ Valid states are 'visible, 'exists and 'none."
   (unless org-roam-cache-initialized
     (org-roam--build-cache-async))
   (add-hook 'post-command-hook #'org-roam--maybe-update-buffer nil t)
-  (add-hook 'after-save-hook #'org-roam--update-cache))
+  (add-hook 'after-save-hook #'org-roam--update-cache nil t))
 
 (defun org-roam--disable ()
   "Disable org-roam updating for file.
