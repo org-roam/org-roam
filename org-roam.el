@@ -92,8 +92,17 @@ If called interactively, then PARENTS is non-nil."
     (write-region "" nil filename nil 0)))
 
 ;;; Dynamic variables
-(defvar org-roam-cache nil
-  "Cache containing backlinks for `org-roam' buffers.")
+(defvar org-roam-cache-initialized nil
+  "Boolean value indicating whether the cache is initialized.")
+
+(defvar org-roam-forward-links-cache (make-hash-table :test #'equal)
+  "Cache containing forward links.")
+
+(defvar org-roam-backward-links-cache (make-hash-table :test #'equal)
+  "Cache containing backward-links.")
+
+(defvar org-roam-titles-cache (make-hash-table :test #'equal)
+  "Cache containing titles for org-roam files.")
 
 (defvar org-roam-current-file nil
   "Currently displayed file in `org-roam' buffer.")
@@ -101,7 +110,7 @@ If called interactively, then PARENTS is non-nil."
 ;;; Utilities
 (defun org-roam--ensure-cache-built ()
   "Ensures that org-roam cache is built."
-  (unless org-roam-cache
+  (unless org-roam-cache-initialized
     (org-roam--build-cache-async)
     (user-error "Your Org-Roam cache isn't built yet! Please wait")))
 
@@ -116,10 +125,8 @@ If called interactively, then PARENTS is non-nil."
 
 It first tries the cache. If the cache does not contain the file,
 it will return the title by loading the file."
-  (if-let ((titles-cache (plist-get org-roam-cache :titles)))
-      (or (gethash file titles-cache)
-          (org-roam--extract-file-title file))
-    (org-roam--extract-file-title file)))
+  (or (gethash file org-roam-titles-cache)
+      (org-roam--extract-file-title file)))
 
 (defun org-roam--find-files (dir)
   "Return all org-roam files in `DIR'."
@@ -232,7 +239,7 @@ If `ABSOLUTE', return the absolute file-path. Else, return the relative file-pat
 
 ;;; Building the org-roam cache (asynchronously)
 (defun org-roam--build-cache-async ()
-  "Builds the cache asychronously, saving it into `org-roam-cache'."
+  "Builds the cache asychronously, saving it into the org-roam caches."
   (interactive)
   (async-start
    `(lambda ()
@@ -336,43 +343,40 @@ If `ABSOLUTE', return the absolute file-path. Else, return the relative file-pat
          :backward backward-links
          :titles file-titles)))
    (lambda (cache)
-     (setq org-roam-cache cache)
+     (setq org-roam-forward-links-cache (plist-get cache :forward))
+     (setq org-roam-backward-links-cache (plist-get cache :backward))
+     (setq org-roam-titles-cache (plist-get cache :titles))
+     (setq org-roam-cache-initialized t)
      (message "Org-roam cache built!"))))
 
 (defun org-roam--insert-item (item)
-  "Insert `ITEM' into `org-roam-cache'.
+  "Insert `ITEM' into org-roam caches.
 
 `ITEM' is of the form: (:from from-path :to to-path :content preview-content)
 
 Before calling this function, `org-roam-cache' should be already populated."
-  (let ((forward-cache (plist-get org-roam-cache :forward))
-        (backward-cache (plist-get org-roam-cache :backward))
-        (title-cache (plist-get org-roam-cache :titles)))
-    (pcase-let ((`(:from ,p-from :to ,p-to :content ,content) item))
-      ;; Build forward-links
-      (let ((links (gethash p-from forward-cache)))
-        (if links
-            (puthash p-from
-                     (if (member p-to links)
-                         links
-                       (cons p-to links)) forward-cache)
-          (puthash p-from (list p-to) forward-cache)))
-      ;; Build backward-links
-      (let ((contents-hash (gethash p-to backward-cache)))
-        (if contents-hash
-            (if-let ((contents-list (gethash p-from contents-hash)))
-                (let ((updated (cons content contents-list)))
-                  (puthash p-from updated contents-hash)
-                  (puthash p-to contents-hash backward-cache))
-              (progn
-                (puthash p-from (list content) contents-hash)
-                (puthash p-to contents-hash backward-cache)))
-          (let ((contents-hash (make-hash-table :test #'equal)))
-            (puthash p-from (list content) contents-hash)
-            (puthash p-to contents-hash backward-cache))))
-      (setq org-roam-cache (list :forward forward-cache
-                                 :backward backward-cache
-                                 :titles title-cache)))))
+  (pcase-let ((`(:from ,p-from :to ,p-to :content ,content) item))
+    ;; Build forward-links
+    (let ((links (gethash p-from org-roam-forward-links-cache)))
+      (if links
+          (puthash p-from
+                   (if (member p-to links)
+                       links
+                     (cons p-to links)) org-roam-forward-links-cache)
+        (puthash p-from (list p-to) org-roam-forward-links-cache)))
+    ;; Build backward-links
+    (let ((contents-hash (gethash p-to org-roam-backward-links-cache)))
+      (if contents-hash
+          (if-let ((contents-list (gethash p-from contents-hash)))
+              (let ((updated (cons content contents-list)))
+                (puthash p-from updated contents-hash)
+                (puthash p-to contents-hash org-roam-backward-links-cache))
+            (progn
+              (puthash p-from (list content) contents-hash)
+              (puthash p-to contents-hash org-roam-backward-links-cache)))
+        (let ((contents-hash (make-hash-table :test #'equal)))
+          (puthash p-from (list content) contents-hash)
+          (puthash p-to contents-hash org-roam-backward-links-cache))))))
 
 (defun org-roam--parse-content ()
   "Parse the current buffer, and return a list of items for processing."
@@ -401,36 +405,28 @@ Before calling this function, `org-roam-cache' should be already populated."
 
 This is equivalent to removing the node from the graph."
   (with-current-buffer (current-buffer)
-    (let ((file (file-truename (buffer-file-name buffer)))
-          (forward-cache (plist-get org-roam-cache :forward))
-          (backward-cache (plist-get org-roam-cache :backward))
-          (titles-cache (plist-get org-roam-cache :titles)))
+    (let ((file (file-truename (buffer-file-name buffer))))
       ;; Step 1: Remove all existing links for file
-      (when-let ((forward-links (gethash file forward-cache)))
+      (when-let ((forward-links (gethash file org-roam-forward-links-cache)))
         ;; Delete backlinks to file
         (dolist (link forward-links)
-          (when-let ((backward-links (gethash link backward-cache)))
+          (when-let ((backward-links (gethash link org-roam-backward-links-cache)))
             (remhash file backward-links)
-            (puthash link backward-links backward-cache)))
+            (puthash link backward-links org-roam-backward-links-cache)))
         ;; Clean out forward links
-        (remhash file forward-cache))
+        (remhash file org-roam-forward-links-cache))
       ;; Step 2: Remove from the title cache
-      (remhash file titles-cache)
-      (setq org-roam-cache (list :forward forward-cache
-                                 :backward backward-cache
-                                 :titles titles-cache)))))
+      (remhash file org-roam-titles-cache))))
 
 (defun org-roam--update-cache-title (buffer)
   "Inserts the `TITLE' of file in buffer into the cache."
-  (when-let ((titles-cache (plist-get org-roam-cache :titles))
-             (title (org-roam--extract-title buffer)))
+  (when-let ((title (org-roam--extract-title buffer)))
     (puthash (file-truename (buffer-file-name buffer))
              title
-             titles-cache)
-    (setq org-roam-cache (plist-put org-roam-cache :titles titles-cache))))
+             org-roam-titles-cache)))
 
 (defun org-roam--update-cache ()
-  "Update `org-roam-cache' for the current buffer file."
+  "Update org-roam caches for the current buffer file."
   (save-excursion
     (org-roam--clear-cache-for-buffer (current-buffer))
     ;; Insert into title cache
@@ -438,7 +434,9 @@ This is equivalent to removing the node from the graph."
     ;; Insert new items
     (let ((items (org-roam--parse-content)))
       (dolist (item items)
-        (org-roam--insert-item item)))))
+        (org-roam--insert-item item)))
+    ;; Rerender buffer
+    (org-roam--update-buffer)))
 
 ;;; Org-roam daily notes
 (defun org-roam-today ()
@@ -494,7 +492,7 @@ This is equivalent to removing the node from the graph."
         (setq org-return-follows-link t)
         (insert
          (propertize buffer-title 'font-lock-face 'org-document-title))
-        (if-let ((backlinks (gethash file-path (plist-get org-roam-cache :backward))))
+        (if-let ((backlinks (gethash file-path org-roam-backward-links-cache)))
             (progn
               (insert (format "\n\n* %d Backlinks\n"
                               (hash-table-count backlinks)))
@@ -564,7 +562,7 @@ Valid states are 'visible, 'exists and 'none."
 
 1. If the cache does not yet exist, build it asynchronously.
 2. Setup hooks for updating the cache, and the org-roam buffer."
-  (unless org-roam-cache
+  (unless org-roam-cache-initialized
     (org-roam--build-cache-async))
   (add-hook 'post-command-hook #'org-roam--maybe-update-buffer nil t)
   (add-hook 'after-save-hook #'org-roam--update-cache))
@@ -586,7 +584,11 @@ This needs to be quick/infrequent, because this is run at
                (file-exists-p (file-truename (buffer-file-name (current-buffer))))
                (not (string= org-roam-current-file
                              (file-truename (buffer-file-name (current-buffer))))))
-      (org-roam-update (file-truename (buffer-file-name (window-buffer)))))))
+      (org-roam--update-buffer))))
+
+(defun org-roam--update-buffer ()
+  "Update `orgo-roam-buffer'."
+  (org-roam-update (file-truename (buffer-file-name (window-buffer)))))
 
 (define-minor-mode org-roam-mode
   "Global minor mode to automatically update the org-roam buffer."
@@ -599,25 +601,24 @@ This needs to be quick/infrequent, because this is run at
 (defun org-roam-build-graph ()
   "Build graphviz graph output."
   (org-roam--ensure-cache-built)
-  (let ((forward-links (plist-get org-roam-cache :forward)))
-    (with-temp-buffer
-      (insert "digraph {\n")
-      (mapcar (lambda (file)
-                (insert
-                 (format "  \"%s\" [URL=\"roam://%s\"];\n"
-                         (org-roam--get-id file)
-                         file)))
-              (org-roam--find-all-files))
-      (maphash
-       (lambda (from-link to-links)
-         (dolist (to-link to-links)
-           (insert (format "  \"%s\" -> \"%s\";\n"
-                           (org-roam--get-id from-link)
-                           (org-roam--get-id to-link))))
-         )
-       forward-links)
-      (insert "}")
-      (buffer-string))))
+  (with-temp-buffer
+    (insert "digraph {\n")
+    (mapcar (lambda (file)
+              (insert
+               (format "  \"%s\" [URL=\"roam://%s\"];\n"
+                       (org-roam--get-id file)
+                       file)))
+            (org-roam--find-all-files))
+    (maphash
+     (lambda (from-link to-links)
+       (dolist (to-link to-links)
+         (insert (format "  \"%s\" -> \"%s\";\n"
+                         (org-roam--get-id from-link)
+                         (org-roam--get-id to-link))))
+       )
+     org-roam-forward-links-cache)
+    (insert "}")
+    (buffer-string)))
 
 (defun org-roam-show-graph ()
   "Generate the org-roam graph in SVG format, and display it using `org-roam-graph-viewer'."
