@@ -588,7 +588,8 @@ This needs to be quick/infrequent, because this is run at
 
 (defun org-roam--update-buffer ()
   "Update `orgo-roam-buffer'."
-  (org-roam-update (file-truename (buffer-file-name (window-buffer)))))
+  (when-let ((buffer-file-name (buffer-file-name (window-buffer))))
+    (org-roam-update (file-truename buffer-file-name))))
 
 (define-minor-mode org-roam-mode
   "Global minor mode to automatically update the org-roam buffer."
