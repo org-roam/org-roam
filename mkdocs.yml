@@ -7,6 +7,7 @@ nav:
 - Home: index.md
 - A Tour of Org-Roam: tour.md
 - Installation: installation.md
+- Configuration: configuration.md
 - Ecosystem: ecosystem.md
 - Similar Packages: comparison.md
 markdown_extensions:
