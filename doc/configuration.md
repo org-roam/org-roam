@@ -22,6 +22,12 @@ containing all your Org files:
 Every Org file, at any level of nesting, within `/path/to/org/` is
 considered part of the Org-roam ecosystem.
 
+## Org-roam Buffer
+
+The Org-roam buffer defaults to popping up from the right. You may
+choose to set it to pop up from the left with `(setq
+org-roam-buffer-position 'left)`.
+
 ## Org-roam Files
 
 These customization options revolve around the Org files created and
@@ -61,4 +67,4 @@ commands. The title is specified via the `#+TITLE:` attribute,
 typically near the top of the file. The option
 `org-roam-autopopulate-title` defaults to `t`. When true, the title
 attribute is automatically inserted into the files created via
-org-roam commands. Setting it to `nil` will disable this behaviour.
+Org-roam commands. Setting it to `nil` will disable this behaviour.

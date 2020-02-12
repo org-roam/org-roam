@@ -22,10 +22,10 @@
   "Path to Org-roam files.
 
 All Org files, at any level of nesting, is considered part of the Org-roam."
-  :type 'directory
+  :type 'directoy
   :group 'org-roam)
 
-(defcustom org-roam-position 'right
+(defcustom org-roam-buffer-position 'right
   "Position of `org-roam' buffer.
 
 Valid values are
@@ -555,11 +555,11 @@ Valid states are 'visible, 'exists and 'none."
         (enlarge-window-horizontally (- w (window-width))))))))
 
 (defun org-roam--setup-buffer ()
-  "Setup the `org-roam' buffer at the `org-roam-position'."
+  "Setup the `org-roam' buffer at the `org-roam-buffer-position'."
   (let ((window (get-buffer-window)))
     (-> (get-buffer-create org-roam-buffer)
         (display-buffer-in-side-window
-         `((side . ,org-roam-position)))
+         `((side . ,org-roam-buffer-position)))
         (select-window))
     (org-roam--set-width
      (round (* (frame-width)
