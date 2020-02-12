@@ -199,16 +199,22 @@ If not provided, derive the title from the file name."
       "\n\n")
      nil file nil)))
 
+(defun org-roam--make-file (file-path &optional title)
+  "Create an org-roam file at FILE-PATH, optionally setting the TITLE attribute."
+  (if (file-exists-p file-path)
+      (error (format "Aborting, file already exists at " file-path))
+    (if org-roam-autopopulate-title
+        (org-roam--populate-title file-path title)
+      (make-empty-file file-path))))
+
 (defun org-roam--new-file-named (slug)
   "Create a new file named `SLUG'.
 `SLUG' is the short file name, without a path or a file extension."
   (interactive "sNew filename (without extension): ")
-  (let ((file (org-roam--get-file-path slug t)))
-    (unless (file-exists-p file)
-      (if org-roam-autopopulate-title
-          (org-roam--populate-title file)
-        (make-empty-file file)))
-    (find-file file)))
+  (let ((file-path (org-roam--get-file-path slug t)))
+    (unless (file-exists-p file-path)
+      (org-roam--make-file file-path))
+    (find-file file-path)))
 
 (defun org-roam-new-file ()
   "Quickly create a new file, using the current timestamp."
@@ -234,9 +240,7 @@ If not provided, derive the title from the file name."
                  (read-string "Enter new file id: "))))
     (let ((file-path (org-roam--get-file-path id)))
       (unless (file-exists-p file-path)
-        (if org-roam-autopopulate-title
-            (org-roam--populate-title file-path title)
-          (make-empty-file file-path)))
+        (org-roam--make-file file-path title))
       (insert (format "[[%s][%s]]"
                       (concat "file:" file-path)
                       (format org-roam-link-title-format title))))))
@@ -246,9 +250,7 @@ If not provided, derive the title from the file name."
   (let* ((id (completing-read "File: " (mapcar #'org-roam--get-id (org-roam--find-all-files))))
          (file-path (org-roam--get-file-path id)))
     (unless (file-exists-p file-path)
-      (if org-roam-autopopulate-title
-          (org-roam--populate-title file-path)
-        (make-empty-file file-path)))
+      (org-roam--make-file file-path))
     (insert (format "[[%s][%s]]"
                     (concat "file:" file-path)
                     (format org-roam-link-id-format id)))))
@@ -266,9 +268,7 @@ If not provided, derive the title from the file name."
       (let ((id (read-string "Enter new file id: ")))
         (setq file-path (org-roam--get-file-path id t))))
     (unless (file-exists-p file-path)
-      (if org-roam-autopopulate-title
-          (org-roam--populate-title file-path title-or-id)
-        (make-empty-file file-path)))
+      (org-roam--make-file file-path title-or-id))
     (find-file file-path)))
 
 ;;; Building the org-roam cache (asynchronously)
