@@ -4,7 +4,7 @@
 ;;
 
 ;;; Code:
-(require 'cl-lib)
+(eval-when-compile (require 'cl-lib))
 (require 'dash)
 (require 'org-element)
 (require 'async)
@@ -51,6 +51,10 @@ Valid values are
 (defcustom org-roam-link-title-format "%s"
   "The format string used when inserting org-roam links that use their title."
   :type 'string
+  :group 'org-roam)
+
+(defcustom org-roam-autopopulate-title t "Whether to autopopulate the title."
+  :type 'boolean
   :group 'org-roam)
 
 (defcustom org-roam-buffer-width 0.33 "Width of `org-roam' buffer."
@@ -178,11 +182,33 @@ If `ABSOLUTE', return the absolute file-path. Else, return the relative file-pat
       (org-roam--get-id file-path)))
 
 ;;; Creating org-roam files
+(defun org-roam--populate-title (file &optional title)
+  "Populate title line for FILE using TITLE, if provided.
+If not provided, derive the title from the file name."
+  (let ((title (or title
+                   (-> file
+                       (file-name-nondirectory)
+                       (file-name-sans-extension)
+                       (split-string "_")
+                       (string-join " ")
+                       (s-titleize)))))
+    (write-region
+     (concat
+      "#+TITLE: "
+      title
+      "\n\n")
+     nil file nil)))
+
 (defun org-roam--new-file-named (slug)
   "Create a new file named `SLUG'.
 `SLUG' is the short file name, without a path or a file extension."
   (interactive "sNew filename (without extension): ")
-  (find-file (org-roam--get-file-path slug t)))
+  (let ((file (org-roam--get-file-path slug t)))
+    (unless (file-exists-p file)
+      (if org-roam-autopopulate-title
+          (org-roam--populate-title file)
+        (make-empty-file file)))
+    (find-file file)))
 
 (defun org-roam-new-file ()
   "Quickly create a new file, using the current timestamp."
@@ -204,12 +230,13 @@ If `ABSOLUTE', return the absolute file-path. Else, return the relative file-pat
                                       (org-roam--get-id file)))
                               (org-roam--find-all-files)))
          (title (completing-read "File: " completions))
-         (id (cadr (assoc title completions))))
-    (unless id
-      (setq id (read-string "Enter new file id: ")))
+         (id (or (cadr (assoc title completions))
+                 (read-string "Enter new file id: "))))
     (let ((file-path (org-roam--get-file-path id)))
       (unless (file-exists-p file-path)
-        (make-empty-file file-path))
+        (if org-roam-autopopulate-title
+            (org-roam--populate-title file-path title)
+          (make-empty-file file-path)))
       (insert (format "[[%s][%s]]"
                       (concat "file:" file-path)
                       (format org-roam-link-title-format title))))))
@@ -219,7 +246,9 @@ If `ABSOLUTE', return the absolute file-path. Else, return the relative file-pat
   (let* ((id (completing-read "File: " (mapcar #'org-roam--get-id (org-roam--find-all-files))))
          (file-path (org-roam--get-file-path id)))
     (unless (file-exists-p file-path)
-      (make-empty-file file-path))
+      (if org-roam-autopopulate-title
+          (org-roam--populate-title file-path)
+        (make-empty-file file-path)))
     (insert (format "[[%s][%s]]"
                     (concat "file:" file-path)
                     (format org-roam-link-id-format id)))))
@@ -236,6 +265,10 @@ If `ABSOLUTE', return the absolute file-path. Else, return the relative file-pat
     (unless file-path
       (let ((id (read-string "Enter new file id: ")))
         (setq file-path (org-roam--get-file-path id t))))
+    (unless (file-exists-p file-path)
+      (if org-roam-autopopulate-title
+          (org-roam--populate-title file-path title-or-id)
+        (make-empty-file file-path)))
     (find-file file-path)))
 
 ;;; Building the org-roam cache (asynchronously)
@@ -472,13 +505,7 @@ This is equivalent to removing the node from the graph."
   "Extract the title from `FILE'."
   (with-temp-buffer
     (insert-file-contents file)
-    (org-element-map
-        (org-element-parse-buffer)
-        'keyword
-      (lambda (kw)
-        (when (string= (org-element-property :key kw) "TITLE")
-          (org-element-property :value kw)))
-      :first-match t)))
+    (org-roam--extract-title (current-buffer))))
 
 (defun org-roam-update (file-path)
   "Show the backlinks for given org file for file at `FILE-PATH'."
