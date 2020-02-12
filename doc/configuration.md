@@ -31,6 +31,17 @@ org-roam-buffer-position 'left)`.
 The Org-roam buffer name can also be renamed: e.g. `(setq
 org-roam-buffer "*my-buffer-name*")`.
 
+The Org-roam buffer width is adjustable via `org-roam-buffer-width`.
+The value of `org-roam-buffer-width` set as a percentage of the total
+frame width. For example:
+
+```emacs-lisp
+(setq org-roam-buffer-width 0.4)
+```
+
+Will result in the Org-roam buffer taking up 40% of the screen width.
+I have found this to be a good number.
+
 ## Org-roam Files
 
 These customization options revolve around the Org files created and
