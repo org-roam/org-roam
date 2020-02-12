@@ -4,6 +4,7 @@
 ;;
 
 ;;; Code:
+(require 'cl-lib)
 (require 'dash)
 (require 'org-element)
 (require 'async)
@@ -436,7 +437,7 @@ This is equivalent to removing the node from the graph."
       (dolist (item items)
         (org-roam--insert-item item)))
     ;; Rerender buffer
-    (org-roam--update-buffer)))
+    (org-roam--maybe-update-buffer :redisplay t)))
 
 ;;; Org-roam daily notes
 (defun org-roam-today ()
@@ -574,7 +575,7 @@ Valid states are 'visible, 'exists and 'none."
   (remove-hook 'post-command-hook #'org-roam--maybe-update-buffer)
   (remove-hook 'after-save-hook #'org-roam--update-cache))
 
-(defun org-roam--maybe-update-buffer ()
+(cl-defun org-roam--maybe-update-buffer (&key redisplay)
   "Update `org-roam-buffer' with the necessary information.
 This needs to be quick/infrequent, because this is run at
 `post-command-hook'."
@@ -582,13 +583,10 @@ This needs to be quick/infrequent, because this is run at
     (when (and (get-buffer org-roam-buffer)
                (buffer-file-name (current-buffer))
                (file-exists-p (file-truename (buffer-file-name (current-buffer))))
-               (not (string= org-roam-current-file
-                             (file-truename (buffer-file-name (current-buffer))))))
-      (org-roam--update-buffer))))
-
-(defun org-roam--update-buffer ()
-  "Update `orgo-roam-buffer'."
-  (org-roam-update (file-truename (buffer-file-name (window-buffer)))))
+               (or redisplay
+                   (not (string= org-roam-current-file
+                                 (file-truename (buffer-file-name (current-buffer)))))))
+      (org-roam-update (file-truename (buffer-file-name (window-buffer)))))))
 
 (define-minor-mode org-roam-mode
   "Global minor mode to automatically update the org-roam buffer."
