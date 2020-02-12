@@ -28,6 +28,9 @@ The Org-roam buffer defaults to popping up from the right. You may
 choose to set it to pop up from the left with `(setq
 org-roam-buffer-position 'left)`.
 
+The Org-roam buffer name can also be renamed: e.g. `(setq
+org-roam-buffer "*my-buffer-name*")`.
+
 ## Org-roam Files
 
 These customization options revolve around the Org files created and
