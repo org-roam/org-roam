@@ -96,3 +96,10 @@ PATH, but if it fails to do so, you may set it manually:
 ```
 (setq org-roam-graphviz-executable "/path/to/dot")
 ```
+
+Org-roam also attempts to use Firefox (located on PATH) to view the
+SVG, you may choose to set it to any compatible program:
+
+```
+(setq org-roam-graph-viewer "/path/to/image-viewer")
+```
