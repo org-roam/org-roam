@@ -43,6 +43,14 @@ Valid values are
                  (const title))
   :group 'org-roam)
 
+(defcustom org-roam-timestamped-files nil
+  "Whether to use timestamps to generate unique filenames."
+  :type 'boolean
+  :group 'org-roam)
+
+(defcustom org-roam-timestamp-format "%Y-%m-%d%H%M%S"
+  "The timestamp format to use filenames.")
+
 (defcustom org-roam-link-id-format "§%s"
   "The format string used when inserting org-roam links that use id."
   :type 'string
@@ -224,10 +232,14 @@ If not provided, derive the title from the file name."
       (org-roam--make-file file-path))
     (find-file file-path)))
 
+(defun org-roam--get-new-id ()
+  "Return a new ID, generated from the current time."
+  (format-time-string org-roam-timestamp-format (current-time)))
+
 (defun org-roam-new-file ()
   "Quickly create a new file, using the current timestamp."
   (interactive)
-  (org-roam--new-file-named (format-time-string "%Y-%m-%d-%H%M%S" (current-time))))
+  (org-roam--new-file-named (org-roam--get-new-id)))
 
 ;;; Inserting org-roam links
 (defun org-roam-insert ()
@@ -244,8 +256,11 @@ If not provided, derive the title from the file name."
                                       (org-roam--get-id file)))
                               (org-roam--find-all-files)))
          (title (completing-read "File: " completions))
-         (id (or (cadr (assoc title completions))
-                 (read-string "Enter new file id: " (org-roam--title-to-id title)))))
+         (id (cadr (assoc title completions))))
+    (when (not id)
+      (if org-roam-timestamped-files
+          (setq id (org-roam--get-new-id)))
+        (read-string "Enter new file id: " (org-roam--title-to-id title)))
     (let ((file-path (org-roam--get-file-path id)))
       (unless (file-exists-p file-path)
         (org-roam--make-file file-path title))
@@ -273,8 +288,10 @@ If not provided, derive the title from the file name."
          (title-or-id (completing-read "File: " completions))
          (file-path (cadr (assoc title-or-id completions))))
     (unless file-path
-      (let ((id (read-string "Enter new file id: "
-                             (org-roam--title-to-id title-or-id))))
+      (let ((id (if org-roam-timestamped-files
+                    (org-roam--get-new-id)
+                  (read-string "Enter new file id: "
+                   (org-roam--title-to-id title-or-id)))))
         (setq file-path (org-roam--get-file-path id t))))
     (unless (file-exists-p file-path)
       (org-roam--make-file file-path title-or-id))
