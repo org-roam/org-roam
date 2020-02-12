@@ -1,0 +1,14 @@
+site_name: "Org-Roam: Roam + Org-Mode = 💝"
+repo_url: https://github.com/jethrokuan/org-roam/
+edit_uri: edit/master/doc/
+site_favicon: favicon.ico
+copyright: "Copyright (C) 2020 Jethro Kuan and contributors"
+docs_dir: doc
+pages:
+- Home: index.md
+- A Tour of Org-Roam: tour.md
+- Installation: installation.md
+- Ecosystem: ecosystem.md
+- Similar Packages: comparison.md
+theme: readthedocs
+
