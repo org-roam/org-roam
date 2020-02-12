@@ -9,6 +9,50 @@ the flexibility of Emacs, and mould our tools exactly to our liking.
 All of Org-roam's customization options can be viewed via `M-x
 customize-group org-roam`.
 
+## Setting the Org-roam Directory
+
+Perhaps the single most important variable to set is
+`org-roam-directory`. Set `org-roam-directory` to the folder
+containing all your Org files:
+
+```emacs-lisp
+(setq org-roam-directory "/path/to/org/")
+```
+
+Every Org file, at any level of nesting, within `/path/to/org/` is
+considered part of the Org-roam ecosystem.
+
+## Org-roam Buffer
+
+The Org-roam buffer defaults to popping up from the right. You may
+choose to set it to pop up from the left with `(setq
+org-roam-buffer-position 'left)`.
+
+The Org-roam buffer name can also be renamed: e.g. `(setq
+org-roam-buffer "*my-buffer-name*")`.
+
+The Org-roam buffer width is adjustable via `org-roam-buffer-width`.
+The value of `org-roam-buffer-width` set as a percentage of the total
+frame width. For example:
+
+```emacs-lisp
+(setq org-roam-buffer-width 0.4)
+```
+
+Will result in the Org-roam buffer taking up 40% of the screen width.
+I have found this to be a good number.
+
+## Org-roam Links
+
+By default, links are inserted with the title as the link description.
+This can make them hard to distinguish from external links. If you
+wish, you may choose add special indicators for Org-roam links by
+tweaking `org-roam-link-title-format`, for example:
+
+```emacs-lisp
+(setq org-roam-link-title-format "R:%s")
+```
+
 ## Org-roam Files
 
 These customization options revolve around the Org files created and
@@ -48,4 +92,25 @@ commands. The title is specified via the `#+TITLE:` attribute,
 typically near the top of the file. The option
 `org-roam-autopopulate-title` defaults to `t`. When true, the title
 attribute is automatically inserted into the files created via
-org-roam commands. Setting it to `nil` will disable this behaviour.
+Org-roam commands. Setting it to `nil` will disable this behaviour.
+
+
+## Org-roam Graph Viewer
+
+Org-roam generates an SVG image using
+[Graphviz](https://graphviz.org/). For more information about this
+functionality, see the [Usage](TODO) page.
+
+Org-roam tries its best to locate the Graphviz executable from your
+PATH, but if it fails to do so, you may set it manually:
+
+```
+(setq org-roam-graphviz-executable "/path/to/dot")
+```
+
+Org-roam also attempts to use Firefox (located on PATH) to view the
+SVG, you may choose to set it to any compatible program:
+
+```
+(setq org-roam-graph-viewer "/path/to/image-viewer")
+```
