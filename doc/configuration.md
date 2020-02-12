@@ -82,3 +82,17 @@ typically near the top of the file. The option
 `org-roam-autopopulate-title` defaults to `t`. When true, the title
 attribute is automatically inserted into the files created via
 Org-roam commands. Setting it to `nil` will disable this behaviour.
+
+
+## Org-roam Graph Viewer
+
+Org-roam generates an SVG image using
+[Graphviz](https://graphviz.org/). For more information about this
+functionality, see the [Usage](TODO) page.
+
+Org-roam tries its best to locate the Graphviz executable from your
+PATH, but if it fails to do so, you may set it manually:
+
+```
+(setq org-roam-graphviz-executable "/path/to/dot")
+```
