@@ -181,6 +181,14 @@ If `ABSOLUTE', return the absolute file-path. Else, return the relative file-pat
   (or (org-roam--get-title file-path)
       (org-roam--get-id file-path)))
 
+(defun org-roam--title-to-id (title)
+  "Convert TITLE to id."
+  (let* ((s (s-downcase title))
+         (s (replace-regexp-in-string "[^a-zA-Z0-9_ ]" "" s))
+         (s (s-split " " s))
+         (s (s-join "_" s)))
+    s))
+
 ;;; Creating org-roam files
 (defun org-roam--populate-title (file &optional title)
   "Populate title line for FILE using TITLE, if provided.
@@ -237,7 +245,7 @@ If not provided, derive the title from the file name."
                               (org-roam--find-all-files)))
          (title (completing-read "File: " completions))
          (id (or (cadr (assoc title completions))
-                 (read-string "Enter new file id: "))))
+                 (read-string "Enter new file id: " (org-roam--title-to-id title)))))
     (let ((file-path (org-roam--get-file-path id)))
       (unless (file-exists-p file-path)
         (org-roam--make-file file-path title))
@@ -265,7 +273,8 @@ If not provided, derive the title from the file name."
          (title-or-id (completing-read "File: " completions))
          (file-path (cadr (assoc title-or-id completions))))
     (unless file-path
-      (let ((id (read-string "Enter new file id: ")))
+      (let ((id (read-string "Enter new file id: "
+                             (org-roam--title-to-id title-or-id))))
         (setq file-path (org-roam--get-file-path id t))))
     (unless (file-exists-p file-path)
       (org-roam--make-file file-path title-or-id))
