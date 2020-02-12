@@ -9,6 +9,19 @@ the flexibility of Emacs, and mould our tools exactly to our liking.
 All of Org-roam's customization options can be viewed via `M-x
 customize-group org-roam`.
 
+## Setting the Org-roam Directory
+
+Perhaps the single most important variable to set is
+`org-roam-directory`. Set `org-roam-directory` to the folder
+containing all your Org files:
+
+```emacs-lisp
+(setq org-roam-directory "/path/to/org/")
+```
+
+Every Org file, at any level of nesting, within `/path/to/org/` is
+considered part of the Org-roam ecosystem.
+
 ## Org-roam Files
 
 These customization options revolve around the Org files created and

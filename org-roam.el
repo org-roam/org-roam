@@ -19,7 +19,9 @@
   :prefix "org-roam-")
 
 (defcustom org-roam-directory (expand-file-name "~/org-roam/")
-  "Org-roam directory."
+  "Path to Org-roam files.
+
+All Org files, at any level of nesting, is considered part of the Org-roam."
   :type 'directory
   :group 'org-roam)
 
