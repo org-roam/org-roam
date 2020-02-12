@@ -42,6 +42,17 @@ frame width. For example:
 Will result in the Org-roam buffer taking up 40% of the screen width.
 I have found this to be a good number.
 
+## Org-roam Links
+
+By default, links are inserted with the title as the link description.
+This can make them hard to distinguish from external links. If you
+wish, you may choose add special indicators for Org-roam links by
+tweaking `org-roam-link-title-format`, for example:
+
+```emacs-lisp
+(setq org-roam-link-title-format "R:%s")
+```
+
 ## Org-roam Files
 
 These customization options revolve around the Org files created and
