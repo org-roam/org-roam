@@ -1,9 +1,39 @@
 ;;; org-roam.el --- Roam Research replica with Org-mode -*- coding: utf-8; lexical-binding: t -*-
 
+;; Copyright © 2020 Jethro Kuan <jethrokuan95@gmail.com>
+
+;; Author: Jethro Kuan <jethrokuan95@gmail.com>
+;; URL: https://github.com/jethrokuan/org-roam
+;; Keywords: org-mode, roam, convenience
+;; Version: 0.1.0
+;; Package-Requires: ((emacs "25.1"))
+
+;; This file is NOT part of GNU Emacs.
+
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 3, or (at your option)
+;; any later version.
+;;
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
+
 ;;; Commentary:
 ;;
-
+;; This library is an attempt at injecting Roam functionality into Org-mode.
+;; This is achieved primarily through building caches for forward links,
+;; backward links, and file titles.
+;;
+;;
 ;;; Code:
+
 (eval-when-compile (require 'cl-lib))
 (require 'dash)
 (require 'org-element)
@@ -16,7 +46,9 @@
 (defgroup org-roam nil
   "Roam Research replica in Org-mode."
   :group 'org
-  :prefix "org-roam-")
+  :prefix "org-roam-"
+  :link '(url-link :tag "Github" "https://github.com/jethrokuan/org-roam")
+  :link '(url-link :tag "Online Manual" "https://org-roam.readthedocs.io/"))
 
 (defcustom org-roam-directory (expand-file-name "~/org-roam/")
   "Path to Org-roam files.
