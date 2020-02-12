@@ -10,7 +10,6 @@ The recommended method is using [use-package][use-package] and
       :straight (:host github :repo "jethrokuan/org-roam")
       :custom
       (org-roam-directory "/path/to/org-files/")
-      (org-roam-link-representation 'title) ;; or keep it as 'id
       :bind
       ("C-c n l" . org-roam)      
       ("C-c n t" . org-roam-today)
@@ -30,6 +29,10 @@ git clone https://github.com/jethrokuan/org-roam/ ~/.emacs.d/elisp/org-roam
 (add-to-list 'load-path "./elisp")
 (require 'org-roam)
 ```
+
+There are a number of important configuration options, that greatly
+affect the Roam workflow. Do look through them at the
+[Configuration](configuration.md) page.
 
 [use-package]: https://github.com/jwiegley/use-package
 [straight]: https://github.com/raxod502/straight.el
