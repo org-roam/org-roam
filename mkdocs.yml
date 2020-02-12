@@ -12,7 +12,7 @@ pages:
 - Similar Packages: comparison.md
 markdown_extensions:
   - admonition
- - pymdownx.arithmatex
+  - pymdownx.arithmatex
   - pymdownx.betterem:
       smart_enable: all
   - pymdownx.caret
