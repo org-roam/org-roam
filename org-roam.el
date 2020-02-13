@@ -385,22 +385,21 @@ Optionally pass it the title, for a smart file name."
                                 (puthash p-to contents-hash backward-links))))))
                       items))
                     (org-roam--extract-title
-                     (buffer)
-                     (with-current-buffer buffer
-                       (org-element-map
-                           (org-element-parse-buffer)
-                           'keyword
-                         (lambda (kw)
-                           (when (string= (org-element-property :key kw) "TITLE")
-                             (org-element-property :value kw)))
-                         :first-match t))))
+                     ()
+                     (org-element-map
+                         (org-element-parse-buffer)
+                         'keyword
+                       (lambda (kw)
+                         (when (string= (org-element-property :key kw) "TITLE")
+                           (org-element-property :value kw)))
+                       :first-match t)))
           (let ((org-roam-files (org-roam--find-files org-roam-directory)))
             (mapcar #'org-roam--process-items
                     (mapcar #'org-roam--parse-content org-roam-files))
             (mapcar (lambda (file)
                       (with-temp-buffer
                         (insert-file-contents file)
-                        (when-let ((title (org-roam--extract-title (current-buffer))))
+                        (when-let ((title (org-roam--extract-title)))
                           (puthash file title file-titles))))
                     org-roam-files)))
         (list
@@ -445,57 +444,55 @@ Before calling this function, `org-roam-cache' should be already populated."
 
 (defun org-roam--parse-content ()
   "Parse the current buffer, and return a list of items for processing."
-  (with-current-buffer (current-buffer)
-    (org-element-map (org-element-parse-buffer) 'link
-      (lambda (link)
-        (let ((type (org-element-property :type link))
-              (path (org-element-property :path link))
-              (start (org-element-property :begin link)))
-          (when (and (string= type "file")
-                     (string= (file-name-extension path) "org"))
-            (goto-char start)
-            (let* ((element (org-element-at-point))
-                   (content (or (org-element-property :raw-value element)
-                                (buffer-substring
-                                 (or (org-element-property :content-begin element)
-                                     (org-element-property :begin element))
-                                 (or (org-element-property :content-end element)
-                                     (org-element-property :end element))))))
-              (list :from (file-truename (buffer-file-name (current-buffer)))
-                    :to (file-truename (expand-file-name path org-roam-directory))
-                    :content (string-trim content)))))))))
+  (org-element-map (org-element-parse-buffer) 'link
+    (lambda (link)
+      (let ((type (org-element-property :type link))
+            (path (org-element-property :path link))
+            (start (org-element-property :begin link)))
+        (when (and (string= type "file")
+                   (string= (file-name-extension path) "org"))
+          (goto-char start)
+          (let* ((element (org-element-at-point))
+                 (content (or (org-element-property :raw-value element)
+                              (buffer-substring
+                               (or (org-element-property :content-begin element)
+                                   (org-element-property :begin element))
+                               (or (org-element-property :content-end element)
+                                   (org-element-property :end element))))))
+            (list :from (file-truename (buffer-file-name (current-buffer)))
+                  :to (file-truename (expand-file-name path org-roam-directory))
+                  :content (string-trim content))))))))
 
-(defun org-roam--clear-cache-for-buffer (buffer)
-  "Remove any related links to the file for `BUFFER'.
+(defun org-roam--clear-cache ()
+  "Remove any related links to the file.
 
 This is equivalent to removing the node from the graph."
-  (with-current-buffer (current-buffer)
-    (let ((file (file-truename (buffer-file-name buffer))))
-      ;; Step 1: Remove all existing links for file
-      (when-let ((forward-links (gethash file org-roam-forward-links-cache)))
-        ;; Delete backlinks to file
-        (dolist (link forward-links)
-          (when-let ((backward-links (gethash link org-roam-backward-links-cache)))
-            (remhash file backward-links)
-            (puthash link backward-links org-roam-backward-links-cache)))
-        ;; Clean out forward links
-        (remhash file org-roam-forward-links-cache))
-      ;; Step 2: Remove from the title cache
-      (remhash file org-roam-titles-cache))))
+  (let ((file (file-truename (buffer-file-name (current-buffer)))))
+    ;; Step 1: Remove all existing links for file
+    (when-let ((forward-links (gethash file org-roam-forward-links-cache)))
+      ;; Delete backlinks to file
+      (dolist (link forward-links)
+        (when-let ((backward-links (gethash link org-roam-backward-links-cache)))
+          (remhash file backward-links)
+          (puthash link backward-links org-roam-backward-links-cache)))
+      ;; Clean out forward links
+      (remhash file org-roam-forward-links-cache))
+    ;; Step 2: Remove from the title cache
+    (remhash file org-roam-titles-cache)))
 
-(defun org-roam--update-cache-title (buffer)
-  "Inserts the `TITLE' of file in buffer into the cache."
-  (when-let ((title (org-roam--extract-title buffer)))
-    (puthash (file-truename (buffer-file-name buffer))
+(defun org-roam--update-cache-title ()
+  "Insert the title of the current buffer into the cache."
+  (when-let ((title (org-roam--extract-title)))
+    (puthash (file-truename (buffer-file-name (current-buffer)))
              title
              org-roam-titles-cache)))
 
 (defun org-roam--update-cache ()
   "Update org-roam caches for the current buffer file."
   (save-excursion
-    (org-roam--clear-cache-for-buffer (current-buffer))
+    (org-roam--clear-cache)
     ;; Insert into title cache
-    (org-roam--update-cache-title (current-buffer))
+    (org-roam--update-cache-title)
     ;; Insert new items
     (let ((items (org-roam--parse-content)))
       (dolist (item items)
@@ -521,22 +518,15 @@ This is equivalent to removing the node from the graph."
     (org-roam--new-file-named (format-time-string "%Y-%m-%d" time))))
 
 ;;; Org-roam buffer updates
-(defun org-roam--extract-title (buffer)
+(defun org-roam--extract-title ()
   "Extract the title from `BUFFER'."
-  (with-current-buffer buffer
-    (org-element-map
-        (org-element-parse-buffer)
-        'keyword
-      (lambda (kw)
-        (when (string= (org-element-property :key kw) "TITLE")
-          (org-element-property :value kw)))
-      :first-match t)))
-
-(defun org-roam--extract-file-title (file)
-  "Extract the title from `FILE'."
-  (with-temp-buffer
-    (insert-file-contents file)
-    (org-roam--extract-title (current-buffer))))
+  (org-element-map
+      (org-element-parse-buffer)
+      'keyword
+    (lambda (kw)
+      (when (string= (org-element-property :key kw) "TITLE")
+        (org-element-property :value kw)))
+    :first-match t))
 
 (defun org-roam-update (file-path)
   "Show the backlinks for given org file for file at `FILE-PATH'."
