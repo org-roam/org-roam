@@ -6,7 +6,7 @@
 ;; URL: https://github.com/jethrokuan/org-roam
 ;; Keywords: org-mode, roam, convenience
 ;; Version: 0.1.0
-;; Package-Requires: ((emacs "25.1"))
+;; Package-Requires: ((emacs "25.1") (dash "2.13") (f "0.17.2") (s "1.12.0") (async "1.9.4"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -78,7 +78,9 @@ Valid values are
   :group 'org-roam)
 
 (defcustom org-roam-use-timestamp-as-filename t
-  "Whether to use timestamp as a file name. If not true, prompt for a file name each time.")
+  "Whether to use timestamp as a file name. If not true, prompt for a file name each time."
+  :type 'boolean
+  :group 'org-roam)
 
 (defcustom org-roam-autopopulate-title t "Whether to autopopulate the title."
   :type 'boolean
@@ -234,7 +236,7 @@ If not provided, derive the title from the file name."
   (unless (string= "org" (file-name-extension file-path))
     (setq file-path (concat file-path ".org")))
   (if (file-exists-p file-path)
-      (error (format "Aborting, file already exists at " file-path))
+      (error (format "Aborting, file already exists at %s" file-path))
     (if org-roam-autopopulate-title
         (org-roam--populate-title file-path title)
       (make-empty-file file-path))))
@@ -657,19 +659,17 @@ This needs to be quick/infrequent, because this is run at
   (org-roam--ensure-cache-built)
   (with-temp-buffer
     (insert "digraph {\n")
-    (mapcar (lambda (file)
-              (insert
-               (format "  \"%s\" [URL=\"roam://%s\"];\n"
-                       (org-roam--get-title-or-slug file)
-                       file)))
-            (org-roam--find-all-files))
+    (dolist (file (org-roam--find-all-files))
+      (insert
+       (format "  \"%s\" [URL=\"roam://%s\"];\n"
+               (org-roam--get-title-or-slug file)
+               file)))
     (maphash
      (lambda (from-link to-links)
        (dolist (to-link to-links)
          (insert (format "  \"%s\" -> \"%s\";\n"
                          (org-roam--get-title-or-slug from-link)
-                         (org-roam--get-title-or-slug to-link))))
-       )
+                         (org-roam--get-title-or-slug to-link)))))
      org-roam-forward-links-cache)
     (insert "}")
     (buffer-string)))
