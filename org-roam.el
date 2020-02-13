@@ -231,6 +231,8 @@ If not provided, derive the title from the file name."
 
 (defun org-roam--make-file (file-path &optional title)
   "Create an org-roam file at FILE-PATH, optionally setting the TITLE attribute."
+  (unless (string= "org" (file-name-extension file-path))
+    (setq file-path (concat file-path ".org")))
   (if (file-exists-p file-path)
       (error (format "Aborting, file already exists at " file-path))
     (if org-roam-autopopulate-title
