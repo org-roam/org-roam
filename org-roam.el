@@ -233,8 +233,6 @@ If not provided, derive the title from the file name."
 
 (defun org-roam--make-file (file-path &optional title)
   "Create an org-roam file at FILE-PATH, optionally setting the TITLE attribute."
-  (unless (string= "org" (file-name-extension file-path))
-    (setq file-path (concat file-path ".org")))
   (if (file-exists-p file-path)
       (error (format "Aborting, file already exists at %s" file-path))
     (if org-roam-autopopulate-title
@@ -279,12 +277,12 @@ Optionally pass it the title, for a smart file name."
                                       file))
                               (org-roam--find-all-files)))
          (title (completing-read "File: " completions))
-         (file-path (or (cadr (assoc title completions))
-                        (org-roam--get-new-id title))))
-    (unless (file-exists-p file-path)
-      (org-roam--make-file file-path title))
+         (absolute-file-path (or (cadr (assoc title completions))
+                                 (org-roam--get-file-path (org-roam--get-new-id title) t))))
+    (unless (file-exists-p absolute-file-path)
+      (org-roam--make-file absolute-file-path title))
     (insert (format "[[%s][%s]]"
-                    (concat "file:" file-path)
+                    (concat "file:" (file-relative-name absolute-file-path org-roam-directory))
                     (format org-roam-link-title-format title)))))
 
 ;;; Finding org-roam files
@@ -295,12 +293,12 @@ Optionally pass it the title, for a smart file name."
                                 (list (org-roam--get-title-or-slug file) file))
                               (org-roam--find-all-files)))
          (title-or-slug (completing-read "File: " completions))
-         (file-path (or (cadr (assoc title-or-slug completions))
-                        (org-roam--get-file-path
-                         (org-roam--get-new-id title-or-slug) t))))
-    (unless (file-exists-p file-path)
-      (org-roam--make-file file-path title-or-slug))
-    (find-file file-path)))
+         (absolute-file-path (or (cadr (assoc title-or-slug completions))
+                                 (org-roam--get-file-path
+                                  (org-roam--get-new-id title-or-slug) t))))
+    (unless (file-exists-p absolute-file-path)
+      (org-roam--make-file absolute-file-path title-or-slug))
+    (find-file absolute-file-path)))
 
 ;;; Building the org-roam cache (asynchronously)
 (defun org-roam--build-cache-async ()
