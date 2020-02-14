@@ -63,7 +63,7 @@ the web into your notes:
 
 ### mathpix.el
 
-[mathpix.el][mathpix-el] uses [Mathpix's]() API to convert clips into
+[mathpix.el][mathpix-el] uses [Mathpix's](https://mathpix.com/) API to convert clips into
 latex equations:
 
 ![mathpix](images/mathpix.gif)
@@ -77,9 +77,15 @@ latex equations:
   ("C-x m" . mathpix-screenshot))
 ```
 
-### Org-noter
+### Org-noter / Interleave
+
+[Org-noter][org-noter] and [Interleave][interleave] are both projects
+that allow synchronised annotation of documents (PDF, EPUB etc.)
+within Org-mode.
 
 [deft]: https://jblevins.org/projects/deft/
 [notdeft]: https://github.com/hasu/notdeft
 [org-download]: https://github.com/abo-abo/org-download
 [mathpix-el]: https://github.com/jethrokuan/mathpix.el
+[org-noter]: https://github.com/weirdNox/org-noter
+[interleave]: https://github.com/rudolfochrist/interleave
