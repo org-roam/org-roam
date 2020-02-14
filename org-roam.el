@@ -149,10 +149,10 @@ If called interactively, then PARENTS is non-nil."
     (org-roam--build-cache-async)
     (user-error "Your Org-Roam cache isn't built yet! Please wait")))
 
-(defun org-roam--org-roam-file-p ()
-  "Return t if file is part of org-roam system, false otherwise."
-  (and (buffer-file-name (current-buffer))
-       (f-child-of-p (file-truename (buffer-file-name (current-buffer)))
+(defun org-roam--org-roam-file-p (file)
+  "Return t if FILE is part of org-roam system, false otherwise."
+  (and file
+       (f-child-of-p (file-truename file)
                      org-roam-directory)))
 
 (defun org-roam--get-title-from-cache (file)
@@ -462,7 +462,7 @@ Valid states are 'visible, 'exists and 'none."
 ;;; The minor mode definition that updates the buffer
 (defun org-roam--maybe-enable ()
   "Enable org-roam updating for file, if file is an org-roam file."
-  (when (org-roam--org-roam-file-p)
+  (when (org-roam--org-roam-file-p (buffer-file-name (current-buffer)))
     (org-roam--enable)))
 
 (defun org-roam--enable ()
@@ -538,6 +538,45 @@ This needs to be quick/infrequent, because this is run at
       (insert graph))
     (call-process org-roam-graphviz-executable nil 0 nil temp-dot "-Tsvg" "-o" temp-graph)
     (call-process org-roam-graph-viewer nil 0 nil temp-graph)))
+
+(defun org-roam--rename-file-links (file newname &rest args)
+  ""
+  (interactive)
+  (when (and (not (eq (car args) t))
+             (org-roam--org-roam-file-p newname))
+    (my:log-message (format "rename %s :: %s -> %s" (car args) file newname))
+    (org-roam--ensure-cache-built)
+
+    (let* ((files (gethash file org-roam-backward-links-cache nil))
+           (slug (org-roam--get-title-or-slug file))
+           (newlink (file-relative-name (file-truename newname) org-roam-directory))
+           (new-slug (or (org-roam--get-title-from-cache (file-truename file))
+                      (org-roam--get-title-or-slug newlink)))
+           (new-slug-f (format org-roam-link-title-format new-slug))
+           (slug-f (format org-roam-link-title-format slug))
+           (path (file-relative-name (file-truename  file) org-roam-directory))
+           (idreg (format "\\[\\[file:%s\\]\\[%s\\]\\]" path slug-f))
+           (reg (format "\\[\\[file:%s\\]\\[\\(.*\\)\\]\\]" path)))
+      (when files
+        (my:log-message (format "other regex is %s :: " reg))
+        (maphash (lambda (file-from contents)
+                   (let* ((relative-path (file-relative-name newlink (file-name-directory file-from)))
+                          (new-slug-link (format "[[file:%s][%s]]" relative-path new-slug-f))
+                          (new-named-link (format "[[file:%s][\\1]]" relative-path)))
+                     (with-temp-file file-from
+                       (my:log-message (format "other link is %s :: " new-named-link))
+
+                       (insert-file-contents file-from)
+                       (beginning-of-buffer)
+                       (replace-regexp reg new-named-link)
+                       (beginning-of-buffer)
+                       (replace-regexp idreg new-slug-link)
+                       )))
+                 ;; Need to update cache
+                 files)
+        ))))
+
+(advice-add 'rename-file :after 'org-roam--rename-file-links)
 
 (provide 'org-roam)
 
