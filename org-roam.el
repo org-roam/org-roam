@@ -261,11 +261,16 @@ Optionally pass it the title, for a smart file name."
                               (org-roam--find-all-files)))
          (title (completing-read "File: " completions))
          (absolute-file-path (or (cadr (assoc title completions))
-                                 (org-roam--get-file-path (org-roam--get-new-id title) t))))
+                                 (org-roam--get-file-path (org-roam--get-new-id title) t)))
+         (current-file-path (-> (current-buffer)
+                                (buffer-file-name)
+                                (file-truename)
+                                (file-name-directory))))
     (unless (file-exists-p absolute-file-path)
       (org-roam--make-file absolute-file-path title))
     (insert (format "[[%s][%s]]"
-                    (concat "file:" (file-relative-name absolute-file-path org-roam-directory))
+                    (concat "file:" (file-relative-name absolute-file-path
+                                                        current-file-path))
                     (format org-roam-link-title-format title)))))
 
 ;;; Finding org-roam files
