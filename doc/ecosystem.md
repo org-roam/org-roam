@@ -83,9 +83,15 @@ latex equations:
 that allow synchronised annotation of documents (PDF, EPUB etc.)
 within Org-mode.
 
+### Org-ref
+
+[Org-ref][org-ref] does citation and bibliography management in
+Org-mode, and a great tool for scientific notes.
+
 [deft]: https://jblevins.org/projects/deft/
 [notdeft]: https://github.com/hasu/notdeft
 [org-download]: https://github.com/abo-abo/org-download
 [mathpix-el]: https://github.com/jethrokuan/mathpix.el
 [org-noter]: https://github.com/weirdNox/org-noter
 [interleave]: https://github.com/rudolfochrist/interleave
+[org-ref]: https://github.com/jkitchin/org-ref
