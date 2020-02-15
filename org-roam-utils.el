@@ -73,11 +73,13 @@
                                (or (org-element-property :content-begin element)
                                    (org-element-property :begin element))
                                (or (org-element-property :content-end element)
-                                   (org-element-property :end element))))))
-            (list :from (or file-path
-                            (file-truename (buffer-file-name (current-buffer))))
-                  :to (file-truename (expand-file-name path org-roam-directory))
-                  :content (string-trim content))))))))
+                                   (org-element-property :end element)))))
+                 (content (string-trim content))
+                 (file-path (or file-path
+                                (file-truename (buffer-file-name (current-buffer))))))
+            (list :from file-path
+                  :to (file-truename (expand-file-name path (file-name-directory file-path)))
+                  :content content)))))))
 
 (cl-defun org-roam--insert-item (item &key forward backward)
   "Insert ITEM into FORWARD and BACKWARD cache.
