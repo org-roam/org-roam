@@ -5,6 +5,5 @@ pkgs.mkShell {
   name = "docs";
   buildInput = with pkgs; [
     mkdocs
-    python3Packages.alabaster
   ];
 }

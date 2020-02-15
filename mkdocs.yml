@@ -10,6 +10,8 @@ nav:
 - Configuration: configuration.md
 - Ecosystem: ecosystem.md
 - Similar Packages: comparison.md
+- "Appendix: Note-taking Workflow": notetaking_workflow.md
+- "Appendix: Graph Setup": graph_setup.md
 markdown_extensions:
   - admonition
   - pymdownx.betterem:

@@ -98,8 +98,8 @@ Org-roam commands. Setting it to `nil` will disable this behaviour.
 ## Org-roam Graph Viewer
 
 Org-roam generates an SVG image using
-[Graphviz](https://graphviz.org/). For more information about this
-functionality, see the [Usage](TODO) page.
+[Graphviz](https://graphviz.org/). To setup graph navigation, see the
+[Graph Setup](graph_setup.md) page.
 
 Org-roam tries its best to locate the Graphviz executable from your
 PATH, but if it fails to do so, you may set it manually:
