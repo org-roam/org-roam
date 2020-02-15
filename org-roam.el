@@ -152,8 +152,8 @@ If called interactively, then PARENTS is non-nil."
 (defun org-roam--org-roam-file-p ()
   "Return t if file is part of org-roam system, false otherwise."
   (and (buffer-file-name (current-buffer))
-       (f-child-of-p (file-truename (buffer-file-name (current-buffer)))
-                     org-roam-directory)))
+       (f-descendant-of-p (file-truename (buffer-file-name (current-buffer)))
+                          org-roam-directory)))
 
 (defun org-roam--get-title-from-cache (file)
   "Return title of `FILE' from the cache."
