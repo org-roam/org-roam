@@ -39,7 +39,7 @@
 (require 'cl-lib)
 
 (defun org-roam--org-file-p (path)
-  "Check if the path is pointing to an org file."
+  "Check if PATH is pointing to an org file."
   (let ((ext (file-name-extension path)))
     (or (string= ext "org")
         (and
