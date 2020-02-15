@@ -19,7 +19,7 @@ org-roam notes.
 ```
 
 The Deft interface can slow down quickly when the number of files get
-huge. [Notdeft][notdeft] is a fork of Deft that's uses an external
+huge. [Notdeft][notdeft] is a fork of Deft that uses an external
 search engine and indexer.
 
 ## Org-journal
