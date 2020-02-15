@@ -2,6 +2,9 @@
 
 ## 0.1.2 (TBD)
 
+### New Features
+* [#87][gh-87] Support encrypted Org files (by [@chip2n](https://github.com/chip2n/))
+
 ### Bugfixes
 * [#86][gh-86] Fix org-roam--parse-content incorrect `:to` computation for nested files
 
@@ -37,6 +40,7 @@ Mostly a documentation/cleanup release.
 [gh-78]: https://github.com/jethrokuan/org-roam/pull/78
 [gh-82]: https://github.com/jethrokuan/org-roam/pull/82
 [gh-86]: https://github.com/jethrokuan/org-roam/pull/86
+[gh-87]: https://github.com/jethrokuan/org-roam/pull/87
 
  # Local Variables:
  # eval: (auto-fill-mode -1)

@@ -38,6 +38,14 @@
 (require 'subr-x)
 (require 'cl-lib)
 
+(defun org-roam--org-file-p (path)
+  "Check if PATH is pointing to an org file."
+  (let ((ext (file-name-extension path)))
+    (or (string= ext "org")
+        (and
+         (string= ext "gpg")
+         (string= (file-name-extension (file-name-sans-extension path)) "org")))))
+
 (defun org-roam--find-files (dir)
   "Return all `org-roam' files in `DIR'."
   (if (file-exists-p dir)
@@ -53,7 +61,7 @@
             (when (not (string-match dir-ignore-regexp file))
               (setq result (append (org-roam--find-files file) result))))
            ((and (file-readable-p file)
-                 (string= (file-name-extension file) "org"))
+                 (org-roam--org-file-p file))
             (setq result (cons (file-truename file) result)))))
         result)))
 
@@ -65,7 +73,7 @@
             (path (org-element-property :path link))
             (start (org-element-property :begin link)))
         (when (and (string= type "file")
-                   (string= (file-name-extension path) "org"))
+                   (org-roam--org-file-p path))
           (goto-char start)
           (let* ((element (org-element-at-point))
                  (content (or (org-element-property :raw-value element)
