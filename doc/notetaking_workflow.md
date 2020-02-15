@@ -2,6 +2,7 @@
 - [How to Take Smart Notes][1]
 
 ## Articles
+- [How to Take Smart Notes in Org-mode - Jethro Kuan][7]
 - [The Zettelkasten Method - LessWrong 2.0][3]
 - [Building a second brain in Roam][4]
 - [Roam: Why I Love It and How I Use It][5]
@@ -16,3 +17,4 @@
 [4]: https://reddit.com/r/RoamResearch/comments/eho7de/building_a_second_brain_in_roamand_why_you_might
 [5]: https://www.nateliason.com/blog/roam
 [6]: https://twitter.com/adam_keesling/status/1196864424725774336?s=20
+[7]: https://blog.jethro.dev/posts/how_to_take_smart_notes_org/
