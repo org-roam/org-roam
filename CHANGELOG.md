@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.2 (TBD)
+
+### Bugfixes
+* [#86][gh-86] Fix org-roam--parse-content incorrect `:to` computation for nested files
+
 ## 0.1.1 (2020-02-15)
 
 Mostly a documentation/cleanup release.
@@ -31,6 +36,7 @@ Mostly a documentation/cleanup release.
 [gh-75]: https://github.com/jethrokuan/org-roam/pull/75
 [gh-78]: https://github.com/jethrokuan/org-roam/pull/78
 [gh-82]: https://github.com/jethrokuan/org-roam/pull/82
+[gh-86]: https://github.com/jethrokuan/org-roam/pull/86
 
  # Local Variables:
  # eval: (auto-fill-mode -1)
