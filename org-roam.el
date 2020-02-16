@@ -96,6 +96,11 @@ Valid values are
   :type 'string
   :group 'org-roam)
 
+(defcustom org-roam-encrypt-files nil
+  "Whether to encrypt new files. If true, create files with .org.gpg extension."
+  :type 'boolean
+  :group 'org-roam)
+
 (defcustom org-roam-graph-viewer (executable-find "firefox")
   "Path to executable for viewing SVG."
   :type 'string
@@ -167,13 +172,15 @@ If called interactively, then PARENTS is non-nil."
   "Return all org-roam files."
   (org-roam--find-files (file-truename org-roam-directory)))
 
-(defun org-roam--get-file-path (id &optional absolute)
-  "Convert identifier `ID' to file path.
+(defun org-roam--make-new-file-path (id &optional absolute)
+  "Make new file path from identifier `ID'.
 
-If `ABSOLUTE', return the absolute file-path. Else, return the relative file-path."
+If `ABSOLUTE', return an absolute file-path. Else, return a relative file-path."
   (let ((absolute-file-path (file-truename
                              (expand-file-name
-                              (concat id ".org")
+                              (if org-roam-encrypt-files
+                                  (concat id ".org.gpg")
+                                (concat id ".org"))
                               org-roam-directory))))
     (if absolute
         absolute-file-path
@@ -226,7 +233,7 @@ If not provided, derive the title from the file name."
   "Create a new file named `SLUG'.
 `SLUG' is the short file name, without a path or a file extension."
   (interactive "sNew filename (without extension): ")
-  (let ((file-path (org-roam--get-file-path slug t)))
+  (let ((file-path (org-roam--make-new-file-path slug t)))
     (unless (file-exists-p file-path)
       (org-roam--make-file file-path))
     (find-file file-path)))
@@ -241,7 +248,7 @@ Optionally pass it the title, for a smart file name."
                               (if title
                                   (org-roam--title-to-slug title)
                                 "")))
-           (file-path (org-roam--get-file-path slug t)))
+           (file-path (org-roam--make-new-file-path slug t)))
       (if (file-exists-p file-path)
           (user-error "There's already a file at %s")
         slug))))
@@ -261,7 +268,7 @@ Optionally pass it the title, for a smart file name."
                               (org-roam--find-all-files)))
          (title (completing-read "File: " completions))
          (absolute-file-path (or (cadr (assoc title completions))
-                                 (org-roam--get-file-path (org-roam--get-new-id title) t)))
+                                 (org-roam--make-new-file-path (org-roam--get-new-id title) t)))
          (current-file-path (-> (current-buffer)
                                 (buffer-file-name)
                                 (file-truename)
@@ -282,7 +289,7 @@ Optionally pass it the title, for a smart file name."
                               (org-roam--find-all-files)))
          (title-or-slug (completing-read "File: " completions))
          (absolute-file-path (or (cadr (assoc title-or-slug completions))
-                                 (org-roam--get-file-path
+                                 (org-roam--make-new-file-path
                                   (org-roam--get-new-id title-or-slug) t))))
     (unless (file-exists-p absolute-file-path)
       (org-roam--make-file absolute-file-path title-or-slug))

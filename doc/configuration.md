@@ -94,6 +94,15 @@ typically near the top of the file. The option
 attribute is automatically inserted into the files created via
 Org-roam commands. Setting it to `nil` will disable this behaviour.
 
+### Encryption
+
+Encryption (via GPG) can be enabled for all new files by setting
+`org-roam-encrypt-files` to `t`. When enabled, new files are created
+with the .org.gpg extension and decryption are handled automatically
+by EasyPG. Note that this causes Emacs to ask for password when the
+cache is built (if you have an encrypted file in `org-roam-directory`)
+as well as each time a new file is created. It might be a good idea to
+cache the password in order to make this more managable.
 
 ## Org-roam Graph Viewer
 
