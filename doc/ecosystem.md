@@ -5,7 +5,7 @@ A number of packages work well combined with Org-Roam:
 [Deft][deft] provides a nice interface for browsing and filtering
 org-roam notes.
 
-```
+```emacs-lisp
 (use-package deft
   :after org
   :bind
@@ -14,8 +14,37 @@ org-roam notes.
   (deft-recursive t)
   (deft-use-filter-string-for-filename t)
   (deft-default-extension "org")
-  (deft-directory "/path/to/org-roam-files/")
-  (deft-use-filename-as-title t))
+  (deft-directory "/path/to/org-roam-files/"))
+```
+
+If the title of the Org file is not the first line, you might not get
+nice titles. You may choose to patch this to use `org-roam`'s
+functionality. Here I'm using [el-patch](https://github.com/raxod502/el-patch):
+
+```emacs-lisp
+(use-package el-patch
+  :straight (:host github
+                   :repo "raxod502/el-patch"
+                   :branch "develop"))
+
+(eval-when-compile
+  (require 'el-patch))
+
+(use-package deft
+  ;; same as above...
+  :config/el-patch
+  (defun deft-parse-title (file contents)
+    "Parse the given FILE and CONTENTS and determine the title.
+If `deft-use-filename-as-title' is nil, the title is taken to
+be the first non-empty line of the FILE.  Else the base name of the FILE is
+used as title."
+    (el-patch-swap (if deft-use-filename-as-title
+                       (deft-base-filename file)
+                     (let ((begin (string-match "^.+$" contents)))
+                       (if begin
+                           (funcall deft-parse-title-function
+                                    (substring contents begin (match-end 0))))))
+                   (org-roam--get-title-or-slug file))))
 ```
 
 The Deft interface can slow down quickly when the number of files get
@@ -29,7 +58,7 @@ powerful alternative to the simple function `org-roam-today`. It
 provides better journaling capabilities, and a nice calendar interface
 to see all dated entries.
 
-```
+```emacs-lisp
 (use-package org-journal
   :bind
   ("C-c n j" . org-journal-new-entry)
