@@ -96,6 +96,11 @@ Valid values are
   :type 'string
   :group 'org-roam)
 
+(defcustom org-roam-encrypt-files nil
+  "Whether to encrypt new files. If true, create files with .org.gpg extension."
+  :type 'boolean
+  :group 'org-roam)
+
 (defcustom org-roam-graph-viewer (executable-find "firefox")
   "Path to executable for viewing SVG."
   :type 'string
@@ -173,7 +178,9 @@ If called interactively, then PARENTS is non-nil."
 If `ABSOLUTE', return the absolute file-path. Else, return the relative file-path."
   (let ((absolute-file-path (file-truename
                              (expand-file-name
-                              (concat id ".org")
+                              (if org-roam-encrypt-files
+                                  (concat id ".org.gpg")
+                                (concat id ".org"))
                               org-roam-directory))))
     (if absolute
         absolute-file-path
