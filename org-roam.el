@@ -152,6 +152,9 @@ If called interactively, then PARENTS is non-nil."
 (defvar org-roam-current-file nil
   "Currently displayed file in `org-roam' buffer.")
 
+(defvar org-roam-last-window nil
+  "Last window `org-roam' was called from.")
+
 ;;; Utilities
 (defun org-roam--ensure-cache-built ()
   "Ensures that org-roam cache is built."
@@ -391,11 +394,25 @@ This is equivalent to removing the node from the graph."
     (org-roam--new-file-named (format-time-string "%Y-%m-%d" time))))
 
 ;;; Org-roam buffer updates
+
+(defun org-roam--find-file (file)
+  "Open FILE in the window `org-roam' was called from."
+  (if (and org-roam-last-window (window-valid-p org-roam-last-window))
+      (progn (with-selected-window org-roam-last-window
+               (find-file file))
+             (select-window org-roam-last-window))
+    (find-file file)))
+
 (defun org-roam-update (file-path)
   "Show the backlinks for given org file for file at `FILE-PATH'."
   (org-roam--ensure-cache-built)
   (let ((buffer-title (org-roam--get-title-or-slug file-path)))
     (with-current-buffer org-roam-buffer
+      ;; Locally overwrite the file opening function to re-use the
+      ;; last window org-roam was called from
+      (setq-local
+       org-link-frame-setup
+       (cons '(file . org-roam--find-file) org-link-frame-setup))
       (let ((inhibit-read-only t))
         (erase-buffer)
         (when (not (eq major-mode 'org-mode))
@@ -458,6 +475,7 @@ Valid states are 'visible, 'exists and 'none."
 (defun org-roam ()
   "Pops up the window `org-roam-buffer' accordingly."
   (interactive)
+  (setq org-roam-last-window (get-buffer-window))
   (pcase (org-roam--current-visibility)
     ('visible (delete-window (get-buffer-window org-roam-buffer)))
     ('exists (org-roam--setup-buffer))
