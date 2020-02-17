@@ -152,6 +152,9 @@ If called interactively, then PARENTS is non-nil."
 (defvar org-roam-current-file nil
   "Currently displayed file in `org-roam' buffer.")
 
+(defvar org-roam-last-window nil
+  "Last window `org-roam' was called from.")
+
 ;;; Utilities
 (defun org-roam--ensure-cache-built ()
   "Ensures that org-roam cache is built."
@@ -391,6 +394,17 @@ This is equivalent to removing the node from the graph."
     (org-roam--new-file-named (format-time-string "%Y-%m-%d" time))))
 
 ;;; Org-roam buffer updates
+
+(defun org-roam--find-file (file)
+  "Open FILE in the window `org-roam' was called from."
+  (if org-roam-last-window
+      (progn (with-selected-window org-roam-last-window
+               (find-file file))
+             (select-window org-roam-last-window))
+    (find-file file)))
+
+(org-link-set-parameters "org_roam_file" :follow #'org-roam--find-file)
+
 (defun org-roam-update (file-path)
   "Show the backlinks for given org file for file at `FILE-PATH'."
   (org-roam--ensure-cache-built)
@@ -409,7 +423,7 @@ This is equivalent to removing the node from the graph."
               (insert (format "\n\n* %d Backlinks\n"
                               (hash-table-count backlinks)))
               (maphash (lambda (file-from contents)
-                         (insert (format "** [[file:%s][%s]]\n"
+                         (insert (format "** [[org_roam_file:%s][%s]]\n"
                                          file-from
                                          (org-roam--get-title-or-slug file-from)))
                          (dolist (content contents)
@@ -458,6 +472,7 @@ Valid states are 'visible, 'exists and 'none."
 (defun org-roam ()
   "Pops up the window `org-roam-buffer' accordingly."
   (interactive)
+  (setq org-roam-last-window (get-buffer-window))
   (pcase (org-roam--current-visibility)
     ('visible (delete-window (get-buffer-window org-roam-buffer)))
     ('exists (org-roam--setup-buffer))
