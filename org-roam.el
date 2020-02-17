@@ -239,7 +239,10 @@ If not provided, derive the title from the file name."
       (error (format "Aborting, file already exists at %s" file-path))
     (if org-roam-autopopulate-title
         (org-roam--populate-title file-path title)
-      (make-empty-file file-path))))
+      (make-empty-file file-path))
+    (save-excursion
+      (with-current-buffer (find-file-noselect file-path)
+        (org-roam--update-cache)))))
 
 (defun org-roam--new-file-named (slug)
   "Create a new file named `SLUG'.
