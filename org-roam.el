@@ -68,18 +68,23 @@ Valid values are
                  (const right))
   :group 'org-roam)
 
-(defcustom org-roam-file-format "%Y%m%d%H%M%S"
-  "The timestamp format to use filenames."
-  :type 'string
-  :group 'org-roam)
+(defcustom org-roam-file-name-function #'org-roam--file-name-timestamp-title
+  "The function used to generate filenames.
+
+The function takes as parameter `TITLE', a string the user inputs."
+  :group 'org-roam
+  :type '(choice (const :tag "Default" org-roam--file-name-timestamp-title)
+                 (function :tag "Personalized function")))
 
 (defcustom org-roam-link-title-format "%s"
   "The format string used when inserting org-roam links that use their title."
   :type 'string
   :group 'org-roam)
 
-(defcustom org-roam-use-timestamp-as-filename t
-  "Whether to use timestamp as a file name. If not true, prompt for a file name each time."
+(defcustom org-roam-filename-noconfirm t
+  "Whether to prompt for confirmation of fil name for new files.
+
+If nil, always ask for filename."
   :type 'boolean
   :group 'org-roam)
 
@@ -202,6 +207,13 @@ If `ABSOLUTE', return an absolute file-path. Else, return a relative file-path."
          (s (s-join "_" s)))
     s))
 
+(defun org-roam--file-name-timestamp-title (title)
+  "Return a file name (without extension) for new files.
+
+It uses TITLE and the current timestamp to form a unique title."
+  (let ((timestamp (format-time-string "%Y%m%d%H%M%S" (current-time)))
+        (slug (org-roam--title-to-slug title)))
+    (format "%s_%s" timestamp slug)))
 
 ;;; Creating org-roam files
 (defun org-roam--populate-title (file &optional title)
@@ -238,25 +250,22 @@ If not provided, derive the title from the file name."
       (org-roam--make-file file-path))
     (find-file file-path)))
 
-(defun org-roam--get-new-id (&optional title)
-  "Return a new ID, generated from the current time.
-
-Optionally pass it the title, for a smart file name."
-  (if org-roam-use-timestamp-as-filename
-      (format-time-string org-roam-file-format (current-time))
-    (let* ((slug (read-string "Enter ID (without extension): "
-                              (if title
-                                  (org-roam--title-to-slug title)
-                                "")))
-           (file-path (org-roam--make-new-file-path slug t)))
-      (if (file-exists-p file-path)
-          (user-error "There's already a file at %s")
-        slug))))
+(defun org-roam--get-new-id (title)
+  "Return a new ID, given the note TITLE."
+  (let* ((proposed-slug (funcall org-roam-file-name-function title))
+         (new-slug (if org-roam-filename-noconfirm
+                       proposed-slug
+                     (read-string "Enter ID (without extension): "
+                                  proposed-slug)))
+         (file-path (org-roam--make-new-file-path new-slug t)))
+    (if (file-exists-p file-path)
+        (user-error "There's already a file at %s")
+      new-slug)))
 
 (defun org-roam-new-file ()
   "Quickly create a new file, using the current timestamp."
   (interactive)
-  (org-roam--new-file-named (org-roam--get-new-id)))
+  (org-roam--new-file-named (format-time-string "%Y%m%d%H%M%S" (current-time))))
 
 ;;; Inserting org-roam links
 (defun org-roam-insert ()
