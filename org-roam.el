@@ -55,7 +55,7 @@
   "Path to Org-roam files.
 
 All Org files, at any level of nesting, is considered part of the Org-roam."
-  :type 'directoy
+  :type 'directory
   :group 'org-roam)
 
 (defcustom org-roam-buffer-position 'right
