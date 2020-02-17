@@ -4,13 +4,14 @@
 
 ### Changes
 
-* [#108][gh-108] Locally overwrite the link following behaviour in the org-roam-buffer to open files in the same window `org-roam` was called from
+* [#108][gh-108] Locally overwrite the link following behaviour in the org-roam-buffer to open files in the same window `org-roam` was called from (by [@l3kn](https://github.com/l3kn/))
 
 ### Breaking Changes
 * [#103][gh-103] Change `org-roam-file-format` to a function: `org-roam-file-name-function` to allow more flexible file name customizaton. Also changes `org-roam-use-timestamp-as-filename` to `org-roam-filename-noconfirm` to better describe what it does.
 
 ### New Features
 * [#87][gh-87], [#90][gh-90] Support encrypted Org files (by [@chip2n](https://github.com/chip2n/))
+* [#110][gh-110] Add prefix to `org-roam-insert`, for inserting titles down-cased
 
 ### Bugfixes
 * [#86][gh-86] Fix `org-roam--parse-content` incorrect `:to` computation for nested files
@@ -58,6 +59,7 @@ Mostly a documentation/cleanup release.
 [gh-103]: https://github.com/jethrokuan/org-roam/pull/103
 [gh-105]: https://github.com/jethrokuan/org-roam/pull/105
 [gh-108]: https://github.com/jethrokuan/org-roam/pull/108
+[gh-110]: https://github.com/jethrokuan/org-roam/pull/110
 
  # Local Variables:
  # eval: (auto-fill-mode -1)
