@@ -407,17 +407,14 @@ This is equivalent to removing the node from the graph."
       (goto-char p)
       (org-show-context))))
 
-(defvar org-roam-backlinks-mode-map (make-sparse-keymap)
-  "Keymap for the org-roam backlinks buffer")
-(define-key org-roam-backlinks-mode-map [mouse-1] 'org-roam-jump-to-backlink)
-(define-key org-roam-backlinks-mode-map (kbd "RET") 'org-roam-jump-to-backlink)
-
-(define-minor-mode org-roam-backlinks-mode
-  "Minor mode for the org-roam backlinks buffer
+(define-derived-mode org-roam-backlinks-mode org-mode "Backlinks"
+  "Major mode for the org-roam backlinks buffer
 
 Bindings:
-\\{org-roam-backlinks-mode-map}"
-  :keymap org-roam-backlinks-mode-map)
+\\{org-roam-backlinks-mode-map}")
+
+(define-key org-roam-backlinks-mode-map [mouse-1] 'org-roam-jump-to-backlink)
+(define-key org-roam-backlinks-mode-map (kbd "RET") 'org-roam-jump-to-backlink)
 
 ;;; Org-roam buffer updates
 
@@ -441,8 +438,8 @@ Bindings:
        (cons '(file . org-roam--find-file) org-link-frame-setup))
       (let ((inhibit-read-only t))
         (erase-buffer)
-        (when (not (eq major-mode 'org-mode))
-          (org-mode))
+        (when (not (eq major-mode 'org-roam-backlinks-mode))
+          (org-roam-backlinks-mode))
         (make-local-variable 'org-return-follows-link)
         (setq org-return-follows-link t)
         (insert
@@ -466,7 +463,6 @@ Bindings:
                              (insert (format "%s \n\n" content)))))
                        backlinks))
           (insert "\n\n* No backlinks!")))
-      (org-roam-backlinks-mode)
       (read-only-mode 1)))
   (setq org-roam-current-file file-path))
 
