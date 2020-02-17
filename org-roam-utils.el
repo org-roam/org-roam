@@ -38,13 +38,23 @@
 (require 'subr-x)
 (require 'cl-lib)
 
+(defun org-roam--file-name-extension (filename)
+  "Return file name extension for FILENAME.
+
+Like file-name-extension, but does not strip version number."
+  (save-match-data
+    (let ((file (file-name-nondirectory filename)))
+      (if (and (string-match "\\.[^.]*\\'" file)
+	             (not (eq 0 (match-beginning 0))))
+          (substring file (+ (match-beginning 0) 1))))))
+
 (defun org-roam--org-file-p (path)
   "Check if PATH is pointing to an org file."
-  (let ((ext (file-name-extension path)))
+  (let ((ext (org-roam--file-name-extension path)))
     (or (string= ext "org")
         (and
          (string= ext "gpg")
-         (string= (file-name-extension (file-name-sans-extension path)) "org")))))
+         (string= (org-roam--file-name-extension (file-name-sans-extension path)) "org")))))
 
 (defun org-roam--find-files (dir)
   "Return all `org-roam' files in `DIR'."
