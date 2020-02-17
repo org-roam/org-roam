@@ -4,13 +4,13 @@
 
 ### Changes
 
-* [#108][gh-108] Locally overwrite the link following behaviour in the org-roam-buffer to open files in the same window `org-roam` was called from (by [@l3kn](https://github.com/l3kn/))
+* [#108][gh-108] Locally overwrite the link following behaviour in the org-roam-buffer to open files in the same window `org-roam` was called from
 
 ### Breaking Changes
 * [#103][gh-103] Change `org-roam-file-format` to a function: `org-roam-file-name-function` to allow more flexible file name customizaton. Also changes `org-roam-use-timestamp-as-filename` to `org-roam-filename-noconfirm` to better describe what it does.
 
 ### New Features
-* [#87][gh-87], [#90][gh-90] Support encrypted Org files (by [@chip2n](https://github.com/chip2n/))
+* [#87][gh-87], [#90][gh-90] Support encrypted Org files
 * [#110][gh-110] Add prefix to `org-roam-insert`, for inserting titles down-cased
 
 ### Bugfixes
@@ -19,6 +19,10 @@
 
 ### Internal
 * [#92][gh-92], [#105][gh-105]: Add tests for core functionality
+
+### Contributors
+* [@chip2n](https://github.com/chip2n/)
+* [@l3kn](https://github.com/l3kn/)
 
 ## 0.1.1 (2020-02-15)
 

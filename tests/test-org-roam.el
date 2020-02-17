@@ -122,7 +122,7 @@
                 (with-current-buffer buf
                   (with-simulated-input
                    "File SPC 1 RET"
-                   (org-roam-insert))))
+                   (org-roam-insert nil))))
               (expect (buffer-string) :to-match (regexp-quote "file:f1.org")))
 
           (it "temp2 -> nested/f1"
@@ -130,7 +130,7 @@
                 (with-current-buffer buf
                   (with-simulated-input
                    "Nested SPC File SPC 1 RET"
-                   (org-roam-insert))))
+                   (org-roam-insert nil))))
               (expect (buffer-string) :to-match (regexp-quote "file:nested/f1.org")))
 
           (it "nested/temp3 -> f1"
@@ -138,7 +138,7 @@
                 (with-current-buffer buf
                   (with-simulated-input
                    "File SPC 1 RET"
-                   (org-roam-insert))))
+                   (org-roam-insert nil))))
               (expect (buffer-string) :to-match (regexp-quote "file:../f1.org")))
 
           (it "a/b/temp4 -> nested/f1"
@@ -146,5 +146,5 @@
                 (with-current-buffer buf
                   (with-simulated-input
                    "Nested SPC File SPC 1 RET"
-                   (org-roam-insert))))
+                   (org-roam-insert nil))))
               (expect (buffer-string) :to-match (regexp-quote "file:../../nested/f1.org"))))
