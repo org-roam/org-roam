@@ -136,6 +136,33 @@ ITEM is of the form: (:from from-path :to to-path :content preview-content)."
         (org-element-property :value kw)))
     :first-match t))
 
+(defun org-roam--build-cache (dir)
+  "Build the org-roam caches in DIR."
+  (let ((backward-links (make-hash-table :test #'equal))
+        (forward-links (make-hash-table :test #'equal))
+        (file-titles (make-hash-table :test #'equal)))
+    (let* ((org-roam-files (org-roam--find-files dir))
+           (file-items (mapcar (lambda (file)
+                                 (with-temp-buffer
+                                   (insert-file-contents file)
+                                   (org-roam--parse-content file))) org-roam-files)))
+      (dolist (items file-items)
+        (dolist (item items)
+          (org-roam--insert-item
+           item
+           :forward forward-links
+           :backward backward-links)))
+      (dolist (file org-roam-files)
+        (with-temp-buffer
+          (insert-file-contents file)
+          (when-let ((title (org-roam--extract-title)))
+            (puthash file title file-titles)))
+        org-roam-files))
+    (list
+     :forward forward-links
+     :backward backward-links
+     :titles file-titles)))
+
 (provide 'org-roam-utils)
 
 ;;; org-roam-utils.el ends here

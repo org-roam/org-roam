@@ -304,9 +304,9 @@ If not provided, derive the title from the file name."
       (org-roam--make-file absolute-file-path title-or-slug))
     (find-file absolute-file-path)))
 
-;;; Building the org-roam cache (asynchronously)
+;;; Building the org-roam cache
 (defun org-roam--build-cache-async ()
-  "Builds the cache asychronously, saving it into the org-roam caches."
+  "Builds the caches asychronously."
   (interactive)
   (async-start
    `(lambda ()
@@ -314,30 +314,7 @@ If not provided, derive the title from the file name."
       (package-initialize)
       (require 'org-roam-utils)
       ,(async-inject-variables "org-roam-directory")
-      (let ((backward-links (make-hash-table :test #'equal))
-            (forward-links (make-hash-table :test #'equal))
-            (file-titles (make-hash-table :test #'equal)))
-        (let* ((org-roam-files (org-roam--find-files org-roam-directory))
-               (file-items (mapcar (lambda (file)
-                                     (with-temp-buffer
-                                       (insert-file-contents file)
-                                       (org-roam--parse-content file))) org-roam-files)))
-          (dolist (items file-items)
-            (dolist (item items)
-              (org-roam--insert-item
-               item
-               :forward forward-links
-               :backward backward-links)))
-          (mapcar (lambda (file)
-                    (with-temp-buffer
-                      (insert-file-contents file)
-                      (when-let ((title (org-roam--extract-title)))
-                        (puthash file title file-titles))))
-                  org-roam-files))
-        (list
-         :forward forward-links
-         :backward backward-links
-         :titles file-titles)))
+      (org-roam--build-cache org-roam-directory))
    (lambda (cache)
      (setq org-roam-forward-links-cache (plist-get cache :forward))
      (setq org-roam-backward-links-cache (plist-get cache :backward))
@@ -346,6 +323,14 @@ If not provided, derive the title from the file name."
      (message "Org-roam cache built!"))))
 
 (defun org-roam--clear-cache ()
+  "Clears all entries in the caches."
+  (interactive)
+  (setq org-roam-cache-initialized nil)
+  (setq org-roam-forward-links-cache (make-hash-table :test #'equal))
+  (setq org-roam-backward-links-cache (make-hash-table :test #'equal))
+  (setq org-roam-titles-cache (make-hash-table :test #'equal)))
+
+(defun org-roam--clear-file-from-cache ()
   "Remove any related links to the file.
 
 This is equivalent to removing the node from the graph."
@@ -372,7 +357,7 @@ This is equivalent to removing the node from the graph."
 (defun org-roam--update-cache ()
   "Update org-roam caches for the current buffer file."
   (save-excursion
-    (org-roam--clear-cache)
+    (org-roam--clear-file-from-cache)
     ;; Insert into title cache
     (org-roam--update-cache-title)
     ;; Insert new items
