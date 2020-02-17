@@ -274,9 +274,11 @@ If not provided, derive the title from the file name."
   (org-roam--new-file-named (format-time-string "%Y%m%d%H%M%S" (current-time))))
 
 ;;; Inserting org-roam links
-(defun org-roam-insert ()
-  "Find an org-roam file, and insert a relative org link to it at point."
-  (interactive)
+(defun org-roam-insert (prefix)
+  "Find an org-roam file, and insert a relative org link to it at point.
+
+If PREFIX, downcase the title before insertion."
+  (interactive "P")
   (let* ((completions (mapcar (lambda (file)
                                 (list (org-roam--get-title-or-slug file)
                                       file))
@@ -293,7 +295,9 @@ If not provided, derive the title from the file name."
     (insert (format "[[%s][%s]]"
                     (concat "file:" (file-relative-name absolute-file-path
                                                         current-file-path))
-                    (format org-roam-link-title-format title)))))
+                    (format org-roam-link-title-format (if prefix
+                                                           (downcase title)
+                                                         title))))))
 
 ;;; Finding org-roam files
 (defun org-roam-find-file ()
