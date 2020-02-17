@@ -2,14 +2,18 @@
 
 ## 0.1.2 (TBD)
 
+### Breaking Changes
+* [#103][gh-103] Change `org-roam-file-format` to a function: `org-roam-file-name-function` to allow more flexible file name customizaton. Also changes `org-roam-use-timestamp-as-filename` to `org-roam-filename-noconfirm` to better describe what it does.
+
 ### New Features
 * [#87][gh-87], [#90][gh-90] Support encrypted Org files (by [@chip2n](https://github.com/chip2n/))
 
 ### Bugfixes
 * [#86][gh-86] Fix `org-roam--parse-content` incorrect `:to` computation for nested files
+* [#98][gh-98] Fix `org-roam--find-file` picking up temporary files
 
-### Breaking Changes
-* [#103][gh-103] Change `org-roam-file-format` to a function: `org-roam-file-name-function` to allow more flexible file name customizaton. Also changes `org-roam-use-timestamp-as-filename` to `org-roam-filename-noconfirm` to better describe what it does.
+### Internal
+* [#92][gh-92], [#105][gh-105]: Add tests for core functionality
 
 ## 0.1.1 (2020-02-15)
 
@@ -45,6 +49,10 @@ Mostly a documentation/cleanup release.
 [gh-86]: https://github.com/jethrokuan/org-roam/pull/86
 [gh-87]: https://github.com/jethrokuan/org-roam/pull/87
 [gh-90]: https://github.com/jethrokuan/org-roam/pull/90
+[gh-92]: https://github.com/jethrokuan/org-roam/pull/92
+[gh-98]: https://github.com/jethrokuan/org-roam/pull/98
+[gh-103]: https://github.com/jethrokuan/org-roam/pull/103
+[gh-105]: https://github.com/jethrokuan/org-roam/pull/105
 
  # Local Variables:
  # eval: (auto-fill-mode -1)
