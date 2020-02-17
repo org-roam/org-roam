@@ -433,10 +433,13 @@ This is equivalent to removing the node from the graph."
                          (insert (format "** [[file:%s][%s]]\n"
                                          file-from
                                          (org-roam--get-title-or-slug file-from)))
-                         (dolist (content contents)
-                           (insert (concat (propertize (s-trim (s-replace "\n" " " content))
-                                                       'font-lock-face 'org-block)
-                                           "\n\n"))))
+                         (dolist (content-raw contents)
+                           (let ((content (propertize
+					   (s-trim (s-replace "\n" " " (car content-raw)))
+					   'font-lock-face 'org-block))
+				 (line (cdr content-raw)))
+			     (insert (format "%s [[file:%s::%s][(link)]]\n\n"
+					     content file-from line)))))
                        backlinks))
           (insert "\n\n* No backlinks!")))
       (read-only-mode 1)))

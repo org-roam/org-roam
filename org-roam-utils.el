@@ -97,13 +97,14 @@ Like file-name-extension, but does not strip version number."
                                 (file-truename (buffer-file-name (current-buffer))))))
             (list :from file-path
                   :to (file-truename (expand-file-name path (file-name-directory file-path)))
-                  :content content)))))))
+                  :content content
+                  :line (line-number-at-pos start t))))))))
 
 (cl-defun org-roam--insert-item (item &key forward backward)
   "Insert ITEM into FORWARD and BACKWARD cache.
 
-ITEM is of the form: (:from from-path :to to-path :content preview-content)."
-  (pcase-let ((`(:from ,p-from :to ,p-to :content ,content) item))
+ITEM is of the form: (:from from-path :to to-path :content preview-content :line line-number)."
+  (pcase-let ((`(:from ,p-from :to ,p-to :content ,content :line ,line) item))
     ;; Build forward-links
     (let ((links (gethash p-from forward)))
       (if links
@@ -116,14 +117,14 @@ ITEM is of the form: (:from from-path :to to-path :content preview-content)."
     (let ((contents-hash (gethash p-to backward)))
       (if contents-hash
           (if-let ((contents-list (gethash p-from contents-hash)))
-              (let ((updated (cons content contents-list)))
+              (let ((updated (cons (cons content line) contents-list)))
                 (puthash p-from updated contents-hash)
                 (puthash p-to contents-hash backward))
             (progn
-              (puthash p-from (list content) contents-hash)
+              (puthash p-from (list (cons content line)) contents-hash)
               (puthash p-to contents-hash backward)))
         (let ((contents-hash (make-hash-table :test #'equal)))
-          (puthash p-from (list content) contents-hash)
+          (puthash p-from (list (cons content line)) contents-hash)
           (puthash p-to contents-hash backward))))))
 
 (defun org-roam--extract-title ()
