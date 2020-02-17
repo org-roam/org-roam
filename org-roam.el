@@ -413,7 +413,10 @@ This is equivalent to removing the node from the graph."
 (define-key org-roam-backlinks-mode-map (kbd "RET") 'org-roam-jump-to-backlink)
 
 (define-minor-mode org-roam-backlinks-mode
-  "Minor mode for the org-roam backlinks buffer"
+  "Minor mode for the org-roam backlinks buffer
+
+Bindings:
+\\{org-roam-backlinks-mode-map}"
   :keymap org-roam-backlinks-mode-map)
 
 ;;; Org-roam buffer updates
