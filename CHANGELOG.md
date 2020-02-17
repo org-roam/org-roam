@@ -6,7 +6,10 @@
 * [#87][gh-87], [#90][gh-90] Support encrypted Org files (by [@chip2n](https://github.com/chip2n/))
 
 ### Bugfixes
-* [#86][gh-86] Fix org-roam--parse-content incorrect `:to` computation for nested files
+* [#86][gh-86] Fix `org-roam--parse-content` incorrect `:to` computation for nested files
+
+### Breaking Changes
+* [#103][gh-103] Change `org-roam-file-format` to a function: `org-roam-file-name-function` to allow more flexible file name customizaton. Also changes `org-roam-use-timestamp-as-filename` to `org-roam-filename-noconfirm` to better describe what it does.
 
 ## 0.1.1 (2020-02-15)
 
