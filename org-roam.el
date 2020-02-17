@@ -397,6 +397,25 @@ This is equivalent to removing the node from the graph."
   (let ((time (org-read-date nil 'to-time nil "Date:  ")))
     (org-roam--new-file-named (format-time-string "%Y-%m-%d" time))))
 
+(defun org-roam-jump-to-backlink ()
+  "Jumps to original file and location of the backlink content snippet at point"
+  (interactive)
+  (let ((file-from (get-text-property (point) 'file-from))
+        (p (get-text-property (point) 'file-from-point)))
+    (when (and file-from p)
+      (find-file file-from)
+      (goto-char p)
+      (org-show-context))))
+
+(defvar org-roam-backlinks-mode-map (make-sparse-keymap)
+  "Keymap for the org-roam backlinks buffer")
+(define-key org-roam-backlinks-mode-map [mouse-1] 'org-roam-jump-to-backlink)
+(define-key org-roam-backlinks-mode-map (kbd "RET") 'org-roam-jump-to-backlink)
+
+(define-minor-mode org-roam-backlinks-mode
+  "Minor mode for the org-roam backlinks buffer"
+  :keymap org-roam-backlinks-mode-map)
+
 ;;; Org-roam buffer updates
 
 (defun org-roam--find-file (file)
@@ -433,15 +452,18 @@ This is equivalent to removing the node from the graph."
                          (insert (format "** [[file:%s][%s]]\n"
                                          file-from
                                          (org-roam--get-title-or-slug file-from)))
-                         (dolist (content-raw contents)
+                         (dolist (properties contents)
                            (let ((content (propertize
-					   (s-trim (s-replace "\n" " " (car content-raw)))
-					   'font-lock-face 'org-block))
-				 (line (cdr content-raw)))
-			     (insert (format "%s [[file:%s::%s][(link)]]\n\n"
-					     content file-from line)))))
+                                           (s-trim (s-replace "\n" " "
+                                                              (plist-get properties :content)))
+                                           'font-lock-face 'org-block
+                                           'help-echo "mouse-1: visit backlinked note"
+                                           'file-from file-from
+                                           'file-from-point (plist-get properties :point))))
+                             (insert (format "%s \n\n" content)))))
                        backlinks))
           (insert "\n\n* No backlinks!")))
+      (org-roam-backlinks-mode)
       (read-only-mode 1)))
   (setq org-roam-current-file file-path))
 

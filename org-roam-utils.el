@@ -45,7 +45,7 @@ Like file-name-extension, but does not strip version number."
   (save-match-data
     (let ((file (file-name-nondirectory filename)))
       (if (and (string-match "\\.[^.]*\\'" file)
-	             (not (eq 0 (match-beginning 0))))
+                     (not (eq 0 (match-beginning 0))))
           (substring file (+ (match-beginning 0) 1))))))
 
 (defun org-roam--org-file-p (path)
@@ -86,10 +86,11 @@ Like file-name-extension, but does not strip version number."
                    (org-roam--org-file-p path))
           (goto-char start)
           (let* ((element (org-element-at-point))
+                 (begin (or (org-element-property :content-begin element)
+                            (org-element-property :begin element)))
                  (content (or (org-element-property :raw-value element)
                               (buffer-substring
-                               (or (org-element-property :content-begin element)
-                                   (org-element-property :begin element))
+                               begin
                                (or (org-element-property :content-end element)
                                    (org-element-property :end element)))))
                  (content (string-trim content))
@@ -97,14 +98,13 @@ Like file-name-extension, but does not strip version number."
                                 (file-truename (buffer-file-name (current-buffer))))))
             (list :from file-path
                   :to (file-truename (expand-file-name path (file-name-directory file-path)))
-                  :content content
-                  :line (line-number-at-pos start t))))))))
+                  :properties (list :content content :point begin))))))))
 
 (cl-defun org-roam--insert-item (item &key forward backward)
   "Insert ITEM into FORWARD and BACKWARD cache.
 
-ITEM is of the form: (:from from-path :to to-path :content preview-content :line line-number)."
-  (pcase-let ((`(:from ,p-from :to ,p-to :content ,content :line ,line) item))
+ITEM is of the form: (:from from-path :to to-path :properties (:content preview-content :point point))."
+  (pcase-let ((`(:from ,p-from :to ,p-to :properties ,props) item))
     ;; Build forward-links
     (let ((links (gethash p-from forward)))
       (if links
@@ -117,14 +117,14 @@ ITEM is of the form: (:from from-path :to to-path :content preview-content :line
     (let ((contents-hash (gethash p-to backward)))
       (if contents-hash
           (if-let ((contents-list (gethash p-from contents-hash)))
-              (let ((updated (cons (cons content line) contents-list)))
+              (let ((updated (cons props contents-list)))
                 (puthash p-from updated contents-hash)
                 (puthash p-to contents-hash backward))
             (progn
-              (puthash p-from (list (cons content line)) contents-hash)
+              (puthash p-from (list props) contents-hash)
               (puthash p-to contents-hash backward)))
         (let ((contents-hash (make-hash-table :test #'equal)))
-          (puthash p-from (list (cons content line)) contents-hash)
+          (puthash p-from (list props) contents-hash)
           (puthash p-to contents-hash backward))))))
 
 (defun org-roam--extract-title ()
