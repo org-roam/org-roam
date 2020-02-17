@@ -57,6 +57,7 @@ Mostly a documentation/cleanup release.
 [gh-98]: https://github.com/jethrokuan/org-roam/pull/98
 [gh-103]: https://github.com/jethrokuan/org-roam/pull/103
 [gh-105]: https://github.com/jethrokuan/org-roam/pull/105
+[gh-108]: https://github.com/jethrokuan/org-roam/pull/108
 
  # Local Variables:
  # eval: (auto-fill-mode -1)
