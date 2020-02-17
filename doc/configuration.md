@@ -66,24 +66,20 @@ Org files in all of its main commands (`org-roam-insert`,
 `org-roam-find-file`). Hence, having any unique file name is a decent
 option, and the default workflow uses the timestamp as the filename.
 
-The format of the filename is specified by the string
-`org-roam-file-format`, which defaults to `"%Y%m%d%H%M%S"`. To see
-valid specifications, see the help (`C-h f`) for `format-time-string`.
+The format of the filename is controlled by the function
+`org-roam-file-name-function`, which defaults to a format like
+`YYYYMMDDHHMMSS_title_here.org`. You may choose to define your own
+function to change this.
 
-There are several reasons for keeping filenames meaningful. For
-example, one may wish to publish the Org files, and some publishing
-methods such as Org-publish use the file names as slugs for the URLs.
-
-If you wish to maintain manual control of filenames, set
-`org-roam-use-timestamp-as-filename` to `nil`:
+If you wish to be prompted to change the file name on creation, set
+`org-roam-filename-noconfirm` to `nil`:
 
 ```emacs-lisp
-(setq org-roam-use-timestamp-as-filename nil)
+(setq org-roam-filename-noconfirm nil)
 ```
 
-When this setting is turned off, the user is instead manually prompted
-for a filename. It is then the user's responsibility to ensure that
-the file names are unique.
+It is then the user's responsibility to ensure that the file names are
+unique.
 
 ### Autopopulating Titles
 
