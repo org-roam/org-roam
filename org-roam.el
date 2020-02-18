@@ -543,6 +543,7 @@ This needs to be quick/infrequent, because this is run at
       (org-roam-update (expand-file-name
                         (buffer-local-value 'buffer-file-truename buffer))))))
 
+;;;###autoload
 (define-minor-mode org-roam-mode
   "Global minor mode to automatically update the org-roam buffer."
   :require 'org-roam
