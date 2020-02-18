@@ -168,6 +168,10 @@ If called interactively, then PARENTS is non-nil."
        (f-child-of-p (file-truename file)
                      org-roam-directory)))
 
+(defun org-roam--relative-path (file)
+  "Find the relative path of FILE from the org-roam root directory."
+  (file-relative-name (file-truename file) (file-truename org-roam-directory)))
+
 (defun org-roam--get-title-from-cache (file)
   "Return title of `FILE' from the cache."
   (or (gethash file org-roam-titles-cache)
@@ -589,9 +593,6 @@ This needs to be quick/infrequent, because this is run at
     (call-process org-roam-graphviz-executable nil 0 nil temp-dot "-Tsvg" "-o" temp-graph)
     (call-process org-roam-graph-viewer nil 0 nil temp-graph)))
 
-(defun org-roam--relative-path (file)
-  (file-relative-name (file-truename file) (file-truename org-roam-directory)))
-
 (defun org-roam--rename-file-links (file new-file &rest args)
   "Rename backlinks of FILE to refer to NEW-FILE."
   (when (and (not (eq (car args) t))
@@ -622,10 +623,8 @@ This needs to be quick/infrequent, because this is run at
                           (format "\\[\\[file:%s\\]\\[\\(.*\\)\\]\\]" path)
                           (format "[[file:%s][\\1]]" relative-path)))
                        (find-file file-from)
-                       (org-roam--update-cache)
-                       ))
-                   files))
-        ))))
+                       (org-roam--update-cache)))
+                   files))))))
 
 (advice-add 'rename-file :after 'org-roam--rename-file-links)
 
