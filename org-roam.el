@@ -149,7 +149,7 @@ If called interactively, then PARENTS is non-nil."
 (defvar org-roam-titles-cache (make-hash-table :test #'equal)
   "Cache containing titles for org-roam files.")
 
-(defvar org-roam-current-file nil
+(defvar org-roam--current-buffer nil
   "Currently displayed file in `org-roam' buffer.")
 
 (defvar org-roam-last-window nil
@@ -467,8 +467,7 @@ Bindings:
                              (insert (format "%s \n\n" content)))))
                        backlinks))
           (insert "\n\n* No backlinks!")))
-      (read-only-mode 1)))
-  (setq org-roam-current-file file-path))
+      (read-only-mode 1))))
 
 ;;; Show/hide the org-roam buffer
 (define-inline org-roam--current-visibility ()
@@ -533,21 +532,20 @@ Valid states are 'visible, 'exists and 'none."
   "Disable org-roam updating for file.
 
 1. Remove hooks for updating the cache, and the org-roam buffer."
-  (remove-hook 'post-command-hook #'org-roam--maybe-update-buffer)
-  (remove-hook 'after-save-hook #'org-roam--update-cache))
+  (remove-hook 'post-command-hook #'org-roam--maybe-update-buffer t)
+  (remove-hook 'after-save-hook #'org-roam--update-cache t))
 
 (cl-defun org-roam--maybe-update-buffer (&key redisplay)
   "Update `org-roam-buffer' with the necessary information.
 This needs to be quick/infrequent, because this is run at
 `post-command-hook'."
-  (with-current-buffer (window-buffer)
-    (when (and (get-buffer org-roam-buffer)
-               (buffer-file-name (current-buffer))
-               (file-exists-p (file-truename (buffer-file-name (current-buffer))))
-               (or redisplay
-                   (not (string= org-roam-current-file
-                                 (file-truename (buffer-file-name (current-buffer)))))))
-      (org-roam-update (file-truename (buffer-file-name (window-buffer)))))))
+  (let ((buffer (window-buffer)))
+    (when (and (or redisplay
+                   (not (eq org-roam--current-buffer buffer)))
+               (eq 'visible (org-roam--current-visibility)))
+      (setq org-roam--current-buffer buffer)
+      (org-roam-update (expand-file-name
+                        (buffer-local-value 'buffer-file-truename buffer))))))
 
 (define-minor-mode org-roam-mode
   "Global minor mode to automatically update the org-roam buffer."
