@@ -595,7 +595,8 @@ This needs to be quick/infrequent, because this is run at
 
 (defun org-roam--rename-file-links (file new-file &rest args)
   "Rename backlinks of FILE to refer to NEW-FILE."
-  (when (and (not (eq (car args) t))
+  (when (and (not (auto-save-file-name-p file))
+             (not (auto-save-file-name-p new-file))
              (org-roam--org-roam-file-p new-file))
     (org-roam--ensure-cache-built)
 
