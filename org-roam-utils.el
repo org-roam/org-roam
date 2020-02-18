@@ -38,6 +38,24 @@
 (require 'subr-x)
 (require 'cl-lib)
 
+(defun org-roam--file-name-extension (filename)
+  "Return file name extension for FILENAME.
+
+Like file-name-extension, but does not strip version number."
+  (save-match-data
+    (let ((file (file-name-nondirectory filename)))
+      (if (and (string-match "\\.[^.]*\\'" file)
+                     (not (eq 0 (match-beginning 0))))
+          (substring file (+ (match-beginning 0) 1))))))
+
+(defun org-roam--org-file-p (path)
+  "Check if PATH is pointing to an org file."
+  (let ((ext (org-roam--file-name-extension path)))
+    (or (string= ext "org")
+        (and
+         (string= ext "gpg")
+         (string= (org-roam--file-name-extension (file-name-sans-extension path)) "org")))))
+
 (defun org-roam--find-files (dir)
   "Return all `org-roam' files in `DIR'."
   (if (file-exists-p dir)
@@ -53,7 +71,7 @@
             (when (not (string-match dir-ignore-regexp file))
               (setq result (append (org-roam--find-files file) result))))
            ((and (file-readable-p file)
-                 (string= (file-name-extension file) "org"))
+                 (org-roam--org-file-p file))
             (setq result (cons (file-truename file) result)))))
         result)))
 
@@ -65,25 +83,28 @@
             (path (org-element-property :path link))
             (start (org-element-property :begin link)))
         (when (and (string= type "file")
-                   (string= (file-name-extension path) "org"))
+                   (org-roam--org-file-p path))
           (goto-char start)
           (let* ((element (org-element-at-point))
+                 (begin (or (org-element-property :content-begin element)
+                            (org-element-property :begin element)))
                  (content (or (org-element-property :raw-value element)
                               (buffer-substring
-                               (or (org-element-property :content-begin element)
-                                   (org-element-property :begin element))
+                               begin
                                (or (org-element-property :content-end element)
-                                   (org-element-property :end element))))))
-            (list :from (or file-path
-                            (file-truename (buffer-file-name (current-buffer))))
-                  :to (file-truename (expand-file-name path org-roam-directory))
-                  :content (string-trim content))))))))
+                                   (org-element-property :end element)))))
+                 (content (string-trim content))
+                 (file-path (or file-path
+                                (file-truename (buffer-file-name (current-buffer))))))
+            (list :from file-path
+                  :to (file-truename (expand-file-name path (file-name-directory file-path)))
+                  :properties (list :content content :point begin))))))))
 
 (cl-defun org-roam--insert-item (item &key forward backward)
   "Insert ITEM into FORWARD and BACKWARD cache.
 
-ITEM is of the form: (:from from-path :to to-path :content preview-content)."
-  (pcase-let ((`(:from ,p-from :to ,p-to :content ,content) item))
+ITEM is of the form: (:from from-path :to to-path :properties (:content preview-content :point point))."
+  (pcase-let ((`(:from ,p-from :to ,p-to :properties ,props) item))
     ;; Build forward-links
     (let ((links (gethash p-from forward)))
       (if links
@@ -96,14 +117,14 @@ ITEM is of the form: (:from from-path :to to-path :content preview-content)."
     (let ((contents-hash (gethash p-to backward)))
       (if contents-hash
           (if-let ((contents-list (gethash p-from contents-hash)))
-              (let ((updated (cons content contents-list)))
+              (let ((updated (cons props contents-list)))
                 (puthash p-from updated contents-hash)
                 (puthash p-to contents-hash backward))
             (progn
-              (puthash p-from (list content) contents-hash)
+              (puthash p-from (list props) contents-hash)
               (puthash p-to contents-hash backward)))
         (let ((contents-hash (make-hash-table :test #'equal)))
-          (puthash p-from (list content) contents-hash)
+          (puthash p-from (list props) contents-hash)
           (puthash p-to contents-hash backward))))))
 
 (defun org-roam--extract-title ()
@@ -115,6 +136,33 @@ ITEM is of the form: (:from from-path :to to-path :content preview-content)."
       (when (string= (org-element-property :key kw) "TITLE")
         (org-element-property :value kw)))
     :first-match t))
+
+(defun org-roam--build-cache (dir)
+  "Build the org-roam caches in DIR."
+  (let ((backward-links (make-hash-table :test #'equal))
+        (forward-links (make-hash-table :test #'equal))
+        (file-titles (make-hash-table :test #'equal)))
+    (let* ((org-roam-files (org-roam--find-files dir))
+           (file-items (mapcar (lambda (file)
+                                 (with-temp-buffer
+                                   (insert-file-contents file)
+                                   (org-roam--parse-content file))) org-roam-files)))
+      (dolist (items file-items)
+        (dolist (item items)
+          (org-roam--insert-item
+           item
+           :forward forward-links
+           :backward backward-links)))
+      (dolist (file org-roam-files)
+        (with-temp-buffer
+          (insert-file-contents file)
+          (when-let ((title (org-roam--extract-title)))
+            (puthash file title file-titles)))
+        org-roam-files))
+    (list
+     :forward forward-links
+     :backward backward-links
+     :titles file-titles)))
 
 (provide 'org-roam-utils)
 

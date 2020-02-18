@@ -55,7 +55,7 @@
   "Path to Org-roam files.
 
 All Org files, at any level of nesting, is considered part of the Org-roam."
-  :type 'directoy
+  :type 'directory
   :group 'org-roam)
 
 (defcustom org-roam-buffer-position 'right
@@ -68,18 +68,23 @@ Valid values are
                  (const right))
   :group 'org-roam)
 
-(defcustom org-roam-file-format "%Y%m%d%H%M%S"
-  "The timestamp format to use filenames."
-  :type 'string
-  :group 'org-roam)
+(defcustom org-roam-file-name-function #'org-roam--file-name-timestamp-title
+  "The function used to generate filenames.
+
+The function takes as parameter `TITLE', a string the user inputs."
+  :group 'org-roam
+  :type '(choice (const :tag "Default" org-roam--file-name-timestamp-title)
+                 (function :tag "Personalized function")))
 
 (defcustom org-roam-link-title-format "%s"
   "The format string used when inserting org-roam links that use their title."
   :type 'string
   :group 'org-roam)
 
-(defcustom org-roam-use-timestamp-as-filename t
-  "Whether to use timestamp as a file name. If not true, prompt for a file name each time."
+(defcustom org-roam-filename-noconfirm t
+  "Whether to prompt for confirmation of fil name for new files.
+
+If nil, always ask for filename."
   :type 'boolean
   :group 'org-roam)
 
@@ -94,6 +99,11 @@ Valid values are
 (defcustom org-roam-buffer "*org-roam*"
   "Org-roam buffer name."
   :type 'string
+  :group 'org-roam)
+
+(defcustom org-roam-encrypt-files nil
+  "Whether to encrypt new files. If true, create files with .org.gpg extension."
+  :type 'boolean
   :group 'org-roam)
 
 (defcustom org-roam-graph-viewer (executable-find "firefox")
@@ -142,6 +152,9 @@ If called interactively, then PARENTS is non-nil."
 (defvar org-roam-current-file nil
   "Currently displayed file in `org-roam' buffer.")
 
+(defvar org-roam-last-window nil
+  "Last window `org-roam' was called from.")
+
 ;;; Utilities
 (defun org-roam--ensure-cache-built ()
   "Ensures that org-roam cache is built."
@@ -167,13 +180,15 @@ If called interactively, then PARENTS is non-nil."
   "Return all org-roam files."
   (org-roam--find-files (file-truename org-roam-directory)))
 
-(defun org-roam--get-file-path (id &optional absolute)
-  "Convert identifier `ID' to file path.
+(defun org-roam--make-new-file-path (id &optional absolute)
+  "Make new file path from identifier `ID'.
 
-If `ABSOLUTE', return the absolute file-path. Else, return the relative file-path."
+If `ABSOLUTE', return an absolute file-path. Else, return a relative file-path."
   (let ((absolute-file-path (file-truename
                              (expand-file-name
-                              (concat id ".org")
+                              (if org-roam-encrypt-files
+                                  (concat id ".org.gpg")
+                                (concat id ".org"))
                               org-roam-directory))))
     (if absolute
         absolute-file-path
@@ -195,6 +210,13 @@ If `ABSOLUTE', return the absolute file-path. Else, return the relative file-pat
          (s (s-join "_" s)))
     s))
 
+(defun org-roam--file-name-timestamp-title (title)
+  "Return a file name (without extension) for new files.
+
+It uses TITLE and the current timestamp to form a unique title."
+  (let ((timestamp (format-time-string "%Y%m%d%H%M%S" (current-time)))
+        (slug (org-roam--title-to-slug title)))
+    (format "%s_%s" timestamp slug)))
 
 ;;; Creating org-roam files
 (defun org-roam--populate-title (file &optional title)
@@ -220,48 +242,50 @@ If not provided, derive the title from the file name."
       (error (format "Aborting, file already exists at %s" file-path))
     (if org-roam-autopopulate-title
         (org-roam--populate-title file-path title)
-      (make-empty-file file-path))))
+      (make-empty-file file-path))
+    (save-excursion
+      (with-current-buffer (find-file-noselect file-path)
+        (org-roam--update-cache)))))
 
 (defun org-roam--new-file-named (slug)
   "Create a new file named `SLUG'.
 `SLUG' is the short file name, without a path or a file extension."
   (interactive "sNew filename (without extension): ")
-  (let ((file-path (org-roam--get-file-path slug t)))
+  (let ((file-path (org-roam--make-new-file-path slug t)))
     (unless (file-exists-p file-path)
       (org-roam--make-file file-path))
     (find-file file-path)))
 
-(defun org-roam--get-new-id (&optional title)
-  "Return a new ID, generated from the current time.
-
-Optionally pass it the title, for a smart file name."
-  (if org-roam-use-timestamp-as-filename
-      (format-time-string org-roam-file-format (current-time))
-    (let* ((slug (read-string "Enter ID (without extension): "
-                              (if title
-                                  (org-roam--title-to-slug title)
-                                "")))
-           (file-path (org-roam--get-file-path slug t)))
-      (if (file-exists-p file-path)
-          (user-error "There's already a file at %s")
-        slug))))
+(defun org-roam--get-new-id (title)
+  "Return a new ID, given the note TITLE."
+  (let* ((proposed-slug (funcall org-roam-file-name-function title))
+         (new-slug (if org-roam-filename-noconfirm
+                       proposed-slug
+                     (read-string "Enter ID (without extension): "
+                                  proposed-slug)))
+         (file-path (org-roam--make-new-file-path new-slug t)))
+    (if (file-exists-p file-path)
+        (user-error "There's already a file at %s")
+      new-slug)))
 
 (defun org-roam-new-file ()
   "Quickly create a new file, using the current timestamp."
   (interactive)
-  (org-roam--new-file-named (org-roam--get-new-id)))
+  (org-roam--new-file-named (format-time-string "%Y%m%d%H%M%S" (current-time))))
 
 ;;; Inserting org-roam links
-(defun org-roam-insert ()
-  "Find an org-roam file, and insert a relative org link to it at point."
-  (interactive)
+(defun org-roam-insert (prefix)
+  "Find an org-roam file, and insert a relative org link to it at point.
+
+If PREFIX, downcase the title before insertion."
+  (interactive "P")
   (let* ((completions (mapcar (lambda (file)
                                 (list (org-roam--get-title-or-slug file)
                                       file))
                               (org-roam--find-all-files)))
          (title (completing-read "File: " completions))
          (absolute-file-path (or (cadr (assoc title completions))
-                                 (org-roam--get-file-path (org-roam--get-new-id title) t)))
+                                 (org-roam--make-new-file-path (org-roam--get-new-id title) t)))
          (current-file-path (-> (current-buffer)
                                 (buffer-file-name)
                                 (file-truename)
@@ -271,7 +295,9 @@ Optionally pass it the title, for a smart file name."
     (insert (format "[[%s][%s]]"
                     (concat "file:" (file-relative-name absolute-file-path
                                                         current-file-path))
-                    (format org-roam-link-title-format title)))))
+                    (format org-roam-link-title-format (if prefix
+                                                           (downcase title)
+                                                         title))))))
 
 ;;; Finding org-roam files
 (defun org-roam-find-file ()
@@ -282,15 +308,15 @@ Optionally pass it the title, for a smart file name."
                               (org-roam--find-all-files)))
          (title-or-slug (completing-read "File: " completions))
          (absolute-file-path (or (cadr (assoc title-or-slug completions))
-                                 (org-roam--get-file-path
+                                 (org-roam--make-new-file-path
                                   (org-roam--get-new-id title-or-slug) t))))
     (unless (file-exists-p absolute-file-path)
       (org-roam--make-file absolute-file-path title-or-slug))
     (find-file absolute-file-path)))
 
-;;; Building the org-roam cache (asynchronously)
+;;; Building the org-roam cache
 (defun org-roam--build-cache-async ()
-  "Builds the cache asychronously, saving it into the org-roam caches."
+  "Builds the caches asychronously."
   (interactive)
   (async-start
    `(lambda ()
@@ -298,30 +324,7 @@ Optionally pass it the title, for a smart file name."
       (package-initialize)
       (require 'org-roam-utils)
       ,(async-inject-variables "org-roam-directory")
-      (let ((backward-links (make-hash-table :test #'equal))
-            (forward-links (make-hash-table :test #'equal))
-            (file-titles (make-hash-table :test #'equal)))
-        (let* ((org-roam-files (org-roam--find-files org-roam-directory))
-               (file-items (mapcar (lambda (file)
-                                     (with-temp-buffer
-                                       (insert-file-contents file)
-                                       (org-roam--parse-content file))) org-roam-files)))
-          (dolist (items file-items)
-            (dolist (item items)
-              (org-roam--insert-item
-               item
-               :forward forward-links
-               :backward backward-links)))
-          (mapcar (lambda (file)
-                    (with-temp-buffer
-                      (insert-file-contents file)
-                      (when-let ((title (org-roam--extract-title)))
-                        (puthash file title file-titles))))
-                  org-roam-files))
-        (list
-         :forward forward-links
-         :backward backward-links
-         :titles file-titles)))
+      (org-roam--build-cache org-roam-directory))
    (lambda (cache)
      (setq org-roam-forward-links-cache (plist-get cache :forward))
      (setq org-roam-backward-links-cache (plist-get cache :backward))
@@ -330,6 +333,14 @@ Optionally pass it the title, for a smart file name."
      (message "Org-roam cache built!"))))
 
 (defun org-roam--clear-cache ()
+  "Clears all entries in the caches."
+  (interactive)
+  (setq org-roam-cache-initialized nil)
+  (setq org-roam-forward-links-cache (make-hash-table :test #'equal))
+  (setq org-roam-backward-links-cache (make-hash-table :test #'equal))
+  (setq org-roam-titles-cache (make-hash-table :test #'equal)))
+
+(defun org-roam--clear-file-from-cache ()
   "Remove any related links to the file.
 
 This is equivalent to removing the node from the graph."
@@ -356,7 +367,7 @@ This is equivalent to removing the node from the graph."
 (defun org-roam--update-cache ()
   "Update org-roam caches for the current buffer file."
   (save-excursion
-    (org-roam--clear-cache)
+    (org-roam--clear-file-from-cache)
     ;; Insert into title cache
     (org-roam--update-cache-title)
     ;; Insert new items
@@ -386,16 +397,49 @@ This is equivalent to removing the node from the graph."
   (let ((time (org-read-date nil 'to-time nil "Date:  ")))
     (org-roam--new-file-named (format-time-string "%Y-%m-%d" time))))
 
+(defun org-roam-jump-to-backlink ()
+  "Jumps to original file and location of the backlink content snippet at point"
+  (interactive)
+  (let ((file-from (get-text-property (point) 'file-from))
+        (p (get-text-property (point) 'file-from-point)))
+    (when (and file-from p)
+      (find-file file-from)
+      (goto-char p)
+      (org-show-context))))
+
+(define-derived-mode org-roam-backlinks-mode org-mode "Backlinks"
+  "Major mode for the org-roam backlinks buffer
+
+Bindings:
+\\{org-roam-backlinks-mode-map}")
+
+(define-key org-roam-backlinks-mode-map [mouse-1] 'org-roam-jump-to-backlink)
+(define-key org-roam-backlinks-mode-map (kbd "RET") 'org-roam-jump-to-backlink)
+
 ;;; Org-roam buffer updates
+
+(defun org-roam--find-file (file)
+  "Open FILE in the window `org-roam' was called from."
+  (if (and org-roam-last-window (window-valid-p org-roam-last-window))
+      (progn (with-selected-window org-roam-last-window
+               (find-file file))
+             (select-window org-roam-last-window))
+    (find-file file)))
+
 (defun org-roam-update (file-path)
   "Show the backlinks for given org file for file at `FILE-PATH'."
   (org-roam--ensure-cache-built)
   (let ((buffer-title (org-roam--get-title-or-slug file-path)))
     (with-current-buffer org-roam-buffer
+      ;; Locally overwrite the file opening function to re-use the
+      ;; last window org-roam was called from
+      (setq-local
+       org-link-frame-setup
+       (cons '(file . org-roam--find-file) org-link-frame-setup))
       (let ((inhibit-read-only t))
         (erase-buffer)
-        (when (not (eq major-mode 'org-mode))
-          (org-mode))
+        (when (not (eq major-mode 'org-roam-backlinks-mode))
+          (org-roam-backlinks-mode))
         (make-local-variable 'org-return-follows-link)
         (setq org-return-follows-link t)
         (insert
@@ -408,10 +452,15 @@ This is equivalent to removing the node from the graph."
                          (insert (format "** [[file:%s][%s]]\n"
                                          file-from
                                          (org-roam--get-title-or-slug file-from)))
-                         (dolist (content contents)
-                           (insert (concat (propertize (s-trim (s-replace "\n" " " content))
-                                                       'font-lock-face 'org-block)
-                                           "\n\n"))))
+                         (dolist (properties contents)
+                           (let ((content (propertize
+                                           (s-trim (s-replace "\n" " "
+                                                              (plist-get properties :content)))
+                                           'font-lock-face 'org-block
+                                           'help-echo "mouse-1: visit backlinked note"
+                                           'file-from file-from
+                                           'file-from-point (plist-get properties :point))))
+                             (insert (format "%s \n\n" content)))))
                        backlinks))
           (insert "\n\n* No backlinks!")))
       (read-only-mode 1)))
@@ -454,6 +503,7 @@ Valid states are 'visible, 'exists and 'none."
 (defun org-roam ()
   "Pops up the window `org-roam-buffer' accordingly."
   (interactive)
+  (setq org-roam-last-window (get-buffer-window))
   (pcase (org-roam--current-visibility)
     ('visible (delete-window (get-buffer-window org-roam-buffer)))
     ('exists (org-roam--setup-buffer))

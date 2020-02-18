@@ -66,24 +66,20 @@ Org files in all of its main commands (`org-roam-insert`,
 `org-roam-find-file`). Hence, having any unique file name is a decent
 option, and the default workflow uses the timestamp as the filename.
 
-The format of the filename is specified by the string
-`org-roam-file-format`, which defaults to `"%Y%m%d%H%M%S"`. To see
-valid specifications, see the help (`C-h f`) for `format-time-string`.
+The format of the filename is controlled by the function
+`org-roam-file-name-function`, which defaults to a format like
+`YYYYMMDDHHMMSS_title_here.org`. You may choose to define your own
+function to change this.
 
-There are several reasons for keeping filenames meaningful. For
-example, one may wish to publish the Org files, and some publishing
-methods such as Org-publish use the file names as slugs for the URLs.
-
-If you wish to maintain manual control of filenames, set
-`org-roam-use-timestamp-as-filename` to `nil`:
+If you wish to be prompted to change the file name on creation, set
+`org-roam-filename-noconfirm` to `nil`:
 
 ```emacs-lisp
-(setq org-roam-use-timestamp-as-filename nil)
+(setq org-roam-filename-noconfirm nil)
 ```
 
-When this setting is turned off, the user is instead manually prompted
-for a filename. It is then the user's responsibility to ensure that
-the file names are unique.
+It is then the user's responsibility to ensure that the file names are
+unique.
 
 ### Autopopulating Titles
 
@@ -94,12 +90,21 @@ typically near the top of the file. The option
 attribute is automatically inserted into the files created via
 Org-roam commands. Setting it to `nil` will disable this behaviour.
 
+### Encryption
+
+Encryption (via GPG) can be enabled for all new files by setting
+`org-roam-encrypt-files` to `t`. When enabled, new files are created
+with the .org.gpg extension and decryption are handled automatically
+by EasyPG. Note that this causes Emacs to ask for password when the
+cache is built (if you have an encrypted file in `org-roam-directory`)
+as well as each time a new file is created. It might be a good idea to
+cache the password in order to make this more managable.
 
 ## Org-roam Graph Viewer
 
 Org-roam generates an SVG image using
-[Graphviz](https://graphviz.org/). For more information about this
-functionality, see the [Usage](TODO) page.
+[Graphviz](https://graphviz.org/). To setup graph navigation, see the
+[Graph Setup](graph_setup.md) page.
 
 Org-roam tries its best to locate the Graphviz executable from your
 PATH, but if it fails to do so, you may set it manually:
