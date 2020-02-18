@@ -536,8 +536,9 @@ Valid states are 'visible, 'exists and 'none."
 This needs to be quick/infrequent, because this is run at
 `post-command-hook'."
   (let ((buffer (window-buffer)))
-    (when (or redisplay
-              (not (eq org-roam--current-buffer buffer)))
+    (when (and (or redisplay
+                   (not (eq org-roam--current-buffer buffer)))
+               (eq 'visible (org-roam--current-visibility)))
       (setq org-roam--current-buffer buffer)
       (org-roam-update (expand-file-name
                         (buffer-local-value 'buffer-file-truename buffer))))))
