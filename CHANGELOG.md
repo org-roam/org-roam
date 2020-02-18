@@ -12,6 +12,7 @@
 ### New Features
 * [#87][gh-87], [#90][gh-90] Support encrypted Org files
 * [#110][gh-110] Add prefix to `org-roam-insert`, for inserting titles down-cased
+* [#99](https://github.com/jethrokuan/org-roam/pull/99) Add keybinding so that `<return>` or `mouse-1` in the backlinks buffer visits the source file of the backlink at point
 
 ### Bugfixes
 * [#86][gh-86] Fix `org-roam--parse-content` incorrect `:to` computation for nested files
@@ -23,6 +24,7 @@
 ### Contributors
 * [@chip2n](https://github.com/chip2n/)
 * [@l3kn](https://github.com/l3kn/)
+* [@jdormit](https://github.com/jdormit)
 
 ## 0.1.1 (2020-02-15)
 
