@@ -589,41 +589,42 @@ This needs to be quick/infrequent, because this is run at
     (call-process org-roam-graphviz-executable nil 0 nil temp-dot "-Tsvg" "-o" temp-graph)
     (call-process org-roam-graph-viewer nil 0 nil temp-graph)))
 
-(defun org-roam--rename-file-links (file newname &rest args)
-  ""
-  (interactive)
+(defun org-roam--relative-path (file)
+  (file-relative-name (file-truename file) (file-truename org-roam-directory)))
+
+(defun org-roam--rename-file-links (file new-file &rest args)
+  "Rename backlinks of FILE to refer to NEW-FILE."
   (when (and (not (eq (car args) t))
-             (org-roam--org-roam-file-p newname))
-    (my:log-message (format "rename %s :: %s -> %s" (car args) file newname))
+             (org-roam--org-roam-file-p new-file))
     (org-roam--ensure-cache-built)
 
     (let* ((files (gethash file org-roam-backward-links-cache nil))
-           (slug (org-roam--get-title-or-slug file))
-           (newlink (file-relative-name (file-truename newname) org-roam-directory))
-           (new-slug (or (org-roam--get-title-from-cache (file-truename file))
-                      (org-roam--get-title-or-slug newlink)))
-           (new-slug-f (format org-roam-link-title-format new-slug))
-           (slug-f (format org-roam-link-title-format slug))
-           (path (file-relative-name (file-truename  file) org-roam-directory))
-           (idreg (format "\\[\\[file:%s\\]\\[%s\\]\\]" path slug-f))
-           (reg (format "\\[\\[file:%s\\]\\[\\(.*\\)\\]\\]" path)))
-      (when files
-        (my:log-message (format "other regex is %s :: " reg))
-        (maphash (lambda (file-from contents)
-                   (let* ((relative-path (file-relative-name newlink (file-name-directory file-from)))
-                          (new-slug-link (format "[[file:%s][%s]]" relative-path new-slug-f))
-                          (new-named-link (format "[[file:%s][\\1]]" relative-path)))
-                     (with-temp-file file-from
-                       (my:log-message (format "other link is %s :: " new-named-link))
+           (path (org-roam--relative-path file))
+           (new-path (org-roam--relative-path new-file))
 
-                       (insert-file-contents file-from)
-                       (beginning-of-buffer)
-                       (replace-regexp reg new-named-link)
-                       (beginning-of-buffer)
-                       (replace-regexp idreg new-slug-link)
-                       )))
-                 ;; Need to update cache
-                 files)
+           (slug (org-roam--get-title-or-slug file))
+           (old-title (format org-roam-link-title-format slug))
+
+           (new-slug (or (org-roam--get-title-from-cache (file-truename file))
+                         (org-roam--get-title-or-slug new-path)))
+           (new-title (format org-roam-link-title-format new-slug)))
+      (when files
+        (save-excursion
+          (maphash (lambda (file-from contents)
+                     (let* ((relative-path (file-relative-name new-path (file-name-directory file-from))))
+                       (with-temp-file file-from
+                         (insert-file-contents file-from)
+                         (replace-regexp
+                          (format "\\[\\[file:%s\\]\\[%s\\]\\]" path old-title)
+                          (format "[[file:%s][%s]]" relative-path new-title))
+                         (beginning-of-buffer)
+                         (replace-regexp
+                          (format "\\[\\[file:%s\\]\\[\\(.*\\)\\]\\]" path)
+                          (format "[[file:%s][\\1]]" relative-path)))
+                       (find-file file-from)
+                       (org-roam--update-cache)
+                       ))
+                   files))
         ))))
 
 (advice-add 'rename-file :after 'org-roam--rename-file-links)
