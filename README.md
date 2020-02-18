@@ -74,7 +74,7 @@ A changelog is being maintained [here](CHANGELOG.md)
 
 To report bugs and suggest new feature use the issue tracker. If you
 have some code which you would like to be merged, then open a pull
-request. Please also see [CONTRIBUTING.md](CONTRIBUTING.md).
+request. Please also see [CONTRIBUTING.md](.github/CONTRIBUTING.md).
 
 ## License
 
