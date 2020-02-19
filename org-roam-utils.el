@@ -37,6 +37,9 @@
 (require 'org-element)
 (require 'subr-x)
 (require 'cl-lib)
+(require 'dash)
+;; Optionally load org-ref so that we can also find "cite:" links.
+(require 'org-ref nil t)
 
 (defun org-roam--file-name-extension (filename)
   "Return file name extension for FILENAME.
@@ -77,28 +80,48 @@ Like file-name-extension, but does not strip version number."
 
 (defun org-roam--parse-content (&optional file-path)
   "Parse the current buffer, and return a list of items for processing."
-  (org-element-map (org-element-parse-buffer) 'link
-    (lambda (link)
-      (let ((type (org-element-property :type link))
-            (path (org-element-property :path link))
-            (start (org-element-property :begin link)))
-        (when (and (string= type "file")
-                   (org-roam--org-file-p path))
-          (goto-char start)
-          (let* ((element (org-element-at-point))
-                 (begin (or (org-element-property :content-begin element)
-                            (org-element-property :begin element)))
-                 (content (or (org-element-property :raw-value element)
-                              (buffer-substring
-                               begin
-                               (or (org-element-property :content-end element)
-                                   (org-element-property :end element)))))
-                 (content (string-trim content))
-                 (file-path (or file-path
-                                (file-truename (buffer-file-name (current-buffer))))))
-            (list :from file-path
-                  :to (file-truename (expand-file-name path (file-name-directory file-path)))
-                  :properties (list :content content :point begin))))))))
+  (let ((file-path (or file-path
+		       (file-truename (buffer-file-name (current-buffer))))))
+    ;; An `org-ref' style link can link to multiple papers, e.g.,
+    ;; "cite:cite:zhu-2017-unpair-image,isola-2016-image-tokl". Therefore,
+    ;; we map each link to a list of org-roam items, which we flatten.
+    (-flatten-n	;; dash required...
+     1
+     (org-element-map (org-element-parse-buffer) 'link
+       (lambda (link)
+	 (let* ((type (org-element-property :type link))
+		(path (org-element-property :path link))
+		(start (org-element-property :begin link))
+		(content (org-roam--link-get-content start)))
+	   (cond ((and (string= type "file")
+		       (org-roam--org-file-p path))
+		  ;; File type links to files in `org-roam-directory'
+		  (list
+		   (list :from file-path
+			 :to (file-truename (expand-file-name path (file-name-directory file-path)))
+			 :properties (list :content content :point start))))
+		 ((string= type "cite")
+		  ;; Org-ref "cite:" links. These are only recognized if org-ref is loaded.
+		  (mapcar
+		   (lambda (key)
+		     (list :from file-path
+			   :to (expand-file-name (concat key ".org") org-roam-directory)
+			   :properties (list :content content :point start)))
+		   (s-split "," path))))))))))
+
+(defun org-roam--link-get-content (start)
+  "Get link content at point START."
+  (goto-char start)
+  (let* ((element (org-element-at-point))
+         (begin (or (org-element-property :content-begin element)
+                    (org-element-property :begin element)))
+         (content (or (org-element-property :raw-value element)
+		      (buffer-substring
+		       begin
+		       (or (org-element-property :content-end element)
+                           (org-element-property :end element)))))
+         (content (string-trim content)))
+    content))
 
 (cl-defun org-roam--insert-item (item &key forward backward)
   "Insert ITEM into FORWARD and BACKWARD cache.
