@@ -116,6 +116,16 @@ If nil, always ask for filename."
   :type 'string
   :group 'org-roam)
 
+(defcustom org-roam-graph-max-title-length 100
+  "Maximum length of titles in graphviz graph nodes"
+  :type 'number
+  :group 'org-roam)
+
+(defcustom org-roam-graph-node-shape "elipse"
+  "Maximum length of titles in graphviz graph nodes"
+  :type 'string
+  :group 'org-roam)
+
 ;;; Polyfills
 ;; These are for functions I use that are only available in newer Emacs
 
@@ -556,21 +566,33 @@ This needs to be quick/infrequent, because this is run at
   "Build graphviz graph output."
   (org-roam--ensure-cache-built)
   (with-temp-buffer
-    (insert "digraph {\n")
-    (dolist (file (org-roam--find-all-files))
-      (insert
-       (format "  \"%s\" [URL=\"roam://%s\"];\n"
-               (org-roam--get-title-or-slug file)
-               file)))
-    (maphash
-     (lambda (from-link to-links)
-       (dolist (to-link to-links)
-         (insert (format "  \"%s\" -> \"%s\";\n"
-                         (org-roam--get-title-or-slug from-link)
-                         (org-roam--get-title-or-slug to-link)))))
-     org-roam-forward-links-cache)
-    (insert "}")
-    (buffer-string)))
+	(insert "digraph {\n")
+	(dolist (file (org-roam--find-all-files))
+	  (insert
+	   (let ((title (org-roam--get-title-or-slug file)))
+		 (let ((shortened-title (if (> (length title) org-roam-graph-max-title-length)
+									(concat (substring
+											 title
+											 0
+											 (min (length title) org-roam-graph-max-title-length))
+											"...")
+								  title)))
+		   (format "  \"%s\" [label=\"%s\", shape=%s, URL=\"roam://%s\", tooltip=\"%s\"];\n"
+				   title
+				   shortened-title
+				   org-roam-graph-node-shape
+				   file
+				   title
+				   )))))
+	  (maphash
+	   (lambda (from-link to-links)
+		 (dolist (to-link to-links)
+		   (insert (format "  \"%s\" -> \"%s\";\n"
+						   (org-roam--get-title-or-slug from-link)
+						   (org-roam--get-title-or-slug to-link)))))
+	   org-roam-forward-links-cache)
+	  (insert "}")
+	  (buffer-string)))
 
 (defun org-roam-show-graph ()
   "Generate the org-roam graph in SVG format, and display it using `org-roam-graph-viewer'."
