@@ -162,15 +162,12 @@ If called interactively, then PARENTS is non-nil."
     (org-roam--build-cache-async)
     (user-error "Your Org-Roam cache isn't built yet! Please wait")))
 
-(defun org-roam--org-roam-file-p (file)
-  "Return t if FILE is part of org-roam system, false otherwise."
-  (and file
-       (f-child-of-p (file-truename file)
-                     org-roam-directory)))
-
-(defun org-roam--relative-path (file)
-  "Find the relative path of FILE from the org-roam root directory."
-  (file-relative-name (file-truename file) (file-truename org-roam-directory)))
+(defun org-roam--org-roam-file-p (&optional file)
+  "Return t if FILE is part of org-roam system, defaulting to the name of the current buffer. Else, return nil."
+  (let ((path (or file
+                  (buffer-file-name (current-buffer)))))
+    (f-descendant-of-p (file-truename path)
+                       (file-truename org-roam-directory))))
 
 (defun org-roam--get-title-from-cache (file)
   "Return title of `FILE' from the cache."
@@ -344,11 +341,13 @@ If PREFIX, downcase the title before insertion."
   (setq org-roam-backward-links-cache (make-hash-table :test #'equal))
   (setq org-roam-titles-cache (make-hash-table :test #'equal)))
 
-(defun org-roam--clear-file-from-cache ()
+(defun org-roam--clear-file-from-cache (&optional filepath)
   "Remove any related links to the file.
 
 This is equivalent to removing the node from the graph."
-  (let ((file (file-truename (buffer-file-name (current-buffer)))))
+  (let* ((path (or filepath
+                   (buffer-file-name (current-buffer))))
+         (file (file-truename path)))
     ;; Step 1: Remove all existing links for file
     (when-let ((forward-links (gethash file org-roam-forward-links-cache)))
       ;; Delete backlinks to file
@@ -515,7 +514,7 @@ Valid states are 'visible, 'exists and 'none."
 ;;; The minor mode definition that updates the buffer
 (defun org-roam--maybe-enable ()
   "Enable org-roam updating for file, if file is an org-roam file."
-  (when (org-roam--org-roam-file-p (buffer-file-name (current-buffer)))
+  (when (org-roam--org-roam-file-p)
     (org-roam--enable)))
 
 (defun org-roam--enable ()
@@ -597,35 +596,40 @@ This needs to be quick/infrequent, because this is run at
              (not (auto-save-file-name-p new-file))
              (org-roam--org-roam-file-p new-file))
     (org-roam--ensure-cache-built)
+    (org-roam--clear-file-from-cache file)
 
     (let* ((files (gethash file org-roam-backward-links-cache nil))
-           (path (org-roam--relative-path file))
-           (new-path (org-roam--relative-path new-file))
-
+           (path (file-truename file))
+           (new-path (file-truename new-file))
            (slug (org-roam--get-title-or-slug file))
            (old-title (format org-roam-link-title-format slug))
-
-           (new-slug (or (org-roam--get-title-from-cache (file-truename file))
+           (new-slug (or (org-roam--get-title-from-cache path)
                          (org-roam--get-title-or-slug new-path)))
            (new-title (format org-roam-link-title-format new-slug)))
       (when files
         (save-excursion
           (maphash (lambda (file-from contents)
-                     (let* ((relative-path (file-relative-name new-path (file-name-directory file-from))))
+                     (let* ((file-dir (file-name-directory file-from))
+                            (relative-path (file-relative-name new-path file-dir))
+                            (old-relative-path (file-relative-name path file-dir))
+                            (slug-regex (regexp-quote (format "[[file:%s][%s]]" old-relative-path old-title)))
+                            (named-regex (concat
+                                          (regexp-quote (format "[[file:%s][" old-relative-path))
+                                          "\\(.*\\)"
+                                          (regexp-quote "]]"))))
                        (with-temp-file file-from
                          (insert-file-contents file-from)
-                         (replace-regexp
-                          (format "\\[\\[file:%s\\]\\[%s\\]\\]" path old-title)
-                          (format "[[file:%s][%s]]" relative-path new-title))
-                         (beginning-of-buffer)
-                         (replace-regexp
-                          (format "\\[\\[file:%s\\]\\[\\(.*\\)\\]\\]" path)
-                          (format "[[file:%s][\\1]]" relative-path)))
+                         (while (re-search-forward slug-regex  nil t)
+                           (replace-match (format "[[file:%s][%s]]" relative-path new-title)))
+                         (goto-char (point-min))
+                         (while (re-search-forward named-regex nil t)
+                           (replace-match (format "[[file:%s][\\1]]" relative-path))))
                        (find-file file-from)
                        (org-roam--update-cache)))
                    files))))))
 
 (advice-add 'rename-file :after 'org-roam--rename-file-links)
+
 
 (provide 'org-roam)
 
