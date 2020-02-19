@@ -121,7 +121,7 @@ If nil, always ask for filename."
   :type 'number
   :group 'org-roam)
 
-(defcustom org-roam-graph-node-shape "elipse"
+(defcustom org-roam-graph-node-shape "ellipse"
   "Maximum length of titles in graphviz graph nodes"
   :type 'string
   :group 'org-roam)
