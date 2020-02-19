@@ -165,12 +165,34 @@
                            (gethash (abs-path "nested/f1.org"))
                            (hash-table-keys)
                            (member (abs-path "f1.org"))) :to-be nil)
+
+              (expect (->> org-roam-forward-links-cache
+                           (gethash (abs-path "new_f1.org"))) :not :to-be nil)
+
+              (expect (->> org-roam-forward-links-cache
+                           (gethash (abs-path "new_f1.org"))
+                           (member (abs-path "nested/f1.org"))) :not :to-be nil)
               ;; Links are updated
               (expect (with-temp-buffer
                         (insert-file-contents (abs-path "nested/f1.org"))
-                        (buffer-string)) :to-match (regexp-quote "file:../new_f1.org")))
+                        (buffer-string)) :to-match (regexp-quote "[[file:../new_f1.org][File 1]]")))
 
-          (it "no-title -> meaningful-name"
+
+          (it "f1 -> f1 with spaces"
+              (rename-file (abs-path "f1.org")
+                           (abs-path "f1 with spaces.org"))
+              ;; Cache should be cleared of old file
+              (expect (gethash (abs-path "f1.org")  org-roam-forward-links-cache) :to-be nil)
+              (expect (->> org-roam-backward-links-cache
+                           (gethash (abs-path "nested/f1.org"))
+                           (hash-table-keys)
+                           (member (abs-path "f1.org"))) :to-be nil)
+              ;; Links are updated
+              (expect (with-temp-buffer
+                        (insert-file-contents (abs-path "nested/f1.org"))
+                        (buffer-string)) :to-match (regexp-quote "[[file:../f1 with spaces.org][File 1]]")))
+
+          (it "no-title -> meaningful-title"
               (rename-file (abs-path "no-title.org")
                            (abs-path "meaningful-title.org"))
               ;; File has no forward links
@@ -188,5 +210,4 @@
               ;; Links are updated with the appropriate name
               (expect (with-temp-buffer
                         (insert-file-contents (abs-path "f3.org"))
-                        (buffer-string)) :to-match (regexp-quote "[[file:meaningful-title.org][meaningful-title]]"))
-              ))
+                        (buffer-string)) :to-match (regexp-quote "[[file:meaningful-title.org][meaningful-title]]"))))

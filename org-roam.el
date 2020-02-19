@@ -607,26 +607,29 @@ This needs to be quick/infrequent, because this is run at
                          (org-roam--get-title-or-slug new-path)))
            (new-title (format org-roam-link-title-format new-slug)))
       (when files
-        (save-excursion
-          (maphash (lambda (file-from contents)
-                     (let* ((file-dir (file-name-directory file-from))
-                            (relative-path (file-relative-name new-path file-dir))
-                            (old-relative-path (file-relative-name path file-dir))
-                            (slug-regex (regexp-quote (format "[[file:%s][%s]]" old-relative-path old-title)))
-                            (named-regex (concat
-                                          (regexp-quote (format "[[file:%s][" old-relative-path))
-                                          "\\(.*\\)"
-                                          (regexp-quote "]]"))))
-                       (with-temp-file file-from
-                         (insert-file-contents file-from)
-                         (while (re-search-forward slug-regex  nil t)
-                           (replace-match (format "[[file:%s][%s]]" relative-path new-title)))
-                         (goto-char (point-min))
-                         (while (re-search-forward named-regex nil t)
-                           (replace-match (format "[[file:%s][\\1]]" relative-path))))
+        (maphash (lambda (file-from props)
+                   (let* ((file-dir (file-name-directory file-from))
+                          (relative-path (file-relative-name new-path file-dir))
+                          (old-relative-path (file-relative-name path file-dir))
+                          (slug-regex (regexp-quote (format "[[file:%s][%s]]" old-relative-path old-title)))
+                          (named-regex (concat
+                                        (regexp-quote (format "[[file:%s][" old-relative-path))
+                                        "\\(.*\\)"
+                                        (regexp-quote "]]"))))
+                     (with-temp-file file-from
+                       (insert-file-contents file-from)
+                       (while (re-search-forward slug-regex  nil t)
+                         (replace-match (format "[[file:%s][%s]]" relative-path new-title)))
+                       (goto-char (point-min))
+                       (while (re-search-forward named-regex nil t)
+                         (replace-match (format "[[file:%s][\\1]]" relative-path))))
+                     (save-window-excursion
                        (find-file file-from)
-                       (org-roam--update-cache)))
-                   files))))))
+                       (org-roam--update-cache))))
+                 files))
+      (save-window-excursion
+        (find-file new-path)
+        (org-roam--update-cache)))))
 
 (advice-add 'rename-file :after 'org-roam--rename-file-links)
 
