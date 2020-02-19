@@ -538,7 +538,8 @@ This needs to be quick/infrequent, because this is run at
   (let ((buffer (window-buffer)))
     (when (and (or redisplay
                    (not (eq org-roam--current-buffer buffer)))
-               (eq 'visible (org-roam--current-visibility)))
+               (eq 'visible (org-roam--current-visibility))
+               (buffer-local-value 'buffer-file-truename buffer))
       (setq org-roam--current-buffer buffer)
       (org-roam-update (expand-file-name
                         (buffer-local-value 'buffer-file-truename buffer))))))
