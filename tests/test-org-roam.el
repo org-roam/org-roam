@@ -29,6 +29,7 @@
 (require 'buttercup)
 (require 'with-simulated-input)
 (require 'org-roam)
+(require 'dash)
 
 (defun abs-path (file-path)
   (file-truename (expand-file-name file-path org-roam-directory)))
@@ -69,9 +70,9 @@
 
               ;; Caches should be populated
               (expect org-roam-cache-initialized :to-be t)
-              (expect (hash-table-count org-roam-forward-links-cache) :to-be 3)
-              (expect (hash-table-count org-roam-backward-links-cache) :to-be 4)
-              (expect (hash-table-count org-roam-titles-cache) :to-be 4)
+              (expect (hash-table-count org-roam-forward-links-cache) :to-be 4)
+              (expect (hash-table-count org-roam-backward-links-cache) :to-be 5)
+              (expect (hash-table-count org-roam-titles-cache) :to-be 5)
 
               ;; Forward cache
               (let ((f1 (gethash (abs-path "f1.org") org-roam-forward-links-cache))
@@ -148,3 +149,81 @@
                    "Nested SPC File SPC 1 RET"
                    (org-roam-insert nil))))
               (expect (buffer-string) :to-match (regexp-quote "file:../../nested/f1.org"))))
+
+(describe "rename file updates cache"
+          (before-each
+           (org-roam--test-init)
+           (org-roam--clear-cache)
+           (org-roam--test-build-cache))
+
+          (it "f1 -> new_f1"
+              (rename-file (abs-path "f1.org")
+                           (abs-path "new_f1.org"))
+              ;; Cache should be cleared of old file
+              (expect (gethash (abs-path "f1.org")  org-roam-forward-links-cache) :to-be nil)
+              (expect (->> org-roam-backward-links-cache
+                           (gethash (abs-path "nested/f1.org"))
+                           (hash-table-keys)
+                           (member (abs-path "f1.org"))) :to-be nil)
+
+              (expect (->> org-roam-forward-links-cache
+                           (gethash (abs-path "new_f1.org"))) :not :to-be nil)
+
+              (expect (->> org-roam-forward-links-cache
+                           (gethash (abs-path "new_f1.org"))
+                           (member (abs-path "nested/f1.org"))) :not :to-be nil)
+              ;; Links are updated
+              (expect (with-temp-buffer
+                        (insert-file-contents (abs-path "nested/f1.org"))
+                        (buffer-string)) :to-match (regexp-quote "[[file:../new_f1.org][File 1]]")))
+
+
+          (it "f1 -> f1 with spaces"
+              (rename-file (abs-path "f1.org")
+                           (abs-path "f1 with spaces.org"))
+              ;; Cache should be cleared of old file
+              (expect (gethash (abs-path "f1.org")  org-roam-forward-links-cache) :to-be nil)
+              (expect (->> org-roam-backward-links-cache
+                           (gethash (abs-path "nested/f1.org"))
+                           (hash-table-keys)
+                           (member (abs-path "f1.org"))) :to-be nil)
+              ;; Links are updated
+              (expect (with-temp-buffer
+                        (insert-file-contents (abs-path "nested/f1.org"))
+                        (buffer-string)) :to-match (regexp-quote "[[file:../f1 with spaces.org][File 1]]")))
+
+          (it "no-title -> meaningful-title"
+              (rename-file (abs-path "no-title.org")
+                           (abs-path "meaningful-title.org"))
+              ;; File has no forward links
+              (expect (gethash (abs-path "no-title.org")  org-roam-forward-links-cache) :to-be nil)
+              (expect (gethash (abs-path "meaningful-title.org")  org-roam-forward-links-cache) :to-be nil)
+
+              (expect (->> org-roam-forward-links-cache
+                           (gethash (abs-path "f3.org"))
+                           (member (abs-path "no-title.org"))) :to-be nil)
+
+              (expect (->> org-roam-forward-links-cache
+                           (gethash (abs-path "f3.org"))
+                           (member (abs-path "meaningful-title.org"))) :not :to-be nil)
+
+              ;; Links are updated with the appropriate name
+              (expect (with-temp-buffer
+                        (insert-file-contents (abs-path "f3.org"))
+                        (buffer-string)) :to-match (regexp-quote "[[file:meaningful-title.org][meaningful-title]]"))))
+
+(describe "delete file updates cache"
+          (before-each
+           (org-roam--test-init)
+           (org-roam--clear-cache)
+           (org-roam--test-build-cache))
+          (it "delete f1"
+              (delete-file (abs-path "f1.org"))
+              (expect (->> org-roam-forward-links-cache
+                           (gethash (abs-path "f1.org"))) :to-be nil)
+              (expect (->> org-roam-backward-links-cache
+                           (gethash (abs-path "nested/f1.org"))
+                           (gethash (abs-path "f1.org"))) :to-be nil)
+              (expect (->> org-roam-backward-links-cache
+                           (gethash (abs-path "nested/f1.org"))
+                           (gethash (abs-path "nested/f2.org"))) :not :to-be nil)))

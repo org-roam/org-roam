@@ -10,21 +10,29 @@
 * [#103][gh-103] Change `org-roam-file-format` to a function: `org-roam-file-name-function` to allow more flexible file name customizaton. Also changes `org-roam-use-timestamp-as-filename` to `org-roam-filename-noconfirm` to better describe what it does.
 
 ### New Features
+* [#141][gh-141] add variable `org-roam-new-file-directory` for new Org-roam files
+* [#138][gh-138] add `org-roam-switch-to-buffer`
+* [#124][gh-124], [#141][gh-141] Maintain cache consistency on file rename and delete
 * [#87][gh-87], [#90][gh-90] Support encrypted Org files
 * [#110][gh-110] Add prefix to `org-roam-insert`, for inserting titles down-cased
-* [#99](https://github.com/jethrokuan/org-roam/pull/99) Add keybinding so that `<return>` or `mouse-1` in the backlinks buffer visits the source file of the backlink at point
+* [#99][gh-99] Add keybinding so that `<return>` or `mouse-1` in the backlinks buffer visits the source file of the backlink at point
 
 ### Bugfixes
 * [#86][gh-86] Fix `org-roam--parse-content` incorrect `:to` computation for nested files
 * [#98][gh-98] Fix `org-roam--find-file` picking up temporary files
+* [#136][gh-136] Misc bugfixes
 
 ### Internal
-* [#92][gh-92], [#105][gh-105]: Add tests for core functionality
+* [#122][gh-122], [#128][gh-128] Improve performance of post-command-hook
+* [#92][gh-92], [#105][gh-105] Add tests for core functionality
 
 ### Contributors
 * [@chip2n](https://github.com/chip2n/)
 * [@l3kn](https://github.com/l3kn/)
 * [@jdormit](https://github.com/jdormit)
+* [@herbertjones](https://github.com/herbertjones)
+* [@CeleritasCelery](https://github.com/CeleritasCelery)
+* [@daniel-koudouna](https://github.com/daniel-koudouna)
 
 ## 0.1.1 (2020-02-15)
 
@@ -62,10 +70,18 @@ Mostly a documentation/cleanup release.
 [gh-90]: https://github.com/jethrokuan/org-roam/pull/90
 [gh-92]: https://github.com/jethrokuan/org-roam/pull/92
 [gh-98]: https://github.com/jethrokuan/org-roam/pull/98
+[gh-99]: https://github.com/jethrokuan/org-roam/pull/99
 [gh-103]: https://github.com/jethrokuan/org-roam/pull/103
 [gh-105]: https://github.com/jethrokuan/org-roam/pull/105
 [gh-108]: https://github.com/jethrokuan/org-roam/pull/108
 [gh-110]: https://github.com/jethrokuan/org-roam/pull/110
+[gh-122]: https://github.com/jethrokuan/org-roam/pull/122
+[gh-124]: https://github.com/jethrokuan/org-roam/pull/124
+[gh-128]: https://github.com/jethrokuan/org-roam/pull/128
+[gh-136]: https://github.com/jethrokuan/org-roam/pull/136
+[gh-138]: https://github.com/jethrokuan/org-roam/pull/138
+[gh-141]: https://github.com/jethrokuan/org-roam/pull/141
+[gh-142]: https://github.com/jethrokuan/org-roam/pull/142
 
  # Local Variables:
  # eval: (auto-fill-mode -1)
