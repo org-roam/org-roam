@@ -17,6 +17,7 @@ The recommended method is using [use-package][use-package] and
       ("C-c n l" . org-roam)
       ("C-c n t" . org-roam-today)
       ("C-c n f" . org-roam-find-file)
+      ("C-c n b" . org-roam-switch-to-buffer)
       ("C-c n i" . org-roam-insert)
       ("C-c n g" . org-roam-show-graph))
 ```
@@ -42,6 +43,7 @@ git clone https://github.com/jethrokuan/org-roam/ ~/.emacs.d/elisp/org-roam
       ("C-c n l" . org-roam)
       ("C-c n t" . org-roam-today)
       ("C-c n f" . org-roam-find-file)
+      ("C-c n b" . org-roam-switch-to-buffer)
       ("C-c n i" . org-roam-insert)
       ("C-c n g" . org-roam-show-graph))
 ```

@@ -317,6 +317,26 @@ If PREFIX, downcase the title before insertion."
       (org-roam--make-file absolute-file-path title-or-slug))
     (find-file absolute-file-path)))
 
+(defun org-roam-switch-to-buffer ()
+  "Switch to an existing org-roam buffer using completing-read."
+  (interactive)
+  (let* ((all-buffers (buffer-list))
+         (roam-buffers
+          (--filter (and (with-current-buffer it (derived-mode-p 'org-mode))
+                         (buffer-file-name it)
+                         (org-roam--org-roam-file-p (buffer-file-name it)))
+                    all-buffers))
+         (names-and-buffers (mapcar (lambda (buffer)
+                                      (cons (or (org-roam--get-title-from-cache
+                                                 (buffer-file-name buffer))
+                                                (buffer-name buffer))
+                                            buffer))
+                                    roam-buffers)))
+    (unless roam-buffers
+      (error "No roam buffers."))
+    (when-let ((name (completing-read "Choose a buffer: " names-and-buffers)))
+      (switch-to-buffer (cdr (assoc name names-and-buffers))))))
+
 ;;; Building the org-roam cache
 (defun org-roam--build-cache-async ()
   "Builds the caches asychronously."
@@ -636,27 +656,6 @@ This needs to be quick/infrequent, because this is run at
         (org-roam--update-cache)))))
 
 (advice-add 'rename-file :after 'org-roam--rename-file-links)
-
-(defun org-roam-switch-to-buffer ()
-  "Switch to an existing org-roam buffer using completing-read."
-  (interactive)
-  (let* ((all-buffers (buffer-list))
-         (roam-buffers
-          (--filter (and (with-current-buffer it (derived-mode-p 'org-mode))
-                         (buffer-file-name it)
-                         (org-roam--org-roam-file-p (buffer-file-name it)))
-                    all-buffers))
-         (names-and-buffers (mapcar (lambda (buffer)
-                                      (cons (or (org-roam--get-title-from-cache
-                                                 (buffer-file-name buffer))
-                                                (buffer-name buffer))
-                                            buffer))
-                                    roam-buffers)))
-    (unless roam-buffers
-      (error "No roam buffers."))
-    (when-let ((name (completing-read "Choose a buffer: " names-and-buffers)))
-      (switch-to-buffer (cdr (assoc name names-and-buffers))))))
-
 
 (provide 'org-roam)
 
