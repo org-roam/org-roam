@@ -59,3 +59,39 @@ affect the Roam workflow. Do look through them at the
 
 [use-package]: https://github.com/jwiegley/use-package
 [straight]: https://github.com/raxod502/straight.el
+
+## Spacemacs
+If you are using Spacemacs, you can easily install org-roam by creating a simple layer that wraps org-roam. Paste the following into a new file `/.emacs.d/private/org-roam/packages.el`.
+```
+(defconst org-roam-packages
+  '((org-roam :location
+        (recipe :fetcher github :repo "jethrokuan/org-roam" :branch "develop"))))
+
+(defun org-roam/init-org-roam ()
+    (use-package org-roam
+        :after org
+        :hook
+        ((org-mode . org-roam-mode)
+         (after-init . org-roam--build-cache-async) ;; optional!
+         )
+        :custom
+        (org-roam-directory "/path/to/org-files/")
+        :init
+        (progn
+          (spacemacs/declare-prefix "ar" "org-roam")
+          (spacemacs/set-leader-keys
+            "arl" 'org-roam
+            "art" 'org-roam-today
+            "arf" 'org-roam-find-file
+            "arg" 'org-roam-show-graph)
+
+          (spacemacs/declare-prefix-for-mode 'org-mode "mr" "org-roam")
+          (spacemacs/set-leader-keys-for-major-mode 'org-mode
+            "rl" 'org-roam
+            "rt" 'org-roam-today
+            "rf" 'org-roam-find-file
+            "ri" 'org-roam-insert
+            "rg" 'org-roam-show-graph)
+          )))
+```
+Next, append `org-roam` to the `dotspacemacs-configuration-layers` list in your `.spacemacs` configuration file. Reload (`SPC f e R`) or restart Emacs to load `org-roam`. It's functions are available under the prefix `SPC a r` and `, r` when visiting an org-mode buffer. 
