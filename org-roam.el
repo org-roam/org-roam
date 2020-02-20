@@ -300,11 +300,17 @@ If not provided, derive the title from the file name."
 
 If PREFIX, downcase the title before insertion."
   (interactive "P")
-  (let* ((completions (mapcar (lambda (file)
+  (let* ((region (and (region-active-p)
+                      ;; following may lose active region, so save it
+                      (cons (region-beginning) (region-end))))
+         (completions (mapcar (lambda (file)
                                 (list (org-roam--get-title-or-slug file)
                                       file))
                               (org-roam--find-all-files)))
-         (title (completing-read "File: " completions))
+         (title (completing-read "File: " completions nil nil
+                                 (when region
+                                   (buffer-substring-no-properties
+                                    (car region) (cdr region)))))
          (absolute-file-path (or (cadr (assoc title completions))
                                  (org-roam--make-new-file-path (org-roam--get-new-id title) t)))
          (current-file-path (-> (or (buffer-base-buffer)
@@ -314,6 +320,9 @@ If PREFIX, downcase the title before insertion."
                                 (file-name-directory))))
     (unless (file-exists-p absolute-file-path)
       (org-roam--make-file absolute-file-path title))
+    (when region ;; Remove previously selected text.
+      (goto-char (car region))
+      (delete-char (- (cdr region) (car region))))
     (insert (format "[[%s][%s]]"
                     (concat "file:" (file-relative-name absolute-file-path
                                                         current-file-path))
