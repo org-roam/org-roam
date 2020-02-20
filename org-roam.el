@@ -625,7 +625,7 @@ If ARG is `toggle', toggle `org-roam-mode'. Otherwise, behave as if called inter
     (unless org-roam-cache-initialized
       (org-roam--build-cache-async))
     (add-hook 'find-file-hook #'org-roam--find-file-hook-function)
-    (advice-add 'rename-file :after #'org-roam--rename-file-links)
+    (advice-add 'rename-file :after #'org-roam--rename-file-advice)
     (advice-add 'delete-file :before #'org-roam--delete-file-advice))
    (t
     (remove-hook 'find-file-hook #'org-roam--find-file-hook-function)
