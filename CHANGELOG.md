@@ -12,7 +12,7 @@
 ### New Features
 * [#141][gh-141] add variable `org-roam-new-file-directory` for new Org-roam files
 * [#138][gh-138] add `org-roam-switch-to-buffer`
-* [#124][gh-124] Maintain cache consistency on file rename
+* [#124][gh-124], [#141][gh-141] Maintain cache consistency on file rename and delete
 * [#87][gh-87], [#90][gh-90] Support encrypted Org files
 * [#110][gh-110] Add prefix to `org-roam-insert`, for inserting titles down-cased
 * [#99][gh-99] Add keybinding so that `<return>` or `mouse-1` in the backlinks buffer visits the source file of the backlink at point
@@ -81,6 +81,7 @@ Mostly a documentation/cleanup release.
 [gh-136]: https://github.com/jethrokuan/org-roam/pull/136
 [gh-138]: https://github.com/jethrokuan/org-roam/pull/138
 [gh-141]: https://github.com/jethrokuan/org-roam/pull/141
+[gh-142]: https://github.com/jethrokuan/org-roam/pull/142
 
  # Local Variables:
  # eval: (auto-fill-mode -1)
