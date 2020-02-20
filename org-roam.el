@@ -303,14 +303,15 @@ If PREFIX, downcase the title before insertion."
   (let* ((region (and (region-active-p)
                       ;; following may lose active region, so save it
                       (cons (region-beginning) (region-end))))
+         (region-text (when region
+                        (buffer-substring-no-properties
+                         (car region) (cdr region))))
          (completions (mapcar (lambda (file)
                                 (list (org-roam--get-title-or-slug file)
                                       file))
                               (org-roam--find-all-files)))
-         (title (completing-read "File: " completions nil nil
-                                 (when region
-                                   (buffer-substring-no-properties
-                                    (car region) (cdr region)))))
+         (title (completing-read "File: " completions nil nil region-text))
+         (region-or-title (or region-text title))
          (absolute-file-path (or (cadr (assoc title completions))
                                  (org-roam--make-new-file-path (org-roam--get-new-id title) t)))
          (current-file-path (-> (or (buffer-base-buffer)
@@ -327,8 +328,8 @@ If PREFIX, downcase the title before insertion."
                     (concat "file:" (file-relative-name absolute-file-path
                                                         current-file-path))
                     (format org-roam-link-title-format (if prefix
-                                                           (downcase title)
-                                                         title))))))
+                                                           (downcase region-or-title)
+                                                         region-or-title))))))
 
 ;;; Finding org-roam files
 (defun org-roam-find-file ()
