@@ -166,8 +166,9 @@ If called interactively, then PARENTS is non-nil."
   "Return t if FILE is part of org-roam system, defaulting to the name of the current buffer. Else, return nil."
   (let ((path (or file
                   (buffer-file-name (current-buffer)))))
-    (f-descendant-of-p (file-truename path)
-                       (file-truename org-roam-directory))))
+    (and path
+         (f-descendant-of-p (file-truename path)
+                            (file-truename org-roam-directory)))))
 
 (defun org-roam--get-title-from-cache (file)
   "Return title of `FILE' from the cache."
