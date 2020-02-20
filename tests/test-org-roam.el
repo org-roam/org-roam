@@ -46,7 +46,8 @@
   (let ((original-dir org-roam--tests-directory)
         (new-dir (expand-file-name (make-temp-name "org-roam") temporary-file-directory)))
     (copy-directory original-dir new-dir)
-    (setq org-roam-directory new-dir)))
+    (setq org-roam-directory new-dir))
+  (org-roam-mode +1))
 
 (defun org-roam--test-build-cache ()
   "Builds the caches synchronously."

@@ -174,6 +174,7 @@ If called interactively, then PARENTS is non-nil."
   (let ((path (or file
                   (buffer-file-name (current-buffer)))))
     (and path
+         (org-roam--org-file-p path)
          (f-descendant-of-p (file-truename path)
                             (file-truename org-roam-directory)))))
 
@@ -325,15 +326,17 @@ If PREFIX, downcase the title before insertion."
       (org-roam--make-file absolute-file-path title-or-slug))
     (find-file absolute-file-path)))
 
+(defun org-roam--get-roam-buffers ()
+  "Return a list of buffers that are org-roam files."
+  (--filter (and (with-current-buffer it (derived-mode-p 'org-mode))
+                 (buffer-file-name it)
+                 (org-roam--org-roam-file-p (buffer-file-name it)))
+            (buffer-list)))
+
 (defun org-roam-switch-to-buffer ()
   "Switch to an existing org-roam buffer using completing-read."
   (interactive)
-  (let* ((all-buffers (buffer-list))
-         (roam-buffers
-          (--filter (and (with-current-buffer it (derived-mode-p 'org-mode))
-                         (buffer-file-name it)
-                         (org-roam--org-roam-file-p (buffer-file-name it)))
-                    all-buffers))
+  (let* ((roam-buffers (org-roam--get-roam-buffers))
          (names-and-buffers (mapcar (lambda (buffer)
                                       (cons (or (org-roam--get-title-from-cache
                                                  (buffer-file-name buffer))
@@ -542,27 +545,7 @@ Valid states are 'visible, 'exists and 'none."
     ('none (org-roam--setup-buffer))))
 
 ;;; The minor mode definition that updates the buffer
-(defun org-roam--maybe-enable ()
-  "Enable org-roam updating for file, if file is an org-roam file."
-  (when (org-roam--org-roam-file-p)
-    (org-roam--enable)))
 
-(defun org-roam--enable ()
-  "Enable org-roam updating for file.
-
-1. If the cache does not yet exist, build it asynchronously.
-2. Setup hooks for updating the cache, and the org-roam buffer."
-  (unless org-roam-cache-initialized
-    (org-roam--build-cache-async))
-  (add-hook 'post-command-hook #'org-roam--maybe-update-buffer nil t)
-  (add-hook 'after-save-hook #'org-roam--update-cache nil t))
-
-(defun org-roam--disable ()
-  "Disable org-roam updating for file.
-
-1. Remove hooks for updating the cache, and the org-roam buffer."
-  (remove-hook 'post-command-hook #'org-roam--maybe-update-buffer t)
-  (remove-hook 'after-save-hook #'org-roam--update-cache t))
 
 (cl-defun org-roam--maybe-update-buffer (&key redisplay)
   "Update `org-roam-buffer' with the necessary information.
@@ -577,13 +560,8 @@ This needs to be quick/infrequent, because this is run at
       (org-roam-update (expand-file-name
                         (buffer-local-value 'buffer-file-truename buffer))))))
 
-;;;###autoload
-(define-minor-mode org-roam-mode
-  "Global minor mode to automatically update the org-roam buffer."
-  :require 'org-roam
-  (if org-roam-mode
-      (org-roam--maybe-enable)
-    (org-roam--disable)))
+
+
 
 ;;; Building the Graphviz graph
 (defun org-roam-build-graph ()
@@ -622,7 +600,22 @@ This needs to be quick/infrequent, because this is run at
     (call-process org-roam-graphviz-executable nil 0 nil temp-dot "-Tsvg" "-o" temp-graph)
     (call-process org-roam-graph-viewer nil 0 nil temp-graph)))
 
-(defun org-roam--rename-file-links (file new-file &rest args)
+;;; Org-roam minor mode
+(defun org-roam--find-file-hook-function ()
+  "Called by `find-file-hook' when `org-roam-mode' is on."
+  (when (org-roam--org-roam-file-p)
+    (add-hook 'post-command-hook #'org-roam--maybe-update-buffer nil t)
+    (add-hook 'after-save-hook #'org-roam--update-cache nil t)))
+
+(defvar org-roam-mode-map
+  (make-sparse-keymap)
+  "Keymap for org-roam commands.")
+
+(defun org-roam--delete-file-advice (file &optional _trash)
+  "Advice for maintaining cache consistency during file deletes."
+  (org-roam--clear-file-from-cache (file-truename file)))
+
+(defun org-roam--rename-file-advice (file new-file &rest args)
   "Rename backlinks of FILE to refer to NEW-FILE."
   (when (and (not (auto-save-file-name-p file))
              (not (auto-save-file-name-p new-file))
@@ -663,8 +656,36 @@ This needs to be quick/infrequent, because this is run at
         (find-file new-path)
         (org-roam--update-cache)))))
 
-(advice-add 'rename-file :after 'org-roam--rename-file-links)
-(advice-add 'delete-file :before 'org-roam--clear-file-from-cache)
+;;;###autoload
+(define-minor-mode org-roam-mode
+  "Minor mode for Org-roam.
+
+When called interactively, toggle `org-roam-mode'. with prefix ARG, enable `org-roam-mode'
+if ARG is posiwive, otherwise disable it.
+
+When called from Lisp, enable `org-roam-mode' if ARG is omitted, nil, or positive.
+If ARG is `toggle', toggle `org-roam-mode'. Otherwise, behave as if called interactively."
+  :lighter "Org-Roam "
+  :keymap  org-roam-mode-map
+  :group 'org-roam
+  :require 'org-roam
+  :global t
+  (cond
+   (org-roam-mode
+    (unless org-roam-cache-initialized
+      (org-roam--build-cache-async))
+    (add-hook 'find-file-hook #'org-roam--find-file-hook-function)
+    (advice-add 'rename-file :after #'org-roam--rename-file-links)
+    (advice-add 'delete-file :before #'org-roam--delete-file-advice))
+   (t
+    (remove-hook 'find-file-hook #'org-roam--find-file-hook-function)
+    (advice-remove 'rename-file #'org-roam--rename-file-advice)
+    (advice-remove 'delete-file #'org-roam--delete-file-advice)
+    ;; Disable local hooks for all org-roam buffers
+    (dolist (buf (org-roam--get-roam-buffers))
+      (with-current-buffer buf
+        (remove-hook 'post-command-hook #'org-roam--maybe-update-buffer t)
+        (remove-hook 'after-save-hook #'org-roam--update-cache t))))))
 
 (provide 'org-roam)
 
