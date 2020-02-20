@@ -10,6 +10,7 @@
 * [#103][gh-103] Change `org-roam-file-format` to a function: `org-roam-file-name-function` to allow more flexible file name customizaton. Also changes `org-roam-use-timestamp-as-filename` to `org-roam-filename-noconfirm` to better describe what it does.
 
 ### New Features
+* [#141][gh-141] add variable `org-roam-new-file-directory` for new Org-roam files
 * [#138][gh-138] add `org-roam-switch-to-buffer`
 * [#124][gh-124] Maintain cache consistency on file rename
 * [#87][gh-87], [#90][gh-90] Support encrypted Org files
@@ -75,9 +76,11 @@ Mostly a documentation/cleanup release.
 [gh-108]: https://github.com/jethrokuan/org-roam/pull/108
 [gh-110]: https://github.com/jethrokuan/org-roam/pull/110
 [gh-122]: https://github.com/jethrokuan/org-roam/pull/122
+[gh-124]: https://github.com/jethrokuan/org-roam/pull/124
 [gh-128]: https://github.com/jethrokuan/org-roam/pull/128
 [gh-136]: https://github.com/jethrokuan/org-roam/pull/136
 [gh-138]: https://github.com/jethrokuan/org-roam/pull/138
+[gh-141]: https://github.com/jethrokuan/org-roam/pull/141
 
  # Local Variables:
  # eval: (auto-fill-mode -1)
