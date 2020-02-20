@@ -10,6 +10,7 @@
 * [#103][gh-103] Change `org-roam-file-format` to a function: `org-roam-file-name-function` to allow more flexible file name customizaton. Also changes `org-roam-use-timestamp-as-filename` to `org-roam-filename-noconfirm` to better describe what it does.
 
 ### New Features
+* [#124](https://github.com/jethrokuan/org-roam/pull/124) Maintain cache consistency on file rename
 * [#87][gh-87], [#90][gh-90] Support encrypted Org files
 * [#110][gh-110] Add prefix to `org-roam-insert`, for inserting titles down-cased
 * [#99](https://github.com/jethrokuan/org-roam/pull/99) Add keybinding so that `<return>` or `mouse-1` in the backlinks buffer visits the source file of the backlink at point
