@@ -664,6 +664,7 @@ This needs to be quick/infrequent, because this is run at
         (org-roam--update-cache)))))
 
 (advice-add 'rename-file :after 'org-roam--rename-file-links)
+(advice-add 'delete-file :before 'org-roam--clear-file-from-cache)
 
 (provide 'org-roam)
 
