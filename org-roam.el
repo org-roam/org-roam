@@ -568,15 +568,9 @@ This needs to be quick/infrequent, because this is run at
   (with-temp-buffer
 	(insert "digraph {\n")
 	(dolist (file (org-roam--find-all-files))
-	  (insert
-	   (let ((title (org-roam--get-title-or-slug file)))
-		 (let ((shortened-title (if (> (length title) org-roam-graph-max-title-length)
-									(concat (substring
-											 title
-											 0
-											 (min (length title) org-roam-graph-max-title-length))
-											"...")
-								  title)))
+	  (let ((title (org-roam--get-title-or-slug file)))
+		(let ((shortened-title (s-truncate org-roam-graph-max-title-length title)))
+		  (insert
 		   (format "  \"%s\" [label=\"%s\", shape=%s, URL=\"roam://%s\", tooltip=\"%s\"];\n"
 				   title
 				   shortened-title
