@@ -11,6 +11,7 @@
 * [#103][gh-103] Change `org-roam-file-format` to a function: `org-roam-file-name-function` to allow more flexible file name customizaton. Also changes `org-roam-use-timestamp-as-filename` to `org-roam-filename-noconfirm` to better describe what it does.
 
 ### New Features
+* [#145][gh-145] `org-roam-show-graph`: Fallback to Emacs SVG viewer
 * [#141][gh-141] add variable `org-roam-new-file-directory` for new Org-roam files
 * [#138][gh-138] add `org-roam-switch-to-buffer`
 * [#124][gh-124], [#141][gh-141] Maintain cache consistency on file rename and delete

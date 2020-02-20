@@ -551,7 +551,9 @@ Bindings:
     (with-temp-file temp-dot
       (insert graph))
     (call-process org-roam-graphviz-executable nil 0 nil temp-dot "-Tsvg" "-o" temp-graph)
-    (call-process org-roam-graph-viewer nil 0 nil temp-graph)))
+    (if (and org-roam-graph-viewer (executable-find org-roam-graph-viewer))
+	(call-process org-roam-graph-viewer nil 0 nil temp-graph)
+      (view-file temp-graph))))
 
 ;;; Org-roam minor mode
 (cl-defun org-roam--maybe-update-buffer (&key redisplay)
