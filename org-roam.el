@@ -58,6 +58,13 @@ All Org files, at any level of nesting, is considered part of the Org-roam."
   :type 'directory
   :group 'org-roam)
 
+(defcustom org-roam-new-file-directory nil
+  "Path to where new Org-roam files are created.
+
+If nil, default to the org-roam-directory (preferred)."
+  :type 'directory
+  :group 'org-roam)
+
 (defcustom org-roam-buffer-position 'right
   "Position of `org-roam' buffer.
 
@@ -191,7 +198,8 @@ If `ABSOLUTE', return an absolute file-path. Else, return a relative file-path."
                               (if org-roam-encrypt-files
                                   (concat id ".org.gpg")
                                 (concat id ".org"))
-                              org-roam-directory))))
+                              (or org-roam-new-file-directory
+                                  org-roam-directory)))))
     (if absolute
         absolute-file-path
       (file-relative-name absolute-file-path
@@ -242,9 +250,9 @@ If not provided, derive the title from the file name."
   "Create an org-roam file at FILE-PATH, optionally setting the TITLE attribute."
   (if (file-exists-p file-path)
       (error (format "Aborting, file already exists at %s" file-path))
+    (make-empty-file file-path t)
     (if org-roam-autopopulate-title
-        (org-roam--populate-title file-path title)
-      (make-empty-file file-path))
+        (org-roam--populate-title file-path title))
     (save-excursion
       (with-current-buffer (find-file-noselect file-path)
         (org-roam--update-cache)))))
