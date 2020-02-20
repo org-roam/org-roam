@@ -7,19 +7,16 @@ The recommended method is using [use-package][use-package] and
 (use-package org-roam
       :after org
       :hook 
-      ((org-mode . org-roam-mode)
-       (after-init . org-roam--build-cache-async) ;; optional!
-       )
+      (after-init . org-roam-mode)
       :straight (:host github :repo "jethrokuan/org-roam" :branch "develop")
       :custom
       (org-roam-directory "/path/to/org-files/")
-      :bind
-      ("C-c n l" . org-roam)
-      ("C-c n t" . org-roam-today)
-      ("C-c n f" . org-roam-find-file)
-      ("C-c n b" . org-roam-switch-to-buffer)
-      ("C-c n i" . org-roam-insert)
-      ("C-c n g" . org-roam-show-graph))
+      :bind (:map org-roam-mode-map
+              (("C-c n l" . org-roam)
+               ("C-c n f" . org-roam-find-file)
+               ("C-c n g" . org-roam-show-graph))
+              :map org-mode-map
+              (("C-c n i" . org-roam-insert))))
 ```
 
 If not using package.el, you can also clone it into your Emacs
@@ -34,18 +31,16 @@ git clone https://github.com/jethrokuan/org-roam/ ~/.emacs.d/elisp/org-roam
       :after org
       :load-path "elisp/"
       :hook 
-      ((org-mode . org-roam-mode)
-       (after-init . org-roam--build-cache-async) ;; optional!
-       )
+      (after-init . org-roam-mode)
+      :straight (:host github :repo "jethrokuan/org-roam" :branch "develop")
       :custom
       (org-roam-directory "/path/to/org-files/")
-      :bind
-      ("C-c n l" . org-roam)
-      ("C-c n t" . org-roam-today)
-      ("C-c n f" . org-roam-find-file)
-      ("C-c n b" . org-roam-switch-to-buffer)
-      ("C-c n i" . org-roam-insert)
-      ("C-c n g" . org-roam-show-graph))
+      :bind (:map org-roam-mode-map
+              (("C-c n l" . org-roam)
+               ("C-c n f" . org-roam-find-file)
+               ("C-c n g" . org-roam-show-graph))
+              :map org-mode-map
+              (("C-c n i" . org-roam-insert))))
 ```
 
 Or without use-package:
@@ -73,9 +68,7 @@ If you are using Spacemacs, you can easily install org-roam by creating a simple
     (use-package org-roam
         :after org
         :hook
-        ((org-mode . org-roam-mode)
-         (after-init . org-roam--build-cache-async) ;; optional!
-         )
+        (after-init . org-roam-mode)
         :custom
         (org-roam-directory "/path/to/org-files/")
         :init
@@ -91,9 +84,10 @@ If you are using Spacemacs, you can easily install org-roam by creating a simple
           (spacemacs/set-leader-keys-for-major-mode 'org-mode
             "rl" 'org-roam
             "rt" 'org-roam-today
+            "rb" 'org-roam-switch-to-buffer
             "rf" 'org-roam-find-file
             "ri" 'org-roam-insert
-            "rg" 'org-roam-show-graph)
-          )))
+            "rg" 'org-roam-show-graph))))
 ```
+
 Next, append `org-roam` to the `dotspacemacs-configuration-layers` list in your `.spacemacs` configuration file. Reload (`SPC f e R`) or restart Emacs to load `org-roam`. It's functions are available under the prefix `SPC a r` and `, r` when visiting an org-mode buffer. 
