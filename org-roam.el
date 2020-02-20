@@ -184,6 +184,7 @@ If called interactively, then PARENTS is non-nil."
   (let ((path (or file
                   (buffer-file-name (current-buffer)))))
     (and path
+         (org-roam--org-file-p path)
          (f-descendant-of-p (file-truename path)
                             (file-truename org-roam-directory)))))
 
@@ -335,15 +336,17 @@ If PREFIX, downcase the title before insertion."
       (org-roam--make-file absolute-file-path title-or-slug))
     (find-file absolute-file-path)))
 
+(defun org-roam--get-roam-buffers ()
+  "Return a list of buffers that are org-roam files."
+  (--filter (and (with-current-buffer it (derived-mode-p 'org-mode))
+                 (buffer-file-name it)
+                 (org-roam--org-roam-file-p (buffer-file-name it)))
+            (buffer-list)))
+
 (defun org-roam-switch-to-buffer ()
   "Switch to an existing org-roam buffer using completing-read."
   (interactive)
-  (let* ((all-buffers (buffer-list))
-         (roam-buffers
-          (--filter (and (with-current-buffer it (derived-mode-p 'org-mode))
-                         (buffer-file-name it)
-                         (org-roam--org-roam-file-p (buffer-file-name it)))
-                    all-buffers))
+  (let* ((roam-buffers (org-roam--get-roam-buffers))
          (names-and-buffers (mapcar (lambda (buffer)
                                       (cons (or (org-roam--get-title-from-cache
                                                  (buffer-file-name buffer))
@@ -440,16 +443,7 @@ This is equivalent to removing the node from the graph."
   (let ((time (org-read-date nil 'to-time nil "Date:  ")))
     (org-roam--new-file-named (format-time-string "%Y-%m-%d" time))))
 
-(defun org-roam-jump-to-backlink ()
-  "Jumps to original file and location of the backlink content snippet at point"
-  (interactive)
-  (let ((file-from (get-text-property (point) 'file-from))
-        (p (get-text-property (point) 'file-from-point)))
-    (when (and file-from p)
-      (find-file file-from)
-      (goto-char p)
-      (org-show-context))))
-
+;;; Org-roam buffer
 (define-derived-mode org-roam-backlinks-mode org-mode "Backlinks"
   "Major mode for the org-roam backlinks buffer
 
@@ -459,7 +453,15 @@ Bindings:
 (define-key org-roam-backlinks-mode-map [mouse-1] 'org-roam-jump-to-backlink)
 (define-key org-roam-backlinks-mode-map (kbd "RET") 'org-roam-jump-to-backlink)
 
-;;; Org-roam buffer updates
+(defun org-roam-jump-to-backlink ()
+  "Jumps to original file and location of the backlink content snippet at point"
+  (interactive)
+  (let ((file-from (get-text-property (point) 'file-from))
+        (p (get-text-property (point) 'file-from-point)))
+    (when (and file-from p)
+      (find-file file-from)
+      (goto-char p)
+      (org-show-context))))
 
 (defun org-roam--find-file (file)
   "Open FILE in the window `org-roam' was called from."
@@ -508,93 +510,6 @@ Bindings:
           (insert "\n\n* No backlinks!")))
       (read-only-mode 1))))
 
-;;; Show/hide the org-roam buffer
-(define-inline org-roam--current-visibility ()
-  "Return whether the current visibility state of the org-roam buffer.
-Valid states are 'visible, 'exists and 'none."
-  (declare (side-effect-free t))
-  (inline-quote
-   (cond
-    ((get-buffer-window org-roam-buffer) 'visible)
-    ((get-buffer org-roam-buffer) 'exists)
-    (t 'none))))
-
-(defun org-roam--set-width (width)
-  "Set the width of the org-roam buffer to `WIDTH'."
-  (unless (one-window-p)
-    (let ((window-size-fixed)
-          (w (max width window-min-width)))
-      (cond
-       ((> (window-width) w)
-        (shrink-window-horizontally  (- (window-width) w)))
-       ((< (window-width) w)
-        (enlarge-window-horizontally (- w (window-width))))))))
-
-(defun org-roam--setup-buffer ()
-  "Setup the `org-roam' buffer at the `org-roam-buffer-position'."
-  (let ((window (get-buffer-window)))
-    (-> (get-buffer-create org-roam-buffer)
-        (display-buffer-in-side-window
-         `((side . ,org-roam-buffer-position)))
-        (select-window))
-    (org-roam--set-width
-     (round (* (frame-width)
-               org-roam-buffer-width)))
-    (select-window window)))
-
-(defun org-roam ()
-  "Pops up the window `org-roam-buffer' accordingly."
-  (interactive)
-  (setq org-roam-last-window (get-buffer-window))
-  (pcase (org-roam--current-visibility)
-    ('visible (delete-window (get-buffer-window org-roam-buffer)))
-    ('exists (org-roam--setup-buffer))
-    ('none (org-roam--setup-buffer))))
-
-;;; The minor mode definition that updates the buffer
-(defun org-roam--maybe-enable ()
-  "Enable org-roam updating for file, if file is an org-roam file."
-  (when (org-roam--org-roam-file-p)
-    (org-roam--enable)))
-
-(defun org-roam--enable ()
-  "Enable org-roam updating for file.
-
-1. If the cache does not yet exist, build it asynchronously.
-2. Setup hooks for updating the cache, and the org-roam buffer."
-  (unless org-roam-cache-initialized
-    (org-roam--build-cache-async))
-  (add-hook 'post-command-hook #'org-roam--maybe-update-buffer nil t)
-  (add-hook 'after-save-hook #'org-roam--update-cache nil t))
-
-(defun org-roam--disable ()
-  "Disable org-roam updating for file.
-
-1. Remove hooks for updating the cache, and the org-roam buffer."
-  (remove-hook 'post-command-hook #'org-roam--maybe-update-buffer t)
-  (remove-hook 'after-save-hook #'org-roam--update-cache t))
-
-(cl-defun org-roam--maybe-update-buffer (&key redisplay)
-  "Update `org-roam-buffer' with the necessary information.
-This needs to be quick/infrequent, because this is run at
-`post-command-hook'."
-  (let ((buffer (window-buffer)))
-    (when (and (or redisplay
-                   (not (eq org-roam--current-buffer buffer)))
-               (eq 'visible (org-roam--current-visibility))
-               (buffer-local-value 'buffer-file-truename buffer))
-      (setq org-roam--current-buffer buffer)
-      (org-roam-update (expand-file-name
-                        (buffer-local-value 'buffer-file-truename buffer))))))
-
-;;;###autoload
-(define-minor-mode org-roam-mode
-  "Global minor mode to automatically update the org-roam buffer."
-  :require 'org-roam
-  (if org-roam-mode
-      (org-roam--maybe-enable)
-    (org-roam--disable)))
-
 ;;; Building the Graphviz graph
 (defun org-roam-build-graph ()
   "Build graphviz graph output."
@@ -638,7 +553,35 @@ This needs to be quick/infrequent, because this is run at
     (call-process org-roam-graphviz-executable nil 0 nil temp-dot "-Tsvg" "-o" temp-graph)
     (call-process org-roam-graph-viewer nil 0 nil temp-graph)))
 
-(defun org-roam--rename-file-links (file new-file &rest args)
+;;; Org-roam minor mode
+(cl-defun org-roam--maybe-update-buffer (&key redisplay)
+  "Update `org-roam-buffer' with the necessary information.
+This needs to be quick/infrequent, because this is run at
+`post-command-hook'."
+  (let ((buffer (window-buffer)))
+    (when (and (or redisplay
+                   (not (eq org-roam--current-buffer buffer)))
+               (eq 'visible (org-roam--current-visibility))
+               (buffer-local-value 'buffer-file-truename buffer))
+      (setq org-roam--current-buffer buffer)
+      (org-roam-update (expand-file-name
+                        (buffer-local-value 'buffer-file-truename buffer))))))
+
+(defun org-roam--find-file-hook-function ()
+  "Called by `find-file-hook' when `org-roam-mode' is on."
+  (when (org-roam--org-roam-file-p)
+    (add-hook 'post-command-hook #'org-roam--maybe-update-buffer nil t)
+    (add-hook 'after-save-hook #'org-roam--update-cache nil t)))
+
+(defvar org-roam-mode-map
+  (make-sparse-keymap)
+  "Keymap for org-roam commands.")
+
+(defun org-roam--delete-file-advice (file &optional _trash)
+  "Advice for maintaining cache consistency during file deletes."
+  (org-roam--clear-file-from-cache (file-truename file)))
+
+(defun org-roam--rename-file-advice (file new-file &rest args)
   "Rename backlinks of FILE to refer to NEW-FILE."
   (when (and (not (auto-save-file-name-p file))
              (not (auto-save-file-name-p new-file))
@@ -679,11 +622,81 @@ This needs to be quick/infrequent, because this is run at
         (find-file new-path)
         (org-roam--update-cache)))))
 
-(advice-add 'rename-file :after 'org-roam--rename-file-links)
-(advice-add 'delete-file :before 'org-roam--clear-file-from-cache)
+;;;###autoload
+(define-minor-mode org-roam-mode
+  "Minor mode for Org-roam.
+
+When called interactively, toggle `org-roam-mode'. with prefix ARG, enable `org-roam-mode'
+if ARG is posiwive, otherwise disable it.
+
+When called from Lisp, enable `org-roam-mode' if ARG is omitted, nil, or positive.
+If ARG is `toggle', toggle `org-roam-mode'. Otherwise, behave as if called interactively."
+  :lighter "Org-Roam "
+  :keymap  org-roam-mode-map
+  :group 'org-roam
+  :require 'org-roam
+  :global t
+  (cond
+   (org-roam-mode
+    (unless org-roam-cache-initialized
+      (org-roam--build-cache-async))
+    (add-hook 'find-file-hook #'org-roam--find-file-hook-function)
+    (advice-add 'rename-file :after #'org-roam--rename-file-advice)
+    (advice-add 'delete-file :before #'org-roam--delete-file-advice))
+   (t
+    (remove-hook 'find-file-hook #'org-roam--find-file-hook-function)
+    (advice-remove 'rename-file #'org-roam--rename-file-advice)
+    (advice-remove 'delete-file #'org-roam--delete-file-advice)
+    ;; Disable local hooks for all org-roam buffers
+    (dolist (buf (org-roam--get-roam-buffers))
+      (with-current-buffer buf
+        (remove-hook 'post-command-hook #'org-roam--maybe-update-buffer t)
+        (remove-hook 'after-save-hook #'org-roam--update-cache t))))))
 
 (provide 'org-roam)
 
+;;; Show/hide the org-roam buffer
+(define-inline org-roam--current-visibility ()
+  "Return whether the current visibility state of the org-roam buffer.
+Valid states are 'visible, 'exists and 'none."
+  (declare (side-effect-free t))
+  (inline-quote
+   (cond
+    ((get-buffer-window org-roam-buffer) 'visible)
+    ((get-buffer org-roam-buffer) 'exists)
+    (t 'none))))
+
+(defun org-roam--set-width (width)
+  "Set the width of the org-roam buffer to `WIDTH'."
+  (unless (one-window-p)
+    (let ((window-size-fixed)
+          (w (max width window-min-width)))
+      (cond
+       ((> (window-width) w)
+        (shrink-window-horizontally  (- (window-width) w)))
+       ((< (window-width) w)
+        (enlarge-window-horizontally (- w (window-width))))))))
+
+(defun org-roam--setup-buffer ()
+  "Setup the `org-roam' buffer at the `org-roam-buffer-position'."
+  (let ((window (get-buffer-window)))
+    (-> (get-buffer-create org-roam-buffer)
+        (display-buffer-in-side-window
+         `((side . ,org-roam-buffer-position)))
+        (select-window))
+    (org-roam--set-width
+     (round (* (frame-width)
+               org-roam-buffer-width)))
+    (select-window window)))
+
+(defun org-roam ()
+  "Pops up the window `org-roam-buffer' accordingly."
+  (interactive)
+  (setq org-roam-last-window (get-buffer-window))
+  (pcase (org-roam--current-visibility)
+    ('visible (delete-window (get-buffer-window org-roam-buffer)))
+    ('exists (org-roam--setup-buffer))
+    ('none (org-roam--setup-buffer))))
 ;;; org-roam.el ends here
 
 ;; Local Variables:

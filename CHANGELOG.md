@@ -7,6 +7,7 @@
 * [#108][gh-108] Locally overwrite the link following behaviour in the org-roam-buffer to open files in the same window `org-roam` was called from
 
 ### Breaking Changes
+* [#143][gh-143] `org-roam-mode` is now a global mode. The installation instructions have changed accordingly.
 * [#103][gh-103] Change `org-roam-file-format` to a function: `org-roam-file-name-function` to allow more flexible file name customizaton. Also changes `org-roam-use-timestamp-as-filename` to `org-roam-filename-noconfirm` to better describe what it does.
 
 ### New Features
@@ -82,6 +83,7 @@ Mostly a documentation/cleanup release.
 [gh-138]: https://github.com/jethrokuan/org-roam/pull/138
 [gh-141]: https://github.com/jethrokuan/org-roam/pull/141
 [gh-142]: https://github.com/jethrokuan/org-roam/pull/142
+[gh-142]: https://github.com/jethrokuan/org-roam/pull/143
 
  # Local Variables:
  # eval: (auto-fill-mode -1)
