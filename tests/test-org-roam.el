@@ -211,3 +211,19 @@
               (expect (with-temp-buffer
                         (insert-file-contents (abs-path "f3.org"))
                         (buffer-string)) :to-match (regexp-quote "[[file:meaningful-title.org][meaningful-title]]"))))
+
+(describe "delete file updates cache"
+          (before-each
+           (org-roam--test-init)
+           (org-roam--clear-cache)
+           (org-roam--test-build-cache))
+          (it "delete f1"
+              (delete-file (abs-path "f1.org"))
+              (expect (->> org-roam-forward-links-cache
+                           (gethash (abs-path "f1.org"))) :to-be nil)
+              (expect (->> org-roam-backward-links-cache
+                           (gethash (abs-path "nested/f1.org"))
+                           (gethash (abs-path "f1.org"))) :to-be nil)
+              (expect (->> org-roam-backward-links-cache
+                           (gethash (abs-path "nested/f1.org"))
+                           (gethash (abs-path "nested/f2.org"))) :not :to-be nil)))
