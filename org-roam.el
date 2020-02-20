@@ -323,6 +323,7 @@ If PREFIX, downcase the title before insertion."
   (interactive)
   (async-start
    `(lambda ()
+      ,(async-inject-variables "load-path")
       (setq load-path ',load-path)
       (package-initialize)
       (require 'org-roam-utils)
