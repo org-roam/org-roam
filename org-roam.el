@@ -368,23 +368,34 @@ If PREFIX, downcase the title before insertion."
     (when-let ((name (completing-read "Choose a buffer: " names-and-buffers)))
       (switch-to-buffer (cdr (assoc name names-and-buffers))))))
 
+(defvar org-roam--ongoing-async-build nil
+  "Prevent multiple async cache builds.  This can happen when
+  restoring a session or loading multiple org-roam files before a
+  build has completed.")
+
 ;;; Building the org-roam cache
 (defun org-roam--build-cache-async ()
   "Builds the caches asychronously."
   (interactive)
-  (async-start
-   `(lambda ()
-      (setq load-path ',load-path)
-      (package-initialize)
-      (require 'org-roam-utils)
-      ,(async-inject-variables "org-roam-directory")
-      (org-roam--build-cache org-roam-directory))
-   (lambda (cache)
-     (setq org-roam-forward-links-cache (plist-get cache :forward))
-     (setq org-roam-backward-links-cache (plist-get cache :backward))
-     (setq org-roam-titles-cache (plist-get cache :titles))
-     (setq org-roam-cache-initialized t)
-     (message "Org-roam cache built!"))))
+  (unless org-roam--ongoing-async-build
+    (setq org-roam--ongoing-async-build t)
+    (async-start
+     `(lambda ()
+        (setq load-path ',load-path)
+        (package-initialize)
+        (require 'org-roam-utils)
+        ,(async-inject-variables "org-roam-directory")
+        (cons org-roam-directory (org-roam--build-cache org-roam-directory)))
+     (lambda (pair)
+       (let ((directory (car pair))
+             (cache (cdr pair)))
+         (setq org-roam-directory directory  ;; ensure dir matches cache
+               org-roam-forward-links-cache (plist-get cache :forward)
+               org-roam-backward-links-cache (plist-get cache :backward)
+               org-roam-titles-cache (plist-get cache :titles)
+               org-roam-cache-initialized t
+               org-roam--ongoing-async-build nil))  ;; Remove lock
+       (message "Org-roam cache built!")))))
 
 (defun org-roam--clear-cache ()
   "Clears all entries in the caches."
