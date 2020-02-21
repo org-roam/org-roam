@@ -378,24 +378,27 @@ If PREFIX, downcase the title before insertion."
   "Builds the caches asychronously."
   (interactive)
   (unless org-roam--ongoing-async-build
-    (setq org-roam--ongoing-async-build t)
-    (async-start
-     `(lambda ()
-        (setq load-path ',load-path)
-        (package-initialize)
-        (require 'org-roam-utils)
-        ,(async-inject-variables "org-roam-directory")
-        (cons org-roam-directory (org-roam--build-cache org-roam-directory)))
-     (lambda (pair)
-       (let ((directory (car pair))
-             (cache (cdr pair)))
-         (setq org-roam-directory directory  ;; ensure dir matches cache
-               org-roam-forward-links-cache (plist-get cache :forward)
-               org-roam-backward-links-cache (plist-get cache :backward)
-               org-roam-titles-cache (plist-get cache :titles)
-               org-roam-cache-initialized t
-               org-roam--ongoing-async-build nil))  ;; Remove lock
-       (message "Org-roam cache built!")))))
+    (unwind-protect
+	(progn
+	  (setq org-roam--ongoing-async-build t)
+	  (async-start
+	   `(lambda ()
+	      (setq load-path ',load-path)
+	      (package-initialize)
+	      (require 'org-roam-utils)
+	      ,(async-inject-variables "org-roam-directory")
+	      (cons org-roam-directory (org-roam--build-cache org-roam-directory)))
+	   (lambda (pair)
+	     (let ((directory (car pair))
+		   (cache (cdr pair)))
+	       (setq org-roam-directory directory  ;; ensure dir matches cache
+		     org-roam-forward-links-cache (plist-get cache :forward)
+		     org-roam-backward-links-cache (plist-get cache :backward)
+		     org-roam-titles-cache (plist-get cache :titles)
+		     org-roam-cache-initialized t))
+	     (message "Org-roam cache built!"))))
+      ;; Remove lock
+      (setq org-roam--ongoing-async-build nil))))
 
 (defun org-roam--clear-cache ()
   "Clears all entries in the caches."
