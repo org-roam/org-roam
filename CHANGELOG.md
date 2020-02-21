@@ -1,10 +1,6 @@
 # Changelog
 
-## 0.1.2 (TBD)
-
-### Changes
-
-* [#108][gh-108] Locally overwrite the link following behaviour in the org-roam-buffer to open files in the same window `org-roam` was called from
+## 0.1.2 (2020-02-21)
 
 ### Breaking Changes
 * [#143][gh-143] `org-roam-mode` is now a global mode. The installation instructions have changed accordingly.
@@ -19,6 +15,10 @@
 * [#110][gh-110] Add prefix to `org-roam-insert`, for inserting titles down-cased
 * [#99][gh-99] Add keybinding so that `<return>` or `mouse-1` in the backlinks buffer visits the source file of the backlink at point
 
+### Changes
+
+* [#108][gh-108] Locally overwrite the link following behaviour in the org-roam-buffer to open files in the same window `org-roam` was called from
+
 ### Bugfixes
 * [#86][gh-86] Fix `org-roam--parse-content` incorrect `:to` computation for nested files
 * [#98][gh-98] Fix `org-roam--find-file` picking up temporary files
@@ -28,9 +28,11 @@
 * [#122][gh-122], [#128][gh-128] Improve performance of post-command-hook
 * [#92][gh-92], [#105][gh-105] Add tests for core functionality
 
-### Contributors
-* [@chip2n](https://github.com/chip2n/)
-* [@l3kn](https://github.com/l3kn/)
+### New Contributors
+* [@frigge](https://github.com/frigge)
+* [@juergenhoetzel](https://github.com/juergenhoetzel)
+* [@chip2n](https://github.com/chip2n)
+* [@l3kn](https://github.com/l3kn)
 * [@jdormit](https://github.com/jdormit)
 * [@herbertjones](https://github.com/herbertjones)
 * [@CeleritasCelery](https://github.com/CeleritasCelery)
@@ -84,7 +86,7 @@ Mostly a documentation/cleanup release.
 [gh-138]: https://github.com/jethrokuan/org-roam/pull/138
 [gh-141]: https://github.com/jethrokuan/org-roam/pull/141
 [gh-142]: https://github.com/jethrokuan/org-roam/pull/142
-[gh-142]: https://github.com/jethrokuan/org-roam/pull/143
+[gh-143]: https://github.com/jethrokuan/org-roam/pull/143
 
  # Local Variables:
  # eval: (auto-fill-mode -1)
