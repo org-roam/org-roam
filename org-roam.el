@@ -5,7 +5,7 @@
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
 ;; URL: https://github.com/jethrokuan/org-roam
 ;; Keywords: org-mode, roam, convenience
-;; Version: 0.1.0
+;; Version: 0.1.2
 ;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (s "1.12.0") (async "1.9.4"))
 
 ;; This file is NOT part of GNU Emacs.
@@ -561,7 +561,9 @@ Bindings:
     (with-temp-file temp-dot
       (insert graph))
     (call-process org-roam-graphviz-executable nil 0 nil temp-dot "-Tsvg" "-o" temp-graph)
-    (call-process org-roam-graph-viewer nil 0 nil temp-graph)))
+    (if (and org-roam-graph-viewer (executable-find org-roam-graph-viewer))
+	(call-process org-roam-graph-viewer nil 0 nil temp-graph)
+      (view-file temp-graph))))
 
 ;;; Org-roam minor mode
 (cl-defun org-roam--maybe-update-buffer (&key redisplay)
