@@ -146,6 +146,9 @@ If called interactively, then PARENTS is non-nil."
 (defvar org-roam-backward-links-cache (make-hash-table :test #'equal)
   "Cache containing backward-links.")
 
+(defvar org-roam-citations-cache (make-hash-table :test #'equal)
+  "Cache containing citations.")
+
 (defvar org-roam-titles-cache (make-hash-table :test #'equal)
   "Cache containing titles for org-roam files.")
 
@@ -217,6 +220,12 @@ It uses TITLE and the current timestamp to form a unique title."
   (let ((timestamp (format-time-string "%Y%m%d%H%M%S" (current-time)))
         (slug (org-roam--title-to-slug title)))
     (format "%s_%s" timestamp slug)))
+
+;; TODO: Make a key-cache like in titles etc etc..
+;; TODO: Looke at org-roam--get-title-or-slug
+(defun org-roam--get-cite-key (file-path)
+  "Convert `FILE-PATH' to bibtex key."
+  (file-name-base file-path))
 
 ;;; Creating org-roam files
 (defun org-roam--populate-title (file &optional title)
@@ -328,6 +337,7 @@ If PREFIX, downcase the title before insertion."
    (lambda (cache)
      (setq org-roam-forward-links-cache (plist-get cache :forward))
      (setq org-roam-backward-links-cache (plist-get cache :backward))
+     (setq org-roam-citations-cache (plist-get cache :citations))
      (setq org-roam-titles-cache (plist-get cache :titles))
      (setq org-roam-cache-initialized t)
      (message "Org-roam cache built!"))))
@@ -376,7 +386,8 @@ This is equivalent to removing the node from the graph."
         (org-roam--insert-item
          item
          :forward org-roam-forward-links-cache
-         :backward org-roam-backward-links-cache)))
+         :backward org-roam-backward-links-cache
+	 :citations org-roam-citations-cache)))
     ;; Rerender buffer
     (org-roam--maybe-update-buffer :redisplay t)))
 
@@ -462,8 +473,20 @@ Bindings:
                                            'file-from-point (plist-get properties :point))))
                              (insert (format "%s \n\n" content)))))
                        backlinks))
-          (insert "\n\n* No backlinks!")))
-      (read-only-mode 1))))
+          (insert "\n\n* No backlinks!"))
+        (if-let ((backlinks (gethash (org-roam--get-cite-key file-path) org-roam-citations-cache)))
+            (progn
+              (insert (format "\n\n* %d Citations\n"
+                              (hash-table-count backlinks)))
+              (maphash (lambda (file-from contents)
+                         (insert (format "** [[file:%s][%s]]\n"
+                                         file-from
+                                         (org-roam--get-title-or-slug file-from)))
+			 )
+
+                       backlinks))
+          (insert "\n\n* Not cited!"))
+      (read-only-mode 1)))))
 
 ;;; Show/hide the org-roam buffer
 (define-inline org-roam--current-visibility ()

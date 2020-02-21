@@ -80,75 +80,97 @@ Like file-name-extension, but does not strip version number."
 
 (defun org-roam--parse-content (&optional file-path)
   "Parse the current buffer, and return a list of items for processing."
-  (let ((file-path (or file-path
-		       (file-truename (buffer-file-name (current-buffer))))))
-    ;; An `org-ref' style link can link to multiple papers, e.g.,
-    ;; "cite:cite:zhu-2017-unpair-image,isola-2016-image-tokl". Therefore,
-    ;; we map each link to a list of org-roam items, which we flatten.
-    (-flatten-n	;; dash required...
-     1
-     (org-element-map (org-element-parse-buffer) 'link
-       (lambda (link)
-	 (let* ((type (org-element-property :type link))
-		(path (org-element-property :path link))
-		(start (org-element-property :begin link))
-		(content (org-roam--link-get-content start)))
-	   (cond ((and (string= type "file")
-		       (org-roam--org-file-p path))
-		  ;; File type links to files in `org-roam-directory'
-		  (list
-		   (list :from file-path
-			 :to (file-truename (expand-file-name path (file-name-directory file-path)))
-			 :properties (list :content content :point start))))
-		 ((string= type "cite")
-		  ;; Org-ref "cite:" links. These are only recognized if org-ref is loaded.
-		  (mapcar
-		   (lambda (key)
-		     (list :from file-path
-			   :to (expand-file-name (concat key ".org") org-roam-directory)
-			   :properties (list :content content :point start)))
-		   (s-split "," path))))))))))
+  (org-element-map (org-element-parse-buffer) 'link
+    (lambda (link)
+      (let* ((type (org-element-property :type link))
+            (path (org-element-property :path link))
+            (start (org-element-property :begin link))
+	    ;; Regular file links within `org-roam-directory'
+	    (is-file-link (and (string= type "file")
+			       (org-roam--org-file-p path)))
+	    ;; Org-ref "cite:" links. These are only recognized if `org-ref' is loaded.
+	    (is-cite-link (string= type "cite")))
 
-(defun org-roam--link-get-content (start)
-  "Get link content at point START."
-  (goto-char start)
-  (let* ((element (org-element-at-point))
-         (begin (or (org-element-property :content-begin element)
-                    (org-element-property :begin element)))
-         (content (or (org-element-property :raw-value element)
-		      (buffer-substring
-		       begin
-		       (or (org-element-property :content-end element)
-                           (org-element-property :end element)))))
-         (content (string-trim content)))
-    content))
+        (when (or is-file-link is-cite-link)
+          (goto-char start)
+          (let* ((element (org-element-at-point))
+                 (begin (or (org-element-property :content-begin element)
+                            (org-element-property :begin element)))
+                 (content (or (org-element-property :raw-value element)
+                              (buffer-substring
+                               begin
+                               (or (org-element-property :content-end element)
+                                   (org-element-property :end element)))))
+                 (content (string-trim content))
+                 (file-path (or file-path
+                                (file-truename (buffer-file-name (current-buffer))))))
+            (list :from file-path
+                  :to (if is-file-link
+			  ;; file-links
+			  (file-truename (expand-file-name path (file-name-directory file-path)))
+			;; cite-links
+			path)
+                  :properties (list :content content
+				    :point begin
+				    :type type))))))))
 
-(cl-defun org-roam--insert-item (item &key forward backward)
+
+(cl-defun org-roam--insert-item (item &key forward backward citations)
   "Insert ITEM into FORWARD and BACKWARD cache.
 
-ITEM is of the form: (:from from-path :to to-path :properties (:content preview-content :point point))."
+ITEM is of the form:
+(:from from-path
+ :to to-path
+ :properties (:content preview-content
+              :point point
+              :type type))."
   (pcase-let ((`(:from ,p-from :to ,p-to :properties ,props) item))
-    ;; Build forward-links
-    (let ((links (gethash p-from forward)))
-      (if links
-          (puthash p-from
-                   (if (member p-to links)
-                       links
-                     (cons p-to links)) forward)
-        (puthash p-from (list p-to) forward)))
-    ;; Build backward-links
-    (let ((contents-hash (gethash p-to backward)))
-      (if contents-hash
-          (if-let ((contents-list (gethash p-from contents-hash)))
-              (let ((updated (cons props contents-list)))
-                (puthash p-from updated contents-hash)
-                (puthash p-to contents-hash backward))
-            (progn
-              (puthash p-from (list props) contents-hash)
-              (puthash p-to contents-hash backward)))
-        (let ((contents-hash (make-hash-table :test #'equal)))
-          (puthash p-from (list props) contents-hash)
-          (puthash p-to contents-hash backward))))))
+    (pcase-let ((`(:content ,pp-content :point ,pp-point :type ,pp-type) props))
+      (when (string= pp-type "file")
+       ;; Build forward-links
+       (let ((links (gethash p-from forward)))
+	 (if links
+             (puthash p-from
+                      (if (member p-to links)
+			  links
+			(cons p-to links)) forward)
+           (puthash p-from (list p-to) forward)))
+       ;; Build backward-links
+       (let ((contents-hash (gethash p-to backward)))
+	 (if contents-hash
+             (if-let ((contents-list (gethash p-from contents-hash)))
+		 (let ((updated (cons props contents-list)))
+                   (puthash p-from updated contents-hash)
+                   (puthash p-to contents-hash backward))
+               (progn
+		 (puthash p-from (list props) contents-hash)
+		 (puthash p-to contents-hash backward)))
+           (let ((contents-hash (make-hash-table :test #'equal)))
+             (puthash p-from (list props) contents-hash)
+             (puthash p-to contents-hash backward)))))
+      (when (string= pp-type "cite")
+	;; Build citation-links
+	;; An `org-ref' style link can link to multiple papers, e.g.,
+	;; 'cite:cite:zhu-2017-unpair-image,isola-2016-image-tokl'. Therefore,
+	;; we split `p-to' into its keys below.
+	(mapcar
+	 (lambda (key)
+	   (message "%s: %s" p-from key)
+	   (let ((contents-hash (gethash key citations)))
+	     (if contents-hash
+		 (if-let ((contents-list (gethash p-from contents-hash)))
+		     (let ((updated (cons props contents-list)))
+                       (puthash p-from updated contents-hash)
+                       (puthash key contents-hash citations))
+		   (progn
+		     (puthash p-from (list props) contents-hash)
+		     (puthash key contents-hash citations)))
+               (let ((contents-hash (make-hash-table :test #'equal)))
+		 (puthash p-from (list props) contents-hash)
+		 (puthash key contents-hash citations)))))
+	 (s-split "," p-to))))))
+
+
 
 (defun org-roam--extract-title ()
   "Extract the title from `BUFFER'."
@@ -164,6 +186,7 @@ ITEM is of the form: (:from from-path :to to-path :properties (:content preview-
   "Build the org-roam caches in DIR."
   (let ((backward-links (make-hash-table :test #'equal))
         (forward-links (make-hash-table :test #'equal))
+        (citation-links (make-hash-table :test #'equal))
         (file-titles (make-hash-table :test #'equal)))
     (let* ((org-roam-files (org-roam--find-files dir))
            (file-items (mapcar (lambda (file)
@@ -175,7 +198,8 @@ ITEM is of the form: (:from from-path :to to-path :properties (:content preview-
           (org-roam--insert-item
            item
            :forward forward-links
-           :backward backward-links)))
+           :backward backward-links
+	   :citations citation-links)))
       (dolist (file org-roam-files)
         (with-temp-buffer
           (insert-file-contents file)
@@ -185,6 +209,7 @@ ITEM is of the form: (:from from-path :to to-path :properties (:content preview-
     (list
      :forward forward-links
      :backward backward-links
+     :citations citation-links
      :titles file-titles)))
 
 (provide 'org-roam-utils)
