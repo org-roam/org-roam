@@ -44,7 +44,7 @@ without confirmation. To do this, run in a shell:
 
 ```sh
 sudo mkdir -p /etc/opt/chrome/policies/managed/
-cat > /etc/opt/chrome/policies/managed/external_protocol_dialog.json <<'EOF'
+sudo tee /etc/opt/chrome/policies/managed/external_protocol_dialog.json >/dev/null <<'EOF'
 {
   "ExternalProtocolDialogShowAlwaysOpenCheckbox": true
 }
