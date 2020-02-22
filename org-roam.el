@@ -206,7 +206,7 @@ If called interactively, then PARENTS is non-nil."
   "Return all org-roam files."
   (org-roam--find-files (file-truename org-roam-directory)))
 
-(defun org-roam--make-new-file-path (id &optional absolute)
+(defun org-roam--new-file-path (id &optional absolute)
   "Make new file path from identifier `ID'.
 
 If `ABSOLUTE', return an absolute file-path. Else, return a relative file-path."
@@ -264,32 +264,17 @@ It uses TITLE and the current timestamp to form a unique title."
                            org-roam-templates)))))
     (let (file-name-fn file-path)
       (fset 'file-name-fn (plist-get template :file))
-      (setq file-path (org-roam--make-new-file-path (file-name-fn title) t))
+      (setq file-path (org-roam--new-file-path (file-name-fn title) t))
       (if (file-exists-p file-path)
           file-path
         (make-empty-file file-path t)
         (write-region
-         (s-format (plist-get template :content) 'aget (list (cons "title" title)))
+         (s-format (plist-get template :content)
+                   'aget
+                   (list (cons "title" title)
+                         (cons "slug" (org-roam--title-to-slug title))))
          nil file-path nil)
         file-path))))
-
-(defun org-roam--make-file (file-path &optional title)
-  "Create an org-roam file at FILE-PATH, optionally setting the TITLE attribute."
-  (if (file-exists-p file-path)
-      (error (format "Aborting, file already exists at %s" file-path))
-    (make-empty-file file-path t)
-    (save-excursion
-      (with-current-buffer (find-file-noselect file-path)
-        (org-roam--update-cache)))))
-
-(defun org-roam--new-file-named (slug)
-  "Create a new file named `SLUG'.
-`SLUG' is the short file name, without a path or a file extension."
-  (interactive "sNew filename (without extension): ")
-  (let ((file-path (org-roam--make-new-file-path slug t)))
-    (unless (file-exists-p file-path)
-      (org-roam--make-file file-path))
-    (find-file file-path)))
 
 (defun org-roam--get-new-id (title)
   "Return a new ID, given the note TITLE."
@@ -298,15 +283,10 @@ It uses TITLE and the current timestamp to form a unique title."
                        proposed-slug
                      (read-string "Enter ID (without extension): "
                                   proposed-slug)))
-         (file-path (org-roam--make-new-file-path new-slug t)))
+         (file-path (org-roam--new-file-path new-slug t)))
     (if (file-exists-p file-path)
         (user-error "There's already a file at %s")
       new-slug)))
-
-(defun org-roam-new-file ()
-  "Quickly create a new file, using the current timestamp."
-  (interactive)
-  (org-roam--new-file-named (format-time-string "%Y%m%d%H%M%S" (current-time))))
 
 ;;; Inserting org-roam links
 (defun org-roam-insert (prefix)
@@ -457,21 +437,31 @@ This is equivalent to removing the node from the graph."
     (org-roam--maybe-update-buffer :redisplay t)))
 
 ;;; Org-roam daily notes
+
+(defun org-roam--file-for-time (time)
+  "Create and find file for TIME."
+  (let* ((org-roam-templates (list (list "daily" (list :file (lambda (title) title)
+                                                       :content "#+TITLE: ${title}")))))
+    (org-roam--make-new-file (format-time-string "%Y-%m-%d" time) "daily")))
+
 (defun org-roam-today ()
-  "Create the file for today."
+  "Create and find file for today."
   (interactive)
-  (org-roam--new-file-named (format-time-string "%Y-%m-%d" (current-time))))
+  (let ((path (org-roam--file-for-time (current-time))))
+    (find-file path)))
 
 (defun org-roam-tomorrow ()
-  "Create the file for tomorrow."
+  "Create and find the file for tomorrow."
   (interactive)
-  (org-roam--new-file-named (format-time-string "%Y-%m-%d" (time-add 86400 (current-time)))))
+  (let ((path (org-roam--file-for-time (time-add 86400 (current-time)))))
+    (find-file path)))
 
 (defun org-roam-date ()
   "Create the file for any date using the calendar."
   (interactive)
   (let ((time (org-read-date nil 'to-time nil "Date:  ")))
-    (org-roam--new-file-named (format-time-string "%Y-%m-%d" time))))
+    (let ((path (org-roam--file-for-time time)))
+      (find-file path))))
 
 ;;; Org-roam buffer
 (define-derived-mode org-roam-backlinks-mode org-mode "Backlinks"
