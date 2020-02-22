@@ -247,7 +247,7 @@ It uses TITLE and the current timestamp to form a unique title."
 
 ;;; Creating org-roam files
 (defvar org-roam-templates
-  (list (cons "default" (list :file #'org-roam--file-name-timestamp-title
+  (list (list "default" (list :file #'org-roam--file-name-timestamp-title
                               :content "#+TITLE: ${title}")))
   "Templates to insert for new files in org-roam.")
 
