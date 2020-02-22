@@ -382,26 +382,26 @@ If PREFIX, downcase the title before insertion."
 (defun org-roam--build-cache-async ()
   "Builds the caches asychronously."
   (interactive)
-  (unless org-roam--ongoing-async-build
-    (setq org-roam--ongoing-async-build t)
-    (async-start
-     `(lambda ()
-        (setq load-path ',load-path)
-        (package-initialize)
-        (require 'org-roam-utils)
-        ,(async-inject-variables "org-roam-directory")
-        (cons org-roam-directory (org-roam--build-cache org-roam-directory)))
-     (lambda (pair)
-       (let ((directory (car pair))
-             (cache (cdr pair)))
-         (setq org-roam-directory directory  ;; ensure dir matches cache
-               org-roam-forward-links-cache (plist-get cache :forward)
-               org-roam-backward-links-cache (plist-get cache :backward)
-               org-roam-titles-cache (plist-get cache :titles)
-               org-roam-cache-initialized t
-               org-roam--ongoing-async-build nil))  ;; Remove lock
-       (unless org-roam-mute-cache-build
-         (message "Org-roam cache built!"))))))
+  (unless (and (processp org-roam--ongoing-async-build)
+	       (not (async-ready org-roam--ongoing-async-build)))
+    (setq org-roam--ongoing-async-build
+	  (async-start
+	   `(lambda ()
+	      (setq load-path ',load-path)
+	      (package-initialize)
+	      (require 'org-roam-utils)
+	      ,(async-inject-variables "org-roam-directory")
+	      (cons org-roam-directory (org-roam--build-cache org-roam-directory)))
+	   (lambda (pair)
+	     (let ((directory (car pair))
+		   (cache (cdr pair)))
+	       (setq org-roam-directory directory  ;; ensure dir matches cache
+		     org-roam-forward-links-cache (plist-get cache :forward)
+		     org-roam-backward-links-cache (plist-get cache :backward)
+		     org-roam-titles-cache (plist-get cache :titles)
+		     org-roam-cache-initialized t)
+	       (unless org-roam-mute-cache-build
+		 (message "Org-roam cache built!"))))))))
 
 (defun org-roam--clear-cache ()
   "Clears all entries in the caches."
