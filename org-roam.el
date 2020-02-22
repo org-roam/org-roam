@@ -65,6 +65,11 @@ If nil, default to the org-roam-directory (preferred)."
   :type 'directory
   :group 'org-roam)
 
+(defcustom org-roam-mute-cache-build nil
+  "Whether to mute the cache build message."
+  :type 'boolean
+  :group 'org-roam)
+
 (defcustom org-roam-buffer-position 'right
   "Position of `org-roam' buffer.
 
@@ -395,7 +400,8 @@ If PREFIX, downcase the title before insertion."
                org-roam-titles-cache (plist-get cache :titles)
                org-roam-cache-initialized t
                org-roam--ongoing-async-build nil))  ;; Remove lock
-       (message "Org-roam cache built!")))))
+       (unless org-roam-mute-cache-build
+         (message "Org-roam cache built!"))))))
 
 (defun org-roam--clear-cache ()
   "Clears all entries in the caches."
