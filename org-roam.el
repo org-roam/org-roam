@@ -196,7 +196,7 @@ If called interactively, then PARENTS is non-nil."
                         (buffer-file-name (current-buffer))))
               ((org-roam--org-file-p path))
               (true-path (file-truename path)))
-    (typecase org-roam-directory
+    (cl-typecase org-roam-directory
       (string (f-descendant-of-p true-path
                                  (file-truename org-roam-directory)))
       (cons (--any (f-descendant-of-p true-path (file-truename (cdr it)))
@@ -204,7 +204,7 @@ If called interactively, then PARENTS is non-nil."
 
 (defun org-roam-get-directory (&optional buffer-or-name-or-path)
   "Get the org-roam directory best matching the current context."
-  (typecase org-roam-directory
+  (cl-typecase org-roam-directory
     ;; When string, always the same directory
     (string org-roam-directory)
     (cons ;; If cons, we must determine the directory based on context
@@ -397,7 +397,7 @@ If PREFIX, downcase the title before insertion."
   "Find and open an org-roam file, first selecting org-roam
 directory if there are multiple directories."
   (interactive)
-  (typecase org-roam-directory
+  (cl-typecase org-roam-directory
     (string (org-roam-find-file))
     (cons
      (when-let ((name (completing-read "Name: " org-roam-directory)))
@@ -436,7 +436,7 @@ directory if there are multiple directories."
   (interactive)
   (unless (and (processp org-roam--ongoing-async-build)
                (not (async-ready org-roam--ongoing-async-build)))
-    (let ((dirs (typecase org-roam-directory
+    (let ((dirs (cl-typecase org-roam-directory
                   (string (list org-roam-directory))
                   (cons (mapcar #'cdr org-roam-directory)))))
       (setq org-roam--ongoing-async-build
