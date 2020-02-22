@@ -53,6 +53,9 @@ tweaking `org-roam-link-title-format`, for example:
 (setq org-roam-link-title-format "R:%s")
 ```
 
+You may also choose to simply style the link differently, by
+customizing `org-roam-link-face` (`M-x customize-face org-roam-link`).
+
 ## Org-roam Files
 
 These customization options revolve around the Org files created and
