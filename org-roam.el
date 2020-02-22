@@ -231,11 +231,14 @@ If `ABSOLUTE', return an absolute file-path. Else, return a relative file-path."
 
 (defun org-roam--title-to-slug (title)
   "Convert TITLE to a filename-suitable slug."
-  (let* ((s (s-downcase title))
-         (s (replace-regexp-in-string "[^a-zA-Z0-9_ ]" "" s))
-         (s (s-split " " s))
-         (s (s-join "_" s)))
-    s))
+  (cl-flet ((replace (title pair)
+                     (replace-regexp-in-string (car pair) (cdr pair) title)))
+    (let* ((pairs `(("[^[:alnum:][:digit:]]" . "_")  ;; convert anything not alphanumeric
+                    ("__*" . "_")  ;; remove sequential underscores
+                    ("^_" . "")  ;; remove starting underscore
+                    ("_$" . "")))  ;; remove ending underscore
+           (slug (-reduce-from #'replace title pairs)))
+      (s-downcase slug))))
 
 (defun org-roam--file-name-timestamp-title (title)
   "Return a file name (without extension) for new files.
