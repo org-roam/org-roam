@@ -38,6 +38,29 @@ running in your shell:
 xdg-mime default roam.desktop x-scheme-handler/roam
 ```
 
+To disable the "confirm" prompt in Chrome, you can also make Chrome
+show a checkbox to tick, so that the `Org-Roam Client` app will be used
+without confirmation. To do this, run in a shell:
+
+```sh
+sudo mkdir -p /etc/opt/chrome/policies/managed/
+sudo tee /etc/opt/chrome/policies/managed/external_protocol_dialog.json >/dev/null <<'EOF'
+{
+  "ExternalProtocolDialogShowAlwaysOpenCheckbox": true
+}
+EOF
+sudo chmod 644 /etc/opt/chrome/policies/managed/external_protocol_dialog.json
+```
+
+and then restart Chrome (for example, by navigating to <chrome://restart>) to
+make the new policy take effect.
+
+See [here](https://www.chromium.org/administrators/linux-quick-start) for more
+info on the `/etc/opt/chrome/policies/managed` directory and
+[here](https://cloud.google.com/docs/chrome-enterprise/policies/?policy=ExternalProtocolDialogShowAlwaysOpenCheckbox)
+for information on the `ExternalProtocolDialogShowAlwaysOpenCheckbox` policy.
+
+
 ## Mac OS
 
 One solution to this, recommended in [Issue
