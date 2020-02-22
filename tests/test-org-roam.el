@@ -52,7 +52,7 @@
 
 (defun org-roam--test-build-cache ()
   "Builds the caches synchronously."
-  (let ((cache (org-roam--build-cache org-roam-directory)))
+  (let ((cache (org-roam--build-cache (list org-roam-directory))))
     (setq org-roam-forward-links-cache (plist-get cache :forward))
     (setq org-roam-backward-links-cache (plist-get cache :backward))
     (setq org-roam-titles-cache (plist-get cache :titles))
