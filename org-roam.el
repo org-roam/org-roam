@@ -138,6 +138,11 @@ If nil, always ask for filename."
   :type 'string
   :group 'org-roam)
 
+(defgroup org-roam-faces nil
+  "Faces used by Org-Roam."
+  :group 'org-roam
+  :group 'faces)
+
 ;;; Polyfills
 ;; These are for functions I use that are only available in newer Emacs
 
@@ -596,9 +601,23 @@ This needs to be quick/infrequent, because this is run at
       (org-roam-update (expand-file-name
                         (buffer-local-value 'buffer-file-truename buffer))))))
 
+(defface org-roam-link
+  '((t :inherit org-link))
+  "Face for org-roam link."
+  :group 'org-roam-faces)
+
+(defun org-roam--roam-link-face (path)
+  "Conditional face for org file links.
+
+Applies `org-roam-link-face' if PATH correponds to a Roam file."
+  (if (org-roam--org-roam-file-p path)
+      'org-roam-link
+    'org-link))
+
 (defun org-roam--find-file-hook-function ()
   "Called by `find-file-hook' when `org-roam-mode' is on."
   (when (org-roam--org-roam-file-p)
+    (org-link-set-parameters "file" :face 'org-roam--roam-link-face)
     (add-hook 'post-command-hook #'org-roam--maybe-update-buffer nil t)
     (add-hook 'after-save-hook #'org-roam--update-cache nil t)))
 
@@ -679,6 +698,7 @@ If ARG is `toggle', toggle `org-roam-mode'. Otherwise, behave as if called inter
     ;; Disable local hooks for all org-roam buffers
     (dolist (buf (org-roam--get-roam-buffers))
       (with-current-buffer buf
+        (org-link-set-parameters "file" :face 'org-link)
         (remove-hook 'post-command-hook #'org-roam--maybe-update-buffer t)
         (remove-hook 'after-save-hook #'org-roam--update-cache t))))))
 
