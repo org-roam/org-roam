@@ -100,10 +100,6 @@ If nil, always ask for filename."
   :type 'boolean
   :group 'org-roam)
 
-(defcustom org-roam-autopopulate-title t "Whether to autopopulate the title."
-  :type 'boolean
-  :group 'org-roam)
-
 (defcustom org-roam-buffer-width 0.33 "Width of `org-roam' buffer."
   :type 'number
   :group 'org-roam)
@@ -250,30 +246,38 @@ It uses TITLE and the current timestamp to form a unique title."
     (format "%s_%s" timestamp slug)))
 
 ;;; Creating org-roam files
-(defun org-roam--populate-title (file &optional title)
-  "Populate title line for FILE using TITLE, if provided.
-If not provided, derive the title from the file name."
-  (let ((title (or title
-                   (-> file
-                       (file-name-nondirectory)
-                       (file-name-sans-extension)
-                       (split-string "_")
-                       (string-join " ")
-                       (s-titleize)))))
-    (write-region
-     (concat
-      "#+TITLE: "
-      title
-      "\n\n")
-     nil file nil)))
+(defvar org-roam-templates
+  (list (cons "default" (list :file #'org-roam--file-name-timestamp-title
+                              :content "#+TITLE: ${title}")))
+  "Templates to insert for new files in org-roam.")
+
+(defun org-roam--make-new-file (title &optional template-key)
+  (unless org-roam-templates
+    (user-error "No templates defined"))
+  (let (template)
+    (if template-key
+        (setq template (cadr (assoc template-key org-roam-templates)))
+      (if (= (length org-roam-templates) 1)
+          (setq template (car org-roam-templates))
+        (setq template
+              (cadr (assoc (completing-read "Template: " org-roam-templates)
+                           org-roam-templates)))))
+    (let (file-name-fn file-path)
+      (fset 'file-name-fn (plist-get template :file))
+      (setq file-path (org-roam--make-new-file-path (file-name-fn title) t))
+      (if (file-exists-p file-path)
+          file-path
+        (make-empty-file file-path t)
+        (write-region
+         (s-format (plist-get template :content) 'aget (list (cons "title" title)))
+         nil file-path nil)
+        file-path))))
 
 (defun org-roam--make-file (file-path &optional title)
   "Create an org-roam file at FILE-PATH, optionally setting the TITLE attribute."
   (if (file-exists-p file-path)
       (error (format "Aborting, file already exists at %s" file-path))
     (make-empty-file file-path t)
-    (if org-roam-autopopulate-title
-        (org-roam--populate-title file-path title))
     (save-excursion
       (with-current-buffer (find-file-noselect file-path)
         (org-roam--update-cache)))))
@@ -322,15 +326,12 @@ If PREFIX, downcase the title before insertion."
                               (org-roam--find-all-files)))
          (title (completing-read "File: " completions nil nil region-text))
          (region-or-title (or region-text title))
-         (absolute-file-path (or (cadr (assoc title completions))
-                                 (org-roam--make-new-file-path (org-roam--get-new-id title) t)))
+         (absolute-file-path (org-roam--make-new-file title))
          (current-file-path (-> (or (buffer-base-buffer)
                                     (current-buffer))
                                 (buffer-file-name)
                                 (file-truename)
                                 (file-name-directory))))
-    (unless (file-exists-p absolute-file-path)
-      (org-roam--make-file absolute-file-path title))
     (when region ;; Remove previously selected text.
       (goto-char (car region))
       (delete-char (- (cdr region) (car region))))
@@ -350,10 +351,7 @@ If PREFIX, downcase the title before insertion."
                               (org-roam--find-all-files)))
          (title-or-slug (completing-read "File: " completions))
          (absolute-file-path (or (cadr (assoc title-or-slug completions))
-                                 (org-roam--make-new-file-path
-                                  (org-roam--get-new-id title-or-slug) t))))
-    (unless (file-exists-p absolute-file-path)
-      (org-roam--make-file absolute-file-path title-or-slug))
+                                 (org-roam--make-new-file title-or-slug))))
     (find-file absolute-file-path)))
 
 (defun org-roam--get-roam-buffers ()
