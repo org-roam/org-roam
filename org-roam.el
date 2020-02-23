@@ -494,18 +494,25 @@ This is equivalent to removing the node from the graph."
 Bindings:
 \\{org-roam-backlinks-mode-map}")
 
-(define-key org-roam-backlinks-mode-map [mouse-1] 'org-roam-jump-to-backlink)
-(define-key org-roam-backlinks-mode-map (kbd "RET") 'org-roam-jump-to-backlink)
+(define-key org-roam-backlinks-mode-map [mouse-1] 'org-roam-jump-to-or-create-backlink)
+(define-key org-roam-backlinks-mode-map (kbd "RET") 'org-roam-jump-to-or-create-backlink)
 
-(defun org-roam-jump-to-backlink ()
-  "Jumps to original file and location of the backlink content snippet at point"
+(defun org-roam-jump-to-or-create-backlink ()
+  "Jumps to original file and location of the backlink content snippet at point. Creates a backlink if the appropriate information is present."
   (interactive)
   (let ((file-from (get-text-property (point) 'file-from))
-        (p (get-text-property (point) 'file-from-point)))
+        (p (get-text-property (point) 'file-from-point))
+        (file-to (get-text-property (point) 'file-to))
+        (text-start (get-text-property (point) 'text-start))
+        (text-end (get-text-property (point) 'text-end)))
     (when (and file-from p)
       (find-file file-from)
       (goto-char p)
-      (org-show-context))))
+      (org-show-context)
+      (when (and file-to text-start text-end)
+        (let ((text (delete-and-extract-region text-start text-end))
+              (path (file-relative-name (file-truename file-to) (file-name-directory (file-truename file-to)))))
+          (insert (format "[[file:%s][%s]]" path text)))))))
 
 (defun org-roam--find-file (file)
   "Open FILE in the window `org-roam' was called from."
@@ -540,6 +547,7 @@ Bindings:
                             (org-toggle-link-display)
                             (while (re-search-forward match-regexp nil t)
                               (let* ((p (match-beginning 0))
+                                     (e (match-end 0))
                                      (context (buffer-substring (line-beginning-position) (line-end-position)))
                                      (rep (format "[[file:%s][\\&]]" other-file))
                                      (content (replace-regexp-in-string match-regexp rep context)))
@@ -551,6 +559,7 @@ Bindings:
                                                   unwanted-matches))
                                   (push (list
                                          :point p
+                                         :end e
                                          :content content)
                                         matches))
                                 (org-toggle-link-display)))
@@ -612,6 +621,9 @@ Bindings:
                                                'font-lock-face 'org-block
                                                'help-echo "mouse-1: create linked note"
                                                'file-from (plist-get ref :file-from)
+                                               'file-to file-path
+                                               'text-start (plist-get match :point)
+                                               'text-end (plist-get match :end)
                                                'file-from-point (plist-get match :point))))
                       (insert (format "%s\n\n" content (plist-get match :point)))))))
             (insert "\n\n* No unlinked references!\n"))))
