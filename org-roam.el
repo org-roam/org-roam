@@ -530,7 +530,6 @@ Bindings:
                        ,(file-name-base file-path))
                       word-boundary))))
 
-
 (defun org-roam--find-unlinked-references (file-path)
   (let* ((match-regexp (org-roam--unlinked-regexp file-path))
          (find-func (lambda (other-file)
@@ -625,7 +624,7 @@ Bindings:
                                                'text-start (plist-get match :point)
                                                'text-end (plist-get match :end)
                                                'file-from-point (plist-get match :point))))
-                      (insert (format "%s\n\n" content (plist-get match :point)))))))
+                      (insert (format "%s\n\n" content))))))
             (insert "\n\n* No unlinked references!\n"))))
       (read-only-mode 1))))
 
