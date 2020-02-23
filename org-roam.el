@@ -383,14 +383,17 @@ If PREFIX, downcase the title before insertion."
 (defun org-roam-find-file (&optional buffer-or-name-or-path)
   "Find and open an org-roam file."
   (interactive)
-  (let* ((completions (mapcar (lambda (file)
+  (let* ((context-path (and (eq (type-of org-roam-directory) 'cons)
+                            (or (org-roam--get-context-path buffer-or-name-or-path)
+                                (completing-read "Pick org-roam name: " org-roam-directory))))
+         (completions (mapcar (lambda (file)
                                 (list (org-roam--get-title-or-slug file) file))
-                              (org-roam--find-all-files buffer-or-name-or-path)))
+                              (org-roam--find-all-files context-path)))
          (title-or-slug (completing-read "File: " completions))
          (absolute-file-path (or (cadr (assoc title-or-slug completions))
                                  (org-roam--make-new-file-path
                                   (org-roam--get-new-id title-or-slug) t
-                                  buffer-or-name-or-path))))
+                                  context-path))))
     (unless (file-exists-p absolute-file-path)
       (org-roam--make-file absolute-file-path title-or-slug))
     (find-file absolute-file-path)))
@@ -402,7 +405,7 @@ directory if there are multiple directories."
   (cl-typecase org-roam-directory
     (string (org-roam-find-file))
     (cons
-     (when-let ((name (completing-read "Name: " org-roam-directory)))
+     (when-let ((name (completing-read "Pick org-roam name: " org-roam-directory)))
        (org-roam-find-file name)))))
 
 (defun org-roam--get-roam-buffers ()
