@@ -389,7 +389,8 @@ If PREFIX, downcase the title before insertion."
          (title-or-slug (completing-read "File: " completions))
          (absolute-file-path (or (cadr (assoc title-or-slug completions))
                                  (org-roam--make-new-file-path
-                                  (org-roam--get-new-id title-or-slug) t))))
+                                  (org-roam--get-new-id title-or-slug) t
+                                  buffer-or-name-or-path))))
     (unless (file-exists-p absolute-file-path)
       (org-roam--make-file absolute-file-path title-or-slug))
     (find-file absolute-file-path)))
