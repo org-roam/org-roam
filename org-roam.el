@@ -228,7 +228,8 @@ If called interactively, then PARENTS is non-nil."
              (cdr pair)  ;; Dir from cons by named org-roam directory
            buffer-or-name-or-path))  ;; Must be a path
         (t  ;; Otherwise get the current file path
-         (buffer-file-name))))
+         (buffer-file-name (or (buffer-base-buffer)
+                                    (current-buffer))))))
 
 (defun org-roam--get-title-from-cache (file)
   "Return title of `FILE' from the cache."
