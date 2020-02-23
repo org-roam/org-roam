@@ -182,13 +182,6 @@ If called interactively, then PARENTS is non-nil."
 (defvar org-roam-last-window nil
   "Last window `org-roam' was called from.")
 
-(defcustom org-roam-directory (expand-file-name "~/org-roam/")
-  "Path to Org-roam files.
-
-All Org files, at any level of nesting, is considered part of the Org-roam."
-  :type 'directory
-  :group 'org-roam)
-
 (defcustom org-roam-unwanted-regexps
   (list
    org-babel-src-block-regexp
@@ -524,9 +517,11 @@ Bindings:
 
 (defun org-roam--unlinked-regexp (file-path)
   (let* ((buffer-title (org-roam--get-title-or-slug file-path)))
-    (rx-to-string `(or ,buffer-title
+    (rx-to-string `(: word-boundary
+                      (or ,buffer-title
                        ,(downcase buffer-title)
-                       ,(file-name-base file-path)))))
+                       ,(file-name-base file-path))
+                      word-boundary))))
 
 
 (defun org-roam--find-unlinked-references (file-path)
