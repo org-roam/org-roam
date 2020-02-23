@@ -261,7 +261,7 @@ It uses TITLE and the current timestamp to form a unique title."
     (if template-key
         (setq template (cadr (assoc template-key org-roam-templates)))
       (if (= (length org-roam-templates) 1)
-          (setq template (car org-roam-templates))
+          (setq template (cadar org-roam-templates))
         (setq template
               (cadr (assoc (completing-read "Template: " org-roam-templates)
                            org-roam-templates)))))
