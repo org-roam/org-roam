@@ -101,10 +101,6 @@ If nil, always ask for filename."
   :type 'boolean
   :group 'org-roam)
 
-(defcustom org-roam-autopopulate-title t "Whether to autopopulate the title."
-  :type 'boolean
-  :group 'org-roam)
-
 (defcustom org-roam-buffer-width 0.33 "Width of `org-roam' buffer."
   :type 'number
   :group 'org-roam)
@@ -244,7 +240,7 @@ If called interactively, then PARENTS is non-nil."
   (org-roam--find-files (file-truename
                          (org-roam-get-directory buffer-or-name-or-path))))
 
-(defun org-roam--make-new-file-path (id &optional absolute buffer-or-name-or-path)
+(defun org-roam--new-file-path (id &optional absolute buffer-or-name-or-path)
   "Make new file path from identifier `ID'.
 
 If `ABSOLUTE', return an absolute file-path. Else, return a relative file-path."
@@ -288,42 +284,35 @@ It uses TITLE and the current timestamp to form a unique title."
     (format "%s_%s" timestamp slug)))
 
 ;;; Creating org-roam files
-(defun org-roam--populate-title (file &optional title)
-  "Populate title line for FILE using TITLE, if provided.
-If not provided, derive the title from the file name."
-  (let ((title (or title
-                   (-> file
-                       (file-name-nondirectory)
-                       (file-name-sans-extension)
-                       (split-string "_")
-                       (string-join " ")
-                       (s-titleize)))))
-    (write-region
-     (concat
-      "#+TITLE: "
-      title
-      "\n\n")
-     nil file nil)))
+(defvar org-roam-templates
+  (list (list "default" (list :file #'org-roam--file-name-timestamp-title
+                              :content "#+TITLE: ${title}")))
+  "Templates to insert for new files in org-roam.")
 
-(defun org-roam--make-file (file-path &optional title)
-  "Create an org-roam file at FILE-PATH, optionally setting the TITLE attribute."
-  (if (file-exists-p file-path)
-      (error (format "Aborting, file already exists at %s" file-path))
-    (make-empty-file file-path t)
-    (if org-roam-autopopulate-title
-        (org-roam--populate-title file-path title))
-    (save-excursion
-      (with-current-buffer (find-file-noselect file-path)
-        (org-roam--update-cache)))))
-
-(defun org-roam--new-file-named (slug)
-  "Create a new file named `SLUG'.
-`SLUG' is the short file name, without a path or a file extension."
-  (interactive "sNew filename (without extension): ")
-  (let ((file-path (org-roam--make-new-file-path slug t)))
-    (unless (file-exists-p file-path)
-      (org-roam--make-file file-path))
-    (find-file file-path)))
+(defun org-roam--make-new-file (title &optional template-key)
+  (unless org-roam-templates
+    (user-error "No templates defined"))
+  (let (template)
+    (if template-key
+        (setq template (cadr (assoc template-key org-roam-templates)))
+      (if (= (length org-roam-templates) 1)
+          (setq template (cadar org-roam-templates))
+        (setq template
+              (cadr (assoc (completing-read "Template: " org-roam-templates)
+                           org-roam-templates)))))
+    (let (file-name-fn file-path)
+      (fset 'file-name-fn (plist-get template :file))
+      (setq file-path (org-roam--new-file-path (file-name-fn title) t))
+      (if (file-exists-p file-path)
+          file-path
+        (make-empty-file file-path t)
+        (write-region
+         (s-format (plist-get template :content)
+                   'aget
+                   (list (cons "title" title)
+                         (cons "slug" (org-roam--title-to-slug title))))
+         nil file-path nil)
+        file-path))))
 
 (defun org-roam--get-new-id (title)
   "Return a new ID, given the note TITLE."
@@ -332,15 +321,10 @@ If not provided, derive the title from the file name."
                        proposed-slug
                      (read-string "Enter ID (without extension): "
                                   proposed-slug)))
-         (file-path (org-roam--make-new-file-path new-slug t)))
+         (file-path (org-roam--new-file-path new-slug t)))
     (if (file-exists-p file-path)
         (user-error "There's already a file at %s")
       new-slug)))
-
-(defun org-roam-new-file ()
-  "Quickly create a new file, using the current timestamp."
-  (interactive)
-  (org-roam--new-file-named (format-time-string "%Y%m%d%H%M%S" (current-time))))
 
 ;;; Inserting org-roam links
 (defun org-roam-insert (prefix)
@@ -361,14 +345,12 @@ If PREFIX, downcase the title before insertion."
          (title (completing-read "File: " completions nil nil region-text))
          (region-or-title (or region-text title))
          (absolute-file-path (or (cadr (assoc title completions))
-                                 (org-roam--make-new-file-path (org-roam--get-new-id title) t)))
+                                 (org-roam--make-new-file title)))
          (current-file-path (-> (or (buffer-base-buffer)
                                     (current-buffer))
                                 (buffer-file-name)
                                 (file-truename)
                                 (file-name-directory))))
-    (unless (file-exists-p absolute-file-path)
-      (org-roam--make-file absolute-file-path title))
     (when region ;; Remove previously selected text.
       (goto-char (car region))
       (delete-char (- (cdr region) (car region))))
@@ -391,11 +373,7 @@ If PREFIX, downcase the title before insertion."
                               (org-roam--find-all-files context-path)))
          (title-or-slug (completing-read "File: " completions))
          (absolute-file-path (or (cadr (assoc title-or-slug completions))
-                                 (org-roam--make-new-file-path
-                                  (org-roam--get-new-id title-or-slug) t
-                                  context-path))))
-    (unless (file-exists-p absolute-file-path)
-      (org-roam--make-file absolute-file-path title-or-slug))
+                                 (org-roam--make-new-file title-or-slug context-path))))
     (find-file absolute-file-path)))
 
 (defun org-roam-find-file-pick-dir ()
@@ -515,21 +493,31 @@ This is equivalent to removing the node from the graph."
     (org-roam--maybe-update-buffer :redisplay t)))
 
 ;;; Org-roam daily notes
+
+(defun org-roam--file-for-time (time)
+  "Create and find file for TIME."
+  (let* ((org-roam-templates (list (list "daily" (list :file (lambda (title) title)
+                                                       :content "#+TITLE: ${title}")))))
+    (org-roam--make-new-file (format-time-string "%Y-%m-%d" time) "daily")))
+
 (defun org-roam-today ()
-  "Create the file for today."
+  "Create and find file for today."
   (interactive)
-  (org-roam--new-file-named (format-time-string "%Y-%m-%d" (current-time))))
+  (let ((path (org-roam--file-for-time (current-time))))
+    (find-file path)))
 
 (defun org-roam-tomorrow ()
-  "Create the file for tomorrow."
+  "Create and find the file for tomorrow."
   (interactive)
-  (org-roam--new-file-named (format-time-string "%Y-%m-%d" (time-add 86400 (current-time)))))
+  (let ((path (org-roam--file-for-time (time-add 86400 (current-time)))))
+    (find-file path)))
 
 (defun org-roam-date ()
   "Create the file for any date using the calendar."
   (interactive)
   (let ((time (org-read-date nil 'to-time nil "Date:  ")))
-    (org-roam--new-file-named (format-time-string "%Y-%m-%d" time))))
+    (let ((path (org-roam--file-for-time time)))
+      (find-file path))))
 
 ;;; Org-roam buffer
 (define-derived-mode org-roam-backlinks-mode org-mode "Backlinks"
