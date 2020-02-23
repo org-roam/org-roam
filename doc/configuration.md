@@ -69,10 +69,37 @@ Org files in all of its main commands (`org-roam-insert`,
 `org-roam-find-file`). Hence, having any unique file name is a decent
 option, and the default workflow uses the timestamp as the filename.
 
-The format of the filename is controlled by the function
-`org-roam-file-name-function`, which defaults to a format like
-`YYYYMMDDHHMMSS_title_here.org`. You may choose to define your own
-function to change this.
+Org-roam provides templating functionality via `org-roam-templates`.
+`org-roam-templates` maps a template string key to a template. Each
+template consists of two parts: (1) a function that takes the title,
+and generates a filename. (2) the template content. The templated
+content accepts two special fields: `${title}` and `${slug}`, which
+are substituted with the title and slug respectively. Org-roam ships
+with the default template, which inserts the title of the note. 
+
+Here's an example of customizing templates:
+
+```emacs-lisp
+(defun jethro/org-roam-title-private (title)
+    (let ((timestamp (format-time-string "%Y%m%d%H%M%S" (current-time)))
+          (slug (org-roam--title-to-slug title)))
+      (format "private-%s_%s" timestamp slug)))
+      
+(setq org-roam-templates
+    (list (list "default" (list :file #'org-roam--file-name-timestamp-title
+                                :content "#+SETUPFILE:./hugo_setup.org
+#+HUGO_SECTION: zettels
+#+HUGO_SLUG: ${slug}
+#+TITLE: ${title}"))
+          (list "private" (list :file #'jethro/org-roam-title-private
+                                :content "#+TITLE: ${title}"))))
+```
+
+Here, I define a file-name function `jethro/org-roam-title-private`,
+which forms titles like `private-20200202000000-note_name`. The
+content string is simply the title. For the default template, I have
+extended it to include more boilerplate content for publishing
+purposes.
 
 If you wish to be prompted to change the file name on creation, set
 `org-roam-filename-noconfirm` to `nil`:
