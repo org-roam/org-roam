@@ -34,12 +34,24 @@
 (defun abs-path (file-path)
   (file-truename (expand-file-name file-path org-roam-directory)))
 
+(defun multi-abs-path (multi-name file-path)
+  (file-truename
+   (expand-file-name file-path (org-roam--get-context-path multi-name))))
+
 (defun org-roam--test-find-new-file (path)
   (let ((path (abs-path path)))
     (make-directory (file-name-directory path) t)
     (find-file path)))
 
+(defun org-roam--test-find-new-file-multi (multi-name path)
+  (let ((path (multi-abs-path multi-name path)))
+    (make-directory (file-name-directory path) t)
+    (find-file path)))
+
 (defvar org-roam--tests-directory (file-truename (concat default-directory "tests/roam-files"))
+  "Directory containing org-roam test org files.")
+
+(defvar org-roam--tests-multi (file-truename (concat default-directory "tests/roam-files-multi"))
   "Directory containing org-roam test org files.")
 
 (defun org-roam--test-init ()
@@ -50,9 +62,22 @@
     (setq org-roam-mute-cache-build t))
   (org-roam-mode +1))
 
+(defun org-roam--test-multi-init ()
+  (let ((original-dir-1 org-roam--tests-directory)
+        (original-dir-2 org-roam--tests-multi)
+        (new-dir-1 (expand-file-name (make-temp-name "org-roam") temporary-file-directory))
+        (new-dir-2 (expand-file-name (make-temp-name "org-roam") temporary-file-directory)))
+    (copy-directory original-dir-1 new-dir-1)
+    (copy-directory original-dir-2 new-dir-2)
+    (setq org-roam-directory (list (cons "public" new-dir-1) (cons "personal" new-dir-2)))
+    (setq org-roam-mute-cache-build t))
+  (org-roam-mode +1))
+
 (defun org-roam--test-build-cache ()
   "Builds the caches synchronously."
-  (let ((cache (org-roam--build-cache (list org-roam-directory))))
+  (let ((cache (org-roam--build-cache (cl-typecase org-roam-directory
+                                        (string (list org-roam-directory))
+                                        (cons (mapcar #'cdr org-roam-directory))))))
     (setq org-roam-forward-links-cache (plist-get cache :forward))
     (setq org-roam-backward-links-cache (plist-get cache :backward))
     (setq org-roam-titles-cache (plist-get cache :titles))
@@ -114,6 +139,132 @@
               (expect (gethash (abs-path "nested/f2.org") org-roam-titles-cache) :to-equal "Nested File 2")
               (expect (gethash (abs-path "no-title.org") org-roam-titles-cache) :to-be nil)))
 
+(describe "org-roam--build-cache-async-multi"
+          (it "initializes correctly"
+              (org-roam--clear-cache)
+              (org-roam--test-multi-init)
+              (expect org-roam-cache-initialized :to-be nil)
+              (expect (hash-table-count org-roam-forward-links-cache) :to-be 0)
+              (expect (hash-table-count org-roam-backward-links-cache) :to-be 0)
+              (expect (hash-table-count org-roam-titles-cache) :to-be 0)
+
+              (org-roam--build-cache-async)
+              (sleep-for 3) ;; Because it's async
+
+              ;; Caches should be populated
+              (expect org-roam-cache-initialized :to-be t)
+              (expect (hash-table-count org-roam-forward-links-cache) :to-be 8)
+              (expect (hash-table-count org-roam-backward-links-cache) :to-be 10)
+              (expect (hash-table-count org-roam-titles-cache) :to-be 10)
+
+              ;; Forward cache
+              (let ((f1 (gethash (multi-abs-path "public" "f1.org")
+                                 org-roam-forward-links-cache))
+                    (f2 (gethash (multi-abs-path "public" "f2.org")
+                                 org-roam-forward-links-cache))
+                    (nested-f1 (gethash (multi-abs-path "public" "nested/f1.org")
+                                        org-roam-forward-links-cache))
+                    (nested-f2 (gethash (multi-abs-path "public" "nested/f2.org")
+                                        org-roam-forward-links-cache))
+                    (expected-f1 (list (multi-abs-path "public" "nested/f1.org")
+                                       (multi-abs-path "public" "f2.org")))
+                    (expected-nested-f1 (list (multi-abs-path "public" "nested/f2.org")
+                                              (multi-abs-path "public" "f1.org")))
+                    (expected-nested-f2 (list (multi-abs-path "public" "nested/f1.org"))))
+
+                (expect f1 :to-have-same-items-as expected-f1)
+                (expect f2 :to-be nil)
+                (expect nested-f1 :to-have-same-items-as expected-nested-f1)
+                (expect nested-f2 :to-have-same-items-as expected-nested-f2))
+
+              ;; Backward cache
+              (let ((f1 (hash-table-keys (gethash (multi-abs-path "public" "f1.org")
+                                                  org-roam-backward-links-cache)))
+                    (f2 (hash-table-keys (gethash (multi-abs-path "public" "f2.org")
+                                                  org-roam-backward-links-cache)))
+                    (nested-f1 (hash-table-keys
+                                (gethash (multi-abs-path "public" "nested/f1.org")
+                                         org-roam-backward-links-cache)))
+                    (nested-f2 (hash-table-keys
+                                (gethash (multi-abs-path "public" "nested/f2.org")
+                                         org-roam-backward-links-cache)))
+                    (expected-f1 (list (multi-abs-path "public" "nested/f1.org")))
+                    (expected-f2 (list (multi-abs-path "public" "f1.org")))
+                    (expected-nested-f1 (list (multi-abs-path "public" "nested/f2.org")
+                                              (multi-abs-path "public" "f1.org")))
+                    (expected-nested-f2 (list (multi-abs-path "public" "nested/f1.org"))))
+                (expect f1 :to-have-same-items-as expected-f1)
+                (expect f2 :to-have-same-items-as expected-f2)
+                (expect nested-f1 :to-have-same-items-as expected-nested-f1)
+                (expect nested-f2 :to-have-same-items-as expected-nested-f2))
+
+              ;; Titles Cache
+              (expect (gethash (multi-abs-path "public" "f1.org")
+                               org-roam-titles-cache) :to-equal "File 1")
+              (expect (gethash (multi-abs-path "public" "f2.org")
+                               org-roam-titles-cache) :to-equal "File 2")
+              (expect (gethash (multi-abs-path "public" "nested/f1.org")
+                               org-roam-titles-cache) :to-equal "Nested File 1")
+              (expect (gethash (multi-abs-path "public" "nested/f2.org")
+                               org-roam-titles-cache) :to-equal "Nested File 2")
+              (expect (gethash (multi-abs-path "public" "no-title.org")
+                               org-roam-titles-cache) :to-be nil)
+
+              ;; Multi
+
+              ;; Forward cache
+              (let ((mf1 (gethash (multi-abs-path "personal" "mf1.org")
+                                 org-roam-forward-links-cache))
+                    (mf2 (gethash (multi-abs-path "personal" "mf2.org")
+                                 org-roam-forward-links-cache))
+                    (nested-mf1 (gethash (multi-abs-path "personal" "nested/mf1.org")
+                                        org-roam-forward-links-cache))
+                    (nested-mf2 (gethash (multi-abs-path "personal" "nested/mf2.org")
+                                        org-roam-forward-links-cache))
+                    (expected-mf1 (list (multi-abs-path "personal" "nested/mf1.org")
+                                       (multi-abs-path "personal" "mf2.org")))
+                    (expected-nested-mf1 (list (multi-abs-path "personal" "nested/mf2.org")
+                                              (multi-abs-path "personal" "mf1.org")))
+                    (expected-nested-mf2 (list (multi-abs-path "personal" "nested/mf1.org"))))
+
+                (expect mf1 :to-have-same-items-as expected-mf1)
+                (expect mf2 :to-be nil)
+                (expect nested-mf1 :to-have-same-items-as expected-nested-mf1)
+                (expect nested-mf2 :to-have-same-items-as expected-nested-mf2))
+
+              ;; Backward cache
+              (let ((mf1 (hash-table-keys (gethash (multi-abs-path "personal" "mf1.org")
+                                                  org-roam-backward-links-cache)))
+                    (mf2 (hash-table-keys (gethash (multi-abs-path "personal" "mf2.org")
+                                                  org-roam-backward-links-cache)))
+                    (nested-mf1 (hash-table-keys
+                                (gethash (multi-abs-path "personal" "nested/mf1.org")
+                                         org-roam-backward-links-cache)))
+                    (nested-mf2 (hash-table-keys
+                                (gethash (multi-abs-path "personal" "nested/mf2.org")
+                                         org-roam-backward-links-cache)))
+                    (expected-mf1 (list (multi-abs-path "personal" "nested/mf1.org")))
+                    (expected-mf2 (list (multi-abs-path "personal" "mf1.org")))
+                    (expected-nested-mf1 (list (multi-abs-path "personal" "nested/mf2.org")
+                                              (multi-abs-path "personal" "mf1.org")))
+                    (expected-nested-mf2 (list (multi-abs-path "personal" "nested/mf1.org"))))
+                (expect mf1 :to-have-same-items-as expected-mf1)
+                (expect mf2 :to-have-same-items-as expected-mf2)
+                (expect nested-mf1 :to-have-same-items-as expected-nested-mf1)
+                (expect nested-mf2 :to-have-same-items-as expected-nested-mf2))
+
+              ;; Titles Cache
+              (expect (gethash (multi-abs-path "personal" "mf1.org")
+                               org-roam-titles-cache) :to-equal "Multi-File 1")
+              (expect (gethash (multi-abs-path "personal" "mf2.org")
+                               org-roam-titles-cache) :to-equal "Multi-File 2")
+              (expect (gethash (multi-abs-path "personal" "nested/mf1.org")
+                               org-roam-titles-cache) :to-equal "Nested Multi-File 1")
+              (expect (gethash (multi-abs-path "personal" "nested/mf2.org")
+                               org-roam-titles-cache) :to-equal "Nested Multi-File 2")
+              (expect (gethash (multi-abs-path "personal" "no-title.org")
+                               org-roam-titles-cache) :to-be nil)))
+
 (describe "org-roam-insert"
           (before-each
            (org-roam--test-init)
@@ -151,6 +302,80 @@
                    "Nested SPC File SPC 1 RET"
                    (org-roam-insert nil))))
               (expect (buffer-string) :to-match (regexp-quote "file:../../nested/f1.org"))))
+
+(describe "org-roam-insert-multi"
+          (before-each
+           (org-roam--test-multi-init)
+           (org-roam--clear-cache)
+           (org-roam--test-build-cache))
+
+          ;; public
+
+          (it "temp1 -> f1"
+              (let ((buf (org-roam--test-find-new-file-multi "public" "temp1.org")))
+                (with-current-buffer buf
+                  (with-simulated-input
+                   "File SPC 1 RET"
+                   (org-roam-insert nil))))
+              (expect (buffer-string) :to-match (regexp-quote "file:f1.org")))
+
+          (it "temp2 -> nested/f1"
+              (let ((buf (org-roam--test-find-new-file-multi "public" "temp2.org")))
+                (with-current-buffer buf
+                  (with-simulated-input
+                   "Nested SPC File SPC 1 RET"
+                   (org-roam-insert nil))))
+              (expect (buffer-string) :to-match (regexp-quote "file:nested/f1.org")))
+
+          (it "nested/temp3 -> f1"
+              (let ((buf (org-roam--test-find-new-file-multi "public" "nested/temp3.org")))
+                (with-current-buffer buf
+                  (with-simulated-input
+                   "File SPC 1 RET"
+                   (org-roam-insert nil))))
+              (expect (buffer-string) :to-match (regexp-quote "file:../f1.org")))
+
+          ;; personal
+
+          (it "a/b/temp4 -> nested/f1"
+              (let ((buf (org-roam--test-find-new-file-multi "public" "a/b/temp4.org")))
+                (with-current-buffer buf
+                  (with-simulated-input
+                   "Nested SPC File SPC 1 RET"
+                   (org-roam-insert nil))))
+              (expect (buffer-string) :to-match (regexp-quote "file:../../nested/f1.org")))
+
+          (it "temp1 -> mf1"
+              (let ((buf (org-roam--test-find-new-file-multi "personal" "temp1.org")))
+                (with-current-buffer buf
+                  (with-simulated-input
+                   "Multi-File SPC 1 RET"
+                   (org-roam-insert nil))))
+              (expect (buffer-string) :to-match (regexp-quote "file:mf1.org")))
+
+          (it "temp2 -> nested/mf1"
+              (let ((buf (org-roam--test-find-new-file-multi "personal" "temp2.org")))
+                (with-current-buffer buf
+                  (with-simulated-input
+                   "Nested SPC Multi-File SPC 1 RET"
+                   (org-roam-insert nil))))
+              (expect (buffer-string) :to-match (regexp-quote "file:nested/mf1.org")))
+
+          (it "nested/temp3 -> mf1"
+              (let ((buf (org-roam--test-find-new-file-multi "personal" "nested/temp3.org")))
+                (with-current-buffer buf
+                  (with-simulated-input
+                   "Multi-File SPC 1 RET"
+                   (org-roam-insert nil))))
+              (expect (buffer-string) :to-match (regexp-quote "file:../mf1.org")))
+
+          (it "a/b/temp4 -> nested/mf1"
+              (let ((buf (org-roam--test-find-new-file-multi "personal" "a/b/temp4.org")))
+                (with-current-buffer buf
+                  (with-simulated-input
+                   "Nested SPC Multi-File SPC 1 RET"
+                   (org-roam-insert nil))))
+              (expect (buffer-string) :to-match (regexp-quote "file:../../nested/mf1.org"))))
 
 (describe "rename file updates cache"
           (before-each
@@ -214,6 +439,68 @@
                         (insert-file-contents (abs-path "f3.org"))
                         (buffer-string)) :to-match (regexp-quote "[[file:meaningful-title.org][meaningful-title]]"))))
 
+(describe "rename file updates cache multi"
+          (before-each
+           (org-roam--test-multi-init)
+           (org-roam--clear-cache)
+           (org-roam--test-build-cache))
+
+          (it "f1 -> new_f1"
+              (rename-file (multi-abs-path "public" "f1.org")
+                           (multi-abs-path "public" "new_f1.org"))
+              ;; Cache should be cleared of old file
+              (expect (gethash (multi-abs-path "public" "f1.org")  org-roam-forward-links-cache) :to-be nil)
+              (expect (->> org-roam-backward-links-cache
+                           (gethash (multi-abs-path "public" "nested/f1.org"))
+                           (hash-table-keys)
+                           (member (multi-abs-path "public" "f1.org"))) :to-be nil)
+
+              (expect (->> org-roam-forward-links-cache
+                           (gethash (multi-abs-path "public" "new_f1.org"))) :not :to-be nil)
+
+              (expect (->> org-roam-forward-links-cache
+                           (gethash (multi-abs-path "public" "new_f1.org"))
+                           (member (multi-abs-path "public" "nested/f1.org"))) :not :to-be nil)
+              ;; Links are updated
+              (expect (with-temp-buffer
+                        (insert-file-contents (multi-abs-path "public" "nested/f1.org"))
+                        (buffer-string)) :to-match (regexp-quote "[[file:../new_f1.org][File 1]]")))
+
+
+          (it "f1 -> f1 with spaces"
+              (rename-file (multi-abs-path "public" "f1.org")
+                           (multi-abs-path "public" "f1 with spaces.org"))
+              ;; Cache should be cleared of old file
+              (expect (gethash (multi-abs-path "public" "f1.org")  org-roam-forward-links-cache) :to-be nil)
+              (expect (->> org-roam-backward-links-cache
+                           (gethash (multi-abs-path "public" "nested/f1.org"))
+                           (hash-table-keys)
+                           (member (multi-abs-path "public" "f1.org"))) :to-be nil)
+              ;; Links are updated
+              (expect (with-temp-buffer
+                        (insert-file-contents (multi-abs-path "public" "nested/f1.org"))
+                        (buffer-string)) :to-match (regexp-quote "[[file:../f1 with spaces.org][File 1]]")))
+
+          (it "no-title -> meaningful-title"
+              (rename-file (multi-abs-path "public" "no-title.org")
+                           (multi-abs-path "public" "meaningful-title.org"))
+              ;; File has no forward links
+              (expect (gethash (multi-abs-path "public" "no-title.org")  org-roam-forward-links-cache) :to-be nil)
+              (expect (gethash (multi-abs-path "public" "meaningful-title.org")  org-roam-forward-links-cache) :to-be nil)
+
+              (expect (->> org-roam-forward-links-cache
+                           (gethash (multi-abs-path "public" "f3.org"))
+                           (member (multi-abs-path "public" "no-title.org"))) :to-be nil)
+
+              (expect (->> org-roam-forward-links-cache
+                           (gethash (multi-abs-path "public" "f3.org"))
+                           (member (multi-abs-path "public" "meaningful-title.org"))) :not :to-be nil)
+
+              ;; Links are updated with the appropriate name
+              (expect (with-temp-buffer
+                        (insert-file-contents (multi-abs-path "public" "f3.org"))
+                        (buffer-string)) :to-match (regexp-quote "[[file:meaningful-title.org][meaningful-title]]"))))
+
 (describe "delete file updates cache"
           (before-each
            (org-roam--test-init)
@@ -229,3 +516,19 @@
               (expect (->> org-roam-backward-links-cache
                            (gethash (abs-path "nested/f1.org"))
                            (gethash (abs-path "nested/f2.org"))) :not :to-be nil)))
+
+(describe "delete file updates cache multi"
+          (before-each
+           (org-roam--test-multi-init)
+           (org-roam--clear-cache)
+           (org-roam--test-build-cache))
+          (it "delete f1"
+              (delete-file (multi-abs-path "public" "f1.org"))
+              (expect (->> org-roam-forward-links-cache
+                           (gethash (multi-abs-path "public" "f1.org"))) :to-be nil)
+              (expect (->> org-roam-backward-links-cache
+                           (gethash (multi-abs-path "public" "nested/f1.org"))
+                           (gethash (multi-abs-path "public" "f1.org"))) :to-be nil)
+              (expect (->> org-roam-backward-links-cache
+                           (gethash (multi-abs-path "public" "nested/f1.org"))
+                           (gethash (multi-abs-path "public" "nested/f2.org"))) :not :to-be nil)))
