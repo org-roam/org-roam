@@ -182,6 +182,21 @@ If called interactively, then PARENTS is non-nil."
 (defvar org-roam-last-window nil
   "Last window `org-roam' was called from.")
 
+(defcustom org-roam-directory (expand-file-name "~/org-roam/")
+  "Path to Org-roam files.
+
+All Org files, at any level of nesting, is considered part of the Org-roam."
+  :type 'directory
+  :group 'org-roam)
+
+(defcustom org-roam-unwanted-regexps
+  (list
+   org-babel-src-block-regexp
+   (rx "[[file:" (minimal-match (zero-or-more any)) "]["  (minimal-match (zero-or-more any)) "]]"))
+  "List of regexps to match against which should not contribute to unlinked references."
+  :type 'list
+  :group 'org-roam)
+
 ;;; Utilities
 (defun org-roam--ensure-cache-built ()
   "Ensures that org-roam cache is built."
@@ -194,6 +209,7 @@ If called interactively, then PARENTS is non-nil."
   (let ((path (or file
                   (buffer-file-name (current-buffer)))))
     (and path
+         org-roam-directory
          (org-roam--org-file-p path)
          (f-descendant-of-p (file-truename path)
                             (file-truename org-roam-directory)))))
@@ -506,6 +522,50 @@ Bindings:
              (select-window org-roam-last-window))
     (find-file file)))
 
+(defun org-roam--unlinked-regexp (file-path)
+  (let* ((buffer-title (org-roam--get-title-or-slug file-path)))
+    (rx-to-string `(or ,buffer-title
+                       ,(downcase buffer-title)
+                       ,(file-name-base file-path)))))
+
+
+(defun org-roam--find-unlinked-references (file-path)
+  (let* ((match-regexp (org-roam--unlinked-regexp file-path))
+         (find-func (lambda (other-file)
+                      (when (not (string-equal other-file file-path))
+                        (with-temp-buffer
+                          (insert-file-contents other-file)
+                          (let ((matches)
+                                (unwanted-matches))
+                            (dolist (unwanted-regexp org-roam-unwanted-regexps)
+                              (while (re-search-forward unwanted-regexp nil t)
+                                (push (list :start (match-beginning 0) :end (match-end 0)) unwanted-matches))
+                              (goto-char (point-min)))
+                            (org-mode)
+                            (org-toggle-link-display)
+                            (while (re-search-forward match-regexp nil t)
+                              (let* ((p (match-beginning 0))
+                                     (context (buffer-substring (line-beginning-position) (line-end-position)))
+                                     (rep (format "[[file:%s][\\&]]" other-file))
+                                     (content (replace-regexp-in-string match-regexp rep context)))
+                                (org-toggle-link-display)
+                                (when (not (seq-filter (lambda (umatch)
+                                                    (and
+                                                     (> p (plist-get umatch :start))
+                                                     (< p (plist-get umatch :end))))
+                                                  unwanted-matches))
+                                  (push (list
+                                         :point p
+                                         :content content)
+                                        matches))
+                                (org-toggle-link-display)))
+                            (when (> (length matches) 0)
+                              (list
+                               :file-from other-file
+                               :buffer (buffer-string)
+                               :matches matches))))))))
+    (delete nil (mapcar find-func (org-roam--find-all-files)))))
+
 (defun org-roam-update (file-path)
   "Show the backlinks for given org file for file at `FILE-PATH'."
   (org-roam--ensure-cache-built)
@@ -542,7 +602,24 @@ Bindings:
                                            'file-from-point (plist-get properties :point))))
                              (insert (format "%s \n\n" content)))))
                        backlinks))
-          (insert "\n\n* No backlinks!")))
+          (insert "\n\n* No backlinks!"))
+        (let* ((unlinked-references (org-roam--find-unlinked-references file-path)))
+          (if (> (length unlinked-references) 0)
+              (progn
+                (insert (format "\n\n* %d Unlinked references\n"
+                                (length unlinked-references)))
+                (dolist (ref unlinked-references)
+                  (insert (format "** [[file:%s][%s]]\n"
+                                  (plist-get ref :file-from)
+                                  (org-roam--get-title-or-slug (plist-get ref :file-from))))
+                  (dolist (match (plist-get ref :matches))
+                    (let ((content (propertize (plist-get match :content)
+                                               'font-lock-face 'org-block
+                                               'help-echo "mouse-1: create linked note"
+                                               'file-from (plist-get ref :file-from)
+                                               'file-from-point (plist-get match :point))))
+                      (insert (format "%s\n\n" content (plist-get match :point)))))))
+            (insert "\n\n* No unlinked references!\n"))))
       (read-only-mode 1))))
 
 ;;; Building the Graphviz graph
