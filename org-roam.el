@@ -184,17 +184,26 @@ If called interactively, then PARENTS is non-nil."
   "The list of cache separated by directory.")
 
 ;;; Utilities
+(defmacro org-roam--get-local (name)
+  "Get a variable that is local to the current org-roam-directory."
+  `(alist-get (expand-file-name org-roam-directory) ,name nil nil #'equal))
+
+(defmacro org-roam--set-local (name value)
+  "Set a variable that is local to the current org-roam-directory."
+  `(setf (alist-get (expand-file-name org-roam-directory) ,name nil nil #'equal)
+         ,value))
+
 (defun org-roam--get-directory-cache ()
-  "Get the current cache object."
-  (let* ((id (expand-file-name org-roam-directory))
-         (cache (alist-get id org-roam--cache nil nil #'equal)))
+  "Get the cache object for the current org-roam-directory."
+  (let* ((cache (org-roam--get-local org-roam--cache)))
     (if cache
         cache
-      (setf (alist-get id org-roam--cache nil nil #'equal)
-            (org-roam--default-cache)))))
+      (let ((new-cache (org-roam--default-cache)))
+        (org-roam--set-local org-roam--cache new-cache)
+        new-cache))))
 
 (defun org-roam--set-directory-cache (data)
-  "Get the cache object."
+  "Set the cache object for the current org-roam-directory."
   (setf (alist-get (expand-file-name org-roam-directory)
                    org-roam--cache nil nil #'equal) data))
 
@@ -404,25 +413,27 @@ If PREFIX, downcase the title before insertion."
 (defun org-roam--build-cache-async ()
   "Builds the caches asychronously."
   (interactive)
-  (unless (and (processp org-roam--ongoing-async-build)
-               (not (async-ready org-roam--ongoing-async-build)))
-    (setq org-roam--ongoing-async-build
-          (async-start
-           `(lambda ()
-              (setq load-path ',load-path)
-              (package-initialize)
-              (require 'org-roam-utils)
-              ,(async-inject-variables "org-roam-directory")
-              (org-roam--build-cache org-roam-directory))
-           (lambda (cache)
-             (let ((org-roam-directory (plist-get cache :directory)))
-               (org-roam--set-directory-cache
-                (org-roam-cache :initialized t
-                                :forward-links (plist-get cache :forward)
-                                :backward-links (plist-get cache :backward)
-                                :titles (plist-get cache :titles)))
-               (unless org-roam-mute-cache-build
-                 (message "Org-roam cache built!"))))))))
+  (let ((existing (org-roam--get-local org-roam--ongoing-async-build)))
+    (unless (and (processp existing)
+                 (not (async-ready existing)))
+      (org-roam--set-local
+       org-roam--ongoing-async-build
+       (async-start
+        `(lambda ()
+           (setq load-path ',load-path)
+           (package-initialize)
+           (require 'org-roam-utils)
+           ,(async-inject-variables "org-roam-directory")
+           (org-roam--build-cache org-roam-directory))
+        (lambda (cache)
+          (let ((org-roam-directory (plist-get cache :directory)))
+            (org-roam--set-directory-cache
+             (org-roam-cache :initialized t
+                             :forward-links (plist-get cache :forward)
+                             :backward-links (plist-get cache :backward)
+                             :titles (plist-get cache :titles)))
+            (unless org-roam-mute-cache-build
+              (message "Org-roam cache built!")))))))))
 
 (defun org-roam--clear-cache ()
   "Clears all entries in the caches."
