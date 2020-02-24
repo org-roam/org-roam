@@ -122,7 +122,7 @@ you can use the following template:
 (setq org-roam-templates
     (list (list "default" (list :file #'my-org-roam-no-timestamp-in-title
 :content "#+TITLE: ${title}"))))
-````
+```
 
 ### Autopopulating Titles
 
