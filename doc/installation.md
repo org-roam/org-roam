@@ -8,7 +8,7 @@ The recommended method is using [use-package][use-package] and
       :after org
       :hook 
       (after-init . org-roam-mode)
-      :straight (:host github :repo "jethrokuan/org-roam" :branch "develop")
+      :straight (:host github :repo "jethrokuan/org-roam" :branch "master")
       :custom
       (org-roam-directory "/path/to/org-files/")
       :bind (:map org-roam-mode-map
@@ -32,7 +32,7 @@ git clone https://github.com/jethrokuan/org-roam/ ~/.emacs.d/elisp/org-roam
       :load-path "elisp/"
       :hook 
       (after-init . org-roam-mode)
-      :straight (:host github :repo "jethrokuan/org-roam" :branch "develop")
+      :straight (:host github :repo "jethrokuan/org-roam" :branch "master")
       :custom
       (org-roam-directory "/path/to/org-files/")
       :bind (:map org-roam-mode-map
@@ -62,7 +62,7 @@ If you are using Spacemacs, you can easily install org-roam by creating a simple
 ```
 (defconst org-roam-packages
   '((org-roam :location
-        (recipe :fetcher github :repo "jethrokuan/org-roam" :branch "develop"))))
+        (recipe :fetcher github :repo "jethrokuan/org-roam" :branch "master"))))
 
 (defun org-roam/init-org-roam ()
     (use-package org-roam
