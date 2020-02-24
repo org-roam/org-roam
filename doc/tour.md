@@ -39,8 +39,8 @@ title.
 
 ![org-roam-insert](images/org-roam-insert-filetag.gif)
 
-It is crucial for good usage of Org-roam to insert links liberally,
-where you want them the notes to resurface!
+It is crucial for good usage of Org-roam to insert links liberally
+where you want the notes to resurface!
 
 ## The Org-roam Buffer
 
