@@ -78,11 +78,11 @@
   (let* ((dir (org-roam-get-directory context))
          (cache (org-roam--build-cache dir)))
     (org-roam--set-context-cache
-     dir
      (org-roam-cache :initialized t
                      :forward-links (plist-get cache :forward)
                      :backward-links (plist-get cache :backward)
-                     :titles (plist-get cache :titles)))))
+                     :titles (plist-get cache :titles))
+     dir)))
 
 ;;; Tests
 (describe "org-roam--build-cache-async"

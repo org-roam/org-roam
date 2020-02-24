@@ -185,27 +185,39 @@ If called interactively, then PARENTS is non-nil."
   "The list of cache separated by directory.")
 
 ;;; Utilities
-(defun org-roam--get-context-cache (context)
+(defun org-roam--get-context-cache (&optional context)
+  "Get the current cache object.  Can pass in the context to
+override the automatically detected one."
   (let* ((id (org-roam-get-directory context))
          (cache (alist-get id org-roam--cache)))
     (if cache
         cache
-      (org-roam--default-cache context))))
+      (org-roam--default-cache))))
 
-(defun org-roam--set-context-cache (context data)
+(defun org-roam--set-context-cache (data &optional context)
+  "Get the cache object.  Can pass in the context to override the
+automatically detected one."
   (let* ((id (org-roam-get-directory context)))
     (setf (alist-get id org-roam--cache) data)))
 
 (defun org-roam-cache-initialized (&optional context)
-(oref (org-roam--get-context-cache context) initialized))
+  "Is cache valid?  Can pass in the context to override the
+automatically detected one."
+  (oref (org-roam--get-context-cache context) initialized))
 
 (defun org-roam-forward-links-cache (&optional context)
+  "Cache containing forward links.  Can pass in the context to
+override the automatically detected one."
   (oref (org-roam--get-context-cache context) forward-links))
 
 (defun org-roam-backward-links-cache (&optional context)
+  "Cache containing backward links.  Can pass in the context to
+override the automatically detected one."
   (oref (org-roam--get-context-cache context) backward-links))
 
 (defun org-roam-titles-cache (&optional context)
+  "Cache containing titles for org-roam files.  Can pass in the
+context to override the automatically detected one."
   (oref (org-roam--get-context-cache context) titles))
 
 (defun org-roam--ensure-cache-built ()
@@ -226,14 +238,14 @@ If called interactively, then PARENTS is non-nil."
       (cons (--any (f-descendant-of-p true-path (file-truename (cdr it)))
                    org-roam-directory)))))
 
-(defun org-roam-get-directory (&optional buffer-or-name-or-path)
+(defun org-roam-get-directory (&optional context)
   "Get the org-roam directory best matching the current context."
   (cl-typecase org-roam-directory
     ;; When string, always the same directory
     (string org-roam-directory)
     (cons ;; If cons, we must determine the directory based on context
      (or (when-let ((context-path (org-roam--get-context-path
-                                   buffer-or-name-or-path))
+                                   context))
                     (context-path (file-truename context-path)))
            (cdr (--first (let ((dir (file-truename (cdr it))))
                            (or (f-same-p context-path dir)
@@ -241,19 +253,19 @@ If called interactively, then PARENTS is non-nil."
                          org-roam-directory)))
          (cdar org-roam-directory)))))
 
-(defun org-roam--get-context-path (&optional buffer-or-name-or-path)
+(defun org-roam--get-context-path (&optional context)
   "Extract a path based on the context or return nil."
-  (cond ((bufferp buffer-or-name-or-path)
-         (buffer-file-name buffer-or-name-or-path))
+  (cond ((bufferp context)
+         (buffer-file-name context))
         ((and (consp org-roam-directory)
-              (stringp buffer-or-name-or-path))
-         (if-let ((pair (--first (equal buffer-or-name-or-path (car it))
+              (stringp context))
+         (if-let ((pair (--first (equal context (car it))
                                  org-roam-directory)))
              (cdr pair)  ;; Dir from cons by named org-roam directory
-           buffer-or-name-or-path))  ;; Must be a path
+           context))  ;; Must be a path
         (t  ;; Otherwise get the current file path
          (buffer-file-name (or (buffer-base-buffer)
-                                    (current-buffer))))))
+                               (current-buffer))))))
 
 (defun org-roam--get-title-from-cache (file)
   "Return title of `FILE' from the cache."
@@ -263,12 +275,12 @@ If called interactively, then PARENTS is non-nil."
           (user-error "The Org-Roam caches aren't built! Please run org-roam--build-cache-async"))
         nil)))
 
-(defun org-roam--find-all-files (&optional buffer-or-name-or-path)
+(defun org-roam--find-all-files (&optional context)
   "Return all org-roam files."
   (org-roam--find-files (file-truename
-                         (org-roam-get-directory buffer-or-name-or-path))))
+                         (org-roam-get-directory context))))
 
-(defun org-roam--new-file-path (id &optional absolute buffer-or-name-or-path)
+(defun org-roam--new-file-path (id &optional absolute context)
   "Make new file path from identifier `ID'.
 
 If `ABSOLUTE', return an absolute file-path. Else, return a relative file-path."
@@ -278,12 +290,12 @@ If `ABSOLUTE', return an absolute file-path. Else, return a relative file-path."
                                   (concat id ".org.gpg")
                                 (concat id ".org"))
                               (or org-roam-new-file-directory
-                                  (org-roam-get-directory buffer-or-name-or-path))))))
+                                  (org-roam-get-directory context))))))
     (if absolute
         absolute-file-path
       (file-relative-name absolute-file-path
                           (file-truename
-                           (org-roam-get-directory buffer-or-name-or-path))))))
+                           (org-roam-get-directory context))))))
 
 (defun org-roam--get-title-or-slug (file-path)
   "Convert `FILE-PATH' to the file title, if it exists. Else, return the path."
@@ -390,11 +402,11 @@ If PREFIX, downcase the title before insertion."
                                                          region-or-title))))))
 
 ;;; Finding org-roam files
-(defun org-roam-find-file (&optional buffer-or-name-or-path)
+(defun org-roam-find-file (&optional context)
   "Find and open an org-roam file."
   (interactive)
   (let* ((context-path (and (eq (type-of org-roam-directory) 'cons)
-                            (or (org-roam--get-context-path buffer-or-name-or-path)
+                            (or (org-roam--get-context-path context)
                                 (completing-read "Pick org-roam name: " org-roam-directory))))
          (completions (mapcar (lambda (file)
                                 (list (org-roam--get-title-or-slug file) file))
@@ -464,20 +476,20 @@ directory if there are multiple directories."
              (lambda (caches)
                (dolist (cache caches)
                  (org-roam--set-context-cache
-                  (plist-get cache :directory)
                   (org-roam-cache :initialized t
                                   :forward-links (plist-get cache :forward)
                                   :backward-links (plist-get cache :backward)
-                                  :titles (plist-get cache :titles))))
+                                  :titles (plist-get cache :titles))
+                  (plist-get cache :directory)))
                (unless org-roam-mute-cache-build
                  (message "Org-roam cache built!"))))))))
 
 (defun org-roam--clear-cache (&optional context)
   "Clears all entries in the caches."
   (interactive)
-  (org-roam--set-context-cache context (org-roam--default-cache context)))
+  (org-roam--set-context-cache (org-roam--default-cache) context))
 
-(defun org-roam--default-cache (&optional context)
+(defun org-roam--default-cache ()
   "Clears all entries in the caches."
   (org-roam-cache :initialized nil
                   :forward-links (make-hash-table :test #'equal)
@@ -621,12 +633,12 @@ Bindings:
       (read-only-mode 1))))
 
 ;;; Building the Graphviz graph
-(defun org-roam-build-graph (&optional buffer-or-name-or-path)
+(defun org-roam-build-graph (&optional context)
   "Build graphviz graph output."
   (org-roam--ensure-cache-built)
   (with-temp-buffer
 	(insert "digraph {\n")
-	(dolist (file (org-roam--find-all-files buffer-or-name-or-path))
+	(dolist (file (org-roam--find-all-files context))
 	  (let ((title (org-roam--get-title-or-slug file)))
 		(let ((shortened-title (s-truncate org-roam-graph-max-title-length title)))
 		  (insert
@@ -637,15 +649,15 @@ Bindings:
 				   file
 				   title
 				   )))))
-	  (maphash
-	   (lambda (from-link to-links)
-		 (dolist (to-link to-links)
-		   (insert (format "  \"%s\" -> \"%s\";\n"
-						   (org-roam--get-title-or-slug from-link)
-						   (org-roam--get-title-or-slug to-link)))))
-	   (org-roam-forward-links-cache))
-	  (insert "}")
-	  (buffer-string)))
+	(maphash
+	 (lambda (from-link to-links)
+	   (dolist (to-link to-links)
+		 (insert (format "  \"%s\" -> \"%s\";\n"
+						 (org-roam--get-title-or-slug from-link)
+						 (org-roam--get-title-or-slug to-link)))))
+	 (org-roam-forward-links-cache))
+	(insert "}")
+	(buffer-string)))
 
 (defun org-roam-show-graph ()
   "Generate the org-roam graph in SVG format, and display it using `org-roam-graph-viewer'."
