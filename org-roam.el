@@ -413,7 +413,7 @@ If PREFIX, downcase the title before insertion."
                               (org-roam--find-all-files context-path)))
          (title-or-slug (completing-read "File: " completions))
          (absolute-file-path (or (cadr (assoc title-or-slug completions))
-                                 (org-roam--make-new-file title-or-slug context-path))))
+                                 (org-roam--make-new-file title-or-slug))))
     (find-file absolute-file-path)))
 
 (defun org-roam-find-file-pick-dir ()
