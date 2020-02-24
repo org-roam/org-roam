@@ -137,12 +137,12 @@ ITEM is of the form: (:from from-path :to to-path :properties (:content preview-
         (org-element-property :value kw)))
     :first-match t))
 
-(defun org-roam--build-cache (dirs)
+(defun org-roam--build-cache (dir)
   "Build the org-roam caches in DIR."
   (let ((backward-links (make-hash-table :test #'equal))
         (forward-links (make-hash-table :test #'equal))
         (file-titles (make-hash-table :test #'equal)))
-    (let* ((org-roam-files (mapcan #'org-roam--find-files dirs))
+    (let* ((org-roam-files (org-roam--find-files dir))
            (file-items (mapcar (lambda (file)
                                  (with-temp-buffer
                                    (insert-file-contents file)
@@ -160,9 +160,13 @@ ITEM is of the form: (:from from-path :to to-path :properties (:content preview-
             (puthash file title file-titles)))
         org-roam-files))
     (list
+     :directory dir
      :forward forward-links
      :backward backward-links
      :titles file-titles)))
+
+(defun org-roam--build-cache-from-dirs (dirs)
+  (mapcar #' org-roam--build-cache dirs))
 
 (provide 'org-roam-utils)
 
