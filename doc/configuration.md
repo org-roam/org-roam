@@ -111,6 +111,19 @@ If you wish to be prompted to change the file name on creation, set
 It is then the user's responsibility to ensure that the file names are
 unique.
 
+If you prefer just the title slug as the filename (with no timestamp),
+you can use the following template:
+
+```emacs-lisp
+(defun my-org-roam-no-timestamp-in-title (title)
+    (let ((slug (org-roam--title-to-slug title)))
+      (format "%s" slug)))
+
+(setq org-roam-templates
+    (list (list "default" (list :file #'my-org-roam-no-timestamp-in-title
+:content "#+TITLE: ${title}"))))
+```
+
 ### Autopopulating Titles
 
 The default workflow uses the title of the Org file in several
