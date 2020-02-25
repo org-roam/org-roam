@@ -160,6 +160,7 @@ ITEM is of the form: (:from from-path :to to-path :properties (:content preview-
             (puthash file title file-titles)))
         org-roam-files))
     (list
+     :directory dir
      :forward forward-links
      :backward backward-links
      :titles file-titles)))
