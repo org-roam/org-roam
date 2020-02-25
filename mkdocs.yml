@@ -8,6 +8,7 @@ nav:
 - A Tour of Org-Roam: tour.md
 - Installation: installation.md
 - Configuration: configuration.md
+- Anatomy of a Roam file: anatomy.md
 - Ecosystem: ecosystem.md
 - Similar Packages: comparison.md
 - "Appendix: Note-taking Workflow": notetaking_workflow.md
