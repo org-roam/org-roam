@@ -413,7 +413,7 @@ If PREFIX, downcase the title before insertion."
   build has completed.")
 
 ;;; Building the org-roam cache
-(defun org-roam--build-cache-async ()
+(defun org-roam--build-cache-async (&optional on-success)
   "Builds the caches asychronously."
   (interactive)
   (let ((existing (org-roam--get-local org-roam--ongoing-async-build)))
@@ -436,7 +436,9 @@ If PREFIX, downcase the title before insertion."
                              :backward-links (plist-get cache :backward)
                              :titles (plist-get cache :titles)))
             (unless org-roam-mute-cache-build
-              (message "Org-roam cache built!")))))))))
+              (message "Org-roam cache built!"))
+            (when on-success
+              (funcall on-success)))))))))
 
 (defun org-roam--clear-cache ()
   "Clears all entries in the caches."
@@ -661,9 +663,21 @@ Applies `org-roam-link-face' if PATH correponds to a Roam file."
 (defun org-roam--find-file-hook-function ()
   "Called by `find-file-hook' when `org-roam-mode' is on."
   (when (org-roam--org-roam-file-p)
-    (org-link-set-parameters "file" :face 'org-roam--roam-link-face)
-    (add-hook 'post-command-hook #'org-roam--maybe-update-buffer nil t)
-    (add-hook 'after-save-hook #'org-roam--update-cache nil t)))
+    (setq org-roam-last-window (get-buffer-window))
+    (if (org-roam-cache-initialized)
+        (org-roam--setup-found-file)
+      (org-roam--build-cache-async
+       (let ((buf (buffer-name)))
+         #'(lambda ()
+             (with-current-buffer buf
+               (org-roam--setup-found-file))))))))
+
+(defun org-roam--setup-found-file ()
+  "Setup a buffer recognized via the \"find-file-hook\"."
+  (org-link-set-parameters "file" :face 'org-roam--roam-link-face)
+  (add-hook 'post-command-hook #'org-roam--maybe-update-buffer nil t)
+  (add-hook 'after-save-hook #'org-roam--update-cache nil t)
+  (org-roam--maybe-update-buffer :redisplay nil))
 
 (defvar org-roam-mode-map
   (make-sparse-keymap)
