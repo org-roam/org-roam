@@ -452,20 +452,20 @@ This is equivalent to removing the node from the graph."
   "Create and find file for today."
   (interactive)
   (let ((path (org-roam--file-for-time (current-time))))
-    (find-file path)))
+    (org-roam--find-file path)))
 
 (defun org-roam-tomorrow ()
   "Create and find the file for tomorrow."
   (interactive)
   (let ((path (org-roam--file-for-time (time-add 86400 (current-time)))))
-    (find-file path)))
+    (org-roam--find-file path)))
 
 (defun org-roam-date ()
   "Create the file for any date using the calendar."
   (interactive)
   (let ((time (org-read-date nil 'to-time nil "Date:  ")))
     (let ((path (org-roam--file-for-time time)))
-      (find-file path))))
+      (org-roam--find-file path))))
 
 ;;; Org-roam buffer
 (define-derived-mode org-roam-backlinks-mode org-mode "Backlinks"
@@ -474,18 +474,37 @@ This is equivalent to removing the node from the graph."
 Bindings:
 \\{org-roam-backlinks-mode-map}")
 
-(define-key org-roam-backlinks-mode-map [mouse-1] 'org-roam-jump-to-backlink)
-(define-key org-roam-backlinks-mode-map (kbd "RET") 'org-roam-jump-to-backlink)
+(define-key org-roam-backlinks-mode-map [mouse-1] 'org-roam-open-at-point)
+(define-key org-roam-backlinks-mode-map (kbd "RET") 'org-roam-open-at-point)
 
-(defun org-roam-jump-to-backlink ()
-  "Jumps to original file and location of the backlink content snippet at point"
+(defun org-roam-open-at-point ()
+  "Open a link at point.
+
+When point is on an org-roam link, open the link in the org-roam window.
+
+When point is on the org-roam preview text, open the link in the org-roam
+window, and navigate to the point.
+
+If item at point is not org-roam specific, default to Org behaviour."
   (interactive)
-  (let ((file-from (get-text-property (point) 'file-from))
-        (p (get-text-property (point) 'file-from-point)))
-    (when (and file-from p)
-      (find-file file-from)
-      (goto-char p)
-      (org-show-context))))
+  (let ((context (org-element-context)))
+    (catch 'ret
+      ;; Org-roam link
+      (when (and (eq (org-element-type context) 'link)
+                 (string= "file" (org-element-property :type context))
+                 (org-roam--org-roam-file-p (file-truename (org-element-property :path context))))
+        (org-roam--find-file (org-element-property :path context))
+        (org-show-context)
+        (throw 'ret t))
+      ;; Org-roam preview text
+      (when-let ((file-from (get-text-property (point) 'file-from))
+                 (p (get-text-property (point) 'file-from-point)))
+        (org-roam--find-file file-from)
+        (goto-char p)
+        (org-show-context)
+        (throw 'ret t))
+      ;; Default to default org behaviour
+      (org-open-at-point))))
 
 (defun org-roam--find-file (file)
   "Open FILE in the window `org-roam' was called from."
