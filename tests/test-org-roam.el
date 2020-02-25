@@ -68,11 +68,11 @@
 (defun org-roam--test-build-cache ()
   "Builds the caches synchronously."
   (let ((cache (org-roam--build-cache org-roam-directory)))
-    (org-roam--set-directory-cache
-     (org-roam-cache :initialized t
-                     :forward-links (plist-get cache :forward)
-                     :backward-links (plist-get cache :backward)
-                     :titles (plist-get cache :titles)))))
+    (let ((obj (org-roam--get-directory-cache)))
+      (oset obj initialized t)
+      (oset obj forward-links (plist-get cache :forward))
+      (oset obj backward-links (plist-get cache :backward))
+      (oset obj titles (plist-get cache :titles)))))
 
 ;;; Tests
 (describe "org-roam--build-cache-async"
