@@ -183,6 +183,13 @@ If called interactively, then PARENTS is non-nil."
 (defvar org-roam--cache nil
   "The list of cache separated by directory.")
 
+(defvar-local org-roam--local-cache-ref nil
+  "Local reference of the buffer's cache object.")
+
+(defvar-local org-roam--local-cache-id nil
+  "Local reference of the buffer's cache object id, which is
+  comparable by \"eq\".")
+
 ;;; Utilities
 (defun org-roam-directory-normalized ()
   "Get the org-roam-directory normalized so that it can be used
@@ -200,17 +207,18 @@ as a unique key."
 
 (defun org-roam--get-directory-cache ()
   "Get the cache object for the current org-roam-directory."
-  (let* ((cache (org-roam--get-local org-roam--cache)))
-    (if cache
-        cache
-      (let ((new-cache (org-roam--default-cache)))
-        (org-roam--set-local org-roam--cache new-cache)
-        new-cache))))
-
-(defun org-roam--set-directory-cache (data)
-  "Set the cache object for the current org-roam-directory."
-  (setf (alist-get (org-roam-directory-normalized)
-                   org-roam--cache nil nil #'equal) data))
+  (unless (eq org-roam--local-cache-id org-roam-directory)
+    ;; Prevent needless repeated calls to org-roam-directory-normalized by
+    ;; having a reference to the cache object that matches the local buffer.
+    (setq org-roam--local-cache-ref
+          (let* ((cache (org-roam--get-local org-roam--cache)))
+            (if cache
+                cache
+              (let ((new-cache (org-roam--default-cache)))
+                (org-roam--set-local org-roam--cache new-cache)
+                new-cache))))
+    (setq org-roam--local-cache-id org-roam-directory))
+  org-roam--local-cache-ref)
 
 (defun org-roam--cache-initialized-p ()
   "Is cache valid?"
@@ -432,11 +440,11 @@ If PREFIX, downcase the title before insertion."
            (org-roam--build-cache org-roam-directory))
         (lambda (cache)
           (let ((org-roam-directory (plist-get cache :directory)))
-            (org-roam--set-directory-cache
-             (org-roam-cache :initialized t
-                             :forward-links (plist-get cache :forward)
-                             :backward-links (plist-get cache :backward)
-                             :titles (plist-get cache :titles)))
+            (let ((obj (org-roam--get-directory-cache)))
+              (oset obj initialized t)
+              (oset obj forward-links (plist-get cache :forward))
+              (oset obj backward-links (plist-get cache :backward))
+              (oset obj titles (plist-get cache :titles)))
             (unless org-roam-mute-cache-build
               (message "Org-roam cache built!"))
             (when on-success
@@ -445,7 +453,11 @@ If PREFIX, downcase the title before insertion."
 (defun org-roam--clear-cache ()
   "Clears all entries in the caches."
   (interactive)
-  (org-roam--set-directory-cache (org-roam--default-cache)))
+  (let ((cache (org-roam--get-directory-cache)))
+    (oset cache initialized nil)
+    (oset cache forward-links (make-hash-table :test #'equal))
+    (oset cache backward-links (make-hash-table :test #'equal))
+    (oset cache titles (make-hash-table :test #'equal))))
 
 (defun org-roam--default-cache ()
   "A default, uninitialized cache object."
