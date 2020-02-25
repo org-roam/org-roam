@@ -2,6 +2,9 @@
 
 ## 0.1.3 (TBD)
 
+### New Features
+* [#182][gh-182] Support file name aliases via `#+ROAM_ALIAS`.
+
 ### Features
 * [#165][gh-165] Add templating functionality via `org-roam-templates`.
 
@@ -93,6 +96,7 @@ Mostly a documentation/cleanup release.
 [gh-142]: https://github.com/jethrokuan/org-roam/pull/142
 [gh-143]: https://github.com/jethrokuan/org-roam/pull/143
 [gh-165]: https://github.com/jethrokuan/org-roam/pull/165
+[gh-182]: https://github.com/jethrokuan/org-roam/pull/182
 
  # Local Variables:
  # eval: (auto-fill-mode -1)

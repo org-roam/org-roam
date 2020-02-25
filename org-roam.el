@@ -243,13 +243,17 @@ as a unique key."
          (f-descendant-of-p (file-truename path)
                             (file-truename org-roam-directory)))))
 
-(defun org-roam--get-title-from-cache (file)
-  "Return title of `FILE' from the cache."
+(defun org-roam--get-titles-from-cache (file)
+  "Return titles and aliases of `FILE' from the cache."
   (or (gethash file (org-roam--titles-cache))
       (progn
         (unless (org-roam--cache-initialized-p)
           (user-error "The Org-Roam caches aren't built! Please run org-roam--build-cache-async"))
         nil)))
+
+(defun org-roam--get-title-from-cache (file)
+  "Return the title of `FILE' from the cache."
+  (car (org-roam--get-titles-from-cache file)))
 
 (defun org-roam--find-all-files ()
   "Return all org-roam files."
@@ -271,12 +275,17 @@ If `ABSOLUTE', return an absolute file-path. Else, return a relative file-path."
       (file-relative-name absolute-file-path
                           (file-truename org-roam-directory)))))
 
-(defun org-roam--get-title-or-slug (file-path)
-  "Convert `FILE-PATH' to the file title, if it exists. Else, return the path."
-  (or (org-roam--get-title-from-cache file-path)
-      (-> file-path
-          (file-relative-name (file-truename org-roam-directory))
-          (file-name-sans-extension))))
+(defun org-roam--path-to-slug (path)
+  "Return a slug from PATH."
+  (-> path
+      (file-relative-name (file-truename org-roam-directory))
+      (file-name-sans-extension)))
+
+(defun org-roam--get-title-or-slug (path)
+  "Convert `PATH' to the file title, if it exists. Else, return the path."
+  (if-let (titles (org-roam--get-titles-from-cache path))
+      (car titles)
+    (org-roam--path-to-slug path)))
 
 (defun org-roam--title-to-slug (title)
   "Convert TITLE to a filename-suitable slug."
@@ -352,13 +361,10 @@ If PREFIX, downcase the title before insertion."
          (region-text (when region
                         (buffer-substring-no-properties
                          (car region) (cdr region))))
-         (completions (mapcar (lambda (file)
-                                (list (org-roam--get-title-or-slug file)
-                                      file))
-                              (org-roam--find-all-files)))
+         (completions (org-roam--get-title-path-completions))
          (title (completing-read "File: " completions nil nil region-text))
          (region-or-title (or region-text title))
-         (absolute-file-path (or (cadr (assoc title completions))
+         (absolute-file-path (or (cdr (assoc title completions))
                                  (org-roam--make-new-file title)))
          (current-file-path (-> (or (buffer-base-buffer)
                                     (current-buffer))
@@ -376,14 +382,23 @@ If PREFIX, downcase the title before insertion."
                                                          region-or-title))))))
 
 ;;; Finding org-roam files
+(defun org-roam--get-title-path-completions ()
+  "Return a list of cons pairs for titles to absolute path of Org-roam files."
+  (let ((files (org-roam--find-all-files))
+        (res '()))
+    (dolist (file files)
+      (if-let (titles (org-roam--get-titles-from-cache file))
+          (dolist (title titles)
+            (setq res (cons (cons title file) res)))
+        (setq res (cons (cons (org-roam--path-to-slug file) file) res))))
+    res))
+
 (defun org-roam-find-file ()
   "Find and open an org-roam file."
   (interactive)
-  (let* ((completions (mapcar (lambda (file)
-                                (list (org-roam--get-title-or-slug file) file))
-                              (org-roam--find-all-files)))
+  (let* ((completions (org-roam--get-title-path-completions))
          (title-or-slug (completing-read "File: " completions))
-         (absolute-file-path (or (cadr (assoc title-or-slug completions))
+         (absolute-file-path (or (cdr (assoc title-or-slug completions))
                                  (org-roam--make-new-file title-or-slug))))
     (find-file absolute-file-path)))
 
@@ -399,7 +414,7 @@ If PREFIX, downcase the title before insertion."
   (interactive)
   (let* ((roam-buffers (org-roam--get-roam-buffers))
          (names-and-buffers (mapcar (lambda (buffer)
-                                      (cons (or (org-roam--get-title-from-cache
+                                      (cons (or (org-roam--get-title-or-slug
                                                  (buffer-file-name buffer))
                                                 (buffer-name buffer))
                                             buffer))
@@ -473,11 +488,11 @@ This is equivalent to removing the node from the graph."
     ;; Step 2: Remove from the title cache
     (remhash file (org-roam--titles-cache))))
 
-(defun org-roam--update-cache-title ()
+(defun org-roam--update-cache-titles ()
   "Insert the title of the current buffer into the cache."
-  (when-let ((title (org-roam--extract-title)))
+  (when-let ((titles (org-roam--extract-titles)))
     (puthash (file-truename (buffer-file-name (current-buffer)))
-             title
+             titles
              (org-roam--titles-cache))))
 
 (defun org-roam--update-cache ()
@@ -485,7 +500,7 @@ This is equivalent to removing the node from the graph."
   (save-excursion
     (org-roam--clear-file-from-cache)
     ;; Insert into title cache
-    (org-roam--update-cache-title)
+    (org-roam--update-cache-titles)
     ;; Insert new items
     (let ((items (org-roam--parse-content)))
       (dolist (item items)
