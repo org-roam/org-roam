@@ -203,7 +203,9 @@ as a unique key."
   (let* ((cache (org-roam--get-local org-roam--cache)))
     (if cache
         cache
-      (org-roam--set-local org-roam--cache (org-roam--default-cache)))))
+      (let ((new-cache (org-roam--default-cache)))
+        (org-roam--set-local org-roam--cache new-cache)
+        new-cache))))
 
 (defun org-roam--set-directory-cache (data)
   "Set the cache object for the current org-roam-directory."
