@@ -648,7 +648,8 @@ This needs to be quick/infrequent, because this is run at
     (when (and (or redisplay
                    (not (eq org-roam--current-buffer buffer)))
                (eq 'visible (org-roam--current-visibility))
-               (buffer-local-value 'buffer-file-truename buffer))
+               (buffer-local-value 'buffer-file-truename buffer)
+               (org-roam-cache-initialized))
       (setq org-roam--current-buffer buffer)
       (org-roam-update (expand-file-name
                         (buffer-local-value 'buffer-file-truename buffer))))))
@@ -670,6 +671,8 @@ Applies `org-roam-link-face' if PATH correponds to a Roam file."
   "Called by `find-file-hook' when `org-roam-mode' is on."
   (when (org-roam--org-roam-file-p)
     (setq org-roam-last-window (get-buffer-window))
+    (add-hook 'post-command-hook #'org-roam--maybe-update-buffer nil t)
+    (add-hook 'after-save-hook #'org-roam--update-cache nil t)
     (if (org-roam-cache-initialized)
         (org-roam--setup-found-file)
       (org-roam--build-cache-async
@@ -681,8 +684,6 @@ Applies `org-roam-link-face' if PATH correponds to a Roam file."
 (defun org-roam--setup-found-file ()
   "Setup a buffer recognized via the \"find-file-hook\"."
   (org-link-set-parameters "file" :face 'org-roam--roam-link-face)
-  (add-hook 'post-command-hook #'org-roam--maybe-update-buffer nil t)
-  (add-hook 'after-save-hook #'org-roam--update-cache nil t)
   (org-roam--maybe-update-buffer :redisplay nil))
 
 (defvar org-roam-mode-map
