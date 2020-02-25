@@ -212,25 +212,25 @@ as a unique key."
   (setf (alist-get (org-roam-directory-normalized)
                    org-roam--cache nil nil #'equal) data))
 
-(defun org-roam-cache-initialized ()
+(defun org-roam--cache-initialized-p ()
   "Is cache valid?"
   (oref (org-roam--get-directory-cache) initialized))
 
-(defun org-roam-forward-links-cache ()
+(defun org-roam--forward-links-cache ()
   "Cache containing forward links."
   (oref (org-roam--get-directory-cache) forward-links))
 
-(defun org-roam-backward-links-cache ()
+(defun org-roam--backward-links-cache ()
   "Cache containing backward links."
   (oref (org-roam--get-directory-cache) backward-links))
 
-(defun org-roam-titles-cache ()
+(defun org-roam--titles-cache ()
   "Cache containing titles for org-roam files."
   (oref (org-roam--get-directory-cache) titles))
 
 (defun org-roam--ensure-cache-built ()
   "Ensures that org-roam cache is built."
-  (unless (org-roam-cache-initialized)
+  (unless (org-roam--cache-initialized-p)
     (org-roam--build-cache-async)
     (user-error "Your Org-Roam cache isn't built yet! Please wait")))
 
@@ -245,9 +245,9 @@ as a unique key."
 
 (defun org-roam--get-title-from-cache (file)
   "Return title of `FILE' from the cache."
-  (or (gethash file (org-roam-titles-cache))
+  (or (gethash file (org-roam--titles-cache))
       (progn
-        (unless (org-roam-cache-initialized)
+        (unless (org-roam--cache-initialized-p)
           (user-error "The Org-Roam caches aren't built! Please run org-roam--build-cache-async"))
         nil)))
 
@@ -462,23 +462,23 @@ This is equivalent to removing the node from the graph."
                    (buffer-file-name (current-buffer))))
          (file (file-truename path)))
     ;; Step 1: Remove all existing links for file
-    (when-let ((forward-links (gethash file (org-roam-forward-links-cache))))
+    (when-let ((forward-links (gethash file (org-roam--forward-links-cache))))
       ;; Delete backlinks to file
       (dolist (link forward-links)
-        (when-let ((backward-links (gethash link (org-roam-backward-links-cache))))
+        (when-let ((backward-links (gethash link (org-roam--backward-links-cache))))
           (remhash file backward-links)
-          (puthash link backward-links (org-roam-backward-links-cache))))
+          (puthash link backward-links (org-roam--backward-links-cache))))
       ;; Clean out forward links
-      (remhash file (org-roam-forward-links-cache)))
+      (remhash file (org-roam--forward-links-cache)))
     ;; Step 2: Remove from the title cache
-    (remhash file (org-roam-titles-cache))))
+    (remhash file (org-roam--titles-cache))))
 
 (defun org-roam--update-cache-title ()
   "Insert the title of the current buffer into the cache."
   (when-let ((title (org-roam--extract-title)))
     (puthash (file-truename (buffer-file-name (current-buffer)))
              title
-             (org-roam-titles-cache))))
+             (org-roam--titles-cache))))
 
 (defun org-roam--update-cache ()
   "Update org-roam caches for the current buffer file."
@@ -491,8 +491,8 @@ This is equivalent to removing the node from the graph."
       (dolist (item items)
         (org-roam--insert-item
          item
-         :forward (org-roam-forward-links-cache)
-         :backward (org-roam-backward-links-cache))))
+         :forward (org-roam--forward-links-cache)
+         :backward (org-roam--backward-links-cache))))
     ;; Rerender buffer
     (org-roam--maybe-update-buffer :redisplay t)))
 
@@ -573,7 +573,7 @@ Bindings:
             (setq org-return-follows-link t)
             (insert
              (propertize buffer-title 'font-lock-face 'org-document-title))
-            (if-let ((backlinks (gethash file-path (org-roam-backward-links-cache))))
+            (if-let ((backlinks (gethash file-path (org-roam--backward-links-cache))))
                 (progn
                   (insert (format "\n\n* %d Backlinks\n"
                                   (hash-table-count backlinks)))
@@ -617,7 +617,7 @@ Bindings:
 		   (insert (format "  \"%s\" -> \"%s\";\n"
 						   (org-roam--get-title-or-slug from-link)
 						   (org-roam--get-title-or-slug to-link)))))
-	   (org-roam-forward-links-cache))
+	   (org-roam--forward-links-cache))
 	  (insert "}")
 	  (buffer-string)))
 
@@ -648,7 +648,7 @@ This needs to be quick/infrequent, because this is run at
     (when (and (or redisplay
                    (not (eq org-roam--current-buffer buffer)))
                (eq 'visible (org-roam--current-visibility))
-               (org-roam-cache-initialized)
+               (org-roam--cache-initialized-p)
                (buffer-local-value 'buffer-file-truename buffer))
       (setq org-roam--current-buffer buffer)
       (org-roam-update (expand-file-name
@@ -673,7 +673,7 @@ Applies `org-roam-link-face' if PATH correponds to a Roam file."
     (setq org-roam-last-window (get-buffer-window))
     (add-hook 'post-command-hook #'org-roam--maybe-update-buffer nil t)
     (add-hook 'after-save-hook #'org-roam--update-cache nil t)
-    (if (org-roam-cache-initialized)
+    (if (org-roam--cache-initialized-p)
         (org-roam--setup-found-file)
       (org-roam--build-cache-async
        (let ((buf (buffer-name)))
@@ -702,7 +702,7 @@ Applies `org-roam-link-face' if PATH correponds to a Roam file."
     (org-roam--ensure-cache-built)
     (org-roam--clear-file-from-cache file)
 
-    (let* ((files (gethash file (org-roam-backward-links-cache) nil))
+    (let* ((files (gethash file (org-roam--backward-links-cache) nil))
            (path (file-truename file))
            (new-path (file-truename new-file))
            (slug (org-roam--get-title-or-slug file))
@@ -751,7 +751,7 @@ If ARG is `toggle', toggle `org-roam-mode'. Otherwise, behave as if called inter
   :global t
   (cond
    (org-roam-mode
-    (unless (org-roam-cache-initialized)
+    (unless (org-roam--cache-initialized-p)
       (org-roam--build-cache-async))
     (add-hook 'find-file-hook #'org-roam--find-file-hook-function)
     (advice-add 'rename-file :after #'org-roam--rename-file-advice)
