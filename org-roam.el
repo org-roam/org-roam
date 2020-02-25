@@ -187,7 +187,7 @@ If called interactively, then PARENTS is non-nil."
 (defun org-roam-directory-normalized ()
   "Get the org-roam-directory normalized so that it can be used
 as a unique key."
-  (s-chop-suffix "/" (file-truename org-roam-directory)))
+  (directory-file-name (file-truename org-roam-directory)))
 
 (defmacro org-roam--get-local (name)
   "Get a variable that is local to the current org-roam-directory."
