@@ -184,13 +184,18 @@ If called interactively, then PARENTS is non-nil."
   "The list of cache separated by directory.")
 
 ;;; Utilities
+(defun org-roam-directory-normalized ()
+  "Get the org-roam-directory normalized so that it can be used
+as a unique key."
+  (s-chop-suffix "/" (file-truename org-roam-directory)))
+
 (defmacro org-roam--get-local (name)
   "Get a variable that is local to the current org-roam-directory."
-  `(alist-get (expand-file-name org-roam-directory) ,name nil nil #'equal))
+  `(alist-get (org-roam-directory-normalized) ,name nil nil #'equal))
 
 (defmacro org-roam--set-local (name value)
   "Set a variable that is local to the current org-roam-directory."
-  `(setf (alist-get (expand-file-name org-roam-directory) ,name nil nil #'equal)
+  `(setf (alist-get (org-roam-directory-normalized) ,name nil nil #'equal)
          ,value))
 
 (defun org-roam--get-directory-cache ()
@@ -198,13 +203,11 @@ If called interactively, then PARENTS is non-nil."
   (let* ((cache (org-roam--get-local org-roam--cache)))
     (if cache
         cache
-      (let ((new-cache (org-roam--default-cache)))
-        (org-roam--set-local org-roam--cache new-cache)
-        new-cache))))
+      (org-roam--set-local org-roam--cache (org-roam--default-cache)))))
 
 (defun org-roam--set-directory-cache (data)
   "Set the cache object for the current org-roam-directory."
-  (setf (alist-get (expand-file-name org-roam-directory)
+  (setf (alist-get (org-roam-directory-normalized)
                    org-roam--cache nil nil #'equal) data))
 
 (defun org-roam-cache-initialized ()
