@@ -551,42 +551,46 @@ Bindings:
 
 (defun org-roam-update (file-path)
   "Show the backlinks for given org file for file at `FILE-PATH'."
-  (org-roam--ensure-cache-built)
-  (let ((buffer-title (org-roam--get-title-or-slug file-path)))
-    (with-current-buffer org-roam-buffer
-      ;; Locally overwrite the file opening function to re-use the
-      ;; last window org-roam was called from
-      (setq-local
-       org-link-frame-setup
-       (cons '(file . org-roam--find-file) org-link-frame-setup))
-      (let ((inhibit-read-only t))
-        (erase-buffer)
-        (when (not (eq major-mode 'org-roam-backlinks-mode))
-          (org-roam-backlinks-mode))
-        (make-local-variable 'org-return-follows-link)
-        (setq org-return-follows-link t)
-        (insert
-         (propertize buffer-title 'font-lock-face 'org-document-title))
-        (if-let ((backlinks (gethash file-path (org-roam-backward-links-cache))))
-            (progn
-              (insert (format "\n\n* %d Backlinks\n"
-                              (hash-table-count backlinks)))
-              (maphash (lambda (file-from contents)
-                         (insert (format "** [[file:%s][%s]]\n"
-                                         file-from
-                                         (org-roam--get-title-or-slug file-from)))
-                         (dolist (properties contents)
-                           (let ((content (propertize
-                                           (s-trim (s-replace "\n" " "
-                                                              (plist-get properties :content)))
-                                           'font-lock-face 'org-block
-                                           'help-echo "mouse-1: visit backlinked note"
-                                           'file-from file-from
-                                           'file-from-point (plist-get properties :point))))
-                             (insert (format "%s \n\n" content)))))
-                       backlinks))
-          (insert "\n\n* No backlinks!")))
-      (read-only-mode 1))))
+  (let* ((source-org-roam-directory org-roam-directory))
+    (org-roam--ensure-cache-built)
+    (let ((buffer-title (org-roam--get-title-or-slug file-path)))
+      (with-current-buffer org-roam-buffer
+        ;; When dir-locals.el is used to override org-roam-directory,
+        ;; org-roam-buffer may have a different local org-roam-directory.
+        (let ((org-roam-directory source-org-roam-directory))
+          ;; Locally overwrite the file opening function to re-use the
+          ;; last window org-roam was called from
+          (setq-local
+           org-link-frame-setup
+           (cons '(file . org-roam--find-file) org-link-frame-setup))
+          (let ((inhibit-read-only t))
+            (erase-buffer)
+            (when (not (eq major-mode 'org-roam-backlinks-mode))
+              (org-roam-backlinks-mode))
+            (make-local-variable 'org-return-follows-link)
+            (setq org-return-follows-link t)
+            (insert
+             (propertize buffer-title 'font-lock-face 'org-document-title))
+            (if-let ((backlinks (gethash file-path (org-roam-backward-links-cache))))
+                (progn
+                  (insert (format "\n\n* %d Backlinks\n"
+                                  (hash-table-count backlinks)))
+                  (maphash (lambda (file-from contents)
+                             (insert (format "** [[file:%s][%s]]\n"
+                                             file-from
+                                             (org-roam--get-title-or-slug file-from)))
+                             (dolist (properties contents)
+                               (let ((content (propertize
+                                               (s-trim (s-replace "\n" " "
+                                                                  (plist-get properties :content)))
+                                               'font-lock-face 'org-block
+                                               'help-echo "mouse-1: visit backlinked note"
+                                               'file-from file-from
+                                               'file-from-point (plist-get properties :point))))
+                                 (insert (format "%s \n\n" content)))))
+                           backlinks))
+              (insert "\n\n* No backlinks!")))
+          (read-only-mode 1))))))
 
 ;;; Building the Graphviz graph
 (defun org-roam-build-graph ()
