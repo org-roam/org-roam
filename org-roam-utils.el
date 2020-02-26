@@ -179,6 +179,10 @@ specified via the #+ROAM_ALIAS property."
         (cons title alias-list)
       alias-list)))
 
+(defun org-roam--extract-ref ()
+  "Extract the ref from current buffer."
+  (cdr (assoc "ROAM_KEY" (org-roam--extract-global-props '("ROAM_KEY")))))
+
 (defun org-roam--build-cache (dir)
   "Build the org-roam caches in DIR."
   (let ((backward-links (make-hash-table :test #'equal))
@@ -201,7 +205,7 @@ specified via the #+ROAM_ALIAS property."
           (insert-file-contents file)
           (when-let ((titles (org-roam--extract-titles)))
             (puthash file titles file-titles))
-          (when-let ((ref (cdr (assoc "ROAM_KEY" (org-roam--extract-global-props '("ROAM_KEY"))))))
+          (when-let ((ref (org-roam--extract-ref)))
             ;; FIXME: this overrides previous refs, should probably have a
             ;; warning when ref is not unique
             (puthash ref file refs)))

@@ -506,7 +506,12 @@ This is equivalent to removing the node from the graph."
       ;; Clean out forward links
       (remhash file (org-roam--forward-links-cache)))
     ;; Step 2: Remove from the title cache
-    (remhash file (org-roam--titles-cache))))
+    (remhash file (org-roam--titles-cache))
+    ;; Step 3: Remove from the refs cache
+    (maphash (lambda (k v)
+               (when (string= v file)
+                 (remhash k (org-roam--refs-cache))))
+             (org-roam--refs-cache))))
 
 (defun org-roam--update-cache-titles ()
   "Insert the title of the current buffer into the cache."
@@ -515,12 +520,21 @@ This is equivalent to removing the node from the graph."
              titles
              (org-roam--titles-cache))))
 
+(defun org-roam--update-cache-refs ()
+  "Insert the ref of the current buffer into the cache."
+  (when-let ((ref (org-roam--extract-ref)))
+    (puthash ref
+             (file-truename (buffer-file-name (current-buffer)))
+             (org-roam--refs-cache))))
+
 (defun org-roam--update-cache ()
   "Update org-roam caches for the current buffer file."
   (save-excursion
     (org-roam--clear-file-from-cache)
     ;; Insert into title cache
     (org-roam--update-cache-titles)
+    ;; Insert into ref cache
+    (org-roam--update-cache-refs)
     ;; Insert new items
     (let ((items (org-roam--parse-content)))
       (dolist (item items)
