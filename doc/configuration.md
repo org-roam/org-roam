@@ -22,6 +22,22 @@ containing all your Org files:
 Every Org file, at any level of nesting, within `/path/to/org/` is
 considered part of the Org-roam ecosystem.
 
+### Having More Than One Org-roam Directory
+
+Emacs supports customizing variables by directory, so that all files
+in a directory and subdirectories will have the same custom
+settings. It does this by checking for a file named `.dir-locals.el`
+in that directory. This file can override the `org-roam-directory`
+variable and all files within that directory will be treated as
+their own separate set of Org-roam files.
+
+Here is an example `.dir-locals.el` file that would be placed in a
+second Org-roam directory.
+
+```emacs-lisp
+((nil . ((eval . (setq-local org-roam-directory (locate-dominating-file default-directory ".dir-locals.el"))))))
+```
+
 ## Org-roam Buffer
 
 The Org-roam buffer defaults to popping up from the right. You may
