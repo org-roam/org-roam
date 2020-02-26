@@ -324,7 +324,17 @@
               ;; Links are updated with the appropriate name
               (expect (with-temp-buffer
                         (insert-file-contents (abs-path "f3.org"))
-                        (buffer-string)) :to-match (regexp-quote "[[file:meaningful-title.org][meaningful-title]]"))))
+                        (buffer-string)) :to-match (regexp-quote "[[file:meaningful-title.org][meaningful-title]]")))
+
+          (it "web_ref -> hello"
+              (expect (->> (org-roam--refs-cache)
+                           (gethash "https://google.com/"))
+                      :to-equal (abs-path "web_ref.org"))
+              (rename-file (abs-path "web_ref.org")
+                           (abs-path "hello.org"))
+              (expect (->> (org-roam--refs-cache)
+                           (gethash "https://google.com/"))
+                      :to-equal (abs-path "hello.org"))))
 
 (describe "delete file updates cache"
           (before-each
@@ -340,4 +350,12 @@
                            (gethash (abs-path "f1.org"))) :to-be nil)
               (expect (->> (org-roam--backward-links-cache)
                            (gethash (abs-path "nested/f1.org"))
-                           (gethash (abs-path "nested/f2.org"))) :not :to-be nil)))
+                           (gethash (abs-path "nested/f2.org"))) :not :to-be nil))
+          (it "delete web_ref"
+              (expect (->> (org-roam--refs-cache)
+                           (gethash "https://google.com/"))
+                      :to-equal (abs-path "web_ref.org"))
+              (delete-file (abs-path "web_ref.org"))
+              (expect (->> (org-roam--refs-cache)
+                           (gethash "https://google.com/"))
+                      :to-be nil)))
