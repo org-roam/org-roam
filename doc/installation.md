@@ -5,7 +5,6 @@ The recommended method is using [use-package][use-package] and
 
 ```
 (use-package org-roam
-      :after org
       :hook 
       (after-init . org-roam-mode)
       :straight (:host github :repo "jethrokuan/org-roam" :branch "develop")
@@ -28,7 +27,6 @@ git clone https://github.com/jethrokuan/org-roam/ ~/.emacs.d/elisp/org-roam
 
 ```
 (use-package org-roam
-      :after org
       :load-path "elisp/"
       :hook 
       (after-init . org-roam-mode)
@@ -66,7 +64,6 @@ If you are using Spacemacs, you can easily install org-roam by creating a simple
 
 (defun org-roam/init-org-roam ()
     (use-package org-roam
-        :after org
         :hook
         (after-init . org-roam-mode)
         :custom
