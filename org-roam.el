@@ -645,24 +645,24 @@ If item at point is not org-roam specific, default to Org behaviour."
   "Build graphviz graph output."
   (org-roam--ensure-cache-built)
   (with-temp-buffer
-	(insert "digraph {\n")
-	(dolist (file (org-roam--find-all-files))
-	  (let ((title (org-roam--get-title-or-slug file)))
-		(let ((shortened-title (s-truncate org-roam-graph-max-title-length title)))
-		  (insert
-		   (format "  \"%s\" [label=\"%s\", shape=%s, URL=\"roam://%s\", tooltip=\"%s\"];\n"
-				   title
-				   shortened-title
-				   org-roam-graph-node-shape
-				   file
-				   title
-				   )))))
+	  (insert "digraph {\n")
+	  (dolist (file (org-roam--find-all-files))
+	    (let ((title (org-roam--get-title-or-slug file)))
+		    (let ((shortened-title (s-truncate org-roam-graph-max-title-length title)))
+		      (insert
+		       (format "  \"%s\" [label=\"%s\", shape=%s, URL=\"roam://%s\", tooltip=\"%s\"];\n"
+				           title
+				           shortened-title
+				           org-roam-graph-node-shape
+				           file
+				           title
+				           )))))
 	  (maphash
 	   (lambda (from-link to-links)
-		 (dolist (to-link to-links)
-		   (insert (format "  \"%s\" -> \"%s\";\n"
-						   (org-roam--get-title-or-slug from-link)
-						   (org-roam--get-title-or-slug to-link)))))
+		   (dolist (to-link to-links)
+		     (insert (format "  \"%s\" -> \"%s\";\n"
+						             (org-roam--get-title-or-slug from-link)
+						             (org-roam--get-title-or-slug to-link)))))
 	   (org-roam--forward-links-cache))
 	  (insert "}")
 	  (buffer-string)))
@@ -682,7 +682,7 @@ If item at point is not org-roam specific, default to Org behaviour."
       (insert graph))
     (call-process org-roam-graphviz-executable nil 0 nil temp-dot "-Tsvg" "-o" temp-graph)
     (if (and org-roam-graph-viewer (executable-find org-roam-graph-viewer))
-	(call-process org-roam-graph-viewer nil 0 nil temp-graph)
+	      (call-process org-roam-graph-viewer nil 0 nil temp-graph)
       (view-file temp-graph))))
 
 ;;; Org-roam minor mode
@@ -727,9 +727,20 @@ Applies `org-roam-link-face' if PATH correponds to a Roam file."
              (with-current-buffer buf
                (org-roam--setup-found-file))))))))
 
+(defun org-roam--setup-file-links ()
+  "Set up `file:' Org links with org-roam-link-face."
+  (unless (version< org-version "9.2")
+    (org-link-set-parameters "file" :face 'org-roam--roam-link-face)))
+
+(defun org-roam--teardown-file-links ()
+  "Teardown the setup done by Org-roam on file links.
+This sets `file:' Org links to have the org-link face."
+  (unless (version< org-version "9.2")
+    (org-link-set-parameters "file" :face 'org-link)))
+
 (defun org-roam--setup-found-file ()
   "Setup a buffer recognized via the \"find-file-hook\"."
-  (org-link-set-parameters "file" :face 'org-roam--roam-link-face)
+  (org-roam--setup-file-links)
   (org-roam--maybe-update-buffer :redisplay nil))
 
 (defvar org-roam-mode-map
@@ -809,7 +820,7 @@ If ARG is `toggle', toggle `org-roam-mode'. Otherwise, behave as if called inter
     ;; Disable local hooks for all org-roam buffers
     (dolist (buf (org-roam--get-roam-buffers))
       (with-current-buffer buf
-        (org-link-set-parameters "file" :face 'org-link)
+        (org-roam--teardown-file-links)
         (remove-hook 'post-command-hook #'org-roam--maybe-update-buffer t)
         (remove-hook 'after-save-hook #'org-roam--update-cache t))))))
 
