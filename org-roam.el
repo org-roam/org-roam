@@ -530,7 +530,8 @@ Bindings:
                        ,(file-name-base file-path))
                       word-boundary))))
 
-(defun org-roam--find-unlinked-references (file-path)
+(defun org-roam--find-unlinked-references (file-path files)
+  (sleep-for 5)
   (let* ((match-regexp (org-roam--unlinked-regexp file-path))
          (find-func (lambda (other-file)
                       (when (not (string-equal other-file file-path))
@@ -567,7 +568,8 @@ Bindings:
                                :file-from other-file
                                :buffer (buffer-string)
                                :matches matches))))))))
-    (delete nil (mapcar find-func (org-roam--find-all-files)))))
+    (delete nil (mapcar find-func files))))
+
 
 (defun org-roam-update (file-path)
   "Show the backlinks for given org file for file at `FILE-PATH'."
@@ -606,26 +608,35 @@ Bindings:
                              (insert (format "%s \n\n" content)))))
                        backlinks))
           (insert "\n\n* No backlinks!"))
-        (let* ((unlinked-references (org-roam--find-unlinked-references file-path)))
-          (if (> (length unlinked-references) 0)
-              (progn
-                (insert (format "\n\n* %d Unlinked references\n"
-                                (length unlinked-references)))
-                (dolist (ref unlinked-references)
-                  (insert (format "** [[file:%s][%s]]\n"
-                                  (plist-get ref :file-from)
-                                  (org-roam--get-title-or-slug (plist-get ref :file-from))))
-                  (dolist (match (plist-get ref :matches))
-                    (let ((content (propertize (plist-get match :content)
-                                               'font-lock-face 'org-block
-                                               'help-echo "mouse-1: create linked note"
-                                               'file-from (plist-get ref :file-from)
-                                               'file-to file-path
-                                               'text-start (plist-get match :point)
-                                               'text-end (plist-get match :end)
-                                               'file-from-point (plist-get match :point))))
-                      (insert (format "%s\n\n" content))))))
-            (insert "\n\n* No unlinked references!\n"))))
+        (async-start
+         `(lambda ()
+            (setq load-path ',load-path)
+            (package-initialize)
+            (require 'org-roam)
+            ,(async-inject-variables "org-roam-directory")
+            (org-roam--find-unlinked-references ',file-path ',(org-roam--find-all-files)))
+         (lambda (unlinked-references)
+           (if (> (length unlinked-references) 0)
+               (progn
+                 (insert (format "\n\n* %d Unlinked references\n"
+                                 (length unlinked-references)))
+                 (dolist (ref unlinked-references)
+                   (insert (format "** [[file:%s][%s]]\n"
+                                   (plist-get ref :file-from)
+                                   (org-roam--get-title-or-slug (plist-get ref :file-from))))
+                   (dolist (match (plist-get ref :matches))
+                     (let ((content (propertize (plist-get match :content)
+                                                'font-lock-face 'org-block
+                                                'help-echo "mouse-1: create linked note"
+                                                'file-from (plist-get ref :file-from)
+                                                'file-to file-path
+                                                'text-start (plist-get match :point)
+                                                'text-end (plist-get match :end)
+                                                'file-from-point (plist-get match :point))))
+                       (inhibit-read-only t)
+                       (insert (format "%s\n\n" content))
+                       (read-only-mode 1)))))
+             (insert "\n\n* No unlinked references!\n")))))
       (read-only-mode 1))))
 
 ;;; Building the Graphviz graph
