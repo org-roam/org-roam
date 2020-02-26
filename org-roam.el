@@ -170,7 +170,9 @@ If called interactively, then PARENTS is non-nil."
    (backward-links :initarg :backward-links
                    :documentation "Cache containing backward links.")
    (titles :initarg :titles
-           :documentation "Cache containing titles for org-roam files."))
+           :documentation "Cache containing titles for org-roam files.")
+   (refs :initarg :refs
+         :documentation "Cache with ref as key, and file path as value."))
   "All cache for an org-roam directory.")
 
 ;;; Dynamic variables
@@ -235,6 +237,10 @@ as a unique key."
 (defun org-roam--titles-cache ()
   "Cache containing titles for org-roam files."
   (oref (org-roam--get-directory-cache) titles))
+
+(defun org-roam--refs-cache ()
+  "Cache containing refs for org-roam files."
+  (oref (org-roam--get-directory-cache) refs))
 
 (defun org-roam--ensure-cache-built ()
   "Ensures that org-roam cache is built."
@@ -459,7 +465,8 @@ If PREFIX, downcase the title before insertion."
               (oset obj initialized t)
               (oset obj forward-links (plist-get cache :forward))
               (oset obj backward-links (plist-get cache :backward))
-              (oset obj titles (plist-get cache :titles)))
+              (oset obj titles (plist-get cache :titles))
+              (oset obj refs (plist-get cache :refs)))
             (unless org-roam-mute-cache-build
               (message "Org-roam cache built!"))
             (when on-success
@@ -472,18 +479,19 @@ If PREFIX, downcase the title before insertion."
     (oset cache initialized nil)
     (oset cache forward-links (make-hash-table :test #'equal))
     (oset cache backward-links (make-hash-table :test #'equal))
-    (oset cache titles (make-hash-table :test #'equal))))
+    (oset cache titles (make-hash-table :test #'equal))
+    (oset cache refs (make-hash-table :test #'equal))))
 
 (defun org-roam--default-cache ()
   "A default, uninitialized cache object."
   (org-roam-cache :initialized nil
                   :forward-links (make-hash-table :test #'equal)
                   :backward-links (make-hash-table :test #'equal)
-                  :titles (make-hash-table :test #'equal)))
+                  :titles (make-hash-table :test #'equal)
+                  :refs (make-hash-table :test #'equal)))
 
 (defun org-roam--clear-file-from-cache (&optional filepath)
-  "Remove any related links to the file.
-
+  "Remove any related links to the file at FILEPATH.
 This is equivalent to removing the node from the graph."
   (let* ((path (or filepath
                    (buffer-file-name (current-buffer))))

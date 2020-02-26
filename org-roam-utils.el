@@ -183,7 +183,8 @@ specified via the #+ROAM_ALIAS property."
   "Build the org-roam caches in DIR."
   (let ((backward-links (make-hash-table :test #'equal))
         (forward-links (make-hash-table :test #'equal))
-        (file-titles (make-hash-table :test #'equal)))
+        (file-titles (make-hash-table :test #'equal))
+        (refs (make-hash-table :test #'equal)))
     (let* ((org-roam-files (org-roam--find-files dir))
            (file-items (mapcar (lambda (file)
                                  (with-temp-buffer
@@ -199,13 +200,18 @@ specified via the #+ROAM_ALIAS property."
         (with-temp-buffer
           (insert-file-contents file)
           (when-let ((titles (org-roam--extract-titles)))
-            (puthash file titles file-titles)))
+            (puthash file titles file-titles))
+          (when-let ((ref (cdr (assoc "ROAM_KEY" (org-roam--extract-global-props '("ROAM_KEY"))))))
+            ;; FIXME: this overrides previous refs, should probably have a
+            ;; warning when ref is not unique
+            (puthash ref file refs)))
         org-roam-files))
     (list
      :directory dir
      :forward forward-links
      :backward backward-links
-     :titles file-titles)))
+     :titles file-titles
+     :refs refs)))
 
 (provide 'org-roam-utils)
 
