@@ -72,7 +72,8 @@
       (oset obj initialized t)
       (oset obj forward-links (plist-get cache :forward))
       (oset obj backward-links (plist-get cache :backward))
-      (oset obj titles (plist-get cache :titles)))))
+      (oset obj titles (plist-get cache :titles))
+      (oset obj refs (plist-get cache :refs)))))
 
 ;;; Tests
 (describe "org-roam--build-cache-async"
@@ -92,6 +93,7 @@
               (expect (hash-table-count (org-roam--forward-links-cache)) :to-be 4)
               (expect (hash-table-count (org-roam--backward-links-cache)) :to-be 5)
               (expect (hash-table-count (org-roam--titles-cache)) :to-be 6)
+              (expect (hash-table-count (org-roam--refs-cache)) :to-be 1)
 
               ;; Forward cache
               (let ((f1 (gethash (abs-path "f1.org")
@@ -147,6 +149,10 @@
                                (org-roam--titles-cache)) :to-equal (list "t1" "a1" "a 2"))
               (expect (gethash (abs-path "no-title.org")
                                (org-roam--titles-cache)) :to-be nil)
+
+              ;; Refs Cache
+              (expect (gethash "https://google.com/"
+                               (org-roam--refs-cache)) :to-equal (abs-path "web_ref.org"))
 
               ;; Multi
               (let ((org-roam-directory org-roam-directory2))
