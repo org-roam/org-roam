@@ -41,7 +41,6 @@ The recommended method is using use-package and straight, or a similar package m
 
 ```emacs-lisp
 (use-package org-roam
-      :after org
       :hook 
       (after-init . org-roam-mode)
       :straight (:host github :repo "jethrokuan/org-roam" :branch "develop")
