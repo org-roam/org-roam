@@ -1,7 +1,0 @@
-#+TITLE: File 1
-
-link to [[file:nested/f1.org][Nested File 1]] 
-link to [[file:f2.org][File 2]]
-
-Arbitrary [[https://google.com][HTML]] link
-Arbitrary text

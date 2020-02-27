@@ -38,6 +38,7 @@
 (require 'ob-core) ;for org-babel-parse-header-arguments
 (require 'subr-x)
 (require 'cl-lib)
+(require 'org-roam-db)
 
 (defun org-roam--file-name-extension (filename)
   "Return file name extension for FILENAME.
@@ -46,7 +47,7 @@ Like file-name-extension, but does not strip version number."
   (save-match-data
     (let ((file (file-name-nondirectory filename)))
       (if (and (string-match "\\.[^.]*\\'" file)
-                     (not (eq 0 (match-beginning 0))))
+               (not (eq 0 (match-beginning 0))))
           (substring file (+ (match-beginning 0) 1))))))
 
 (defun org-roam--org-file-p (path)
@@ -76,57 +77,31 @@ Like file-name-extension, but does not strip version number."
             (setq result (cons (file-truename file) result)))))
         result)))
 
-(defun org-roam--parse-content (&optional file-path)
-  "Parse the current buffer, and return a list of items for processing."
-  (org-element-map (org-element-parse-buffer) 'link
-    (lambda (link)
-      (let ((type (org-element-property :type link))
-            (path (org-element-property :path link))
-            (start (org-element-property :begin link)))
-        (when (and (string= type "file")
-                   (org-roam--org-file-p path))
-          (goto-char start)
-          (let* ((element (org-element-at-point))
-                 (begin (or (org-element-property :content-begin element)
-                            (org-element-property :begin element)))
-                 (content (or (org-element-property :raw-value element)
-                              (buffer-substring
-                               begin
-                               (or (org-element-property :content-end element)
-                                   (org-element-property :end element)))))
-                 (content (string-trim content))
-                 (file-path (or file-path
-                                (file-truename (buffer-file-name (current-buffer))))))
-            (list :from file-path
-                  :to (file-truename (expand-file-name path (file-name-directory file-path)))
-                  :properties (list :content content :point begin))))))))
-
-(cl-defun org-roam--insert-item (item &key forward backward)
-  "Insert ITEM into FORWARD and BACKWARD cache.
-
-ITEM is of the form: (:from from-path :to to-path :properties (:content preview-content :point point))."
-  (pcase-let ((`(:from ,p-from :to ,p-to :properties ,props) item))
-    ;; Build forward-links
-    (let ((links (gethash p-from forward)))
-      (if links
-          (puthash p-from
-                   (if (member p-to links)
-                       links
-                     (cons p-to links)) forward)
-        (puthash p-from (list p-to) forward)))
-    ;; Build backward-links
-    (let ((contents-hash (gethash p-to backward)))
-      (if contents-hash
-          (if-let ((contents-list (gethash p-from contents-hash)))
-              (let ((updated (cons props contents-list)))
-                (puthash p-from updated contents-hash)
-                (puthash p-to contents-hash backward))
-            (progn
-              (puthash p-from (list props) contents-hash)
-              (puthash p-to contents-hash backward)))
-        (let ((contents-hash (make-hash-table :test #'equal)))
-          (puthash p-from (list props) contents-hash)
-          (puthash p-to contents-hash backward))))))
+(defun org-roam--get-links (&optional file-path)
+  "Get the links in the buffer.
+If FILE-PATH is passed, use that as the source file."
+  (let ((file-path (or file-path
+                       (file-truename (buffer-file-name (current-buffer))))))
+    (org-element-map (org-element-parse-buffer) 'link
+      (lambda (link)
+        (let ((type (org-element-property :type link))
+              (path (org-element-property :path link))
+              (start (org-element-property :begin link)))
+          (when (and (string= type "file")
+                     (org-roam--org-file-p path))
+            (goto-char start)
+            (let* ((element (org-element-at-point))
+                   (begin (or (org-element-property :content-begin element)
+                              (org-element-property :begin element)))
+                   (content (or (org-element-property :raw-value element)
+                                (buffer-substring
+                                 begin
+                                 (or (org-element-property :content-end element)
+                                     (org-element-property :end element)))))
+                   (content (string-trim content)))
+              (vector file-path
+                      (file-truename (expand-file-name path (file-name-directory file-path)))
+                      (list :content content :point begin)))))))))
 
 (defun org-roam--extract-global-props (props)
   "Extract PROPS from the current buffer."
@@ -168,7 +143,6 @@ https://github.com/kaushalmodi/ox-hugo/blob/a80b250987bc770600c424a10b3bca6ff728
 
 (defun org-roam--extract-titles ()
   "Extract the titles from current buffer.
-
 Titles are obtained via the #+TITLE property, or aliases
 specified via the #+ROAM_ALIAS property."
   (let* ((props (org-roam--extract-global-props '("TITLE" "ROAM_ALIAS")))
@@ -183,39 +157,115 @@ specified via the #+ROAM_ALIAS property."
   "Extract the ref from current buffer."
   (cdr (assoc "ROAM_KEY" (org-roam--extract-global-props '("ROAM_KEY")))))
 
-(defun org-roam--build-cache (dir)
-  "Build the org-roam caches in DIR."
-  (let ((backward-links (make-hash-table :test #'equal))
-        (forward-links (make-hash-table :test #'equal))
-        (file-titles (make-hash-table :test #'equal))
-        (refs (make-hash-table :test #'equal)))
-    (let* ((org-roam-files (org-roam--find-files dir))
-           (file-items (mapcar (lambda (file)
-                                 (with-temp-buffer
-                                   (insert-file-contents file)
-                                   (org-roam--parse-content file))) org-roam-files)))
-      (dolist (items file-items)
-        (dolist (item items)
-          (org-roam--insert-item
-           item
-           :forward forward-links
-           :backward backward-links)))
-      (dolist (file org-roam-files)
-        (with-temp-buffer
-          (insert-file-contents file)
-          (when-let ((titles (org-roam--extract-titles)))
-            (puthash file titles file-titles))
-          (when-let ((ref (org-roam--extract-ref)))
-            ;; FIXME: this overrides previous refs, should probably have a
-            ;; warning when ref is not unique
-            (puthash ref file refs)))
-        org-roam-files))
-    (list
-     :directory dir
-     :forward forward-links
-     :backward backward-links
-     :titles file-titles
-     :refs refs)))
+(defun org-roam--insert-links (links)
+  "Insert LINK into the org-roam cache."
+  (org-roam-sql
+   [:insert :into file-links
+    :values $v1]
+   links))
+
+(defun org-roam--insert-titles (file titles)
+  "Insert TITLES into the org-roam-cache."
+  (org-roam-sql
+   [:insert :into titles
+    :values $v1]
+   (list (vector file titles))))
+
+(defun org-roam--insert-ref (file ref)
+  "Insert REF into the Org-roam cache."
+  (org-roam-sql
+   [:insert :into refs
+    :values $v1]
+   (list (vector ref file))))
+
+(defun org-roam--clear-cache ()
+  "Clears all entries in the caches."
+  (interactive)
+  (when (file-exists-p (org-roam--get-db))
+    (org-roam-sql [:delete :from files])
+    (org-roam-sql [:delete :from titles])
+    (org-roam-sql [:delete :from file-links])
+    (org-roam-sql [:delete :from files])
+    (org-roam-sql [:delete :from refs])))
+
+(defun org-roam--clear-file-from-cache (&optional filepath)
+  "Remove any related links to the file at FILEPATH.
+This is equivalent to removing the node from the graph."
+  (let* ((path (or filepath
+                   (buffer-file-name (current-buffer))))
+         (file (file-truename path)))
+    (org-roam-sql [:delete :from files
+                   :where (= file $s1)]
+                  file)
+    (org-roam-sql [:delete :from file-links
+                   :where (= file-from $s1)]
+                  file)
+    (org-roam-sql [:delete :from titles
+                   :where (= file $s1)]
+                  file)
+    (org-roam-sql [:delete :from refs
+                   :where (= file $s1)]
+                  file)))
+
+(defun org-roam--get-current-files ()
+  "Return a hash of file to buffer string hash."
+  (let* ((current-files (org-roam-sql [:select * :from files]))
+         (ht (make-hash-table :test #'equal)))
+    (dolist (row current-files)
+      (puthash (car row) (cadr row) ht))
+    ht))
+
+(defun org-roam--build-cache ()
+  "Build the org-roam for `org-roam-directory'."
+  (org-roam-db) ;; To initialize the database, no-op if already initialized
+  (let* ((org-roam-files (org-roam--find-files org-roam-directory))
+         (current-files (org-roam--get-current-files))
+         (time (current-time))
+         all-files all-links all-titles all-refs)
+    (dolist (file org-roam-files)
+      (with-temp-buffer
+        (insert-file-contents file)
+        (let ((contents-hash (secure-hash 'sha1 (current-buffer))))
+          (unless (string= (gethash file current-files)
+                           contents-hash)
+            (org-roam--clear-file-from-cache file)
+            (setq all-files
+                  (cons (vector file contents-hash time) all-files))
+            (when-let (links (org-roam--get-links file))
+              (setq all-links (append links all-links)))
+            (let ((titles (org-roam--extract-titles)))
+              (setq all-titles (cons (vector file titles) all-titles)))
+            (when-let ((ref (org-roam--extract-ref)))
+              (setq all-refs (cons (vector ref file) all-refs))))
+          (remhash file current-files))))
+    (dolist (file (hash-table-keys current-files))
+      ;; These files are no longer around, remove from cache...
+      (org-roam--clear-file-from-cache file))
+    (when all-files
+      (org-roam-sql
+       [:insert :into files
+        :values $v1]
+       all-files))
+    (when all-links
+      (org-roam-sql
+       [:insert :into file-links
+        :values $v1]
+       all-links))
+    (when all-titles
+      (org-roam-sql
+       [:insert :into titles
+        :values $v1]
+       all-titles))
+    (when all-refs
+      (org-roam-sql
+       [:insert :into refs
+        :values $v1]
+       all-refs))
+    (list :files (length all-files)
+          :links (length all-links)
+          :titles (length all-titles)
+          :refs (length all-refs)
+          :deleted (length (hash-table-keys current-files)))))
 
 (provide 'org-roam-utils)
 

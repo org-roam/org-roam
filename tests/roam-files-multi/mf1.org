@@ -1,7 +1,0 @@
-#+TITLE: Multi-File 1
-
-link to [[file:nested/mf1.org][Nested Multi-File 1]]
-link to [[file:mf2.org][Multi-File 2]]
-
-Arbitrary [[https://google.com][HTML]] link
-Arbitrary text
