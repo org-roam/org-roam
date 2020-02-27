@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.3 (TBD)
+
+### New Features
+* [#182][gh-182] Support file name aliases via `#+ROAM_ALIAS`.
+* [#188][gh-188] Add `org-roam-protocol`, shifting `roam://` link handling into Emacs-lisp.
+
+### Features
+* [#165][gh-165] Add templating functionality via `org-roam-templates`.
+
 ## 0.1.2 (2020-02-21)
 
 ### Breaking Changes
@@ -87,6 +96,9 @@ Mostly a documentation/cleanup release.
 [gh-141]: https://github.com/jethrokuan/org-roam/pull/141
 [gh-142]: https://github.com/jethrokuan/org-roam/pull/142
 [gh-143]: https://github.com/jethrokuan/org-roam/pull/143
+[gh-165]: https://github.com/jethrokuan/org-roam/pull/165
+[gh-182]: https://github.com/jethrokuan/org-roam/pull/182
+[gh-188]: https://github.com/jethrokuan/org-roam/pull/188
 
  # Local Variables:
  # eval: (auto-fill-mode -1)

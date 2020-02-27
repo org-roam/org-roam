@@ -6,7 +6,7 @@
 ;; URL: https://github.com/jethrokuan/org-roam
 ;; Keywords: org-mode, roam, convenience
 ;; Version: 0.1.2
-;; Package-Requires: ((emacs "26.1"))
+;; Package-Requires: ((emacs "26.1") (org "9.0"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -35,6 +35,7 @@
 
 (require 'org)
 (require 'org-element)
+(require 'ob-core) ;for org-babel-parse-header-arguments
 (require 'subr-x)
 (require 'cl-lib)
 
@@ -127,21 +128,67 @@ ITEM is of the form: (:from from-path :to to-path :properties (:content preview-
           (puthash p-from (list props) contents-hash)
           (puthash p-to contents-hash backward))))))
 
-(defun org-roam--extract-title ()
-  "Extract the title from `BUFFER'."
-  (org-element-map
-      (org-element-parse-buffer)
-      'keyword
-    (lambda (kw)
-      (when (string= (org-element-property :key kw) "TITLE")
-        (org-element-property :value kw)))
-    :first-match t))
+(defun org-roam--extract-global-props (props)
+  "Extract PROPS from the current buffer."
+  (let ((buf (org-element-parse-buffer))
+        (res '()))
+    (dolist (prop props)
+      (let ((p (org-element-map
+                   buf
+                   'keyword
+                 (lambda (kw)
+                   (when (string= (org-element-property :key kw) prop)
+                     (org-element-property :value kw)))
+                 :first-match t)))
+        (setq res (cons (cons prop p) res))))
+    res))
+
+(defun org-roam--aliases-str-to-list (str)
+  "Function to transform string STR into list of alias titles.
+
+This snippet is obtained from ox-hugo:
+https://github.com/kaushalmodi/ox-hugo/blob/a80b250987bc770600c424a10b3bca6ff7282e3c/ox-hugo.el#L3131"
+  (when (stringp str)
+    (let* ((str (org-trim str))
+           (str-list (split-string str "\n"))
+           ret)
+      (dolist (str-elem str-list)
+        (let* ((format-str ":dummy '(%s)") ;The :dummy key is discarded in the `lst' var below.
+               (alist (org-babel-parse-header-arguments (format format-str str-elem)))
+               (lst (cdr (car alist)))
+               (str-list2 (mapcar (lambda (elem)
+                                    (cond
+                                     ((symbolp elem)
+                                      (symbol-name elem))
+                                     (t
+                                      elem)))
+                                  lst)))
+          (setq ret (append ret str-list2))))
+      ret)))
+
+(defun org-roam--extract-titles ()
+  "Extract the titles from current buffer.
+
+Titles are obtained via the #+TITLE property, or aliases
+specified via the #+ROAM_ALIAS property."
+  (let* ((props (org-roam--extract-global-props '("TITLE" "ROAM_ALIAS")))
+         (aliases (cdr (assoc "ROAM_ALIAS" props)))
+         (title (cdr (assoc "TITLE" props)))
+         (alias-list (org-roam--aliases-str-to-list aliases)))
+    (if title
+        (cons title alias-list)
+      alias-list)))
+
+(defun org-roam--extract-ref ()
+  "Extract the ref from current buffer."
+  (cdr (assoc "ROAM_KEY" (org-roam--extract-global-props '("ROAM_KEY")))))
 
 (defun org-roam--build-cache (dir)
   "Build the org-roam caches in DIR."
   (let ((backward-links (make-hash-table :test #'equal))
         (forward-links (make-hash-table :test #'equal))
-        (file-titles (make-hash-table :test #'equal)))
+        (file-titles (make-hash-table :test #'equal))
+        (refs (make-hash-table :test #'equal)))
     (let* ((org-roam-files (org-roam--find-files dir))
            (file-items (mapcar (lambda (file)
                                  (with-temp-buffer
@@ -156,13 +203,19 @@ ITEM is of the form: (:from from-path :to to-path :properties (:content preview-
       (dolist (file org-roam-files)
         (with-temp-buffer
           (insert-file-contents file)
-          (when-let ((title (org-roam--extract-title)))
-            (puthash file title file-titles)))
+          (when-let ((titles (org-roam--extract-titles)))
+            (puthash file titles file-titles))
+          (when-let ((ref (org-roam--extract-ref)))
+            ;; FIXME: this overrides previous refs, should probably have a
+            ;; warning when ref is not unique
+            (puthash ref file refs)))
         org-roam-files))
     (list
+     :directory dir
      :forward forward-links
      :backward backward-links
-     :titles file-titles)))
+     :titles file-titles
+     :refs refs)))
 
 (provide 'org-roam-utils)
 

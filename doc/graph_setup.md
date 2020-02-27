@@ -1,9 +1,15 @@
-The setup is similar to that of org-protocol. Here `roam://` links are
+The setup is the same as org-protocol. Here `roam://` links are
 defined, and need to be associated with an application. 
 
-The gist of the setup is setting up a Bash script to trim off the
-`roam://` prefix from the link, causing the desktop application to
-call `emacsclient path/to/org-roam-file.org`.
+Across all platforms, to enable `org-roam-protocol`, you have to add
+the following to your init file:
+
+```emacs-lisp
+(require 'org-roam-protocol)
+```
+
+We also need to create a desktop application for emacsclient. The
+instructions for various platforms are shown below:
 
 ## Linux
 
@@ -13,25 +19,14 @@ Create a desktop application. I place mine in
 ```
 [Desktop Entry]
 Name=Org-Roam Client
-Exec=/home/jethro/.local/bin/launch_emacs %u
+Exec=emacsclient %u
 Icon=emacs-icon
 Type=Application
 Terminal=false
 MimeType=x-scheme-handler/roam
 ```
 
-Note the `Exec` key is set to a bash script poorly named
-`launch_emacs`. You can set it to whatever you want.
-
-Create the corresponding bash script, and make it executable. Here's
-how it looks like:
-
-```bash
-#!/usr/bin/env bash
-emacsclient "${1#*:}"
-```
-
-Finally, associate `roam://` links with the desktop application by
+Associate `roam://` links with the desktop application by
 running in your shell:
 
 ```bash
@@ -55,10 +50,11 @@ sudo chmod 644 /etc/opt/chrome/policies/managed/external_protocol_dialog.json
 and then restart Chrome (for example, by navigating to <chrome://restart>) to
 make the new policy take effect.
 
-See [here](https://www.chromium.org/administrators/linux-quick-start) for more
-info on the `/etc/opt/chrome/policies/managed` directory and
+See [here](https://www.chromium.org/administrators/linux-quick-start)
+for more info on the `/etc/opt/chrome/policies/managed` directory and
 [here](https://cloud.google.com/docs/chrome-enterprise/policies/?policy=ExternalProtocolDialogShowAlwaysOpenCheckbox)
-for information on the `ExternalProtocolDialogShowAlwaysOpenCheckbox` policy.
+for information on the `ExternalProtocolDialogShowAlwaysOpenCheckbox`
+policy.
 
 
 ## Mac OS
@@ -68,24 +64,17 @@ One solution to this, recommended in [Issue
 [Platypus](https://github.com/sveinbjornt/Platypus). Here are the
 instructions for setting up with Platypus and Chrome:
 
-1. Create an executable `launch-emacs.sh` script:
-
-```sh
-#!/usr/bin/env bash
-/usr/local/bin/emacsclient --no-wait "${1#*:}"
-```
-
-2. Install and launch Platypus (with [Homebrew](https://brew.sh/)):
+1. Install and launch Platypus (with [Homebrew](https://brew.sh/)):
 
 ```sh
 brew cask install playtpus
 ```
 
-3. Playtpus settings:
+2. Platypus settings:
 
 - App Name: `OrgRoam`
 - Script Type: `env` and `/usr/bin/env`
-- Script Path: `/path/to/your/launch-emacs.sh`
+- Script Path: `/path/to/emacsclient $1`
 - Tick Accept dropped items and click Settings
 - Tick Accept dropped files
 - Tick Register as URI scheme handler

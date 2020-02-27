@@ -22,6 +22,22 @@ containing all your Org files:
 Every Org file, at any level of nesting, within `/path/to/org/` is
 considered part of the Org-roam ecosystem.
 
+### Having More Than One Org-roam Directory
+
+Emacs supports customizing variables by directory, so that all files
+in a directory and subdirectories will have the same custom
+settings. It does this by checking for a file named `.dir-locals.el`
+in that directory. This file can override the `org-roam-directory`
+variable and all files within that directory will be treated as
+their own separate set of Org-roam files.
+
+Here is an example `.dir-locals.el` file that would be placed in a
+second Org-roam directory.
+
+```emacs-lisp
+((nil . ((eval . (setq-local org-roam-directory (locate-dominating-file default-directory ".dir-locals.el"))))))
+```
+
 ## Org-roam Buffer
 
 The Org-roam buffer defaults to popping up from the right. You may
@@ -53,8 +69,9 @@ tweaking `org-roam-link-title-format`, for example:
 (setq org-roam-link-title-format "R:%s")
 ```
 
-You may also choose to simply style the link differently, by
-customizing `org-roam-link-face` (`M-x customize-face org-roam-link`).
+If your version of Org is at least `9.2`, you may also choose to
+simply style the link differently, by customizing `org-roam-link-face`
+(`M-x customize-face org-roam-link`).
 
 ## Org-roam Files
 
@@ -69,10 +86,37 @@ Org files in all of its main commands (`org-roam-insert`,
 `org-roam-find-file`). Hence, having any unique file name is a decent
 option, and the default workflow uses the timestamp as the filename.
 
-The format of the filename is controlled by the function
-`org-roam-file-name-function`, which defaults to a format like
-`YYYYMMDDHHMMSS_title_here.org`. You may choose to define your own
-function to change this.
+Org-roam provides templating functionality via `org-roam-templates`.
+`org-roam-templates` maps a template string key to a template. Each
+template consists of two parts: (1) a function that takes the title,
+and generates a filename. (2) the template content. The templated
+content accepts two special fields: `${title}` and `${slug}`, which
+are substituted with the title and slug respectively. Org-roam ships
+with the default template, which inserts the title of the note. 
+
+Here's an example of customizing templates:
+
+```emacs-lisp
+(defun jethro/org-roam-title-private (title)
+    (let ((timestamp (format-time-string "%Y%m%d%H%M%S" (current-time)))
+          (slug (org-roam--title-to-slug title)))
+      (format "private-%s_%s" timestamp slug)))
+      
+(setq org-roam-templates
+    (list (list "default" (list :file #'org-roam--file-name-timestamp-title
+                                :content "#+SETUPFILE:./hugo_setup.org
+#+HUGO_SECTION: zettels
+#+HUGO_SLUG: ${slug}
+#+TITLE: ${title}"))
+          (list "private" (list :file #'jethro/org-roam-title-private
+                                :content "#+TITLE: ${title}"))))
+```
+
+Here, I define a file-name function `jethro/org-roam-title-private`,
+which forms titles like `private-20200202000000-note_name`. The
+content string is simply the title. For the default template, I have
+extended it to include more boilerplate content for publishing
+purposes.
 
 If you wish to be prompted to change the file name on creation, set
 `org-roam-filename-noconfirm` to `nil`:
@@ -83,6 +127,19 @@ If you wish to be prompted to change the file name on creation, set
 
 It is then the user's responsibility to ensure that the file names are
 unique.
+
+If you prefer just the title slug as the filename (with no timestamp),
+you can use the following template:
+
+```emacs-lisp
+(defun my-org-roam-no-timestamp-in-title (title)
+    (let ((slug (org-roam--title-to-slug title)))
+      (format "%s" slug)))
+
+(setq org-roam-templates
+    (list (list "default" (list :file #'my-org-roam-no-timestamp-in-title
+:content "#+TITLE: ${title}"))))
+```
 
 ### Autopopulating Titles
 
