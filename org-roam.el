@@ -182,7 +182,7 @@ If called interactively, then PARENTS is non-nil."
 (defvar org-roam-last-window nil
   "Last window `org-roam' was called from.")
 
-(defvar org-roam--cache nil
+(defvar org-roam--cache (make-hash-table :test 'equal)
   "The list of cache separated by directory.")
 
 (defvar-local org-roam--local-cache-ref nil
@@ -200,12 +200,11 @@ as a unique key."
 
 (defmacro org-roam--get-local (name)
   "Get a variable that is local to the current org-roam-directory."
-  `(alist-get (org-roam-directory-normalized) ,name nil nil #'equal))
+  `(gethash (org-roam-directory-normalized) ,name nil))
 
 (defmacro org-roam--set-local (name value)
   "Set a variable that is local to the current org-roam-directory."
-  `(setf (alist-get (org-roam-directory-normalized) ,name nil nil #'equal)
-         ,value))
+  `(puthash (org-roam-directory-normalized) ,value ,name))
 
 (defun org-roam--get-directory-cache ()
   "Get the cache object for the current org-roam-directory."
@@ -438,7 +437,7 @@ If PREFIX, downcase the title before insertion."
     (when-let ((name (completing-read "Choose a buffer: " names-and-buffers)))
       (switch-to-buffer (cdr (assoc name names-and-buffers))))))
 
-(defvar org-roam--ongoing-async-build nil
+(defvar org-roam--ongoing-async-build (make-hash-table :test 'equal)
   "Prevent multiple async cache builds.  This can happen when
   restoring a session or loading multiple org-roam files before a
   build has completed.")
