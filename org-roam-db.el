@@ -3,10 +3,6 @@
 ;; Copyright © 2020 Jethro Kuan <jethrokuan95@gmail.com>
 
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
-;; URL: https://github.com/jethrokuan/org-roam
-;; Keywords: org-mode, roam, convenience
-;; Version: 0.1.2
-;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (s "1.12.0") (org "9.0") (emacsql "3.0.0") (emacsql-sqlite "1.0.0"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -141,7 +137,6 @@ All Org files, at any level of nesting, is considered part of the Org-roam."
   (when (and (org-roam--get-db-connection)
              (emacsql-live-p (org-roam--get-db-connection)))
     (emacsql-close (org-roam--get-db-connection))))
-
 
 (provide 'org-roam-db)
 
