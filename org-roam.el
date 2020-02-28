@@ -53,12 +53,10 @@
   :link '(url-link :tag "Github" "https://github.com/jethrokuan/org-roam")
   :link '(url-link :tag "Online Manual" "https://org-roam.readthedocs.io/"))
 
-(defcustom org-roam-directory (expand-file-name "~/org-roam/")
-  "Path to Org-roam files.
-
-All Org files, at any level of nesting, is considered part of the Org-roam."
-  :type 'directory
-  :group 'org-roam)
+(defgroup org-roam-faces nil
+  "Faces used by Org-Roam."
+  :group 'org-roam
+  :group 'faces)
 
 (defcustom org-roam-new-file-directory nil
   "Path to where new Org-roam files are created.
@@ -76,14 +74,6 @@ Valid values are
   :type '(choice (const left)
                  (const right))
   :group 'org-roam)
-
-(defcustom org-roam-file-name-function #'org-roam--file-name-timestamp-title
-  "The function used to generate filenames.
-
-The function takes as parameter `TITLE', a string the user inputs."
-  :group 'org-roam
-  :type '(choice (const :tag "Default" org-roam--file-name-timestamp-title)
-                 (function :tag "Personalized function")))
 
 (defcustom org-roam-link-title-format "%s"
   "The format string used when inserting org-roam links that use their title."
@@ -122,19 +112,14 @@ If nil, always ask for filename."
   :group 'org-roam)
 
 (defcustom org-roam-graph-max-title-length 100
-  "Maximum length of titles in graphviz graph nodes"
+  "Maximum length of titles in Graphviz graph nodes."
   :type 'number
   :group 'org-roam)
 
 (defcustom org-roam-graph-node-shape "ellipse"
-  "Maximum length of titles in graphviz graph nodes"
+  "Shape of Graphviz nodes."
   :type 'string
   :group 'org-roam)
-
-(defgroup org-roam-faces nil
-  "Faces used by Org-Roam."
-  :group 'org-roam
-  :group 'faces)
 
 ;;; Dynamic variables
 (defvar org-roam--current-buffer nil
@@ -435,18 +420,6 @@ It uses TITLE and the current timestamp to form a unique title."
                          (cons "slug" (org-roam--title-to-slug title))))
          nil file-path nil)
         file-path))))
-
-(defun org-roam--get-new-id (title)
-  "Return a new ID, given the note TITLE."
-  (let* ((proposed-slug (funcall org-roam-file-name-function title))
-         (new-slug (if org-roam-filename-noconfirm
-                       proposed-slug
-                     (read-string "Enter ID (without extension): "
-                                  proposed-slug)))
-         (file-path (org-roam--new-file-path new-slug t)))
-    (if (file-exists-p file-path)
-        (user-error "There's already a file at %s")
-      new-slug)))
 
 ;;; Inserting org-roam links
 (defun org-roam-insert (prefix)
