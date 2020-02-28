@@ -136,26 +136,6 @@ If nil, always ask for filename."
   :group 'org-roam
   :group 'faces)
 
-;;; Polyfills
-;; These are for functions I use that are only available in newer Emacs
-
-;; Introduced in Emacs 27.1
-(unless (fboundp 'make-empty-file)
-  (defun make-empty-file (filename &optional parents)
-    "Create an empty file FILENAME.
-Optional arg PARENTS, if non-nil then creates parent dirs as needed.
-
-If called interactively, then PARENTS is non-nil."
-    (interactive
-     (let ((filename (read-file-name "Create empty file: ")))
-       (list filename t)))
-    (when (and (file-exists-p filename) (null parents))
-      (signal 'file-already-exists `("File exists" ,filename)))
-    (let ((paren-dir (file-name-directory filename)))
-      (when (and paren-dir (not (file-exists-p paren-dir)))
-        (make-directory paren-dir parents)))
-    (write-region "" nil filename nil 0)))
-
 ;;; Dynamic variables
 (defvar org-roam--current-buffer nil
   "Currently displayed file in `org-roam' buffer.")
@@ -164,6 +144,11 @@ If called interactively, then PARENTS is non-nil."
   "Last window `org-roam' was called from.")
 
 ;;; Utilities
+(defun org-roam--touch-file (path)
+  "Touches an empty file at PATH."
+  (make-directory (file-name-directory path) t)
+  (f-touch path))
+
 (defun org-roam--file-name-extension (filename)
   "Return file name extension for FILENAME.
 Like file-name-extension, but does not strip version number."
@@ -442,7 +427,7 @@ It uses TITLE and the current timestamp to form a unique title."
       (setq file-path (org-roam--new-file-path (file-name-fn title) t))
       (if (file-exists-p file-path)
           file-path
-        (make-empty-file file-path t)
+        (org-roam--touch-file file-path)
         (write-region
          (s-format (plist-get template :content)
                    'aget
@@ -777,8 +762,7 @@ If item at point is not org-roam specific, default to Org behaviour."
 				           shortened-title
 				           org-roam-graph-node-shape
 				           file
-				           title
-				           )))))
+				           title)))))
     (let ((link-rows (org-roam-sql [:select :distinct [file-to file-from] :from file-links])))
       (dolist (row link-rows)
         (insert (format "  \"%s\" -> \"%s\";\n"

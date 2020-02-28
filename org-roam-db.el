@@ -66,7 +66,7 @@ All Org files, at any level of nesting, is considered part of the Org-roam."
   (expand-file-name org-roam-db-filename org-roam-directory))
 
 (defun org-roam--get-db-connection ()
-  "Returns the database connection, if any."
+  "Return the database connection, if any."
   (gethash (file-truename org-roam-directory)
            org-roam--db-connection))
 
@@ -142,4 +142,7 @@ All Org files, at any level of nesting, is considered part of the Org-roam."
              (emacsql-live-p (org-roam--get-db-connection)))
     (emacsql-close (org-roam--get-db-connection))))
 
+
 (provide 'org-roam-db)
+
+;;; org-roam-db.el ends here
