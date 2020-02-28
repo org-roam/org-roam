@@ -574,7 +574,8 @@ If PREFIX, downcase the title before insertion."
     (org-roam-sql [:delete :from refs
                    :where (= file $s1)]
                   file)
-    (org-roam--insert-ref file (org-roam--extract-ref))))
+    (when-let ((ref (org-roam--extract-ref)))
+      (org-roam--insert-ref file ref))))
 
 (defun org-roam--update-cache-links ()
   "Update the file links of the current buffer in the cache."

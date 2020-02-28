@@ -101,22 +101,23 @@ All Org files, at any level of nesting, is considered part of the Org-roam."
 (defconst org-roam--db-table-schemata
   '((files
      [(file :unique :primary-key)
-      hash
-      last-modified
+      (hash :not-null)
+      (last-modified :not-null)
       ])
 
     (file-links
-     [file-from
-      file-to
-      properties])
+     [(file-from :not-null)
+      (file-to :not-null)
+      (properties :not-null)])
 
     (titles
-     [file
+     [
+      (file :not-null)
       titles])
 
     (refs
-     [ref
-      file])))
+     [(ref :not-null)
+      (file :not-null)])))
 
 (defun org-roam--db-init (db)
   (emacsql-with-transaction db
