@@ -13,13 +13,11 @@ Without further ado, let's begin!
 
 ## Building the Cache
 
-Assuming you've set `org-roam-directory` appropriately, running `M-x
-org-roam--build-cache-async` should build up the caches that will
-allow you to begin using Org-roam. I do this on startup:
-
-```emacs-lisp
-(add-hook 'after-init-hook 'org-roam--build-cache-async)
-```
+The cache is a sqlite database named `org-roam.db`, which resides at
+the root of your `org-roam-directory`. To begin, we need to do a first
+build of this cache. To do so, run `M-x org-roam-build-cache`. This
+may take a while the first time, but is generally instantaneous in
+subsequent runs.
 
 ## Finding a Note
 
