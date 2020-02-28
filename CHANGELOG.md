@@ -2,6 +2,12 @@
 
 ## 0.1.3 (TBD)
 
+The biggest change, by far, the shift of database storage into SQLite.
+This means that the org-roam cache needs to be built manually at least
+once via `M-x org-roam-build-cache`.
+### Breaking Changes
+* [#200][gh-200] Move Org-roam cache into a SQLite database.
+
 ### New Features
 * [#182][gh-182] Support file name aliases via `#+ROAM_ALIAS`.
 * [#188][gh-188] Add `org-roam-protocol`, shifting `roam://` link handling into Emacs-lisp.
@@ -99,6 +105,7 @@ Mostly a documentation/cleanup release.
 [gh-165]: https://github.com/jethrokuan/org-roam/pull/165
 [gh-182]: https://github.com/jethrokuan/org-roam/pull/182
 [gh-188]: https://github.com/jethrokuan/org-roam/pull/188
+[gh-200]: https://github.com/jethrokuan/org-roam/pull/200
 
  # Local Variables:
  # eval: (auto-fill-mode -1)

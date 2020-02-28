@@ -35,8 +35,11 @@ Here is an example `.dir-locals.el` file that would be placed in a
 second Org-roam directory.
 
 ```emacs-lisp
-((nil . ((eval . (setq-local org-roam-directory (locate-dominating-file default-directory ".dir-locals.el"))))))
+((nil . ((org-roam-directory . "/path/to/here/"))))
 ```
+
+Remember to run `org-roam-build-cache` from a file within that
+directory, at least once.
 
 ## Org-roam Buffer
 
