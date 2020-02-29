@@ -1,23 +1,22 @@
 ## What is Roam protocol?
 
-Org-roam defines several protocols that help boost productivity, by
+Org-roam defines two protocols that help boost productivity, by
 extending `org-protocol`. 
 
-In the generated graph, to force file links to open in Emacs, we use
-`org-protocol`.
+The first protocol is the `roam-file` protocol. This is a simple
+protocol that opens the path specified by the `file` key (e.g.
+`org-protocol:/roam-file?file=/tmp/file.org`). This is used in the
+generated graph.
 
-In addition, we can also use a Firefox bookmarklet to associate
-notes with any unique key. 
+The second protocol is the `roam-ref` protocol. This protocol finds or
+creates a new note with a given `ROAM_KEY` (see
+[Anatomy](anatomy.md)).
 
-<blockquote class="imgur-embed-pub" lang="en" data-id="a/sKuEske"><a
-href="//imgur.com/a/sKuEske"></a></blockquote><script async
-src="//s.imgur.com/min/embed.js" charset="utf-8"></script>
-
-Add the following snippet as a bookmarklet:
+To use this, create a Firefox bookmarklet as follows:
 
 ```javascript
 javascript:location.href =
-'org-protocol://roam-ref?template=ref&ref='
+'org-protocol:/roam-ref?template=ref&ref='
 + encodeURIComponent(location.href)
 + '&title='
 + encodeURIComponent(document.title)
@@ -27,7 +26,9 @@ where `template` is the template you have defined for your web
 snippets. This template should contain a `#+ROAM_KEY: {ref}` in it.
 
 ## Org-protocol Setup
-The setup is the exact same as org-protocol. 
+
+The instructions for setting up org-protocol can be found
+[here][org-protocol-inst], but they are reproduced below.
 
 Across all platforms, to enable `org-roam-protocol`, you have to add
 the following to your init file:
@@ -116,3 +117,5 @@ without confirmation. To do this, run in a shell:
 ```sh
 defaults write com.google.Chrome ExternalProtocolDialogShowAlwaysOpenCheckbox -bool true
 ```
+
+[org-protocol-inst]: https://orgmode.org/worg/org-contrib/org-protocol.html
