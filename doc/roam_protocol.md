@@ -1,5 +1,33 @@
-The setup is the same as org-protocol. Here `roam://` links are
-defined, and need to be associated with an application. 
+## What is Roam protocol?
+
+Org-roam defines several protocols that help boost productivity, by
+extending `org-protocol`. 
+
+In the generated graph, to force file links to open in Emacs, we use
+`org-protocol`.
+
+In addition, we can also use a Firefox bookmarklet to associate
+notes with any unique key. 
+
+<blockquote class="imgur-embed-pub" lang="en" data-id="a/sKuEske"><a
+href="//imgur.com/a/sKuEske"></a></blockquote><script async
+src="//s.imgur.com/min/embed.js" charset="utf-8"></script>
+
+Add the following snippet as a bookmarklet:
+
+```javascript
+javascript:location.href =
+'org-protocol://roam-ref?template=ref&ref='
++ encodeURIComponent(location.href)
++ '&title='
++ encodeURIComponent(document.title)
+```
+
+where `template` is the template you have defined for your web
+snippets. This template should contain a `#+ROAM_KEY: {ref}` in it.
+
+## Org-protocol Setup
+The setup is the exact same as org-protocol. 
 
 Across all platforms, to enable `org-roam-protocol`, you have to add
 the following to your init file:
@@ -14,27 +42,27 @@ instructions for various platforms are shown below:
 ## Linux
 
 Create a desktop application. I place mine in
-`~/.local/share/applications/roam.desktop`:
+`~/.local/share/applications/org-protocol.desktop`:
 
 ```
 [Desktop Entry]
-Name=Org-Roam Client
+Name=Org-Protocol
 Exec=emacsclient %u
 Icon=emacs-icon
 Type=Application
 Terminal=false
-MimeType=x-scheme-handler/roam
+MimeType=x-scheme-handler/org-protocol
 ```
 
-Associate `roam://` links with the desktop application by
+Associate `org-protocol://` links with the desktop application by
 running in your shell:
 
 ```bash
-xdg-mime default roam.desktop x-scheme-handler/roam
+xdg-mime default org-protocol.desktop x-scheme-handler/org-protocol
 ```
 
 To disable the "confirm" prompt in Chrome, you can also make Chrome
-show a checkbox to tick, so that the `Org-Roam Client` app will be used
+show a checkbox to tick, so that the `Org-Protocol Client` app will be used
 without confirmation. To do this, run in a shell:
 
 ```sh
@@ -72,17 +100,17 @@ brew cask install playtpus
 
 2. Platypus settings:
 
-- App Name: `OrgRoam`
+- App Name: `OrgProtocol`
 - Script Type: `env` and `/usr/bin/env`
 - Script Path: `/path/to/emacsclient $1`
 - Tick Accept dropped items and click Settings
 - Tick Accept dropped files
 - Tick Register as URI scheme handler
-- Add `roam` as a protocol
+- Add `org-protocol` as a protocol
 - Create the app
 
 To disable the "confirm" prompt in Chrome, you can also make Chrome
-show a checkbox to tick, so that the `OrgRoam` app will be used
+show a checkbox to tick, so that the `OrgProtocol` app will be used
 without confirmation. To do this, run in a shell:
 
 ```sh

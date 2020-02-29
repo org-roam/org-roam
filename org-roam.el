@@ -44,6 +44,7 @@
 (require 'f)
 (require 'cl-lib)
 (require 'org-roam-db)
+(require 'org-roam-utils)
 
 ;;; Customizations
 (defgroup org-roam nil
@@ -129,10 +130,7 @@ If nil, always ask for filename."
   "Last window `org-roam' was called from.")
 
 ;;; Utilities
-(defun org-roam--touch-file (path)
-  "Touches an empty file at PATH."
-  (make-directory (file-name-directory path) t)
-  (f-touch path))
+
 
 (defun org-roam--file-name-extension (filename)
   "Return file name extension for FILENAME.
@@ -396,30 +394,35 @@ It uses TITLE and the current timestamp to form a unique title."
                               :content "#+TITLE: ${title}")))
   "Templates to insert for new files in org-roam.")
 
-(defun org-roam--make-new-file (title &optional template-key)
+(defun org-roam--get-template (&optional template-key)
+  "Return an Org-roam template. TEMPLATE-KEY is used to get a template."
   (unless org-roam-templates
     (user-error "No templates defined"))
-  (let (template)
-    (if template-key
-        (setq template (cadr (assoc template-key org-roam-templates)))
-      (if (= (length org-roam-templates) 1)
-          (setq template (cadar org-roam-templates))
-        (setq template
-              (cadr (assoc (completing-read "Template: " org-roam-templates)
-                           org-roam-templates)))))
-    (let (file-name-fn file-path)
-      (fset 'file-name-fn (plist-get template :file))
-      (setq file-path (org-roam--new-file-path (file-name-fn title) t))
-      (if (file-exists-p file-path)
-          file-path
-        (org-roam--touch-file file-path)
-        (write-region
-         (s-format (plist-get template :content)
-                   'aget
-                   (list (cons "title" title)
-                         (cons "slug" (org-roam--title-to-slug title))))
-         nil file-path nil)
-        file-path))))
+  (if template-key
+      (cadr (assoc template-key org-roam-templates))
+    (if (= (length org-roam-templates) 1)
+        (cadar org-roam-templates)
+      (cadr (assoc (completing-read "Template: " org-roam-templates)
+                   org-roam-templates)))))
+
+
+(defun org-roam--make-new-file (&optional info)
+  (let ((template (org-roam--get-template (cdr (assoc 'template info))))
+        (title (or (cdr (assoc 'title info))
+                   (completing-read "Title: " nil)))
+        file-name-fn file-path)
+    (fset 'file-name-fn (plist-get template :file))
+    (setq file-path (org-roam--new-file-path (file-name-fn title) t))
+    (setq info (cons (cons 'slug (org-roam--title-to-slug title)) info))
+    (if (file-exists-p file-path)
+        file-path
+      (org-roam--touch-file file-path)
+      (write-region
+       (s-format (plist-get template :content)
+                 'aget
+                 info)
+       nil file-path nil)
+      file-path)))
 
 ;;; Inserting org-roam links
 (defun org-roam-insert (prefix)
@@ -437,7 +440,7 @@ If PREFIX, downcase the title before insertion."
          (title (completing-read "File: " completions nil nil region-text))
          (region-or-title (or region-text title))
          (absolute-file-path (or (cdr (assoc title completions))
-                                 (org-roam--make-new-file title)))
+                                 (org-roam--make-new-file (list (cons 'title title)))))
          (current-file-path (-> (or (buffer-base-buffer)
                                     (current-buffer))
                                 (buffer-file-name)
@@ -468,13 +471,32 @@ If PREFIX, downcase the title before insertion."
                                 file-path) res)))))
     res))
 
+(defun org-roam--get-ref-path-completions ()
+  "Return a list of cons pairs for titles to absolute path of Org-roam files."
+  (let ((rows (org-roam-sql [:select [ref file] :from refs])))
+    (mapcar (lambda (row)
+              (cons (car row)
+                    (cadr row))) rows)))
+
+(defun org-roam-find-ref (&optional info)
+  "Find and open an org-roam file from a ref.
+INFO is an alist containing additional information."
+  (interactive)
+  (let* ((completions (org-roam--get-ref-path-completions))
+         (ref (or (cdr (assoc 'ref info))
+                  (completing-read "Ref: " (org-roam--get-ref-path-completions))))
+         (file-path (cdr (assoc ref completions))))
+    (if file-path
+        (find-file file-path)
+      (find-file (org-roam--make-new-file info)))))
+
 (defun org-roam-find-file ()
   "Find and open an org-roam file."
   (interactive)
   (let* ((completions (org-roam--get-title-path-completions))
          (title-or-slug (completing-read "File: " completions))
          (absolute-file-path (or (cdr (assoc title-or-slug completions))
-                                 (org-roam--make-new-file title-or-slug))))
+                                 (org-roam--make-new-file (list (cons 'title title-or-slug))))))
     (find-file absolute-file-path)))
 
 (defun org-roam--get-roam-buffers ()
@@ -485,7 +507,7 @@ If PREFIX, downcase the title before insertion."
             (buffer-list)))
 
 (defun org-roam-switch-to-buffer ()
-  "Switch to an existing org-roam buffer using completing-read."
+  "Switch to an existing org-roam buffer."
   (interactive)
   (let* ((roam-buffers (org-roam--get-roam-buffers))
          (names-and-buffers (mapcar (lambda (buffer)
@@ -495,7 +517,7 @@ If PREFIX, downcase the title before insertion."
                                             buffer))
                                     roam-buffers)))
     (unless roam-buffers
-      (error "No roam buffers."))
+      (user-error "No roam buffers."))
     (when-let ((name (completing-read "Choose a buffer: " names-and-buffers)))
       (switch-to-buffer (cdr (assoc name names-and-buffers))))))
 
@@ -599,7 +621,8 @@ If PREFIX, downcase the title before insertion."
   "Create and find file for TIME."
   (let* ((org-roam-templates (list (list "daily" (list :file (lambda (title) title)
                                                        :content "#+TITLE: ${title}")))))
-    (org-roam--make-new-file (format-time-string "%Y-%m-%d" time) "daily")))
+    (org-roam--make-new-file (list (cons 'title (format-time-string "%Y-%m-%d" time))
+                                   (cons 'template "daily")))))
 
 (defun org-roam-today ()
   "Create and find file for today."
@@ -731,7 +754,7 @@ If item at point is not org-roam specific, default to Org behaviour."
                           (org-roam--path-to-slug file)))
                (shortened-title (s-truncate org-roam-graph-max-title-length title)))
           (insert
-		       (format "  \"%s\" [label=\"%s\", shape=%s, URL=\"roam://%s\", tooltip=\"%s\"];\n"
+		       (format "  \"%s\" [label=\"%s\", shape=%s, URL=\"org-protocol://%s\", tooltip=\"%s\"];\n"
                    file
 				           shortened-title
 				           org-roam-graph-node-shape
