@@ -791,7 +791,9 @@ This sets `file:' Org links to have the org-link face."
 
 (defun org-roam--delete-file-advice (file &optional _trash)
   "Advice for maintaining cache consistency during file deletes."
-  (org-roam--db-clear-file (file-truename file)))
+  (when (and (not (auto-save-file-name-p file))
+             (org-roam--org-roam-file-p file))
+    (org-roam--db-clear-file (file-truename file))))
 
 (defun org-roam--rename-file-advice (file new-file &rest args)
   "Rename backlinks of FILE to refer to NEW-FILE."
