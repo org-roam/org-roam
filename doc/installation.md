@@ -110,7 +110,7 @@ Subsequently, in your `~/.doom.d/config.el` file, configure org-roam:
   :hook (after-init . org-roam-mode)
   :config
   (setq-default
-   org-roam-directory "~/Dropbox/wiki")
+   org-roam-directory "/path/to/org-files/")
   (map!
       (:leader
         (:prefix-map ("n" . "notes")
