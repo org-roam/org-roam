@@ -30,6 +30,7 @@
 (require 'with-simulated-input)
 (require 'org-roam)
 (require 'org-roam-db)
+(require 'org-roam-utils)
 (require 'dash)
 
 (defun abs-path (file-path)
@@ -115,7 +116,7 @@
 (describe "org-roam-insert"
           (before-each
            (org-roam--test-init)
-           (org-roam--clear-cache)
+           (org-roam--db-clear)
            (org-roam-build-cache))
 
           (it "temp1 -> foo"
@@ -153,7 +154,7 @@
 (describe "rename file updates cache"
           (before-each
            (org-roam--test-init)
-           (org-roam--clear-cache)
+           (org-roam--db-clear)
            (org-roam-build-cache))
 
           (it "foo -> new_foo"
@@ -161,28 +162,28 @@
                            (abs-path "new_foo.org"))
               ;; Cache should be cleared of old file
               (expect (caar (org-roam-sql [:select (funcall count)
-                                                   :from titles
-                                                   :where (= file $s1)]
+                                           :from titles
+                                           :where (= file $s1)]
                                           (abs-path "foo.org"))) :to-be 0)
               (expect (caar (org-roam-sql [:select (funcall count)
-                                                   :from refs
-                                                   :where (= file $s1)]
+                                           :from refs
+                                           :where (= file $s1)]
                                           (abs-path "foo.org"))) :to-be 0)
               (expect (caar (org-roam-sql [:select (funcall count)
-                                                   :from file-links
-                                                   :where (= file-from $s1)]
+                                           :from file-links
+                                           :where (= file-from $s1)]
                                           (abs-path "foo.org"))) :to-be 0)
 
               ;; Cache should be updated
               (expect (org-roam-sql [:select [file-to]
-                                             :from file-links
-                                             :where (= file-from $s1)]
+                                     :from file-links
+                                     :where (= file-from $s1)]
                                     (abs-path "new_foo.org"))
                       :to-have-same-items-as
                       (list (list (abs-path "bar.org"))))
               (expect (org-roam-sql [:select [file-from]
-                                             :from file-links
-                                             :where (= file-to $s1)]
+                                     :from file-links
+                                     :where (= file-to $s1)]
                                     (abs-path "new_foo.org"))
                       :to-have-same-items-as
                       (list (list (abs-path "nested/bar.org"))))
@@ -199,28 +200,28 @@
                            (abs-path "foo with spaces.org"))
               ;; Cache should be cleared of old file
               (expect (caar (org-roam-sql [:select (funcall count)
-                                                   :from titles
-                                                   :where (= file $s1)]
+                                           :from titles
+                                           :where (= file $s1)]
                                           (abs-path "foo.org"))) :to-be 0)
               (expect (caar (org-roam-sql [:select (funcall count)
-                                                   :from refs
-                                                   :where (= file $s1)]
+                                           :from refs
+                                           :where (= file $s1)]
                                           (abs-path "foo.org"))) :to-be 0)
               (expect (caar (org-roam-sql [:select (funcall count)
-                                                   :from file-links
-                                                   :where (= file-from $s1)]
+                                           :from file-links
+                                           :where (= file-from $s1)]
                                           (abs-path "foo.org"))) :to-be 0)
 
               ;; Cache should be updated
               (expect (org-roam-sql [:select [file-to]
-                                             :from file-links
-                                             :where (= file-from $s1)]
+                                     :from file-links
+                                     :where (= file-from $s1)]
                                     (abs-path "foo with spaces.org"))
                       :to-have-same-items-as
                       (list (list (abs-path "bar.org"))))
               (expect (org-roam-sql [:select [file-from]
-                                             :from file-links
-                                             :where (= file-to $s1)]
+                                     :from file-links
+                                     :where (= file-to $s1)]
                                     (abs-path "foo with spaces.org"))
                       :to-have-same-items-as
                       (list (list (abs-path "nested/bar.org"))))
@@ -237,12 +238,12 @@
                            (abs-path "meaningful-title.org"))
               ;; File has no forward links
               (expect (caar (org-roam-sql [:select (funcall count)
-                                                   :from file-links
-                                                   :where (= file-from $s1)]
+                                           :from file-links
+                                           :where (= file-from $s1)]
                                           (abs-path "no-title.org"))) :to-be 0)
               (expect (caar (org-roam-sql [:select (funcall count)
-                                                   :from file-links
-                                                   :where (= file-from $s1)]
+                                           :from file-links
+                                           :where (= file-from $s1)]
                                           (abs-path "meaningful-title.org"))) :to-be 1)
 
               ;; Links are updated with the appropriate name
@@ -255,7 +256,7 @@
           (it "web_ref -> hello"
               (expect (org-roam-sql
                        [:select [file] :from refs
-                                :where (= ref $s1)]
+                        :where (= ref $s1)]
                        "https://google.com/")
                       :to-equal
                       (list (list (abs-path "web_ref.org"))))
@@ -263,35 +264,35 @@
                            (abs-path "hello.org"))
               (expect (org-roam-sql
                        [:select [file] :from refs
-                                :where (= ref $s1)]
+                        :where (= ref $s1)]
                        "https://google.com/")
                       :to-equal (list (list (abs-path "hello.org"))))
               (expect (caar (org-roam-sql
                              [:select [ref] :from refs
-                                      :where (= file $s1)]
+                              :where (= file $s1)]
                              (abs-path "web_ref.org")))
                       :to-equal nil)))
 
 (describe "delete file updates cache"
           (before-each
            (org-roam--test-init)
-           (org-roam--clear-cache)
+           (org-roam--db-clear)
            (org-roam-build-cache)
            (sleep-for 1))
 
           (it "delete foo"
               (delete-file (abs-path "foo.org"))
               (expect (caar (org-roam-sql [:select (funcall count)
-                                                   :from titles
-                                                   :where (= file $s1)]
+                                           :from titles
+                                           :where (= file $s1)]
                                           (abs-path "foo.org"))) :to-be 0)
               (expect (caar (org-roam-sql [:select (funcall count)
-                                                   :from refs
-                                                   :where (= file $s1)]
+                                           :from refs
+                                           :where (= file $s1)]
                                           (abs-path "foo.org"))) :to-be 0)
               (expect (caar (org-roam-sql [:select (funcall count)
-                                                   :from file-links
-                                                   :where (= file-from $s1)]
+                                           :from file-links
+                                           :where (= file-from $s1)]
                                           (abs-path "foo.org"))) :to-be 0))
 
           (it "delete web_ref"

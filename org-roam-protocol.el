@@ -53,9 +53,21 @@ This function detects an file, and opens it.
       (org-roam-find-ref decoded-alist)))
   nil)
 
-(setq org-protocol-protocol-alist
-      (cons '("org-roam-ref"  :protocol "roam-ref"   :function org-roam-protocol-open-ref)
-            org-protocol-protocol-alist))
+(defun org-roam-protocol-open-file (info)
+  "Process an org-protocol://roam-ref?ref= style url with INFO.
+
+  Example protocol string:
+
+org-protocol://roam-file?file=/path/to/file.org"
+  (when-let ((file (plist-get info :file)))
+    (raise-frame)
+    (find-file file))
+  nil)
+
+(push '("org-roam-ref"  :protocol "roam-ref"   :function org-roam-protocol-open-ref)
+      org-protocol-protocol-alist)
+(push '("org-roam-file"  :protocol "roam-file"   :function org-roam-protocol-open-file)
+      org-protocol-protocol-alist)
 
 (provide 'org-roam-protocol)
 
