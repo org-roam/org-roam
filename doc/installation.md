@@ -88,3 +88,28 @@ If you are using Spacemacs, you can easily install org-roam by creating a simple
 ```
 
 Next, append `org-roam` to the `dotspacemacs-configuration-layers` list in your `.spacemacs` configuration file. Reload (`SPC f e R`) or restart Emacs to load `org-roam`. It's functions are available under the prefix `SPC a r` and `, r` when visiting an org-mode buffer. 
+
+## Doom Emacs
+
+If you are using [Doom Emacs](https://github.com/hlissner/doom-emacs), configure packages as explained in the [getting started](https://github.com/hlissner/doom-emacs/blob/develop/docs/getting_started.org#configuring-packages) guide. 
+
+Declare org-roam as a package in your `~/.doom.d/packages.el`:
+
+```elisp
+;; ~/.doom.d/packages.el
+
+(package! org-roam
+  :recipe (:host github :repo "jethrokuan/org-roam" :branch "develop"))
+```
+
+Subsequently, in your `~/.doom.d/config.el` file, configure org-roam
+
+```elisp
+;; ~/.doom.d/config.el
+(use-package! org-roam
+  :hook (after-init . org-roam-mode)
+  :config
+  (setq-default
+   org-roam-directory "~/<path>/<to>/<roam_directory>"
+   org-roam-link-title-format "%sº" ;; appends a  `º` to each Roam link.
+  (org-roam-build-cache))
