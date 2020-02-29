@@ -851,6 +851,7 @@ If ARG is `toggle', toggle `org-roam-mode'. Otherwise, behave as if called inter
   :global t
   (cond
    (org-roam-mode
+    (org-roam-build-cache)
     (add-hook 'find-file-hook #'org-roam--find-file-hook-function)
     (add-hook 'kill-emacs-hook #'org-roam--db-close-all)
     (advice-add 'rename-file :after #'org-roam--rename-file-advice)
