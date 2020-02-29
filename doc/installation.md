@@ -102,7 +102,7 @@ Declare org-roam as a package in your `~/.doom.d/packages.el`:
   :recipe (:host github :repo "jethrokuan/org-roam" :branch "develop"))
 ```
 
-Subsequently, in your `~/.doom.d/config.el` file, configure org-roam
+Subsequently, in your `~/.doom.d/config.el` file, configure org-roam:
 
 ```elisp
 ;; ~/.doom.d/config.el
