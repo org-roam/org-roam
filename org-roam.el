@@ -881,12 +881,15 @@ If ARG is `toggle', toggle `org-roam-mode'. Otherwise, behave as if called inter
   (cond
    (org-roam-mode
     (add-hook 'find-file-hook #'org-roam--find-file-hook-function)
+    (add-hook 'kill-emacs-hook #'org-roam--db-close-all)
     (advice-add 'rename-file :after #'org-roam--rename-file-advice)
     (advice-add 'delete-file :before #'org-roam--delete-file-advice))
    (t
     (remove-hook 'find-file-hook #'org-roam--find-file-hook-function)
+    (remove-hook 'kill-emacs-hook #'org-roam--db-close-all)
     (advice-remove 'rename-file #'org-roam--rename-file-advice)
     (advice-remove 'delete-file #'org-roam--delete-file-advice)
+    (org-roam--db-close-all)
     ;; Disable local hooks for all org-roam buffers
     (dolist (buf (org-roam--get-roam-buffers))
       (with-current-buffer buf

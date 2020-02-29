@@ -131,10 +131,15 @@ All Org files, at any level of nesting, is considered part of the Org-roam."
     ;; Do nothing now
     version))
 
-(defun org-roam--db-close ()
-  (when (and (org-roam--get-db-connection)
-             (emacsql-live-p (org-roam--get-db-connection)))
-    (emacsql-close (org-roam--get-db-connection))))
+(defun org-roam--db-close (&optional db)
+  (unless db
+    (setq db (org-roam--get-db-connection)))
+  (when (and db (emacsql-live-p db))
+    (emacsql-close db)))
+
+(defun org-roam--db-close-all ()
+  (dolist (conn (hash-table-values org-roam--db-connection))
+    (org-roam--db-close conn)))
 
 (provide 'org-roam-db)
 
