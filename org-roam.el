@@ -43,6 +43,7 @@
 (require 'cl-lib)
 (require 'org-roam-db)
 (require 'org-roam-utils)
+(require 'xml)
 
 ;;; Customizations
 (defgroup org-roam nil
@@ -697,22 +698,22 @@ into a digraph."
 	  (insert "digraph {\n")
     (let ((rows (org-roam-sql [:select [file titles] :from titles])))
       (dolist (row rows)
-        (let* ((file (car row))
+        (let* ((file (xml-escape-string (car row)))
                (title (or (caadr row)
                           (org-roam--path-to-slug file)))
                (shortened-title (s-truncate org-roam-graph-max-title-length title)))
           (insert
 		       (format "  \"%s\" [label=\"%s\", shape=%s, URL=\"org-protocol://roam-file?file=%s\", tooltip=\"%s\"];\n"
                    file
-				           shortened-title
+				           (xml-escape-string shortened-title)
 				           org-roam-graph-node-shape
 				           file
-				           title)))))
+				           (xml-escape-string title))))))
     (let ((link-rows (org-roam-sql [:select :distinct [file-to file-from] :from file-links])))
       (dolist (row link-rows)
         (insert (format "  \"%s\" -> \"%s\";\n"
-                        (car row)
-						            (cadr row)))))
+                        (xml-escape-string (car row))
+						            (xml-escape-string (cadr row))))))
 	  (insert "}")
 	  (buffer-string)))
 
