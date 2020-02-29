@@ -111,6 +111,7 @@ Subsequently, in your `~/.doom.d/config.el` file, configure org-roam:
   :config
   (setq-default
    org-roam-directory "/path/to/org-files/")
+  ;; Note bindings could clash / overwrite Doom Bindings. 
   (map!
       (:leader
         (:prefix-map ("n" . "notes")
