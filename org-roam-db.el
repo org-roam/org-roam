@@ -116,7 +116,7 @@ All Org files, at any level of nesting, is considered part of the Org-roam."
       titles])
 
     (refs
-     [(ref :not-null)
+     [(ref :unique :not-null)
       (file :not-null)])))
 
 (defun org-roam--db-init (db)
