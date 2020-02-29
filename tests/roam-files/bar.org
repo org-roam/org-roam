@@ -1,0 +1,3 @@
+#+TITLE: Bar
+
+This is file bar. Bar links to [[file:nested/bar.org][Nested Bar]].

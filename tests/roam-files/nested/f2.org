@@ -1,3 +1,0 @@
-#+TITLE: Nested File 2
-
-Link to [[file:f1.org][Nested File 1]]

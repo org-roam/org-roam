@@ -1,0 +1,8 @@
+#+TITLE: Foo
+
+This is the foo file. It contains a link to [[file:bar.org][Bar]].
+
+To make the tests more robust, here are some arbitrary links:
+
+- [[https:google.com][Google]]
+- [[mailto:foo@john.com][mail to foo]]

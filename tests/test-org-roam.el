@@ -29,6 +29,7 @@
 (require 'buttercup)
 (require 'with-simulated-input)
 (require 'org-roam)
+(require 'org-roam-db)
 (require 'dash)
 
 (defun abs-path (file-path)
@@ -42,320 +43,262 @@
 (defvar org-roam--tests-directory (file-truename (concat default-directory "tests/roam-files"))
   "Directory containing org-roam test org files.")
 
-(defvar org-roam--tests-multi (file-truename (concat default-directory "tests/roam-files-multi"))
-  "Directory containing org-roam test org files.")
-
 (defun org-roam--test-init ()
+  (org-roam--db-close)
   (let ((original-dir org-roam--tests-directory)
         (new-dir (expand-file-name (make-temp-name "org-roam") temporary-file-directory)))
     (copy-directory original-dir new-dir)
     (setq org-roam-directory new-dir)
-    (setq org-roam-mute-cache-build t))
-  (org-roam-mode +1))
-
-(defun org-roam--test-multi-init ()
-  (let ((original-dir-1 org-roam--tests-directory)
-        (original-dir-2 org-roam--tests-multi)
-        (new-dir-1 (expand-file-name (make-temp-name "org-roam") temporary-file-directory))
-        (new-dir-2 (expand-file-name (make-temp-name "org-roam") temporary-file-directory)))
-    (copy-directory original-dir-1 new-dir-1)
-    (copy-directory original-dir-2 new-dir-2)
-    (setq org-roam-directory new-dir-1)
-    (setq org-roam-directory2 new-dir-2)
-    (setq org-roam-mute-cache-build t))
-  (org-roam-mode +1))
-
-(defun org-roam--test-build-cache ()
-  "Builds the caches synchronously."
-  (let ((cache (org-roam--build-cache org-roam-directory)))
-    (let ((obj (org-roam--get-directory-cache)))
-      (oset obj initialized t)
-      (oset obj forward-links (plist-get cache :forward))
-      (oset obj backward-links (plist-get cache :backward))
-      (oset obj titles (plist-get cache :titles))
-      (oset obj refs (plist-get cache :refs)))))
+    (org-roam-mode +1)))
 
 ;;; Tests
-(describe "org-roam--build-cache-async"
+(describe "org-roam-build-cache"
           (it "initializes correctly"
-              (org-roam--clear-cache)
-              (org-roam--test-multi-init)
-              (expect (org-roam--cache-initialized-p) :to-be nil)
-              (expect (hash-table-count (org-roam--forward-links-cache)) :to-be 0)
-              (expect (hash-table-count (org-roam--backward-links-cache)) :to-be 0)
-              (expect (hash-table-count (org-roam--titles-cache)) :to-be 0)
+              (org-roam--test-init)
+              (org-roam-build-cache)
 
-              (org-roam--build-cache-async)
-              (sleep-for 3) ;; Because it's async
+              ;; Cache
+              (expect (caar (org-roam-sql [:select (funcall count) :from files])) :to-be 8)
+              (expect (caar (org-roam-sql [:select (funcall count) :from file-links])) :to-be 5)
+              (expect (caar (org-roam-sql [:select (funcall count) :from titles])) :to-be 8)
+              (expect (caar (org-roam-sql [:select (funcall count) :from titles
+                                                   :where titles :is-null])) :to-be 2)
+              (expect (caar (org-roam-sql [:select (funcall count) :from refs])) :to-be 1)
 
-              ;; Caches should be populated
-              (expect (org-roam--cache-initialized-p) :to-be t)
-              (expect (hash-table-count (org-roam--forward-links-cache)) :to-be 4)
-              (expect (hash-table-count (org-roam--backward-links-cache)) :to-be 5)
-              (expect (hash-table-count (org-roam--titles-cache)) :to-be 6)
-              (expect (hash-table-count (org-roam--refs-cache)) :to-be 1)
+              ;; TODO Test files
 
-              ;; Forward cache
-              (let ((f1 (gethash (abs-path "f1.org")
-                                 (org-roam--forward-links-cache)))
-                    (f2 (gethash (abs-path "f2.org")
-                                 (org-roam--forward-links-cache)))
-                    (nested-f1 (gethash (abs-path "nested/f1.org")
-                                        (org-roam--forward-links-cache)))
-                    (nested-f2 (gethash (abs-path "nested/f2.org")
-                                        (org-roam--forward-links-cache)))
-                    (expected-f1 (list (abs-path "nested/f1.org")
-                                       (abs-path "f2.org")))
-                    (expected-nested-f1 (list (abs-path "nested/f2.org")
-                                              (abs-path "f1.org")))
-                    (expected-nested-f2 (list (abs-path "nested/f1.org"))))
+              ;; Links -- File-from
+              (expect (caar (org-roam-sql [:select (funcall count) :from file-links
+                                                   :where (= file-from $s1)]
+                                          (abs-path "foo.org"))) :to-be 1)
+              (expect (caar (org-roam-sql [:select (funcall count) :from file-links
+                                                   :where (= file-from $s1)]
+                                          (abs-path "nested/bar.org"))) :to-be 2)
 
-                (expect f1 :to-have-same-items-as expected-f1)
-                (expect f2 :to-be nil)
-                (expect nested-f1 :to-have-same-items-as expected-nested-f1)
-                (expect nested-f2 :to-have-same-items-as expected-nested-f2))
+              ;; Links -- File-to
+              (expect (caar (org-roam-sql [:select (funcall count) :from file-links
+                                                   :where (= file-to $s1)]
+                                          (abs-path "nested/foo.org"))) :to-be 1)
+              (expect (caar (org-roam-sql [:select (funcall count) :from file-links
+                                                   :where (= file-to $s1)]
+                                          (abs-path "nested/bar.org"))) :to-be 1)
+              (expect (caar (org-roam-sql [:select (funcall count) :from file-links
+                                                   :where (= file-to $s1)]
+                                          (abs-path "unlinked.org"))) :to-be 0)
+              ;; TODO Test titles
+              (expect (org-roam-sql [:select * :from titles])
+                      :to-have-same-items-as
+                      (list (list (abs-path "alias.org")
+                                  (list "t1" "a1" "a 2"))
+                            (list (abs-path "bar.org")
+                                  (list "Bar"))
+                            (list (abs-path "foo.org")
+                                  (list "Foo"))
+                            (list (abs-path "nested/bar.org")
+                                  (list "Nested Bar"))
+                            (list (abs-path "nested/foo.org")
+                                  (list "Nested Foo"))
+                            (list (abs-path "no-title.org") nil)
+                            (list (abs-path "web_ref.org") nil)
+                            (list (abs-path "unlinked.org")
+                                  (list "Unlinked"))))
 
-              ;; Backward cache
-              (let ((f1 (hash-table-keys (gethash (abs-path "f1.org")
-                                                  (org-roam--backward-links-cache))))
-                    (f2 (hash-table-keys (gethash (abs-path "f2.org")
-                                                  (org-roam--backward-links-cache))))
-                    (nested-f1 (hash-table-keys
-                                (gethash (abs-path "nested/f1.org")
-                                         (org-roam--backward-links-cache))))
-                    (nested-f2 (hash-table-keys
-                                (gethash (abs-path "nested/f2.org")
-                                         (org-roam--backward-links-cache))))
-                    (expected-f1 (list (abs-path "nested/f1.org")))
-                    (expected-f2 (list (abs-path "f1.org")))
-                    (expected-nested-f1 (list (abs-path "nested/f2.org")
-                                              (abs-path "f1.org")))
-                    (expected-nested-f2 (list (abs-path "nested/f1.org"))))
-                (expect f1 :to-have-same-items-as expected-f1)
-                (expect f2 :to-have-same-items-as expected-f2)
-                (expect nested-f1 :to-have-same-items-as expected-nested-f1)
-                (expect nested-f2 :to-have-same-items-as expected-nested-f2))
+              (expect (org-roam-sql [:select * :from refs])
+                      :to-have-same-items-as
+                      (list (list "https://google.com/" (abs-path "web_ref.org"))))
 
-              ;; Titles Cache
-              (expect (gethash (abs-path "f1.org")
-                               (org-roam--titles-cache)) :to-equal (list "File 1"))
-              (expect (gethash (abs-path "f2.org")
-                               (org-roam--titles-cache)) :to-equal (list "File 2"))
-              (expect (gethash (abs-path "nested/f1.org")
-                               (org-roam--titles-cache)) :to-equal (list "Nested File 1"))
-              (expect (gethash (abs-path "nested/f2.org")
-                               (org-roam--titles-cache)) :to-equal (list "Nested File 2"))
-              (expect (gethash (abs-path "alias.org")
-                               (org-roam--titles-cache)) :to-equal (list "t1" "a1" "a 2"))
-              (expect (gethash (abs-path "no-title.org")
-                               (org-roam--titles-cache)) :to-be nil)
-
-              ;; Refs Cache
-              (expect (gethash "https://google.com/"
-                               (org-roam--refs-cache)) :to-equal (abs-path "web_ref.org"))
-
-              ;; Multi
-              (let ((org-roam-directory org-roam-directory2))
-                (org-roam--build-cache-async)
-                (sleep-for 3) ;; Because it's async
-
-                ;; Caches should be populated
-                (expect (org-roam--cache-initialized-p) :to-be t)
-                (expect (hash-table-count (org-roam--forward-links-cache)) :to-be 4)
-                (expect (hash-table-count (org-roam--backward-links-cache)) :to-be 5)
-                (expect (hash-table-count (org-roam--titles-cache)) :to-be 5)
-
-                ;; Forward cache
-                (let ((mf1 (gethash (abs-path "mf1.org")
-                                    (org-roam--forward-links-cache)))
-                      (mf2 (gethash (abs-path "mf2.org")
-                                    (org-roam--forward-links-cache)))
-                      (nested-mf1 (gethash (abs-path "nested/mf1.org")
-                                           (org-roam--forward-links-cache)))
-                      (nested-mf2 (gethash (abs-path "nested/mf2.org")
-                                           (org-roam--forward-links-cache)))
-                      (expected-mf1 (list (abs-path "nested/mf1.org")
-                                          (abs-path "mf2.org")))
-                      (expected-nested-mf1 (list (abs-path "nested/mf2.org")
-                                                 (abs-path "mf1.org")))
-                      (expected-nested-mf2 (list (abs-path "nested/mf1.org"))))
-
-                  (expect mf1 :to-have-same-items-as expected-mf1)
-                  (expect mf2 :to-be nil)
-                  (expect nested-mf1 :to-have-same-items-as expected-nested-mf1)
-                  (expect nested-mf2 :to-have-same-items-as expected-nested-mf2))
-
-                ;; Backward cache
-                (let ((mf1 (hash-table-keys
-                            (gethash (abs-path "mf1.org")
-                                     (org-roam--backward-links-cache))))
-                      (mf2 (hash-table-keys
-                            (gethash (abs-path "mf2.org")
-                                     (org-roam--backward-links-cache))))
-                      (nested-mf1 (hash-table-keys
-                                   (gethash (abs-path "nested/mf1.org")
-                                            (org-roam--backward-links-cache))))
-                      (nested-mf2 (hash-table-keys
-                                   (gethash (abs-path "nested/mf2.org")
-                                            (org-roam--backward-links-cache))))
-                      (expected-mf1 (list (abs-path "nested/mf1.org")))
-                      (expected-mf2 (list (abs-path "mf1.org")))
-                      (expected-nested-mf1 (list (abs-path "nested/mf2.org")
-                                                 (abs-path "mf1.org")))
-                      (expected-nested-mf2 (list (abs-path "nested/mf1.org"))))
-                  (expect mf1 :to-have-same-items-as expected-mf1)
-                  (expect mf2 :to-have-same-items-as expected-mf2)
-                  (expect nested-mf1 :to-have-same-items-as expected-nested-mf1)
-                  (expect nested-mf2 :to-have-same-items-as expected-nested-mf2))
-
-                ;; Titles Cache
-                (expect (gethash (abs-path "mf1.org")
-                                 (org-roam--titles-cache))
-                        :to-equal (list "Multi-File 1"))
-                (expect (gethash (abs-path "mf2.org")
-                                 (org-roam--titles-cache))
-                        :to-equal (list "Multi-File 2"))
-                (expect (gethash (abs-path "nested/mf1.org")
-                                 (org-roam--titles-cache))
-                        :to-equal (list "Nested Multi-File 1"))
-                (expect (gethash (abs-path "nested/mf2.org")
-                                 (org-roam--titles-cache))
-                        :to-equal (list "Nested Multi-File 2"))
-                (expect (gethash (abs-path "no-title.org")
-                                 (org-roam--titles-cache))
-                        :to-be nil))))
+              ;; Expect rebuilds to be really quick (nothing changed)
+              (expect (org-roam-build-cache)
+                      :to-equal
+                      (list :files 0 :links 0 :titles 0 :refs 0 :deleted 0))))
 
 (describe "org-roam-insert"
           (before-each
            (org-roam--test-init)
            (org-roam--clear-cache)
-           (org-roam--test-build-cache))
+           (org-roam-build-cache))
 
-          (it "temp1 -> f1"
+          (it "temp1 -> foo"
               (let ((buf (org-roam--test-find-new-file "temp1.org")))
                 (with-current-buffer buf
                   (with-simulated-input
-                   "File SPC 1 RET"
+                   "Foo RET"
                    (org-roam-insert nil))))
-              (expect (buffer-string) :to-match (regexp-quote "file:f1.org")))
+              (expect (buffer-string) :to-match (regexp-quote "file:foo.org")))
 
-          (it "temp2 -> nested/f1"
+          (it "temp2 -> nested/foo"
               (let ((buf (org-roam--test-find-new-file "temp2.org")))
                 (with-current-buffer buf
                   (with-simulated-input
-                   "Nested SPC File SPC 1 RET"
+                   "Nested SPC Foo RET"
                    (org-roam-insert nil))))
-              (expect (buffer-string) :to-match (regexp-quote "file:nested/f1.org")))
+              (expect (buffer-string) :to-match (regexp-quote "file:nested/foo.org")))
 
-          (it "nested/temp3 -> f1"
+          (it "nested/temp3 -> foo"
               (let ((buf (org-roam--test-find-new-file "nested/temp3.org")))
                 (with-current-buffer buf
                   (with-simulated-input
-                   "File SPC 1 RET"
+                   "Foo RET"
                    (org-roam-insert nil))))
-              (expect (buffer-string) :to-match (regexp-quote "file:../f1.org")))
+              (expect (buffer-string) :to-match (regexp-quote "file:../foo.org")))
 
-          (it "a/b/temp4 -> nested/f1"
+          (it "a/b/temp4 -> nested/foo"
               (let ((buf (org-roam--test-find-new-file "a/b/temp4.org")))
                 (with-current-buffer buf
                   (with-simulated-input
-                   "Nested SPC File SPC 1 RET"
+                   "Nested SPC Foo RET"
                    (org-roam-insert nil))))
-              (expect (buffer-string) :to-match (regexp-quote "file:../../nested/f1.org"))))
+              (expect (buffer-string) :to-match (regexp-quote "file:../../nested/foo.org"))))
 
 (describe "rename file updates cache"
           (before-each
            (org-roam--test-init)
            (org-roam--clear-cache)
-           (org-roam--test-build-cache))
+           (org-roam-build-cache))
 
-          (it "f1 -> new_f1"
-              (rename-file (abs-path "f1.org")
-                           (abs-path "new_f1.org"))
+          (it "foo -> new_foo"
+              (rename-file (abs-path "foo.org")
+                           (abs-path "new_foo.org"))
               ;; Cache should be cleared of old file
-              (expect (gethash (abs-path "f1.org") (org-roam--forward-links-cache)) :to-be nil)
-              (expect (->> (org-roam--backward-links-cache)
-                           (gethash (abs-path "nested/f1.org"))
-                           (hash-table-keys)
-                           (member (abs-path "f1.org"))) :to-be nil)
+              (expect (caar (org-roam-sql [:select (funcall count)
+                                                   :from titles
+                                                   :where (= file $s1)]
+                                          (abs-path "foo.org"))) :to-be 0)
+              (expect (caar (org-roam-sql [:select (funcall count)
+                                                   :from refs
+                                                   :where (= file $s1)]
+                                          (abs-path "foo.org"))) :to-be 0)
+              (expect (caar (org-roam-sql [:select (funcall count)
+                                                   :from file-links
+                                                   :where (= file-from $s1)]
+                                          (abs-path "foo.org"))) :to-be 0)
 
-              (expect (->> (org-roam--forward-links-cache)
-                           (gethash (abs-path "new_f1.org"))) :not :to-be nil)
-
-              (expect (->> (org-roam--forward-links-cache)
-                           (gethash (abs-path "new_f1.org"))
-                           (member (abs-path "nested/f1.org"))) :not :to-be nil)
+              ;; Cache should be updated
+              (expect (org-roam-sql [:select [file-to]
+                                             :from file-links
+                                             :where (= file-from $s1)]
+                                    (abs-path "new_foo.org"))
+                      :to-have-same-items-as
+                      (list (list (abs-path "bar.org"))))
+              (expect (org-roam-sql [:select [file-from]
+                                             :from file-links
+                                             :where (= file-to $s1)]
+                                    (abs-path "new_foo.org"))
+                      :to-have-same-items-as
+                      (list (list (abs-path "nested/bar.org"))))
 
               ;; Links are updated
               (expect (with-temp-buffer
-                        (insert-file-contents (abs-path "nested/f1.org"))
-                        (buffer-string)) :to-match (regexp-quote "[[file:../new_f1.org][File 1]]")))
+                        (insert-file-contents (abs-path "nested/bar.org"))
+                        (buffer-string))
+                      :to-match
+                      (regexp-quote "[[file:../new_foo.org][Foo]]")))
 
-          (it "f1 -> f1 with spaces"
-              (rename-file (abs-path "f1.org")
-                           (abs-path "f1 with spaces.org"))
+          (it "foo -> foo with spaces"
+              (rename-file (abs-path "foo.org")
+                           (abs-path "foo with spaces.org"))
               ;; Cache should be cleared of old file
-              (expect (gethash (abs-path "f1.org")  (org-roam--forward-links-cache)) :to-be nil)
-              (expect (->> (org-roam--backward-links-cache)
-                           (gethash (abs-path "nested/f1.org"))
-                           (hash-table-keys)
-                           (member (abs-path "f1.org"))) :to-be nil)
+              (expect (caar (org-roam-sql [:select (funcall count)
+                                                   :from titles
+                                                   :where (= file $s1)]
+                                          (abs-path "foo.org"))) :to-be 0)
+              (expect (caar (org-roam-sql [:select (funcall count)
+                                                   :from refs
+                                                   :where (= file $s1)]
+                                          (abs-path "foo.org"))) :to-be 0)
+              (expect (caar (org-roam-sql [:select (funcall count)
+                                                   :from file-links
+                                                   :where (= file-from $s1)]
+                                          (abs-path "foo.org"))) :to-be 0)
+
+              ;; Cache should be updated
+              (expect (org-roam-sql [:select [file-to]
+                                             :from file-links
+                                             :where (= file-from $s1)]
+                                    (abs-path "foo with spaces.org"))
+                      :to-have-same-items-as
+                      (list (list (abs-path "bar.org"))))
+              (expect (org-roam-sql [:select [file-from]
+                                             :from file-links
+                                             :where (= file-to $s1)]
+                                    (abs-path "foo with spaces.org"))
+                      :to-have-same-items-as
+                      (list (list (abs-path "nested/bar.org"))))
+
               ;; Links are updated
               (expect (with-temp-buffer
-                        (insert-file-contents (abs-path "nested/f1.org"))
-                        (buffer-string)) :to-match (regexp-quote "[[file:../f1 with spaces.org][File 1]]")))
+                        (insert-file-contents (abs-path "nested/bar.org"))
+                        (buffer-string))
+                      :to-match
+                      (regexp-quote "[[file:../foo with spaces.org][Foo]]")))
 
           (it "no-title -> meaningful-title"
               (rename-file (abs-path "no-title.org")
                            (abs-path "meaningful-title.org"))
               ;; File has no forward links
-              (expect (gethash (abs-path "no-title.org")  (org-roam--forward-links-cache)) :to-be nil)
-              (expect (gethash (abs-path "meaningful-title.org")
-                               (org-roam--forward-links-cache)) :to-be nil)
-
-              (expect (->> (org-roam--forward-links-cache)
-                           (gethash (abs-path "f3.org"))
-                           (member (abs-path "no-title.org"))) :to-be nil)
-
-              (expect (->> (org-roam--forward-links-cache)
-                           (gethash (abs-path "f3.org"))
-                           (member (abs-path "meaningful-title.org"))) :not :to-be nil)
+              (expect (caar (org-roam-sql [:select (funcall count)
+                                                   :from file-links
+                                                   :where (= file-from $s1)]
+                                          (abs-path "no-title.org"))) :to-be 0)
+              (expect (caar (org-roam-sql [:select (funcall count)
+                                                   :from file-links
+                                                   :where (= file-from $s1)]
+                                          (abs-path "meaningful-title.org"))) :to-be 1)
 
               ;; Links are updated with the appropriate name
               (expect (with-temp-buffer
-                        (insert-file-contents (abs-path "f3.org"))
-                        (buffer-string)) :to-match (regexp-quote "[[file:meaningful-title.org][meaningful-title]]")))
+                        (insert-file-contents (abs-path "meaningful-title.org"))
+                        (buffer-string))
+                      :to-match
+                      (regexp-quote "[[file:meaningful-title.org][meaningful-title]]")))
 
           (it "web_ref -> hello"
-              (expect (->> (org-roam--refs-cache)
-                           (gethash "https://google.com/"))
-                      :to-equal (abs-path "web_ref.org"))
+              (expect (org-roam-sql
+                       [:select [file] :from refs
+                                :where (= ref $s1)]
+                       "https://google.com/")
+                      :to-equal
+                      (list (list (abs-path "web_ref.org"))))
               (rename-file (abs-path "web_ref.org")
                            (abs-path "hello.org"))
-              (expect (->> (org-roam--refs-cache)
-                           (gethash "https://google.com/"))
-                      :to-equal (abs-path "hello.org"))))
+              (expect (org-roam-sql
+                       [:select [file] :from refs
+                                :where (= ref $s1)]
+                       "https://google.com/")
+                      :to-equal (list (list (abs-path "hello.org"))))
+              (expect (caar (org-roam-sql
+                             [:select [ref] :from refs
+                                      :where (= file $s1)]
+                             (abs-path "web_ref.org")))
+                      :to-equal nil)))
 
 (describe "delete file updates cache"
           (before-each
            (org-roam--test-init)
            (org-roam--clear-cache)
-           (org-roam--test-build-cache))
-          (it "delete f1"
-              (delete-file (abs-path "f1.org"))
-              (expect (->> (org-roam--forward-links-cache)
-                           (gethash (abs-path "f1.org"))) :to-be nil)
-              (expect (->> (org-roam--backward-links-cache)
-                           (gethash (abs-path "nested/f1.org"))
-                           (gethash (abs-path "f1.org"))) :to-be nil)
-              (expect (->> (org-roam--backward-links-cache)
-                           (gethash (abs-path "nested/f1.org"))
-                           (gethash (abs-path "nested/f2.org"))) :not :to-be nil))
+           (org-roam-build-cache)
+           (sleep-for 1))
+
+          (it "delete foo"
+              (delete-file (abs-path "foo.org"))
+              (expect (caar (org-roam-sql [:select (funcall count)
+                                                   :from titles
+                                                   :where (= file $s1)]
+                                          (abs-path "foo.org"))) :to-be 0)
+              (expect (caar (org-roam-sql [:select (funcall count)
+                                                   :from refs
+                                                   :where (= file $s1)]
+                                          (abs-path "foo.org"))) :to-be 0)
+              (expect (caar (org-roam-sql [:select (funcall count)
+                                                   :from file-links
+                                                   :where (= file-from $s1)]
+                                          (abs-path "foo.org"))) :to-be 0))
+
           (it "delete web_ref"
-              (expect (->> (org-roam--refs-cache)
-                           (gethash "https://google.com/"))
-                      :to-equal (abs-path "web_ref.org"))
+              (expect (org-roam-sql [:select * :from refs])
+                      :to-have-same-items-as
+                      (list (list "https://google.com/" (abs-path "web_ref.org"))))
               (delete-file (abs-path "web_ref.org"))
-              (expect (->> (org-roam--refs-cache)
-                           (gethash "https://google.com/"))
-                      :to-be nil)))
+              (expect (org-roam-sql [:select * :from refs])
+                      :to-have-same-items-as
+                      (list))))

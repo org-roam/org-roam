@@ -1,3 +1,0 @@
-#+TITLE: Nested Multi-File 2
-
-Link to [[file:mf1.org][Nested Multi-File 1]]

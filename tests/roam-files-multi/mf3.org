@@ -1,5 +1,0 @@
-#+TITLE: Multi-File 3
-
-This file has a link to an file with no title.
-
-[[file:multi-no-title.org][multi-no-title]]

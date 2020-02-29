@@ -28,10 +28,9 @@ As of February 2020, it is in a very early stage of development.
 
 Here's a screenshot of `org-roam`. The `org-roam` buffer shows
 backlinks for the active org buffer in the left window, as well as the
-surrounding content in the backlink file. The backlink database is
-built asynchronously in the background, and is not noticeable to the
-end user. The graph is generated from the link structure, and can be
-used to navigate to the respective files.
+surrounding content in the backlink file. The database is built once,
+and updated incrementally. The graph is generated from the link
+structure, and can be used to navigate to the respective files.
 
 ![img](doc/images/org-roam-graph.gif)
 

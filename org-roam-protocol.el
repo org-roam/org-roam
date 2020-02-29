@@ -2,10 +2,6 @@
 
 ;; Copyright © 2020 Jethro Kuan <jethrokuan95@gmail.com>
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
-;; URL: https://github.com/jethrokuan/org-roam
-;; Keywords: org-mode, roam, convenience
-;; Version: 0.1.2
-;; Package-Requires: ((emacs "26.1") (org "9.0"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -71,8 +67,7 @@ If the function returns nil, the filename is removed from the
 list of filenames passed from emacsclient to the server. If the
 function returns a non-nil value, that value is passed to the
 server as filename."
-  (let ((the-protocol (concat (regexp-quote org-roam-protocol-the-protocol)
-				                      ":")))
+  (let ((the-protocol (concat (regexp-quote org-roam-protocol-the-protocol) ":")))
     (when (string-match the-protocol fname)
       (cadr (split-string fname the-protocol)))))
 

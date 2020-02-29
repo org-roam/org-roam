@@ -1,5 +1,0 @@
-#+TITLE: File 3
-
-This file has a link to an file with no title.
-
-[[file:no-title.org][no-title]]
