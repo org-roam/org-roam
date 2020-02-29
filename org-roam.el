@@ -351,7 +351,6 @@ It uses TITLE and the current timestamp to form a unique title."
       (cadr (assoc (completing-read "Template: " org-roam-templates)
                    org-roam-templates)))))
 
-
 (defun org-roam--make-new-file (&optional info)
   (let ((template (org-roam--get-template (cdr (assoc 'template info))))
         (title (or (cdr (assoc 'title info))
@@ -359,16 +358,16 @@ It uses TITLE and the current timestamp to form a unique title."
         file-name-fn file-path)
     (fset 'file-name-fn (plist-get template :file))
     (setq file-path (org-roam--new-file-path (file-name-fn title) t))
-    (setq info (cons (cons 'slug (org-roam--title-to-slug title)) info))
-    (if (file-exists-p file-path)
-        file-path
+    (push (cons 'slug (org-roam--title-to-slug title)) info)
+    (unless (file-exists-p file-path)
       (org-roam--touch-file file-path)
       (write-region
        (s-format (plist-get template :content)
                  'aget
                  info)
-       nil file-path nil)
-      file-path)))
+       nil file-path nil))
+    (org-roam--db-update-file file-path)
+    file-path))
 
 ;;; Inserting org-roam links
 (defun org-roam-insert (prefix)
@@ -553,13 +552,18 @@ INFO is an alist containing additional information."
     (when-let ((links (org-roam--extract-links)))
       (org-roam--db-insert-links links))))
 
-(defun org-roam--db-update-buffer-file ()
-  "Update org-roam caches for the current buffer file."
-  (save-excursion
-    (org-roam--db-update-titles)
-    (org-roam--db-update-refs)
-    (org-roam--update-cache-links)
-    (org-roam--maybe-update-buffer :redisplay t)))
+(defun org-roam--db-update-file (&optional file-path)
+  "Update org-roam caches for the FILE-PATH."
+  (let (buf)
+    (if file-path
+        (setq buf (find-file-noselect file-path))
+      (setq buf (current-buffer)))
+    (with-current-buffer buf
+      (save-excursion
+        (org-roam--db-update-titles)
+        (org-roam--db-update-refs)
+        (org-roam--update-cache-links)
+        (org-roam--maybe-update-buffer :redisplay t)))))
 
 ;;; Org-roam daily notes
 (defun org-roam--file-for-time (time)
@@ -766,7 +770,7 @@ Applies `org-roam-link-face' if PATH correponds to a Roam file."
   (when (org-roam--org-roam-file-p)
     (setq org-roam-last-window (get-buffer-window))
     (add-hook 'post-command-hook #'org-roam--maybe-update-buffer nil t)
-    (add-hook 'after-save-hook #'org-roam--db-update-buffer-file nil t)
+    (add-hook 'after-save-hook #'org-roam--db-update-file nil t)
     (org-roam--setup-file-links)
     (org-roam--maybe-update-buffer :redisplay nil)))
 
@@ -828,12 +832,8 @@ This sets `file:' Org links to have the org-link face."
             (goto-char (point-min))
             (while (re-search-forward named-regex nil t)
               (replace-match (format "[[file:%s][\\1]]" relative-path))))
-          (save-window-excursion
-            (find-file file-from)
-            (org-roam--db-update-buffer-file))))
-      (save-window-excursion
-        (find-file new-path)
-        (org-roam--db-update-buffer-file)))))
+          (org-roam--db-update-file file-from)))
+      (org-roam--db-update-file new-path))))
 
 ;;;###autoload
 (define-minor-mode org-roam-mode
@@ -866,7 +866,7 @@ If ARG is `toggle', toggle `org-roam-mode'. Otherwise, behave as if called inter
       (with-current-buffer buf
         (org-roam--teardown-file-links)
         (remove-hook 'post-command-hook #'org-roam--maybe-update-buffer t)
-        (remove-hook 'after-save-hook #'org-roam--db-update-buffer-file t))))))
+        (remove-hook 'after-save-hook #'org-roam--db-update-file t))))))
 
 ;;; Show/hide the org-roam buffer
 (define-inline org-roam--current-visibility ()
