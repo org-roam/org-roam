@@ -12,7 +12,7 @@ nav:
 - Ecosystem: ecosystem.md
 - Similar Packages: comparison.md
 - "Appendix: Note-taking Workflow": notetaking_workflow.md
-- "Appendix: Graph Setup": graph_setup.md
+- "Appendix: Roam Protocol": roam_protocol.md
 markdown_extensions:
   - admonition
   - pymdownx.betterem:
