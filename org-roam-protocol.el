@@ -67,7 +67,7 @@ If the function returns nil, the filename is removed from the
 list of filenames passed from emacsclient to the server. If the
 function returns a non-nil value, that value is passed to the
 server as filename."
-  (let ((the-protocol (concat (regexp-quote org-roam-protocol-the-protocol) ":")))
+  (let ((the-protocol (concat "^" (regexp-quote org-roam-protocol-the-protocol) ":")))
     (when (string-match the-protocol fname)
       (cadr (split-string fname the-protocol)))))
 
