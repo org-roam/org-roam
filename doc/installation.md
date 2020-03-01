@@ -107,15 +107,14 @@ Subsequently, in your `~/.doom.d/config.el` file, configure org-roam:
 ```elisp
 ;; ~/.doom.d/config.el
 (use-package! org-roam
-  :hook (after-init . org-roam-mode)
+  :commands (org-roam-insert org-roam-find-file org-roam)
+  :init 
+  (setq org-roam-directory "/path/to/org-files/")
+  (map! :leader 
+        :prefix "n"
+        :desc "Org-Roam-Insert" "i" #'org-roam-insert
+        :desc "Org-Roam-Find"   "/" #'org-roam-find-file
+        :desc "Org-Roam-Buffer" "r" #'org-roam)
   :config
-  (setq-default
-   org-roam-directory "/path/to/org-files/")
-  ;; Note bindings could clash / overwrite Doom Bindings. 
-  (map!
-      (:leader
-        (:prefix-map ("n" . "notes")
-          :desc "Org-Roam-Insert"              "i" #'org-roam-insert
-          :desc "Org-Roam-Find"                "/" #'org-roam-find-file
-          :desc "Org-Roam-Buffer"              "r" #'org-roam))))
+  (org-roam-mode +1))
 ```
