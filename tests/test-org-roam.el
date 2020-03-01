@@ -29,8 +29,6 @@
 (require 'buttercup)
 (require 'with-simulated-input)
 (require 'org-roam)
-(require 'org-roam-db)
-(require 'org-roam-utils)
 (require 'dash)
 
 (defun abs-path (file-path)
