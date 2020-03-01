@@ -773,6 +773,12 @@ INFO is an alist containing additional information."
   (let ((path (org-roam--file-for-time (time-add 86400 (current-time)))))
     (org-roam--find-file path)))
 
+(defun org-roam-yesterday ()
+  "Create and find the file for yesterday."
+  (interactive)
+  (let ((path (org-roam--file-for-time (time-add -86400 (current-time)))))
+    (org-roam--find-file path)))
+
 (defun org-roam-date ()
   "Create the file for any date using the calendar."
   (interactive)
