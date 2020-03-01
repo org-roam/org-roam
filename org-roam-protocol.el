@@ -28,7 +28,9 @@
 ;;; Code:
 
 (require 'org-protocol)
-(require 'org-roam-utils)
+(require 'org-roam)
+
+(declare-function org-roam-find-ref "org-roam" (&optional info))
 
 (defun org-roam-protocol-open-ref (info)
   "Process an org-protocol://roam-ref?ref= style url with INFO.
