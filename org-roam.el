@@ -36,6 +36,7 @@
 ;;;; Library Requires
 (require 'org)
 (require 'org-element)
+(require 'org-capture)
 (require 'ob-core)  ;for org-babel-parse-header-arguments
 (require 'subr-x)
 (require 'dash)
@@ -635,7 +636,8 @@ E.g. ('title . \"New Title\")")
   '(("d" "default" plain (function org-roam--capture-get-point)
      "%?"
      :file-name "%<%Y%m%d%H%M%S>-${slug}"
-     :head "#+TITLE: ${title}\n"))
+     :head "#+TITLE: ${title}\n"
+     :unnarrowed t))
   "Capture templates for org-roam.")
 
 (defun org-roam--fill-template (str &optional info)
