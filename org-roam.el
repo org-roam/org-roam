@@ -648,52 +648,55 @@ E.g. ('title . \"New Title\")")
                       (completing-read (format "%s: " key ) nil))) nil)
       (org-capture-fill-template)))
 
-(defun org-roam--new-file-maybe (file-path)
-  "Creates a new file, if it doesn't yet exist."
-  (unless (file-exists-p file-path)
+(defun org-roam--capture-new-file ()
+  "Creates a new file, by reading the file-name attribute of the
+currently active org-roam template. Returns the path to the new file."
+  (let* ((name-templ (or (org-capture-get :file-name)
+                         org-roam--capture-file-name-default))
+         (new-id (s-trim (org-roam--fill-template
+                          name-templ
+                          org-roam--capture-info)))
+         (file-path (org-roam--new-file-path new-id)))
     (org-roam--touch-file file-path)
     (write-region
      (org-roam--fill-template (or (org-capture-get :head)
                                   org-roam--capture-header-default)
                               org-roam--capture-info)
-     nil file-path nil)))
+     nil file-path nil)
+    (sleep-for 0.2)  ;; Hack: expand-file-name stringp nil error sporadically otherwise
+    file-path))
 
 (defun org-roam--capture-get-point ()
   "Returns exact point to file for org-capture-template.
-This function reads."
+The file to use is dependent on the context:
+
+If the search is via title, it is assumed that the file does not
+yet exist, and org-roam will attempt to create new file.
+
+If the search is via ref, it is matched against the Org-roam database.
+If there is no file with that ref, a file with that ref is created."
   (pcase org-roam--capture-context
-    (`(title . ,title)
-     (let* ((name-templ (or (org-capture-get :file-name)
-                            org-roam--capture-file-name-default))
-            (new-id (s-trim (org-roam--fill-template
-                             name-templ
-                             org-roam--capture-info)))
-            (file-path (org-roam--new-file-path new-id)))
+    ('title
+     (let ((file-path (org-roam--capture-new-file-maybe)))
        (setq org-roam--capture-file-path file-path)
-       (org-roam--new-file-maybe file-path)
-       (sleep-for 0.2) ;; Hack: expand-file-name stringp nil error sporadically otherwise
        (set-buffer (org-capture-target-buffer file-path))
        (widen)
        (goto-char (point-max))))
-    (`(ref . ,ref)
+    ('ref
      (let* ((completions (org-roam--get-ref-path-completions))
             (ref (cdr (assoc 'ref org-roam--capture-info)))
-            (file-path (cdr (assoc ref completions))))
-       (unless file-path
-         (let* ((name-templ (or (org-capture-get :file-name)
-                                org-roam--capture-file-name-default))
-                (new-id (s-trim (org-roam--fill-template
-                                 name-templ
-                                 org-roam--capture-info))))
-           (setq file-path (org-roam--new-file-path new-id))))
+            (file-path (or (cdr (assoc ref completions))
+                           (org-roam--capture-new-file-maybe))))
        (setq org-roam--capture-file-path file-path)
-       (org-roam--new-file-maybe file-path)
        (set-buffer (org-capture-target-buffer file-path))
        (widen)
        (goto-char (point-max))))
-    (_ (error "org-roam-capture-context invalid."))))
+    (_ (error "Invalid org-roam-capture-context."))))
 
 (defun org-roam-capture (&optional goto keys)
+  "Create a new file using an Org-roam template, and returns the
+path to the edited file. The templates are defined at
+`org-roam-capture-templates'."
   (interactive "P")
   (let ((org-capture-templates org-roam-capture-templates)
         file-path)
@@ -706,7 +709,8 @@ This function reads."
 
 ;;; Interactive Commands
 ;;;; org-roam-insert
-(defvar org-roam--capture-insert-point nil)
+(defvar org-roam--capture-insert-point nil
+  "The point to jump to after the call to `org-roam-insert'.")
 
 (defun org-roam-insert (prefix)
   "Find an org-roam file, and insert a relative org link to it at point.
@@ -733,7 +737,7 @@ If PREFIX, downcase the title before insertion."
                  (file-exists-p target-file-path))
       (let* ((org-roam--capture-info (list (cons 'title title)
                                            (cons 'slug (org-roam--title-to-slug title))))
-             (org-roam--capture-context (cons 'title title)))
+             (org-roam--capture-context 'title))
         (setq target-file-path (org-roam-capture))))
     (with-current-buffer buf
       (when region ;; Remove previously selected text.
@@ -785,7 +789,7 @@ point moves some characters forward. This is added as a hook to
         (find-file file-path)
       (let* ((org-roam--capture-info (list (cons 'title title)
                                            (cons 'slug (org-roam--title-to-slug title))))
-             (org-roam--capture-context (cons 'title title)))
+             (org-roam--capture-context 'title))
         (org-roam-capture '(4))))))
 
 ;;;; org-roam-find-ref
@@ -837,7 +841,7 @@ INFO is an alist containing additional information."
                                                  :immediate-finish t
                                                  :file-name "${title}"
                                                  :head "#+TITLE: ${title}")))
-         (org-roam--capture-context (cons 'title title))
+         (org-roam--capture-context 'title)
          (org-roam--capture-info (list (cons 'title title))))
     (org-roam-capture)))
 

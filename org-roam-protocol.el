@@ -47,10 +47,9 @@
 The sub-protocol used to reach this function is set in
 `org-protocol-protocol-alist'.
 
-This function decodes a ref, and places it into
-This function detects an file, and opens it.
+This function decodes a ref.
 
-  javascript:location.href = \\='org-protocol://roam-ref?ref=\\='+ \\
+  javascript:location.href = \\='org-protocol://roam-ref?template=rref=\\='+ \\
         encodeURIComponent(location.href) + \\='&title=\\=' \\
         encodeURIComponent(document.title) + \\='&body=\\=' + \\
         encodeURIComponent(window.getSelection())"
@@ -59,10 +58,11 @@ This function detects an file, and opens it.
                                        (let ((key (car k.v))
                                              (val (cdr k.v)))
                                          (cons key (org-link-decode val)))) alist)))
-    (let* ((ref (assoc 'ref decoded-alist))
-           (template (cdr (assoc 'template decoded-alist)))
+    (unless (assoc 'ref decoded-alist)
+      (error "No ref key provided."))
+    (let* ((template (cdr (assoc 'template decoded-alist)))
            (org-roam-capture-templates org-roam-ref-capture-templates)
-           (org-roam--capture-context ref)
+           (org-roam--capture-context 'ref)
            (org-roam--capture-info decoded-alist))
       (raise-frame)
       (org-roam-capture nil template)
@@ -70,7 +70,7 @@ This function detects an file, and opens it.
   nil)
 
 (defun org-roam-protocol-open-file (info)
-  "Process an org-protocol://roam-ref?ref= style url with INFO.
+  "This handler simply opens the file with emacsclient.
 
   Example protocol string:
 
