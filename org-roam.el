@@ -669,6 +669,7 @@ This function reads."
             (file-path (org-roam--new-file-path new-id)))
        (setq org-roam--capture-file-path file-path)
        (org-roam--new-file-maybe file-path)
+       (sleep-for 0.2) ;; Hack: expand-file-name stringp nil error sporadically otherwise
        (set-buffer (org-capture-target-buffer file-path))
        (widen)
        (goto-char (point-max))))
