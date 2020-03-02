@@ -49,7 +49,7 @@ The sub-protocol used to reach this function is set in
 
 This function decodes a ref.
 
-  javascript:location.href = \\='org-protocol://roam-ref?template=rref=\\='+ \\
+  javascript:location.href = \\='org-protocol://roam-ref?template=r&ref=\\='+ \\
         encodeURIComponent(location.href) + \\='&title=\\=' \\
         encodeURIComponent(document.title) + \\='&body=\\=' + \\
         encodeURIComponent(window.getSelection())"
