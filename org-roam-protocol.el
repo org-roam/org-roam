@@ -31,6 +31,15 @@
 (require 'org-roam)
 
 (declare-function org-roam-find-ref "org-roam" (&optional info))
+(declare-function org-roam--capture-get-point "org-roam" ())
+
+(defvar org-roam-ref-capture-templates
+  '(("r" "ref" plain (function org-roam--capture-get-point)
+     ""
+     :file-name "${slug}"
+     :head "#+TITLE: ${title}
+#+ROAM_KEY: ${ref}\n"
+     :unnarrowed t)))
 
 (defun org-roam-protocol-open-ref (info)
   "Process an org-protocol://roam-ref?ref= style url with INFO.
@@ -50,9 +59,14 @@ This function detects an file, and opens it.
                                        (let ((key (car k.v))
                                              (val (cdr k.v)))
                                          (cons key (org-link-decode val)))) alist)))
-    (when (assoc 'ref decoded-alist)
+    (let* ((ref (assoc 'ref decoded-alist))
+           (template (cdr (assoc 'template decoded-alist)))
+           (org-roam-capture-templates org-roam-ref-capture-templates)
+           (org-roam--capture-context ref)
+           (org-roam--capture-info decoded-alist))
       (raise-frame)
-      (org-roam-find-ref decoded-alist)))
+      (org-roam-capture nil template)
+      (message "Item captured.")))
   nil)
 
 (defun org-roam-protocol-open-file (info)

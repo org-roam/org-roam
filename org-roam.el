@@ -596,21 +596,8 @@ specified via the #+ROAM_ALIAS property."
            (slug (-reduce-from #'replace title pairs)))
       (s-downcase slug))))
 
-;;;; New file creation
-(defvar org-roam-templates
-  (list (list "default" (list :file #'org-roam--file-name-timestamp-title
-                              :content "#+TITLE: ${title}")))
-  "Templates to insert for new files in org-roam.")
-
-(defun org-roam--file-name-timestamp-title (title)
-  "Return a file name (without extension) for new files.
-
-It uses TITLE and the current timestamp to form a unique title."
-  (let ((timestamp (format-time-string "%Y%m%d%H%M%S" (current-time)))
-        (slug (org-roam--title-to-slug title)))
-    (format "%s_%s" timestamp slug)))
-
-(defun org-roam--new-file-path (id &optional absolute)
+;;;; Org-roam capture
+(defun org-roam--new-file-path (id)
   "The file path for a new Org-roam file, with identifier ID.
 If ABSOLUTE, return an absolute file-path. Else, return a relative file-path."
   (let ((absolute-file-path (file-truename
@@ -620,42 +607,104 @@ If ABSOLUTE, return an absolute file-path. Else, return a relative file-path."
                                 (concat id ".org"))
                               (or org-roam-new-file-directory
                                   org-roam-directory)))))
-    (if absolute
-        absolute-file-path
-      (file-relative-name absolute-file-path
-                          (file-truename org-roam-directory)))))
+    absolute-file-path))
 
-(defun org-roam--get-template (&optional template-key)
-  "Return an Org-roam template. TEMPLATE-KEY is used to get a template."
-  (unless org-roam-templates
-    (user-error "No templates defined"))
-  (if template-key
-      (cadr (assoc template-key org-roam-templates))
-    (if (= (length org-roam-templates) 1)
-        (cadar org-roam-templates)
-      (cadr (assoc (completing-read "Template: " org-roam-templates)
-                   org-roam-templates)))))
+(defvar org-roam--capture-file-name-default "%<%Y%m%d%H%M%S>"
+  "The default file name format for org-roam templates.")
 
-(defun org-roam--make-new-file (&optional info)
-  (let ((template (org-roam--get-template (cdr (assoc 'template info))))
-        (title (or (cdr (assoc 'title info))
-                   (completing-read "Title: " nil)))
-        file-name-fn file-path)
-    (fset 'file-name-fn (plist-get template :file))
-    (setq file-path (org-roam--new-file-path (file-name-fn title) t))
-    (push (cons 'slug (org-roam--title-to-slug title)) info)
-    (unless (file-exists-p file-path)
-      (org-roam--touch-file file-path)
-      (write-region
-       (s-format (plist-get template :content)
-                 'aget
-                 info)
-       nil file-path nil))
-    (org-roam--db-update-file file-path)
+(defvar org-roam--capture-header-default "#+TITLE: ${title}\n"
+  "The default file name format for org-roam templates.")
+
+(defvar org-roam--capture-file-path nil
+  "The file path for the Org-roam capture. This variable is set
+during the Org-roam capture process.")
+
+(defvar org-roam--capture-info nil
+  "An alist of additional information passed to the org-roam
+template. This variable is populated dynamically, and is only
+non-nil during the org-roam capture process.")
+
+(defvar org-roam--capture-context nil
+  "A cons cell containing the context (search term) to get the
+exact point in a file. This variable is populated dynamically,
+and is only active during an org-roam capture process.
+
+E.g. ('title . \"New Title\")")
+
+(defvar org-roam-capture-templates
+  '(("d" "default" plain (function org-roam--capture-get-point)
+     "%?"
+     :file-name "%<%Y%m%d%H%M%S>-${slug}"
+     :head "#+TITLE: ${title}\n"))
+  "Capture templates for org-roam.")
+
+(defun org-roam--fill-template (str &optional info)
+  "Return a file name from template STR."
+  (-> str
+      (s-format (lambda (key)
+                  (or (s--aget info key)
+                      (completing-read (format "%s: " key ) nil))) nil)
+      (org-capture-fill-template)))
+
+(defun org-roam--new-file-maybe (file-path)
+  "Creates a new file, if it doesn't yet exist."
+  (unless (file-exists-p file-path)
+    (org-roam--touch-file file-path)
+    (write-region
+     (org-roam--fill-template (or (org-capture-get :head)
+                                  org-roam--capture-header-default)
+                              org-roam--capture-info)
+     nil file-path nil)))
+
+(defun org-roam--capture-get-point ()
+  "Returns exact point to file for org-capture-template.
+This function reads."
+  (pcase org-roam--capture-context
+    (`(title . ,title)
+     (let* ((name-templ (or (org-capture-get :file-name)
+                            org-roam--capture-file-name-default))
+            (new-id (s-trim (org-roam--fill-template
+                             name-templ
+                             org-roam--capture-info)))
+            (file-path (org-roam--new-file-path new-id)))
+       (setq org-roam--capture-file-path file-path)
+       (org-roam--new-file-maybe file-path)
+       (set-buffer (org-capture-target-buffer file-path))
+       (widen)
+       (goto-char (point-max))))
+    (`(ref . ,ref)
+     (let* ((completions (org-roam--get-ref-path-completions))
+            (ref (cdr (assoc 'ref org-roam--capture-info)))
+            (file-path (cdr (assoc ref completions))))
+       (unless file-path
+         (let* ((name-templ (or (org-capture-get :file-name)
+                                org-roam--capture-file-name-default))
+                (new-id (s-trim (org-roam--fill-template
+                                 name-templ
+                                 org-roam--capture-info))))
+           (setq file-path (org-roam--new-file-path new-id))))
+       (setq org-roam--capture-file-path file-path)
+       (org-roam--new-file-maybe file-path)
+       (set-buffer (org-capture-target-buffer file-path))
+       (widen)
+       (goto-char (point-max))))
+    (_ (error "org-roam-capture-context invalid."))))
+
+(defun org-roam-capture (&optional goto keys)
+  (interactive "P")
+  (let ((org-capture-templates org-roam-capture-templates)
+        file-path)
+    (when (= (length org-capture-templates) 1)
+      (setq keys (caar org-capture-templates)))
+    (org-capture goto keys)
+    (setq file-path org-roam--capture-file-path)
+    (setq org-roam--capture-file-path nil)
     file-path))
 
 ;;; Interactive Commands
 ;;;; org-roam-insert
+(defvar org-roam--capture-insert-point nil)
+
 (defun org-roam-insert (prefix)
   "Find an org-roam file, and insert a relative org link to it at point.
 If PREFIX, downcase the title before insertion."
@@ -669,22 +718,44 @@ If PREFIX, downcase the title before insertion."
          (completions (org-roam--get-title-path-completions))
          (title (completing-read "File: " completions nil nil region-text))
          (region-or-title (or region-text title))
-         (absolute-file-path (or (cdr (assoc title completions))
-                                 (org-roam--make-new-file (list (cons 'title title)))))
+         (target-file-path (cdr (assoc title completions)))
          (current-file-path (-> (or (buffer-base-buffer)
                                     (current-buffer))
                                 (buffer-file-name)
                                 (file-truename)
-                                (file-name-directory))))
-    (when region ;; Remove previously selected text.
-      (goto-char (car region))
-      (delete-char (- (cdr region) (car region))))
-    (insert (format "[[%s][%s]]"
-                    (concat "file:" (file-relative-name absolute-file-path
-                                                        current-file-path))
-                    (format org-roam-link-title-format (if prefix
-                                                           (downcase region-or-title)
-                                                         region-or-title))))))
+                                (file-name-directory)))
+         (buf (current-buffer))
+         (p (point-marker)))
+    (unless (and target-file-path
+                 (file-exists-p target-file-path))
+      (let* ((org-roam--capture-info (list (cons 'title title)
+                                           (cons 'slug (org-roam--title-to-slug title))))
+             (org-roam--capture-context (cons 'title title)))
+        (setq target-file-path (org-roam-capture))))
+    (with-current-buffer buf
+      (when region ;; Remove previously selected text.
+        (delete-region (car region) (cdr region)))
+      (let ((link-location (concat "file:" (file-relative-name target-file-path current-file-path)))
+            (description (format org-roam-link-title-format (if prefix
+                                                                (downcase region-or-title)
+                                                              region-or-title))))
+        (goto-char p)
+        (insert (format "[[%s][%s]]"
+                        link-location
+                        description))
+        (setq org-roam--capture-insert-point (point))))))
+
+(defun org-roam--capture-advance-point ()
+  "Advances the point if it is updated.
+We need this function because typically org-capture prevents the
+point from being advanced, whereas when a link is inserted, the
+point moves some characters forward. This is added as a hook to
+`org-capture-after-finalize-hook'."
+  (when org-roam--capture-insert-point
+    (goto-char org-roam--capture-insert-point)
+    (setq org-roam--capture-insert-point nil)))
+
+(add-hook 'org-capture-after-finalize-hook #'org-roam--capture-advance-point)
 
 ;;;; org-roam-find-file
 (defun org-roam--get-title-path-completions ()
@@ -705,10 +776,14 @@ If PREFIX, downcase the title before insertion."
   "Find and open an org-roam file."
   (interactive)
   (let* ((completions (org-roam--get-title-path-completions))
-         (title-or-slug (completing-read "File: " completions))
-         (absolute-file-path (or (cdr (assoc title-or-slug completions))
-                                 (org-roam--make-new-file (list (cons 'title title-or-slug))))))
-    (find-file absolute-file-path)))
+         (title (completing-read "File: " completions))
+         (file-path (cdr (assoc title completions))))
+    (if file-path
+        (find-file file-path)
+      (let* ((org-roam--capture-info (list (cons 'title title)
+                                           (cons 'slug (org-roam--title-to-slug title))))
+             (org-roam--capture-context (cons 'title title)))
+        (org-roam-capture '(4))))))
 
 ;;;; org-roam-find-ref
 (defun org-roam--get-ref-path-completions ()
@@ -724,11 +799,8 @@ INFO is an alist containing additional information."
   (interactive)
   (let* ((completions (org-roam--get-ref-path-completions))
          (ref (or (cdr (assoc 'ref info))
-                  (completing-read "Ref: " (org-roam--get-ref-path-completions))))
-         (file-path (cdr (assoc ref completions))))
-    (if file-path
-        (find-file file-path)
-      (find-file (org-roam--make-new-file info)))))
+                  (completing-read "Ref: " (org-roam--get-ref-path-completions) nil t))))
+    (find-file (cdr (assoc ref completions)))))
 
 ;;;; org-roam-switch-to-buffer
 (defun org-roam--get-roam-buffers ()
@@ -756,10 +828,15 @@ INFO is an alist containing additional information."
 ;;;; Daily notes
 (defun org-roam--file-for-time (time)
   "Create and find file for TIME."
-  (let* ((org-roam-templates (list (list "daily" (list :file (lambda (title) title)
-                                                       :content "#+TITLE: ${title}")))))
-    (org-roam--make-new-file (list (cons 'title (format-time-string "%Y-%m-%d" time))
-                                   (cons 'template "daily")))))
+  (let* ((title (format-time-string "%Y-%m-%d" time))
+         (org-roam-capture-templates (list (list "d" "daily" 'plain (list 'function #'org-roam--capture-get-point)
+                                                 ""
+                                                 :immediate-finish t
+                                                 :file-name "${title}"
+                                                 :head "#+TITLE: ${title}")))
+         (org-roam--capture-context (cons 'title title))
+         (org-roam--capture-info (list (cons 'title title))))
+    (org-roam-capture)))
 
 (defun org-roam-today ()
   "Create and find file for today."
@@ -785,7 +862,6 @@ INFO is an alist containing additional information."
   (let ((time (org-read-date nil 'to-time nil "Date:  ")))
     (let ((path (org-roam--file-for-time time)))
       (org-roam--find-file path))))
-
 
 ;;; The org-roam buffer
 ;;;; org-roam-link-face
