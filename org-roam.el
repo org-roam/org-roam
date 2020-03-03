@@ -686,7 +686,7 @@ If there is no file with that ref, a file with that ref is created."
      (let* ((completions (org-roam--get-ref-path-completions))
             (ref (cdr (assoc 'ref org-roam--capture-info)))
             (file-path (or (cdr (assoc ref completions))
-                           (org-roam--capture-new-file-maybe))))
+                           (org-roam--capture-new-file))))
        (setq org-roam--capture-file-path file-path)
        (set-buffer (org-capture-target-buffer file-path))
        (widen)
