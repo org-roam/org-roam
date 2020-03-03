@@ -975,7 +975,7 @@ The file-links table is then read to obtain all directed links, and formatted
 into a digraph."
   (org-roam--db-ensure-built)
   (with-temp-buffer
-	  (insert "digraph {\n")
+	  (insert "digraph \"org-roam\" {\n")
     (let ((rows (org-roam-sql [:select [file titles] :from titles])))
       (dolist (row rows)
         (let* ((file (xml-escape-string (car row)))
