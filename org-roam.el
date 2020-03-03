@@ -70,12 +70,6 @@ All Org files, at any level of nesting, is considered part of the Org-roam."
   :type 'directory
   :group 'org-roam)
 
-(defcustom org-roam-new-file-directory nil
-  "Path to where new Org-roam files are created.
-If nil, default to the org-roam-directory (preferred)."
-  :type 'directory
-  :group 'org-roam)
-
 (defcustom org-roam-buffer-position 'right
   "Position of `org-roam' buffer.
 Valid values are
@@ -108,26 +102,6 @@ If nil, always ask for filename."
 (defcustom org-roam-encrypt-files nil
   "Whether to encrypt new files. If true, create files with .org.gpg extension."
   :type 'boolean
-  :group 'org-roam)
-
-(defcustom org-roam-graph-viewer (executable-find "firefox")
-  "Path to executable for viewing SVG."
-  :type 'string
-  :group 'org-roam)
-
-(defcustom org-roam-graphviz-executable (executable-find "dot")
-  "Path to graphviz executable."
-  :type 'string
-  :group 'org-roam)
-
-(defcustom org-roam-graph-max-title-length 100
-  "Maximum length of titles in Graphviz graph nodes."
-  :type 'number
-  :group 'org-roam)
-
-(defcustom org-roam-graph-node-shape "ellipse"
-  "Shape of Graphviz nodes."
-  :type 'string
   :group 'org-roam)
 
 ;;;; Dynamic variables
@@ -606,8 +580,7 @@ If ABSOLUTE, return an absolute file-path. Else, return a relative file-path."
                               (if org-roam-encrypt-files
                                   (concat id ".org.gpg")
                                 (concat id ".org"))
-                              (or org-roam-new-file-directory
-                                  org-roam-directory)))))
+                              org-roam-directory))))
     absolute-file-path))
 
 (defvar org-roam--capture-file-name-default "%<%Y%m%d%H%M%S>"
@@ -1051,6 +1024,28 @@ Valid states are 'visible, 'exists and 'none."
     ('none (org-roam--setup-buffer))))
 
 ;;; The graphviz links graph
+;;;; Options
+(defcustom org-roam-graph-viewer (executable-find "firefox")
+  "Path to executable for viewing SVG."
+  :type 'string
+  :group 'org-roam)
+
+(defcustom org-roam-graphviz-executable (executable-find "dot")
+  "Path to graphviz executable."
+  :type 'string
+  :group 'org-roam)
+
+(defcustom org-roam-graph-max-title-length 100
+  "Maximum length of titles in Graphviz graph nodes."
+  :type 'number
+  :group 'org-roam)
+
+(defcustom org-roam-graph-node-shape "ellipse"
+  "Shape of Graphviz nodes."
+  :type 'string
+  :group 'org-roam)
+
+;;;; Functions
 (defun org-roam--build-graph ()
   "Build the Graphviz string.
 The Org-roam database titles table is read, to obtain the list of titles.
