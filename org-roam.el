@@ -650,7 +650,7 @@ If the search is via ref, it is matched against the Org-roam database.
 If there is no file with that ref, a file with that ref is created."
   (pcase org-roam--capture-context
     ('title
-     (let ((file-path (org-roam--capture-new-file-maybe)))
+     (let ((file-path (org-roam--capture-new-file)))
        (setq org-roam--capture-file-path file-path)
        (set-buffer (org-capture-target-buffer file-path))
        (widen)
