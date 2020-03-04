@@ -1,19 +1,20 @@
 # Changelog
 
-## 0.1.3 (TBD)
+## 1.0.0
 
-The biggest change, by far, the shift of database storage into SQLite.
-This means that the org-roam cache needs to be built manually at least
-once via `M-x org-roam-build-cache`.
 ### Breaking Changes
 * [#200][gh-200] Move Org-roam cache into a SQLite database.
+* [#203][gh-203] Roam protocol is deprecated, in favour of extending org-roam-protocol.
 
 ### New Features
 * [#182][gh-182] Support file name aliases via `#+ROAM_ALIAS`.
-* [#188][gh-188] Add `org-roam-protocol`, shifting `roam://` link handling into Emacs-lisp.
 
 ### Features
-* [#165][gh-165] Add templating functionality via `org-roam-templates`.
+* [#216][gh-216] Adds templating functionality by extending org-capture.
+
+
+### Bugfixes
+* [#207][gh-207], [#221][gh-221] small bugfixes to Org-roam graph generation
 
 ## 0.1.2 (2020-02-21)
 
@@ -102,10 +103,12 @@ Mostly a documentation/cleanup release.
 [gh-141]: https://github.com/jethrokuan/org-roam/pull/141
 [gh-142]: https://github.com/jethrokuan/org-roam/pull/142
 [gh-143]: https://github.com/jethrokuan/org-roam/pull/143
-[gh-165]: https://github.com/jethrokuan/org-roam/pull/165
 [gh-182]: https://github.com/jethrokuan/org-roam/pull/182
 [gh-188]: https://github.com/jethrokuan/org-roam/pull/188
 [gh-200]: https://github.com/jethrokuan/org-roam/pull/200
+[gh-207]: https://github.com/jethrokuan/org-roam/pull/207
+[gh-216]: https://github.com/jethrokuan/org-roam/pull/216
+[gh-221]: https://github.com/jethrokuan/org-roam/pull/221
 
  # Local Variables:
  # eval: (auto-fill-mode -1)
