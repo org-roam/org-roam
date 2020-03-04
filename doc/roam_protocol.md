@@ -1,29 +1,36 @@
 ## What is Roam protocol?
 
 Org-roam defines two protocols that help boost productivity, by
-extending `org-protocol`. 
+extending `org-protocol`: the `roam-file` and `roam-ref` protocol.
 
-The first protocol is the `roam-file` protocol. This is a simple
-protocol that opens the path specified by the `file` key (e.g.
-`org-protocol:/roam-file?file=/tmp/file.org`). This is used in the
-generated graph.
+## The `roam-file` protocol
 
-The second protocol is the `roam-ref` protocol. This protocol finds or
-creates a new note with a given `ROAM_KEY` (see
-[Anatomy](anatomy.md)).
+This is a simple protocol that opens the path specified by the `file`
+key (e.g. `org-protocol://roam-file?file=/tmp/file.org`). This is used
+in the generated graph.
+
+## The `roam-ref` Protocol
+
+This protocol finds or creates a new note with a given `ROAM_KEY` (see
+[Anatomy](anatomy.md)):
+
+![roam-ref](images/roam-ref.gif)
 
 To use this, create a Firefox bookmarklet as follows:
 
 ```javascript
 javascript:location.href =
-'org-protocol:/roam-ref?template=ref&ref='
+'org-protocol:/roam-ref?template=r&ref='
 + encodeURIComponent(location.href)
 + '&title='
 + encodeURIComponent(document.title)
 ```
 
-where `template` is the template you have defined for your web
-snippets. This template should contain a `#+ROAM_KEY: {ref}` in it.
+where `template` is the template key for a template in
+`org-roam-ref-capture-templates`. More documentation on the templating
+system can be found [here](templating.md).
+
+These templates should contain a `#+ROAM_KEY: {ref}` in it.
 
 ## Org-protocol Setup
 
