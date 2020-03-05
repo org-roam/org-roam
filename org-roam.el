@@ -930,8 +930,8 @@ If item at point is not org-roam specific, default to Org behaviour."
         ;; org-roam-buffer should have a different local org-roam-directory and
         ;; default-directory, as relative links are relative from the overridden
         ;; org-roam-directory.
-        (setq-local org-roam-directory source-org-roam-directory
-                    default-directory source-org-roam-directory)
+        (setq-local org-roam-directory source-org-roam-directory)
+        (setq-local default-directory source-org-roam-directory)
         ;; Locally overwrite the file opening function to re-use the
         ;; last window org-roam was called from
         (setq-local
