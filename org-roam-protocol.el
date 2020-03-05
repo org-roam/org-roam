@@ -25,6 +25,11 @@
 ;; We extend org-protocol, adding custom Org-roam handlers. The setup
 ;; instructions for `org-protocol' can be found in org-protocol.el.
 ;;
+;; We define 2 protocols:
+;;
+;; 1. "roam-file": This protocol simply opens the file given by the FILE key
+;; 2. "roam-ref": This protocol creates or opens a note with the given REF
+;;
 ;;; Code:
 
 (require 'org-protocol)
@@ -39,15 +44,14 @@
      :file-name "${slug}"
      :head "#+TITLE: ${title}
 #+ROAM_KEY: ${ref}\n"
-     :unnarrowed t)))
+     :unnarrowed t))
+  "The Org-roam templates used during a capture from the roam-ref protocol.
+Details on how to specify for the template is given in `org-roam-capture-templates'.")
 
 (defun org-roam-protocol-open-ref (info)
   "Process an org-protocol://roam-ref?ref= style url with INFO.
 
-The sub-protocol used to reach this function is set in
-`org-protocol-protocol-alist'.
-
-This function decodes a ref.
+It opens or creates a note with the given ref.
 
   javascript:location.href = \\='org-protocol://roam-ref?template=r&ref=\\='+ \\
         encodeURIComponent(location.href) + \\='&title=\\=' \\

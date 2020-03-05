@@ -1,7 +1,7 @@
 ## What is Roam protocol?
 
-Org-roam defines two protocols that help boost productivity, by
-extending `org-protocol`: the `roam-file` and `roam-ref` protocol.
+Org-roam extending `org-protocol` with 2 protocols: the `roam-file`
+and `roam-ref` protocol.
 
 ## The `roam-file` protocol
 
@@ -30,22 +30,22 @@ where `template` is the template key for a template in
 `org-roam-ref-capture-templates`. More documentation on the templating
 system can be found [here](templating.md).
 
-These templates should contain a `#+ROAM_KEY: {ref}` in it.
+These templates should contain a `#+ROAM_KEY: ${ref}` in it.
 
-## Org-protocol Setup
+## Setting up Org-roam protocol
 
-The instructions for setting up org-protocol can be found
-[here][org-protocol-inst], but they are reproduced below.
-
-Across all platforms, to enable `org-roam-protocol`, you have to add
-the following to your init file:
+To enable org-roam's protocol extensions, you have to add the
+following to your init file:
 
 ```emacs-lisp
 (require 'org-roam-protocol)
 ```
 
-We also need to create a desktop application for emacsclient. The
-instructions for various platforms are shown below:
+The instructions for setting up `org-protocol` can be found
+[here][org-protocol-inst], but they are reproduced below.
+
+We will also need to create a desktop application for `emacsclient`.
+The instructions for various platforms are shown below:
 
 ## Linux
 
@@ -95,8 +95,7 @@ policy.
 
 ## Mac OS
 
-One solution to this, recommended in [Issue
-#115](https://github.com/jethrokuan/org-roam/issues/115), is to use
+One solution is to use
 [Platypus](https://github.com/sveinbjornt/Platypus). Here are the
 instructions for setting up with Platypus and Chrome:
 
@@ -105,17 +104,35 @@ instructions for setting up with Platypus and Chrome:
 ```sh
 brew cask install playtpus
 ```
+2. Create a script `launch_emacs.sh`:
 
-2. Platypus settings:
+```
+#!/usr/bin/env bash
+/usr/local/bin/emacsclient --no-wait $1
+```
 
-- App Name: `OrgProtocol`
-- Script Type: `env` and `/usr/bin/env`
-- Script Path: `/path/to/emacsclient $1`
-- Tick Accept dropped items and click Settings
-- Tick Accept dropped files
-- Tick Register as URI scheme handler
-- Add `org-protocol` as a protocol
-- Create the app
+3. Create a Platypus app with the following settings:
+
+```
+| Setting                        | Value                     |
+|--------------------------------+---------------------------|
+| App Name                       | "OrgProtocol"             |
+| Script Type                    | "env" · "/usr/bin/env"    |
+| Script Path                    | "path/to/launch-emacs.sh" |
+| Interface                      | None                      |
+| Accept dropped items           | true                      |
+| Remain running after execution | false                     |
+```
+
+Inside `Settings`:
+
+```
+| Setting                        | Value          |
+|--------------------------------+----------------|
+| Accept dropped files           | true           |
+| Register as URI scheme handler | true           |
+| Protocol                       | "org-protocol" |
+```
 
 To disable the "confirm" prompt in Chrome, you can also make Chrome
 show a checkbox to tick, so that the `OrgProtocol` app will be used
@@ -124,5 +141,21 @@ without confirmation. To do this, run in a shell:
 ```sh
 defaults write com.google.Chrome ExternalProtocolDialogShowAlwaysOpenCheckbox -bool true
 ```
+
+
+##### Note for Emacs Mac Port
+
+If you're using [Emacs Mac Port](https://github.com/railwaycat/homebrew-emacsmacport), it
+registered its `Emacs.app` as the default handler for the URL scheme
+`org-protocol`. We have to make our `OrgProtocol.app` the default
+handler instead (replace `org.yourusername.OrgProtocol` with your app
+identifier):
+
+```
+$ defaults write com.apple.LaunchServices/com.apple.launchservices.secure LSHandlers -array-add \
+'{"LSHandlerPreferredVersions" = { "LSHandlerRoleAll" = "-"; }; LSHandlerRoleAll = "org.yourusername.OrgProtocol"; LSHandlerURLScheme = "org-protocol";}'
+```
+
+Then restart your computer.
 
 [org-protocol-inst]: https://orgmode.org/worg/org-contrib/org-protocol.html

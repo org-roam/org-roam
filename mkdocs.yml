@@ -1,14 +1,14 @@
-site_name: "Org-Roam: Roam + Org-Mode = ♥"
+site_name: "Org-roam"
 repo_url: https://github.com/jethrokuan/org-roam/
 edit_uri: edit/master/doc/
 copyright: "Copyright (C) 2020 Jethro Kuan and contributors"
 docs_dir: doc
 nav:
 - Home: index.md
-- A Tour of Org-Roam: tour.md
+- A Tour of Org-roam: tour.md
 - Installation: installation.md
 - Configuration: configuration.md
-- Anatomy of a Roam file: anatomy.md
+- Anatomy of an Org-roam file: anatomy.md
 - The Templating System: templating.md
 - Ecosystem: ecosystem.md
 - Similar Packages: comparison.md

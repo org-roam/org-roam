@@ -59,7 +59,7 @@
   :link '(url-link :tag "Online Manual" "https://org-roam.readthedocs.io/"))
 
 (defgroup org-roam-faces nil
-  "Faces used by Org-Roam."
+  "Faces used by Org-roam."
   :group 'org-roam
   :group 'faces)
 
@@ -579,7 +579,8 @@ specified via the #+ROAM_ALIAS property."
 ;;;; Org-roam capture
 (defun org-roam--new-file-path (id)
   "The file path for a new Org-roam file, with identifier ID.
-If ABSOLUTE, return an absolute file-path. Else, return a relative file-path."
+If ABSOLUTE, return an absolute file-path. Else, return a
+relative file-path."
   (let ((absolute-file-path (file-truename
                              (expand-file-name
                               (if org-roam-encrypt-files
@@ -592,7 +593,7 @@ If ABSOLUTE, return an absolute file-path. Else, return a relative file-path."
   "The default file name format for org-roam templates.")
 
 (defvar org-roam--capture-header-default "#+TITLE: ${title}\n"
-  "The default file name format for org-roam templates.")
+  "The default capture header for org-roam templates.")
 
 (defvar org-roam--capture-file-path nil
   "The file path for the Org-roam capture. This variable is set
@@ -604,11 +605,17 @@ template. This variable is populated dynamically, and is only
 non-nil during the org-roam capture process.")
 
 (defvar org-roam--capture-context nil
-  "A cons cell containing the context (search term) to get the
-exact point in a file. This variable is populated dynamically,
-and is only active during an org-roam capture process.
+  "A symbol, that reflects the context for obtaining the exact point in a file.
+This variable is populated dynamically, and is only active during
+an org-roam capture process.
 
-E.g. ('title . \"New Title\")")
+The `title' context is used in `org-roam-insert' and
+`org-roam-find-file', where the capture process is triggered upon
+trying to create a new file without that `title'.
+
+The `ref' context is used by `org-roam-protocol', where the
+capture process is triggered upon trying to find or create a new
+note with the given `ref'.")
 
 (defvar org-roam-capture-templates
   '(("d" "default" plain (function org-roam--capture-get-point)
@@ -616,10 +623,30 @@ E.g. ('title . \"New Title\")")
      :file-name "%<%Y%m%d%H%M%S>-${slug}"
      :head "#+TITLE: ${title}\n"
      :unnarrowed t))
-  "Capture templates for org-roam.")
+  "Capture templates for Org-roam. The capture templates are an extension of
+`org-capture-templates', and the documentation there also applies.
+
+`org-capture-templates' are extended in 3 ways:
+
+1. Template expansion capabilities are extended with additional custom syntax.
+   See `org-roam--fill-template' for more details.
+2. The `:file-name' key is added, which expands to the file-name of the note
+   if it creates a new file. This file-name is relative to `org-roam-directory',
+   and is without the file-extension.
+3. The `:head' key is added, which contains the template that is inserted on
+   initial creation (added only once). This is where insertion of any note
+   metadata should go.")
 
 (defun org-roam--fill-template (str &optional info)
-  "Return a file name from template STR."
+  "Expands the template STR, returning the string.
+This is an extension of org-capture's template expansion.
+
+First, it expands ${var} occurences in STR, using the INFO alist.
+If there is a ${var} with no matching var in the alist, the value
+of var is prompted for via completing-read.
+
+Next, it expands the remaining template string using
+`org-capture-fill-template'."
   (-> str
       (s-format (lambda (key)
                   (or (s--aget info key)
@@ -652,7 +679,10 @@ If the search is via title, it is assumed that the file does not
 yet exist, and org-roam will attempt to create new file.
 
 If the search is via ref, it is matched against the Org-roam database.
-If there is no file with that ref, a file with that ref is created."
+If there is no file with that ref, a file with that ref is created.
+
+This function is used solely in Org-roam's capture templates: see
+`org-roam-capture-templates'."
   (pcase org-roam--capture-context
     ('title
      (let ((file-path (org-roam--capture-new-file)))
@@ -675,7 +705,6 @@ If there is no file with that ref, a file with that ref is created."
   "Create a new file using an Org-roam template, and returns the
 path to the edited file. The templates are defined at
 `org-roam-capture-templates'."
-  (interactive "P")
   (let ((org-capture-templates org-roam-capture-templates)
         file-path)
     (when (= (length org-capture-templates) 1)
@@ -732,6 +761,7 @@ If PREFIX, downcase the title before insertion."
 
 (defun org-roam--capture-advance-point ()
   "Advances the point if it is updated.
+
 We need this function because typically org-capture prevents the
 point from being advanced, whereas when a link is inserted, the
 point moves some characters forward. This is added as a hook to
@@ -933,44 +963,47 @@ If item at point is not org-roam specific, default to Org behaviour."
     (let ((buffer-title (org-roam--get-title-or-slug file-path)))
       (with-current-buffer org-roam-buffer
         ;; When dir-locals.el is used to override org-roam-directory,
-        ;; org-roam-buffer may have a different local org-roam-directory.
-        (let ((org-roam-directory source-org-roam-directory))
-          ;; Locally overwrite the file opening function to re-use the
-          ;; last window org-roam was called from
-          (setq-local
-           org-link-frame-setup
-           (cons '(file . org-roam--find-file) org-link-frame-setup))
-          (let ((inhibit-read-only t))
-            (erase-buffer)
-            (when (not (eq major-mode 'org-roam-backlinks-mode))
-              (org-roam-backlinks-mode))
-            (make-local-variable 'org-return-follows-link)
-            (setq org-return-follows-link t)
-            (insert
-             (propertize buffer-title 'font-lock-face 'org-document-title))
-            (if-let* ((backlinks (org-roam--get-backlinks file-path))
-                      (grouped-backlinks (--group-by (nth 0 it) backlinks)))
-                (progn
-                  (insert (format "\n\n* %d Backlinks\n"
-                                  (length backlinks)))
-                  (dolist (group grouped-backlinks)
-                    (let ((file-from (car group))
-                          (bls (cdr group)))
-                      (insert (format "** [[file:%s][%s]]\n"
-                                      file-from
-                                      (org-roam--get-title-or-slug file-from)))
-                      (dolist (backlink bls)
-                        (pcase-let ((`(,file-from ,file-to ,props) backlink))
-                          (insert (propertize
-                                   (s-trim (s-replace "\n" " "
-                                                      (plist-get props :content)))
-                                   'font-lock-face 'org-block
-                                   'help-echo "mouse-1: visit backlinked note"
-                                   'file-from file-from
-                                   'file-from-point (plist-get props :point)))
-                          (insert "\n\n"))))))
-              (insert "\n\n* No backlinks!")))
-          (read-only-mode 1))))))
+        ;; org-roam-buffer should have a different local org-roam-directory and
+        ;; default-directory, as relative links are relative from the overridden
+        ;; org-roam-directory.
+        (setq-local org-roam-directory source-org-roam-directory)
+        (setq-local default-directory source-org-roam-directory)
+        ;; Locally overwrite the file opening function to re-use the
+        ;; last window org-roam was called from
+        (setq-local
+         org-link-frame-setup
+         (cons '(file . org-roam--find-file) org-link-frame-setup))
+        (let ((inhibit-read-only t))
+          (erase-buffer)
+          (when (not (eq major-mode 'org-roam-backlinks-mode))
+            (org-roam-backlinks-mode))
+          (make-local-variable 'org-return-follows-link)
+          (setq org-return-follows-link t)
+          (insert
+           (propertize buffer-title 'font-lock-face 'org-document-title))
+          (if-let* ((backlinks (org-roam--get-backlinks file-path))
+                    (grouped-backlinks (--group-by (nth 0 it) backlinks)))
+              (progn
+                (insert (format "\n\n* %d Backlinks\n"
+                                (length backlinks)))
+                (dolist (group grouped-backlinks)
+                  (let ((file-from (car group))
+                        (bls (cdr group)))
+                    (insert (format "** [[file:%s][%s]]\n"
+                                    file-from
+                                    (org-roam--get-title-or-slug file-from)))
+                    (dolist (backlink bls)
+                      (pcase-let ((`(,file-from ,file-to ,props) backlink))
+                        (insert (propertize
+                                 (s-trim (s-replace "\n" " "
+                                                    (plist-get props :content)))
+                                 'font-lock-face 'org-block
+                                 'help-echo "mouse-1: visit backlinked note"
+                                 'file-from file-from
+                                 'file-from-point (plist-get props :point)))
+                        (insert "\n\n"))))))
+            (insert "\n\n* No backlinks!")))
+        (read-only-mode 1)))))
 
 (cl-defun org-roam--maybe-update-buffer (&key redisplay)
   "Reconstructs `org-roam-buffer'.
@@ -1118,7 +1151,7 @@ it.
 When called from Lisp, enable `org-roam-mode' if ARG is omitted,
 nil, or positive. If ARG is `toggle', toggle `org-roam-mode'.
 Otherwise, behave as if called interactively."
-  :lighter " Org-Roam"
+  :lighter " Org-roam"
   :keymap  org-roam-mode-map
   :group 'org-roam
   :require 'org-roam

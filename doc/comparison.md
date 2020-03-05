@@ -1,7 +1,7 @@
 ---
-title: "Comparing Org-Roam With Other Packages"
-metaTitle: "Comparing Org-Roam With Other Packages"
-metaDescription: "Comparing Org-Roam With Other Packages"
+title: "Comparing Org-roam With Other Packages"
+metaTitle: "Comparing Org-roam With Other Packages"
+metaDescription: "Comparing Org-roam With Other Packages"
 ---
 
 # Org-brain

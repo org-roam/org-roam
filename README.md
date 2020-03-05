@@ -57,7 +57,7 @@ For more detailed installation instructions (including instructions for
 Spacemacs users), please see [the installation
 documentation](https://org-roam.readthedocs.io/en/develop/installation/).
 
-## Knowledge Bases using Org-Roam
+## Knowledge Bases using Org-roam
 
 - [Jethro Kuan](https://braindump.jethro.dev/)
   ([Source](https://github.com/jethrokuan/braindump/tree/master/org))
