@@ -670,7 +670,6 @@ If there is no file with that ref, a file with that ref is created."
   "Create a new file using an Org-roam template, and returns the
 path to the edited file. The templates are defined at
 `org-roam-capture-templates'."
-  (interactive "P")
   (let ((org-capture-templates org-roam-capture-templates)
         file-path)
     (when (= (length org-capture-templates) 1)
