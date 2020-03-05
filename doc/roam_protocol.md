@@ -113,6 +113,7 @@ brew cask install playtpus
 
 2. Create a Platypus app with the following settings:
 
+```
 | Setting                        | Value                     |
 |--------------------------------+---------------------------|
 | App Name                       | "OrgProtocol"             |
@@ -121,7 +122,7 @@ brew cask install playtpus
 | Interface                      | None                      |
 | Accept dropped items           | true                      |
 | Remain running after execution | false                     |
-
+```
 
 To disable the "confirm" prompt in Chrome, you can also make Chrome
 show a checkbox to tick, so that the `OrgProtocol` app will be used
