@@ -8,6 +8,9 @@
 - [Roam: Why I Love It and How I Use It][5]
 - [Adam Keesling's Twitter Thread][6]
 
+## Threads
+- [Ask HN: How to Take Good Notes][8]
+
 ## What to Do With Your Notes
 - [How to Use Roam to Outline a New Article in Under 20 Minutes][2]
 
@@ -18,3 +21,4 @@
 [5]: https://www.nateliason.com/blog/roam
 [6]: https://twitter.com/adam_keesling/status/1196864424725774336?s=20
 [7]: https://blog.jethro.dev/posts/how_to_take_smart_notes_org/
+[8]: https://news.ycombinator.com/item?id=22473209

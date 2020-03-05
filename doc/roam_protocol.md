@@ -1,7 +1,7 @@
 ## What is Roam protocol?
 
-Org-roam defines two protocols that help boost productivity, by
-extending `org-protocol`: the `roam-file` and `roam-ref` protocol.
+Org-roam extending `org-protocol` with 2 protocols: the `roam-file`
+and `roam-ref` protocol.
 
 ## The `roam-file` protocol
 
@@ -30,22 +30,22 @@ where `template` is the template key for a template in
 `org-roam-ref-capture-templates`. More documentation on the templating
 system can be found [here](templating.md).
 
-These templates should contain a `#+ROAM_KEY: {ref}` in it.
+These templates should contain a `#+ROAM_KEY: ${ref}` in it.
 
-## Org-protocol Setup
+## Setting up Org-roam protocol
 
-The instructions for setting up org-protocol can be found
-[here][org-protocol-inst], but they are reproduced below.
-
-Across all platforms, to enable `org-roam-protocol`, you have to add
-the following to your init file:
+To enable org-roam's protocol extensions, you have to add the
+following to your init file:
 
 ```emacs-lisp
 (require 'org-roam-protocol)
 ```
 
-We also need to create a desktop application for emacsclient. The
-instructions for various platforms are shown below:
+The instructions for setting up `org-protocol` can be found
+[here][org-protocol-inst], but they are reproduced below.
+
+We will also need to create a desktop application for `emacsclient`.
+The instructions for various platforms are shown below:
 
 ## Linux
 

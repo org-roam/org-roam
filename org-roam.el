@@ -59,7 +59,7 @@
   :link '(url-link :tag "Online Manual" "https://org-roam.readthedocs.io/"))
 
 (defgroup org-roam-faces nil
-  "Faces used by Org-Roam."
+  "Faces used by Org-roam."
   :group 'org-roam
   :group 'faces)
 
@@ -574,7 +574,8 @@ specified via the #+ROAM_ALIAS property."
 ;;;; Org-roam capture
 (defun org-roam--new-file-path (id)
   "The file path for a new Org-roam file, with identifier ID.
-If ABSOLUTE, return an absolute file-path. Else, return a relative file-path."
+If ABSOLUTE, return an absolute file-path. Else, return a
+relative file-path."
   (let ((absolute-file-path (file-truename
                              (expand-file-name
                               (if org-roam-encrypt-files
@@ -587,7 +588,7 @@ If ABSOLUTE, return an absolute file-path. Else, return a relative file-path."
   "The default file name format for org-roam templates.")
 
 (defvar org-roam--capture-header-default "#+TITLE: ${title}\n"
-  "The default file name format for org-roam templates.")
+  "The default capture header for org-roam templates.")
 
 (defvar org-roam--capture-file-path nil
   "The file path for the Org-roam capture. This variable is set
@@ -599,11 +600,17 @@ template. This variable is populated dynamically, and is only
 non-nil during the org-roam capture process.")
 
 (defvar org-roam--capture-context nil
-  "A cons cell containing the context (search term) to get the
-exact point in a file. This variable is populated dynamically,
-and is only active during an org-roam capture process.
+  "A symbol, that reflects the context for obtaining the exact point in a file.
+This variable is populated dynamically, and is only active during
+an org-roam capture process.
 
-E.g. ('title . \"New Title\")")
+The `title' context is used in `org-roam-insert' and
+`org-roam-find-file', where the capture process is triggered upon
+trying to create a new file without that `title'.
+
+The `ref' context is used by `org-roam-protocol', where the
+capture process is triggered upon trying to find or create a new
+note with the given `ref'.")
 
 (defvar org-roam-capture-templates
   '(("d" "default" plain (function org-roam--capture-get-point)
@@ -611,10 +618,30 @@ E.g. ('title . \"New Title\")")
      :file-name "%<%Y%m%d%H%M%S>-${slug}"
      :head "#+TITLE: ${title}\n"
      :unnarrowed t))
-  "Capture templates for org-roam.")
+  "Capture templates for Org-roam. The capture templates are an extension of
+`org-capture-templates', and the documentation there also applies.
+
+`org-capture-templates' are extended in 3 ways:
+
+1. Template expansion capabilities are extended with additional custom syntax.
+   See `org-roam--fill-template' for more details.
+2. The `:file-name' key is added, which expands to the file-name of the note
+   if it creates a new file. This file-name is relative to `org-roam-directory',
+   and is without the file-extension.
+3. The `:head' key is added, which contains the template that is inserted on
+   initial creation (added only once). This is where insertion of any note
+   metadata should go.")
 
 (defun org-roam--fill-template (str &optional info)
-  "Return a file name from template STR."
+  "Expands the template STR, returning the string.
+This is an extension of org-capture's template expansion.
+
+First, it expands ${var} occurences in STR, using the INFO alist.
+If there is a ${var} with no matching var in the alist, the value
+of var is prompted for via completing-read.
+
+Next, it expands the remaining template string using
+`org-capture-fill-template'."
   (-> str
       (s-format (lambda (key)
                   (or (s--aget info key)
@@ -647,7 +674,10 @@ If the search is via title, it is assumed that the file does not
 yet exist, and org-roam will attempt to create new file.
 
 If the search is via ref, it is matched against the Org-roam database.
-If there is no file with that ref, a file with that ref is created."
+If there is no file with that ref, a file with that ref is created.
+
+This function is used solely in Org-roam's capture templates: see
+`org-roam-capture-templates'."
   (pcase org-roam--capture-context
     ('title
      (let ((file-path (org-roam--capture-new-file)))
@@ -726,6 +756,7 @@ If PREFIX, downcase the title before insertion."
 
 (defun org-roam--capture-advance-point ()
   "Advances the point if it is updated.
+
 We need this function because typically org-capture prevents the
 point from being advanced, whereas when a link is inserted, the
 point moves some characters forward. This is added as a hook to
@@ -1115,7 +1146,7 @@ it.
 When called from Lisp, enable `org-roam-mode' if ARG is omitted,
 nil, or positive. If ARG is `toggle', toggle `org-roam-mode'.
 Otherwise, behave as if called interactively."
-  :lighter " Org-Roam"
+  :lighter " Org-roam"
   :keymap  org-roam-mode-map
   :group 'org-roam
   :require 'org-roam

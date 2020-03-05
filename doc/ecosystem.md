@@ -117,6 +117,12 @@ within Org-mode.
 [Org-ref][org-ref] does citation and bibliography management in
 Org-mode, and a great tool for scientific notes.
 
+### Spaced Repetition
+
+[Org-fc][org-fc] is a spaced repetition system that scales well with a
+large number of files. Other alternatives include
+[org-drill][org-drill], and [pamparam][pamparam].
+
 [deft]: https://jblevins.org/projects/deft/
 [notdeft]: https://github.com/hasu/notdeft
 [org-download]: https://github.com/abo-abo/org-download
@@ -124,3 +130,6 @@ Org-mode, and a great tool for scientific notes.
 [org-noter]: https://github.com/weirdNox/org-noter
 [interleave]: https://github.com/rudolfochrist/interleave
 [org-ref]: https://github.com/jkitchin/org-ref
+[org-fc]: https://github.com/l3kn/org-fc/
+[org-drill]: https://orgmode.org/worg/org-contrib/org-drill.html
+[pamparam]: https://github.com/abo-abo/pamparam
