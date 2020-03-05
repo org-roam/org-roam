@@ -927,44 +927,47 @@ If item at point is not org-roam specific, default to Org behaviour."
     (let ((buffer-title (org-roam--get-title-or-slug file-path)))
       (with-current-buffer org-roam-buffer
         ;; When dir-locals.el is used to override org-roam-directory,
-        ;; org-roam-buffer may have a different local org-roam-directory.
-        (let ((org-roam-directory source-org-roam-directory))
-          ;; Locally overwrite the file opening function to re-use the
-          ;; last window org-roam was called from
-          (setq-local
-           org-link-frame-setup
-           (cons '(file . org-roam--find-file) org-link-frame-setup))
-          (let ((inhibit-read-only t))
-            (erase-buffer)
-            (when (not (eq major-mode 'org-roam-backlinks-mode))
-              (org-roam-backlinks-mode))
-            (make-local-variable 'org-return-follows-link)
-            (setq org-return-follows-link t)
-            (insert
-             (propertize buffer-title 'font-lock-face 'org-document-title))
-            (if-let* ((backlinks (org-roam--get-backlinks file-path))
-                      (grouped-backlinks (--group-by (nth 0 it) backlinks)))
-                (progn
-                  (insert (format "\n\n* %d Backlinks\n"
-                                  (length backlinks)))
-                  (dolist (group grouped-backlinks)
-                    (let ((file-from (car group))
-                          (bls (cdr group)))
-                      (insert (format "** [[file:%s][%s]]\n"
-                                      file-from
-                                      (org-roam--get-title-or-slug file-from)))
-                      (dolist (backlink bls)
-                        (pcase-let ((`(,file-from ,file-to ,props) backlink))
-                          (insert (propertize
-                                   (s-trim (s-replace "\n" " "
-                                                      (plist-get props :content)))
-                                   'font-lock-face 'org-block
-                                   'help-echo "mouse-1: visit backlinked note"
-                                   'file-from file-from
-                                   'file-from-point (plist-get props :point)))
-                          (insert "\n\n"))))))
-              (insert "\n\n* No backlinks!")))
-          (read-only-mode 1))))))
+        ;; org-roam-buffer should have a different local org-roam-directory and
+        ;; default-directory, as relative links are relative from the overridden
+        ;; org-roam-directory.
+        (setq-local org-roam-directory source-org-roam-directory
+                    default-directory source-org-roam-directory)
+        ;; Locally overwrite the file opening function to re-use the
+        ;; last window org-roam was called from
+        (setq-local
+         org-link-frame-setup
+         (cons '(file . org-roam--find-file) org-link-frame-setup))
+        (let ((inhibit-read-only t))
+          (erase-buffer)
+          (when (not (eq major-mode 'org-roam-backlinks-mode))
+            (org-roam-backlinks-mode))
+          (make-local-variable 'org-return-follows-link)
+          (setq org-return-follows-link t)
+          (insert
+           (propertize buffer-title 'font-lock-face 'org-document-title))
+          (if-let* ((backlinks (org-roam--get-backlinks file-path))
+                    (grouped-backlinks (--group-by (nth 0 it) backlinks)))
+              (progn
+                (insert (format "\n\n* %d Backlinks\n"
+                                (length backlinks)))
+                (dolist (group grouped-backlinks)
+                  (let ((file-from (car group))
+                        (bls (cdr group)))
+                    (insert (format "** [[file:%s][%s]]\n"
+                                    file-from
+                                    (org-roam--get-title-or-slug file-from)))
+                    (dolist (backlink bls)
+                      (pcase-let ((`(,file-from ,file-to ,props) backlink))
+                        (insert (propertize
+                                 (s-trim (s-replace "\n" " "
+                                                    (plist-get props :content)))
+                                 'font-lock-face 'org-block
+                                 'help-echo "mouse-1: visit backlinked note"
+                                 'file-from file-from
+                                 'file-from-point (plist-get props :point)))
+                        (insert "\n\n"))))))
+            (insert "\n\n* No backlinks!")))
+        (read-only-mode 1)))))
 
 (cl-defun org-roam--maybe-update-buffer (&key redisplay)
   "Reconstructs `org-roam-buffer'.
