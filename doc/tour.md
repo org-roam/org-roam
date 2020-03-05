@@ -43,26 +43,23 @@ the build-up of a dense knowledge graph.
 
 ## The Org-roam Buffer
 
-All of Org-roam's operations are designed such that the built cache is
-a consistent view of the inter-connectivity between your notes. The
-Org-roam buffer shows backlinks: i.e. the files that link to the
-currently viewed file, along with some surrounding context. The
-Org-roam buffer will always show the backlinks for the current
-Org-roam file in view.
+The Org-roam buffer is often displayed in the side window. It shows
+backlinks for the currently active Org-roam note, along with some
+surrounding context.
 
 ![org-roam-buffer](images/org-roam-buffer.gif)
 
 ## Exporting the Graph
 
-It's also possible to export the links as a graph, using graphviz. The
-generated graph is navigable in Emacs, but requires some additional
-setup, which I describe in the [Graph Appendix][appendix:graph-setup]
-page.
+Org-roam also uses Graphviz to generate a graph, with notes as nodes,
+and links between them as edges. The generated graph can be used to
+navigate to the files, but this requires some additional setup
+described in the [Roam Protocol][appendix:roam-protocol] page.
 
 ![org-roam-graph](images/org-roam-graph.gif)
 
 [zettelkasten]: https://zettelkasten.de/
 [appendix:ntw]: notetaking_workflow.md
-[appendix:graph-setup]: graph_setup.md
+[appendix:roam-protocol]: roam_protocol.md
 [roam]: https://www.roamresearch.com/
 [jethro-blog-post]: https://blog.jethro.dev/posts/how_to_take_smart_notes_org/
