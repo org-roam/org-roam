@@ -111,7 +111,7 @@ brew cask install playtpus
 /usr/local/bin/emacsclient --no-wait $1
 ```
 
-2. Create a Platypus app with the following settings:
+3. Create a Platypus app with the following settings:
 
 ```
 | Setting                        | Value                     |
@@ -122,6 +122,16 @@ brew cask install playtpus
 | Interface                      | None                      |
 | Accept dropped items           | true                      |
 | Remain running after execution | false                     |
+```
+
+Inside `Settings`:
+
+```
+| Setting                        | Value          |
+|--------------------------------+----------------|
+| Accept dropped files           | true           |
+| Register as URI scheme handler | true           |
+| Protocol                       | "org-protocol" |
 ```
 
 To disable the "confirm" prompt in Chrome, you can also make Chrome
