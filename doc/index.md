@@ -1,6 +1,6 @@
 ![org-roam][org-roam-intro-image]
 
-## What is Org-Roam?
+## What is Org-roam?
 
 Org-roam is a rudimentary [Roam][roamresearch] replica built around
 the all-powerful [Org-mode][org]. 
@@ -19,7 +19,7 @@ The goal of the project is to implement core features of Roam around
 Org-mode, and eventually introduce features enabled by the Emacs
 ecosystem. 
 
-## Why build Org-Roam?
+## Why build Org-roam?
 
 With Org-roam, you:
 

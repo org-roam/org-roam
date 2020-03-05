@@ -3,7 +3,7 @@ configuration options is deliberately kept small. However, we have
 attempted to accommodate as many usage styles as possible.
 
 In this section, we'll go over the main customization options
-available to Org-Roam. This section is *crucial*. We need to exploit
+available to Org-roam. This section is *crucial*. We need to exploit
 the flexibility of Emacs, and mould our tools exactly to our liking.
 
 All of Org-roam's customization options can be viewed via `M-x
@@ -78,71 +78,7 @@ simply style the link differently, by customizing `org-roam-link-face`
 
 ## Org-roam Files
 
-These customization options revolve around the Org files created and
-managed by Org-roam.
-
-### Automatically Creating Files Using Timestamp
-
-A common hassle is ensuring that files are uniquely named within the
-Org-roam directory. Org-roam's default workflow utilizes the title of
-Org files in all of its main commands (`org-roam-insert`,
-`org-roam-find-file`). Hence, having any unique file name is a decent
-option, and the default workflow uses the timestamp as the filename.
-
-Org-roam provides templating functionality via `org-roam-templates`.
-`org-roam-templates` maps a template string key to a template. Each
-template consists of two parts: (1) a function that takes the title,
-and generates a filename. (2) the template content. The templated
-content accepts two special fields: `${title}` and `${slug}`, which
-are substituted with the title and slug respectively. Org-roam ships
-with the default template, which inserts the title of the note. 
-
-Here's an example of customizing templates:
-
-```emacs-lisp
-(defun jethro/org-roam-title-private (title)
-    (let ((timestamp (format-time-string "%Y%m%d%H%M%S" (current-time)))
-          (slug (org-roam--title-to-slug title)))
-      (format "private-%s_%s" timestamp slug)))
-      
-(setq org-roam-templates
-    (list (list "default" (list :file #'org-roam--file-name-timestamp-title
-                                :content "#+SETUPFILE:./hugo_setup.org
-#+HUGO_SECTION: zettels
-#+HUGO_SLUG: ${slug}
-#+TITLE: ${title}"))
-          (list "private" (list :file #'jethro/org-roam-title-private
-                                :content "#+TITLE: ${title}"))))
-```
-
-Here, I define a file-name function `jethro/org-roam-title-private`,
-which forms titles like `private-20200202000000-note_name`. The
-content string is simply the title. For the default template, I have
-extended it to include more boilerplate content for publishing
-purposes.
-
-If you wish to be prompted to change the file name on creation, set
-`org-roam-filename-noconfirm` to `nil`:
-
-```emacs-lisp
-(setq org-roam-filename-noconfirm nil)
-```
-
-It is then the user's responsibility to ensure that the file names are
-unique.
-
-If you prefer just the title slug as the filename (with no timestamp),
-you can use the following template:
-
-```emacs-lisp
-(defun my-org-roam-no-timestamp-in-title (title)
-    (let ((slug (org-roam--title-to-slug title)))
-      (format "%s" slug)))
-
-(setq org-roam-templates
-    (list (list "default" (list :file #'my-org-roam-no-timestamp-in-title
-:content "#+TITLE: ${title}"))))
-```
+Org-roam files are typically created via Org-roam's templating system.
 
 ### Autopopulating Titles
 
