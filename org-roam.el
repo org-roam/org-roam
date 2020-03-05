@@ -562,13 +562,18 @@ specified via the #+ROAM_ALIAS property."
 
 (defun org-roam--title-to-slug (title)
   "Convert TITLE to a filename-suitable slug."
-  (cl-flet ((replace (title pair)
-                     (replace-regexp-in-string (car pair) (cdr pair) title)))
+  (cl-flet* ((nonspacing-mark-p (char)
+               (eq 'Mn (get-char-code-property char 'general-category)))
+             (strip-nonspacing-marks (s)
+               (apply #'string (seq-remove #'nonspacing-mark-p
+                                           (ucs-normalize-NFD-string s))))
+             (replace (title pair)
+                      (replace-regexp-in-string (car pair) (cdr pair) title)))
     (let* ((pairs `(("[^[:alnum:][:digit:]]" . "_")  ;; convert anything not alphanumeric
                     ("__*" . "_")  ;; remove sequential underscores
                     ("^_" . "")  ;; remove starting underscore
                     ("_$" . "")))  ;; remove ending underscore
-           (slug (-reduce-from #'replace title pairs)))
+           (slug (-reduce-from #'replace (strip-nonspacing-marks title) pairs)))
       (s-downcase slug))))
 
 ;;;; Org-roam capture
