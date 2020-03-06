@@ -577,17 +577,14 @@ specified via the #+ROAM_ALIAS property."
       (s-downcase slug))))
 
 ;;;; Org-roam capture
-(defun org-roam--new-file-path (id)
-  "The file path for a new Org-roam file, with identifier ID.
-If ABSOLUTE, return an absolute file-path. Else, return a
-relative file-path."
-  (let ((absolute-file-path (file-truename
-                             (expand-file-name
-                              (if org-roam-encrypt-files
-                                  (concat id ".org.gpg")
-                                (concat id ".org"))
-                              org-roam-directory))))
-    absolute-file-path))
+(defun org-roam--file-path-from-id (id)
+  "The file path for an Org-roam file, with identifier ID."
+  (file-truename
+   (expand-file-name
+    (if org-roam-encrypt-files
+        (concat id ".org.gpg")
+      (concat id ".org"))
+    org-roam-directory)))
 
 (defvar org-roam--capture-file-name-default "%<%Y%m%d%H%M%S>"
   "The default file name format for org-roam templates.")
@@ -661,7 +658,9 @@ currently active org-roam template. Returns the path to the new file."
          (new-id (s-trim (org-roam--fill-template
                           name-templ
                           org-roam--capture-info)))
-         (file-path (org-roam--new-file-path new-id)))
+         (file-path (org-roam--file-path-from-id new-id)))
+    (when (file-exists-p file-path)
+      (error (format "File exists at %s, aborting." file-path)))
     (org-roam--touch-file file-path)
     (write-region
      (org-roam--fill-template (or (org-capture-get :head)
@@ -844,14 +843,17 @@ INFO is an alist containing additional information."
 (defun org-roam--file-for-time (time)
   "Create and find file for TIME."
   (let* ((title (format-time-string "%Y-%m-%d" time))
-         (org-roam-capture-templates (list (list "d" "daily" 'plain (list 'function #'org-roam--capture-get-point)
-                                                 ""
-                                                 :immediate-finish t
-                                                 :file-name "${title}"
-                                                 :head "#+TITLE: ${title}")))
-         (org-roam--capture-context 'title)
-         (org-roam--capture-info (list (cons 'title title))))
-    (org-roam-capture)))
+         (file-path (org-roam--file-path-from-id title)))
+    (if (file-exists-p file-path)
+        file-path
+      (let ((org-roam-capture-templates (list (list "d" "daily" 'plain (list 'function #'org-roam--capture-get-point)
+                                                    ""
+                                                    :immediate-finish t
+                                                    :file-name "${title}"
+                                                    :head "#+TITLE: ${title}")))
+            (org-roam--capture-context 'title)
+            (org-roam--capture-info (list (cons 'title title))))
+        (org-roam-capture)))))
 
 (defun org-roam-today ()
   "Create and find file for today."
