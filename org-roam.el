@@ -100,7 +100,7 @@ If nil, always ask for filename."
   :group 'org-roam)
 
 (defcustom org-roam-encrypt-files nil
-  "Whether to encrypt new files. If true, create files with .org.gpg extension."
+  "Whether to encrypt new files.  If true, create files with .org.gpg extension."
   :type 'boolean
   :group 'org-roam)
 
@@ -137,6 +137,9 @@ If nil, always ask for filename."
            org-roam--db-connection))
 
 (defun org-roam-db ()
+  "Entrypoint to the Org-roam sqlite database.
+Initializes and stores the database, and the database connection.
+Performs a database upgrade when required."
   (unless (and (org-roam--get-db-connection)
                (emacsql-live-p (org-roam--get-db-connection)))
     (let* ((db-file (org-roam--get-db))
@@ -154,12 +157,12 @@ If nil, always ask for filename."
            ((> version org-roam--db-version)
             (emacsql-close conn)
             (user-error
-             "The Org-roam database was created with a newer Org-roam version. %s"
-             "You need to update the Org-roam package.")
-            ((< version org-roam--db-version)
-             (emacsql-close conn)
-             (error "BUG: The Org-roam database scheme changed %s"
-                    "and there is no upgrade path"))))))))
+             "The Org-roam database was created with a newer Org-roam version.  "
+             "You need to update the Org-roam package"))
+           ((< version org-roam--db-version)
+            (emacsql-close conn)
+            (error "BUG: The Org-roam database scheme changed %s"
+                   "and there is no upgrade path")))))))
   (org-roam--get-db-connection))
 
 ;;;; Entrypoint: (org-roam-sql)
@@ -223,7 +226,7 @@ If nil, always ask for filename."
 (defun org-roam--db-ensure-built ()
   "Ensures that org-roam cache is built."
   (unless (org-roam--db-initialized-p)
-    (error "[Org-roam] your cache isn't built yet! Please run org-roam-build-cache.")))
+    (error "[Org-roam] your cache isn't built yet! Please run org-roam-build-cache")))
 
 ;;;;; Clearing
 (defun org-roam--db-clear ()
@@ -698,7 +701,7 @@ This function is used solely in Org-roam's capture templates: see
        (set-buffer (org-capture-target-buffer file-path))
        (widen)
        (goto-char (point-max))))
-    (_ (error "Invalid org-roam-capture-context."))))
+    (_ (error "Invalid org-roam-capture-context"))))
 
 (defun org-roam-capture (&optional goto keys)
   "Create a new file using an Org-roam template, and returns the
@@ -835,7 +838,7 @@ INFO is an alist containing additional information."
                                             buffer))
                                     roam-buffers)))
     (unless roam-buffers
-      (user-error "No roam buffers."))
+      (user-error "No roam buffers"))
     (when-let ((name (completing-read "Choose a buffer: " names-and-buffers)))
       (switch-to-buffer (cdr (assoc name names-and-buffers))))))
 
@@ -1144,7 +1147,7 @@ If PREFIX, then the graph is generated but the viewer is not invoked."
   (unless org-roam-graphviz-executable
     (setq org-roam-graphviz-executable (executable-find "dot")))
   (unless org-roam-graphviz-executable
-    (user-error "Can't find graphviz executable. Please check if it is in your path"))
+    (user-error "Can't find graphviz executable.  Please check if it is in your path"))
   (let ((temp-dot (expand-file-name "graph.dot" temporary-file-directory))
         (temp-graph (expand-file-name "graph.svg" temporary-file-directory))
         (graph (org-roam--build-graph)))
