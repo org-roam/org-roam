@@ -1,6 +1,11 @@
 # Changelog
 
-## 1.0.0
+## 1.0.0-rc1 (06-03-2020)
+
+This is a pre-release before the push to MELPA. It contains large
+internal changes, with little user-facing changes. Most notably, the
+backing storage has been changed to a SQLite database, and a
+templating system using `org-capture` is introduced.
 
 ### Breaking Changes
 * [#200][gh-200] Move Org-roam cache into a SQLite database.
@@ -8,13 +13,17 @@
 
 ### New Features
 * [#182][gh-182] Support file name aliases via `#+ROAM_ALIAS`.
-
-### Features
 * [#216][gh-216] Adds templating functionality by extending org-capture.
-
+* [#232][gh-232] Adds a prefix key to `org-roam-show-graph`, to generate graph without opening it.
+* [#233][gh-233] Adds `org-roam-graph-exclude-matcher`, which allows exclusion of nodes from graph.
 
 ### Bugfixes
 * [#207][gh-207], [#221][gh-221] small bugfixes to Org-roam graph generation
+* [#230][gh-230] remove nonspacing marks from filenames, to prevent cross-platform errors
+
+### New Contributors
+* [@acowley][https://github.com/acowley]
+* [@teesloane][https://github.com/teesloane]
 
 ## 0.1.2 (2020-02-21)
 
@@ -109,6 +118,7 @@ Mostly a documentation/cleanup release.
 [gh-207]: https://github.com/jethrokuan/org-roam/pull/207
 [gh-216]: https://github.com/jethrokuan/org-roam/pull/216
 [gh-221]: https://github.com/jethrokuan/org-roam/pull/221
+[gh-230]: https://github.com/jethrokuan/org-roam/pull/230
 
  # Local Variables:
  # eval: (auto-fill-mode -1)
