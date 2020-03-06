@@ -1113,9 +1113,10 @@ into a digraph."
 	  (insert "}")
 	  (buffer-string)))
 
-(defun org-roam-show-graph ()
-  "Displays the generated Org-roam graph using `org-roam-graph-viewer'."
-  (interactive)
+(defun org-roam-show-graph (&optional prefix)
+  "Generates and displays the Org-roam graph using `org-roam-graph-viewer'.
+If PREFIX, then the graph is generated but the viewer is not invoked."
+  (interactive "P")
   (declare (indent 0))
   (unless org-roam-graphviz-executable
     (setq org-roam-graphviz-executable (executable-find "dot")))
@@ -1127,9 +1128,10 @@ into a digraph."
     (with-temp-file temp-dot
       (insert graph))
     (call-process org-roam-graphviz-executable nil 0 nil temp-dot "-Tsvg" "-o" temp-graph)
-    (if (and org-roam-graph-viewer (executable-find org-roam-graph-viewer))
-	      (call-process org-roam-graph-viewer nil 0 nil temp-graph)
-      (view-file temp-graph))))
+    (unless prefix
+      (if (and org-roam-graph-viewer (executable-find org-roam-graph-viewer))
+	  (call-process org-roam-graph-viewer nil 0 nil temp-graph)
+        (view-file temp-graph)))))
 
 ;;; The global minor org-roam-mode
 (defvar org-roam-mode-map
