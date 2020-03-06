@@ -1078,6 +1078,13 @@ Valid states are 'visible, 'exists and 'none."
   :type 'number
   :group 'org-roam)
 
+(defcustom org-roam-graph-exclude-matcher nil
+  "String for excluding nodes from the generated graph.
+Any nodes and links for file paths matching this string is
+excluded from the graph."
+  :type 'string
+  :group 'org-roam)
+
 (defcustom org-roam-graph-node-shape "ellipse"
   "Shape of Graphviz nodes."
   :type 'string
@@ -1091,11 +1098,26 @@ The file-links table is then read to obtain all directed links, and formatted
 into a digraph."
   (org-roam--db-ensure-built)
   (with-temp-buffer
-	  (insert "digraph \"org-roam\" {\n")
-    (let ((rows (org-roam-sql [:select [file titles] :from titles])))
-      (dolist (row rows)
-        (let* ((file (xml-escape-string (car row)))
-               (title (or (caadr row)
+    (let* ((matcher (concat "%" org-roam-graph-exclude-matcher "%"))
+           (nodes (if org-roam-graph-exclude-matcher
+                      (org-roam-sql [:select [file titles]
+                                     :from titles
+                                     :where file :not :like $s1]
+                                    matcher)
+                    (org-roam-sql [:select [file titles]
+                                   :from titles])))
+           (edges (if org-roam-graph-exclude-matcher
+                      (org-roam-sql [:select :distinct [file-to file-from]
+                                     :from file-links
+                                     :where file-to :not :like $s1
+                                     :and file-from :not :like $s1]
+                                    matcher)
+                    (org-roam-sql [:select :distinct [file-to file-from]
+                                   :from file-links]))))
+	    (insert "digraph \"org-roam\" {\n")
+      (dolist (node nodes)
+        (let* ((file (xml-escape-string (car node)))
+               (title (or (caadr node)
                           (org-roam--path-to-slug file)))
                (shortened-title (s-truncate org-roam-graph-max-title-length title)))
           (insert
@@ -1104,14 +1126,13 @@ into a digraph."
 				           (xml-escape-string shortened-title)
 				           org-roam-graph-node-shape
 				           file
-				           (xml-escape-string title))))))
-    (let ((link-rows (org-roam-sql [:select :distinct [file-to file-from] :from file-links])))
-      (dolist (row link-rows)
+				           (xml-escape-string title)))))
+      (dolist (edge edges)
         (insert (format "  \"%s\" -> \"%s\";\n"
-                        (xml-escape-string (car row))
-						            (xml-escape-string (cadr row))))))
-	  (insert "}")
-	  (buffer-string)))
+                        (xml-escape-string (car edge))
+						            (xml-escape-string (cadr edge)))))
+	    (insert "}")
+	    (buffer-string))))
 
 (defun org-roam-show-graph (&optional prefix)
   "Generates and displays the Org-roam graph using `org-roam-graph-viewer'.
@@ -1130,7 +1151,7 @@ If PREFIX, then the graph is generated but the viewer is not invoked."
     (call-process org-roam-graphviz-executable nil 0 nil temp-dot "-Tsvg" "-o" temp-graph)
     (unless prefix
       (if (and org-roam-graph-viewer (executable-find org-roam-graph-viewer))
-	  (call-process org-roam-graph-viewer nil 0 nil temp-graph)
+	        (call-process org-roam-graph-viewer nil 0 nil temp-graph)
         (view-file temp-graph)))))
 
 ;;; The global minor org-roam-mode
