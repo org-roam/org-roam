@@ -5,11 +5,10 @@
 Org-roam is a [Roam][roamresearch] replica built around the
 all-powerful [Org-mode][org].
 
-Org-roam is a solution for effortless non-hierarchical note-taking,
-building upon Org-mode. This solution is heavily inspired by [Roam
-Research][roamresearch]. With Org-roam, notes flow naturally, making
-note-taking fun and easy. Org-roam should also work as a plug-and-play
-solution for anyone already using Org-mode for their personal wiki.
+Org-roam is a solution for effortless non-hierarchical note-taking
+with Org-mode. With Org-roam, notes flow naturally, making note-taking
+fun and easy. Org-roam should also work as a plug-and-play solution
+for anyone already using Org-mode for their personal wiki.
 
 To understand more about Roam, a collection of links are available in
 [the appendix](notetaking_workflow.md).

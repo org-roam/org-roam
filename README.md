@@ -4,26 +4,24 @@
 
 ## Synopsis
 
-Org-roam is a rudimentary [Roam][roamresearch] replica built around
-the all-powerful [Org-mode][org]. 
+Org-roam is a [Roam][roamresearch] replica built on top of the
+all-powerful [Org-mode][org].
 
-Like Roam, Org-roam offers a powerful and effortless non-hierarchical
-note-taking approach. With Org-roam, notes flow naturally, making
-note-taking fun and easy. Org-roam *enables* a note-taking workflow that
-is not fluid with vanilla Org-mode (more in [this blog
-post](https://blog.jethro.dev/posts/how_to_take_smart_notes_org/)).
+Org-roam is a solution for effortless non-hierarchical note-taking
+with Org-mode. With Org-roam, notes flow naturally, making note-taking
+fun and easy. Org-roam should also work as a plug-and-play solution
+for anyone already using Org-mode for their personal wiki.
 
-
-The goal of the project is to implement core features of Roam around
-Org-mode, and eventually introduce features enabled by the Emacs
-ecosystem.
-
-Visit [the documentation
-page](https://org-roam.readthedocs.io/en/latest/) for a tutorial and
-more links.
+Org-roam aims to implement the core features of Roam, leveraging the
+mature ecosystem around Org-mode where possible. Eventually, we hope
+to further introduce features enabled by the Emacs ecosystem.
 
 As of February 2020, it is in a very early stage of development. 
 
+Important links:
+
+- **[Documentation][docs]**
+- **[Org-roam Slack][slack]**
 ## A Preview
 
 Here's a screenshot of `org-roam`. The `org-roam` buffer shows
@@ -80,3 +78,5 @@ General Public License, Version 3
 [roamresearch]: https://www.roamresearch.com/
 [org]: https://orgmode.org/
 [badge-license]: https://img.shields.io/badge/license-GPL_3-green.svg
+[docs]: https://org-roam.readthedocs.io/
+[slack]: https://join.slack.com/t/orgroam/shared_invite/zt-clh0g0tx-j8xg1kVxnrWdKt16gmSGPQ

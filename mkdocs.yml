@@ -3,6 +3,10 @@ repo_url: https://github.com/jethrokuan/org-roam/
 edit_uri: edit/master/doc/
 copyright: "Copyright (C) 2020 Jethro Kuan and contributors"
 docs_dir: doc
+extra:
+  social:
+    - type: 'slack'
+      link: 'https://join.slack.com/t/orgroam/shared_invite/zt-clh0g0tx-j8xg1kVxnrWdKt16gmSGPQ'
 nav:
 - Home: index.md
 - A Tour of Org-roam: tour.md
