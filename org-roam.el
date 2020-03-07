@@ -890,6 +890,11 @@ INFO is an alist containing additional information."
   "Face for org-roam link."
   :group 'org-roam-faces)
 
+(defface org-roam-backlink
+  '((t :inherit org-block))
+  "Face for org-roam backlinks in backlinks buffer"
+  :group 'org-roam-faces)
+
 (defun org-roam--roam-link-face (path)
   "Conditional face for org file links.
 Applies `org-roam-link-face' if PATH correponds to a Roam file."
@@ -1002,7 +1007,7 @@ If item at point is not org-roam specific, default to Org behaviour."
                         (insert (propertize
                                  (s-trim (s-replace "\n" " "
                                                     (plist-get props :content)))
-                                 'font-lock-face 'org-block
+                                 'font-lock-face 'org-roam-backlink
                                  'help-echo "mouse-1: visit backlinked note"
                                  'file-from file-from
                                  'file-from-point (plist-get props :point)))
