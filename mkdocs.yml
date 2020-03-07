@@ -18,6 +18,7 @@ nav:
 - Similar Packages: comparison.md
 - "Appendix: Note-taking Workflow": notetaking_workflow.md
 - "Appendix: Roam Protocol": roam_protocol.md
+- "Appendix: Org Export": org_export.md
 markdown_extensions:
   - admonition
   - pymdownx.betterem:
