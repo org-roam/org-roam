@@ -53,6 +53,9 @@ frame width. For example:
 
 Will result in the Org-roam buffer taking up 40% of the screen width.
 
+You can change backlinks appearance in the buffer by customizing
+`org-roam-backlink` face (`M-x customize-face org-roam-backlink`).
+
 ## Org-roam Links
 
 By default, links are inserted with the title as the link description.
@@ -65,7 +68,7 @@ choose add special indicators for Org-roam links by tweaking
 ```
 
 If your version of Org is at least `9.2`, you may also choose to
-simply style the link differently, by customizing `org-roam-link-face`
+simply style the link differently, by customizing `org-roam-link` face
 (`M-x customize-face org-roam-link`).
 
 ## Org-roam Files
