@@ -51,7 +51,7 @@ Or without `use-package`:
 (define-key org-roam-mode-map (kbd "C-c n l") #'org-roam)
 (define-key org-roam-mode-map (kbd "C-c n f") #'org-roam-find-file)
 (define-key org-roam-mode-map (kbd "C-c n b") #'org-roam-switch-to-buffer)
-(define-key org-roam-mode-map (kbd "C-c n g") #'org-roam-switch-to-buffer)
+(define-key org-roam-mode-map (kbd "C-c n g") #'org-roam-show-graph)
 (define-key org-mode-map (kbd "C-c n i") #'org-roam-insert)
 (org-roam-mode +1)
 ```
