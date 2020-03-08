@@ -40,7 +40,7 @@ The recommended method is using use-package and straight, or a similar package m
 (use-package org-roam
       :hook 
       (after-init . org-roam-mode)
-      :straight (:host github :repo "jethrokuan/org-roam" :branch "develop")
+      :straight (:host github :repo "jethrokuan/org-roam")
       :custom
       (org-roam-directory "/path/to/org-files/")
       :bind (:map org-roam-mode-map
