@@ -5,7 +5,7 @@
 ;; URL: https://github.com/jethrokuan/org-roam
 ;; Keywords: org-mode, roam, convenience
 ;; Version: 1.0.0-rc1
-;; Package-Requires: ((emacs "26.1") (org "9.0"))
+;; Package-Requires: ((emacs "26.1") (org "9.3"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -37,6 +37,7 @@
 ;;; Code:
 
 (require 'org-protocol)
+(require 'ol)
 (require 'org-roam)
 
 (declare-function org-roam-find-ref "org-roam" (&optional info))
@@ -67,7 +68,7 @@ It opens or creates a note with the given ref.
                                              (val (cdr k.v)))
                                          (cons key (org-link-decode val)))) alist)))
     (unless (assoc 'ref decoded-alist)
-      (error "No ref key provided."))
+      (error "No ref key provided"))
     (when-let ((title (cdr (assoc 'title decoded-alist))))
       (push (cons 'slug (org-roam--title-to-slug title)) decoded-alist))
     (let* ((org-roam-capture-templates org-roam-ref-capture-templates)

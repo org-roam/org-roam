@@ -6,7 +6,7 @@
 ;; URL: https://github.com/jethrokuan/org-roam
 ;; Keywords: org-mode, roam, convenience
 ;; Version: 1.0.0-rc1
-;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (s "1.12.0") (org "9.0") (emacsql "3.0.0") (emacsql-sqlite "1.0.0"))
+;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (s "1.12.0") (org "9.3") (emacsql "3.0.0") (emacsql-sqlite "1.0.0"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -896,17 +896,6 @@ Applies `org-roam-link-face' if PATH correponds to a Roam file."
       'org-roam-link
     'org-link))
 
-(defun org-roam--setup-file-links ()
-  "Set up `file:' Org links with org-roam-link-face."
-  (unless (version< org-version "9.2")
-    (org-link-set-parameters "file" :face 'org-roam--roam-link-face)))
-
-(defun org-roam--teardown-file-links ()
-  "Teardown the setup done by Org-roam on file links.
-This sets `file:' Org links to have the org-link face."
-  (unless (version< org-version "9.2")
-    (org-link-set-parameters "file" :face 'org-link)))
-
 ;;;; org-roam-backlinks-mode
 (define-derived-mode org-roam-backlinks-mode org-mode "Backlinks"
   "Major mode for the org-roam backlinks buffer
@@ -1199,7 +1188,7 @@ Otherwise, behave as if called interactively."
     ;; Disable local hooks for all org-roam buffers
     (dolist (buf (org-roam--get-roam-buffers))
       (with-current-buffer buf
-        (org-roam--teardown-file-links)
+        (org-link-set-parameters "file" :face 'org-link)
         (remove-hook 'post-command-hook #'org-roam--maybe-update-buffer t)
         (remove-hook 'after-save-hook #'org-roam--db-update-file t))))))
 
@@ -1209,7 +1198,7 @@ Otherwise, behave as if called interactively."
     (setq org-roam-last-window (get-buffer-window))
     (add-hook 'post-command-hook #'org-roam--maybe-update-buffer nil t)
     (add-hook 'after-save-hook #'org-roam--db-update-file nil t)
-    (org-roam--setup-file-links)
+    (org-link-set-parameters "file" :face 'org-roam--roam-link-face)
     (org-roam--maybe-update-buffer :redisplay nil)))
 
 (defun org-roam--delete-file-advice (file &optional _trash)
