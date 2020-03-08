@@ -84,12 +84,6 @@ Valid values are
   :type 'string
   :group 'org-roam)
 
-(defcustom org-roam-filename-noconfirm t
-  "Whether to prompt for confirmation of filename for new files.
-If nil, always ask for filename."
-  :type 'boolean
-  :group 'org-roam)
-
 (defcustom org-roam-buffer-width 0.33 "Width of `org-roam' buffer."
   :type 'number
   :group 'org-roam)
