@@ -986,7 +986,7 @@ If item at point is not org-roam specific, default to Org behaviour."
                                     file-from
                                     (org-roam--get-title-or-slug file-from)))
                     (dolist (backlink bls)
-                      (pcase-let ((`(,file-from ,file-to ,props) backlink))
+                      (pcase-let ((`(,file-from _ ,props) backlink))
                         (insert (propertize
                                  (s-trim (s-replace "\n" " "
                                                     (plist-get props :content)))
@@ -1207,15 +1207,15 @@ Otherwise, behave as if called interactively."
              (org-roam--org-roam-file-p file))
     (org-roam--db-clear-file (file-truename file))))
 
-(defun org-roam--rename-file-advice (file new-file &rest args)
+(defun org-roam--rename-file-advice (file new-file &rest _args)
   "Rename backlinks of FILE to refer to NEW-FILE."
   (when (and (not (auto-save-file-name-p file))
              (not (auto-save-file-name-p new-file))
              (org-roam--org-roam-file-p new-file))
     (org-roam--db-ensure-built)
     (let* ((files-to-rename (org-roam-sql [:select :distinct [file-from]
-                                           :from file-links
-                                           :where (= file-to $s1)]
+                                                   :from file-links
+                                                   :where (= file-to $s1)]
                                           file))
            (path (file-truename file))
            (new-path (file-truename new-file))
