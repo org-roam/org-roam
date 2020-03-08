@@ -140,6 +140,7 @@ Performs a database upgrade when required."
            (init-db (not (file-exists-p db-file))))
       (make-directory (file-name-directory db-file) t)
       (let ((conn (emacsql-sqlite db-file)))
+        (set-process-query-on-exit-flag (emacsql-process conn) nil)
         (puthash (file-truename org-roam-directory)
                  conn
                  org-roam--db-connection)
