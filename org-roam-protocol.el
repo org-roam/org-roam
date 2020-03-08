@@ -37,7 +37,6 @@
 ;;; Code:
 
 (require 'org-protocol)
-(require 'ol)
 (require 'org-roam)
 
 (declare-function org-roam-find-ref "org-roam" (&optional info))

@@ -265,14 +265,14 @@ This is equivalent to removing the node from the graph."
   "Insert LINKS into the Org-roam cache."
   (org-roam-sql
    [:insert :into file-links
-            :values $v1]
+    :values $v1]
    links))
 
 (defun org-roam--db-insert-titles (file titles)
   "Insert TITLES for a FILE into the Org-roam cache."
   (org-roam-sql
    [:insert :into titles
-            :values $v1]
+    :values $v1]
    (list (vector file titles))))
 
 (defun org-roam--db-insert-ref (file ref)
@@ -391,12 +391,12 @@ This is equivalent to removing the node from the graph."
                        :titles (length all-titles)
                        :refs (length all-refs)
                        :deleted (length (hash-table-keys current-files)))))
-      (message (format "files: %s, links: %s, titles: %s, refs: %s, deleted: %s"
-                       (plist-get stats :files)
-                       (plist-get stats :links)
-                       (plist-get stats :titles)
-                       (plist-get stats :refs)
-                       (plist-get stats :deleted)))
+      (message "files: %s, links: %s, titles: %s, refs: %s, deleted: %s"
+               (plist-get stats :files)
+               (plist-get stats :links)
+               (plist-get stats :titles)
+               (plist-get stats :refs)
+               (plist-get stats :deleted))
       stats)))
 
 ;;; Utilities
@@ -479,7 +479,7 @@ Ignores hidden files and directories."
         (dolist (file files)
           (cond
            ((file-directory-p file)
-            (when (not (string-match dir-ignore-regexp file))
+            (unless (string-match dir-ignore-regexp file)
               (setq result (append (org-roam--list-files file) result))))
            ((and (file-readable-p file)
                  (org-roam--org-file-p file))
@@ -568,10 +568,10 @@ specified via the #+ROAM_ALIAS property."
 (defun org-roam--title-to-slug (title)
   "Convert TITLE to a filename-suitable slug."
   (cl-flet* ((nonspacing-mark-p (char)
-               (eq 'Mn (get-char-code-property char 'general-category)))
+                                (eq 'Mn (get-char-code-property char 'general-category)))
              (strip-nonspacing-marks (s)
-               (apply #'string (seq-remove #'nonspacing-mark-p
-                                           (ucs-normalize-NFD-string s))))
+                                     (apply #'string (seq-remove #'nonspacing-mark-p
+                                                                 (ucs-normalize-NFD-string s))))
              (replace (title pair)
                       (replace-regexp-in-string (car pair) (cdr pair) title)))
     (let* ((pairs `(("[^[:alnum:][:digit:]]" . "_")  ;; convert anything not alphanumeric
@@ -668,7 +668,7 @@ currently active Org-roam template."
                           org-roam--capture-info)))
          (file-path (org-roam--file-path-from-id new-id)))
     (when (file-exists-p file-path)
-      (error (format "File exists at %s, aborting." file-path)))
+      (error (format "File exists at %s, aborting" file-path)))
     (org-roam--touch-file file-path)
     (write-region
      (org-roam--fill-template (or (org-capture-get :head)
@@ -909,14 +909,17 @@ Applies `org-roam-link-face' if PATH correponds to a Roam file."
     'org-link))
 
 ;;;; org-roam-backlinks-mode
+(defvar org-roam-backlinks-mode-map
+  (let ((km (make-sparse-keymap)))
+    (define-key km [mouse-1] 'org-roam-open-at-point)
+    (define-key km (kbd "RET") 'org-roam-open-at-point)
+    km)
+  "Keymap for `org-roam-backlinks-mode'.")
+
 (define-derived-mode org-roam-backlinks-mode org-mode "Backlinks"
-  "Major mode for the org-roam backlinks buffer
+  "Major mode for the `org-roam-buffer'.
 
-Bindings:
 \\{org-roam-backlinks-mode-map}")
-
-(define-key org-roam-backlinks-mode-map [mouse-1] 'org-roam-open-at-point)
-(define-key org-roam-backlinks-mode-map (kbd "RET") 'org-roam-open-at-point)
 
 (defun org-roam-open-at-point ()
   "Open a link at point.
@@ -958,7 +961,7 @@ If item at point is not Org-roam specific, default to Org behaviour."
 (defun org-roam--get-backlinks (file)
   "Return the backlinks for FILE."
   (org-roam-sql [:select [file-from, file-to, properties] :from file-links
-                         :where (= file-to $s1)]
+                 :where (= file-to $s1)]
                 file))
 
 ;;;; Updating the org-roam buffer
@@ -981,7 +984,7 @@ If item at point is not Org-roam specific, default to Org behaviour."
          (cons '(file . org-roam--find-file) org-link-frame-setup))
         (let ((inhibit-read-only t))
           (erase-buffer)
-          (when (not (eq major-mode 'org-roam-backlinks-mode))
+          (unless (eq major-mode 'org-roam-backlinks-mode)
             (org-roam-backlinks-mode))
           (make-local-variable 'org-return-follows-link)
           (setq org-return-follows-link t)
@@ -1164,7 +1167,7 @@ If PREFIX, then the graph is generated but the viewer is not invoked."
 ;;; The global minor org-roam-mode
 (defvar org-roam-mode-map
   (make-sparse-keymap)
-  "Keymap for Org-roam commands.")
+  "Keymap for `org-roam-mode'.")
 
 ;;;###autoload
 (define-minor-mode org-roam-mode
@@ -1228,8 +1231,8 @@ Otherwise, behave as if called interactively."
              (org-roam--org-roam-file-p new-file))
     (org-roam--db-ensure-built)
     (let* ((files-to-rename (org-roam-sql [:select :distinct [file-from]
-                                                   :from file-links
-                                                   :where (= file-to $s1)]
+                                           :from file-links
+                                           :where (= file-to $s1)]
                                           file))
            (path (file-truename file))
            (new-path (file-truename new-file))
