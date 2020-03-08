@@ -7,7 +7,7 @@ The recommended method is using [use-package][use-package] and
 (use-package org-roam
       :hook 
       (after-init . org-roam-mode)
-      :straight (:host github :repo "jethrokuan/org-roam" :branch "develop")
+      :straight (:host github :repo "jethrokuan/org-roam")
       :custom
       (org-roam-directory "/path/to/org-files/")
       :bind (:map org-roam-mode-map
@@ -31,7 +31,7 @@ git clone https://github.com/jethrokuan/org-roam/ ~/.emacs.d/elisp/org-roam
   :load-path "elisp/"
   :hook
   (after-init . org-roam-mode)
-  :straight (:host github :repo "jethrokuan/org-roam" :branch "develop")
+  :straight (:host github :repo "jethrokuan/org-roam")
   :custom
   (org-roam-directory "/path/to/org-files/")
   :bind (:map org-roam-mode-map
@@ -48,11 +48,11 @@ Or without `use-package`:
 ```emacs-lisp
 (add-to-list 'load-path "./elisp")
 (require 'org-roam)
-(define-key 'org-roam-mode-map (kbd "C-c n l") #'org-roam)
-(define-key 'org-roam-mode-map (kbd "C-c n f") #'org-roam-find-file)
-(define-key 'org-roam-mode-map (kbd "C-c n b") #'org-roam-switch-to-buffer)
-(define-key 'org-roam-mode-map (kbd "C-c n g") #'org-roam-switch-to-buffer)
-(define-key 'org-mode-map (kbd "C-c n i") #'org-roam-insert)
+(define-key org-roam-mode-map (kbd "C-c n l") #'org-roam)
+(define-key org-roam-mode-map (kbd "C-c n f") #'org-roam-find-file)
+(define-key org-roam-mode-map (kbd "C-c n b") #'org-roam-switch-to-buffer)
+(define-key org-roam-mode-map (kbd "C-c n g") #'org-roam-switch-to-buffer)
+(define-key org-mode-map (kbd "C-c n i") #'org-roam-insert)
 (org-roam-mode +1)
 ```
 
@@ -70,31 +70,31 @@ layer that wraps Org-roam. Paste the following into a new file
 ```emacs-lisp
 (defconst org-roam-packages
   '((org-roam :location
-        (recipe :fetcher github :repo "jethrokuan/org-roam" :branch "develop"))))
+              (recipe :fetcher github :repo "jethrokuan/org-roam"))))
 
 (defun org-roam/init-org-roam ()
-    (use-package org-roam
-        :hook
-        (after-init . org-roam-mode)
-        :custom
-        (org-roam-directory "/path/to/org-files/")
-        :init
-        (progn
-          (spacemacs/declare-prefix "ar" "org-roam")
-          (spacemacs/set-leader-keys
-            "arl" 'org-roam
-            "art" 'org-roam-today
-            "arf" 'org-roam-find-file
-            "arg" 'org-roam-show-graph)
+  (use-package org-roam
+    :hook
+    (after-init . org-roam-mode)
+    :custom
+    (org-roam-directory "/path/to/org-files/")
+    :init
+    (progn
+      (spacemacs/declare-prefix "ar" "org-roam")
+      (spacemacs/set-leader-keys
+       "arl" 'org-roam
+       "art" 'org-roam-today
+       "arf" 'org-roam-find-file
+       "arg" 'org-roam-show-graph)
 
-          (spacemacs/declare-prefix-for-mode 'org-mode "mr" "org-roam")
-          (spacemacs/set-leader-keys-for-major-mode 'org-mode
-            "rl" 'org-roam
-            "rt" 'org-roam-today
-            "rb" 'org-roam-switch-to-buffer
-            "rf" 'org-roam-find-file
-            "ri" 'org-roam-insert
-            "rg" 'org-roam-show-graph))))
+      (spacemacs/declare-prefix-for-mode 'org-mode "mr" "org-roam")
+      (spacemacs/set-leader-keys-for-major-mode 'org-mode
+                                                "rl" 'org-roam
+                                                "rt" 'org-roam-today
+                                                "rb" 'org-roam-switch-to-buffer
+                                                "rf" 'org-roam-find-file
+                                                "ri" 'org-roam-insert
+                                                "rg" 'org-roam-show-graph))))
 ```
 
 Next, append `org-roam` to the `dotspacemacs-configuration-layers`
@@ -112,7 +112,7 @@ Declare Org-roam as a package in your `~/.doom.d/packages.el`:
 ;; ~/.doom.d/packages.el
 
 (package! org-roam
-  :recipe (:host github :repo "jethrokuan/org-roam" :branch "develop"))
+  :recipe (:host github :repo "jethrokuan/org-roam"))
 ```
 
 Subsequently, in your `~/.doom.d/config.el` file, configure Org-roam:
