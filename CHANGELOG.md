@@ -16,6 +16,7 @@ templating system using `org-capture` is introduced.
 * [#216][gh-216] Adds templating functionality by extending org-capture.
 * [#232][gh-232] Adds a prefix key to `org-roam-show-graph`, to generate graph without opening it.
 * [#233][gh-233] Adds `org-roam-graph-exclude-matcher`, which allows exclusion of nodes from graph.
+* [#247][gh-247] Add `org-roam-backlink` face, which allows customizing backlinks appearance
 
 ### Bugfixes
 * [#207][gh-207], [#221][gh-221] small bugfixes to Org-roam graph generation
@@ -119,6 +120,7 @@ Mostly a documentation/cleanup release.
 [gh-216]: https://github.com/jethrokuan/org-roam/pull/216
 [gh-221]: https://github.com/jethrokuan/org-roam/pull/221
 [gh-230]: https://github.com/jethrokuan/org-roam/pull/230
+[gh-247]: https://github.com/jethrokuan/org-roam/pull/247
 
  # Local Variables:
  # eval: (auto-fill-mode -1)
