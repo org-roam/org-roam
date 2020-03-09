@@ -101,6 +101,11 @@ Formatter may be a function that takes title as its only argument."
   :type 'boolean
   :group 'org-roam)
 
+(defcustom org-roam-graph-type :dot
+  "Graphviz type to use to generate graphs."
+  :type 'symbol
+  :group 'org-roam)
+
 ;;;; Dynamic variables
 (defvar org-roam--current-buffer nil
   "Currently displayed file in `org-roam' buffer.")
@@ -1089,7 +1094,12 @@ Valid states are 'visible, 'exists and 'none."
   :type 'string
   :group 'org-roam)
 
-(defcustom org-roam-graphviz-executable (executable-find "dot")
+(defcustom org-roam-graphviz-dot-executable (executable-find "dot")
+  "Path to graphviz executable."
+  :type 'string
+  :group 'org-roam)
+
+(defcustom org-roam-graphviz-neato-executable (executable-find "neato")
   "Path to graphviz executable."
   :type 'string
   :group 'org-roam)
@@ -1112,6 +1122,16 @@ excluded from the graph."
   :group 'org-roam)
 
 ;;;; Functions
+
+(defun org-roam--get-graph-binary ()
+  "Obtain graphviz binary to generate the graph"
+  (cond ((eq org-roam-graph-type :dot)
+	 (or org-roam-graphviz-dot-executable
+	   (executable-find "dot")))
+	((eq org-roam-graph-type :neato)
+	 (or org-roam-graphviz-neato-executable
+	   (executable-find "neato")))))
+
 (defun org-roam--build-graph ()
   "Build the Graphviz string.
 The Org-roam database titles table is read, to obtain the list of titles.
@@ -1135,7 +1155,7 @@ into a digraph."
                                     matcher)
                     (org-roam-sql [:select :distinct [file-to file-from]
                                    :from file-links]))))
-	    (insert "digraph \"org-roam\" {\n")
+	    (insert "digraph \"org-roam\" {\noverlap = false;\n")
       (dolist (node nodes)
         (let* ((file (xml-escape-string (car node)))
                (title (or (caadr node)
@@ -1160,16 +1180,14 @@ into a digraph."
 If PREFIX, then the graph is generated but the viewer is not invoked."
   (interactive "P")
   (declare (indent 0))
-  (unless org-roam-graphviz-executable
-    (setq org-roam-graphviz-executable (executable-find "dot")))
-  (unless org-roam-graphviz-executable
+  (unless (org-roam--get-graph-binary)
     (user-error "Can't find graphviz executable.  Please check if it is in your path"))
   (let ((temp-dot (expand-file-name "graph.dot" temporary-file-directory))
         (temp-graph (expand-file-name "graph.svg" temporary-file-directory))
         (graph (org-roam--build-graph)))
     (with-temp-file temp-dot
       (insert graph))
-    (call-process org-roam-graphviz-executable nil 0 nil temp-dot "-Tsvg" "-o" temp-graph)
+    (call-process (org-roam--get-graph-binary) nil 0 nil temp-dot "-Tsvg" "-o" temp-graph)
     (unless prefix
       (if (and org-roam-graph-viewer (executable-find org-roam-graph-viewer))
 	        (call-process org-roam-graph-viewer nil 0 nil temp-graph)

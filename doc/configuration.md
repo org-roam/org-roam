@@ -20,7 +20,7 @@ considered part of the Org-roam ecosystem.
 
 Emacs supports directory-local variables, allowing the value of
 `org-roam-directory` to be different in different directories. It does
-this by checking for a file named `.dir-locals.el`. 
+this by checking for a file named `.dir-locals.el`.
 
 To add support for multiple directories, override the
 `org-roam-directory` variable using directory-local variables. This is
@@ -82,7 +82,7 @@ described in detail in the [Org-roam Template](templating.md) page.
 Encryption (via GPG) can be enabled for all new files by setting
 `org-roam-encrypt-files` to `t`. When enabled, new files are created
 with the `.org.gpg` extension and decryption are handled automatically
-by EasyPG. 
+by EasyPG.
 
 Note that Emacs will prompt for a password for encrypted files during
 cache updates if it requires reading the encrypted file. To reduce the
@@ -94,11 +94,29 @@ Org-roam generates an SVG image using
 [Graphviz](https://graphviz.org/). To setup graph navigation, see the
 [Graph Setup](graph_setup.md) page.
 
-Org-roam tries its best to locate the Graphviz executable from your
+Org-roam tries its best to locate the Graphviz executables from your
 `PATH`, but if it fails to do so, you may set it manually:
 
 ```
-(setq org-roam-graphviz-executable "/path/to/dot")
+(setq org-roam-graphviz-dot-executable "/path/to/dot")
+```
+
+or
+
+```
+(setq org-roam-graphviz-neato-executable "/path/to/dot")
+```
+
+So you can select between dot or neato:
+
+```
+(setq org-roam-graph-type :dot)
+```
+
+or
+
+```
+(setq org-roam-graph-type :neato)
 ```
 
 Org-roam also attempts to use Firefox (located on `PATH`) to view the
