@@ -796,11 +796,12 @@ point moves some characters forward. This is added as a hook to
                       file-path) res))))
     res))
 
-(defun org-roam-find-file ()
-  "Find and open an Org-roam file."
+(defun org-roam-find-file (&optional initial-prompt)
+  "Find and open an Org-roam file.
+INITIAL-PROMPT is the initial title prompt."
   (interactive)
   (let* ((completions (org-roam--get-title-path-completions))
-         (title (completing-read "File: " completions))
+         (title (completing-read "File: " completions nil nil initial-prompt))
          (file-path (cdr (assoc title completions))))
     (if file-path
         (find-file file-path)
