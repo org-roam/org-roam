@@ -4,6 +4,7 @@
 
 ## New Features
 * [#269][gh-269] Add `org-roam-graphviz-extra-options`
+* [#257][gh-257] Add a company-backend
 
 ## 1.0.0-rc1 (06-03-2020)
 
@@ -127,8 +128,9 @@ Mostly a documentation/cleanup release.
 [gh-221]: https://github.com/jethrokuan/org-roam/pull/221
 [gh-230]: https://github.com/jethrokuan/org-roam/pull/230
 [gh-247]: https://github.com/jethrokuan/org-roam/pull/247
+[gh-257]: https://github.com/jethrokuan/org-roam/pull/257
 [gh-259]: https://github.com/jethrokuan/org-roam/pull/259
-[gh-259]: https://github.com/jethrokuan/org-roam/pull/269
+[gh-269]: https://github.com/jethrokuan/org-roam/pull/269
 
  # Local Variables:
  # eval: (auto-fill-mode -1)
