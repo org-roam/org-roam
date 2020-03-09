@@ -1095,12 +1095,12 @@ Valid states are 'visible, 'exists and 'none."
   :group 'org-roam)
 
 (defcustom org-roam-graphviz-dot-executable (executable-find "dot")
-  "Path to graphviz executable."
+  "Path to graphviz dot executable."
   :type 'string
   :group 'org-roam)
 
 (defcustom org-roam-graphviz-neato-executable (executable-find "neato")
-  "Path to graphviz executable."
+  "Path to graphviz neato executable."
   :type 'string
   :group 'org-roam)
 
@@ -1124,7 +1124,7 @@ excluded from the graph."
 ;;;; Functions
 
 (defun org-roam--get-graph-binary ()
-  "Obtain graphviz binary to generate the graph"
+  "Obtain graphviz binary to generate the graph."
   (cond ((eq org-roam-graph-type :dot)
 	 (or org-roam-graphviz-dot-executable
 	   (executable-find "dot")))
