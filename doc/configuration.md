@@ -99,12 +99,7 @@ Org-roam tries its best to locate the Graphviz executables from your
 
 ```
 (setq org-roam-graphviz-dot-executable "/path/to/dot")
-```
-
-or
-
-```
-(setq org-roam-graphviz-neato-executable "/path/to/dot")
+(setq org-roam-graphviz-neato-executable "/path/to/neato")
 ```
 
 So you can select between dot or neato:
