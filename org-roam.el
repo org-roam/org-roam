@@ -80,8 +80,11 @@ Valid values are
   :group 'org-roam)
 
 (defcustom org-roam-link-title-format "%s"
-  "The format string used when inserting Org-roam links that use their title."
-  :type 'string
+  "The formatter used when inserting Org-roam links that use their title.
+Formatter may be a function that takes title as its only argument."
+  :type '(choice
+          (string :tag "String Format" "%s")
+          (function :tag "Custom function"))
   :group 'org-roam)
 
 (defcustom org-roam-buffer-width 0.33 "Width of `org-roam' buffer."
@@ -728,6 +731,12 @@ GOTO and KEYS argument have the same functionality as
 (defvar org-roam--capture-insert-point nil
   "The point to jump to after the call to `org-roam-insert'.")
 
+(defun org-roam--format-link-title (title)
+  "Returns the link title, given the file TITLE."
+  (if (functionp org-roam-link-title-format)
+      (funcall org-roam-link-title-format title)
+    (format org-roam-link-title-format title)))
+
 (defun org-roam-insert (prefix)
   "Find an Org-roam file, and insert a relative org link to it at point.
 If PREFIX, downcase the title before insertion."
@@ -759,9 +768,9 @@ If PREFIX, downcase the title before insertion."
       (when region ;; Remove previously selected text.
         (delete-region (car region) (cdr region)))
       (let ((link-location (concat "file:" (file-relative-name target-file-path current-file-path)))
-            (description (format org-roam-link-title-format (if prefix
-                                                                (downcase region-or-title)
-                                                              region-or-title))))
+            (description (org-roam--format-link-title (if prefix
+                                                          (downcase region-or-title)
+                                                        region-or-title))))
         (goto-char p)
         (insert (format "[[%s][%s]]"
                         link-location
