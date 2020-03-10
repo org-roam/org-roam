@@ -242,7 +242,6 @@ the current `org-roam-directory'."
     (org-roam-sql [:delete :from files])
     (org-roam-sql [:delete :from titles])
     (org-roam-sql [:delete :from file-links])
-    (org-roam-sql [:delete :from files])
     (org-roam-sql [:delete :from refs])))
 
 (defun org-roam--db-clear-file (&optional filepath)
