@@ -249,7 +249,7 @@ the current `org-roam-directory'."
   "Remove any related links to the file at FILEPATH.
 This is equivalent to removing the node from the graph."
   (let* ((path (or filepath
-                   (buffer-file-name (current-buffer))))
+                   (buffer-file-name)))
          (file (file-truename path)))
     (org-roam-sql [:delete :from files
                    :where (= file $s1)]
@@ -305,7 +305,7 @@ This is equivalent to removing the node from the graph."
 ;;;;; Updating
 (defun org-roam--db-update-titles ()
   "Update the title of the current buffer into the cache."
-  (let ((file (file-truename (buffer-file-name (current-buffer)))))
+  (let ((file (file-truename (buffer-file-name))))
     (org-roam-sql [:delete :from titles
                    :where (= file $s1)]
                   file)
@@ -313,7 +313,7 @@ This is equivalent to removing the node from the graph."
 
 (defun org-roam--db-update-refs ()
   "Update the ref of the current buffer into the cache."
-  (let ((file (file-truename (buffer-file-name (current-buffer)))))
+  (let ((file (file-truename (buffer-file-name))))
     (org-roam-sql [:delete :from refs
                    :where (= file $s1)]
                   file)
@@ -322,7 +322,7 @@ This is equivalent to removing the node from the graph."
 
 (defun org-roam--update-cache-links ()
   "Update the file links of the current buffer in the cache."
-  (let ((file (file-truename (buffer-file-name (current-buffer)))))
+  (let ((file (file-truename (buffer-file-name))))
     (org-roam-sql [:delete :from file-links
                    :where (= file-from $s1)]
                   file)
@@ -464,7 +464,7 @@ Like `file-name-extension', but does not strip version number."
   "Return t if FILE is part of Org-roam system, nil otherwise.
 If FILE is not specified, use the current buffer's file-path."
   (let ((path (or file
-                  (buffer-file-name (current-buffer)))))
+                  (buffer-file-name))))
     (and path
          (org-roam--org-file-p path)
          (f-descendant-of-p (file-truename path)
@@ -520,7 +520,7 @@ FILE-FROM is typically the buffer file path, but this may not exist, for example
 in temp buffers. In cases where this occurs, we do know the file path, and pass
 it as FILE-PATH."
   (let ((file-path (or file-path
-                       (file-truename (buffer-file-name (current-buffer))))))
+                       (file-truename (buffer-file-name)))))
     (org-element-map (org-element-parse-buffer) 'link
       (lambda (link)
         (let ((type (org-element-property :type link))
