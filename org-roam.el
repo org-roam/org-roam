@@ -1096,6 +1096,13 @@ Valid states are 'visible, 'exists and 'none."
   :type 'string
   :group 'org-roam)
 
+(defcustom org-roam-graphviz-extra-options nil
+  "Extra options when contructing the Graphviz graph.
+Example:
+ '((\"rankdir\" . \"LR\"))"
+  :type '(alist)
+  :group 'org-roam)
+
 (defcustom org-roam-graph-max-title-length 100
   "Maximum length of titles in Graphviz graph nodes."
   :type 'number
@@ -1138,6 +1145,11 @@ into a digraph."
                     (org-roam-sql [:select :distinct [file-to file-from]
                                    :from file-links]))))
 	    (insert "digraph \"org-roam\" {\n")
+      (dolist (option org-roam-graphviz-extra-options)
+        (insert (concat (car option)
+                        "="
+                        (cdr option)
+                        ";\n")))
       (dolist (node nodes)
         (let* ((file (xml-escape-string (car node)))
                (title (or (caadr node)
