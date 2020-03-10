@@ -516,7 +516,7 @@ Link items are of the form:
 
 This is the format that emacsql expects when inserting into the database.
 FILE-FROM is typically the buffer file path, but this may not exist, for example
-in temp buffers. In cases where this occurs, we do know the file path, and pass
+in temp buffers.  In cases where this occurs, we do know the file path, and pass
 it as FILE-PATH."
   (let ((file-path (or file-path
                        (file-truename (buffer-file-name)))))
@@ -564,7 +564,7 @@ specified via the #+ROAM_ALIAS property."
       (file-name-sans-extension)))
 
 (defun org-roam--get-title-or-slug (path)
-  "Convert `PATH' to the file title, if it exists. Else, return the path."
+  "Convert `PATH' to the file title, if it exists.  Else, return the path."
   (or (car (org-roam--db-get-titles path))
       (org-roam--path-to-slug path)))
 
@@ -637,12 +637,15 @@ applies.
 
 1. Template expansion capabilities are extended with additional custom syntax.
    See `org-roam--fill-template' for more details.
-2. The `:file-name' key is added, which expands to the file-name of the note
-   if it creates a new file. This file-name is relative to `org-roam-directory',
-   and is without the file-extension.
-3. The `:head' key is added, which contains the template that is inserted on
-   initial creation (added only once). This is where insertion of any note
-   metadata should go.")
+
+2. The `:file-name' key is added, which expands to the file-name
+   of the note if it creates a new file.  This file-name is
+   relative to `org-roam-directory', and is without the
+   file-extension.
+
+3. The `:head' key is added, which contains the template that is
+   inserted on initial creation (added only once).  This is where
+   insertion of any note metadata should go.")
 
 (defun org-roam--fill-template (str &optional info)
   "Expands the template STR, returning the string.
@@ -713,7 +716,7 @@ This function is used solely in Org-roam's capture templates: see
 
 (defun org-roam-capture (&optional goto keys)
   "Create a new file, and return the path to the edited file.
-The templates are defined at `org-roam-capture-templates'. The
+The templates are defined at `org-roam-capture-templates'.  The
 GOTO and KEYS argument have the same functionality as
 `org-capture'."
   (let ((org-capture-templates org-roam-capture-templates)
@@ -731,7 +734,7 @@ GOTO and KEYS argument have the same functionality as
   "The point to jump to after the call to `org-roam-insert'.")
 
 (defun org-roam--format-link-title (title)
-  "Returns the link title, given the file TITLE."
+  "Retur the link title, given the file TITLE."
   (if (functionp org-roam-link-title-format)
       (funcall org-roam-link-title-format title)
     (format org-roam-link-title-format title)))
@@ -784,7 +787,7 @@ If PREFIX, downcase the title before insertion."
 
 We need this function because typically `org-capture' prevents the
 point from being advanced, whereas when a link is inserted, the
-point moves some characters forward. This is added as a hook to
+point moves some characters forward.  This is added as a hook to
 `org-capture-after-finalize-hook'."
   (when org-roam--capture-insert-point
     (goto-char org-roam--capture-insert-point)
@@ -1030,7 +1033,7 @@ If item at point is not Org-roam specific, default to Org behaviour."
 (cl-defun org-roam--maybe-update-buffer (&key redisplay)
   "Reconstructs `org-roam-buffer'.
 This needs to be quick or infrequent, because this is run at
-`post-command-hook'. If REDISPLAY, force an update of
+`post-command-hook'.  If REDISPLAY, force an update of
 `org-roam-buffer'."
   (let ((buffer (window-buffer)))
     (when (and (or redisplay
@@ -1192,7 +1195,7 @@ If PREFIX, then the graph is generated but the viewer is not invoked."
 ;;; The global minor org-roam-mode
 (defvar org-roam-mode-map
   (make-sparse-keymap)
-  "Keymap for `org-roam-mode'.")
+  "Keymap for mode `org-roam-mode'.")
 
 ;;;###autoload
 (define-minor-mode org-roam-mode
