@@ -360,22 +360,22 @@ This is equivalent to removing the node from the graph."
       (org-roam--db-clear-file file))
     (when all-files
       (org-roam-sql
-       [:insert :into files
+       [:replace :into files
         :values $v1]
        all-files))
     (when all-links
       (org-roam-sql
-       [:insert :into file-links
+       [:replace :into file-links
         :values $v1]
        all-links))
     (when all-titles
       (org-roam-sql
-       [:insert :into titles
+       [:replace :into titles
         :values $v1]
        all-titles))
     (when all-refs
       (org-roam-sql
-       [:insert :into refs
+       [:replace :into refs
         :values $v1]
        all-refs))
     (let ((stats (list :files (length all-files)
