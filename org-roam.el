@@ -741,6 +741,8 @@ GOTO and KEYS argument have the same functionality as
   "Find an Org-roam file, and insert a relative org link to it at point.
 If PREFIX, downcase the title before insertion."
   (interactive "P")
+  (unless (org-roam--org-roam-file-p)
+    (user-error "Not in an Org-roam file"))
   (let* ((region (and (region-active-p)
                       ;; following may lose active region, so save it
                       (cons (region-beginning) (region-end))))
