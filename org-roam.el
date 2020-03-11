@@ -340,7 +340,7 @@ This is equivalent to removing the node from the graph."
          (time (current-time))
          all-files all-links all-titles all-refs)
     (dolist (file org-roam-files)
-      (with-org-roam-temp-buffer
+      (org-roam--with-temp-buffer
         (insert-file-contents file)
         (let ((contents-hash (secure-hash 'sha1 (current-buffer))))
           (unless (string= (gethash file current-files)
@@ -425,9 +425,9 @@ https://github.com/kaushalmodi/ox-hugo/blob/a80b250987bc770600c424a10b3bca6ff728
           (setq ret (append ret str-list2))))
       ret)))
 
-(defmacro with-org-roam-temp-buffer (&rest body)
-  "Call with-temp-buffer, propagating org-roam-directory to the
-temp buffer."
+(defmacro org-roam--with-temp-buffer (&rest body)
+  "Call \"with-temp-buffer\", propagating \"org-roam-directory\"
+to the temp buffer."
   (declare (indent 0) (debug t))
   (let ((current-org-roam-directory (make-symbol "current-org-roam-directory")))
     `(let ((,current-org-roam-directory org-roam-directory))
@@ -1111,7 +1111,7 @@ The Org-roam database titles table is read, to obtain the list of titles.
 The file-links table is then read to obtain all directed links, and formatted
 into a digraph."
   (org-roam--db-ensure-built)
-  (with-org-roam-temp-buffer
+  (org-roam--with-temp-buffer
     (let* ((matcher (concat "%" org-roam-graph-exclude-matcher "%"))
            (nodes (if org-roam-graph-exclude-matcher
                       (org-roam-sql [:select [file titles]
