@@ -426,7 +426,7 @@ https://github.com/kaushalmodi/ox-hugo/blob/a80b250987bc770600c424a10b3bca6ff728
       ret)))
 
 (defmacro org-roam--with-temp-buffer (&rest body)
-  "Call `with-temp-buffer`, propagating `org-roam-directory` to
+  "Call `with-temp-buffer', propagating `org-roam-directory' to
 the temp buffer."
   (declare (indent 0) (debug t))
   (let ((current-org-roam-directory (make-symbol "current-org-roam-directory")))
