@@ -102,7 +102,7 @@ instructions for setting up with Platypus and Chrome:
 1. Install and launch Platypus (with [Homebrew](https://brew.sh/)):
 
 ```sh
-brew cask install playtpus
+brew cask install platypus
 ```
 2. Create a script `launch_emacs.sh`:
 
