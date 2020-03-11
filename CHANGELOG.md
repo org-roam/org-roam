@@ -4,7 +4,7 @@
 
 ## New Features
 * [#269][gh-269] Add `org-roam-graphviz-extra-options`
-* [#257][gh-257] Add a company-backend
+* [#257][gh-257] Add a company-backend `company-org-roam`
 
 ## 1.0.0-rc1 (06-03-2020)
 
