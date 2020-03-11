@@ -1,5 +1,4 @@
-## Installation
-
+## Basic Install
 The recommended method is using [use-package][use-package] and
 [straight][straight], or a similar package manager.
 
@@ -62,7 +61,7 @@ configuration options available.
 [use-package]: https://github.com/jwiegley/use-package
 [straight]: https://github.com/raxod502/straight.el
 
-## Spacemacs
+### Spacemacs
 If you are using Spacemacs, install org-roam by creating a simple
 layer that wraps Org-roam. Paste the following into a new file
 `~/.emacs.d/private/org-roam/packages.el`.
@@ -102,7 +101,7 @@ list in your `.spacemacs` configuration file. Reload (`SPC f e R`) or
 restart Emacs to load `org-roam`. It's functions are available under
 the prefix `SPC a r` and `, r` when visiting an org-mode buffer.
 
-## Doom Emacs
+### Doom Emacs
 
 If you are using [Doom Emacs](https://github.com/hlissner/doom-emacs), configure packages as explained in the [getting started](https://github.com/hlissner/doom-emacs/blob/develop/docs/getting_started.org#configuring-packages) guide. 
 
@@ -130,4 +129,30 @@ Subsequently, in your `~/.doom.d/config.el` file, configure Org-roam:
         :desc "Org-Roam-Buffer" "r" #'org-roam)
   :config
   (org-roam-mode +1))
+```
+
+## Completion Support
+
+Org-roam supports inserting links on-the-fly via [company-mode](http://company-mode.github.io/). This is achieved by providing the company backend `company-org-roam`.
+
+![company-org-roam](images/company-org-roam.gif)
+
+You may install it the following way using straight:
+
+```emacs-lisp
+(use-package company-org-roam
+  :straight nil
+  :after org-roam company org
+  :config
+  (company-org-roam-init))
+```
+
+or simply:
+
+```emacs-lisp
+(with-eval-after-load 'org-roam
+  (with-eval-after-load 'company
+    (with-eval-after-load 'org
+      (require 'company-org-roam)
+      (company-org-roam-init))))
 ```
