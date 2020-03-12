@@ -749,10 +749,7 @@ GOTO and KEYS argument have the same functionality as
       (funcall org-roam-link-title-format title)
     (format org-roam-link-title-format title)))
 
-(defun org-roam-insert (prefix)
-  "Find an Org-roam file, and insert a relative org link to it at point.
-If PREFIX, downcase the title before insertion."
-  (interactive "P")
+(defun org-roam--insert-with-completion-method (prefix chooser)
   (unless (org-roam--org-roam-file-p
            (buffer-file-name (buffer-base-buffer)))
     (user-error "Not in an Org-roam file"))
@@ -763,7 +760,7 @@ If PREFIX, downcase the title before insertion."
                         (buffer-substring-no-properties
                          (car region) (cdr region))))
          (completions (org-roam--get-title-path-completions))
-         (title (completing-read "File: " completions nil nil region-text))
+         (title (funcall chooser completions region-text))
          (region-or-title (or region-text title))
          (target-file-path (cdr (assoc title completions)))
          (current-file-path (-> (or (buffer-base-buffer)
@@ -791,6 +788,15 @@ If PREFIX, downcase the title before insertion."
                         link-location
                         description))
         (setq org-roam--capture-insert-point (point))))))
+
+(defun org-roam-insert (prefix)
+  "Find an Org-roam file, and insert a relative org link to it at point.
+If PREFIX, downcase the title before insertion."
+  (interactive "P")
+  (org-roam--insert-with-completion-method
+   prefix
+   #'(lambda (completions region-text)
+       (completing-read "File: " completions nil nil region-text))))
 
 (defun org-roam--capture-advance-point ()
   "Advances the point if it is updated.
@@ -820,12 +826,10 @@ point moves some characters forward.  This is added as a hook to
                       file-path) res))))
     res))
 
-(defun org-roam-find-file (&optional initial-prompt)
-  "Find and open an Org-roam file.
-INITIAL-PROMPT is the initial title prompt."
-  (interactive)
+(defun org-roam--find-file-with-completion-method (chooser)
+  "Find and open an org-roam file using completion method CHOOSER."
   (let* ((completions (org-roam--get-title-path-completions))
-         (title (completing-read "File: " completions nil nil initial-prompt))
+         (title (funcall chooser completions))
          (file-path (cdr (assoc title completions))))
     (if file-path
         (find-file file-path)
@@ -833,6 +837,14 @@ INITIAL-PROMPT is the initial title prompt."
                                            (cons 'slug (org-roam--title-to-slug title))))
              (org-roam--capture-context 'title))
         (org-roam-capture '(4))))))
+
+(defun org-roam-find-file (&optional initial-prompt)
+  "Find and open an Org-roam file.
+INITIAL-PROMPT is the initial title prompt."
+  (interactive)
+  (org-roam--find-file-with-completion-method
+   #'(lambda (completions)
+       (completing-read "File: " completions nil nil initial-prompt))))
 
 ;;;; org-roam-find-ref
 (defun org-roam--get-ref-path-completions ()
