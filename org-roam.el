@@ -622,14 +622,16 @@ Return user choice."
                  (fboundp 'helm-build-sync-source))
       (user-error "Please install helm from \
 https://github.com/emacs-helm/helm"))
-    (let* ((source (helm-build-sync-source "Title"
+    (let* ((source (helm-build-sync-source prompt
                      :candidates (-map #'car choices)
                      :filtered-candidate-transformer
                      (and (not require-match)
                           #'org-roam---helm-candidate-transformer)
                      :fuzzy-match t))
            (title (helm :sources source
-                        :buffer "*org-roam titles*"
+                        :buffer (concat "*org-roam "
+                                        (s-downcase (s-chop-suffix ":" (s-trim prompt)))
+                                        "*")
                         :prompt prompt
                         :input initial-input)))
       (unless title
@@ -913,7 +915,7 @@ INFO is an alist containing additional information."
                                     roam-buffers)))
     (unless roam-buffers
       (user-error "No roam buffers"))
-    (when-let ((name (org-roam--completing-read "Choose a buffer: " names-and-buffers t)))
+    (when-let ((name (org-roam--completing-read "Buffer: " names-and-buffers t)))
       (switch-to-buffer (cdr (assoc name names-and-buffers))))))
 
 ;;;; Daily notes
