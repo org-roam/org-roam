@@ -156,3 +156,19 @@ or simply:
       (require 'company-org-roam)
       (company-org-roam-init))))
 ```
+
+Org-roam also supports the use of Helm for note title completion.
+You may install it the following way using straight:
+
+```emacs-lisp
+(use-package helm-org-roam
+  :straight nil
+  :after org-roam helm org
+  :bind (:map org-roam-mode-map
+              (("C-c n f" . helm-org-roam-find-file))
+              :map org-mode-map
+              (("C-c n i" . helm-org-roam-insert))))
+```
+
+You should then remove the bindings for `org-roam-find-file` and
+`org-roam-insert` from the configuration of the main `org-roam` package.
