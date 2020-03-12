@@ -877,8 +877,8 @@ INFO is an alist containing additional information."
 ;;;; Daily notes
 (defun org-roam--file-for-time (time)
   "Create and find file for TIME."
-  (let* ((title (format-time-string "%Y-%m-%d" time))
-         (file-path (org-roam--file-path-from-id title)))
+  (let* ((title (format-time-string "%A, %d %B %Y" time))
+         (file-path (org-roam--file-path-from-id (format-time-string "%Y-%m-%d" time))))
     (if (file-exists-p file-path)
         file-path
       (let ((org-roam-capture-templates (list (list "d" "daily" 'plain (list 'function #'org-roam--capture-get-point)
