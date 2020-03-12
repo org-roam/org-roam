@@ -5,6 +5,7 @@
 ## New Features
 * [#269][gh-269] Add `org-roam-graphviz-extra-options`
 * [#257][gh-257] Add a company-backend `company-org-roam`
+* [#284][gh-284] Configurable `org-roam-completion-system` with options `'default` and `'helm`
 
 ## 1.0.0-rc1 (06-03-2020)
 
