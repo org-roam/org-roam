@@ -101,6 +101,14 @@ Formatter may be a function that takes title as its only argument."
   :type 'boolean
   :group 'org-roam)
 
+(defcustom org-roam-completion-system 'default
+  "The completion system to be used by `org-roam'."
+  :type '(radio
+          (const :tag "Default" default)
+          (const :tag "Helm" helm)
+          (function :tag "Custom function"))
+  :group 'org-roam)
+
 ;;;; Dynamic variables
 (defvar org-roam--current-buffer nil
   "Currently displayed file in `org-roam' buffer.")
@@ -594,6 +602,40 @@ specified via the #+ROAM_ALIAS property."
            (slug (-reduce-from #'replace (strip-nonspacing-marks title) pairs)))
       (s-downcase slug))))
 
+;;;; Completion
+(defun org-roam---helm-candidate-transformer (candidates source)
+  (let ((prefixed-pattern (propertize
+                           " " 'display
+                           (propertize "[?]" 'face 'helm-ff-prefix))))
+    (cons (concat prefixed-pattern " " helm-pattern)
+          candidates)))
+
+(defun org-roam--completing-read (prompt choices &optional require-match initial-input)
+  "Present a PROMPT with CHOICES and optional INITIAL-INPUT.
+If REQUIRE-MATCH is `t', the user must select one of the CHOICES.
+Return user choice."
+  (cond
+   ((eq org-roam-completion-system 'default)
+    (completing-read prompt choices nil require-match initial-input))
+   ((eq org-roam-completion-system 'helm)
+    (unless (and (fboundp 'helm)
+                 (fboundp 'helm-build-sync-source))
+      (user-error "Please install helm from \
+https://github.com/emacs-helm/helm"))
+    (let* ((source (helm-build-sync-source "Title"
+                     :candidates (-map #'car choices)
+                     :filtered-candidate-transformer
+                     (and (not require-match)
+                          #'org-roam---helm-candidate-transformer)
+                     :fuzzy-match t))
+           (title (helm :sources source
+                        :buffer "*org-roam titles*"
+                        :prompt prompt
+                        :input initial-input)))
+      (unless title
+        (keyboard-quit))
+      (s-trim-left title)))))
+
 ;;;; Org-roam capture
 (defun org-roam--file-path-from-id (id)
   "The file path for an Org-roam file, with identifier ID."
@@ -763,7 +805,7 @@ If PREFIX, downcase the title before insertion."
                         (buffer-substring-no-properties
                          (car region) (cdr region))))
          (completions (org-roam--get-title-path-completions))
-         (title (completing-read "File: " completions nil nil region-text))
+         (title (org-roam--completing-read "File: " completions nil region-text))
          (region-or-title (or region-text title))
          (target-file-path (cdr (assoc title completions)))
          (current-file-path (-> (or (buffer-base-buffer)
@@ -825,7 +867,7 @@ point moves some characters forward.  This is added as a hook to
 INITIAL-PROMPT is the initial title prompt."
   (interactive)
   (let* ((completions (org-roam--get-title-path-completions))
-         (title (completing-read "File: " completions nil nil initial-prompt))
+         (title (org-roam--completing-read "File: " completions nil initial-prompt))
          (file-path (cdr (assoc title completions))))
     (if file-path
         (find-file file-path)
@@ -848,7 +890,7 @@ INFO is an alist containing additional information."
   (interactive)
   (let* ((completions (org-roam--get-ref-path-completions))
          (ref (or (cdr (assoc 'ref info))
-                  (completing-read "Ref: " (org-roam--get-ref-path-completions) nil t))))
+                  (org-roam--completing-read "Ref: " (org-roam--get-ref-path-completions) t))))
     (find-file (cdr (assoc ref completions)))))
 
 ;;;; org-roam-switch-to-buffer
@@ -871,7 +913,7 @@ INFO is an alist containing additional information."
                                     roam-buffers)))
     (unless roam-buffers
       (user-error "No roam buffers"))
-    (when-let ((name (completing-read "Choose a buffer: " names-and-buffers)))
+    (when-let ((name (org-roam--completing-read "Choose a buffer: " names-and-buffers t)))
       (switch-to-buffer (cdr (assoc name names-and-buffers))))))
 
 ;;;; Daily notes
