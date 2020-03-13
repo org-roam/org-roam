@@ -1270,8 +1270,6 @@ If PREFIX, then the graph is generated but the viewer is not invoked."
   (interactive "P")
   (declare (indent 0))
   (unless org-roam-graphviz-executable
-    (setq org-roam-graphviz-executable (executable-find "dot")))
-  (unless org-roam-graphviz-executable
     (user-error "Can't find graphviz executable.  Please check if it is in your path"))
   (let ((temp-dot (expand-file-name "graph.dot" temporary-file-directory))
         (temp-graph (expand-file-name "graph.svg" temporary-file-directory))
