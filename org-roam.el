@@ -1222,10 +1222,17 @@ Example:
   :group 'org-roam)
 
 (defcustom org-roam-graph-exclude-matcher nil
-  "String for excluding nodes from the generated graph.
+  "Matcher for excluding nodes from the generated graph.
 Any nodes and links for file paths matching this string is
-excluded from the graph."
-  :type 'string
+excluded from the graph.
+
+If value is a string, the string is the only matcher.
+
+If value is a list, all file paths matching any of the strings
+are excluded."
+  :type '(choice
+          (string :tag "Matcher")
+          (list :tag "Matchers"))
   :group 'org-roam)
 
 (defcustom org-roam-graph-node-shape "ellipse"
@@ -1234,6 +1241,34 @@ excluded from the graph."
   :group 'org-roam)
 
 ;;;; Functions
+(defmacro org-roam--graph-expand-matcher (col &optional negate where)
+  "Return the exclusion regexp from `org-roam-graph-exclude-matcher'.
+COL is the symbol to be matched against.  if NEGATE, add :not to sql query.
+set WHERE to true if WHERE query already exists."
+  (declare (indent 0) (debug t))
+  (let ((matchers (cond ((null org-roam-graph-exclude-matcher)
+                         nil)
+                        ((stringp org-roam-graph-exclude-matcher)
+                         (cons (concat "%" org-roam-graph-exclude-matcher "%") nil))
+                        ((listp org-roam-graph-exclude-matcher)
+                         (mapcar (lambda (m)
+                                   (concat "%" m "%"))
+                                 org-roam-graph-exclude-matcher))
+                        (t
+                         (error "Invalid org-roam-graph-exclude-matcher"))))
+        res)
+    (dolist (match matchers)
+      (if where
+          (push :and res)
+        (push :where res)
+        (setq where t))
+      (push col res)
+      (when negate
+        (push :not res))
+      (push :like res)
+      (push match res))
+    (cons 'list (nreverse res))))
+
 (defun org-roam--build-graph ()
   "Build the Graphviz string.
 The Org-roam database titles table is read, to obtain the list of titles.
@@ -1241,22 +1276,16 @@ The file-links table is then read to obtain all directed links, and formatted
 into a digraph."
   (org-roam--db-ensure-built)
   (org-roam--with-temp-buffer
-    (let* ((matcher (concat "%" org-roam-graph-exclude-matcher "%"))
-           (nodes (if org-roam-graph-exclude-matcher
-                      (org-roam-sql [:select [file titles]
-                                     :from titles
-                                     :where file :not :like $s1]
-                                    matcher)
-                    (org-roam-sql [:select [file titles]
-                                   :from titles])))
-           (edges (if org-roam-graph-exclude-matcher
-                      (org-roam-sql [:select :distinct [file-to file-from]
-                                     :from file-links
-                                     :where file-to :not :like $s1
-                                     :and file-from :not :like $s1]
-                                    matcher)
-                    (org-roam-sql [:select :distinct [file-to file-from]
-                                   :from file-links]))))
+    (let* ((re (org-roam--graph-get-exclude-regexp))
+           (node-query `[:select [file titles]
+                         :from titles
+                         ,@(org-roam--graph-expand-matcher 'file t)])
+           (nodes (org-roam-sql node-query))
+           (edges-query `[:select :distinct [file-to file-from]
+                          :from file-links
+                          ,@(org-roam--graph-expand-matcher 'file-to t)
+                          ,@(org-roam--graph-expand-matcher 'file-from t t)])
+           (edges (org-roam-sql edges-query)))
 	    (insert "digraph \"org-roam\" {\n")
       (dolist (option org-roam-graphviz-extra-options)
         (insert (concat (car option)
