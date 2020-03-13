@@ -51,10 +51,10 @@ A value of nil means the caches never expire."
   :type '(integer :tag "Seconds")
   :group 'company-org-roam)
 
-(defvar company-org-roam-last-cache-time nil
+(defvar company-org-roam-last-cache-time (make-hash-table :test #'equal)
   "Time of last cache.")
 
-(defvar company-org-roam-cache nil
+(defvar company-org-roam-cache (make-hash-table :test #'equal)
   "In-memory cache for completions.")
 
 (defun company-org-roam-time-seconds ()
@@ -66,7 +66,8 @@ A value of nil means the caches never expire."
   "The post-completion action for `company-org-roam'.
 It deletes the inserted CANDIDATE, and replaces it with a
 relative file link."
-  (let* ((path (gethash candidate company-org-roam-cache))
+  (let* ((cache (gethash (file-truename org-roam-directory) company-org-roam-cache))
+         (path (gethash candidate cache))
          (current-file-path (-> (or (buffer-base-buffer)
                                     (current-buffer))
                                 (buffer-file-name)
@@ -86,21 +87,26 @@ The string match is case-insensitive."
 (defun company-org-roam--update-cache ()
   "Update the cache with new entries.
 Entries with no title do not appear in the completions."
-  (setq company-org-roam-cache (make-hash-table :test #'equal))
-  (dolist (row (org-roam-sql [:select [titles file] :from titles]))
-    (let ((titles (car row))
-          (file (cadr row)))
-      (dolist (title titles)
-        (puthash title file company-org-roam-cache)))))
+  (let ((dir (file-truename org-roam-directory))
+        (ht (make-hash-table :test #'equal)))
+    (dolist (row (org-roam-sql [:select [titles file] :from titles]))
+      (let ((titles (car row))
+            (file (cadr row)))
+        (dolist (title titles)
+          (puthash title file ht))))
+    (puthash dir ht company-org-roam-cache)))
 
 (defun company-org-roam--cache-get-titles ()
   "Return all the titles."
-  (when (or (null company-org-roam-last-cache-time)
-            (< (+ company-org-roam-last-cache-time company-org-roam-cache-expire)
-               (company-org-roam-time-seconds)))
-    (setq company-org-roam-last-cache-time (company-org-roam-time-seconds))
-    (company-org-roam--update-cache))
-  (hash-table-keys company-org-roam-cache))
+  (let* ((dir (file-truename org-roam-directory))
+         (last-cache-time (gethash dir company-org-roam-last-cache-time))
+         (curr-time (company-org-roam-time-seconds)))
+    (when (or (null last-cache-time)
+              (< (+ last-cache-time company-org-roam-cache-expire)
+                 curr-time))
+      (puthash dir curr-time company-org-roam-last-cache-time)
+      (company-org-roam--update-cache))
+    (hash-table-keys (gethash dir company-org-roam-cache))))
 
 (defun company-org-roam--get-candidates (prefix)
   "Get the candidates for PREFIX."
