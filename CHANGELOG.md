@@ -8,6 +8,7 @@
 * [#284][gh-284], [#289][gh-289] Configurable `org-roam-completion-system` with options `'default`, `'ido`, `'ivy` and `'helm`.
 * [#289][gh-289] Add customizable `org-roam-fuzzy-match` to allow fuzzy-matching of candidates
 * [#290][gh-290] Add `org-roam-date-title-format` and `org-roam-date-filename-format` for customizing Org-roam's date files
+* [#296][gh-296] Allow multiple exclusion matchers in `org-roam-graph-exclude-matcher`
 
 ## Bugfixes
 * [#293][gh-293] Fix capture templates not working as expected for `org-roam-find-file`
@@ -141,6 +142,7 @@ Mostly a documentation/cleanup release.
 [gh-289]: https://github.com/jethrokuan/org-roam/pull/289
 [gh-290]: https://github.com/jethrokuan/org-roam/pull/290
 [gh-293]: https://github.com/jethrokuan/org-roam/pull/293
+[gh-296]: https://github.com/jethrokuan/org-roam/pull/296
 
  # Local Variables:
  # eval: (auto-fill-mode -1)

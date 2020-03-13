@@ -115,15 +115,28 @@ SVG, you may choose to set it to any compatible program:
 (setq org-roam-graph-viewer "/path/to/image-viewer")
 ```
 
+### Excluding Nodes and Edges
+One may want to exclude certain files to declutter the graph. You can do so by setting `org-roam-graph-exclude-matcher`.
+
+```
+(setq org-roam-graph-exclude-matcher '("private" "dailies"))
+```
+
+This setting excludes all files whose path contain "private" or "dailies".
+
 ## Org-roam Completion System
 
 Org-roam offers completion when choosing note titles etc.
 The completion system is configurable. The default setting,
+
 ```
 (setq org-roam-completion-system 'default)
 ```
+
 uses Emacs' standard `completing-read`. If you prefer [Helm](https://emacs-helm.github.io/helm/), use
 
 ```
 (setq org-roam-completion-system 'helm)
 ```
+
+Other options included `'ido`, and `'ivy'`.
