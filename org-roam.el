@@ -860,7 +860,9 @@ If PREFIX, downcase the title before insertion."
     (with-current-buffer buf
       (when region ;; Remove previously selected text.
         (delete-region (car region) (cdr region)))
-      (let ((link-location (concat "file:" (file-relative-name target-file-path current-file-path)))
+      (let ((link-location (concat "file:"
+                                   (file-relative-name target-file-path
+                                                       current-file-path)))
             (description (org-roam--format-link-title (if prefix
                                                           (downcase region-or-title)
                                                         region-or-title))))
@@ -957,10 +959,17 @@ INFO is an alist containing additional information."
       (switch-to-buffer (cdr (assoc name names-and-buffers))))))
 
 ;;;; Daily notes
+(defcustom org-roam-date-title-format "%Y-%m-%d"
+  "Format string passed to `format-time-string' for getting a date file's title.")
+
+(defcustom org-roam-date-filename-format "%Y-%m-%d"
+  "Format string passed to `format-time-string' for getting a date file's filename.")
+
 (defun org-roam--file-for-time (time)
   "Create and find file for TIME."
-  (let* ((title (format-time-string "%Y-%m-%d" time))
-         (file-path (org-roam--file-path-from-id title)))
+  (let* ((title (format-time-string org-roam-date-title-format time))
+         (filename (format-time-string org-roam-date-filename-format time))
+         (file-path (org-roam--file-path-from-id filename)))
     (if (file-exists-p file-path)
         file-path
       (let ((org-roam-capture-templates (list (list "d" "daily" 'plain (list 'function #'org-roam--capture-get-point)
