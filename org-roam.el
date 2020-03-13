@@ -763,12 +763,6 @@ currently active Org-roam template."
     (when (file-exists-p file-path)
       (error (format "File exists at %s, aborting" file-path)))
     (org-roam--touch-file file-path)
-    (write-region
-     (org-roam--fill-template (or (org-capture-get :head)
-                                  org-roam--capture-header-default)
-                              org-roam--capture-info)
-     nil file-path nil)
-    (sleep-for 0.2)  ;; Hack: expand-file-name stringp nil error sporadically otherwise
     file-path))
 
 (defun org-roam--capture-get-point ()
@@ -783,6 +777,15 @@ If there is no file with that ref, a file with that ref is created.
 
 This function is used solely in Org-roam's capture templates: see
 `org-roam-capture-templates'."
+  (org-capture-put :template
+                   (concat
+                    (org-roam--fill-template (or (org-capture-get :head)
+                                                 org-roam--capture-header-default)
+                                             org-roam--capture-info)
+                    "\n" (org-capture-get :template)))
+
+  (org-capture-put :immediate-finish org-roam--capture-immediate-finish)
+
   (pcase org-roam--capture-context
     ('title
      (let ((file-path (org-roam--capture-new-file)))
@@ -801,6 +804,8 @@ This function is used solely in Org-roam's capture templates: see
        (goto-char (point-max))))
     (_ (error "Invalid org-roam-capture-context"))))
 
+(defvar org-roam--capture-immediate-finish)
+
 (defun org-roam-capture (&optional goto keys)
   "Create a new file, and return the path to the edited file.
 The templates are defined at `org-roam-capture-templates'.  The
@@ -810,10 +815,9 @@ GOTO and KEYS argument have the same functionality as
         file-path)
     (when (= (length org-capture-templates) 1)
       (setq keys (caar org-capture-templates)))
-    (org-capture goto keys)
-    (setq file-path org-roam--capture-file-path)
-    (setq org-roam--capture-file-path nil)
-    file-path))
+    (setq org-roam--capture-immediate-finish goto)
+    (org-capture nil keys)
+    ))
 
 ;;; Interactive Commands
 ;;;; org-roam-insert
@@ -856,7 +860,9 @@ If PREFIX, downcase the title before insertion."
       (let* ((org-roam--capture-info (list (cons 'title title)
                                            (cons 'slug (org-roam--title-to-slug title))))
              (org-roam--capture-context 'title))
-        (setq target-file-path (org-roam-capture))))
+        (org-roam-capture)
+        (setq target-file-path org-roam--capture-file-path)
+        (setq org-roam--capture-file-path nil)))
     (with-current-buffer buf
       (when region ;; Remove previously selected text.
         (delete-region (car region) (cdr region)))
@@ -882,8 +888,10 @@ point moves some characters forward.  This is added as a hook to
 `org-capture-after-finalize-hook'."
   (when org-roam--capture-insert-point
     (goto-char org-roam--capture-insert-point)
-    (setq org-roam--capture-insert-point nil))
-  (remove-hook 'org-capture-after-finalize-hook #'org-roam--capture-advance-point))
+    (setq org-roam--capture-insert-point nil)))
+
+(add-hook 'org-capture-after-finalize-hook #'org-roam--capture-advance-point)
+(add-hook 'org-capture-after-finalize-hook (lambda () (when org-roam--capture-immediate-finish (switch-to-buffer (find-buffer-visiting org-roam--capture-file-path)))))
 
 ;;;; org-roam-find-file
 (defun org-roam--get-title-path-completions ()
@@ -921,8 +929,8 @@ INITIAL-PROMPT is the initial title prompt."
       (let* ((org-roam--capture-info (list (cons 'title title)
                                            (cons 'slug (org-roam--title-to-slug title))))
              (org-roam--capture-context 'title))
-        (setq org-roam--capture-file-path (org-roam-capture))
-        (add-hook 'org-capture-after-finalize-hook #'org-roam--capture-find-file)))))
+        (org-roam-capture t)
+        (setq org-roam--capture-file-path nil)))))
 
 ;;;; org-roam-find-ref
 (defun org-roam--get-ref-path-completions ()
