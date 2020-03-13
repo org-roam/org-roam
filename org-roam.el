@@ -870,7 +870,8 @@ If PREFIX, downcase the title before insertion."
         (insert (format "[[%s][%s]]"
                         link-location
                         description))
-        (setq org-roam--capture-insert-point (point))))))
+        (setq org-roam--capture-insert-point (point))))
+    (add-hook 'org-capture-after-finalize-hook #'org-roam--capture-advance-point)))
 
 (defun org-roam--capture-advance-point ()
   "Advances the point if it is updated.
@@ -881,9 +882,8 @@ point moves some characters forward.  This is added as a hook to
 `org-capture-after-finalize-hook'."
   (when org-roam--capture-insert-point
     (goto-char org-roam--capture-insert-point)
-    (setq org-roam--capture-insert-point nil)))
-
-(add-hook 'org-capture-after-finalize-hook #'org-roam--capture-advance-point)
+    (setq org-roam--capture-insert-point nil))
+  (remove-hook 'org-capture-after-finalize-hook #'org-roam--capture-advance-point))
 
 ;;;; org-roam-find-file
 (defun org-roam--get-title-path-completions ()
@@ -900,6 +900,14 @@ point moves some characters forward.  This is added as a hook to
                       file-path) res))))
     res))
 
+(defun org-roam--capture-find-file ()
+  "Opens the newly created template file.
+This is added as a hook to `org-capture-after-finalize-hook'."
+  (when org-roam--capture-file-path
+    (find-file org-roam--capture-file-path)
+    (setq org-roam--capture-file-path nil))
+  (remove-hook 'org-capture-after-finalize-hook #'org-roam--capture-find-file))
+
 (defun org-roam-find-file (&optional initial-prompt)
   "Find and open an Org-roam file.
 INITIAL-PROMPT is the initial title prompt."
@@ -913,7 +921,8 @@ INITIAL-PROMPT is the initial title prompt."
       (let* ((org-roam--capture-info (list (cons 'title title)
                                            (cons 'slug (org-roam--title-to-slug title))))
              (org-roam--capture-context 'title))
-        (org-roam-capture '(4))))))
+        (setq org-roam--capture-file-path (org-roam-capture))
+        (add-hook 'org-capture-after-finalize-hook #'org-roam--capture-find-file)))))
 
 ;;;; org-roam-find-ref
 (defun org-roam--get-ref-path-completions ()
