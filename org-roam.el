@@ -105,8 +105,15 @@ Formatter may be a function that takes title as its only argument."
   "The completion system to be used by `org-roam'."
   :type '(radio
           (const :tag "Default" default)
+          (const :tag "Ido" ido)
+          (const :tag "Ivy" ivy)
           (const :tag "Helm" helm)
           (function :tag "Custom function"))
+  :group 'org-roam)
+
+(defcustom org-roam-fuzzy-match nil
+  "Whether to fuzzy match Org-roam's completion candidates."
+  :type 'boolean
   :group 'org-roam)
 
 ;;;; Dynamic variables
@@ -445,8 +452,8 @@ https://github.com/kaushalmodi/ox-hugo/blob/a80b250987bc770600c424a10b3bca6ff728
       ret)))
 
 (defmacro org-roam--with-temp-buffer (&rest body)
-  "Call `with-temp-buffer', propagating `org-roam-directory' to
-the temp buffer."
+  "Execute BODY within a temp buffer.
+Like `with-temp-buffer', but propagates `org-roam-directory'."
   (declare (indent 0) (debug t))
   (let ((current-org-roam-directory (make-symbol "current-org-roam-directory")))
     `(let ((,current-org-roam-directory org-roam-directory))
@@ -603,40 +610,66 @@ specified via the #+ROAM_ALIAS property."
       (s-downcase slug))))
 
 ;;;; Completion
-(defun org-roam---helm-candidate-transformer (candidates source)
+(defun org-roam---helm-candidate-transformer (candidates _source)
+  "Transforms CANDIDATES for Helm-based completing read.
+SOURCE is not used."
   (let ((prefixed-pattern (propertize
                            " " 'display
                            (propertize "[?]" 'face 'helm-ff-prefix))))
     (cons (concat prefixed-pattern " " helm-pattern)
           candidates)))
 
-(defun org-roam--completing-read (prompt choices &optional require-match initial-input)
+(cl-defun org-roam--completing-read (prompt choices &key
+                                            require-match initial-input
+                                            action fuzzy-match)
   "Present a PROMPT with CHOICES and optional INITIAL-INPUT.
-If REQUIRE-MATCH is `t', the user must select one of the CHOICES.
+If REQUIRE-MATCH is t, the user must select one of the CHOICES.
 Return user choice."
-  (cond
-   ((eq org-roam-completion-system 'default)
-    (completing-read prompt choices nil require-match initial-input))
-   ((eq org-roam-completion-system 'helm)
-    (unless (and (fboundp 'helm)
-                 (fboundp 'helm-build-sync-source))
-      (user-error "Please install helm from \
+  (let (res)
+    (setq res
+          (cond
+           ((eq org-roam-completion-system 'ido)
+            (ido-completing-read prompt choices nil require-match initial-input))
+           ((eq org-roam-completion-system 'default)
+            (completing-read prompt choices nil require-match initial-input))
+           ((eq org-roam-completion-system 'ivy)
+            (if (fboundp 'ivy-read)
+                (ivy-read prompt choices
+                          :initial-input initial-input
+                          :require-match require-match
+                          :action (prog1 action
+                                    (setq action nil))
+                          :caller 'org-roam--completing-read
+                          :re-builder (if org-roam-fuzzy-match
+                                          'ivy--regex-fuzzy
+                                        'regexp-quote))
+              (user-error "Please install ivy from \
+https://github.com/abo-abo/swiper")))
+           ((eq org-roam-completion-system 'helm)
+            (unless (and (fboundp 'helm)
+                         (fboundp 'helm-build-sync-source))
+              (user-error "Please install helm from \
 https://github.com/emacs-helm/helm"))
-    (let* ((source (helm-build-sync-source prompt
-                     :candidates (-map #'car choices)
-                     :filtered-candidate-transformer
-                     (and (not require-match)
-                          #'org-roam---helm-candidate-transformer)
-                     :fuzzy-match t))
-           (title (helm :sources source
-                        :buffer (concat "*org-roam "
-                                        (s-downcase (s-chop-suffix ":" (s-trim prompt)))
-                                        "*")
-                        :prompt prompt
-                        :input initial-input)))
-      (unless title
-        (keyboard-quit))
-      (s-trim-left title)))))
+            (let ((source (helm-build-sync-source prompt
+                            :candidates choices
+                            :filtered-candidate-transformer
+                            (and (not require-match)
+                                 #'org-roam---helm-candidate-transformer)
+                            :fuzzy-match org-roam-fuzzy-match))
+                  (buf (concat "*org-roam "
+                               (s-downcase (s-chop-suffix ":" (s-trim prompt)))
+                               "*")))
+              (helm :sources source
+                    :action (if action
+                                (prog1 action
+                                  (setq action nil))
+                              #'identity)
+                    :prompt prompt
+                    :input initial-input
+                    :buffer buf)))))
+    (if action
+        (funcall action res)
+      res)))
 
 ;;;; Org-roam capture
 (defun org-roam--file-path-from-id (id)
@@ -807,7 +840,8 @@ If PREFIX, downcase the title before insertion."
                         (buffer-substring-no-properties
                          (car region) (cdr region))))
          (completions (org-roam--get-title-path-completions))
-         (title (org-roam--completing-read "File: " completions nil region-text))
+         (title (org-roam--completing-read "File: " completions
+                                           :initial-input region-text))
          (region-or-title (or region-text title))
          (target-file-path (cdr (assoc title completions)))
          (current-file-path (-> (or (buffer-base-buffer)
@@ -869,7 +903,8 @@ point moves some characters forward.  This is added as a hook to
 INITIAL-PROMPT is the initial title prompt."
   (interactive)
   (let* ((completions (org-roam--get-title-path-completions))
-         (title (org-roam--completing-read "File: " completions nil initial-prompt))
+         (title (org-roam--completing-read "File: " completions
+                                           :initial-input initial-prompt))
          (file-path (cdr (assoc title completions))))
     (if file-path
         (find-file file-path)
@@ -892,7 +927,9 @@ INFO is an alist containing additional information."
   (interactive)
   (let* ((completions (org-roam--get-ref-path-completions))
          (ref (or (cdr (assoc 'ref info))
-                  (org-roam--completing-read "Ref: " (org-roam--get-ref-path-completions) t))))
+                  (org-roam--completing-read "Ref: "
+                                             (org-roam--get-ref-path-completions)
+                                             :require-match t))))
     (find-file (cdr (assoc ref completions)))))
 
 ;;;; org-roam-switch-to-buffer
@@ -915,7 +952,8 @@ INFO is an alist containing additional information."
                                     roam-buffers)))
     (unless roam-buffers
       (user-error "No roam buffers"))
-    (when-let ((name (org-roam--completing-read "Buffer: " names-and-buffers t)))
+    (when-let ((name (org-roam--completing-read "Buffer: " names-and-buffers
+                                                :require-match t)))
       (switch-to-buffer (cdr (assoc name names-and-buffers))))))
 
 ;;;; Daily notes
