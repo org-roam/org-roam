@@ -9,6 +9,9 @@
 * [#289][gh-289] Add customizable `org-roam-fuzzy-match` to allow fuzzy-matching of candidates
 * [#290][gh-290] Add `org-roam-date-title-format` and `org-roam-date-filename-format` for customizing Org-roam's date files
 
+## Bugfixes
+* [#293][gh-293] Fix capture templates not working as expected for `org-roam-find-file`
+
 ## 1.0.0-rc1 (06-03-2020)
 
 This is a pre-release before the push to MELPA. It contains large
@@ -137,6 +140,7 @@ Mostly a documentation/cleanup release.
 [gh-284]: https://github.com/jethrokuan/org-roam/pull/284
 [gh-289]: https://github.com/jethrokuan/org-roam/pull/289
 [gh-290]: https://github.com/jethrokuan/org-roam/pull/290
+[gh-293]: https://github.com/jethrokuan/org-roam/pull/293
 
  # Local Variables:
  # eval: (auto-fill-mode -1)
