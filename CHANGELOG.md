@@ -7,6 +7,7 @@
 * [#257][gh-257] Add a company-backend `company-org-roam`
 * [#284][gh-284], [#289][gh-289] Configurable `org-roam-completion-system` with options `'default`, `'ido`, `'ivy` and `'helm`.
 * [#289][gh-289] Add customizable `org-roam-fuzzy-match` to allow fuzzy-matching of candidates
+* [#290][gh-290] Add `org-roam-date-title-format` and `org-roam-date-filename-format` for customizing Org-roam's date files
 
 ## 1.0.0-rc1 (06-03-2020)
 
@@ -135,6 +136,7 @@ Mostly a documentation/cleanup release.
 [gh-269]: https://github.com/jethrokuan/org-roam/pull/269
 [gh-284]: https://github.com/jethrokuan/org-roam/pull/284
 [gh-289]: https://github.com/jethrokuan/org-roam/pull/289
+[gh-290]: https://github.com/jethrokuan/org-roam/pull/290
 
  # Local Variables:
  # eval: (auto-fill-mode -1)
