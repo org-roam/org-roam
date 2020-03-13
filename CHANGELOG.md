@@ -5,7 +5,8 @@
 ## New Features
 * [#269][gh-269] Add `org-roam-graphviz-extra-options`
 * [#257][gh-257] Add a company-backend `company-org-roam`
-* [#284][gh-284] Configurable `org-roam-completion-system` with options `'default` and `'helm`
+* [#284][gh-284], [#289][gh-289] Configurable `org-roam-completion-system` with options `'default`, `'ido`, `'ivy` and `'helm`.
+* [#289][gh-289] Add customizable `org-roam-fuzzy-match` to allow fuzzy-matching of candidates
 
 ## 1.0.0-rc1 (06-03-2020)
 
@@ -132,6 +133,8 @@ Mostly a documentation/cleanup release.
 [gh-257]: https://github.com/jethrokuan/org-roam/pull/257
 [gh-259]: https://github.com/jethrokuan/org-roam/pull/259
 [gh-269]: https://github.com/jethrokuan/org-roam/pull/269
+[gh-284]: https://github.com/jethrokuan/org-roam/pull/284
+[gh-289]: https://github.com/jethrokuan/org-roam/pull/289
 
  # Local Variables:
  # eval: (auto-fill-mode -1)
