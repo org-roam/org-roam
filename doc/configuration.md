@@ -101,6 +101,13 @@ Org-roam tries its best to locate the Graphviz executable from your
 (setq org-roam-graphviz-executable "/path/to/dot")
 ```
 
+You may also choose to use `neato` in place of `dot`, which generates a more compact graph layout.
+
+```
+(setq org-roam-graphviz-executable "/path/to/neato")
+(setq org-roam-graphviz-extra-options '(("overlap" . "false")))
+```
+
 Org-roam also attempts to use Firefox (located on `PATH`) to view the
 SVG, you may choose to set it to any compatible program:
 
