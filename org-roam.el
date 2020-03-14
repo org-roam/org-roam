@@ -1276,8 +1276,7 @@ The file-links table is then read to obtain all directed links, and formatted
 into a digraph."
   (org-roam--db-ensure-built)
   (org-roam--with-temp-buffer
-    (let* ((re (org-roam--graph-get-exclude-regexp))
-           (node-query `[:select [file titles]
+    (let* ((node-query `[:select [file titles]
                          :from titles
                          ,@(org-roam--graph-expand-matcher 'file t)])
            (nodes (org-roam-sql node-query))
