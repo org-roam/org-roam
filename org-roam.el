@@ -781,7 +781,7 @@ This function is used solely in Org-roam's capture templates: see
                     (org-roam--fill-template (or (org-capture-get :head)
                                                  org-roam--capture-header-default)
                                              org-roam--capture-info)
-                    "\n" (org-capture-get :template))
+                    (org-capture-get :template))
                    :type 'plain)
   (pcase org-roam--capture-context
     ('title
@@ -810,7 +810,7 @@ GOTO and KEYS argument have the same functionality as
         file-path)
     (when (= (length org-capture-templates) 1)
       (setq keys (caar org-capture-templates)))
-    (org-capture nil keys)))
+    (org-capture goto keys)))
 
 ;;; Interactive Commands
 ;;;; org-roam-insert
