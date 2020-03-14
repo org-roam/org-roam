@@ -762,7 +762,6 @@ currently active Org-roam template."
          (file-path (org-roam--file-path-from-id new-id)))
     (when (file-exists-p file-path)
       (error (format "File exists at %s, aborting" file-path)))
-    (org-roam--touch-file file-path)
     file-path))
 
 (defun org-roam--capture-get-point ()
@@ -782,10 +781,8 @@ This function is used solely in Org-roam's capture templates: see
                     (org-roam--fill-template (or (org-capture-get :head)
                                                  org-roam--capture-header-default)
                                              org-roam--capture-info)
-                    "\n" (org-capture-get :template)))
-
-  (org-capture-put :immediate-finish org-roam--capture-immediate-finish)
-
+                    "\n" (org-capture-get :template))
+                   :type 'plain)
   (pcase org-roam--capture-context
     ('title
      (let ((file-path (org-roam--capture-new-file)))
@@ -891,7 +888,6 @@ point moves some characters forward.  This is added as a hook to
     (setq org-roam--capture-insert-point nil)))
 
 (add-hook 'org-capture-after-finalize-hook #'org-roam--capture-advance-point)
-(add-hook 'org-capture-after-finalize-hook (lambda () (when org-roam--capture-immediate-finish (switch-to-buffer (find-buffer-visiting org-roam--capture-file-path)))))
 
 ;;;; org-roam-find-file
 (defun org-roam--get-title-path-completions ()
@@ -930,7 +926,7 @@ INITIAL-PROMPT is the initial title prompt."
                                            (cons 'slug (org-roam--title-to-slug title))))
              (org-roam--capture-context 'title))
         (org-roam-capture t)
-        (setq org-roam--capture-file-path nil)))))
+        (add-hook 'org-capture-after-finalize-hook #'org-roam--capture-find-file)))))
 
 ;;;; org-roam-find-ref
 (defun org-roam--get-ref-path-completions ()
