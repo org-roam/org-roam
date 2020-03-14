@@ -801,8 +801,6 @@ This function is used solely in Org-roam's capture templates: see
        (goto-char (point-max))))
     (_ (error "Invalid org-roam-capture-context"))))
 
-(defvar org-roam--capture-immediate-finish)
-
 (defun org-roam-capture (&optional goto keys)
   "Create a new file, and return the path to the edited file.
 The templates are defined at `org-roam-capture-templates'.  The
@@ -812,9 +810,7 @@ GOTO and KEYS argument have the same functionality as
         file-path)
     (when (= (length org-capture-templates) 1)
       (setq keys (caar org-capture-templates)))
-    (setq org-roam--capture-immediate-finish goto)
-    (org-capture nil keys)
-    ))
+    (org-capture nil keys)))
 
 ;;; Interactive Commands
 ;;;; org-roam-insert
@@ -925,7 +921,7 @@ INITIAL-PROMPT is the initial title prompt."
       (let* ((org-roam--capture-info (list (cons 'title title)
                                            (cons 'slug (org-roam--title-to-slug title))))
              (org-roam--capture-context 'title))
-        (org-roam-capture t)
+        (org-roam-capture)
         (add-hook 'org-capture-after-finalize-hook #'org-roam--capture-find-file)))))
 
 ;;;; org-roam-find-ref
