@@ -881,9 +881,8 @@ point moves some characters forward.  This is added as a hook to
 `org-capture-after-finalize-hook'."
   (when org-roam--capture-insert-point
     (goto-char org-roam--capture-insert-point)
-    (setq org-roam--capture-insert-point nil)))
-
-(add-hook 'org-capture-after-finalize-hook #'org-roam--capture-advance-point)
+    (setq org-roam--capture-insert-point nil))
+  (remove-hook 'org-capture-after-finalize-hook #'org-roam--capture-advance-point))
 
 ;;;; org-roam-find-file
 (defun org-roam--get-title-path-completions ()
