@@ -751,9 +751,16 @@ Next, it expands the remaining template string using
       (org-capture-fill-template)))
 
 (defun org-roam--capture-new-file ()
-  "Create a new file and return the file path.
-This is achieved by reading the file-name attribute of the
-currently active Org-roam template."
+  "Return the path to the new file during an Org-roam capture.
+
+This function reads the file-name attribute of the currently
+active Org-roam template.
+
+If the file path already exists, it throw an error.
+
+Else, to insert the header content in the file, org-capture
+template is prepended with the `:head' portion of the Org-roam
+capture template."
   (let* ((name-templ (or (org-capture-get :file-name)
                          org-roam--capture-file-name-default))
          (new-id (s-trim (org-roam--fill-template
@@ -762,6 +769,12 @@ currently active Org-roam template."
          (file-path (org-roam--file-path-from-id new-id)))
     (when (file-exists-p file-path)
       (error (format "File exists at %s, aborting" file-path)))
+    (org-capture-put :template
+                     (concat
+                      (or (org-capture-get :head)
+                          org-roam--capture-header-default)
+                      (org-capture-get :template))
+                     :type 'plain)
     file-path))
 
 (defun org-roam--capture-get-point ()
@@ -776,13 +789,6 @@ If there is no file with that ref, a file with that ref is created.
 
 This function is used solely in Org-roam's capture templates: see
 `org-roam-capture-templates'."
-  (org-capture-put :template
-                   (concat
-                    (org-roam--fill-template (or (org-capture-get :head)
-                                                 org-roam--capture-header-default)
-                                             org-roam--capture-info)
-                    (org-capture-get :template))
-                   :type 'plain)
   (pcase org-roam--capture-context
     ('title
      (let ((file-path (org-roam--capture-new-file)))
