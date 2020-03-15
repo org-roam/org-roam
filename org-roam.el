@@ -1086,9 +1086,10 @@ If item at point is not Org-roam specific, default to Org behaviour."
 
 (defun org-roam--get-backlinks (file)
   "Return the backlinks for FILE."
-  (org-roam-sql [:select [file-from, file-to, properties] :from file-links
-                 :where (= file-to $s1)]
-                file))
+  (org-roam-sql [:select [file-from, file-to, properties] :from file-links 
+	:where (= file-to $s1) 
+	:order-by (asc file-from)] 
+        file))
 
 ;;;; Updating the org-roam buffer
 (defun org-roam-update (file-path)
