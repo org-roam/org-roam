@@ -1316,7 +1316,7 @@ into a digraph."
                    file
 				           (xml-escape-string shortened-title)
 				           org-roam-graph-node-shape
-				           file
+				           (url-hexify-string file)
 				           (xml-escape-string title)))))
       (dolist (edge edges)
         (insert (format "  \"%s\" -> \"%s\";\n"
