@@ -147,15 +147,4 @@ defaults write com.google.Chrome ExternalProtocolDialogShowAlwaysOpenCheckbox -b
 
 If you're using [Emacs Mac Port](https://github.com/railwaycat/homebrew-emacsmacport), it
 registered its `Emacs.app` as the default handler for the URL scheme
-`org-protocol`. We have to make our `OrgProtocol.app` the default
-handler instead (replace `org.yourusername.OrgProtocol` with your app
-identifier):
-
-```
-$ defaults write com.apple.LaunchServices/com.apple.launchservices.secure LSHandlers -array-add \
-'{"LSHandlerPreferredVersions" = { "LSHandlerRoleAll" = "-"; }; LSHandlerRoleAll = "org.yourusername.OrgProtocol"; LSHandlerURLScheme = "org-protocol";}'
-```
-
-Then restart your computer.
-
-[org-protocol-inst]: https://orgmode.org/worg/org-contrib/org-protocol.html
+`org-protocol`. As EMP supports org-protocol natively, there is no need to perform any of the above steps.
