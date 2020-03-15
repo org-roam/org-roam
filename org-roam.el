@@ -650,23 +650,26 @@ https://github.com/abo-abo/swiper")))
                          (fboundp 'helm-build-sync-source))
               (user-error "Please install helm from \
 https://github.com/emacs-helm/helm"))
-            (let ((source (helm-build-sync-source prompt
-                            :candidates choices
-                            :filtered-candidate-transformer
-                            (and (not require-match)
-                                 #'org-roam---helm-candidate-transformer)
-                            :fuzzy-match org-roam-fuzzy-match))
-                  (buf (concat "*org-roam "
-                               (s-downcase (s-chop-suffix ":" (s-trim prompt)))
-                               "*")))
-              (helm :sources source
-                    :action (if action
-                                (prog1 action
-                                  (setq action nil))
-                              #'identity)
-                    :prompt prompt
-                    :input initial-input
-                    :buffer buf)))))
+            (let* ((source (helm-build-sync-source prompt
+                             :candidates (-map #'car choices)
+                             :filtered-candidate-transformer
+                             (and (not require-match)
+                                  #'org-roam---helm-candidate-transformer)
+                             :fuzzy-match org-roam-fuzzy-match))
+                   (buf (concat "*org-roam "
+                                (s-downcase (s-chop-suffix ":" (s-trim prompt)))
+                                "*"))
+                   (title (helm :sources source
+                                :action (if action
+                                            (prog1 action
+                                              (setq action nil))
+                                          #'identity)
+                                :prompt prompt
+                                :input initial-input
+                                :buffer buf)))
+              (unless title
+                (keyboard-quit))
+                   (s-trim-left title)))))
     (if action
         (funcall action res)
       res)))
