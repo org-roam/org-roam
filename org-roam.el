@@ -651,7 +651,7 @@ https://github.com/abo-abo/swiper")))
               (user-error "Please install helm from \
 https://github.com/emacs-helm/helm"))
             (let ((source (helm-build-sync-source prompt
-                            :candidates choices
+                            :candidates (mapcar #'car choices)
                             :filtered-candidate-transformer
                             (and (not require-match)
                                  #'org-roam---helm-candidate-transformer)
@@ -659,14 +659,15 @@ https://github.com/emacs-helm/helm"))
                   (buf (concat "*org-roam "
                                (s-downcase (s-chop-suffix ":" (s-trim prompt)))
                                "*")))
-              (helm :sources source
-                    :action (if action
-                                (prog1 action
-                                  (setq action nil))
-                              #'identity)
-                    :prompt prompt
-                    :input initial-input
-                    :buffer buf)))))
+              (or (helm :sources source
+                        :action (if action
+                                    (prog1 action
+                                      (setq action nil))
+                                  #'identity)
+                        :prompt prompt
+                        :input initial-input
+                        :buffer buf)
+                  (keyboard-quit))))))
     (if action
         (funcall action res)
       res)))
