@@ -659,15 +659,16 @@ https://github.com/emacs-helm/helm"))
                   (buf (concat "*org-roam "
                                (s-downcase (s-chop-suffix ":" (s-trim prompt)))
                                "*")))
-              (or (helm :sources source
-                        :action (if action
-                                    (prog1 action
-                                      (setq action nil))
-                                  #'identity)
-                        :prompt prompt
-                        :input initial-input
-                        :buffer buf)
-                  (keyboard-quit))))))
+              (s-trim-left
+               (or (helm :sources source
+                         :action (if action
+                                     (prog1 action
+                                       (setq action nil))
+                                   #'identity)
+                         :prompt prompt
+                         :input initial-input
+                         :buffer buf)
+                   (keyboard-quit)))))))
     (if action
         (funcall action res)
       res)))
