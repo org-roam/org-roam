@@ -613,9 +613,11 @@ specified via the #+ROAM_ALIAS property."
 (defun org-roam---helm-candidate-transformer (candidates _source)
   "Transforms CANDIDATES for Helm-based completing read.
 SOURCE is not used."
-  (cons (propertize helm-pattern 'display (propertize (concat "[?] " helm-pattern)
-                                                      'face 'helm-ff-prefix))
-          candidates))
+  (let ((prefix (propertize "[?] "
+                            'face 'helm-ff-prefix)))
+    (cons (propertize helm-pattern
+                    'display (concat prefix helm-pattern))
+          candidates)))
 
 (cl-defun org-roam--completing-read (prompt choices &key
                                             require-match initial-input
