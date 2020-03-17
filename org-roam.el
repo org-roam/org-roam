@@ -940,13 +940,12 @@ This is added as a hook to `org-capture-after-finalize-hook'."
                       file-path) res))))
     res))
 
-(defun org-roam--capture-find-file ()
+(defun org-roam--capture-find-file-h ()
   "Opens the newly created template file.
 This is added as a hook to `org-capture-after-finalize-hook'."
-  (when org-roam--capture-file-path
-    (find-file org-roam--capture-file-path)
-    (setq org-roam--capture-file-path nil))
-  (remove-hook 'org-capture-after-finalize-hook #'org-roam--capture-find-file))
+  (when-let ((file-path (org-capture-get :roam-file-path)))
+    (find-file file-path))
+  (remove-hook 'org-capture-after-finalize-hook #'org-roam--capture-find-file-h))
 
 (defun org-roam-find-file (&optional initial-prompt)
   "Find and open an Org-roam file.
@@ -961,8 +960,8 @@ INITIAL-PROMPT is the initial title prompt."
       (let* ((org-roam--capture-info (list (cons 'title title)
                                            (cons 'slug (org-roam--title-to-slug title))))
              (org-roam--capture-context 'title))
-        (org-roam-capture)
-        (add-hook 'org-capture-after-finalize-hook #'org-roam--capture-find-file)))))
+        (add-hook 'org-capture-after-finalize-hook #'org-roam--capture-find-file-h)
+        (org-roam-capture)))))
 
 ;;;; org-roam-find-ref
 (defun org-roam--get-ref-path-completions ()
