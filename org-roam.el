@@ -758,10 +758,16 @@ Next, it expands the remaining template string using
   "This function is saves the file if the original value of
 :no-save is not t and `org-note-abort' is not t. It is added to
 `org-capture-after-finalize-hook'."
-  (when (and (not (org-capture-get :orig-no-save))
-             (not org-note-abort))
-      (with-current-buffer (org-capture-get :buffer)
-        (save-buffer)))
+  (cond
+   ((and (org-capture-get :roam-new-file)
+         org-note-abort)
+    (with-current-buffer (org-capture-get :buffer)
+      (set-buffer-modified-p nil)
+      (kill-buffer)))
+   ((and (not (org-capture-get :orig-no-save))
+         (not org-note-abort))
+    (with-current-buffer (org-capture-get :buffer)
+      (save-buffer))))
   (remove-hook 'org-capture-after-finalize-hook #'org-roam--capture-save-file-maybe-h))
 
 (defun org-roam--capture-new-file ()
@@ -800,6 +806,7 @@ the file if the original value of :no-save is not t and
                       (or (org-capture-get :head)
                           org-roam--capture-header-default)
                       (org-capture-get :template))
+                     :roam-new-file t
                      :type 'plain
                      :no-save t)
     file-path))
@@ -851,6 +858,7 @@ GOTO and KEYS argument have the same functionality as
   (let ((org-capture-templates org-roam-capture-templates))
     (when (= (length org-capture-templates) 1)
       (setq keys (caar org-capture-templates)))
+    (add-hook 'org-capture-after-finalize-hook #'org-roam--capture-save-file-maybe-h)
     (org-capture goto keys)))
 
 ;;; Interactive Commands
@@ -1020,7 +1028,7 @@ INFO is an alist containing additional information."
          (filename (format-time-string org-roam-date-filename-format time))
          (file-path (org-roam--file-path-from-id filename)))
     (if (file-exists-p file-path)
-        file-path
+        (find-file file-path)
       (let ((org-roam-capture-templates (list (list "d" "daily" 'plain (list 'function #'org-roam--capture-get-point)
                                                     ""
                                                     :immediate-finish t
@@ -1028,32 +1036,29 @@ INFO is an alist containing additional information."
                                                     :head "#+TITLE: ${title}")))
             (org-roam--capture-context 'title)
             (org-roam--capture-info (list (cons 'title title))))
+        (add-hook 'org-capture-after-finalize-hook #'org-roam--capture-find-file-h)
         (org-roam-capture)))))
 
 (defun org-roam-today ()
   "Create and find file for today."
   (interactive)
-  (let ((path (org-roam--file-for-time (current-time))))
-    (org-roam--find-file path)))
+  (org-roam--file-for-time (current-time)))
 
 (defun org-roam-tomorrow ()
   "Create and find the file for tomorrow."
   (interactive)
-  (let ((path (org-roam--file-for-time (time-add 86400 (current-time)))))
-    (org-roam--find-file path)))
+  (org-roam--file-for-time (time-add 86400 (current-time))))
 
 (defun org-roam-yesterday ()
   "Create and find the file for yesterday."
   (interactive)
-  (let ((path (org-roam--file-for-time (time-add -86400 (current-time)))))
-    (org-roam--find-file path)))
+  (org-roam--file-for-time (time-add -86400 (current-time))))
 
 (defun org-roam-date ()
   "Create the file for any date using the calendar."
   (interactive)
   (let ((time (org-read-date nil 'to-time nil "Date:  ")))
-    (let ((path (org-roam--file-for-time time)))
-      (org-roam--find-file path))))
+    (org-roam--file-for-time time)))
 
 ;;; The org-roam buffer
 ;;;; org-roam-link-face
