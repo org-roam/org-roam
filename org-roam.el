@@ -1315,7 +1315,7 @@ into a digraph."
           (insert
 		       (format "  \"%s\" [label=\"%s\", shape=%s, URL=\"org-protocol://roam-file?file=%s\", tooltip=\"%s\"];\n"
                    file
-				           (xml-escape-string shortened-title)
+				           (s-replace "\"" "\\\"" shortened-title)
 				           org-roam-graph-node-shape
 				           (url-hexify-string file)
 				           (xml-escape-string title)))))
