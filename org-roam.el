@@ -1028,7 +1028,7 @@ INFO is an alist containing additional information."
          (filename (format-time-string org-roam-date-filename-format time))
          (file-path (org-roam--file-path-from-id filename)))
     (if (file-exists-p file-path)
-        file-path
+        (find-file file-path)
       (let ((org-roam-capture-templates (list (list "d" "daily" 'plain (list 'function #'org-roam--capture-get-point)
                                                     ""
                                                     :immediate-finish t
@@ -1036,32 +1036,29 @@ INFO is an alist containing additional information."
                                                     :head "#+TITLE: ${title}")))
             (org-roam--capture-context 'title)
             (org-roam--capture-info (list (cons 'title title))))
+        (add-hook 'org-capture-after-finalize-hook #'org-roam--capture-find-file-h)
         (org-roam-capture)))))
 
 (defun org-roam-today ()
   "Create and find file for today."
   (interactive)
-  (let ((path (org-roam--file-for-time (current-time))))
-    (org-roam--find-file path)))
+  (org-roam--file-for-time (current-time)))
 
 (defun org-roam-tomorrow ()
   "Create and find the file for tomorrow."
   (interactive)
-  (let ((path (org-roam--file-for-time (time-add 86400 (current-time)))))
-    (org-roam--find-file path)))
+  (org-roam--file-for-time (time-add 86400 (current-time))))
 
 (defun org-roam-yesterday ()
   "Create and find the file for yesterday."
   (interactive)
-  (let ((path (org-roam--file-for-time (time-add -86400 (current-time)))))
-    (org-roam--find-file path)))
+  (org-roam--file-for-time (time-add -86400 (current-time))))
 
 (defun org-roam-date ()
   "Create the file for any date using the calendar."
   (interactive)
   (let ((time (org-read-date nil 'to-time nil "Date:  ")))
-    (let ((path (org-roam--file-for-time time)))
-      (org-roam--find-file path))))
+    (org-roam--file-for-time time)))
 
 ;;; The org-roam buffer
 ;;;; org-roam-link-face
