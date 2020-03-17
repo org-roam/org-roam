@@ -751,6 +751,16 @@ Next, it expands the remaining template string using
                       (completing-read (format "%s: " key ) nil))) nil)
       (org-capture-fill-template)))
 
+(defun org-roam--capture-save-file-maybe-h ()
+  "This function is saves the file if the original value of
+:no-save is not t and `org-note-abort' is not t. It is added to
+`org-capture-after-finalize-hook'."
+  (when (and (not (org-capture-get :orig-no-save))
+             (not org-note-abort))
+      (with-current-buffer (org-capture-get :buffer)
+        (save-buffer)))
+  (remove-hook 'org-capture-after-finalize-hook #'org-roam--capture-save-file-maybe-h))
+
 (defun org-roam--capture-new-file ()
   "Return the path to the new file during an Org-roam capture.
 
@@ -761,7 +771,18 @@ If the file path already exists, it throw an error.
 
 Else, to insert the header content in the file, org-capture
 template is prepended with the `:head' portion of the Org-roam
-capture template."
+capture template.
+
+To prevent the creation of a new file if the capture process is
+aborted, we do the following:
+
+1. Save the original value of the capture template's :no-save.
+
+2. Set the capture template's :no-save to t.
+
+3. Add a function on `org-capture-after-finalize-hook' that saves
+the file if the original value of :no-save is not t and
+`org-note-abort' is not t."
   (let* ((name-templ (or (org-capture-get :file-name)
                          org-roam--capture-file-name-default))
          (new-id (s-trim (org-roam--fill-template
@@ -770,12 +791,14 @@ capture template."
          (file-path (org-roam--file-path-from-id new-id)))
     (when (file-exists-p file-path)
       (error (format "File exists at %s, aborting" file-path)))
+    (org-capture-put :orig-no-save (org-capture-get :no-save))
     (org-capture-put :template
                      (concat
                       (or (org-capture-get :head)
                           org-roam--capture-header-default)
                       (org-capture-get :template))
-                     :type 'plain)
+                     :type 'plain
+                     :no-save t)
     file-path))
 
 (defun org-roam--expand-capture-template ()
@@ -801,7 +824,7 @@ This function is used solely in Org-roam's capture templates: see
     ('title
      (let ((file-path (org-roam--capture-new-file)))
        (org-roam--expand-capture-template)
-       (setq org-roam--capture-file-path file-path)
+       (org-capture-put :roam-file-path file-path)
        (set-buffer (org-capture-target-buffer file-path))
        (widen)
        (goto-char (point-max))))
@@ -811,7 +834,7 @@ This function is used solely in Org-roam's capture templates: see
             (file-path (or (cdr (assoc ref completions))
                            (org-roam--capture-new-file))))
        (org-roam--expand-capture-template)
-       (setq org-roam--capture-file-path file-path)
+       (org-capture-put :roam-file-path file-path)
        (set-buffer (org-capture-target-buffer file-path))
        (widen)
        (goto-char (point-max))))
@@ -830,9 +853,6 @@ GOTO and KEYS argument have the same functionality as
 
 ;;; Interactive Commands
 ;;;; org-roam-insert
-(defvar org-roam--capture-insert-point nil
-  "The point to jump to after the call to `org-roam-insert'.")
-
 (defun org-roam--format-link-title (title)
   "Retur the link title, given the file TITLE."
   (if (functionp org-roam-link-title-format)
@@ -856,49 +876,37 @@ If PREFIX, downcase the title before insertion."
          (title (org-roam--completing-read "File: " completions
                                            :initial-input region-text))
          (region-or-title (or region-text title))
-         (target-file-path (cdr (assoc title completions)))
-         (current-file-path (-> (or (buffer-base-buffer)
-                                    (current-buffer))
-                                (buffer-file-name)
-                                (file-truename)
-                                (file-name-directory)))
-         (buf (current-buffer))
-         (p (point-marker)))
+         (target-file-path (cdr (assoc title completions))))
     (unless (and target-file-path
                  (file-exists-p target-file-path))
       (let* ((org-roam--capture-info (list (cons 'title title)
                                            (cons 'slug (org-roam--title-to-slug title))))
              (org-roam--capture-context 'title))
-        (org-roam-capture)
-        (setq target-file-path org-roam--capture-file-path)
-        (setq org-roam--capture-file-path nil)))
-    (with-current-buffer buf
-      (when region ;; Remove previously selected text.
-        (delete-region (car region) (cdr region)))
-      (let ((link-location (concat "file:"
-                                   (file-relative-name target-file-path
-                                                       current-file-path)))
-            (description (org-roam--format-link-title (if prefix
-                                                          (downcase region-or-title)
-                                                        region-or-title))))
-        (goto-char p)
-        (insert (format "[[%s][%s]]"
-                        link-location
-                        description))
-        (setq org-roam--capture-insert-point (point))))
-    (add-hook 'org-capture-after-finalize-hook #'org-roam--capture-advance-point)))
+        (org-roam-capture)))
+    (org-capture-put :roam-region region
+                     :roam-link-description (org-roam--format-link-title (if prefix
+                                                        (downcase region-or-title)
+                                                        region-or-title)))
+    (add-hook 'org-capture-after-finalize-hook #'org-roam--capture-insert-link-h)))
 
-(defun org-roam--capture-advance-point ()
-  "Advances the point if it is updated.
-
-We need this function because typically `org-capture' prevents the
-point from being advanced, whereas when a link is inserted, the
-point moves some characters forward.  This is added as a hook to
-`org-capture-after-finalize-hook'."
-  (when org-roam--capture-insert-point
-    (goto-char org-roam--capture-insert-point)
-    (setq org-roam--capture-insert-point nil))
-  (remove-hook 'org-capture-after-finalize-hook #'org-roam--capture-advance-point))
+(defun org-roam--capture-insert-link-h ()
+  "Inserts the link into the original buffer, after the capture process is done.
+This is added as a hook to `org-capture-after-finalize-hook'."
+  (when (not org-note-abort)
+    (when-let ((region (org-capture-get :roam-region))) ;; Remove previously selected text.
+      (delete-region (car region) (cdr region)))
+    (let* ((current-file-path (-> (or (buffer-base-buffer)
+                                    (current-buffer))
+                                (buffer-file-name)
+                                (file-truename)
+                                (file-name-directory)))
+           (link-location (concat "file:"
+                                 (file-relative-name (org-capture-get :roam-file-path)
+                                                     current-file-path))))
+      (insert (format "[[%s][%s]]"
+                      link-location
+                      (org-capture-get :roam-link-description)))))
+  (remove-hook 'org-capture-after-finalize-hook #'org-roam--capture-insert-link-h))
 
 ;;;; org-roam-find-file
 (defun org-roam--get-title-path-completions ()
