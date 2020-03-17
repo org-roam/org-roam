@@ -735,6 +735,9 @@ applies.
    inserted on initial creation (added only once).  This is where
    insertion of any note metadata should go.")
 
+(defvar org-roam--capture-insert-link-plist nil
+  "Dynamically scoped variable used to insert the org link after org-capture.")
+
 (defun org-roam--fill-template (str &optional info)
   "Expands the template STR, returning the string.
 This is an extension of org-capture's template expansion.
@@ -845,8 +848,7 @@ This function is used solely in Org-roam's capture templates: see
 The templates are defined at `org-roam-capture-templates'.  The
 GOTO and KEYS argument have the same functionality as
 `org-capture'."
-  (let ((org-capture-templates org-roam-capture-templates)
-        file-path)
+  (let ((org-capture-templates org-roam-capture-templates))
     (when (= (length org-capture-templates) 1)
       (setq keys (caar org-capture-templates)))
     (org-capture goto keys)))
@@ -876,24 +878,45 @@ If PREFIX, downcase the title before insertion."
          (title (org-roam--completing-read "File: " completions
                                            :initial-input region-text))
          (region-or-title (or region-text title))
-         (target-file-path (cdr (assoc title completions))))
-    (unless (and target-file-path
-                 (file-exists-p target-file-path))
+         (current-file-path (-> (or (buffer-base-buffer)
+                                   (current-buffer))
+                               (buffer-file-name)
+                               (file-truename)
+                               (file-name-directory)))
+         (target-file-path (cdr (assoc title completions)))
+         (link-description (org-roam--format-link-title (if prefix
+                                                            (downcase region-or-title)
+                                                          region-or-title))))
+    (if (and target-file-path
+             (file-exists-p target-file-path))
+        (progn
+          (when region ;; Remove previously selected text.
+            (delete-region (car region) (cdr region)))
+          (let* ((current-file-path (-> (or (buffer-base-buffer)
+                                           (current-buffer))
+                                       (buffer-file-name)
+                                       (file-truename)
+                                       (file-name-directory)))
+                 (link-location (concat "file:"
+                                        (file-relative-name target-file-path
+                                                            current-file-path))))
+            (insert (format "[[%s][%s]]"
+                            link-location
+                            link-description))))
       (let* ((org-roam--capture-info (list (cons 'title title)
                                            (cons 'slug (org-roam--title-to-slug title))))
              (org-roam--capture-context 'title))
-        (org-roam-capture)))
-    (org-capture-put :roam-region region
-                     :roam-link-description (org-roam--format-link-title (if prefix
-                                                        (downcase region-or-title)
-                                                        region-or-title)))
-    (add-hook 'org-capture-after-finalize-hook #'org-roam--capture-insert-link-h)))
+        (add-hook 'org-capture-after-finalize-hook #'org-roam--capture-insert-link-h)
+        (setq org-roam--capture-insert-link-plist (list :region region
+                                                        :link-description link-description))
+        (org-roam-capture)))))
 
 (defun org-roam--capture-insert-link-h ()
   "Inserts the link into the original buffer, after the capture process is done.
 This is added as a hook to `org-capture-after-finalize-hook'."
-  (when (not org-note-abort)
-    (when-let ((region (org-capture-get :roam-region))) ;; Remove previously selected text.
+  (when (and (not org-note-abort)
+             org-roam--capture-insert-link-plist)
+    (when-let ((region (plist-get org-roam--capture-insert-link-plist :region))) ;; Remove previously selected text.
       (delete-region (car region) (cdr region)))
     (let* ((current-file-path (-> (or (buffer-base-buffer)
                                     (current-buffer))
@@ -905,7 +928,8 @@ This is added as a hook to `org-capture-after-finalize-hook'."
                                                      current-file-path))))
       (insert (format "[[%s][%s]]"
                       link-location
-                      (org-capture-get :roam-link-description)))))
+                      (plist-get org-roam--capture-insert-link-plist :link-description))))
+    (setq org-roam--capture-insert-link-plist nil))
   (remove-hook 'org-capture-after-finalize-hook #'org-roam--capture-insert-link-h))
 
 ;;;; org-roam-find-file
