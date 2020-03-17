@@ -861,6 +861,18 @@ GOTO and KEYS argument have the same functionality as
       (funcall org-roam-link-title-format title)
     (format org-roam-link-title-format title)))
 
+(defun org-roam--format-link (target description)
+  "Formats an org link for a given file TARGET and link DESCRIPTION."
+  (let* ((here (-> (or (buffer-base-buffer)
+                      (current-buffer))
+                  (buffer-file-name)
+                  (file-truename)
+                  (file-name-directory))))
+    (format "[[%s][%s]]"
+            (concat "file:"
+                    (file-relative-name target here))
+            description)))
+
 (defun org-roam-insert (prefix)
   "Find an Org-roam file, and insert a relative org link to it at point.
 If PREFIX, downcase the title before insertion."
@@ -892,17 +904,7 @@ If PREFIX, downcase the title before insertion."
         (progn
           (when region ;; Remove previously selected text.
             (delete-region (car region) (cdr region)))
-          (let* ((current-file-path (-> (or (buffer-base-buffer)
-                                           (current-buffer))
-                                       (buffer-file-name)
-                                       (file-truename)
-                                       (file-name-directory)))
-                 (link-location (concat "file:"
-                                        (file-relative-name target-file-path
-                                                            current-file-path))))
-            (insert (format "[[%s][%s]]"
-                            link-location
-                            link-description))))
+          (insert (org-roam--format-link target-file-path link-description)))
       (let* ((org-roam--capture-info (list (cons 'title title)
                                            (cons 'slug (org-roam--title-to-slug title))))
              (org-roam--capture-context 'title))
@@ -918,17 +920,8 @@ This is added as a hook to `org-capture-after-finalize-hook'."
              org-roam--capture-insert-link-plist)
     (when-let ((region (plist-get org-roam--capture-insert-link-plist :region))) ;; Remove previously selected text.
       (delete-region (car region) (cdr region)))
-    (let* ((current-file-path (-> (or (buffer-base-buffer)
-                                    (current-buffer))
-                                (buffer-file-name)
-                                (file-truename)
-                                (file-name-directory)))
-           (link-location (concat "file:"
-                                 (file-relative-name (org-capture-get :roam-file-path)
-                                                     current-file-path))))
-      (insert (format "[[%s][%s]]"
-                      link-location
-                      (plist-get org-roam--capture-insert-link-plist :link-description))))
+    (insert (org-roam--format-link (org-capture-get :roam-file-path)
+                                   (plist-get org-roam--capture-insert-link-plist :link-description)))
     (setq org-roam--capture-insert-link-plist nil))
   (remove-hook 'org-capture-after-finalize-hook #'org-roam--capture-insert-link-h))
 
