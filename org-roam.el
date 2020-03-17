@@ -758,10 +758,16 @@ Next, it expands the remaining template string using
   "This function is saves the file if the original value of
 :no-save is not t and `org-note-abort' is not t. It is added to
 `org-capture-after-finalize-hook'."
-  (when (and (not (org-capture-get :orig-no-save))
-             (not org-note-abort))
-      (with-current-buffer (org-capture-get :buffer)
-        (save-buffer)))
+  (cond
+   ((and (org-capture-get :roam-new-file)
+         org-note-abort)
+    (with-current-buffer (org-capture-get :buffer)
+      (set-buffer-modified-p nil)
+      (kill-buffer)))
+   ((and (not (org-capture-get :orig-no-save))
+         (not org-note-abort))
+    (with-current-buffer (org-capture-get :buffer)
+      (save-buffer))))
   (remove-hook 'org-capture-after-finalize-hook #'org-roam--capture-save-file-maybe-h))
 
 (defun org-roam--capture-new-file ()
@@ -800,6 +806,7 @@ the file if the original value of :no-save is not t and
                       (or (org-capture-get :head)
                           org-roam--capture-header-default)
                       (org-capture-get :template))
+                     :roam-new-file t
                      :type 'plain
                      :no-save t)
     file-path))
@@ -851,6 +858,7 @@ GOTO and KEYS argument have the same functionality as
   (let ((org-capture-templates org-roam-capture-templates))
     (when (= (length org-capture-templates) 1)
       (setq keys (caar org-capture-templates)))
+    (add-hook 'org-capture-after-finalize-hook #'org-roam--capture-save-file-maybe-h)
     (org-capture goto keys)))
 
 ;;; Interactive Commands
