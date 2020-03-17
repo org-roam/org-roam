@@ -115,7 +115,14 @@
           (before-each
            (org-roam--test-init)
            (org-roam--db-clear)
-           (org-roam-build-cache))
+           (org-roam-build-cache)
+           (setq org-roam-capture-templates
+                 '(("d" "default" plain (function org-roam--capture-get-point)
+                    "%?"
+                    :file-name "%<%Y%m%d%H%M%S>-${slug}"
+                    :head "#+TITLE: ${title}\n"
+                    :unnarrowed t
+                    :immediate-finish t))))
 
           (it "temp1 -> foo"
               (let ((buf (org-roam--test-find-new-file "temp1.org")))
