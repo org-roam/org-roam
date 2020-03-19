@@ -629,7 +629,8 @@ Return user choice."
     (setq res
           (cond
            ((eq org-roam-completion-system 'ido)
-            (ido-completing-read prompt choices nil require-match initial-input))
+            (let ((candidates (mapcar #'car choices)))
+              (ido-completing-read prompt candidates nil require-match initial-input)))
            ((eq org-roam-completion-system 'default)
             (completing-read prompt choices nil require-match initial-input))
            ((eq org-roam-completion-system 'ivy)
