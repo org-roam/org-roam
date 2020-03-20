@@ -809,15 +809,21 @@ the file if the original value of :no-save is not t and
          (new-id (s-trim (org-roam--fill-template
                           name-templ
                           org-roam--capture-info)))
-         (file-path (org-roam--file-path-from-id new-id)))
+         (file-path (org-roam--file-path-from-id new-id))
+         (roam-head (or (org-capture-get :head)
+                        org-roam--capture-header-default))
+         (org-template (org-capture-get :template))
+         (roam-template (concat roam-head org-template)))
     (when (file-exists-p file-path)
       (error (format "File exists at %s, aborting" file-path)))
     (org-capture-put :orig-no-save (org-capture-get :no-save))
     (org-capture-put :template
-                     (concat
-                      (or (org-capture-get :head)
-                          org-roam--capture-header-default)
-                      (org-capture-get :template))
+                     ;; Fixes org-capture-place-plain-text throwing 'invalid search bound'
+                     ;; when both :unnarowed t and "%?" is missing from the template string;
+                     ;; may become unnecessary when the upstream bug is fixed
+                     (if (s-contains-p "%?" roam-template)
+                         roam-template
+                       (concat "%?" roam-template))
                      :roam-new-file t
                      :type 'plain
                      :no-save t)
