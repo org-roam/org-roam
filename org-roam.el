@@ -925,15 +925,17 @@ If PREFIX, downcase the title before insertion."
           (when region ;; Remove previously selected text.
             (delete-region (car region) (cdr region)))
           (insert (org-roam--format-link target-file-path link-description)))
-      (let* ((org-roam--capture-info (list (cons 'title title)
-                                           (cons 'slug (org-roam--title-to-slug title))))
-             (org-roam--capture-context 'title))
-        (add-hook 'org-capture-after-finalize-hook #'org-roam--capture-insert-link-h)
-        (incf org-roam--capture-nesting-count)
-        (setq org-roam--additional-template-props (list :region region
-                                                        :link-description link-description
-                                                        :capture-fn 'org-roam-insert))
-        (org-roam-capture)))))
+      (if (> org-roam--capture-nesting-count 0)
+          (user-error "Nested Org-roam capture processes not supported")
+        (let ((org-roam--capture-info (list (cons 'title title)
+                                            (cons 'slug (org-roam--title-to-slug title))))
+               (org-roam--capture-context 'title))
+          (add-hook 'org-capture-after-finalize-hook #'org-roam--capture-insert-link-h)
+          (incf org-roam--capture-nesting-count)
+          (setq org-roam--additional-template-props (list :region region
+                                                          :link-description link-description
+                                                          :capture-fn 'org-roam-insert))
+          (org-roam-capture))))))
 
 (defun org-roam--capture-insert-link-h ()
   "Inserts the link into the original buffer, after the capture process is done.
@@ -979,11 +981,13 @@ INITIAL-PROMPT is the initial title prompt."
          (file-path (cdr (assoc title completions))))
     (if file-path
         (find-file file-path)
-      (let* ((org-roam--capture-info (list (cons 'title title)
-                                           (cons 'slug (org-roam--title-to-slug title))))
-             (org-roam--capture-context 'title))
-        (add-hook 'org-capture-after-finalize-hook #'org-roam--capture-find-file-h)
-        (org-roam-capture)))))
+      (if (> org-roam--capture-nesting-count 0)
+          (user-error "Org-roam capture in process")
+        (let ((org-roam--capture-info (list (cons 'title title)
+                                            (cons 'slug (org-roam--title-to-slug title))))
+               (org-roam--capture-context 'title))
+          (add-hook 'org-capture-after-finalize-hook #'org-roam--capture-find-file-h)
+          (org-roam-capture))))))
 
 ;;;; org-roam-find-ref
 (defun org-roam--get-ref-path-completions ()
