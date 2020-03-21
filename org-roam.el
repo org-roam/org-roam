@@ -777,10 +777,11 @@ Next, it expands the remaining template string using
   "Remove all Org-roam related hooks from `org-capture-after-finalize-hook'."
   (cl-decf org-roam--capture-nesting-count)
   (when (= org-roam--capture-nesting-count 0)
-    (remove-hook 'org-capture-after-finalize-hook #'org-roam--capture-save-file-maybe-h)
-    (remove-hook 'org-capture-after-finalize-hook #'org-roam--capture-insert-link-h)
-    (remove-hook 'org-capture-after-finalize-hook #'org-roam--capture-find-file-h)
-    (remove-hook 'org-capture-after-finalize-hook #'org-roam--capture-cleanup-hooks-h)))
+    (dolist (fn '(org-roam--capture-save-file-maybe-h
+                  org-roam--capture-insert-link-h
+                  org-roam--capture-find-file-h
+                  org-roam--capture-cleanup-hooks-h))
+      (remove-hook 'org-capture-after-finalize-hook fn))))
 
 (defun org-roam--capture-new-file ()
   "Return the path to the new file during an Org-roam capture.
