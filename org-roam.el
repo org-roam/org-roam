@@ -360,6 +360,7 @@ This is equivalent to removing the node from the graph."
 (defun org-roam-build-cache ()
   "Build the cache for `org-roam-directory'."
   (interactive)
+  (org-roam--db-close) ;; Force a reconnect
   (org-roam-db) ;; To initialize the database, no-op if already initialized
   (let* ((org-roam-files (org-roam--list-files org-roam-directory))
          (current-files (org-roam--get-current-files))
