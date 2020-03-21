@@ -823,7 +823,7 @@ the file if the original value of :no-save is not t and
                      ;; may become unnecessary when the upstream bug is fixed
                      (if (s-contains-p "%?" roam-template)
                          roam-template
-                       (concat "%?" roam-template))
+                       (concat roam-template "%?"))
                      :roam-new-file t
                      :type 'plain
                      :no-save t)
