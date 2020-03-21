@@ -600,13 +600,13 @@ specified via the #+ROAM_ALIAS property."
              (strip-nonspacing-marks (s)
                                      (apply #'string (seq-remove #'nonspacing-mark-p
                                                                  (ucs-normalize-NFD-string s))))
-             (replace (title pair)
+             (cl-replace (title pair)
                       (replace-regexp-in-string (car pair) (cdr pair) title)))
     (let* ((pairs `(("[^[:alnum:][:digit:]]" . "_")  ;; convert anything not alphanumeric
                     ("__*" . "_")  ;; remove sequential underscores
                     ("^_" . "")  ;; remove starting underscore
                     ("_$" . "")))  ;; remove ending underscore
-           (slug (-reduce-from #'replace (strip-nonspacing-marks title) pairs)))
+           (slug (-reduce-from #'cl-replace (strip-nonspacing-marks title) pairs)))
       (s-downcase slug))))
 
 ;;;; Completion
@@ -775,7 +775,7 @@ Next, it expands the remaining template string using
 
 (defun org-roam--capture-cleanup-hooks-h ()
   "Remove all Org-roam related hooks from `org-capture-after-finalize-hook'."
-  (decf org-roam--capture-nesting-count)
+  (cl-decf org-roam--capture-nesting-count)
   (when (= org-roam--capture-nesting-count 0)
     (remove-hook 'org-capture-after-finalize-hook #'org-roam--capture-save-file-maybe-h)
     (remove-hook 'org-capture-after-finalize-hook #'org-roam--capture-insert-link-h)
@@ -931,7 +931,7 @@ If PREFIX, downcase the title before insertion."
                                             (cons 'slug (org-roam--title-to-slug title))))
                (org-roam--capture-context 'title))
           (add-hook 'org-capture-after-finalize-hook #'org-roam--capture-insert-link-h)
-          (incf org-roam--capture-nesting-count)
+          (cl-incf org-roam--capture-nesting-count)
           (setq org-roam--additional-template-props (list :region region
                                                           :link-description link-description
                                                           :capture-fn 'org-roam-insert))
