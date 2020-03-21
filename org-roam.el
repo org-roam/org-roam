@@ -50,6 +50,12 @@
 
 (require 'xml) ; for xml-parse-string
 
+;;;; Declarations
+(declare-function helm-build-sync-source "helm" (name &rest args))
+
+;;;; Used variables
+(defvar helm-pattern)
+
 ;;;; Customizable Variables
 (defgroup org-roam nil
   "Roam Research replica in Org-mode."
@@ -622,7 +628,7 @@ SOURCE is not used."
 
 (cl-defun org-roam--completing-read (prompt choices &key
                                             require-match initial-input
-                                            action fuzzy-match)
+                                            action)
   "Present a PROMPT with CHOICES and optional INITIAL-INPUT.
 If REQUIRE-MATCH is t, the user must select one of the CHOICES.
 Return user choice."
@@ -719,7 +725,7 @@ note with the given `ref'.")
   "Additional props to be added to the Org-roam template.")
 
 (defconst org-roam--capture-template-keywords '(:file-name :head)
-  "Keywords used in org-capture templates specific to Org-roam.")
+  "Keywords used in `org-roam-capture-templates' specific to Org-roam.")
 
 (defvar org-roam-capture-templates
   '(("d" "default" plain (function org-roam--capture-get-point)
@@ -883,7 +889,7 @@ This function is used solely in Org-roam's capture templates: see
   (setq org-roam--capture-in-process nil))
 
 (defun org-roam--convert-template (template)
-  "Convert TEMPLATE from Org-roam syntax to org-capture-templates syntax."
+  "Convert TEMPLATE from Org-roam syntax to `org-capture-templates' syntax."
   (let* ((copy (copy-tree template))
          converted
          org-roam-plist
@@ -923,7 +929,7 @@ GOTO and KEYS argument have the same functionality as
       (funcall org-roam-link-title-format title)
     (format org-roam-link-title-format title)))
 
-(defun org-roam--format-link (target description)
+(defun org-roam--format-link (target &optional description)
   "Formats an org link for a given file TARGET and link DESCRIPTION."
   (let* ((here (-> (or (buffer-base-buffer)
                        (current-buffer))
@@ -951,11 +957,6 @@ If PREFIX, downcase the title before insertion."
          (title (org-roam--completing-read "File: " completions
                                            :initial-input region-text))
          (region-or-title (or region-text title))
-         (current-file-path (-> (or (buffer-base-buffer)
-                                   (current-buffer))
-                               (buffer-file-name)
-                               (file-truename)
-                               (file-name-directory)))
          (target-file-path (cdr (assoc title completions)))
          (link-description (org-roam--format-link-title (if prefix
                                                             (downcase region-or-title)
@@ -1075,10 +1076,14 @@ INFO is an alist containing additional information."
 
 ;;;; Daily notes
 (defcustom org-roam-date-title-format "%Y-%m-%d"
-  "Format string passed to `format-time-string' for getting a date file's title.")
+  "Format string passed to `format-time-string' for getting a date file's title."
+  :type 'string
+  :group 'org-roam)
 
 (defcustom org-roam-date-filename-format "%Y-%m-%d"
-  "Format string passed to `format-time-string' for getting a date file's filename.")
+  "Format string passed to `format-time-string' for getting a date file's filename."
+  :type 'string
+  :group 'org-roam)
 
 (defun org-roam--file-for-time (time)
   "Create and find file for TIME."
