@@ -930,10 +930,9 @@ GOTO and KEYS argument have the same functionality as
                    (buffer-file-name)
                    (file-truename)
                    (file-name-directory))))
-    (format "[[%s][%s]]"
-            (concat "file:"
-                    (file-relative-name target here))
-            description)))
+    (org-link-make-string
+     (concat "file:" (file-relative-name target here))
+     description)))
 
 (defun org-roam-insert (prefix)
   "Find an Org-roam file, and insert a relative org link to it at point.
