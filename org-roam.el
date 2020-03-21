@@ -712,11 +712,14 @@ The `ref' context is used by `org-roam-protocol', where the
 capture process is triggered upon trying to find or create a new
 note with the given `ref'.")
 
-(defvar org-roam--capture-nesting-count 0
-  "Count for how many org-roam captures are in-process.")
+(defvar org-roam--capture-in-process nil
+  "Boolean tracking whether Org-roam captures are in-process.")
 
 (defvar org-roam--additional-template-props nil
-  "Additional props to be added to the org-roam template.")
+  "Additional props to be added to the Org-roam template.")
+
+(defconst org-roam--capture-template-keywords '(:file-name :head)
+  "Keywords used in org-capture templates specific to Org-roam.")
 
 (defvar org-roam-capture-templates
   '(("d" "default" plain (function org-roam--capture-get-point)
@@ -743,6 +746,19 @@ applies.
    inserted on initial creation (added only once).  This is where
    insertion of any note metadata should go.")
 
+(defun org-roam--capture-get (keyword)
+  "Gets the value for KEYWORD from the `org-roam-capture-template'."
+  (plist-get (plist-get org-capture-plist :org-roam) keyword))
+
+(defun org-roam--capture-put (&rest stuff)
+  "Puts properties from STUFF into the `org-roam-capture-template'."
+  (let ((p (plist-get org-capture-plist :org-roam)))
+    (while stuff
+      (setq p (plist-put p
+                         (pop stuff) (pop stuff))))
+    (setq org-capture-plist
+          (plist-put org-capture-plist :org-roam p))))
+
 (defun org-roam--fill-template (str &optional info)
   "Expands the template STR, returning the string.
 This is an extension of org-capture's template expansion.
@@ -760,29 +776,21 @@ Next, it expands the remaining template string using
      (org-capture-fill-template)))
 
 (defun org-roam--capture-save-file-maybe-h ()
-  "This function is saves the file if the original value of
-:no-save is not t and `org-note-abort' is not t. It is added to
+  "Save the file conditionally.
+The file is saved if the original value of :no-save is not t and
+`org-note-abort' is not t. It is added to
 `org-capture-after-finalize-hook'."
   (cond
-   ((and (org-capture-get :roam-new-file)
+   ((and (org-roam--capture-get :new-file)
          org-note-abort)
     (with-current-buffer (org-capture-get :buffer)
       (set-buffer-modified-p nil)
       (kill-buffer)))
-   ((and (not (org-capture-get :orig-no-save))
+   ((and (not (org-roam--capture-get :orig-no-save))
          (not org-note-abort))
     (with-current-buffer (org-capture-get :buffer)
-      (save-buffer)))))
-
-(defun org-roam--capture-cleanup-hooks-h ()
-  "Remove all Org-roam related hooks from `org-capture-after-finalize-hook'."
-  (cl-decf org-roam--capture-nesting-count)
-  (when (= org-roam--capture-nesting-count 0)
-    (dolist (fn '(org-roam--capture-save-file-maybe-h
-                  org-roam--capture-insert-link-h
-                  org-roam--capture-find-file-h
-                  org-roam--capture-cleanup-hooks-h))
-      (remove-hook 'org-capture-after-finalize-hook fn))))
+      (save-buffer))))
+  (remove-hook 'org-capture-after-finalize-hook #'org-roam--capture-save-file-maybe-h))
 
 (defun org-roam--capture-new-file ()
   "Return the path to the new file during an Org-roam capture.
@@ -792,7 +800,7 @@ active Org-roam template.
 
 If the file path already exists, it throw an error.
 
-Else, to insert the header content in the file, org-capture
+Else, to insert the header content in the file, `org-capture'
 template is prepended with the `:head' portion of the Org-roam
 capture template.
 
@@ -806,19 +814,20 @@ aborted, we do the following:
 3. Add a function on `org-capture-after-finalize-hook' that saves
 the file if the original value of :no-save is not t and
 `org-note-abort' is not t."
-  (let* ((name-templ (or (org-capture-get :file-name)
+  (let* ((name-templ (or (org-roam--capture-get :file-name)
                          org-roam--capture-file-name-default))
          (new-id (s-trim (org-roam--fill-template
                           name-templ
                           org-roam--capture-info)))
          (file-path (org-roam--file-path-from-id new-id))
-         (roam-head (or (org-capture-get :head)
+         (roam-head (or (org-roam--capture-get :head)
                         org-roam--capture-header-default))
          (org-template (org-capture-get :template))
          (roam-template (concat roam-head org-template)))
     (when (file-exists-p file-path)
       (error (format "File exists at %s, aborting" file-path)))
-    (org-capture-put :orig-no-save (org-capture-get :no-save))
+    (org-roam--capture-put :orig-no-save (org-capture-get :no-save)
+                           :new-file t)
     (org-capture-put :template
                      ;; Fixes org-capture-place-plain-text throwing 'invalid search bound'
                      ;; when both :unnarowed t and "%?" is missing from the template string;
@@ -826,7 +835,6 @@ the file if the original value of :no-save is not t and
                      (if (s-contains-p "%?" roam-template)
                          roam-template
                        (concat roam-template "%?"))
-                     :roam-new-file t
                      :type 'plain
                      :no-save t)
     file-path))
@@ -834,9 +842,10 @@ the file if the original value of :no-save is not t and
 (defun org-roam--expand-capture-template ()
   "Expand capture template with information from `org-roam--capture-info'."
   (org-capture-put :template
-                   (s-format (org-capture-get :template) (lambda (key)
-                                                           (or (s--aget org-roam--capture-info key)
-                                                               (completing-read (format "%s: " key ) nil))) nil)))
+                   (s-format (org-capture-get :template)
+                             (lambda (key)
+                               (or (s--aget org-roam--capture-info key)
+                                   (completing-read (format "%s: " key ) nil))) nil)))
 
 (defun org-roam--capture-get-point ()
   "Return exact point to file for org-capture-template.
@@ -860,25 +869,50 @@ This function is used solely in Org-roam's capture templates: see
                             (org-roam--capture-new-file))))
                      (_ (error "Invalid org-roam-capture-context")))))
     (org-roam--expand-capture-template)
-    (org-capture-put :roam-file-path file-path)
+    (org-roam--capture-put :file-path file-path)
     (while org-roam--additional-template-props
       (let ((prop (pop org-roam--additional-template-props))
             (val (pop org-roam--additional-template-props)))
-        (org-capture-put prop val)))
+        (org-roam--capture-put prop val)))
     (set-buffer (org-capture-target-buffer file-path))
     (widen)
     (goto-char (point-max))))
+
+(defun org-roam--capture-cleanup-h ()
+  "Cleans up after an Org-roam capture process."
+  (setq org-roam--capture-in-process nil))
+
+(defun org-roam--convert-template (template)
+  "Convert TEMPLATE from Org-roam syntax to org-capture-templates syntax."
+  (let* ((copy (copy-tree template))
+         converted
+         org-roam-plist
+         key
+         val)
+    ;;put positional args on converted template
+    (dotimes (_ 5)
+      (push (pop copy) converted))
+    (while (setq key (pop copy)
+                 val (pop copy))
+      (if (member key org-roam--capture-template-keywords)
+          (progn
+            (push val org-roam-plist)
+            (push key org-roam-plist))
+        (push key converted)
+        (push val converted)))
+  (append (nreverse converted) `(:org-roam ,org-roam-plist))))
 
 (defun org-roam-capture (&optional goto keys)
   "Create a new file, and return the path to the edited file.
 The templates are defined at `org-roam-capture-templates'.  The
 GOTO and KEYS argument have the same functionality as
 `org-capture'."
-  (let ((org-capture-templates org-roam-capture-templates))
+  (let ((org-capture-templates (mapcar #'org-roam--convert-template org-roam-capture-templates)))
     (when (= (length org-capture-templates) 1)
       (setq keys (caar org-capture-templates)))
-    (add-hook 'org-capture-after-finalize-hook #'org-roam--capture-save-file-maybe-h -1)
-    (add-hook 'org-capture-after-finalize-hook #'org-roam--capture-cleanup-hooks-h 1)
+    (add-hook 'org-capture-after-finalize-hook #'org-roam--capture-save-file-maybe-h)
+    (add-hook 'org-capture-after-finalize-hook #'org-roam--capture-cleanup-h 10)
+    (setq org-roam--capture-in-process t)
     (org-capture goto keys)))
 
 ;;; Interactive Commands
@@ -933,28 +967,28 @@ If PREFIX, downcase the title before insertion."
           (when region ;; Remove previously selected text.
             (delete-region (car region) (cdr region)))
           (insert (org-roam--format-link target-file-path link-description)))
-      (if (> org-roam--capture-nesting-count 0)
+      (if org-roam--capture-in-process
           (user-error "Nested Org-roam capture processes not supported")
         (let ((org-roam--capture-info (list (cons 'title title)
                                             (cons 'slug (org-roam--title-to-slug title))))
                (org-roam--capture-context 'title))
           (add-hook 'org-capture-after-finalize-hook #'org-roam--capture-insert-link-h)
-          (cl-incf org-roam--capture-nesting-count)
           (setq org-roam--additional-template-props (list :region region
                                                           :link-description link-description
                                                           :capture-fn 'org-roam-insert))
           (org-roam-capture))))))
 
 (defun org-roam--capture-insert-link-h ()
-  "Inserts the link into the original buffer, after the capture process is done.
+  "Insert the link into the original buffer, after the capture process is done.
 This is added as a hook to `org-capture-after-finalize-hook'."
   (when (and (not org-note-abort)
-             (eq (org-capture-get :capture-fn)
+             (eq (org-roam--capture-get :capture-fn)
                  'org-roam-insert))
-    (when-let ((region (org-capture-get :region))) ;; Remove previously selected text.
+    (when-let ((region (org-roam--capture-get :region))) ;; Remove previously selected text.
       (delete-region (car region) (cdr region)))
-    (insert (org-roam--format-link (org-capture-get :roam-file-path)
-                                   (org-capture-get :link-description)))))
+    (insert (org-roam--format-link (org-roam--capture-get :file-path)
+                                   (org-roam--capture-get :link-description))))
+  (remove-hook 'org-capture-after-finalize-hook #'org-roam--capture-insert-link-h))
 
 ;;;; org-roam-find-file
 (defun org-roam--get-title-path-completions ()
@@ -974,7 +1008,7 @@ This is added as a hook to `org-capture-after-finalize-hook'."
 (defun org-roam--capture-find-file-h ()
   "Opens the newly created template file.
 This is added as a hook to `org-capture-after-finalize-hook'."
-  (when-let ((file-path (org-capture-get :roam-file-path)))
+  (when-let ((file-path (org-roam--capture-get :file-path)))
     (when (not org-note-abort)
       (find-file file-path)))
   (remove-hook 'org-capture-after-finalize-hook #'org-roam--capture-find-file-h))
@@ -989,7 +1023,7 @@ INITIAL-PROMPT is the initial title prompt."
          (file-path (cdr (assoc title completions))))
     (if file-path
         (find-file file-path)
-      (if (> org-roam--capture-nesting-count 0)
+      (if org-roam--capture-in-process
           (user-error "Org-roam capture in process")
         (let ((org-roam--capture-info (list (cons 'title title)
                                             (cons 'slug (org-roam--title-to-slug title))))
@@ -1156,7 +1190,7 @@ If item at point is not Org-roam specific, default to Org behaviour."
 
 (defun org-roam--get-backlinks (file)
   "Return the backlinks for FILE."
-  (org-roam-sql [:select [file-from, file-to, properties] :from file-links 
+  (org-roam-sql [:select [file-from, file-to, properties] :from file-links
                  :where (= file-to $s1)
                  :order-by (asc file-from)]
                 file))
