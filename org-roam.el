@@ -1009,7 +1009,7 @@ This is added as a hook to `org-capture-after-finalize-hook'."
   "Opens the newly created template file.
 This is added as a hook to `org-capture-after-finalize-hook'."
   (when-let ((file-path (org-roam--capture-get :file-path)))
-    (when (not org-note-abort)
+    (unless org-note-abort
       (find-file file-path)))
   (remove-hook 'org-capture-after-finalize-hook #'org-roam--capture-find-file-h))
 
