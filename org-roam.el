@@ -769,7 +769,7 @@ applies.
   "Expands the template STR, returning the string.
 This is an extension of org-capture's template expansion.
 
-First, it expands ${var} occurences in STR, using the INFO alist.
+First, it expands ${var} occurrences in STR, using the INFO alist.
 If there is a ${var} with no matching var in the alist, the value
 of var is prompted for via `completing-read'.
 
@@ -1137,7 +1137,7 @@ INFO is an alist containing additional information."
 
 (defun org-roam--roam-link-face (path)
   "Conditional face for org file links.
-Applies `org-roam-link-face' if PATH correponds to a Roam file."
+Applies `org-roam-link-face' if PATH corresponds to a Roam file."
   (if (org-roam--org-roam-file-p path)
       'org-roam-link
     'org-link))
@@ -1319,7 +1319,7 @@ Valid states are 'visible, 'exists and 'none."
   :group 'org-roam)
 
 (defcustom org-roam-graphviz-extra-options nil
-  "Extra options when contructing the Graphviz graph.
+  "Extra options when constructing the Graphviz graph.
 Example:
  '((\"rankdir\" . \"LR\"))"
   :type '(alist)
