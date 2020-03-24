@@ -131,8 +131,14 @@ Formatter may be a function that takes title as its only argument."
 
 ;;; Database
 ;;;; Options
-(defconst org-roam-db-filename "org-roam.db"
-  "Name of the Org-roam database file.")
+(defcustom org-roam-db-location nil
+  "Location of the Org-roam database.
+If this is non-nil, the Org-roam sqlite database is saved here.
+
+It is the user's responsibility to set this correctly, especially
+when used with multiple Org-roam instances."
+  :type 'string
+  :group 'org-roam)
 
 (defconst org-roam--db-version 1)
 (defconst org-roam--sqlite-available-p
@@ -147,7 +153,8 @@ Formatter may be a function that takes title as its only argument."
 (defun org-roam--get-db ()
   "Return the sqlite db file."
   (interactive "P")
-  (expand-file-name org-roam-db-filename org-roam-directory))
+  (or org-roam-db-location
+      (expand-file-name "org-roam.db" org-roam-directory)))
 
 (defun org-roam--get-db-connection ()
   "Return the database connection, if any."
