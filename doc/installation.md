@@ -83,6 +83,10 @@ list in your `.spacemacs` configuration file. Reload (`SPC f e R`) or
 restart Emacs to load `org-roam`. It's functions are available under
 the prefix `SPC a r` and `, r` when visiting an org-mode buffer.
 
+If you also have the ranger layer installed, the prefix 'ar' conflict
+with that of the ranger layer. You might want to change it to 'aor'
+(also change the 'ar' to 'aor' in the other key-binding declarations)
+
 ## Doom Emacs
 
 If you are using [Doom Emacs][doom], configure packages as explained in the
