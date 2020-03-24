@@ -1095,10 +1095,11 @@ INFO is an alist containing additional information."
       (let ((org-roam-capture-templates (list (list "d" "daily" 'plain (list 'function #'org-roam--capture-get-point)
                                                     ""
                                                     :immediate-finish t
-                                                    :file-name "${title}"
+                                                    :file-name "${filename}"
                                                     :head "#+TITLE: ${title}")))
             (org-roam--capture-context 'title)
-            (org-roam--capture-info (list (cons 'title title))))
+            (org-roam--capture-info (list (cons 'title title)
+                                          (cons 'filename filename))))
         (add-hook 'org-capture-after-finalize-hook #'org-roam--capture-find-file-h)
         (org-roam-capture)))))
 
