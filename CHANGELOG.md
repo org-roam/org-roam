@@ -1,11 +1,16 @@
 # Changelog
 
+## 1.0.1 (TBD)
+
+### New Features
+* [#350][gh-350] Add `org-roam-db-location`
+
 ## 1.0.0 (23-03-2020)
 
 Org-roam is now on MELPA! We have squashed most of the bugs, and Org-roam has
 been stable for the most part.
 
-## New Features
+### New Features
 * [#269][gh-269] Add `org-roam-graphviz-extra-options`
 * [#257][gh-257] Add a company-backend `company-org-roam`
 * [#284][gh-284], [#289][gh-289] Configurable `org-roam-completion-system` with options `'default`, `'ido`, `'ivy` and `'helm`
@@ -13,7 +18,7 @@ been stable for the most part.
 * [#290][gh-290] Add `org-roam-date-title-format` and `org-roam-date-filename-format` for customizing Org-roam's date files
 * [#296][gh-296] Allow multiple exclusion matchers in `org-roam-graph-exclude-matcher`
 
-## Bugfixes
+### Bugfixes
 * [#293][gh-293] Fix capture templates not working as expected for `org-roam-find-file`
 * [#275][gh-275] Fix database rebuild when `org-roam-directory` is set locally
 
@@ -148,6 +153,7 @@ Mostly a documentation/cleanup release.
 [gh-290]: https://github.com/jethrokuan/org-roam/pull/290
 [gh-293]: https://github.com/jethrokuan/org-roam/pull/293
 [gh-296]: https://github.com/jethrokuan/org-roam/pull/296
+[gh-350]: https://github.com/jethrokuan/org-roam/pull/350
 
  # Local Variables:
  # eval: (auto-fill-mode -1)
