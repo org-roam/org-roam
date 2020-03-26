@@ -51,7 +51,7 @@
 (require 'xml) ; for xml-parse-string
 
 ;;;; Declarations
-(declare-function helm-build-sync-source "helm" (name &rest args))
+(declare-function helm-build-sync-source "helm-source" (name &rest args))
 
 ;;;; Used variables
 (defvar helm-pattern)
