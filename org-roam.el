@@ -1152,45 +1152,48 @@ Applies `org-roam-link-face' if PATH corresponds to a Roam file."
 
 ;;;; org-roam-backlinks-mode
 (defvar org-roam-backlinks-mode-map
-  (let ((km (make-sparse-keymap)))
-    (define-key km [mouse-1] 'org-roam-open-at-point)
-    (define-key km (kbd "RET") 'org-roam-open-at-point)
-    km)
+  (let ((map (make-sparse-keymap)))
+    (define-key map [mouse-1] 'org-open-at-point)
+    (define-key map (kbd "RET") 'org-open-at-point)
+    map)
   "Keymap for `org-roam-backlinks-mode'.")
 
 (define-derived-mode org-roam-backlinks-mode org-mode "Backlinks"
   "Major mode for the `org-roam-buffer'.
 
-\\{org-roam-backlinks-mode-map}")
+\\{org-roam-backlinks-mode-map}"
+  (add-hook 'org-open-at-point-functions
+            'org-roam-open-at-point nil 'local))
 
 (defun org-roam-open-at-point ()
-  "Open a link at point.
+  "Open an Org-roam link or visit the text previewed at point.
 
 When point is on an Org-roam link, open the link in the Org-roam window.
 
 When point is on the Org-roam preview text, open the link in the Org-roam
 window, and navigate to the point.
 
-If item at point is not Org-roam specific, default to Org behaviour."
-  (interactive)
-  (let ((context (org-element-context)))
-    (catch 'ret
-      ;; Org-roam link
+This function hooks into `org-open-at-point' via `org-open-at-point-functions'."
+  (cond
+   ;; Org-roam link
+   ((let* ((context (org-element-context))
+           (type (org-element-property :type context))
+           (path (org-element-property :path context)))
       (when (and (eq (org-element-type context) 'link)
-                 (string= "file" (org-element-property :type context))
-                 (org-roam--org-roam-file-p (file-truename (org-element-property :path context))))
-        (org-roam--find-file (org-element-property :path context))
+                 (string= "file" type)
+                 (org-roam--org-roam-file-p (file-truename path)))
+        (org-roam--find-file path)
         (org-show-context)
-        (throw 'ret t))
-      ;; Org-roam preview text
-      (when-let ((file-from (get-text-property (point) 'file-from))
-                 (p (get-text-property (point) 'file-from-point)))
-        (org-roam--find-file file-from)
-        (goto-char p)
-        (org-show-context)
-        (throw 'ret t))
-      ;; Default to default org behaviour
-      (org-open-at-point))))
+        t)))
+   ;; Org-roam preview text
+   ((when-let ((file-from (get-text-property (point) 'file-from))
+               (p (get-text-property (point) 'file-from-point)))
+      (org-roam--find-file file-from)
+      (goto-char p)
+      (org-show-context)
+      t))
+   ;; If called via `org-open-at-point', fall back to default behavior.
+   nil))
 
 (defun org-roam--find-file (file)
   "Open FILE in the window `org-roam' was called from."
