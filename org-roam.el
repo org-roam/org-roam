@@ -43,6 +43,7 @@
 (require 's)
 (require 'f)
 (require 'cl-lib)
+(require 'org-roam-graph)
 
 ;; Database requirements
 (require 'emacsql)
@@ -1313,137 +1314,6 @@ Valid states are 'visible, 'exists and 'none."
     ('visible (delete-window (get-buffer-window org-roam-buffer)))
     ('exists (org-roam--setup-buffer))
     ('none (org-roam--setup-buffer))))
-
-;;; The graphviz links graph
-;;;; Options
-(defcustom org-roam-graph-viewer (executable-find "firefox")
-  "Path to executable for viewing SVG."
-  :type 'string
-  :group 'org-roam)
-
-(defcustom org-roam-graphviz-executable (executable-find "dot")
-  "Path to graphviz executable."
-  :type 'string
-  :group 'org-roam)
-
-(defcustom org-roam-graphviz-extra-options nil
-  "Extra options when constructing the Graphviz graph.
-Example:
- '((\"rankdir\" . \"LR\"))"
-  :type '(alist)
-  :group 'org-roam)
-
-(defcustom org-roam-graph-max-title-length 100
-  "Maximum length of titles in Graphviz graph nodes."
-  :type 'number
-  :group 'org-roam)
-
-(defcustom org-roam-graph-exclude-matcher nil
-  "Matcher for excluding nodes from the generated graph.
-Any nodes and links for file paths matching this string is
-excluded from the graph.
-
-If value is a string, the string is the only matcher.
-
-If value is a list, all file paths matching any of the strings
-are excluded."
-  :type '(choice
-          (string :tag "Matcher")
-          (list :tag "Matchers"))
-  :group 'org-roam)
-
-(defcustom org-roam-graph-node-shape "ellipse"
-  "Shape of Graphviz nodes."
-  :type 'string
-  :group 'org-roam)
-
-;;;; Functions
-(defmacro org-roam--graph-expand-matcher (col &optional negate where)
-  "Return the exclusion regexp from `org-roam-graph-exclude-matcher'.
-COL is the symbol to be matched against.  if NEGATE, add :not to sql query.
-set WHERE to true if WHERE query already exists."
-  (declare (indent 0) (debug t))
-  (let ((matchers (cond ((null org-roam-graph-exclude-matcher)
-                         nil)
-                        ((stringp org-roam-graph-exclude-matcher)
-                         (cons (concat "%" org-roam-graph-exclude-matcher "%") nil))
-                        ((listp org-roam-graph-exclude-matcher)
-                         (mapcar (lambda (m)
-                                   (concat "%" m "%"))
-                                 org-roam-graph-exclude-matcher))
-                        (t
-                         (error "Invalid org-roam-graph-exclude-matcher"))))
-        res)
-    (dolist (match matchers)
-      (if where
-          (push :and res)
-        (push :where res)
-        (setq where t))
-      (push col res)
-      (when negate
-        (push :not res))
-      (push :like res)
-      (push match res))
-    (cons 'list (nreverse res))))
-
-(defun org-roam--build-graph ()
-  "Build the Graphviz string.
-The Org-roam database titles table is read, to obtain the list of titles.
-The file-links table is then read to obtain all directed links, and formatted
-into a digraph."
-  (org-roam--db-ensure-built)
-  (org-roam--with-temp-buffer
-    (let* ((node-query `[:select [file titles]
-                         :from titles
-                         ,@(org-roam--graph-expand-matcher 'file t)])
-           (nodes (org-roam-sql node-query))
-           (edges-query `[:select :distinct [file-to file-from]
-                          :from file-links
-                          ,@(org-roam--graph-expand-matcher 'file-to t)
-                          ,@(org-roam--graph-expand-matcher 'file-from t t)])
-           (edges (org-roam-sql edges-query)))
-      (insert "digraph \"org-roam\" {\n")
-      (dolist (option org-roam-graphviz-extra-options)
-        (insert (concat (car option)
-                        "="
-                        (cdr option)
-                        ";\n")))
-      (dolist (node nodes)
-        (let* ((file (xml-escape-string (car node)))
-               (title (or (caadr node)
-                          (org-roam--path-to-slug file)))
-               (shortened-title (s-truncate org-roam-graph-max-title-length title)))
-          (insert
-           (format "  \"%s\" [label=\"%s\", shape=%s, URL=\"org-protocol://roam-file?file=%s\", tooltip=\"%s\"];\n"
-                   file
-                   (s-replace "\"" "\\\"" shortened-title)
-                   org-roam-graph-node-shape
-                   (url-hexify-string file)
-                   (xml-escape-string title)))))
-      (dolist (edge edges)
-        (insert (format "  \"%s\" -> \"%s\";\n"
-                        (xml-escape-string (car edge))
-                        (xml-escape-string (cadr edge)))))
-      (insert "}")
-      (buffer-string))))
-
-(defun org-roam-show-graph (&optional prefix)
-  "Generate and displays the Org-roam graph using `org-roam-graph-viewer'.
-If PREFIX, then the graph is generated but the viewer is not invoked."
-  (interactive "P")
-  (declare (indent 0))
-  (unless org-roam-graphviz-executable
-    (user-error "Can't find graphviz executable.  Please check if it is in your path"))
-  (let ((temp-dot (expand-file-name "graph.dot" temporary-file-directory))
-        (temp-graph (expand-file-name "graph.svg" temporary-file-directory))
-        (graph (org-roam--build-graph)))
-    (with-temp-file temp-dot
-      (insert graph))
-    (call-process org-roam-graphviz-executable nil 0 nil temp-dot "-Tsvg" "-o" temp-graph)
-    (unless prefix
-      (if (and org-roam-graph-viewer (executable-find org-roam-graph-viewer))
-	        (call-process org-roam-graph-viewer nil 0 nil temp-graph)
-        (view-file temp-graph)))))
 
 ;;; The global minor org-roam-mode
 (defvar org-roam-mode-map
