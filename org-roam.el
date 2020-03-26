@@ -1158,12 +1158,18 @@ Applies `org-roam-link-face' if PATH corresponds to a Roam file."
     map)
   "Keymap for `org-roam-backlinks-mode'.")
 
-(define-derived-mode org-roam-backlinks-mode org-mode "Backlinks"
-  "Major mode for the `org-roam-buffer'.
+(define-minor-mode org-roam-backlinks-mode
+  "Minor mode for the `org-roam-buffer'.
 
 \\{org-roam-backlinks-mode-map}"
-  (add-hook 'org-open-at-point-functions
-            'org-roam-open-at-point nil 'local))
+  :lighter " Backlinks"
+  :keymap org-roam-backlinks-mode-map
+
+  (if org-roam-backlinks-mode
+      (add-hook 'org-open-at-point-functions
+                'org-roam-open-at-point nil 'local)
+    (remove-hook 'org-open-at-point-functions
+                 'org-roam-open-at-point 'local)))
 
 (defun org-roam-open-at-point ()
   "Open an Org-roam link or visit the text previewed at point.
@@ -1230,7 +1236,9 @@ This function hooks into `org-open-at-point' via `org-open-at-point-functions'."
          (cons '(file . org-roam--find-file) org-link-frame-setup))
         (let ((inhibit-read-only t))
           (erase-buffer)
-          (unless (eq major-mode 'org-roam-backlinks-mode)
+          (unless (eq major-mode 'org-mode)
+            (org-mode))
+          (unless org-roam-backlinks-mode
             (org-roam-backlinks-mode))
           (make-local-variable 'org-return-follows-link)
           (setq org-return-follows-link t)
