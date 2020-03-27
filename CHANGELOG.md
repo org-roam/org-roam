@@ -4,6 +4,7 @@
 
 ### New Features
 * [#350][gh-350] Add `org-roam-db-location`
+* [#359][gh-359] Add `org-roam-verbose`
 
 ## 1.0.0 (23-03-2020)
 
@@ -154,6 +155,7 @@ Mostly a documentation/cleanup release.
 [gh-293]: https://github.com/jethrokuan/org-roam/pull/293
 [gh-296]: https://github.com/jethrokuan/org-roam/pull/296
 [gh-350]: https://github.com/jethrokuan/org-roam/pull/350
+[gh-359]: https://github.com/jethrokuan/org-roam/pull/359
 
  # Local Variables:
  # eval: (auto-fill-mode -1)

@@ -129,6 +129,11 @@ Formatter may be a function that takes title as its only argument."
 (defvar org-roam-last-window nil
   "Last window `org-roam' was called from.")
 
+(defcustom org-roam-verbose t
+  "Echo messages that are not errors."
+  :type 'boolean
+  :group 'org-roam)
+
 ;;; Database
 ;;;; Options
 (defcustom org-roam-db-location nil
@@ -423,12 +428,13 @@ This is equivalent to removing the node from the graph."
                        :titles (length all-titles)
                        :refs (length all-refs)
                        :deleted (length (hash-table-keys current-files)))))
-      (message "files: %s, links: %s, titles: %s, refs: %s, deleted: %s"
-               (plist-get stats :files)
-               (plist-get stats :links)
-               (plist-get stats :titles)
-               (plist-get stats :refs)
-               (plist-get stats :deleted))
+      (when org-roam-verbose
+        (message "files: %s, links: %s, titles: %s, refs: %s, deleted: %s"
+                 (plist-get stats :files)
+                 (plist-get stats :links)
+                 (plist-get stats :titles)
+                 (plist-get stats :refs)
+                 (plist-get stats :deleted)))
       stats)))
 
 ;;; Utilities
