@@ -36,25 +36,18 @@
 ;;;; Library Requires
 (require 'org)
 (require 'org-element)
-(require 'org-capture)
 (require 'ob-core)  ;for org-babel-parse-header-arguments
 (require 'subr-x)
 (require 'dash)
 (require 's)
 (require 'f)
 (require 'cl-lib)
-
-;; Database requirements
-(require 'emacsql)
-(require 'emacsql-sqlite)
-
-(require 'xml) ; for xml-parse-string
-
-;;;; Declarations
-(declare-function helm-build-sync-source "helm-source" (name &rest args))
-
-;;;; Used variables
-(defvar helm-pattern)
+;;;; org-roam features
+(require 'org-roam-macs)
+(require 'org-roam-db)
+(require 'org-roam-capture)
+(require 'org-roam-graph)
+(require 'org-roam-completion)
 
 ;;;; Customizable Variables
 (defgroup org-roam nil
@@ -107,21 +100,6 @@ Formatter may be a function that takes title as its only argument."
   :type 'boolean
   :group 'org-roam)
 
-(defcustom org-roam-completion-system 'default
-  "The completion system to be used by `org-roam'."
-  :type '(radio
-          (const :tag "Default" default)
-          (const :tag "Ido" ido)
-          (const :tag "Ivy" ivy)
-          (const :tag "Helm" helm)
-          (function :tag "Custom function"))
-  :group 'org-roam)
-
-(defcustom org-roam-fuzzy-match nil
-  "Whether to fuzzy match Org-roam's completion candidates."
-  :type 'boolean
-  :group 'org-roam)
-
 ;;;; Dynamic variables
 (defvar org-roam--current-buffer nil
   "Currently displayed file in `org-roam' buffer.")
@@ -133,309 +111,6 @@ Formatter may be a function that takes title as its only argument."
   "Echo messages that are not errors."
   :type 'boolean
   :group 'org-roam)
-
-;;; Database
-;;;; Options
-(defcustom org-roam-db-location nil
-  "Location of the Org-roam database.
-If this is non-nil, the Org-roam sqlite database is saved here.
-
-It is the user's responsibility to set this correctly, especially
-when used with multiple Org-roam instances."
-  :type 'string
-  :group 'org-roam)
-
-(defconst org-roam--db-version 1)
-(defconst org-roam--sqlite-available-p
-  (with-demoted-errors "Org-roam initialization: %S"
-    (emacsql-sqlite-ensure-binary)
-    t))
-
-(defvar org-roam--db-connection (make-hash-table :test #'equal)
-  "Database connection to Org-roam database.")
-
-;;;; Core Functions
-(defun org-roam--get-db ()
-  "Return the sqlite db file."
-  (interactive "P")
-  (or org-roam-db-location
-      (expand-file-name "org-roam.db" org-roam-directory)))
-
-(defun org-roam--get-db-connection ()
-  "Return the database connection, if any."
-  (gethash (file-truename org-roam-directory)
-           org-roam--db-connection))
-
-(defun org-roam-db ()
-  "Entrypoint to the Org-roam sqlite database.
-Initializes and stores the database, and the database connection.
-Performs a database upgrade when required."
-  (unless (and (org-roam--get-db-connection)
-               (emacsql-live-p (org-roam--get-db-connection)))
-    (let* ((db-file (org-roam--get-db))
-           (init-db (not (file-exists-p db-file))))
-      (make-directory (file-name-directory db-file) t)
-      (let ((conn (emacsql-sqlite db-file)))
-        (set-process-query-on-exit-flag (emacsql-process conn) nil)
-        (puthash (file-truename org-roam-directory)
-                 conn
-                 org-roam--db-connection)
-        (when init-db
-          (org-roam--db-init conn))
-        (let* ((version (caar (emacsql conn "PRAGMA user_version")))
-               (version (org-roam--db-maybe-update conn version)))
-          (cond
-           ((> version org-roam--db-version)
-            (emacsql-close conn)
-            (user-error
-             "The Org-roam database was created with a newer Org-roam version.  "
-             "You need to update the Org-roam package"))
-           ((< version org-roam--db-version)
-            (emacsql-close conn)
-            (error "BUG: The Org-roam database scheme changed %s"
-                   "and there is no upgrade path")))))))
-  (org-roam--get-db-connection))
-
-;;;; Entrypoint: (org-roam-sql)
-(defun org-roam-sql (sql &rest args)
-  "Run SQL query on Org-roam database with ARGS.
-SQL can be either the emacsql vector representation, or a string."
-  (if  (stringp sql)
-      (emacsql (org-roam-db) (apply #'format sql args))
-    (apply #'emacsql (org-roam-db) sql args)))
-
-;;;; Schemata
-(defconst org-roam--db-table-schemata
-  '((files
-     [(file :unique :primary-key)
-      (hash :not-null)
-      (last-modified :not-null)
-      ])
-
-    (file-links
-     [(file-from :not-null)
-      (file-to :not-null)
-      (properties :not-null)])
-
-    (titles
-     [
-      (file :not-null)
-      titles])
-
-    (refs
-     [(ref :unique :not-null)
-      (file :not-null)])))
-
-(defun org-roam--db-init (db)
-  "Initialize database DB with the correct schema and user version."
-  (emacsql-with-transaction db
-    (pcase-dolist (`(,table . ,schema) org-roam--db-table-schemata)
-      (emacsql db [:create-table $i1 $S2] table schema))
-    (emacsql db (format "PRAGMA user_version = %s" org-roam--db-version))))
-
-(defun org-roam--db-maybe-update (db version)
-  "Upgrades the database schema for DB, if VERSION is old."
-  (emacsql-with-transaction db
-    'ignore
-    ;; Do nothing now
-    version))
-
-(defun org-roam--db-close (&optional db)
-  "Closes the database connection for database DB.
-If DB is nil, closes the database connection for the database in
-the current `org-roam-directory'."
-  (unless db
-    (setq db (org-roam--get-db-connection)))
-  (when (and db (emacsql-live-p db))
-    (emacsql-close db)))
-
-(defun org-roam--db-close-all ()
-  "Closes all database connections made by Org-roam."
-  (dolist (conn (hash-table-values org-roam--db-connection))
-    (org-roam--db-close conn)))
-
-;;;; Database API
-;;;;; Initialization
-(defun org-roam--db-initialized-p ()
-  "Whether the cache has been initialized."
-  (and (file-exists-p (org-roam--get-db))
-       (> (caar (org-roam-sql [:select (funcall count) :from titles]))
-          0)))
-
-(defun org-roam--db-ensure-built ()
-  "Ensures that Org-roam cache is built."
-  (unless (org-roam--db-initialized-p)
-    (error "[Org-roam] your cache isn't built yet! Please run org-roam-build-cache")))
-
-;;;;; Clearing
-(defun org-roam--db-clear ()
-  "Clears all entries in the caches."
-  (interactive)
-  (when (file-exists-p (org-roam--get-db))
-    (org-roam-sql [:delete :from files])
-    (org-roam-sql [:delete :from titles])
-    (org-roam-sql [:delete :from file-links])
-    (org-roam-sql [:delete :from refs])))
-
-(defun org-roam--db-clear-file (&optional filepath)
-  "Remove any related links to the file at FILEPATH.
-This is equivalent to removing the node from the graph."
-  (let* ((path (or filepath
-                   (buffer-file-name)))
-         (file (file-truename path)))
-    (org-roam-sql [:delete :from files
-                   :where (= file $s1)]
-                  file)
-    (org-roam-sql [:delete :from file-links
-                   :where (= file-from $s1)]
-                  file)
-    (org-roam-sql [:delete :from titles
-                   :where (= file $s1)]
-                  file)
-    (org-roam-sql [:delete :from refs
-                   :where (= file $s1)]
-                  file)))
-
-;;;;; Insertion
-(defun org-roam--db-insert-links (links)
-  "Insert LINKS into the Org-roam cache."
-  (org-roam-sql
-   [:insert :into file-links
-    :values $v1]
-   links))
-
-(defun org-roam--db-insert-titles (file titles)
-  "Insert TITLES for a FILE into the Org-roam cache."
-  (org-roam-sql
-   [:insert :into titles
-    :values $v1]
-   (list (vector file titles))))
-
-(defun org-roam--db-insert-ref (file ref)
-  "Insert REF for FILE into the Org-roam cache."
-  (org-roam-sql
-   [:insert :into refs
-    :values $v1]
-   (list (vector ref file))))
-
-;;;;; Fetching
-(defun org-roam--get-current-files ()
-  "Return a hash-table of file to the hash of its file contents."
-  (let* ((current-files (org-roam-sql [:select * :from files]))
-         (ht (make-hash-table :test #'equal)))
-    (dolist (row current-files)
-      (puthash (car row) (cadr row) ht))
-    ht))
-
-(defun org-roam--db-get-titles (file)
-  "Return the titles of FILE from the cache."
-  (caar (org-roam-sql [:select [titles] :from titles
-                       :where (= file $s1)]
-                      file
-                      :limit 1)))
-
-;;;;; Updating
-(defun org-roam--db-update-titles ()
-  "Update the title of the current buffer into the cache."
-  (let ((file (file-truename (buffer-file-name))))
-    (org-roam-sql [:delete :from titles
-                   :where (= file $s1)]
-                  file)
-    (org-roam--db-insert-titles file (org-roam--extract-titles))))
-
-(defun org-roam--db-update-refs ()
-  "Update the ref of the current buffer into the cache."
-  (let ((file (file-truename (buffer-file-name))))
-    (org-roam-sql [:delete :from refs
-                   :where (= file $s1)]
-                  file)
-    (when-let ((ref (org-roam--extract-ref)))
-      (org-roam--db-insert-ref file ref))))
-
-(defun org-roam--update-cache-links ()
-  "Update the file links of the current buffer in the cache."
-  (let ((file (file-truename (buffer-file-name))))
-    (org-roam-sql [:delete :from file-links
-                   :where (= file-from $s1)]
-                  file)
-    (when-let ((links (org-roam--extract-links)))
-      (org-roam--db-insert-links links))))
-
-(defun org-roam--db-update-file (&optional file-path)
-  "Update Org-roam cache for FILE-PATH."
-  (let (buf)
-    (if file-path
-        (setq buf (find-file-noselect file-path))
-      (setq buf (current-buffer)))
-    (with-current-buffer buf
-      (save-excursion
-        (org-roam--db-update-titles)
-        (org-roam--db-update-refs)
-        (org-roam--update-cache-links)
-        (org-roam--maybe-update-buffer :redisplay t)))))
-
-;;;;; org-roam-build-cache
-(defun org-roam-build-cache ()
-  "Build the cache for `org-roam-directory'."
-  (interactive)
-  (org-roam--db-close) ;; Force a reconnect
-  (org-roam-db) ;; To initialize the database, no-op if already initialized
-  (let* ((org-roam-files (org-roam--list-files org-roam-directory))
-         (current-files (org-roam--get-current-files))
-         (time (current-time))
-         all-files all-links all-titles all-refs)
-    (dolist (file org-roam-files)
-      (org-roam--with-temp-buffer
-        (insert-file-contents file)
-        (let ((contents-hash (secure-hash 'sha1 (current-buffer))))
-          (unless (string= (gethash file current-files)
-                           contents-hash)
-            (org-roam--db-clear-file file)
-            (setq all-files
-                  (cons (vector file contents-hash time) all-files))
-            (when-let (links (org-roam--extract-links file))
-              (setq all-links (append links all-links)))
-            (let ((titles (org-roam--extract-titles)))
-              (setq all-titles (cons (vector file titles) all-titles)))
-            (when-let ((ref (org-roam--extract-ref)))
-              (setq all-refs (cons (vector ref file) all-refs))))
-          (remhash file current-files))))
-    (dolist (file (hash-table-keys current-files))
-      ;; These files are no longer around, remove from cache...
-      (org-roam--db-clear-file file))
-    (when all-files
-      (org-roam-sql
-       [:insert :into files
-        :values $v1]
-       all-files))
-    (when all-links
-      (org-roam-sql
-       [:insert :into file-links
-        :values $v1]
-       all-links))
-    (when all-titles
-      (org-roam-sql
-       [:insert :into titles
-        :values $v1]
-       all-titles))
-    (when all-refs
-      (org-roam-sql
-       [:insert :into refs
-        :values $v1]
-       all-refs))
-    (let ((stats (list :files (length all-files)
-                       :links (length all-links)
-                       :titles (length all-titles)
-                       :refs (length all-refs)
-                       :deleted (length (hash-table-keys current-files)))))
-      (when org-roam-verbose
-        (message "files: %s, links: %s, titles: %s, refs: %s, deleted: %s"
-                 (plist-get stats :files)
-                 (plist-get stats :links)
-                 (plist-get stats :titles)
-                 (plist-get stats :refs)
-                 (plist-get stats :deleted)))
-      stats)))
 
 ;;; Utilities
 ;;;; General Utilities
@@ -470,16 +145,6 @@ https://github.com/kaushalmodi/ox-hugo/blob/a80b250987bc770600c424a10b3bca6ff728
                                   lst)))
           (setq ret (append ret str-list2))))
       ret)))
-
-(defmacro org-roam--with-temp-buffer (&rest body)
-  "Execute BODY within a temp buffer.
-Like `with-temp-buffer', but propagates `org-roam-directory'."
-  (declare (indent 0) (debug t))
-  (let ((current-org-roam-directory (make-symbol "current-org-roam-directory")))
-    `(let ((,current-org-roam-directory org-roam-directory))
-       (with-temp-buffer
-         (let ((org-roam-directory ,current-org-roam-directory))
-           ,@body)))))
 
 ;;;; File functions and predicates
 (defun org-roam--touch-file (path)
@@ -610,7 +275,7 @@ specified via the #+ROAM_ALIAS property."
 
 (defun org-roam--get-title-or-slug (path)
   "Convert `PATH' to the file title, if it exists.  Else, return the path."
-  (or (car (org-roam--db-get-titles path))
+  (or (car (org-roam-db--get-titles path))
       (org-roam--path-to-slug path)))
 
 (defun org-roam--title-to-slug (title)
@@ -621,7 +286,7 @@ specified via the #+ROAM_ALIAS property."
                                      (apply #'string (seq-remove #'nonspacing-mark-p
                                                                  (ucs-normalize-NFD-string s))))
              (cl-replace (title pair)
-                      (replace-regexp-in-string (car pair) (cdr pair) title)))
+                         (replace-regexp-in-string (car pair) (cdr pair) title)))
     (let* ((pairs `(("[^[:alnum:][:digit:]]" . "_")  ;; convert anything not alphanumeric
                     ("__*" . "_")  ;; remove sequential underscores
                     ("^_" . "")  ;; remove starting underscore
@@ -629,315 +294,10 @@ specified via the #+ROAM_ALIAS property."
            (slug (-reduce-from #'cl-replace (strip-nonspacing-marks title) pairs)))
       (s-downcase slug))))
 
-;;;; Completion
-(defun org-roam---helm-candidate-transformer (candidates _source)
-  "Transforms CANDIDATES for Helm-based completing read.
-SOURCE is not used."
-  (let ((prefix (propertize "[?] "
-                            'face 'helm-ff-prefix)))
-    (cons (propertize helm-pattern
-                      'display (concat prefix helm-pattern))
-          candidates)))
-
-(cl-defun org-roam--completing-read (prompt choices &key
-                                            require-match initial-input
-                                            action)
-  "Present a PROMPT with CHOICES and optional INITIAL-INPUT.
-If REQUIRE-MATCH is t, the user must select one of the CHOICES.
-Return user choice."
-  (let (res)
-    (setq res
-          (cond
-           ((eq org-roam-completion-system 'ido)
-            (let ((candidates (mapcar #'car choices)))
-              (ido-completing-read prompt candidates nil require-match initial-input)))
-           ((eq org-roam-completion-system 'default)
-            (completing-read prompt choices nil require-match initial-input))
-           ((eq org-roam-completion-system 'ivy)
-            (if (fboundp 'ivy-read)
-                (ivy-read prompt choices
-                          :initial-input initial-input
-                          :require-match require-match
-                          :action (prog1 action
-                                    (setq action nil))
-                          :caller 'org-roam--completing-read
-                          :re-builder (if org-roam-fuzzy-match
-                                          'ivy--regex-fuzzy
-                                        'regexp-quote))
-              (user-error "Please install ivy from \
-https://github.com/abo-abo/swiper")))
-           ((eq org-roam-completion-system 'helm)
-            (unless (and (fboundp 'helm)
-                         (fboundp 'helm-build-sync-source))
-              (user-error "Please install helm from \
-https://github.com/emacs-helm/helm"))
-            (let ((source (helm-build-sync-source prompt
-                                                  :candidates (mapcar #'car choices)
-                                                  :filtered-candidate-transformer
-                                                  (and (not require-match)
-                                                       #'org-roam---helm-candidate-transformer)
-                                                  :fuzzy-match org-roam-fuzzy-match))
-                  (buf (concat "*org-roam "
-                               (s-downcase (s-chop-suffix ":" (s-trim prompt)))
-                               "*")))
-              (or (helm :sources source
-                        :action (if action
-                                    (prog1 action
-                                      (setq action nil))
-                                  #'identity)
-                        :prompt prompt
-                        :input initial-input
-                        :buffer buf)
-                  (keyboard-quit))))))
-    (if action
-        (funcall action res)
-      res)))
-
-;;;; Org-roam capture
-(defun org-roam--file-path-from-id (id)
-  "The file path for an Org-roam file, with identifier ID."
-  (file-truename
-   (expand-file-name
-    (if org-roam-encrypt-files
-        (concat id ".org.gpg")
-      (concat id ".org"))
-    org-roam-directory)))
-
-(defvar org-roam--capture-file-name-default "%<%Y%m%d%H%M%S>"
-  "The default file name format for Org-roam templates.")
-
-(defvar org-roam--capture-header-default "#+TITLE: ${title}\n"
-  "The default capture header for Org-roam templates.")
-
-(defvar org-roam--capture-file-path nil
-  "The file path for the Org-roam capture.
-This variable is set during the Org-roam capture process.")
-
-(defvar org-roam--capture-info nil
-  "An alist of additional information passed to the Org-roam template.
-This variable is populated dynamically, and is only non-nil
-during the Org-roam capture process.")
-
-(defvar org-roam--capture-context nil
-  "A symbol, that reflects the context for obtaining the exact point in a file.
-This variable is populated dynamically, and is only active during
-an Org-roam capture process.
-
-The `title' context is used in `org-roam-insert' and
-`org-roam-find-file', where the capture process is triggered upon
-trying to create a new file without that `title'.
-
-The `ref' context is used by `org-roam-protocol', where the
-capture process is triggered upon trying to find or create a new
-note with the given `ref'.")
-
-(defvar org-roam--capture-in-process nil
-  "Boolean tracking whether Org-roam captures are in-process.")
-
-(defvar org-roam--additional-template-props nil
-  "Additional props to be added to the Org-roam template.")
-
-(defconst org-roam--capture-template-keywords '(:file-name :head)
-  "Keywords used in `org-roam-capture-templates' specific to Org-roam.")
-
-(defvar org-roam-capture-templates
-  '(("d" "default" plain (function org-roam--capture-get-point)
-     "%?"
-     :file-name "%<%Y%m%d%H%M%S>-${slug}"
-     :head "#+TITLE: ${title}\n"
-     :unnarrowed t))
-  "Capture templates for Org-roam.
-The capture templates are an extension of
-`org-capture-templates', and the documentation there also
-applies.
-
-`org-capture-templates' are extended in 3 ways:
-
-1. Template expansion capabilities are extended with additional custom syntax.
-   See `org-roam--fill-template' for more details.
-
-2. The `:file-name' key is added, which expands to the file-name
-   of the note if it creates a new file.  This file-name is
-   relative to `org-roam-directory', and is without the
-   file-extension.
-
-3. The `:head' key is added, which contains the template that is
-   inserted on initial creation (added only once).  This is where
-   insertion of any note metadata should go.")
-
-(defun org-roam--capture-get (keyword)
-  "Gets the value for KEYWORD from the `org-roam-capture-template'."
-  (plist-get (plist-get org-capture-plist :org-roam) keyword))
-
-(defun org-roam--capture-put (&rest stuff)
-  "Puts properties from STUFF into the `org-roam-capture-template'."
-  (let ((p (plist-get org-capture-plist :org-roam)))
-    (while stuff
-      (setq p (plist-put p
-                         (pop stuff) (pop stuff))))
-    (setq org-capture-plist
-          (plist-put org-capture-plist :org-roam p))))
-
-(defun org-roam--fill-template (str &optional info)
-  "Expands the template STR, returning the string.
-This is an extension of org-capture's template expansion.
-
-First, it expands ${var} occurrences in STR, using the INFO alist.
-If there is a ${var} with no matching var in the alist, the value
-of var is prompted for via `completing-read'.
-
-Next, it expands the remaining template string using
-`org-capture-fill-template'."
-  (-> str
-     (s-format (lambda (key)
-                 (or (s--aget info key)
-                     (completing-read (format "%s: " key ) nil))) nil)
-     (org-capture-fill-template)))
-
-(defun org-roam--capture-save-file-maybe-h ()
-  "Save the file conditionally.
-The file is saved if the original value of :no-save is not t and
-`org-note-abort' is not t. It is added to
-`org-capture-after-finalize-hook'."
-  (cond
-   ((and (org-roam--capture-get :new-file)
-         org-note-abort)
-    (with-current-buffer (org-capture-get :buffer)
-      (set-buffer-modified-p nil)
-      (kill-buffer)))
-   ((and (not (org-roam--capture-get :orig-no-save))
-         (not org-note-abort))
-    (with-current-buffer (org-capture-get :buffer)
-      (save-buffer))))
-  (remove-hook 'org-capture-after-finalize-hook #'org-roam--capture-save-file-maybe-h))
-
-(defun org-roam--capture-new-file ()
-  "Return the path to the new file during an Org-roam capture.
-
-This function reads the file-name attribute of the currently
-active Org-roam template.
-
-If the file path already exists, it throw an error.
-
-Else, to insert the header content in the file, `org-capture'
-template is prepended with the `:head' portion of the Org-roam
-capture template.
-
-To prevent the creation of a new file if the capture process is
-aborted, we do the following:
-
-1. Save the original value of the capture template's :no-save.
-
-2. Set the capture template's :no-save to t.
-
-3. Add a function on `org-capture-after-finalize-hook' that saves
-the file if the original value of :no-save is not t and
-`org-note-abort' is not t."
-  (let* ((name-templ (or (org-roam--capture-get :file-name)
-                         org-roam--capture-file-name-default))
-         (new-id (s-trim (org-roam--fill-template
-                          name-templ
-                          org-roam--capture-info)))
-         (file-path (org-roam--file-path-from-id new-id))
-         (roam-head (or (org-roam--capture-get :head)
-                        org-roam--capture-header-default))
-         (org-template (org-capture-get :template))
-         (roam-template (concat roam-head org-template)))
-    (when (file-exists-p file-path)
-      (error (format "File exists at %s, aborting" file-path)))
-    (org-roam--capture-put :orig-no-save (org-capture-get :no-save)
-                           :new-file t)
-    (org-capture-put :template
-                     ;; Fixes org-capture-place-plain-text throwing 'invalid search bound'
-                     ;; when both :unnarowed t and "%?" is missing from the template string;
-                     ;; may become unnecessary when the upstream bug is fixed
-                     (if (s-contains-p "%?" roam-template)
-                         roam-template
-                       (concat roam-template "%?"))
-                     :type 'plain
-                     :no-save t)
-    file-path))
-
-(defun org-roam--expand-capture-template ()
-  "Expand capture template with information from `org-roam--capture-info'."
-  (org-capture-put :template
-                   (s-format (org-capture-get :template)
-                             (lambda (key)
-                               (or (s--aget org-roam--capture-info key)
-                                   (completing-read (format "%s: " key ) nil))) nil)))
-
-(defun org-roam--capture-get-point ()
-  "Return exact point to file for org-capture-template.
-The file to use is dependent on the context:
-
-If the search is via title, it is assumed that the file does not
-yet exist, and Org-roam will attempt to create new file.
-
-If the search is via ref, it is matched against the Org-roam database.
-If there is no file with that ref, a file with that ref is created.
-
-This function is used solely in Org-roam's capture templates: see
-`org-roam-capture-templates'."
-  (let ((file-path (pcase org-roam--capture-context
-                     ('title
-                      (org-roam--capture-new-file))
-                     ('ref
-                      (let ((completions (org-roam--get-ref-path-completions))
-                            (ref (cdr (assoc 'ref org-roam--capture-info))))
-                        (or (cdr (assoc ref completions))
-                            (org-roam--capture-new-file))))
-                     (_ (error "Invalid org-roam-capture-context")))))
-    (org-roam--expand-capture-template)
-    (org-roam--capture-put :file-path file-path)
-    (while org-roam--additional-template-props
-      (let ((prop (pop org-roam--additional-template-props))
-            (val (pop org-roam--additional-template-props)))
-        (org-roam--capture-put prop val)))
-    (set-buffer (org-capture-target-buffer file-path))
-    (widen)
-    (goto-char (point-max))))
-
-(defun org-roam--capture-cleanup-h ()
-  "Cleans up after an Org-roam capture process."
-  (setq org-roam--capture-in-process nil))
-
-(defun org-roam--convert-template (template)
-  "Convert TEMPLATE from Org-roam syntax to `org-capture-templates' syntax."
-  (let* ((copy (copy-tree template))
-         converted
-         org-roam-plist
-         key
-         val)
-    ;;put positional args on converted template
-    (dotimes (_ 5)
-      (push (pop copy) converted))
-    (while (setq key (pop copy)
-                 val (pop copy))
-      (if (member key org-roam--capture-template-keywords)
-          (progn
-            (push val org-roam-plist)
-            (push key org-roam-plist))
-        (push key converted)
-        (push val converted)))
-  (append (nreverse converted) `(:org-roam ,org-roam-plist))))
-
-(defun org-roam-capture (&optional goto keys)
-  "Create a new file, and return the path to the edited file.
-The templates are defined at `org-roam-capture-templates'.  The
-GOTO and KEYS argument have the same functionality as
-`org-capture'."
-  (let ((org-capture-templates (mapcar #'org-roam--convert-template org-roam-capture-templates)))
-    (when (= (length org-capture-templates) 1)
-      (setq keys (caar org-capture-templates)))
-    (add-hook 'org-capture-after-finalize-hook #'org-roam--capture-save-file-maybe-h)
-    (add-hook 'org-capture-after-finalize-hook #'org-roam--capture-cleanup-h 10)
-    (setq org-roam--capture-in-process t)
-    (org-capture goto keys)))
-
 ;;; Interactive Commands
 ;;;; org-roam-insert
 (defun org-roam--format-link-title (title)
-  "Retur the link title, given the file TITLE."
+  "Return the link title, given the file TITLE."
   (if (functionp org-roam-link-title-format)
       (funcall org-roam-link-title-format title)
     (format org-roam-link-title-format title)))
@@ -967,8 +327,8 @@ If PREFIX, downcase the title before insertion."
                         (buffer-substring-no-properties
                          (car region) (cdr region))))
          (completions (org-roam--get-title-path-completions))
-         (title (org-roam--completing-read "File: " completions
-                                           :initial-input region-text))
+         (title (org-roam-completion--completing-read "File: " completions
+                                                      :initial-input region-text))
          (region-or-title (or region-text title))
          (target-file-path (cdr (assoc title completions)))
          (link-description (org-roam--format-link-title (if prefix
@@ -980,33 +340,21 @@ If PREFIX, downcase the title before insertion."
           (when region ;; Remove previously selected text.
             (delete-region (car region) (cdr region)))
           (insert (org-roam--format-link target-file-path link-description)))
-      (if org-roam--capture-in-process
+      (if org-roam-capture--in-process
           (user-error "Nested Org-roam capture processes not supported")
-        (let ((org-roam--capture-info (list (cons 'title title)
+        (let ((org-roam-capture--info (list (cons 'title title)
                                             (cons 'slug (org-roam--title-to-slug title))))
-               (org-roam--capture-context 'title))
-          (add-hook 'org-capture-after-finalize-hook #'org-roam--capture-insert-link-h)
-          (setq org-roam--additional-template-props (list :region region
-                                                          :link-description link-description
-                                                          :capture-fn 'org-roam-insert))
+              (org-roam-capture--context 'title))
+          (add-hook 'org-capture-after-finalize-hook #'org-roam-capture--insert-link-h)
+          (setq org-roam-capture-additional-template-props (list :region region
+                                                                 :link-description link-description
+                                                                 :capture-fn 'org-roam-insert))
           (org-roam-capture))))))
-
-(defun org-roam--capture-insert-link-h ()
-  "Insert the link into the original buffer, after the capture process is done.
-This is added as a hook to `org-capture-after-finalize-hook'."
-  (when (and (not org-note-abort)
-             (eq (org-roam--capture-get :capture-fn)
-                 'org-roam-insert))
-    (when-let ((region (org-roam--capture-get :region))) ;; Remove previously selected text.
-      (delete-region (car region) (cdr region)))
-    (insert (org-roam--format-link (org-roam--capture-get :file-path)
-                                   (org-roam--capture-get :link-description))))
-  (remove-hook 'org-capture-after-finalize-hook #'org-roam--capture-insert-link-h))
 
 ;;;; org-roam-find-file
 (defun org-roam--get-title-path-completions ()
   "Return a list of cons pairs for titles to absolute path of Org-roam files."
-  (let* ((rows (org-roam-sql [:select [file titles] :from titles]))
+  (let* ((rows (org-roam-db-query [:select [file titles] :from titles]))
          res)
     (dolist (row rows)
       (let ((file-path (car row))
@@ -1018,36 +366,28 @@ This is added as a hook to `org-capture-after-finalize-hook'."
                       file-path) res))))
     res))
 
-(defun org-roam--capture-find-file-h ()
-  "Opens the newly created template file.
-This is added as a hook to `org-capture-after-finalize-hook'."
-  (when-let ((file-path (org-roam--capture-get :file-path)))
-    (unless org-note-abort
-      (find-file file-path)))
-  (remove-hook 'org-capture-after-finalize-hook #'org-roam--capture-find-file-h))
-
 (defun org-roam-find-file (&optional initial-prompt)
   "Find and open an Org-roam file.
 INITIAL-PROMPT is the initial title prompt."
   (interactive)
   (let* ((completions (org-roam--get-title-path-completions))
-         (title (org-roam--completing-read "File: " completions
-                                           :initial-input initial-prompt))
+         (title (org-roam-completion--completing-read "File: " completions
+                                                      :initial-input initial-prompt))
          (file-path (cdr (assoc title completions))))
     (if file-path
         (find-file file-path)
-      (if org-roam--capture-in-process
+      (if org-roam-capture--in-process
           (user-error "Org-roam capture in process")
-        (let ((org-roam--capture-info (list (cons 'title title)
+        (let ((org-roam-capture--info (list (cons 'title title)
                                             (cons 'slug (org-roam--title-to-slug title))))
-               (org-roam--capture-context 'title))
-          (add-hook 'org-capture-after-finalize-hook #'org-roam--capture-find-file-h)
+              (org-roam-capture--context 'title))
+          (add-hook 'org-capture-after-finalize-hook #'org-roam-capture--find-file-h)
           (org-roam-capture))))))
 
 ;;;; org-roam-find-ref
 (defun org-roam--get-ref-path-completions ()
   "Return a list of cons pairs for titles to absolute path of Org-roam files."
-  (let ((rows (org-roam-sql [:select [ref file] :from refs])))
+  (let ((rows (org-roam-db-query [:select [ref file] :from refs])))
     (mapcar (lambda (row)
               (cons (car row)
                     (cadr row))) rows)))
@@ -1058,9 +398,9 @@ INFO is an alist containing additional information."
   (interactive)
   (let* ((completions (org-roam--get-ref-path-completions))
          (ref (or (cdr (assoc 'ref info))
-                  (org-roam--completing-read "Ref: "
-                                             (org-roam--get-ref-path-completions)
-                                             :require-match t))))
+                  (org-roam-completion--completing-read "Ref: "
+                                                        (org-roam--get-ref-path-completions)
+                                                        :require-match t))))
     (find-file (cdr (assoc ref completions)))))
 
 ;;;; org-roam-switch-to-buffer
@@ -1083,8 +423,8 @@ INFO is an alist containing additional information."
                                     roam-buffers)))
     (unless roam-buffers
       (user-error "No roam buffers"))
-    (when-let ((name (org-roam--completing-read "Buffer: " names-and-buffers
-                                                :require-match t)))
+    (when-let ((name (org-roam-completion--completing-read "Buffer: " names-and-buffers
+                                                           :require-match t)))
       (switch-to-buffer (cdr (assoc name names-and-buffers))))))
 
 ;;;; Daily notes
@@ -1098,6 +438,15 @@ INFO is an alist containing additional information."
   :type 'string
   :group 'org-roam)
 
+(defun org-roam--file-path-from-id (id)
+  "The file path for an Org-roam file, with identifier ID."
+  (file-truename
+   (expand-file-name
+    (if org-roam-encrypt-files
+        (concat id ".org.gpg")
+      (concat id ".org"))
+    org-roam-directory)))
+
 (defun org-roam--file-for-time (time)
   "Create and find file for TIME."
   (let* ((title (format-time-string org-roam-date-title-format time))
@@ -1105,15 +454,15 @@ INFO is an alist containing additional information."
          (file-path (org-roam--file-path-from-id filename)))
     (if (file-exists-p file-path)
         (find-file file-path)
-      (let ((org-roam-capture-templates (list (list "d" "daily" 'plain (list 'function #'org-roam--capture-get-point)
+      (let ((org-roam-capture-templates (list (list "d" "daily" 'plain (list 'function #'org-roam-capture--get-point)
                                                     ""
                                                     :immediate-finish t
                                                     :file-name "${filename}"
                                                     :head "#+TITLE: ${title}")))
-            (org-roam--capture-context 'title)
-            (org-roam--capture-info (list (cons 'title title)
+            (org-roam-capture--context 'title)
+            (org-roam-capture--info (list (cons 'title title)
                                           (cons 'filename filename))))
-        (add-hook 'org-capture-after-finalize-hook #'org-roam--capture-find-file-h)
+        (add-hook 'org-capture-after-finalize-hook #'org-roam-capture--find-file-h)
         (org-roam-capture)))))
 
 (defun org-roam-today ()
@@ -1166,7 +515,6 @@ Applies `org-roam-link-face' if PATH corresponds to a Roam file."
 
 (define-minor-mode org-roam-backlinks-mode
   "Minor mode for the `org-roam-buffer'.
-
 \\{org-roam-backlinks-mode-map}"
   :lighter " Backlinks"
   :keymap org-roam-backlinks-mode-map
@@ -1179,12 +527,9 @@ Applies `org-roam-link-face' if PATH corresponds to a Roam file."
 
 (defun org-roam-open-at-point ()
   "Open an Org-roam link or visit the text previewed at point.
-
 When point is on an Org-roam link, open the link in the Org-roam window.
-
 When point is on the Org-roam preview text, open the link in the Org-roam
 window, and navigate to the point.
-
 This function hooks into `org-open-at-point' via `org-open-at-point-functions'."
   (cond
    ;; Org-roam link
@@ -1205,7 +550,7 @@ This function hooks into `org-open-at-point' via `org-open-at-point-functions'."
       (org-show-context)
       t))
    ;; If called via `org-open-at-point', fall back to default behavior.
-   nil))
+   (t nil)))
 
 (defun org-roam--find-file (file)
   "Open FILE in the window `org-roam' was called from."
@@ -1217,15 +562,15 @@ This function hooks into `org-open-at-point' via `org-open-at-point-functions'."
 
 (defun org-roam--get-backlinks (file)
   "Return the backlinks for FILE."
-  (org-roam-sql [:select [file-from, file-to, properties] :from file-links
-                 :where (= file-to $s1)
-                 :order-by (asc file-from)]
-                file))
+  (org-roam-db-query [:select [file-from, file-to, properties] :from file-links
+                              :where (= file-to $s1)
+                              :order-by (asc file-from)]
+                     file))
 
 ;;;; Updating the org-roam buffer
 (defun org-roam-update (file-path)
   "Show the backlinks for given org file for file at `FILE-PATH'."
-  (org-roam--db-ensure-built)
+  (org-roam-db--ensure-built)
   (let* ((source-org-roam-directory org-roam-directory))
     (let ((buffer-title (org-roam--get-title-or-slug file-path)))
       (with-current-buffer org-roam-buffer
@@ -1331,137 +676,6 @@ Valid states are 'visible, 'exists and 'none."
     ('exists (org-roam--setup-buffer))
     ('none (org-roam--setup-buffer))))
 
-;;; The graphviz links graph
-;;;; Options
-(defcustom org-roam-graph-viewer (executable-find "firefox")
-  "Path to executable for viewing SVG."
-  :type 'string
-  :group 'org-roam)
-
-(defcustom org-roam-graphviz-executable (executable-find "dot")
-  "Path to graphviz executable."
-  :type 'string
-  :group 'org-roam)
-
-(defcustom org-roam-graphviz-extra-options nil
-  "Extra options when constructing the Graphviz graph.
-Example:
- '((\"rankdir\" . \"LR\"))"
-  :type '(alist)
-  :group 'org-roam)
-
-(defcustom org-roam-graph-max-title-length 100
-  "Maximum length of titles in Graphviz graph nodes."
-  :type 'number
-  :group 'org-roam)
-
-(defcustom org-roam-graph-exclude-matcher nil
-  "Matcher for excluding nodes from the generated graph.
-Any nodes and links for file paths matching this string is
-excluded from the graph.
-
-If value is a string, the string is the only matcher.
-
-If value is a list, all file paths matching any of the strings
-are excluded."
-  :type '(choice
-          (string :tag "Matcher")
-          (list :tag "Matchers"))
-  :group 'org-roam)
-
-(defcustom org-roam-graph-node-shape "ellipse"
-  "Shape of Graphviz nodes."
-  :type 'string
-  :group 'org-roam)
-
-;;;; Functions
-(defmacro org-roam--graph-expand-matcher (col &optional negate where)
-  "Return the exclusion regexp from `org-roam-graph-exclude-matcher'.
-COL is the symbol to be matched against.  if NEGATE, add :not to sql query.
-set WHERE to true if WHERE query already exists."
-  (declare (indent 0) (debug t))
-  (let ((matchers (cond ((null org-roam-graph-exclude-matcher)
-                         nil)
-                        ((stringp org-roam-graph-exclude-matcher)
-                         (cons (concat "%" org-roam-graph-exclude-matcher "%") nil))
-                        ((listp org-roam-graph-exclude-matcher)
-                         (mapcar (lambda (m)
-                                   (concat "%" m "%"))
-                                 org-roam-graph-exclude-matcher))
-                        (t
-                         (error "Invalid org-roam-graph-exclude-matcher"))))
-        res)
-    (dolist (match matchers)
-      (if where
-          (push :and res)
-        (push :where res)
-        (setq where t))
-      (push col res)
-      (when negate
-        (push :not res))
-      (push :like res)
-      (push match res))
-    (cons 'list (nreverse res))))
-
-(defun org-roam--build-graph ()
-  "Build the Graphviz string.
-The Org-roam database titles table is read, to obtain the list of titles.
-The file-links table is then read to obtain all directed links, and formatted
-into a digraph."
-  (org-roam--db-ensure-built)
-  (org-roam--with-temp-buffer
-    (let* ((node-query `[:select [file titles]
-                         :from titles
-                         ,@(org-roam--graph-expand-matcher 'file t)])
-           (nodes (org-roam-sql node-query))
-           (edges-query `[:select :distinct [file-to file-from]
-                          :from file-links
-                          ,@(org-roam--graph-expand-matcher 'file-to t)
-                          ,@(org-roam--graph-expand-matcher 'file-from t t)])
-           (edges (org-roam-sql edges-query)))
-      (insert "digraph \"org-roam\" {\n")
-      (dolist (option org-roam-graphviz-extra-options)
-        (insert (concat (car option)
-                        "="
-                        (cdr option)
-                        ";\n")))
-      (dolist (node nodes)
-        (let* ((file (xml-escape-string (car node)))
-               (title (or (caadr node)
-                          (org-roam--path-to-slug file)))
-               (shortened-title (s-truncate org-roam-graph-max-title-length title)))
-          (insert
-           (format "  \"%s\" [label=\"%s\", shape=%s, URL=\"org-protocol://roam-file?file=%s\", tooltip=\"%s\"];\n"
-                   file
-                   (s-replace "\"" "\\\"" shortened-title)
-                   org-roam-graph-node-shape
-                   (url-hexify-string file)
-                   (xml-escape-string title)))))
-      (dolist (edge edges)
-        (insert (format "  \"%s\" -> \"%s\";\n"
-                        (xml-escape-string (car edge))
-                        (xml-escape-string (cadr edge)))))
-      (insert "}")
-      (buffer-string))))
-
-(defun org-roam-show-graph (&optional prefix)
-  "Generate and displays the Org-roam graph using `org-roam-graph-viewer'.
-If PREFIX, then the graph is generated but the viewer is not invoked."
-  (interactive "P")
-  (declare (indent 0))
-  (unless org-roam-graphviz-executable
-    (user-error "Can't find graphviz executable.  Please check if it is in your path"))
-  (let ((temp-dot (expand-file-name "graph.dot" temporary-file-directory))
-        (temp-graph (expand-file-name "graph.svg" temporary-file-directory))
-        (graph (org-roam--build-graph)))
-    (with-temp-file temp-dot
-      (insert graph))
-    (call-process org-roam-graphviz-executable nil 0 nil temp-dot "-Tsvg" "-o" temp-graph)
-    (unless prefix
-      (if (and org-roam-graph-viewer (executable-find org-roam-graph-viewer))
-	        (call-process org-roam-graph-viewer nil 0 nil temp-graph)
-        (view-file temp-graph)))))
-
 ;;; The global minor org-roam-mode
 (defvar org-roam-mode-map
   (make-sparse-keymap)
@@ -1489,30 +703,30 @@ Otherwise, behave as if called interactively."
   :global t
   (cond
    (org-roam-mode
-    (org-roam-build-cache)
+    (org-roam-db-build-cache)
     (add-hook 'find-file-hook #'org-roam--find-file-hook-function)
-    (add-hook 'kill-emacs-hook #'org-roam--db-close-all)
+    (add-hook 'kill-emacs-hook #'org-roam-db--close-all)
     (advice-add 'rename-file :after #'org-roam--rename-file-advice)
     (advice-add 'delete-file :before #'org-roam--delete-file-advice))
    (t
     (remove-hook 'find-file-hook #'org-roam--find-file-hook-function)
-    (remove-hook 'kill-emacs-hook #'org-roam--db-close-all)
+    (remove-hook 'kill-emacs-hook #'org-roam-db--close-all)
     (advice-remove 'rename-file #'org-roam--rename-file-advice)
     (advice-remove 'delete-file #'org-roam--delete-file-advice)
-    (org-roam--db-close-all)
+    (org-roam-db--close-all)
     ;; Disable local hooks for all org-roam buffers
     (dolist (buf (org-roam--get-roam-buffers))
       (with-current-buffer buf
         (org-link-set-parameters "file" :face 'org-link)
         (remove-hook 'post-command-hook #'org-roam--maybe-update-buffer t)
-        (remove-hook 'after-save-hook #'org-roam--db-update-file t))))))
+        (remove-hook 'after-save-hook #'org-roam-db--update-file t))))))
 
 (defun org-roam--find-file-hook-function ()
   "Called by `find-file-hook' when mode `org-roam-mode' is on."
   (when (org-roam--org-roam-file-p)
     (setq org-roam-last-window (get-buffer-window))
     (add-hook 'post-command-hook #'org-roam--maybe-update-buffer nil t)
-    (add-hook 'after-save-hook #'org-roam--db-update-file nil t)
+    (add-hook 'after-save-hook #'org-roam-db--update-file nil t)
     (org-link-set-parameters "file" :face 'org-roam--roam-link-face)
     (org-roam--maybe-update-buffer :redisplay nil)))
 
@@ -1520,26 +734,26 @@ Otherwise, behave as if called interactively."
   "Advice for maintaining cache consistency when FILE is deleted."
   (when (and (not (auto-save-file-name-p file))
              (org-roam--org-roam-file-p file))
-    (org-roam--db-clear-file (file-truename file))))
+    (org-roam-db--clear-file (file-truename file))))
 
 (defun org-roam--rename-file-advice (file new-file &rest _args)
   "Rename backlinks of FILE to refer to NEW-FILE."
   (when (and (not (auto-save-file-name-p file))
              (not (auto-save-file-name-p new-file))
              (org-roam--org-roam-file-p new-file))
-    (org-roam--db-ensure-built)
-    (let* ((files-to-rename (org-roam-sql [:select :distinct [file-from]
-                                           :from file-links
-                                           :where (= file-to $s1)]
-                                          file))
+    (org-roam-db--ensure-built)
+    (let* ((files-to-rename (org-roam-db-query [:select :distinct [file-from]
+                                                        :from file-links
+                                                        :where (= file-to $s1)]
+                                               file))
            (path (file-truename file))
            (new-path (file-truename new-file))
            (slug (org-roam--get-title-or-slug file))
            (old-title (org-roam--format-link-title slug))
-           (new-slug (or (car (org-roam--db-get-titles path))
+           (new-slug (or (car (org-roam-db--get-titles path))
                          (org-roam--path-to-slug new-path)))
            (new-title (org-roam--format-link-title new-slug)))
-      (org-roam--db-clear-file file)
+      (org-roam-db--clear-file file)
       (dolist (file-from files-to-rename)
         (let* ((file-from (car file-from))
                (file-from (if (string-equal (file-truename file-from)
@@ -1561,8 +775,8 @@ Otherwise, behave as if called interactively."
             (goto-char (point-min))
             (while (re-search-forward named-regex nil t)
               (replace-match (format "[[file:%s][\\1]]" relative-path))))
-          (org-roam--db-update-file file-from)))
-      (org-roam--db-update-file new-path))))
+          (org-roam-db--update-file file-from)))
+      (org-roam-db--update-file new-path))))
 ;;; -
 (provide 'org-roam)
 ;;; org-roam.el ends here

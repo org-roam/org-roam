@@ -34,7 +34,6 @@
 ;;     (company-org-roam-init)
 
 ;;; Code:
-
 (require 'cl-lib)
 (require 'company)
 (require 'org-roam)
@@ -89,7 +88,7 @@ The string match is case-insensitive."
 Entries with no title do not appear in the completions."
   (let ((dir (file-truename org-roam-directory))
         (ht (make-hash-table :test #'equal)))
-    (dolist (row (org-roam-sql [:select [titles file] :from titles]))
+    (dolist (row (org-roam-db-query [:select [titles file] :from titles]))
       (let ((titles (car row))
             (file (cadr row)))
         (dolist (title titles)
@@ -133,7 +132,7 @@ COMMAND and ARG are as per the documentation of `company-backends'."
   "Conditional enabling of the `company-org-roam' backend."
   (when (org-roam--org-roam-file-p (buffer-file-name (buffer-base-buffer)))
     (setq-local company-backends
-                (cons'company-org-roam company-backends))))
+                (cons 'company-org-roam company-backends))))
 
 ;;;###autoload
 (defun company-org-roam-init ()

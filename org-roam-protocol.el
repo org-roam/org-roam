@@ -35,23 +35,10 @@
 ;; 2. "roam-ref": This protocol creates or opens a note with the given REF
 ;;
 ;;; Code:
-
 (require 'org-protocol)
 (require 'org-roam)
 
-(declare-function org-roam-find-ref "org-roam" (&optional info))
-(declare-function org-roam--capture-get-point "org-roam" ())
-
-(defvar org-roam-ref-capture-templates
-  '(("r" "ref" plain (function org-roam--capture-get-point)
-     ""
-     :file-name "${slug}"
-     :head "#+TITLE: ${title}
-#+ROAM_KEY: ${ref}\n"
-     :unnarrowed t))
-  "The Org-roam templates used during a capture from the roam-ref protocol.
-Details on how to specify for the template is given in `org-roam-capture-templates'.")
-
+;;;; Functions
 (defun org-roam-protocol-open-ref (info)
   "Process an org-protocol://roam-ref?ref= style url with INFO.
 
@@ -70,9 +57,9 @@ It opens or creates a note with the given ref.
       (error "No ref key provided"))
     (when-let ((title (cdr (assoc 'title decoded-alist))))
       (push (cons 'slug (org-roam--title-to-slug title)) decoded-alist))
-    (let* ((org-roam-capture-templates org-roam-ref-capture-templates)
-           (org-roam--capture-context 'ref)
-           (org-roam--capture-info decoded-alist)
+    (let* ((org-roam-capture-templates org-roam-capture-ref-templates)
+           (org-roam-capture--context 'ref)
+           (org-roam-capture--info decoded-alist)
            (template (cdr (assoc 'template decoded-alist))))
       (raise-frame)
       (org-roam-capture nil template)
