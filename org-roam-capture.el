@@ -265,6 +265,7 @@ This function is used solely in Org-roam's capture templates: see
       (let ((prop (pop org-roam-capture-additional-template-props))
             (val (pop org-roam-capture-additional-template-props)))
         (org-roam-capture--put prop val)))
+    (setq org-roam-capture--in-process t)
     (set-buffer (org-capture-target-buffer file-path))
     (widen)
     (goto-char (point-max))))
@@ -303,7 +304,6 @@ GOTO and KEYS argument have the same functionality as
       (setq keys (caar org-capture-templates)))
     (add-hook 'org-capture-after-finalize-hook #'org-roam-capture--save-file-maybe-h)
     (add-hook 'org-capture-after-finalize-hook #'org-roam-capture--cleanup-h 10)
-    (setq org-roam-capture--in-process t)
     (org-capture goto keys)))
 
 (provide 'org-roam-capture)
