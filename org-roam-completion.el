@@ -35,7 +35,7 @@
 
 (defvar helm-pattern)
 (declare-function helm "ext:helm")
-(declare-function helm-build-sync-source "ext:helm-source" (name &rest args) t)
+(declare-function helm-make-source "ext:helm-source" (name class &rest args) t)
 
 (defcustom org-roam-completion-system 'default
   "The completion system to be used by `org-roam'."
@@ -89,10 +89,10 @@ Return user choice."
 https://github.com/abo-abo/swiper")))
            ((eq org-roam-completion-system 'helm)
             (unless (and (fboundp 'helm)
-                         (fboundp 'helm-build-sync-source))
+                         (fboundp 'helm-make-source))
               (user-error "Please install helm from \
 https://github.com/emacs-helm/helm"))
-            (let ((source (helm-build-sync-source prompt
+            (let ((source (helm-make-source prompt 'helm-source-sync
                             :candidates (mapcar #'car choices)
                             :filtered-candidate-transformer
                             (and (not require-match)
