@@ -31,6 +31,11 @@ will create a new note with that title.
 
 ![org-roam-find-file](images/org-roam-find-file.gif)
 
+Note that in the above image, the [ivy](https://github.com/abo-abo/swiper)
+completion frontend is used. The default frontend has some usability issues with
+non-matching candidates (e.g. when you want to enter a title of a new note,
+there is no completion candidate), so either `ivy` or `helm` is recommended.
+
 ## Inserting Links
 
 `org-roam-insert` insert links to existing (or new) notes. Entering a
