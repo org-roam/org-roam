@@ -27,7 +27,7 @@ additional properties:
 
 Org-roam's template definitions also extend org-capture's template
 syntax, to allow prefilling of strings. In many scenarios,
-`org-roam-capture` is passed a mapping between variables and strings.
+`org-roam--capture` is passed a mapping between variables and strings.
 For example, during `org-roam-insert`, a title is prompted for. If the
 title doesn't already exist, we would like to create a new file,
 without prompting for the title again.
@@ -67,7 +67,7 @@ Here I walkthrough the default template, reproduced below.
 3. `plain` text is inserted. Other options include Org headings via
    `entry`.
 4. `(function org-roam--capture-get-point)` should not be changed.
-5. `"%?"` is the template inserted on each call to `org-roam-capture`.
+5. `"%?"` is the template inserted on each call to `org-roam--capture`.
    This template means don't insert any content, but place the cursor
    here.
 6. `:file-name` is the file-name template for a new note, if it

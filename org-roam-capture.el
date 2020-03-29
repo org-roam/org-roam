@@ -248,6 +248,9 @@ If there is no file with that ref, a file with that ref is created.
 This function is used solely in Org-roam's capture templates: see
 `org-roam-capture-templates'."
   (let ((file-path (pcase org-roam-capture--context
+                     ('capture
+                      (or (cdr (assoc 'file org-roam-capture--info))
+                          (org-roam-capture--new-file)))
                      ('title
                       (org-roam-capture--new-file))
                      ('ref
@@ -290,7 +293,7 @@ This function is used solely in Org-roam's capture templates: see
         (push val converted)))
     (append (nreverse converted) `(:org-roam ,org-roam-plist))))
 
-(defun org-roam-capture (&optional goto keys)
+(defun org-roam--capture (&optional goto keys)
   "Create a new file, and return the path to the edited file.
 The templates are defined at `org-roam-capture-templates'.  The
 GOTO and KEYS argument have the same functionality as
