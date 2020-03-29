@@ -17,6 +17,11 @@ Org-roam aims to implement the core features of Roam, leveraging the
 mature ecosystem around Org-mode where possible. Eventually, we hope
 to further introduce features enabled by the Emacs ecosystem.
 
+[@technovangelist](https://github.com/technovangelist/) has produced a video
+describing Org-roam and the concepts behind it:
+
+[![Making Connections in your Notes](http://img.youtube.com/vi/Lg61ocfxk3c/0.jpg)](http://www.youtube.com/watch?v=Lg61ocfxk3c "Making Connections in your Notes")
+
 As of February 2020, it is in a very early stage of development. 
 
 Important links:
