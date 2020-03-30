@@ -5,6 +5,7 @@
 ### New Features
 * [#350][gh-350] Add `org-roam-db-location`
 * [#359][gh-359] Add `org-roam-verbose`
+* [#380][gh-380] Allow `org-roam-buffer-position` to also be `top` or `bottom`
 
 ## 1.0.0 (23-03-2020)
 
