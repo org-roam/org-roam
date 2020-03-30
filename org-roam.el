@@ -503,6 +503,32 @@ This uses the templates defined at `org-roam-capture-templates'."
   (let ((time (org-read-date nil 'to-time nil "Date:  ")))
     (org-roam--file-for-time time)))
 
+(defun org-roam--move-days (days)
+  "If the current note has a title in date format yyyy-mm-dd, add
+DAYS days (can be negative) and open the note for the resulting
+new date.  If that note does not exist, it will be created."
+  (let* ((title (car (plist-get (org-export-get-environment) :title))))
+    (unless (string-match-p "^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]$" title)
+      (user-error "The title is not a date with format yyyy-mm-dd."))
+    (let* ((date (org-parse-time-string title))
+           (nextday (+ days (nth 3 date))))
+      (setf (nth 3 date) nextday)
+      (org-roam--file-for-time (apply #'encode-time date)))))
+
+(defun org-roam-next-day ()
+  "If the current note has a title in date format yyyy-mm-dd, go
+to the note for the next day.  If that note does not exist, it
+will be created."
+  (interactive)
+  (org-roam--move-days 1))
+
+(defun org-roam-previous-day ()
+  "If the current note has a title in date format yyyy-mm-dd, go
+to the note for the previous day.  If that note does not exist,
+it will be created."
+  (interactive)
+  (org-roam--move-days -1))
+
 ;;; The org-roam buffer
 ;;;; org-roam-link-face
 (defface org-roam-link
