@@ -89,34 +89,9 @@ with that of the ranger layer. You might want to change it to 'aor'
 
 ## Doom Emacs
 
-If you are using [Doom Emacs][doom], configure packages as explained in the
-[getting started][doom-getting-started] guide.
-
-Declare Org-roam as a package in your `~/.doom.d/packages.el`:
-
-```elisp
-;; ~/.doom.d/packages.el
-
-(package! org-roam
-  :recipe (:host github :repo "jethrokuan/org-roam"))
-```
-
-Subsequently, in your `~/.doom.d/config.el` file, configure Org-roam:
-
-```elisp
-;; ~/.doom.d/config.el
-(use-package! org-roam
-  :commands (org-roam-insert org-roam-find-file org-roam)
-  :init 
-  (setq org-roam-directory "/path/to/org-files/")
-  (map! :leader 
-        :prefix "n"
-        :desc "Org-Roam-Insert" "i" #'org-roam-insert
-        :desc "Org-Roam-Find"   "/" #'org-roam-find-file
-        :desc "Org-Roam-Buffer" "r" #'org-roam)
-  :config
-  (org-roam-mode +1))
-```
+[Doom Emacs][doom] has a `+roam` flag on its `org` module for easy 
+installation and configuration. Simply add the flag to the `org` section
+of your `~/.doom.d/init.el` and run `~/.emacs.d/bin/doom sync`.
 
 [use-package]: https://github.com/jwiegley/use-package
 [straight]: https://github.com/raxod502/straight.el
