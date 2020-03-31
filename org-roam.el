@@ -73,9 +73,13 @@ All Org files, at any level of nesting, is considered part of the Org-roam."
   "Position of `org-roam' buffer.
 Valid values are
  * left,
- * right."
+ * right,
+ * top,
+ * bottom."
   :type '(choice (const left)
-                 (const right))
+                 (const right)
+                 (const top)
+                 (const bottom))
   :group 'org-roam)
 
 (defcustom org-roam-link-title-format "%s"
@@ -86,7 +90,15 @@ Formatter may be a function that takes title as its only argument."
           (function :tag "Custom function"))
   :group 'org-roam)
 
-(defcustom org-roam-buffer-width 0.33 "Width of `org-roam' buffer."
+(defcustom org-roam-buffer-width 0.33
+  "Width of `org-roam' buffer.
+Has an effect if and only if `org-roam-buffer-position' is `left' or `right'."
+  :type 'number
+  :group 'org-roam)
+
+(defcustom org-roam-buffer-height 0.27
+  "Height of `org-roam' buffer.
+Has an effect if and only if `org-roam-buffer-position' is `top' or `bottom'."
   :type 'number
   :group 'org-roam)
 
@@ -672,6 +684,17 @@ Valid states are 'visible, 'exists and 'none."
        ((< (window-width) w)
         (enlarge-window-horizontally (- w (window-width))))))))
 
+(defun org-roam--set-height (height)
+  "Set the height of `org-roam-buffer' to `HEIGHT'."
+  (unless (one-window-p)
+    (let ((window-size-fixed)
+          (h (max height window-min-height)))
+      (cond
+       ((> (window-height) h)
+        (shrink-window  (- (window-height) h)))
+       ((< (window-height) h)
+        (enlarge-window (- h (window-height))))))))
+
 (defun org-roam--setup-buffer ()
   "Setup the `org-roam' buffer at the `org-roam-buffer-position'."
   (let ((window (get-buffer-window)))
@@ -679,9 +702,11 @@ Valid states are 'visible, 'exists and 'none."
         (display-buffer-in-side-window
          `((side . ,org-roam-buffer-position)))
         (select-window))
-    (org-roam--set-width
-     (round (* (frame-width)
-               org-roam-buffer-width)))
+    (pcase org-roam-buffer-position
+      ('right  (org-roam--set-width  (round (* (frame-width)  org-roam-buffer-width))))
+      ('left   (org-roam--set-width  (round (* (frame-width)  org-roam-buffer-width))))
+      ('top    (org-roam--set-height (round (* (frame-height) org-roam-buffer-height))))
+      ('bottom (org-roam--set-height (round (* (frame-height) org-roam-buffer-height)))))
     (select-window window)))
 
 (defun org-roam ()
