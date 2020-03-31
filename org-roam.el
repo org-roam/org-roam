@@ -702,14 +702,12 @@ Valid states are 'visible, 'exists and 'none."
         (display-buffer-in-side-window
          `((side . ,org-roam-buffer-position)))
         (select-window))
-    (progn
-      (if (or (eq org-roam-buffer-position 'left)
-              (eq org-roam-buffer-position 'right))
-          (org-roam--set-width
-           (round (* (frame-width) org-roam-buffer-width)))
-          (org-roam--set-height
-           (round (* (frame-height) org-roam-buffer-height))))
-      (select-window window))))
+    (pcase org-roam-buffer-position
+      ('right  (org-roam--set-width  (round (* (frame-width)  org-roam-buffer-width))))
+      ('left   (org-roam--set-width  (round (* (frame-width)  org-roam-buffer-width))))
+      ('top    (org-roam--set-height (round (* (frame-height) org-roam-buffer-height))))
+      ('bottom (org-roam--set-height (round (* (frame-height) org-roam-buffer-height)))))
+    (select-window window)))
 
 (defun org-roam ()
   "Pops up the window `org-roam-buffer' accordingly."
