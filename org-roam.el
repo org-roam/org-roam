@@ -694,18 +694,26 @@ Valid states are 'visible, 'exists and 'none."
        ((< (window-height) h)
         (enlarge-window (- h (window-height))))))))
 
-(defun org-roam--setup-buffer ()
-  "Setup the `org-roam' buffer at the `org-roam-buffer-position'."
-  (let ((window (get-buffer-window)))
+(defun org-roam--set-up-buffer ()
+  "Set up the `org-roam' buffer at the `org-roam-buffer-position'."
+  (let ((window (get-buffer-window))
+        (position
+         (if (member org-roam-buffer-position '(right left top bottom))
+             org-roam-buffer-position
+           (let ((text-quoting-style 'grave))
+             (lwarn '(org-roam) :error
+                    "Invalid org-roam-buffer-position: %s. Defaulting to \\='right"
+                    org-roam-buffer-position))
+           'right)))
     (-> (get-buffer-create org-roam-buffer)
         (display-buffer-in-side-window
-         `((side . ,org-roam-buffer-position)))
+         `((side . ,position)))
         (select-window))
-    (pcase org-roam-buffer-position
-      ('right  (org-roam--set-width  (round (* (frame-width)  org-roam-buffer-width))))
-      ('left   (org-roam--set-width  (round (* (frame-width)  org-roam-buffer-width))))
-      ('top    (org-roam--set-height (round (* (frame-height) org-roam-buffer-height))))
-      ('bottom (org-roam--set-height (round (* (frame-height) org-roam-buffer-height)))))
+    (pcase position
+      ((or 'right 'left)
+       (org-roam--set-width  (round (* (frame-width)  org-roam-buffer-width))))
+      ((or 'top  'bottom)
+       (org-roam--set-height (round (* (frame-height) org-roam-buffer-height)))))
     (select-window window)))
 
 (defun org-roam ()
@@ -714,8 +722,8 @@ Valid states are 'visible, 'exists and 'none."
   (setq org-roam-last-window (get-buffer-window))
   (pcase (org-roam--current-visibility)
     ('visible (delete-window (get-buffer-window org-roam-buffer)))
-    ('exists (org-roam--setup-buffer))
-    ('none (org-roam--setup-buffer))))
+    ('exists (org-roam--set-up-buffer))
+    ('none (org-roam--set-up-buffer))))
 
 ;;; The global minor org-roam-mode
 (defvar org-roam-mode-map
