@@ -231,7 +231,9 @@ the file if the original value of :no-save is not t and
                    (s-format (org-capture-get :template)
                              (lambda (key)
                                (or (s--aget org-roam-capture--info key)
-                                   (completing-read (format "%s: " key ) nil))) nil)))
+                                   (when-let ((v (completing-read (format "%s: " key ) nil)))
+                                     (push (cons key v) org-roam-capture--info)
+                                     v))) nil)))
 
 (defalias 'org-roam--capture-get-point 'org-roam-capture--get-point)
 (make-obsolete 'org-roam--capture-get-point 'org-roam-capture--get-point "2020/03/29")
