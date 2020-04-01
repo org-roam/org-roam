@@ -640,7 +640,6 @@ This function hooks into `org-open-at-point' via `org-open-at-point-functions'."
                         (insert (propertize
                                  (s-trim (s-replace "\n" " "
                                                     (plist-get props :content)))
-                                 'font-lock-face 'org-roam-backlink
                                  'help-echo "mouse-1: visit backlinked note"
                                  'file-from file-from
                                  'file-from-point (plist-get props :point)))
