@@ -499,15 +499,17 @@ This uses the templates defined at `org-roam-capture-templates'."
   (interactive)
   (org-roam--file-for-time (current-time)))
 
-(defun org-roam-tomorrow ()
-  "Create and find the file for tomorrow."
-  (interactive)
-  (org-roam--file-for-time (time-add 86400 (current-time))))
+(defun org-roam-tomorrow (n)
+  "Create and find the file for tomorrow.
+With numeric argument N, use N days in the future."
+  (interactive "p")
+  (org-roam--file-for-time (time-add (* n 86400) (current-time))))
 
-(defun org-roam-yesterday ()
-  "Create and find the file for yesterday."
-  (interactive)
-  (org-roam--file-for-time (time-add -86400 (current-time))))
+(defun org-roam-yesterday (n)
+  "Create and find the file for yesterday.
+With numeric argument N, use N days in the past."
+  (interactive "p")
+  (org-roam-tomorrow (- n)))
 
 (defun org-roam-date ()
   "Create the file for any date using the calendar."
