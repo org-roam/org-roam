@@ -47,14 +47,25 @@
   :group 'org-roam)
 
 (defcustom org-roam-graph-executable (executable-find "dot")
-  "Path to grapher executable."
+  "Path to graphing executable."
   :type 'string
   :group 'org-roam)
 
-(defcustom org-roam-grapher-extra-options nil
-  "Extra options when constructing the grapher graph.
+(defvaralias 'org-roam-graphviz-extra-options 'org-roam-graph-extra-config)
+(defvaralias 'org-roam-grapher-extra-options  'org-roam-graph-extra-config)
+(make-obsolete-variable 'org-roam-graphviz-extra-options 'org-roam-graph-extra-config "2020/03/31")
+(make-obsolete-variable 'org-roam-grapher-extra-options  'org-roam-graph-extra-config "2020/03/31")
+(defcustom org-roam-graph-extra-config nil
+  "Extra options passed to graphviz.
 Example:
  '((\"rankdir\" . \"LR\"))"
+  :type '(alist)
+  :group 'org-roam)
+
+(defcustom org-roam-graph-node-extra-config nil
+  "Extra options for graphviz nodes.
+Example:
+ '((\"color\" . \"skyblue\"))"
   :type '(alist)
   :group 'org-roam)
 
@@ -77,6 +88,7 @@ are excluded."
           (list :tag "Matchers"))
   :group 'org-roam)
 
+(make-obsolete-variable 'org-roam-graph-node-shape  'org-roam-graph-node-extra-config "2020/04/01")
 (defcustom org-roam-graph-node-shape "ellipse"
   "Shape of graph nodes."
   :type 'string
@@ -111,7 +123,7 @@ set WHERE to true if WHERE query already exists."
     (nreverse res)))
 
 (defun org-roam-graph--build ()
-  "Build the grapher string.
+  "Build the graph output string.
 The Org-roam database titles table is read, to obtain the list of titles.
 The file-links table is then read to obtain all directed links, and formatted
 into a digraph."
@@ -127,7 +139,7 @@ into a digraph."
                                   ,@(org-roam-graph--expand-matcher 'file-from t t)])
            (edges (org-roam-db-query edges-query)))
       (insert "digraph \"org-roam\" {\n")
-      (dolist (option org-roam-grapher-extra-options)
+      (dolist (option org-roam-graph-extra-config)
         (insert (concat (car option)
                         "="
                         (cdr option)
@@ -136,14 +148,20 @@ into a digraph."
         (let* ((file (xml-escape-string (car node)))
                (title (or (caadr node)
                           (org-roam--path-to-slug file)))
-               (shortened-title (s-truncate org-roam-graph-max-title-length title)))
+               (shortened-title (s-truncate org-roam-graph-max-title-length title))
+               (base-node-properties (list (cons "label" (s-replace "\"" "\\\"" shortened-title))
+                                           (cons "URL" (concat "org-protocol://roam-file?file="
+                                                               (url-hexify-string file)))
+                                           (cons "tooltip" (xml-escape-string title))))
+               (node-properties (append base-node-properties
+                                        org-roam-graph-node-extra-config)))
           (insert
-           (format "  \"%s\" [label=\"%s\", shape=%s, URL=\"org-protocol://roam-file?file=%s\", tooltip=\"%s\"];\n"
+           (format "  \"%s\" [%s];\n"
                    file
-                   (s-replace "\"" "\\\"" shortened-title)
-                   org-roam-graph-node-shape
-                   (url-hexify-string file)
-                   (xml-escape-string title)))))
+                   (->> node-properties
+                        (mapcar (lambda (n)
+                                  (concat (car n) "=" "\"" (cdr n) "\"")))
+                        (s-join ","))))))
       (dolist (edge edges)
         (insert (format "  \"%s\" -> \"%s\";\n"
                         (xml-escape-string (car edge))

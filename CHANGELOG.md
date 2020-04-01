@@ -2,9 +2,14 @@
 
 ## 1.0.1 (TBD)
 
+### Breaking Changes
+* [#385][gh-385] Deprecate `org-roam-graph-node-shape` in favour of `org-roam-graph-node-extra-config`.
+
 ### New Features
 * [#350][gh-350] Add `org-roam-db-location`
 * [#359][gh-359] Add `org-roam-verbose`
+* [#380][gh-380] Allow `org-roam-buffer-position` to also be `top` or `bottom`
+* [#385][gh-385] Add `org-roam-graph-node-extra-config` to configure Graphviz nodes
 
 ## 1.0.0 (23-03-2020)
 
@@ -156,6 +161,9 @@ Mostly a documentation/cleanup release.
 [gh-296]: https://github.com/jethrokuan/org-roam/pull/296
 [gh-350]: https://github.com/jethrokuan/org-roam/pull/350
 [gh-359]: https://github.com/jethrokuan/org-roam/pull/359
+[gh-380]: https://github.com/jethrokuan/org-roam/pull/380
+[gh-385]: https://github.com/jethrokuan/org-roam/pull/385
+
 
  # Local Variables:
  # eval: (auto-fill-mode -1)
