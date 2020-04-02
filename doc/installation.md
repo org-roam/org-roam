@@ -22,7 +22,7 @@ The recommended method of configuration is to use [use-package][use-package].
               (("C-c n l" . org-roam)
                ("C-c n f" . org-roam-find-file)
                ("C-c n b" . org-roam-switch-to-buffer)
-               ("C-c n g" . org-roam-show-graph))
+               ("C-c n g" . org-roam-graph-show))
               :map org-mode-map
               (("C-c n i" . org-roam-insert))))
 ```
@@ -34,7 +34,7 @@ Or without `use-package`:
 (define-key org-roam-mode-map (kbd "C-c n l") #'org-roam)
 (define-key org-roam-mode-map (kbd "C-c n f") #'org-roam-find-file)
 (define-key org-roam-mode-map (kbd "C-c n b") #'org-roam-switch-to-buffer)
-(define-key org-roam-mode-map (kbd "C-c n g") #'org-roam-show-graph)
+(define-key org-roam-mode-map (kbd "C-c n g") #'org-roam-graph-show)
 (define-key org-mode-map (kbd "C-c n i") #'org-roam-insert)
 (org-roam-mode +1)
 ```
@@ -66,7 +66,7 @@ wraps Org-roam. Paste the following into a new file
        "arl" 'org-roam
        "art" 'org-roam-today
        "arf" 'org-roam-find-file
-       "arg" 'org-roam-show-graph)
+       "arg" 'org-roam-graph-show)
 
       (spacemacs/declare-prefix-for-mode 'org-mode "mr" "org-roam")
       (spacemacs/set-leader-keys-for-major-mode 'org-mode
@@ -75,7 +75,7 @@ wraps Org-roam. Paste the following into a new file
                                                 "rb" 'org-roam-switch-to-buffer
                                                 "rf" 'org-roam-find-file
                                                 "ri" 'org-roam-insert
-                                                "rg" 'org-roam-show-graph))))
+                                                "rg" 'org-roam-graph-show))))
 ```
 
 Next, append `org-roam` to the `dotspacemacs-configuration-layers`
