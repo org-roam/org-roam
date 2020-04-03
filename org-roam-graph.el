@@ -38,6 +38,8 @@
 (defvar org-roam-directory)
 (declare-function org-roam-db--ensure-built  "org-roam-db")
 (declare-function org-roam-db-query          "org-roam-db")
+(declare-function org-roam-db--connected-component "org-roam-db")
+(declare-function org-roam--org-roam-file-p  "org-roam")
 (declare-function org-roam--path-to-slug     "org-roam")
 
 ;;;; Options
@@ -122,21 +124,18 @@ set WHERE to true if WHERE query already exists."
       (push match res))
     (nreverse res)))
 
-(defun org-roam-graph--build ()
-  "Build the graphviz string.
-The Org-roam database titles table is read, to obtain the list of
-titles. The links table is then read to obtain all directed
-links, and formatted into a digraph."
+(defun org-roam-graph--build (node-query)
+  "Build the graphviz string for NODE-QUERY.
+The Org-roam database titles table is read, to obtain the list of titles.
+The links table is then read to obtain all directed links, and formatted
+into a digraph."
   (org-roam-db--ensure-built)
   (org-roam--with-temp-buffer
-    (let* ((node-query `[:select [file titles]
-                                 :from titles
-                                 ,@(org-roam-graph--expand-matcher 'file t)])
-           (nodes (org-roam-db-query node-query))
-           (edges-query `[:select :distinct [to from]
-                                  :from links
-                                  ,@(org-roam-graph--expand-matcher 'to t)
-                                  ,@(org-roam-graph--expand-matcher 'from t t)])
+    (let* ((nodes (org-roam-db-query node-query))
+           (edges-query
+            `[:with selected :as [:select [file] :from ,node-query]
+              :select [to from] :from links
+              :where (and (in to selected) (in from selected))])
            (edges (org-roam-db-query edges-query)))
       (insert "digraph \"org-roam\" {\n")
       (dolist (option org-roam-graph-extra-config)
@@ -171,7 +170,7 @@ links, and formatted into a digraph."
 
 (defalias 'org-roam-show-graph 'org-roam-graph-show)
 (make-obsolete 'org-roam-show-graph 'org-roam-graph-show "2020/03/28")
-(defun org-roam-graph-show (&optional prefix)
+(defun org-roam-graph-show (&optional prefix node-query)
   "Generate and displays the Org-roam graph using `org-roam-graph-viewer'.
 If PREFIX, then the graph is generated but the viewer is not invoked."
   (interactive "P")
@@ -179,9 +178,12 @@ If PREFIX, then the graph is generated but the viewer is not invoked."
   (unless org-roam-graph-executable
     (user-error "Can't find %s executable.  Please check if it is in your path"
                 org-roam-graph-executable))
-  (let ((temp-dot (expand-file-name "graph.dot" temporary-file-directory))
-        (temp-graph (expand-file-name "graph.svg" temporary-file-directory))
-        (graph (org-roam-graph--build)))
+  (let* ((temp-dot (expand-file-name "graph.dot" temporary-file-directory))
+         (temp-graph (expand-file-name "graph.svg" temporary-file-directory))
+         (node-query (or node-query `[:select [file titles]
+                                      :from titles
+                                      ,@(org-roam-graph--expand-matcher 'file t)]))
+         (graph (org-roam-graph--build node-query)))
     (with-temp-file temp-dot
       (insert graph))
     (call-process org-roam-graph-executable nil 0 nil temp-dot "-Tsvg" "-o" temp-graph)
@@ -190,6 +192,18 @@ If PREFIX, then the graph is generated but the viewer is not invoked."
 	        (call-process org-roam-graph-viewer nil 0 nil temp-graph)
         (view-file temp-graph)))))
 
+(defun org-roam-graph-show-connected-component (&optional prefix)
+  "Like `org-roam-graph-show', but only show nodes connected to the current entry.
+If PREFIX is non-nil, the graph is generated but the viewer is not invoked."
+  (interactive "P")
+  (unless (org-roam--org-roam-file-p)
+    (user-error "Not in an Org-roam file"))
+  (let* ((file (file-truename (buffer-file-name)))
+         (files (or (org-roam-db--connected-component file) (list file)))
+         (query `[:select [file titles]
+                  :from titles
+                  :where (in file [,@files])]))
+    (org-roam-graph-show prefix query)))
 
 (provide 'org-roam-graph)
 
