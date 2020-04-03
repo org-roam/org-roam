@@ -31,7 +31,7 @@ what `.dir-locals.el` may contain:
 ```
 
 All files within that directory will be treated as their own separate
-set of Org-roam files. Remember to run `org-roam-build-cache` from a
+set of Org-roam files. Remember to run `org-roam-db-build-cache` from a
 file within that directory, at least once.
 
 ## Org-roam Buffer
