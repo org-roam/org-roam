@@ -20,7 +20,7 @@ The cache is a sqlite database named `org-roam.db`, which resides at
 the root of the `org-roam-directory`. Activating `org-roam-mode`
 builds the cache, which may take a while the first time, but is
 generally instantaneous in subsequent runs. To build the cache
-manually again, run `M-x org-roam-build-cache`.
+manually again, run `M-x org-roam-db-build-cache`.
 
 ## Finding a Note
 
