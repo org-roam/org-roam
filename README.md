@@ -91,4 +91,4 @@ General Public License, Version 3
 [org]: https://orgmode.org/
 [badge-license]: https://img.shields.io/badge/license-GPL_3-green.svg
 [docs]: https://org-roam.readthedocs.io/
-[slack]: https://join.slack.com/t/orgroam/shared_invite/zt-clh0g0tx-j8xg1kVxnrWdKt16gmSGPQ
+[slack]: https://join.slack.com/t/orgroam/shared_invite/zt-deoqamys-043YQ~s5Tay3iJ5QRI~Lxg
