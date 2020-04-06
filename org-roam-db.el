@@ -154,8 +154,10 @@ SQL can be either the emacsql vector representation, or a string."
   (emacsql-with-transaction db
     'ignore
     (when (= version 1)
-      (user-error "No good way to perform a DB migration."
-                  "Please delete the database file, and rerun org-roam-db-build-cache."))
+      (progn
+        (warn "No good way to perform a DB upgrade, rebuilding from scratch...")
+        (delete-file (org-roam-db--get))
+        (org-roam-db-build-cache)))
     version))
 
 (defun org-roam-db--close (&optional db)
