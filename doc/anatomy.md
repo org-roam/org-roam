@@ -36,5 +36,6 @@ Alternatively, add a ref for notes for a specific paper, using its
 #+ROAM_KEY: cite:chen18_neural_ordin_differ_equat
 ```
 
-In future, the backlinks buffer will also show notes with that
-citation key.
+The backlinks buffer will show any cites of this key: e.g.
+
+![org-ref-citelink](images/org-ref-citelink.png)

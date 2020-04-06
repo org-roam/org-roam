@@ -8,6 +8,7 @@
 ### New Features
 * [#350][gh-350] Add `org-roam-db-location`
 * [#359][gh-359] Add `org-roam-verbose`
+* [#374][gh-374] Add support for `org-ref` `cite:` links
 * [#380][gh-380] Allow `org-roam-buffer-position` to also be `top` or `bottom`
 * [#385][gh-385] Add `org-roam-graph-node-extra-config` to configure Graphviz nodes
 
@@ -113,7 +114,8 @@ Mostly a documentation/cleanup release.
 * [#71][gh-71], [#78][gh-78]: Fixed `org-roam-insert` not inserting correct paths
 * [#82][gh-82]: Fixed nested Org-roam files not being detected as part of Org-roam
 
-[gh-62]: https://github.com/jethrokuan/org-roam/pull/66
+<!-- start links -->
+[gh-62]: https://github.com/jethrokuan/org-roam/pull/62
 [gh-66]: https://github.com/jethrokuan/org-roam/pull/66
 [gh-67]: https://github.com/jethrokuan/org-roam/pull/67
 [gh-68]: https://github.com/jethrokuan/org-roam/pull/68
@@ -140,15 +142,17 @@ Mostly a documentation/cleanup release.
 [gh-136]: https://github.com/jethrokuan/org-roam/pull/136
 [gh-138]: https://github.com/jethrokuan/org-roam/pull/138
 [gh-141]: https://github.com/jethrokuan/org-roam/pull/141
-[gh-142]: https://github.com/jethrokuan/org-roam/pull/142
 [gh-143]: https://github.com/jethrokuan/org-roam/pull/143
+[gh-145]: https://github.com/jethrokuan/org-roam/pull/145
 [gh-182]: https://github.com/jethrokuan/org-roam/pull/182
-[gh-188]: https://github.com/jethrokuan/org-roam/pull/188
 [gh-200]: https://github.com/jethrokuan/org-roam/pull/200
+[gh-203]: https://github.com/jethrokuan/org-roam/pull/203
 [gh-207]: https://github.com/jethrokuan/org-roam/pull/207
 [gh-216]: https://github.com/jethrokuan/org-roam/pull/216
 [gh-221]: https://github.com/jethrokuan/org-roam/pull/221
 [gh-230]: https://github.com/jethrokuan/org-roam/pull/230
+[gh-232]: https://github.com/jethrokuan/org-roam/pull/232
+[gh-233]: https://github.com/jethrokuan/org-roam/pull/233
 [gh-247]: https://github.com/jethrokuan/org-roam/pull/247
 [gh-257]: https://github.com/jethrokuan/org-roam/pull/257
 [gh-259]: https://github.com/jethrokuan/org-roam/pull/259
@@ -161,10 +165,11 @@ Mostly a documentation/cleanup release.
 [gh-296]: https://github.com/jethrokuan/org-roam/pull/296
 [gh-350]: https://github.com/jethrokuan/org-roam/pull/350
 [gh-359]: https://github.com/jethrokuan/org-roam/pull/359
+[gh-374]: https://github.com/jethrokuan/org-roam/pull/374
 [gh-380]: https://github.com/jethrokuan/org-roam/pull/380
 [gh-385]: https://github.com/jethrokuan/org-roam/pull/385
+<!-- end links -->
 
-
- # Local Variables:
- # eval: (auto-fill-mode -1)
- # End:
+<!-- Local Variables: -->
+<!-- eval: (auto-fill-mode -1) -->
+<!-- End: -->

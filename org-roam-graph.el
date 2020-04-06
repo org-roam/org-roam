@@ -123,20 +123,20 @@ set WHERE to true if WHERE query already exists."
     (nreverse res)))
 
 (defun org-roam-graph--build ()
-  "Build the graph output string.
-The Org-roam database titles table is read, to obtain the list of titles.
-The file-links table is then read to obtain all directed links, and formatted
-into a digraph."
+  "Build the graphviz string.
+The Org-roam database titles table is read, to obtain the list of
+titles. The links table is then read to obtain all directed
+links, and formatted into a digraph."
   (org-roam-db--ensure-built)
   (org-roam--with-temp-buffer
     (let* ((node-query `[:select [file titles]
                                  :from titles
                                  ,@(org-roam-graph--expand-matcher 'file t)])
            (nodes (org-roam-db-query node-query))
-           (edges-query `[:select :distinct [file-to file-from]
-                                  :from file-links
-                                  ,@(org-roam-graph--expand-matcher 'file-to t)
-                                  ,@(org-roam-graph--expand-matcher 'file-from t t)])
+           (edges-query `[:select :distinct [to from]
+                                  :from links
+                                  ,@(org-roam-graph--expand-matcher 'to t)
+                                  ,@(org-roam-graph--expand-matcher 'from t t)])
            (edges (org-roam-db-query edges-query)))
       (insert "digraph \"org-roam\" {\n")
       (dolist (option org-roam-graph-extra-config)
