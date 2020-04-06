@@ -21,7 +21,7 @@ additional properties:
 1. `:file-name`: This is the file name template used when a new note
    is created.
 2. `:head`: This is the template that is inserted on initial note
-   creation. 
+   creation.
 
 ### Org-roam Template Expansion
 
@@ -33,7 +33,7 @@ title doesn't already exist, we would like to create a new file,
 without prompting for the title again.
 
 Variables passed are expanded with the `${var}` syntax. For example,
-eduring `org-roam-insert`, `${title}` is prefilled for expansion. Any
+during `org-roam-insert`, `${title}` is prefilled for expansion. Any
 variables that do not contain strings, are prompted for values using
 `completing-read`.
 
@@ -80,4 +80,3 @@ doesn't yet exist. This creates a file at path that looks like
    whole file, rather than narrowing to just the entry.
 
 Other options you may want to learn about include `:immediate-finish`.
-
