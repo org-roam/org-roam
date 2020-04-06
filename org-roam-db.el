@@ -54,7 +54,7 @@ when used with multiple Org-roam instances."
   :type 'string
   :group 'org-roam)
 
-(defconst org-roam-db--version 1)
+(defconst org-roam-db--version 2)
 (defconst org-roam-db--sqlite-available-p
   (with-demoted-errors "Org-roam initialization: %S"
     (emacsql-sqlite-ensure-binary)
@@ -126,17 +126,16 @@ SQL can be either the emacsql vector representation, or a string."
   '((files
      [(file :unique :primary-key)
       (hash :not-null)
-      (last-modified :not-null)
-      ])
+      (last-modified :not-null)])
 
-    (file-links
-     [(file-from :not-null)
-      (file-to :not-null)
+    (links
+     [(from :not-null)
+      (to :not-null)
+      (type :not-null)
       (properties :not-null)])
 
     (titles
-     [
-      (file :not-null)
+     [(file :not-null)
       titles])
 
     (refs
@@ -154,7 +153,9 @@ SQL can be either the emacsql vector representation, or a string."
   "Upgrades the database schema for DB, if VERSION is old."
   (emacsql-with-transaction db
     'ignore
-    ;; Do nothing now
+    (when (= version 1)
+      (user-error "No good way to perform a DB migration."
+                  "Please delete the database file, and rerun org-roam-db-build-cache."))
     version))
 
 (defun org-roam-db--close (&optional db)
@@ -193,7 +194,7 @@ the current `org-roam-directory'."
   (when (file-exists-p (org-roam-db--get))
     (org-roam-db-query [:delete :from files])
     (org-roam-db-query [:delete :from titles])
-    (org-roam-db-query [:delete :from file-links])
+    (org-roam-db-query [:delete :from links])
     (org-roam-db-query [:delete :from refs])))
 
 
@@ -204,38 +205,38 @@ This is equivalent to removing the node from the graph."
                    (buffer-file-name)))
          (file (file-truename path)))
     (org-roam-db-query [:delete :from files
-                                :where (= file $s1)]
+                        :where (= file $s1)]
                        file)
-    (org-roam-db-query [:delete :from file-links
-                                :where (= file-from $s1)]
+    (org-roam-db-query [:delete :from links
+                        :where (= from $s1)]
                        file)
     (org-roam-db-query [:delete :from titles
-                                :where (= file $s1)]
+                        :where (= file $s1)]
                        file)
     (org-roam-db-query [:delete :from refs
-                                :where (= file $s1)]
+                        :where (= file $s1)]
                        file)))
 
 ;;;;; Insertion
 (defun org-roam-db--insert-links (links)
   "Insert LINKS into the Org-roam cache."
   (org-roam-db-query
-   [:insert :into file-links
-            :values $v1]
+   [:insert :into links
+    :values $v1]
    links))
 
 (defun org-roam-db--insert-titles (file titles)
   "Insert TITLES for a FILE into the Org-roam cache."
   (org-roam-db-query
    [:insert :into titles
-            :values $v1]
+    :values $v1]
    (list (vector file titles))))
 
 (defun org-roam-db--insert-ref (file ref)
   "Insert REF for FILE into the Org-roam cache."
   (org-roam-db-query
    [:insert :into refs
-            :values $v1]
+    :values $v1]
    (list (vector ref file))))
 
 ;;;;; Fetching
@@ -250,7 +251,7 @@ This is equivalent to removing the node from the graph."
 (defun org-roam-db--get-titles (file)
   "Return the titles of FILE from the cache."
   (caar (org-roam-db-query [:select [titles] :from titles
-                                    :where (= file $s1)]
+                            :where (= file $s1)]
                            file
                            :limit 1)))
 
@@ -259,7 +260,7 @@ This is equivalent to removing the node from the graph."
   "Update the title of the current buffer into the cache."
   (let ((file (file-truename (buffer-file-name))))
     (org-roam-db-query [:delete :from titles
-                                :where (= file $s1)]
+                        :where (= file $s1)]
                        file)
     (org-roam-db--insert-titles file (org-roam--extract-titles))))
 
@@ -267,7 +268,7 @@ This is equivalent to removing the node from the graph."
   "Update the ref of the current buffer into the cache."
   (let ((file (file-truename (buffer-file-name))))
     (org-roam-db-query [:delete :from refs
-                                :where (= file $s1)]
+                        :where (= file $s1)]
                        file)
     (when-let ((ref (org-roam--extract-ref)))
       (org-roam-db--insert-ref file ref))))
@@ -275,8 +276,8 @@ This is equivalent to removing the node from the graph."
 (defun org-roam-db--update-cache-links ()
   "Update the file links of the current buffer in the cache."
   (let ((file (file-truename (buffer-file-name))))
-    (org-roam-db-query [:delete :from file-links
-                                :where (= file-from $s1)]
+    (org-roam-db-query [:delete :from links
+                        :where (= from $s1)]
                        file)
     (when-let ((links (org-roam--extract-links)))
       (org-roam-db--insert-links links))))
@@ -328,22 +329,22 @@ This is equivalent to removing the node from the graph."
     (when all-files
       (org-roam-db-query
        [:insert :into files
-                :values $v1]
+        :values $v1]
        all-files))
     (when all-links
       (org-roam-db-query
-       [:insert :into file-links
-                :values $v1]
+       [:insert :into links
+        :values $v1]
        all-links))
     (when all-titles
       (org-roam-db-query
        [:insert :into titles
-                :values $v1]
+        :values $v1]
        all-titles))
     (when all-refs
       (org-roam-db-query
        [:insert :into refs
-                :values $v1]
+        :values $v1]
        all-refs))
     (let ((stats (list :files (length all-files)
                        :links (length all-links)

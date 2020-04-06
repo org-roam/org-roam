@@ -9,7 +9,7 @@ in-built publishing or ox-hugo -- use the following snippet to add a
        (concat acc (format "- [[file:%s][%s]]\n"
                            (file-relative-name (car it) org-roam-directory)
 			                     (org-roam--get-title-or-slug (car it))))
-       "" (org-roam-sql [:select [file-from] :from file-links :where (= file-to $s1)] file))
+       "" (org-roam-sql [:select [from] :from links :where (= to $s1) :and (= from $s2)] file "roam"))
     ""))
 
 (defun my/org-export-preprocessor (backend)

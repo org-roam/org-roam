@@ -49,6 +49,9 @@
 (require 'org-roam-graph)
 (require 'org-roam-completion)
 
+;; To detect cite: links
+(require 'org-ref nil t)
+
 ;;;; Customizable Variables
 (defgroup org-roam nil
   "Roam Research replica in Org-mode."
@@ -234,7 +237,7 @@ The search terminates when the first property is encountered."
   "Extracts all link items within the current buffer.
 Link items are of the form:
 
-    [file-from file-to properties]
+    [from to type properties]
 
 This is the format that emacsql expects when inserting into the database.
 FILE-FROM is typically the buffer file path, but this may not exist, for example
@@ -244,11 +247,16 @@ it as FILE-PATH."
                        (file-truename (buffer-file-name)))))
     (org-element-map (org-element-parse-buffer) 'link
       (lambda (link)
-        (let ((type (org-element-property :type link))
-              (path (org-element-property :path link))
-              (start (org-element-property :begin link)))
-          (when (and (string= type "file")
-                     (org-roam--org-file-p path))
+        (let* ((type (org-element-property :type link))
+               (path (org-element-property :path link))
+               (start (org-element-property :begin link))
+               (link-type (cond ((and (string= type "file")
+                                      (org-roam--org-file-p path))
+                                 "roam")
+                                ((string= type "cite")
+                                 "cite")
+                                (t nil))))
+          (when link-type
             (goto-char start)
             (let* ((element (org-element-at-point))
                    (begin (or (org-element-property :content-begin element)
@@ -260,7 +268,11 @@ it as FILE-PATH."
                                      (org-element-property :end element)))))
                    (content (string-trim content)))
               (vector file-path
-                      (file-truename (expand-file-name path (file-name-directory file-path)))
+                      (cond ((string= link-type "roam")
+                             (file-truename (expand-file-name path (file-name-directory file-path))))
+                            ((string= link-type "cite")
+                             path))
+                      link-type
                       (list :content content :point begin)))))))))
 
 (defun org-roam--extract-titles ()
@@ -450,11 +462,11 @@ This uses the templates defined at `org-roam-capture-templates'."
          (title (org-roam-completion--completing-read "File: " completions))
          (file-path (cdr (assoc title completions))))
     (let ((org-roam-capture--info (list (cons 'title title)
-                                            (cons 'slug (org-roam--title-to-slug title))
-                                            (cons 'file file-path)))
-              (org-roam-capture--context 'capture))
-          (setq org-roam-capture-additional-template-props (list :capture-fn 'org-roam-capture))
-          (org-roam--capture))))
+                                        (cons 'slug (org-roam--title-to-slug title))
+                                        (cons 'file file-path)))
+          (org-roam-capture--context 'capture))
+      (setq org-roam-capture-additional-template-props (list :capture-fn 'org-roam-capture))
+      (org-roam--capture))))
 
 ;;;; Daily notes
 (defcustom org-roam-date-title-format "%Y-%m-%d"
@@ -591,16 +603,69 @@ This function hooks into `org-open-at-point' via `org-open-at-point-functions'."
              (select-window org-roam-last-window))
     (find-file file)))
 
-(defun org-roam--get-backlinks (file)
-  "Return the backlinks for FILE."
-  (org-roam-db-query [:select [file-from, file-to, properties] :from file-links
-                              :where (= file-to $s1)
-                              :order-by (asc file-from)]
-                     file))
+(defun org-roam--get-backlinks (target)
+  "Return the backlinks for TARGET.
+TARGET may be a file, for Org-roam file links, or a citation key,
+for Org-ref cite links."
+  (org-roam-db-query [:select [from, to, properties] :from links
+                      :where (= to $s1)
+                      :order-by (asc from)]
+                     target))
 
 ;;;; Updating the org-roam buffer
+(defun org-roam--buffer-insert-backlinks (file-path)
+  "Insert the backlinks for FILE-PATH into the current buffer."
+  (if-let* ((file-backlinks (org-roam--get-backlinks file-path))
+              (grouped-backlinks (--group-by (nth 0 it) file-backlinks)))
+    (progn
+      (insert (format "\n\n* %d Backlinks\n"
+                      (length file-backlinks)))
+      (dolist (group grouped-backlinks)
+        (let ((file-from (car group))
+              (bls (cdr group)))
+          (insert (format "** [[file:%s][%s]]\n"
+                          file-from
+                          (org-roam--get-title-or-slug file-from)))
+          (dolist (backlink bls)
+            (pcase-let ((`(,file-from _ ,props) backlink))
+              (insert (propertize
+                       (s-trim (s-replace "\n" " "
+                                          (plist-get props :content)))
+                       'help-echo "mouse-1: visit backlinked note"
+                       'file-from file-from
+                       'file-from-point (plist-get props :point)))
+              (insert "\n\n"))))))
+    (insert "\n\n* No backlinks!")))
+
+(defun org-roam--buffer-insert-citelinks (file-path)
+  "Insert citation backlinks for FILE-PATH into the current buffer."
+  (if-let* ((roam-key (with-temp-buffer
+                        (insert-file-contents file-path)
+                        (org-roam--extract-ref)))
+            (key-backlinks (org-roam--get-backlinks (s-chop-prefix "cite:" roam-key)))
+            (grouped-backlinks (--group-by (nth 0 it) key-backlinks)))
+      (progn
+        (insert (format "\n\n* %d Cite backlinks\n"
+                        (length key-backlinks)))
+        (dolist (group grouped-backlinks)
+          (let ((file-from (car group))
+                (bls (cdr group)))
+            (insert (format "** [[file:%s][%s]]\n"
+                            file-from
+                            (org-roam--get-title-or-slug file-from)))
+            (dolist (backlink bls)
+              (pcase-let ((`(,file-from _ ,props) backlink))
+                (insert (propertize
+                         (s-trim (s-replace "\n" " "
+                                            (plist-get props :content)))
+                         'help-echo "mouse-1: visit backlinked note"
+                         'file-from file-from
+                         'file-from-point (plist-get props :point)))
+                (insert "\n\n"))))))
+    (insert "\n\n* No cite backlinks!")))
+
 (defun org-roam-update (file-path)
-  "Show the backlinks for given org file for file at `FILE-PATH'."
+  "Show the cite-backlinks for given org file for file at `FILE-PATH'."
   (org-roam-db--ensure-built)
   (let* ((source-org-roam-directory org-roam-directory))
     (let ((buffer-title (org-roam--get-title-or-slug file-path)))
@@ -626,27 +691,8 @@ This function hooks into `org-open-at-point' via `org-open-at-point-functions'."
           (setq org-return-follows-link t)
           (insert
            (propertize buffer-title 'font-lock-face 'org-document-title))
-          (if-let* ((backlinks (org-roam--get-backlinks file-path))
-                    (grouped-backlinks (--group-by (nth 0 it) backlinks)))
-              (progn
-                (insert (format "\n\n* %d Backlinks\n"
-                                (length backlinks)))
-                (dolist (group grouped-backlinks)
-                  (let ((file-from (car group))
-                        (bls (cdr group)))
-                    (insert (format "** [[file:%s][%s]]\n"
-                                    file-from
-                                    (org-roam--get-title-or-slug file-from)))
-                    (dolist (backlink bls)
-                      (pcase-let ((`(,file-from _ ,props) backlink))
-                        (insert (propertize
-                                 (s-trim (s-replace "\n" " "
-                                                    (plist-get props :content)))
-                                 'help-echo "mouse-1: visit backlinked note"
-                                 'file-from file-from
-                                 'file-from-point (plist-get props :point)))
-                        (insert "\n\n"))))))
-            (insert "\n\n* No backlinks!")))
+          (org-roam--buffer-insert-backlinks file-path)
+          (org-roam--buffer-insert-citelinks file-path))
         (read-only-mode 1)))))
 
 (cl-defun org-roam--maybe-update-buffer (&key redisplay)
@@ -793,10 +839,12 @@ Otherwise, behave as if called interactively."
              (not (auto-save-file-name-p new-file))
              (org-roam--org-roam-file-p new-file))
     (org-roam-db--ensure-built)
-    (let* ((files-to-rename (org-roam-db-query [:select :distinct [file-from]
-                                                        :from file-links
-                                                        :where (= file-to $s1)]
-                                               file))
+    (let* ((files-to-rename (org-roam-db-query [:select :distinct [from]
+                                                :from links
+                                                :where (= to $s1)
+                                                :and (= type $s2)]
+                                               file
+                                               "roam"))
            (path (file-truename file))
            (new-path (file-truename new-file))
            (slug (org-roam--get-title-or-slug file))
