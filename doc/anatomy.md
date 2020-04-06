@@ -38,3 +38,4 @@ Alternatively, add a ref for notes for a specific paper, using its
 
 The backlinks buffer will show any cites of this key: e.g.
 
+![org-ref-citelink](images/org-ref-citelink.png)
