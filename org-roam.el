@@ -451,23 +451,6 @@ INFO is an alist containing additional information."
                                                            :require-match t)))
       (switch-to-buffer (cdr (assoc name names-and-buffers))))))
 
-;;;; org-roam-capture
-(defun org-roam-capture ()
-  "Launches an org-capture process for a new or existing note.
-This uses the templates defined at `org-roam-capture-templates'."
-  (interactive)
-  (when org-roam-capture--in-process
-    (user-error "Nested Org-roam capture processes not supported"))
-  (let* ((completions (org-roam--get-title-path-completions))
-         (title (org-roam-completion--completing-read "File: " completions))
-         (file-path (cdr (assoc title completions))))
-    (let ((org-roam-capture--info (list (cons 'title title)
-                                        (cons 'slug (org-roam--title-to-slug title))
-                                        (cons 'file file-path)))
-          (org-roam-capture--context 'capture))
-      (setq org-roam-capture-additional-template-props (list :capture-fn 'org-roam-capture))
-      (org-roam--capture))))
-
 ;;;; Daily notes
 (defcustom org-roam-date-title-format "%Y-%m-%d"
   "Format string passed to `format-time-string' for getting a date file's title."
