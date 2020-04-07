@@ -37,9 +37,12 @@
 ;; Declarations
 (defvar org-roam-encrypt-files)
 (defvar org-roam-directory)
-(declare-function  org-roam--file-path-from-id        "org-roam")
-(declare-function  org-roam--get-ref-path-completions "org-roam")
-(declare-function  org-roam--format-link              "org-roam")
+(declare-function  org-roam--get-title-path-completions "org-roam")
+(declare-function  org-roam--get-ref-path-completions   "org-roam")
+(declare-function  org-roam--file-path-from-id          "org-roam")
+(declare-function  org-roam--format-link                "org-roam")
+(declare-function  org-roam--title-to-slug              "org-roam")
+(declare-function  org-roam-completion--completing-read "org-roam-completion")
 
 (defvar org-roam-capture--file-name-default "%<%Y%m%d%H%M%S>"
   "The default file name format for Org-roam templates.")
@@ -307,6 +310,23 @@ GOTO and KEYS argument have the same functionality as
     (add-hook 'org-capture-after-finalize-hook #'org-roam-capture--save-file-maybe-h)
     (add-hook 'org-capture-after-finalize-hook #'org-roam-capture--cleanup-h 10)
     (org-capture goto keys)))
+
+;;;###autoload
+(defun org-roam-capture ()
+  "Launches an `org-capture' process for a new or existing note.
+This uses the templates defined at `org-roam-capture-templates'."
+  (interactive)
+  (when org-roam-capture--in-process
+    (user-error "Nested Org-roam capture processes not supported"))
+  (let* ((completions (org-roam--get-title-path-completions))
+         (title (org-roam-completion--completing-read "File: " completions))
+         (file-path (cdr (assoc title completions))))
+    (let ((org-roam-capture--info (list (cons 'title title)
+                                        (cons 'slug (org-roam--title-to-slug title))
+                                        (cons 'file file-path)))
+          (org-roam-capture--context 'capture))
+      (setq org-roam-capture-additional-template-props (list :capture-fn 'org-roam-capture))
+      (org-roam--capture))))
 
 (provide 'org-roam-capture)
 
