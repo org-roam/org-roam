@@ -53,10 +53,6 @@
   :type 'string
   :group 'org-roam)
 
-(defvaralias 'org-roam-graphviz-extra-options 'org-roam-graph-extra-config)
-(defvaralias 'org-roam-grapher-extra-options  'org-roam-graph-extra-config)
-(make-obsolete-variable 'org-roam-graphviz-extra-options 'org-roam-graph-extra-config "2020/03/31")
-(make-obsolete-variable 'org-roam-grapher-extra-options  'org-roam-graph-extra-config "2020/03/31")
 (defcustom org-roam-graph-extra-config nil
   "Extra options passed to graphviz.
 Example:
@@ -168,8 +164,6 @@ into a digraph."
       (insert "}")
       (buffer-string))))
 
-(defalias 'org-roam-show-graph 'org-roam-graph-show)
-(make-obsolete 'org-roam-show-graph 'org-roam-graph-show "2020/03/28")
 (defun org-roam-graph-show (&optional prefix node-query)
   "Generate and displays the Org-roam graph using `org-roam-graph-viewer'.
 If PREFIX, then the graph is generated but the viewer is not invoked."

@@ -60,21 +60,15 @@ when used with multiple Org-roam instances."
     (emacsql-sqlite-ensure-binary)
     t))
 
-(defvaralias 'org-roam--db-connection 'org-roam-db--connection)
-(make-obsolete-variable 'org-roam--db-connection 'org-roam-db--connection "2020/03/28")
 (defvar org-roam-db--connection (make-hash-table :test #'equal)
   "Database connection to Org-roam database.")
 
-
 ;;;; Core Functions
-(defalias 'org-roam--get-db 'org-roam-db--get)
-(make-obsolete 'org-roam--get-db 'org-roam-db--get "2020/03/28")
 (defun org-roam-db--get ()
   "Return the sqlite db file."
   (interactive "P")
   (or org-roam-db-location
       (expand-file-name "org-roam.db" org-roam-directory)))
-
 
 (defun org-roam-db--get-connection ()
   "Return the database connection, if any."
@@ -112,8 +106,6 @@ Performs a database upgrade when required."
   (org-roam-db--get-connection))
 
 ;;;; Entrypoint: (org-roam-db-query)
-(defalias 'org-roam-sql 'org-roam-db-query)
-(make-obsolete 'org-roam-sql 'org-roam-db-query "2020/03/28")
 (defun org-roam-db-query (sql &rest args)
   "Run SQL query on Org-roam database with ARGS.
 SQL can be either the emacsql vector representation, or a string."
@@ -188,8 +180,6 @@ the current `org-roam-directory'."
     (error "[Org-roam] your cache isn't built yet! Please run org-roam-db-build-cache")))
 
 ;;;;; Clearing
-(defalias 'org-roam--db-clear 'org-roam-db--clear)
-(make-obsolete 'org-roam--db-clear 'org-roam-db--clear "2020/03/28")
 (defun org-roam-db--clear ()
   "Clears all entries in the caches."
   (interactive)
@@ -313,8 +303,6 @@ If the file does not have any connections, nil is returned."
         (org-roam--maybe-update-buffer :redisplay t)))))
 
 ;;;;; org-roam-db-build-cache
-(defalias 'org-roam-build-cache 'org-roam-db-build-cache)
-(make-obsolete 'org-roam-build-cache 'org-roam-db-build-cache "2020/03/28")
 (defun org-roam-db-build-cache ()
   "Build the cache for `org-roam-directory'."
   (interactive)
