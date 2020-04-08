@@ -257,6 +257,21 @@ This is equivalent to removing the node from the graph."
                            file
                            :limit 1)))
 
+(defun org-roam-db--connected-component (file)
+  "Return all files reachable from/connected to FILE, including the file itself.
+If the file does not have any connections, nil is returned."
+  (let* ((query "WITH RECURSIVE
+                   links_of(file, link) AS
+                     (SELECT \"from\", \"to\" FROM links UNION
+                      SELECT \"to\", \"from\" FROM links),
+                   connected_component(file) AS
+                     (SELECT link FROM links_of WHERE file = $s1
+                      UNION
+                      SELECT link FROM links_of JOIN connected_component USING(file))
+                   SELECT * FROM connected_component;")
+         (files (mapcar 'car-safe (emacsql (org-roam-db) query file))))
+    files))
+
 ;;;;; Updating
 (defun org-roam-db--update-titles ()
   "Update the title of the current buffer into the cache."
