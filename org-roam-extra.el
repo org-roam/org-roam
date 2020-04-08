@@ -29,11 +29,18 @@
 
 ;;; Commentary:
 ;;
-;; This library is an attempt at injecting Roam functionality into Org-mode.
-;; This is achieved primarily through building caches for forward links,
-;; backward links, and file titles.
+;; This library offers a tighter integration between org-roam and
+;; org-ref by providing `org-roam-extra-org-ref-notes-fn' function,
+;; which upon installing into `org-ref-notes-function' will enable
+;; org-ref to use org-roam as a backend for managing bibliography
+;; notes.
 ;;
+;; Optionally, `org-roam-capture-templates' can be dynamically
+;; preformatted with bibtex field values.
 ;;
+;; Optionally, an automatic switching to the perspective (persp-mode)
+;; with the notes project (projectile) is possible.
+
 ;;; Code:
 ;;;; Library Requires
 (require 'org-roam)
