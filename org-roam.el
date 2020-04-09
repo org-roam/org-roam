@@ -43,6 +43,7 @@
 (require 'f)
 (require 'cl-lib)
 ;;;; org-roam features
+(require 'org-roam-compat)
 (require 'org-roam-macs)
 (require 'org-roam-db)
 (require 'org-roam-capture)
