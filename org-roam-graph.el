@@ -194,7 +194,7 @@ If NO-DISPLAY is non-nil, the graph is generated but the viewer is not invoked."
   (unless (org-roam--org-roam-file-p)
     (user-error "Not in an Org-roam file"))
   (let* ((file (file-truename (buffer-file-name)))
-         (files (or (if (and max-distance (> (prefix-numeric-value max-distance) 0))
+         (files (or (if (and max-distance (>= (prefix-numeric-value max-distance) 0))
                         (org-roam-db--links-with-max-distance file max-distance)
                       (org-roam-db--connected-component file))
                     (list file)))
