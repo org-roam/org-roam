@@ -273,7 +273,7 @@ including the file itself.  If the file does not have any connections, nil is re
                    -- distance of nodes and to avoid following cyclic links, the visited nodes
                    -- are tracked in 'trace'.
                    connected_component(file, trace) AS
-                     (VALUES($s1, json('[]'))
+                     (VALUES($s1, json_array($s1))
                       UNION
                       SELECT lo.link, json_insert(cc.trace, '$[' || json_array_length(cc.trace) || ']', lo.link) FROM
                       connected_component AS cc JOIN links_of AS lo USING(file)
@@ -281,7 +281,7 @@ including the file itself.  If the file does not have any connections, nil is re
                         -- Avoid cycles by only visiting each file once.
                         (SELECT count(*) FROM json_each(cc.trace) WHERE json_each.value == lo.link) == 0
                         -- Note: BFS is cut off early here.
-                        AND json_array_length(cc.trace) < $s2))
+                        AND json_array_length(cc.trace) < ($s2 + 1)))
                    SELECT DISTINCT file, min(json_array_length(trace)) AS distance
                    FROM connected_component GROUP BY file ORDER BY distance;")
          ;; In principle the distance would be available in the second column.
