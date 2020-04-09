@@ -242,8 +242,6 @@ the file if the original value of :no-save is not t and
                                      (push (cons key v) org-roam-capture--info)
                                      v))) nil)))
 
-(defalias 'org-roam--capture-get-point 'org-roam-capture--get-point)
-(make-obsolete 'org-roam--capture-get-point 'org-roam-capture--get-point "2020/03/29")
 (defun org-roam-capture--get-point ()
   "Return exact point to file for org-capture-template.
 The file to use is dependent on the context:

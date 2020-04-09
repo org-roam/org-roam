@@ -43,6 +43,7 @@
 (require 'f)
 (require 'cl-lib)
 ;;;; org-roam features
+(require 'org-roam-compat)
 (require 'org-roam-macs)
 (require 'org-roam-db)
 (require 'org-roam-capture)
@@ -253,7 +254,9 @@ it as FILE-PATH."
                (link-type (cond ((and (string= type "file")
                                       (org-roam--org-file-p path))
                                  "roam")
-                                ((string= type "cite")
+                                ((and
+                                  (require 'org-ref nil t)
+                                  (-contains? org-ref-cite-types type))
                                  "cite")
                                 (t nil))))
           (when link-type
