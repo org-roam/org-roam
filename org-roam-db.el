@@ -278,6 +278,7 @@ including the file itself.  If the file does not have any connections, nil is re
                       SELECT lo.link, json_insert(cc.trace, '$[' || json_array_length(cc.trace) || ']', lo.link) FROM
                       connected_component AS cc JOIN links_of AS lo USING(file)
                       WHERE (
+                        -- Avoid cycles by only visiting each file once.
                         (SELECT count(*) FROM json_each(cc.trace) WHERE json_each.value == lo.link) == 0
                         -- Note: BFS is cut off early here.
                         AND json_array_length(cc.trace) < $s2))
