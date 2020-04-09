@@ -130,7 +130,7 @@ into a digraph."
     (let* ((nodes (org-roam-db-query node-query))
            (edges-query
             `[:with selected :as [:select [file] :from ,node-query]
-              :select [to from] :from links
+              :select :distinct [to from] :from links
               :where (and (in to selected) (in from selected))])
            (edges (org-roam-db-query edges-query)))
       (insert "digraph \"org-roam\" {\n")
