@@ -38,24 +38,24 @@
 ;; Optionally, `org-roam-capture-templates' can be dynamically
 ;; preformatted with bibtex field values.
 ;;
-;; Optionally, an automatic switching to the perspective (persp-mode)
+;; Optionally, automatic switching to the perspective (persp-mode)
 ;; with the notes project (projectile) is possible.
 
 ;;; Code:
 ;;;; Library Requires
 (require 'org-roam)
-(require 'org-ref)
 
+(autoload 'org-ref-find-bibliography "Find the bibliography in the buffer.")
 (autoload 'projectile-relevant-open-projects "projectile" "Return a list of open projects.")
 (autoload 'persp-switch "persp-mode" "Switch to the perspective with name NAME.")
 (autoload 'persp-names "persp-mode" "")
 
 (defvar org-roam-extra-preformat-templates nil
-  "Set it to t to skip to preformat templates.
+  "Non-nil to enable template preformatting.
 See `org-roam-extra-org-ref-note-fn' for details.")
 
 (defvar org-roam-extra-preformat-keywords '("citekey" . "=key=")
-  "The template prompt wildcards to be preformatted.
+  "The template prompt wildcards for preformatting.
 Only relevant when `org-roam-extra-preformat-templates' is set to
 t. This can be a string, a list of strings or a list of cons
 cells of strings.
@@ -116,7 +116,7 @@ A cons cell. Only relevant when `org-roam-extra-switch-persp' is set to t.
 See `org-roam-extra-org-ref-note-fn' for details")
 
 (defvar org-roam-extra-switch-persp nil
-  "Set it ot t if you want to switch to the notes perspective.
+  "Non-nil to enable switching to the notes perspective.
 Set the name of the perspective and the path to the notes project
 in `org-roam-extra-persp-project' for this to take effect.
 
@@ -175,8 +175,6 @@ TEMPLATE is an org-roam template and ENTRY is a bibtex entry."
 
 (defun org-roam-extra--switch-perspective ()
   "Helper function for `org-roam-extra-org-ref-note-fn'."
-  ;; The compiler still yells but it would not be reasonable to put these
-  ;; requires in the top level unconditionally.
   (when
       (and (featurep 'projectile)
            (require 'projectile nil t)
@@ -238,30 +236,33 @@ you may want to set the perspecive name and project path in
 `org-roam-extra-persp-project' and `org-roam-extra-switch-persp' to
 t. In this case, the perspective will be switched to the org-roam
 notes project before calling any org-roam functions."
-  (unless org-roam-mode
-    (org-roam-mode +1))
-  (let ((note-info (list (cons 'ref citekey))))
-    ;; Optionally switch to the notes perspective
-    (when org-roam-extra-switch-persp
-      (org-roam-extra--switch-perspective))
-    ;; Find org-roam reference with the CITEKEY
-    (unless (ignore-errors (org-roam-find-ref note-info))
-      ;; Call org-roam-find-file
-      (let* ((bibtex-completion-bibliography (org-ref-find-bibliography))
-             (entry (ignore-errors (bibtex-completion-get-entry citekey)))
-             (org-roam-capture-templates
-              ;; Optionally preformat keywords
-              (or
-               (when org-roam-extra-preformat-templates
-                 (let* ((templates (copy-tree org-roam-capture-templates))
-                        result)
-                   (dolist (template templates result)
-                     (pushnew (org-roam-extra--preformat-template template entry) result))))
-               org-roam-capture-templates))
-             (title
-              (or (s-format "${title}" 'bibtex-completion-apa-get-value entry)
-                  "Title not found for this entry. Check your bibtex file.")))
-        (org-roam-find-file title)))))
+  (when
+      (and (featurep 'org-ref)
+           (require 'org-ref))
+    (unless org-roam-mode
+      (org-roam-mode +1))
+    (let ((note-info (list (cons 'ref citekey))))
+      ;; Optionally switch to the notes perspective
+      (when org-roam-extra-switch-persp
+        (org-roam-extra--switch-perspective))
+      ;; Find org-roam reference with the CITEKEY
+      (unless (ignore-errors (org-roam-find-ref note-info))
+        ;; Call org-roam-find-file
+        (let* ((bibtex-completion-bibliography (org-ref-find-bibliography))
+               (entry (ignore-errors (bibtex-completion-get-entry citekey)))
+               (org-roam-capture-templates
+                ;; Optionally preformat keywords
+                (or
+                 (when org-roam-extra-preformat-templates
+                   (let* ((templates (copy-tree org-roam-capture-templates))
+                          result)
+                     (dolist (template templates result)
+                       (pushnew (org-roam-extra--preformat-template template entry) result))))
+                 org-roam-capture-templates))
+               (title
+                (or (s-format "${title}" 'bibtex-completion-apa-get-value entry)
+                    "Title not found for this entry. Check your bibtex file.")))
+          (org-roam-find-file title))))))
 
 (provide 'org-roam-extra)
 ;;; org-roam-extra.el ends here
