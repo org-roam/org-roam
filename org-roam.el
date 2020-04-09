@@ -87,6 +87,12 @@ Formatter may be a function that takes title as its only argument."
   :type 'boolean
   :group 'org-roam)
 
+(defcustom org-roam-buffer-no-delete-other-windows nil
+  "The `no-delete-other-windows' parameter of the `org-roam' window.
+When non-nil, the window will not be closed when deleting other windows."
+  :type 'boolean
+  :group 'org-roam)
+
 ;;;; Dynamic variables
 (defvar org-roam-last-window nil
   "Last window `org-roam' was called from.")

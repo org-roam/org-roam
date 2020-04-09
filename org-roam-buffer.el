@@ -244,7 +244,8 @@ Valid states are 'visible, 'exists and 'none."
            'right)))
     (-> (get-buffer-create org-roam-buffer)
         (display-buffer-in-side-window
-         `((side . ,position)))
+         `((side . ,position)
+           (window-parameters . ((no-delete-other-windows . ,org-roam-buffer-no-delete-other-windows)))))
         (select-window))
     (pcase position
       ((or 'right 'left)
