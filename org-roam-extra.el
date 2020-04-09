@@ -45,10 +45,10 @@
 ;;;; Library Requires
 (require 'org-roam)
 
-(autoload 'org-ref-find-bibliography "Find the bibliography in the buffer.")
-(autoload 'projectile-relevant-open-projects "projectile" "Return a list of open projects.")
-(autoload 'persp-switch "persp-mode" "Switch to the perspective with name NAME.")
-(autoload 'persp-names "persp-mode" "")
+(declare-function org-ref-find-bibliography "org-ref-core")
+(declare-function projectile-relevant-open-projects "projectile")
+(declare-function persp-switch "persp-mode" (name &optional frame (window (selected-window)) (called-interactively-p (called-interactively-p 'any))))
+(declare-function persp-names "persp-mode" (&optional (phash *persp-hash*) (reverse t)))
 
 (defvar org-roam-extra-preformat-templates nil
   "Non-nil to enable template preformatting.
@@ -175,11 +175,8 @@ TEMPLATE is an org-roam template and ENTRY is a bibtex entry."
 
 (defun org-roam-extra--switch-perspective ()
   "Helper function for `org-roam-extra-org-ref-note-fn'."
-  (when
-      (and (featurep 'projectile)
-           (require 'projectile nil t)
-           (featurep 'persp-mode)
-           (require 'persp-mode nil t))
+  (when (and (require 'projectile nil t)
+             (require 'persp-mode nil t))
     (let ((notes-project (cdr org-roam-extra-persp-project))
           (projects (projectile-relevant-open-projects))
           openp)
@@ -236,9 +233,7 @@ you may want to set the perspecive name and project path in
 `org-roam-extra-persp-project' and `org-roam-extra-switch-persp' to
 t. In this case, the perspective will be switched to the org-roam
 notes project before calling any org-roam functions."
-  (when
-      (and (featurep 'org-ref)
-           (require 'org-ref))
+  (when (require 'org-ref nil t)
     (unless org-roam-mode
       (org-roam-mode +1))
     (let ((note-info (list (cons 'ref citekey))))
