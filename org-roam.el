@@ -246,7 +246,27 @@ it as FILE-PATH."
                       link-type
                       (list :content content :point begin)))))))))
 
-(defun org-roam--extract-titles ()
+(defcustom org-roam-title-include-subdirs nil
+  "Include sub-directories relative to `org-roam-directory' in titles."
+  :type 'boolean
+  :group 'org-roam)
+
+(defun org-roam--format-title (title file-path)
+  "Format TITLE with relative sub-directory from `org-roam-directory'."
+  (if org-roam-title-include-subdirs
+      (let* ((root (expand-file-name org-roam-directory))
+             (path (or file-path
+                       (-> (or (buffer-base-buffer)
+                               (current-buffer))
+                           (buffer-file-name)
+                           (file-truename))))
+             (dir (file-name-directory path)))
+        (concat (unless (equal root dir)
+                  (file-relative-name dir root))
+                title))
+    title))
+
+(defun org-roam--extract-titles (&optional file-path)
   "Extract the titles from current buffer.
 Titles are obtained via the #+TITLE property, or aliases
 specified via the #+ROAM_ALIAS property."
@@ -254,9 +274,11 @@ specified via the #+ROAM_ALIAS property."
          (aliases (cdr (assoc "ROAM_ALIAS" props)))
          (title (cdr (assoc "TITLE" props)))
          (alias-list (org-roam--aliases-str-to-list aliases)))
-    (if title
-        (cons title alias-list)
-      alias-list)))
+    (mapcar (lambda (title)
+              (org-roam--format-title title file-path))
+            (if title
+                (cons title alias-list)
+              alias-list))))
 
 (defun org-roam--extract-ref ()
   "Extract the ref from current buffer."

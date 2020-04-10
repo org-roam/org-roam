@@ -324,7 +324,7 @@ If the file does not have any connections, nil is returned."
                   (cons (vector file contents-hash time) all-files))
             (when-let (links (org-roam--extract-links file))
               (setq all-links (append links all-links)))
-            (let ((titles (org-roam--extract-titles)))
+            (let ((titles (org-roam--extract-titles file)))
               (setq all-titles (cons (vector file titles) all-titles)))
             (when-let ((ref (org-roam--extract-ref)))
               (setq all-refs (cons (vector ref file) all-refs))))
