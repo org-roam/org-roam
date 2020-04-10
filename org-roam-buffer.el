@@ -30,6 +30,7 @@
 ;; This library provides the org-roam-buffer functionality for org-roam
 ;;; Code:
 ;;;; Library Requires
+(require 'subr-x)
 (require 'cl-lib)
 (require 'dash)
 (require 's)
