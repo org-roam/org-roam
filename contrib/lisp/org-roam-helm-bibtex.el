@@ -1,0 +1,48 @@
+;;; org-roam-helm-bibtex.el --- Org-roam helm-bibtex integration  -*- fill-column: 78; lexical-binding: t; -*-
+
+;; Authors: Leo Vivier <leo.vivier+dev@gmail.com>
+
+;;; Commentary:
+
+;; This script provides basic interaction between `org-roam' and
+;; `helm-bibtex' by enabling bibliographic notes stored in
+;; `org-roam-directory' to be accessed from `helm-bibtex'.  If a note does not
+;; exist, the user is asked to create one.
+
+;;; Code:
+
+(require 'helm-bibtex)
+
+(defun org-roam--get-ref-path-completions-no-cite ()
+  "Return a list of cons pairs for refs to absolute path of Org-roam files.
+The `cite:' in the refs is stripped to allow mapping from
+entry-keys to file-paths."
+  (let ((alist (org-roam--get-ref-path-completions)))
+    (mapcar (lambda (cons)
+              (let* ((ref-cite (car cons))
+                     (ref (with-temp-buffer
+                            (save-excursion
+                              (insert ref-cite))
+                            (re-search-forward "cite:" nil t)
+                            (buffer-substring (point) (point-max))))
+                     (path (cdr cons)))
+                (cons ref path)))
+            alist)))
+
+(defun bibtex-completion-edit-notes (keys)
+  "Open the notes associated with the selected entries using `find-file'."
+  (dolist (key keys)
+    (let ((refs (org-roam--get-ref-path-completions-no-cite)))
+      (if-let ((path (cdr (assoc key refs))))
+          (find-file path)
+        (when (y-or-n-p (format "No note was found for %s.  Would you like to create one?" key))
+          (let* ((title key)
+                 (org-roam-capture--info (list (cons 'title title)
+                                               (cons 'ref (format "cite:%s" key))
+                                               (cons 'slug (org-roam--title-to-slug key))))
+                 (org-roam-capture--context 'ref)
+                 (org-roam-capture-templates org-roam-capture-ref-templates))
+            (org-roam--capture)))))))
+
+(provide 'org-roam-helm-bibtex)
+;;; org-roam-helm-bibtex.el ends here
