@@ -379,6 +379,12 @@ INITIAL-PROMPT is the initial title prompt."
           (add-hook 'org-capture-after-finalize-hook #'org-roam-capture--find-file-h)
           (org-roam--capture))))))
 
+;;;; org-roam-find-directory
+(defun org-roam-find-directory ()
+  "Find and open `org-roam-directory'."
+  (interactive)
+  (find-file org-roam-directory))
+
 ;;;; org-roam-find-ref
 (defun org-roam--get-ref-path-completions ()
   "Return a list of cons pairs for titles to absolute path of Org-roam files."
