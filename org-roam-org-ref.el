@@ -35,11 +35,19 @@
 ;; org-ref to use org-roam as a backend for managing bibliography
 ;; notes.
 ;;
+;; Use it like this:
+;;
+;; (setq org-ref-notes-function #'org-roam-org-ref-notes-fn
+;;       org-ref-notes-directory "path/to/org-roam-directory")
+;;
 ;; Optionally, `org-roam-capture-templates' can be dynamically
-;; preformatted with bibtex field values.
+;; preformatted with bibtex field values. See
+;; `org-roam-org-ref-preformat-keywords' for more details.
 ;;
 ;; Optionally, automatic switching to the perspective (persp-mode)
-;; with the notes project (projectile) is possible.
+;; with the notes project (projectile) is possible. See
+;; `org-roam-org-ref-edit-notes' for more details.
+;;
 
 ;;; Code:
 ;;;; Library Requires
@@ -52,7 +60,7 @@
 
 (defvar org-roam-org-ref-preformat-templates nil
   "Non-nil to enable template preformatting.
-See `org-roam-org-ref-note-fn' for details.")
+See `org-roam-org-ref-edit-notes' for details.")
 
 (defvar org-roam-org-ref-preformat-keywords '("citekey" . "=key=")
   "The template prompt wildcards for preformatting.
@@ -61,7 +69,7 @@ t. This can be a string, a list of strings or a list of cons
 cells of strings.
 
 Use only alphanumerical characters, dash and underscore. See
-`org-roam-org-ref-note-fn' for implementation details.
+`org-roam-org-ref-edit-notes' for implementation details.
 
 1. If the value is a string, a single keyword, it is treated as a
 bibtex field name, such as such as =key=. In the following
@@ -111,16 +119,17 @@ about bibtex field names.")
 
 (defvar org-roam-org-ref-persp-project `("notes" . ,org-roam-directory)
   "Perspective name and path to the project with bibliography notes.
-A cons cell. Only relevant when `org-roam-org-ref-switch-persp' is set to t.
+A cons cell. Only relevant when `org-roam-org-ref-switch-persp'
+is set to t.
 
-See `org-roam-org-ref-note-fn' for details")
+See `org-roam-org-ref-edit-notes' for details")
 
 (defvar org-roam-org-ref-switch-persp nil
   "Non-nil to enable switching to the notes perspective.
 Set the name of the perspective and the path to the notes project
 in `org-roam-org-ref-persp-project' for this to take effect.
 
-See `org-roam-org-ref-note-fn' for details.")
+See `org-roam-org-ref-edit-notes' for details.")
 
 (defun org-roam-org-ref--preformat-template (template entry)
   "Helper function for `org-roam-org-ref--preformat-templates'.
@@ -174,7 +183,7 @@ TEMPLATE is an org-roam template and ENTRY is a bibtex entry."
     template))
 
 (defun org-roam-org-ref--switch-perspective ()
-  "Helper function for `org-roam-org-ref-note-fn'."
+  "Helper function for `org-roam-org-ref-edit-notes'."
   (when (and (require 'projectile nil t)
              (require 'persp-mode nil t))
     (let ((notes-project (cdr org-roam-org-ref-persp-project))
