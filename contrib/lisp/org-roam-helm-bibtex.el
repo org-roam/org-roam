@@ -29,7 +29,7 @@ entry-keys to file-paths."
                 (cons ref path)))
             alist)))
 
-(defun bibtex-completion-edit-notes (keys)
+(defun org-roam-bibtex-completion-edit-notes (keys)
   "Open the notes associated with the selected entries using `find-file'."
   (dolist (key keys)
     (let ((refs (org-roam--get-ref-path-completions-no-cite)))
@@ -43,6 +43,8 @@ entry-keys to file-paths."
                  (org-roam-capture--context 'ref)
                  (org-roam-capture-templates org-roam-capture-ref-templates))
             (org-roam--capture)))))))
+
+(advice-add 'bibtex-completion-edit-notes :override #'org-roam-bibtex-completion-edit-notes)
 
 (provide 'org-roam-helm-bibtex)
 ;;; org-roam-helm-bibtex.el ends here
