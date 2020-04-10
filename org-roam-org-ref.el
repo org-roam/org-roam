@@ -195,8 +195,18 @@ Set `org-ref-notes-function' to this function if your
 bibliorgaphy notes are managed by org-roam and you want some extra
 integration between the two packages.
 
-This function allows to use org-roam as a backend for org-ref's
-handling of bibliography notes.
+This is a wrapper function around `org-roam-org-ref-edit-notes'
+intended for use with org-ref."
+  (when (require 'org-ref nil t)
+    (let ((bibtex-completion-bibliography (org-ref-find-bibliography)))
+      (org-roam-org-ref-edit-notes citekey))))
+
+(defun org-roam-org-ref-edit-notes (citekey)
+  "Open an org-roam note associated with the CITEKEY or create a new one.
+
+This function allows to use org-roam as a backend for managing
+bibliography notes. It relies on `bibtex-completion' to get
+retrieve bibliograpic information from a bibtex file.
 
 Implementation details and features:
 
@@ -233,7 +243,7 @@ you may want to set the perspecive name and project path in
 `org-roam-org-ref-persp-project' and `org-roam-org-ref-switch-persp' to
 t. In this case, the perspective will be switched to the org-roam
 notes project before calling any org-roam functions."
-  (when (require 'org-ref nil t)
+  (when (require 'bibtex-completion nil t)
     (unless org-roam-mode
       (org-roam-mode +1))
     (let ((note-info (list (cons 'ref citekey))))
@@ -243,8 +253,7 @@ notes project before calling any org-roam functions."
       ;; Find org-roam reference with the CITEKEY
       (unless (ignore-errors (org-roam-find-ref note-info))
         ;; Call org-roam-find-file
-        (let* ((bibtex-completion-bibliography (org-ref-find-bibliography))
-               (entry (ignore-errors (bibtex-completion-get-entry citekey)))
+        (let* ((entry (ignore-errors (bibtex-completion-get-entry citekey)))
                (org-roam-capture-templates
                 ;; Optionally preformat keywords
                 (or
