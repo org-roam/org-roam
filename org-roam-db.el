@@ -31,6 +31,7 @@
 ;;
 ;;; Code:
 ;;;; Library Requires
+(eval-when-compile (require 'subr-x))
 (require 'emacsql)
 (require 'emacsql-sqlite)
 (require 'org-roam-macs)
@@ -41,8 +42,8 @@
 (declare-function org-roam--extract-titles      "org-roam")
 (declare-function org-roam--extract-ref         "org-roam")
 (declare-function org-roam--extract-links       "org-roam")
-(declare-function org-roam--maybe-update-buffer "org-roam")
 (declare-function org-roam--list-files          "org-roam")
+(declare-function org-roam-buffer--update-maybe "org-roam-buffer")
 
 ;;;; Options
 (defcustom org-roam-db-location nil
@@ -60,21 +61,15 @@ when used with multiple Org-roam instances."
     (emacsql-sqlite-ensure-binary)
     t))
 
-(defvaralias 'org-roam--db-connection 'org-roam-db--connection)
-(make-obsolete-variable 'org-roam--db-connection 'org-roam-db--connection "2020/03/28")
 (defvar org-roam-db--connection (make-hash-table :test #'equal)
   "Database connection to Org-roam database.")
 
-
 ;;;; Core Functions
-(defalias 'org-roam--get-db 'org-roam-db--get)
-(make-obsolete 'org-roam--get-db 'org-roam-db--get "2020/03/28")
 (defun org-roam-db--get ()
   "Return the sqlite db file."
   (interactive "P")
   (or org-roam-db-location
       (expand-file-name "org-roam.db" org-roam-directory)))
-
 
 (defun org-roam-db--get-connection ()
   "Return the database connection, if any."
@@ -112,8 +107,6 @@ Performs a database upgrade when required."
   (org-roam-db--get-connection))
 
 ;;;; Entrypoint: (org-roam-db-query)
-(defalias 'org-roam-sql 'org-roam-db-query)
-(make-obsolete 'org-roam-sql 'org-roam-db-query "2020/03/28")
 (defun org-roam-db-query (sql &rest args)
   "Run SQL query on Org-roam database with ARGS.
 SQL can be either the emacsql vector representation, or a string."
@@ -188,8 +181,6 @@ the current `org-roam-directory'."
     (error "[Org-roam] your cache isn't built yet! Please run org-roam-db-build-cache")))
 
 ;;;;; Clearing
-(defalias 'org-roam--db-clear 'org-roam-db--clear)
-(make-obsolete 'org-roam--db-clear 'org-roam-db--clear "2020/03/28")
 (defun org-roam-db--clear ()
   "Clears all entries in the caches."
   (interactive)
@@ -272,6 +263,32 @@ If the file does not have any connections, nil is returned."
          (files (mapcar 'car-safe (emacsql (org-roam-db) query file))))
     files))
 
+(defun org-roam-db--links-with-max-distance (file max-distance)
+  "Return all files reachable from/connected to FILE in at most MAX-DISTANCE steps,
+including the file itself.  If the file does not have any connections, nil is returned."
+  (let* ((query "WITH RECURSIVE
+                   links_of(file, link) AS
+                     (SELECT \"from\", \"to\" FROM links UNION
+                      SELECT \"to\", \"from\" FROM links),
+                   -- Links are traversed in a breadth-first search.  In order to calculate the
+                   -- distance of nodes and to avoid following cyclic links, the visited nodes
+                   -- are tracked in 'trace'.
+                   connected_component(file, trace) AS
+                     (VALUES($s1, json_array($s1))
+                      UNION
+                      SELECT lo.link, json_insert(cc.trace, '$[' || json_array_length(cc.trace) || ']', lo.link) FROM
+                      connected_component AS cc JOIN links_of AS lo USING(file)
+                      WHERE (
+                        -- Avoid cycles by only visiting each file once.
+                        (SELECT count(*) FROM json_each(cc.trace) WHERE json_each.value == lo.link) == 0
+                        -- Note: BFS is cut off early here.
+                        AND json_array_length(cc.trace) < ($s2 + 1)))
+                   SELECT DISTINCT file, min(json_array_length(trace)) AS distance
+                   FROM connected_component GROUP BY file ORDER BY distance;")
+         ;; In principle the distance would be available in the second column.
+         (files (mapcar 'car-safe (emacsql (org-roam-db) query file max-distance))))
+    files))
+
 ;;;;; Updating
 (defun org-roam-db--update-titles ()
   "Update the title of the current buffer into the cache."
@@ -310,11 +327,9 @@ If the file does not have any connections, nil is returned."
         (org-roam-db--update-titles)
         (org-roam-db--update-refs)
         (org-roam-db--update-cache-links)
-        (org-roam--maybe-update-buffer :redisplay t)))))
+        (org-roam-buffer--update-maybe :redisplay t)))))
 
 ;;;;; org-roam-db-build-cache
-(defalias 'org-roam-build-cache 'org-roam-db-build-cache)
-(make-obsolete 'org-roam-build-cache 'org-roam-db-build-cache "2020/03/28")
 (defun org-roam-db-build-cache ()
   "Build the cache for `org-roam-directory'."
   (interactive)

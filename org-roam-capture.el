@@ -72,9 +72,6 @@ The `ref' context is used by `org-roam-protocol', where the
 capture process is triggered upon trying to find or create a new
 note with the given `ref'.")
 
-(defvar org-roam-capture--in-process nil
-  "Boolean tracking whether Org-roam captures are in-process.")
-
 (defvar org-roam-capture-additional-template-props nil
   "Additional props to be added to the Org-roam template.")
 
@@ -128,6 +125,13 @@ Details on how to specify for the template is given in `org-roam-capture-templat
                          (pop stuff) (pop stuff))))
     (setq org-capture-plist
           (plist-put org-capture-plist :org-roam p))))
+
+(defun org-roam-capture--in-process-p ()
+  "Return non-nil if a `org-roam-capture' buffer exists."
+  (cl-some (lambda (buffer)
+	     (and (eq (buffer-local-value 'major-mode (current-buffer)) 'org-mode)
+		  (plist-get (buffer-local-value 'org-capture-current-plist (current-buffer)) :org-roam)))
+	   (buffer-list)))
 
 (defun org-roam-capture--fill-template (str &optional info)
   "Expands the template STR, returning the string.
@@ -238,8 +242,6 @@ the file if the original value of :no-save is not t and
                                      (push (cons key v) org-roam-capture--info)
                                      v))) nil)))
 
-(defalias 'org-roam--capture-get-point 'org-roam-capture--get-point)
-(make-obsolete 'org-roam--capture-get-point 'org-roam-capture--get-point "2020/03/29")
 (defun org-roam-capture--get-point ()
   "Return exact point to file for org-capture-template.
 The file to use is dependent on the context:
@@ -270,14 +272,9 @@ This function is used solely in Org-roam's capture templates: see
       (let ((prop (pop org-roam-capture-additional-template-props))
             (val (pop org-roam-capture-additional-template-props)))
         (org-roam-capture--put prop val)))
-    (setq org-roam-capture--in-process t)
     (set-buffer (org-capture-target-buffer file-path))
     (widen)
     (goto-char (point-max))))
-
-(defun org-roam-capture--cleanup-h ()
-  "Cleans up after an Org-roam capture process."
-  (setq org-roam-capture--in-process nil))
 
 (defun org-roam-capture--convert-template (template)
   "Convert TEMPLATE from Org-roam syntax to `org-capture-templates' syntax."
@@ -308,7 +305,6 @@ GOTO and KEYS argument have the same functionality as
     (when (= (length org-capture-templates) 1)
       (setq keys (caar org-capture-templates)))
     (add-hook 'org-capture-after-finalize-hook #'org-roam-capture--save-file-maybe-h)
-    (add-hook 'org-capture-after-finalize-hook #'org-roam-capture--cleanup-h 10)
     (org-capture goto keys)))
 
 ;;;###autoload
@@ -316,7 +312,7 @@ GOTO and KEYS argument have the same functionality as
   "Launches an `org-capture' process for a new or existing note.
 This uses the templates defined at `org-roam-capture-templates'."
   (interactive)
-  (when org-roam-capture--in-process
+  (when (org-roam-capture--in-process-p)
     (user-error "Nested Org-roam capture processes not supported"))
   (let* ((completions (org-roam--get-title-path-completions))
          (title (org-roam-completion--completing-read "File: " completions))
