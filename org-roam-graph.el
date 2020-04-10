@@ -130,7 +130,7 @@ into a digraph."
     (let* ((nodes (org-roam-db-query node-query))
            (edges-query
             `[:with selected :as [:select [file] :from ,node-query]
-              :select [to from] :from links
+              :select :distinct [to from] :from links
               :where (and (in to selected) (in from selected))])
            (edges (org-roam-db-query edges-query)))
       (insert "digraph \"org-roam\" {\n")
@@ -186,18 +186,22 @@ If PREFIX, then the graph is generated but the viewer is not invoked."
 	        (call-process org-roam-graph-viewer nil 0 nil temp-graph)
         (view-file temp-graph)))))
 
-(defun org-roam-graph-show-connected-component (&optional prefix)
+(defun org-roam-graph-show-connected-component (&optional max-distance no-display)
   "Like `org-roam-graph-show', but only show nodes connected to the current entry.
-If PREFIX is non-nil, the graph is generated but the viewer is not invoked."
+If MAX-DISTANCE is non-nil, only nodes within the given number of steps are shown.
+If NO-DISPLAY is non-nil, the graph is generated but the viewer is not invoked."
   (interactive "P")
   (unless (org-roam--org-roam-file-p)
     (user-error "Not in an Org-roam file"))
   (let* ((file (file-truename (buffer-file-name)))
-         (files (or (org-roam-db--connected-component file) (list file)))
+         (files (or (if (and max-distance (>= (prefix-numeric-value max-distance) 0))
+                        (org-roam-db--links-with-max-distance file max-distance)
+                      (org-roam-db--connected-component file))
+                    (list file)))
          (query `[:select [file titles]
                   :from titles
                   :where (in file [,@files])]))
-    (org-roam-graph-show prefix query)))
+    (org-roam-graph-show no-display query)))
 
 (provide 'org-roam-graph)
 
