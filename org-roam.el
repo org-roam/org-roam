@@ -422,7 +422,7 @@ INFO is an alist containing additional information."
   (let* ((completions (org-roam--get-ref-path-completions))
          (ref (or (cdr (assoc 'ref info))
                   (org-roam-completion--completing-read "Ref: "
-                                                        (org-roam--get-ref-path-completions)
+                                                        completions
                                                         :require-match t))))
     (find-file (cdr (assoc ref completions)))))
 
