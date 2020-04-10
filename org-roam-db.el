@@ -41,8 +41,8 @@
 (declare-function org-roam--extract-titles      "org-roam")
 (declare-function org-roam--extract-ref         "org-roam")
 (declare-function org-roam--extract-links       "org-roam")
-(declare-function org-roam--maybe-update-buffer "org-roam")
 (declare-function org-roam--list-files          "org-roam")
+(declare-function org-roam-buffer--update-maybe "org-roam-buffer")
 
 ;;;; Options
 (defcustom org-roam-db-location nil
@@ -300,7 +300,7 @@ If the file does not have any connections, nil is returned."
         (org-roam-db--update-titles)
         (org-roam-db--update-refs)
         (org-roam-db--update-cache-links)
-        (org-roam--maybe-update-buffer :redisplay t)))))
+        (org-roam-buffer--update-maybe :redisplay t)))))
 
 ;;;;; org-roam-db-build-cache
 (defun org-roam-db-build-cache ()
