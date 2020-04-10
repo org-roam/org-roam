@@ -46,6 +46,7 @@
 (require 'org-roam-compat)
 (require 'org-roam-macs)
 (require 'org-roam-db)
+(require 'org-roam-buffer)
 (require 'org-roam-capture)
 (require 'org-roam-graph)
 (require 'org-roam-completion)
@@ -73,19 +74,6 @@ All Org files, at any level of nesting, is considered part of the Org-roam."
   :type 'directory
   :group 'org-roam)
 
-(defcustom org-roam-buffer-position 'right
-  "Position of `org-roam' buffer.
-Valid values are
- * left,
- * right,
- * top,
- * bottom."
-  :type '(choice (const left)
-                 (const right)
-                 (const top)
-                 (const bottom))
-  :group 'org-roam)
-
 (defcustom org-roam-link-title-format "%s"
   "The formatter used when inserting Org-roam links that use their title.
 Formatter may be a function that takes title as its only argument."
@@ -94,32 +82,12 @@ Formatter may be a function that takes title as its only argument."
           (function :tag "Custom function"))
   :group 'org-roam)
 
-(defcustom org-roam-buffer-width 0.33
-  "Width of `org-roam' buffer.
-Has an effect if and only if `org-roam-buffer-position' is `left' or `right'."
-  :type 'number
-  :group 'org-roam)
-
-(defcustom org-roam-buffer-height 0.27
-  "Height of `org-roam' buffer.
-Has an effect if and only if `org-roam-buffer-position' is `top' or `bottom'."
-  :type 'number
-  :group 'org-roam)
-
-(defcustom org-roam-buffer "*org-roam*"
-  "Org-roam buffer name."
-  :type 'string
-  :group 'org-roam)
-
 (defcustom org-roam-encrypt-files nil
   "Whether to encrypt new files.  If true, create files with .org.gpg extension."
   :type 'boolean
   :group 'org-roam)
 
 ;;;; Dynamic variables
-(defvar org-roam--current-buffer nil
-  "Currently displayed file in `org-roam' buffer.")
-
 (defvar org-roam-last-window nil
   "Last window `org-roam' was called from.")
 
@@ -367,16 +335,16 @@ If PREFIX, downcase the title before insertion."
           (when region ;; Remove previously selected text.
             (delete-region (car region) (cdr region)))
           (insert (org-roam--format-link target-file-path link-description)))
-      (if org-roam-capture--in-process
-          (user-error "Nested Org-roam capture processes not supported")
-        (let ((org-roam-capture--info (list (cons 'title title)
-                                            (cons 'slug (org-roam--title-to-slug title))))
-              (org-roam-capture--context 'title))
-          (add-hook 'org-capture-after-finalize-hook #'org-roam-capture--insert-link-h)
-          (setq org-roam-capture-additional-template-props (list :region region
-                                                                 :link-description link-description
-                                                                 :capture-fn 'org-roam-insert))
-          (org-roam--capture))))))
+      (when (org-roam-capture--in-process-p)
+	(user-error "Nested Org-roam capture processes not supported"))
+      (let ((org-roam-capture--info (list (cons 'title title)
+					  (cons 'slug (org-roam--title-to-slug title))))
+	    (org-roam-capture--context 'title))
+	(add-hook 'org-capture-after-finalize-hook #'org-roam-capture--insert-link-h)
+	(setq org-roam-capture-additional-template-props (list :region region
+							       :link-description link-description
+							       :capture-fn 'org-roam-insert))
+	(org-roam--capture)))))
 
 ;;;; org-roam-find-file
 (defun org-roam--get-title-path-completions ()
@@ -403,7 +371,7 @@ INITIAL-PROMPT is the initial title prompt."
          (file-path (cdr (assoc title completions))))
     (if file-path
         (find-file file-path)
-      (if org-roam-capture--in-process
+      (if (org-roam-capture--in-process-p)
           (user-error "Org-roam capture in process")
         (let ((org-roam-capture--info (list (cons 'title title)
                                             (cons 'slug (org-roam--title-to-slug title))))
@@ -598,166 +566,8 @@ for Org-ref cite links."
                       :order-by (asc from)]
                      target))
 
-;;;; Updating the org-roam buffer
-(defun org-roam--buffer-insert-backlinks (file-path)
-  "Insert the backlinks for FILE-PATH into the current buffer."
-  (if-let* ((file-backlinks (org-roam--get-backlinks file-path))
-              (grouped-backlinks (--group-by (nth 0 it) file-backlinks)))
-    (progn
-      (insert (format "\n\n* %d Backlinks\n"
-                      (length file-backlinks)))
-      (dolist (group grouped-backlinks)
-        (let ((file-from (car group))
-              (bls (cdr group)))
-          (insert (format "** [[file:%s][%s]]\n"
-                          file-from
-                          (org-roam--get-title-or-slug file-from)))
-          (dolist (backlink bls)
-            (pcase-let ((`(,file-from _ ,props) backlink))
-              (insert (propertize
-                       (s-trim (s-replace "\n" " "
-                                          (plist-get props :content)))
-                       'help-echo "mouse-1: visit backlinked note"
-                       'file-from file-from
-                       'file-from-point (plist-get props :point)))
-              (insert "\n\n"))))))
-    (insert "\n\n* No backlinks!")))
-
-(defun org-roam--buffer-insert-citelinks (file-path)
-  "Insert citation backlinks for FILE-PATH into the current buffer."
-  (if-let* ((roam-key (with-temp-buffer
-                        (insert-file-contents file-path)
-                        (org-roam--extract-ref)))
-            (key-backlinks (org-roam--get-backlinks (s-chop-prefix "cite:" roam-key)))
-            (grouped-backlinks (--group-by (nth 0 it) key-backlinks)))
-      (progn
-        (insert (format "\n\n* %d Cite backlinks\n"
-                        (length key-backlinks)))
-        (dolist (group grouped-backlinks)
-          (let ((file-from (car group))
-                (bls (cdr group)))
-            (insert (format "** [[file:%s][%s]]\n"
-                            file-from
-                            (org-roam--get-title-or-slug file-from)))
-            (dolist (backlink bls)
-              (pcase-let ((`(,file-from _ ,props) backlink))
-                (insert (propertize
-                         (s-trim (s-replace "\n" " "
-                                            (plist-get props :content)))
-                         'help-echo "mouse-1: visit backlinked note"
-                         'file-from file-from
-                         'file-from-point (plist-get props :point)))
-                (insert "\n\n"))))))
-    (insert "\n\n* No cite backlinks!")))
-
-(defun org-roam-update (file-path)
-  "Show the cite-backlinks for given org file for file at `FILE-PATH'."
-  (org-roam-db--ensure-built)
-  (let* ((source-org-roam-directory org-roam-directory))
-    (let ((buffer-title (org-roam--get-title-or-slug file-path)))
-      (with-current-buffer org-roam-buffer
-        ;; When dir-locals.el is used to override org-roam-directory,
-        ;; org-roam-buffer should have a different local org-roam-directory and
-        ;; default-directory, as relative links are relative from the overridden
-        ;; org-roam-directory.
-        (setq-local org-roam-directory source-org-roam-directory)
-        (setq-local default-directory source-org-roam-directory)
-        ;; Locally overwrite the file opening function to re-use the
-        ;; last window org-roam was called from
-        (setq-local
-         org-link-frame-setup
-         (cons '(file . org-roam--find-file) org-link-frame-setup))
-        (let ((inhibit-read-only t))
-          (erase-buffer)
-          (unless (eq major-mode 'org-mode)
-            (org-mode))
-          (unless org-roam-backlinks-mode
-            (org-roam-backlinks-mode))
-          (make-local-variable 'org-return-follows-link)
-          (setq org-return-follows-link t)
-          (insert
-           (propertize buffer-title 'font-lock-face 'org-document-title))
-          (org-roam--buffer-insert-backlinks file-path)
-          (org-roam--buffer-insert-citelinks file-path))
-        (read-only-mode 1)))))
-
-(cl-defun org-roam--maybe-update-buffer (&key redisplay)
-  "Reconstructs `org-roam-buffer'.
-This needs to be quick or infrequent, because this is run at
-`post-command-hook'.  If REDISPLAY, force an update of
-`org-roam-buffer'."
-  (let ((buffer (window-buffer)))
-    (when (and (or redisplay
-                   (not (eq org-roam--current-buffer buffer)))
-               (eq 'visible (org-roam--current-visibility))
-               (buffer-local-value 'buffer-file-truename buffer))
-      (setq org-roam--current-buffer buffer)
-      (org-roam-update (expand-file-name
-                        (buffer-local-value 'buffer-file-truename buffer))))))
-
-;;;; Toggling the org-roam buffer
-(define-inline org-roam--current-visibility ()
-  "Return whether the current visibility state of the org-roam buffer.
-Valid states are 'visible, 'exists and 'none."
-  (declare (side-effect-free t))
-  (inline-quote
-   (cond
-    ((get-buffer-window org-roam-buffer) 'visible)
-    ((get-buffer org-roam-buffer) 'exists)
-    (t 'none))))
-
-(defun org-roam--set-width (width)
-  "Set the width of `org-roam-buffer' to `WIDTH'."
-  (unless (one-window-p)
-    (let ((window-size-fixed)
-          (w (max width window-min-width)))
-      (cond
-       ((> (window-width) w)
-        (shrink-window-horizontally  (- (window-width) w)))
-       ((< (window-width) w)
-        (enlarge-window-horizontally (- w (window-width))))))))
-
-(defun org-roam--set-height (height)
-  "Set the height of `org-roam-buffer' to `HEIGHT'."
-  (unless (one-window-p)
-    (let ((window-size-fixed)
-          (h (max height window-min-height)))
-      (cond
-       ((> (window-height) h)
-        (shrink-window  (- (window-height) h)))
-       ((< (window-height) h)
-        (enlarge-window (- h (window-height))))))))
-
-(defun org-roam--set-up-buffer ()
-  "Set up the `org-roam' buffer at the `org-roam-buffer-position'."
-  (let ((window (get-buffer-window))
-        (position
-         (if (member org-roam-buffer-position '(right left top bottom))
-             org-roam-buffer-position
-           (let ((text-quoting-style 'grave))
-             (lwarn '(org-roam) :error
-                    "Invalid org-roam-buffer-position: %s. Defaulting to \\='right"
-                    org-roam-buffer-position))
-           'right)))
-    (-> (get-buffer-create org-roam-buffer)
-        (display-buffer-in-side-window
-         `((side . ,position)))
-        (select-window))
-    (pcase position
-      ((or 'right 'left)
-       (org-roam--set-width  (round (* (frame-width)  org-roam-buffer-width))))
-      ((or 'top  'bottom)
-       (org-roam--set-height (round (* (frame-height) org-roam-buffer-height)))))
-    (select-window window)))
-
-(defun org-roam ()
-  "Pops up the window `org-roam-buffer' accordingly."
-  (interactive)
-  (setq org-roam-last-window (get-buffer-window))
-  (pcase (org-roam--current-visibility)
-    ('visible (delete-window (get-buffer-window org-roam-buffer)))
-    ('exists (org-roam--set-up-buffer))
-    ('none (org-roam--set-up-buffer))))
+;;;###autoload
+(defalias 'org-roam 'org-roam-buffer-toggle-display)
 
 ;;; The global minor org-roam-mode
 (defvar org-roam-mode-map
@@ -801,17 +611,17 @@ Otherwise, behave as if called interactively."
     (dolist (buf (org-roam--get-roam-buffers))
       (with-current-buffer buf
         (org-link-set-parameters "file" :face 'org-link)
-        (remove-hook 'post-command-hook #'org-roam--maybe-update-buffer t)
+        (remove-hook 'post-command-hook #'org-roam-buffer--update-maybe t)
         (remove-hook 'after-save-hook #'org-roam-db--update-file t))))))
 
 (defun org-roam--find-file-hook-function ()
   "Called by `find-file-hook' when mode `org-roam-mode' is on."
   (when (org-roam--org-roam-file-p)
     (setq org-roam-last-window (get-buffer-window))
-    (add-hook 'post-command-hook #'org-roam--maybe-update-buffer nil t)
+    (add-hook 'post-command-hook #'org-roam-buffer--update-maybe nil t)
     (add-hook 'after-save-hook #'org-roam-db--update-file nil t)
     (org-link-set-parameters "file" :face 'org-roam--roam-link-face)
-    (org-roam--maybe-update-buffer :redisplay nil)))
+    (org-roam-buffer--update-maybe :redisplay t)))
 
 (defun org-roam--delete-file-advice (file &optional _trash)
   "Advice for maintaining cache consistency when FILE is deleted."
