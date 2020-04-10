@@ -31,7 +31,7 @@
 ;;
 ;;; Code:
 ;;;; Library Requires
-(require 'subr-x)
+(eval-when-compile (require 'subr-x))
 (require 'emacsql)
 (require 'emacsql-sqlite)
 (require 'org-roam-macs)
