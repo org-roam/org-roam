@@ -11,7 +11,13 @@
 
 ;;; Code:
 
-(require 'helm-bibtex)
+(require 'bibtex-completion)
+
+(with-eval-after-load 'helm
+  (require 'helm-bibtex))
+
+(with-eval-after-load 'ivy
+  (require 'ivy-bibtex))
 
 (defun org-roam-bibtex-completion-edit-notes (keys)
   "Open the notes associated with the selected entries using `find-file'."
