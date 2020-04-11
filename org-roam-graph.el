@@ -139,7 +139,12 @@ into a digraph."
             `[:with selected :as [:select [file] :from ,node-query]
               :select :distinct [to from] :from links
               :where (and (in to selected) (in from selected))])
-           (edges (org-roam-db-query edges-query)))
+           (edges-cites-query
+            `[:with selected :as [:select [file] :from ,node-query]
+              :select :distinct [file from]
+              :from links :inner :join refs :on (= links:to refs:ref)
+              :where (and (in file selected) (in from selected) (= type "cite"))])
+           (edges (append (org-roam-db-query edges-query) (org-roam-db-query edges-cites-query))))
       (insert "digraph \"org-roam\" {\n")
 
       (dolist (option org-roam-graph-extra-config)
