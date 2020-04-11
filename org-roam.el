@@ -247,12 +247,14 @@ it as FILE-PATH."
                       (list :content content :point begin)))))))))
 
 (defcustom org-roam-title-include-subdirs nil
-  "Include sub-directories relative to `org-roam-directory' in titles."
+  "If t, include sub-directories relative to `org-roam-directory'
+in title completions."
   :type 'boolean
   :group 'org-roam)
 
 (defun org-roam--format-title (title file-path)
-  "Format TITLE with relative sub-directory from `org-roam-directory'."
+  "Format TITLE with relative sub-directory from `org-roam-directory'.
+FILE_PATH should be the absolute path to the note."
   (if org-roam-title-include-subdirs
       (let* ((root (expand-file-name org-roam-directory))
              (path (or file-path
