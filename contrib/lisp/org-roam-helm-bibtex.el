@@ -4,10 +4,10 @@
 
 ;;; Commentary:
 
-;; This script provides basic interaction between `org-roam' and
-;; `helm-bibtex' by enabling bibliographic notes stored in
-;; `org-roam-directory' to be accessed from `helm-bibtex'.  If a note does not
-;; exist, the user is asked to create one.
+;; This script provides basic interaction between `org-roam' and `helm-bibtex'
+;; by enabling bibliographic notes stored in `org-roam-directory' to be
+;; accessed from `helm-bibtex' or `ivy-bibtex'.  If a note does not exist, the
+;; user is asked to create one.
 
 ;;; Code:
 
