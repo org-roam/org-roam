@@ -47,6 +47,18 @@
   "org-roam 1.0.0")
 (define-obsolete-function-alias 'org-roam-show-graph  'org-roam-graph-show
   "org-roam 1.0.0")
+(define-obsolete-function-alias 'org-roam--maybe-update-buffer
+  'org-roam-buffer--update-maybe "org-roam 1.0.0")
+(define-obsolete-function-alias 'org-roam--current-visibility
+  'org-roam-buffer--visibility "org-roam 1.0.0")
+(define-obsolete-function-alias 'org-roam-update         'org-roam-buffer-update
+  "org-roam 1.0.0")
+(define-obsolete-function-alias 'org-roam--set-width     'org-roam-buffer--set-width
+  "org-roam 1.0.0")
+(define-obsolete-function-alias 'org-roam--set-height    'org-roam-buffer--set-height
+  "org-roam 1.0.0")
+(define-obsolete-function-alias 'org-roam--set-up-buffer 'org-roam-buffer--get-create
+  "org-roam 1.0.0")
 
 ;;;; Variables
 (define-obsolete-variable-alias 'org-roam-graphviz-extra-options
@@ -55,6 +67,8 @@
   'org-roam-graph-extra-config "org-roam 1.0.0")
 (define-obsolete-variable-alias 'org-roam--db-connection
   'org-roam-db--connection "org-roam 1.0.0")
+(define-obsolete-variable-alias 'org-roam--current-buffer
+  'org-roam-buffer--current "org-roam 1.0.0")
 
 (provide 'org-roam-compat)
 
