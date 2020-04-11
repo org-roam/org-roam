@@ -11,6 +11,7 @@
 * [#374][gh-374] Add support for `org-ref` `cite:` links
 * [#380][gh-380] Allow `org-roam-buffer-position` to also be `top` or `bottom`
 * [#385][gh-385] Add `org-roam-graph-node-extra-config` to configure Graphviz nodes
+* [#435][gh-435] Add `org-roam-graph-edge-extra-config` to configure Graphviz edges
 
 ## 1.0.0 (23-03-2020)
 
