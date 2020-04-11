@@ -67,6 +67,13 @@ Example:
   :type '(alist)
   :group 'org-roam)
 
+(defcustom org-roam-graph-edge-extra-config nil
+  "Extra options for graphviz edges.
+Example:
+ '((\"dir\" . \"back\"))"
+  :type '(alist)
+  :group 'org-roam)
+
 (defcustom org-roam-graph-max-title-length 100
   "Maximum length of titles in graph nodes."
   :type 'number
@@ -134,22 +141,33 @@ into a digraph."
               :where (and (in to selected) (in from selected))])
            (edges (org-roam-db-query edges-query)))
       (insert "digraph \"org-roam\" {\n")
+
       (dolist (option org-roam-graph-extra-config)
-        (insert (concat (car option)
+        (insert (concat "  "
+                        (car option)
                         "="
                         (cdr option)
                         ";\n")))
+      (insert (format "  node [%s];\n"
+                      (->> org-roam-graph-node-extra-config
+                           (mapcar (lambda (n)
+                                     (concat (car n) "=" (cdr n))))
+                           (s-join ","))))
+      (insert (format "  edge [%s];\n"
+                      (->> org-roam-graph-edge-extra-config
+                           (mapcar (lambda (n)
+                                     (concat (car n) "=" (cdr n))))
+                           (s-join ","))))
+
       (dolist (node nodes)
         (let* ((file (xml-escape-string (car node)))
                (title (or (caadr node)
                           (org-roam--path-to-slug file)))
                (shortened-title (s-truncate org-roam-graph-max-title-length title))
-               (base-node-properties (list (cons "label" (s-replace "\"" "\\\"" shortened-title))
-                                           (cons "URL" (concat "org-protocol://roam-file?file="
-                                                               (url-hexify-string file)))
-                                           (cons "tooltip" (xml-escape-string title))))
-               (node-properties (append base-node-properties
-                                        org-roam-graph-node-extra-config)))
+               (node-properties (list (cons "label" (s-replace "\"" "\\\"" shortened-title))
+                                      (cons "URL" (concat "org-protocol://roam-file?file="
+                                                          (url-hexify-string file)))
+                                      (cons "tooltip" (xml-escape-string title)))))
           (insert
            (format "  \"%s\" [%s];\n"
                    file
