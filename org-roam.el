@@ -258,9 +258,17 @@ specified via the #+ROAM_ALIAS property."
         (cons title alias-list)
       alias-list)))
 
-(defun org-roam--extract-ref ()
-  "Extract the ref from current buffer."
-  (cdr (assoc "ROAM_KEY" (org-roam--extract-global-props '("ROAM_KEY")))))
+(defun org-roam--extract-refs ()
+  "Extract the refs from current buffer."
+  (let ((buf (org-element-parse-buffer)))
+    (org-element-map buf 'keyword
+      (lambda (kw)
+        (when (string= (org-element-property :key kw) "ROAM_KEY")
+          (org-element-property :value kw)))
+        )
+    )
+ )
+
 ;;;; Title/Path/Slug conversion
 (defun org-roam--path-to-slug (path)
   "Return a slug from PATH."

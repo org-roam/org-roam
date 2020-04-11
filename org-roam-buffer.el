@@ -40,7 +40,7 @@
 (defvar org-roam-backlinks-mode)
 (defvar org-roam-last-window)
 (declare-function org-roam-db--ensure-built   "org-roam-db")
-(declare-function org-roam--extract-ref       "org-roam")
+(declare-function org-roam--extract-refs      "org-roam")
 (declare-function org-roam--get-title-or-slug "org-roam")
 (declare-function org-roam--get-backlinks     "org-roam")
 (declare-function org-roam-backlinks-mode     "org-roam")
@@ -101,10 +101,13 @@ When non-nil, the window will not be closed when deleting other windows."
 
 (defun org-roam-buffer--insert-citelinks ()
   "Insert citation backlinks for the current buffer."
-  (if-let* ((roam-key (with-temp-buffer
+  (if-let* ((roam-keys (with-temp-buffer
                         (insert-buffer-substring org-roam-buffer--current)
-                        (org-roam--extract-ref)))
-            (key-backlinks (org-roam--get-backlinks (s-chop-prefix "cite:" roam-key)))
+                        (org-roam--extract-refs)))
+            (key-backlinks (mapcan (lambda (roam-key)
+                                     (org-roam--get-backlinks
+                                      (s-chop-prefix "cite:" roam-key)))
+                 roam-keys))
             (grouped-backlinks (--group-by (nth 0 it) key-backlinks)))
       (progn
         (insert (format "\n\n* %d Cite backlinks\n"

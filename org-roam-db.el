@@ -40,7 +40,7 @@
 (defvar org-roam-verbose)
 
 (declare-function org-roam--extract-titles      "org-roam")
-(declare-function org-roam--extract-ref         "org-roam")
+(declare-function org-roam--extract-refs        "org-roam")
 (declare-function org-roam--extract-links       "org-roam")
 (declare-function org-roam--list-files          "org-roam")
 (declare-function org-roam-buffer--update-maybe "org-roam-buffer")
@@ -304,8 +304,8 @@ including the file itself.  If the file does not have any connections, nil is re
     (org-roam-db-query [:delete :from refs
                         :where (= file $s1)]
                        file)
-    (when-let ((ref (org-roam--extract-ref)))
-      (org-roam-db--insert-ref file ref))))
+    (when-let ((refs (org-roam--extract-refs)))
+      (mapc (lambda (ref) (org-roam-db--insert-ref file ref)) refs))))
 
 (defun org-roam-db--update-cache-links ()
   "Update the file links of the current buffer in the cache."
@@ -352,7 +352,7 @@ including the file itself.  If the file does not have any connections, nil is re
               (setq all-links (append links all-links)))
             (let ((titles (org-roam--extract-titles)))
               (setq all-titles (cons (vector file titles) all-titles)))
-            (when-let ((ref (org-roam--extract-ref)))
+            (when-let ((ref (org-roam--extract-refs)))
               (setq all-refs (cons (vector ref file) all-refs))))
           (remhash file current-files))))
     (dolist (file (hash-table-keys current-files))
