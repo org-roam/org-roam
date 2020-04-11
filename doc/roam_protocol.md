@@ -27,7 +27,7 @@ javascript:location.href =
 ```
 
 where `template` is the template key for a template in
-`org-roam-ref-capture-templates`. More documentation on the templating
+`org-roam-capture-ref-templates`. More documentation on the templating
 system can be found [here](templating.md).
 
 These templates should contain a `#+ROAM_KEY: ${ref}` in it.
