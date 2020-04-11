@@ -13,26 +13,10 @@
 
 (require 'helm-bibtex)
 
-(defun org-roam--get-ref-path-completions-no-cite ()
-  "Return a list of cons pairs for refs to absolute path of Org-roam files.
-The `cite:' in the refs is stripped to allow mapping from
-entry-keys to file-paths."
-  (let ((alist (org-roam--get-ref-path-completions)))
-    (mapcar (lambda (cons)
-              (let* ((ref-cite (car cons))
-                     (ref (with-temp-buffer
-                            (save-excursion
-                              (insert ref-cite))
-                            (re-search-forward "cite:" nil t)
-                            (buffer-substring (point) (point-max))))
-                     (path (cdr cons)))
-                (cons ref path)))
-            alist)))
-
 (defun org-roam-bibtex-completion-edit-notes (keys)
   "Open the notes associated with the selected entries using `find-file'."
   (dolist (key keys)
-    (let ((refs (org-roam--get-ref-path-completions-no-cite)))
+    (let ((refs (org-roam--get-ref-path-completions)))
       (if-let ((path (cdr (assoc key refs))))
           (find-file path)
         (when (y-or-n-p (format "No note was found for %s.  Would you like to create one?" key))
