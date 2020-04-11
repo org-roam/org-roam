@@ -252,6 +252,12 @@ in title completions."
   :type 'boolean
   :group 'org-roam)
 
+(defcustom org-roam-title-subdir-separator "/"
+  "String to use to separate subdirs when
+`org-roam-title-include-subdirs' is non-nil."
+  :type 'string
+  :group 'org-roam)
+
 (defun org-roam--format-title (title file-path)
   "Format TITLE with relative sub-directory from `org-roam-directory'.
 FILE_PATH should be the absolute path to the note."
@@ -262,9 +268,12 @@ FILE_PATH should be the absolute path to the note."
                                (current-buffer))
                            (buffer-file-name)
                            (file-truename))))
-             (dir (file-name-directory path)))
-        (concat (unless (equal root dir)
-                  (file-relative-name dir root))
+             (separator org-roam-title-subdir-separator)
+             (dir (--> path
+                       (file-name-directory it)
+                       (unless (equal root it)
+                         (file-relative-name it root)))))
+        (concat (when dir (s-replace "/" separator dir))
                 title))
     title))
 
