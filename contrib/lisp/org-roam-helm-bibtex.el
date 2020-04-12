@@ -11,6 +11,7 @@
 
 ;;; Code:
 
+(require 'bibtex)
 (require 'bibtex-completion)
 
 (with-eval-after-load 'helm
