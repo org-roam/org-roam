@@ -387,7 +387,7 @@ INITIAL-PROMPT is the initial title prompt."
 
 ;;;; org-roam-find-ref
 (defun org-roam--get-ref-path-completions ()
-  "Return a list of cons pairs for titles to absolute path of Org-roam files."
+  "Return a list of cons pairs for refs to absolute path of Org-roam files."
   (let ((rows (org-roam-db-query [:select [ref file] :from refs])))
     (mapcar (lambda (row)
               (cons (car row)
@@ -400,7 +400,7 @@ INFO is an alist containing additional information."
   (let* ((completions (org-roam--get-ref-path-completions))
          (ref (or (cdr (assoc 'ref info))
                   (org-roam-completion--completing-read "Ref: "
-                                                        (org-roam--get-ref-path-completions)
+                                                        completions
                                                         :require-match t))))
     (find-file (cdr (assoc ref completions)))))
 

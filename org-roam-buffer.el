@@ -90,8 +90,6 @@ When non-nil, the window will not be closed when deleting other windows."
   :type 'boolean
   :group 'org-roam)
 
-(defalias               'org-roam--current-buffer 'org-roam-buffer--current)
-(make-obsolete-variable 'org-roam--current-buffer 'org-roam-buffer--current "2020/04/06")
 (defvar org-roam-buffer--current nil
   "Currently displayed file in `org-roam' buffer.")
 
@@ -154,8 +152,6 @@ When non-nil, the window will not be closed when deleting other windows."
                 (insert "\n\n"))))))
     (insert "\n\n* No backlinks!")))
 
-(defalias      'org-roam-update 'org-roam-buffer-update)
-(make-obsolete 'org-roam-update 'org-roam-buffer-update "2020/04/06")
 (defun org-roam-buffer-update ()
   "Update the `org-roam-buffer'."
   (org-roam-db--ensure-built)
@@ -182,8 +178,6 @@ When non-nil, the window will not be closed when deleting other windows."
         (run-hooks 'org-roam-buffer-prepare-hook)
         (read-only-mode 1)))))
 
-(defalias      'org-roam--maybe-update-buffer 'org-roam-buffer--update-maybe)
-(make-obsolete 'org-roam--maybe-update-buffer 'org-roam-buffer--update-maybe "2020/04/06")
 (cl-defun org-roam-buffer--update-maybe (&key redisplay)
   "Reconstructs `org-roam-buffer'.
 This needs to be quick or infrequent, because this is run at
@@ -198,8 +192,6 @@ This needs to be quick or infrequent, because this is run at
       (org-roam-buffer-update))))
 
 ;;;; Toggling the org-roam buffer
-(defalias      'org-roam--current-visibility 'org-roam-buffer--visibility)
-(make-obsolete 'org-roam--current-visibility 'org-roam-buffer--visibility "2020/04/06")
 (define-inline org-roam-buffer--visibility ()
   "Return whether the current visibility state of the org-roam buffer.
 Valid states are 'visible, 'exists and 'none."
@@ -210,8 +202,6 @@ Valid states are 'visible, 'exists and 'none."
     ((get-buffer org-roam-buffer) 'exists)
     (t 'none))))
 
-(defalias      'org-roam--set-width 'org-roam-buffer--set-width)
-(make-obsolete 'org-roam--set-width 'org-roam-buffer--set-width "2020/04/06")
 (defun org-roam-buffer--set-width (width)
   "Set the width of `org-roam-buffer' to `WIDTH'."
   (unless (one-window-p)
@@ -223,8 +213,6 @@ Valid states are 'visible, 'exists and 'none."
        ((< (window-width) w)
         (enlarge-window-horizontally (- w (window-width))))))))
 
-(defalias      'org-roam--set-height 'org-roam-buffer--set-height)
-(make-obsolete 'org-roam--set-height 'org-roam-buffer--set-height "2020/04/06")
 (defun org-roam-buffer--set-height (height)
   "Set the height of `org-roam-buffer' to `HEIGHT'."
   (unless (one-window-p)
@@ -236,8 +224,6 @@ Valid states are 'visible, 'exists and 'none."
        ((< (window-height) h)
         (enlarge-window (- h (window-height))))))))
 
-(defalias      'org-roam--set-up-buffer 'org-roam-buffer--get-create)
-(make-obsolete 'org-roam--set-up-buffer 'org-roam-buffer--get-create "2020/04/06")
 (defun org-roam-buffer--get-create ()
   "Set up the `org-roam' buffer at `org-roam-buffer-position'."
   (let ((window (get-buffer-window))
