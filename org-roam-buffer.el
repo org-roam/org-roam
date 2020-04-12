@@ -101,11 +101,11 @@ When non-nil, the window will not be closed when deleting other windows."
 
 (defun org-roam-buffer--insert-citelinks ()
   "Insert citation backlinks for the current buffer."
-  (if-let* ((roam-key (with-temp-buffer
-                        (insert-buffer-substring org-roam-buffer--current)
-                        (org-roam--extract-ref)))
-            (key-backlinks (org-roam--get-backlinks (s-chop-prefix "cite:" roam-key)))
-            (grouped-backlinks (--group-by (nth 0 it) key-backlinks)))
+  (-if-let* ((roam-key (with-temp-buffer
+                         (insert-buffer-substring org-roam-buffer--current)
+                         (org-roam--extract-ref)))
+             (key-backlinks (org-roam--get-backlinks (s-chop-prefix "cite:" roam-key)))
+             (grouped-backlinks (--group-by (nth 0 it) key-backlinks)))
       (progn
         (insert (format "\n\n* %d Cite backlinks\n"
                         (length key-backlinks)))
@@ -128,9 +128,9 @@ When non-nil, the window will not be closed when deleting other windows."
 
 (defun org-roam-buffer--insert-backlinks ()
   "Insert the org-roam-buffer backlinks string for the current buffer."
-  (if-let* ((file-path (buffer-file-name org-roam-buffer--current))
-            (backlinks (org-roam--get-backlinks file-path))
-            (grouped-backlinks (--group-by (nth 0 it) backlinks)))
+  (-if-let* ((file-path (buffer-file-name org-roam-buffer--current))
+             (backlinks (org-roam--get-backlinks file-path))
+             (grouped-backlinks (--group-by (nth 0 it) backlinks)))
       (progn
         (insert (format "\n\n* %d Backlinks\n"
                         (length backlinks)))
