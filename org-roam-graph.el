@@ -74,6 +74,13 @@ Example:
   :type '(alist)
   :group 'org-roam)
 
+(defcustom org-roam-graph-edge-cites-extra-config '(("color" . "red"))
+  "Extra options for graphviz edges for citation links.
+Example:
+ '((\"dir\" . \"back\"))"
+  :type '(alist)
+  :group 'org-roam)
+
 (defcustom org-roam-graph-max-title-length 100
   "Maximum length of titles in graph nodes."
   :type 'number
@@ -139,7 +146,13 @@ into a digraph."
             `[:with selected :as [:select [file] :from ,node-query]
               :select :distinct [to from] :from links
               :where (and (in to selected) (in from selected))])
-           (edges (org-roam-db-query edges-query)))
+           (edges-cites-query
+            `[:with selected :as [:select [file] :from ,node-query]
+              :select :distinct [file from]
+              :from links :inner :join refs :on (and (= links:to refs:ref) (= links:type "cite"))
+              :where (and (in file selected) (in from selected))])
+           (edges (org-roam-db-query edges-query))
+           (edges-cites (org-roam-db-query edges-cites-query)))
       (insert "digraph \"org-roam\" {\n")
 
       (dolist (option org-roam-graph-extra-config)
@@ -176,6 +189,16 @@ into a digraph."
                                   (concat (car n) "=" "\"" (cdr n) "\"")))
                         (s-join ","))))))
       (dolist (edge edges)
+        (insert (format "  \"%s\" -> \"%s\";\n"
+                        (xml-escape-string (car edge))
+                        (xml-escape-string (cadr edge)))))
+
+      (insert (format "  edge [%s];\n"
+                      (->> org-roam-graph-edge-cites-extra-config
+                           (mapcar (lambda (n)
+                                     (concat (car n) "=" (cdr n))))
+                           (s-join ","))))
+      (dolist (edge edges-cites)
         (insert (format "  \"%s\" -> \"%s\";\n"
                         (xml-escape-string (car edge))
                         (xml-escape-string (cadr edge)))))
