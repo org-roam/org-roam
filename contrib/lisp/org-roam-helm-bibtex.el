@@ -11,6 +11,7 @@
 
 ;;; Code:
 
+(require 'org-roam)
 (require 'bibtex)
 (require 'bibtex-completion)
 
