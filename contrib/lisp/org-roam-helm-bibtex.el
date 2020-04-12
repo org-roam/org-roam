@@ -29,7 +29,7 @@
           (find-file path)
         (let* ((title key)
                (org-roam-capture--info (list (cons 'title title)
-                                             (cons 'ref (format "%s" key))
+                                             (cons 'ref (format "cite:%s" key))
                                              (cons 'slug (org-roam--title-to-slug key))))
                (org-roam-capture--context 'ref)
                (org-roam-capture-templates org-roam-capture-ref-templates))
