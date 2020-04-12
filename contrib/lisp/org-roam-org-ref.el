@@ -7,8 +7,8 @@
 ;; Contributor: Mykhailo Shevchuk <mail@mshevchuk.com>
 ;; URL: https://github.com/jethrokuan/org-roam
 ;; Keywords: org-mode, roam, convenience
-;; Version: 1.0.0-rc1
-;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (s "1.12.0") (org "9.3") (emacsql "3.0.0") (emacsql-sqlite "1.0.0"))
+;; Version: 0.1
+;; Package-Requires: ((emacs "26.1") (s "1.12.0") (org "9.3") (org-roam "1.0.0-rc1") (helm-bibtex "2.0.0")
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -52,6 +52,7 @@
 ;;; Code:
 ;;;; Library Requires
 (require 'org-roam)
+(require 'bibtex-completion)
 
 (declare-function org-ref-find-bibliography "org-ref-core")
 (declare-function projectile-relevant-open-projects "projectile")
@@ -252,30 +253,29 @@ you may want to set the perspecive name and project path in
 `org-roam-org-ref-persp-project' and `org-roam-org-ref-switch-persp' to
 t. In this case, the perspective will be switched to the org-roam
 notes project before calling any org-roam functions."
-  (when (require 'bibtex-completion nil t)
-    (unless org-roam-mode
-      (org-roam-mode +1))
-    (let ((note-info (list (cons 'ref citekey))))
-      ;; Optionally switch to the notes perspective
-      (when org-roam-org-ref-switch-persp
-        (org-roam-org-ref--switch-perspective))
-      ;; Find org-roam reference with the CITEKEY
-      (unless (ignore-errors (org-roam-find-ref note-info))
-        ;; Call org-roam-find-file
-        (let* ((entry (ignore-errors (bibtex-completion-get-entry citekey)))
-               (org-roam-capture-templates
-                ;; Optionally preformat keywords
-                (or
-                 (when org-roam-org-ref-preformat-templates
-                   (let* ((templates (copy-tree org-roam-capture-templates))
-                          result)
-                     (dolist (template templates result)
-                       (pushnew (org-roam-org-ref--preformat-template template entry) result))))
-                 org-roam-capture-templates))
-               (title
-                (or (s-format "${title}" 'bibtex-completion-apa-get-value entry)
-                    "Title not found for this entry. Check your bibtex file.")))
-          (org-roam-find-file title))))))
+  (unless org-roam-mode
+    (org-roam-mode +1))
+  (let ((note-info (list (cons 'ref citekey))))
+    ;; Optionally switch to the notes perspective
+    (when org-roam-org-ref-switch-persp
+      (org-roam-org-ref--switch-perspective))
+    ;; Find org-roam reference with the CITEKEY
+    (unless (ignore-errors (org-roam-find-ref note-info))
+      ;; Call org-roam-find-file
+      (let* ((entry (ignore-errors (bibtex-completion-get-entry citekey)))
+             (org-roam-capture-templates
+              ;; Optionally preformat keywords
+              (or
+               (when org-roam-org-ref-preformat-templates
+                 (let* ((templates (copy-tree org-roam-capture-templates))
+                        result)
+                   (dolist (template templates result)
+                     (pushnew (org-roam-org-ref--preformat-template template entry) result))))
+               org-roam-capture-templates))
+             (title
+              (or (s-format "${title}" 'bibtex-completion-apa-get-value entry)
+                  "Title not found for this entry. Check your bibtex file.")))
+        (org-roam-find-file title)))))
 
 (provide 'org-roam-org-ref)
 ;;; org-roam-org-ref.el ends here
