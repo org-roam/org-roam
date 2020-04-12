@@ -23,8 +23,9 @@
 (defun org-roam-bibtex-completion-edit-notes (keys)
   "Open the notes associated with the selected entries using `find-file'."
   (dolist (key keys)
-    (let ((refs (org-roam--get-ref-path-completions)))
-      (if-let ((path (cdr (assoc key refs))))
+    (let ((refs (org-roam--get-ref-path-completions))
+          path)
+      (if (setq path (cdr (assoc key refs)))
           (find-file path)
         (let* ((title key)
                (org-roam-capture--info (list (cons 'title title)
