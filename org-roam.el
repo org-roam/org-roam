@@ -70,7 +70,7 @@
 (defcustom org-roam-directory (expand-file-name "~/org-roam/")
   "Default path to Org-roam files.
 
-All Org files, at any level of nesting, is considered part of the Org-roam."
+All Org files, at any level of nesting, are considered part of the Org-roam."
   :type 'directory
   :group 'org-roam)
 
