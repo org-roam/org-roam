@@ -37,7 +37,7 @@
 (require 'org)
 (require 'org-element)
 (require 'ob-core)  ;for org-babel-parse-header-arguments
-(require 'subr-x)
+(eval-when-compile (require 'subr-x))
 (require 'dash)
 (require 's)
 (require 'f)
