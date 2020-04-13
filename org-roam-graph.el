@@ -250,7 +250,9 @@ If MAX-DISTANCE is non-nil, only nodes within the given number of steps are show
                     (list file)))
          (query `[:select [file titles]
                   :from titles
-                  :where (in file [,@files])]))
+                  :where (in file [,@files])
+                  ,@(org-roam-graph--expand-matcher
+                     'file 'negate 'and)]))
     (org-roam-graph-build query)))
 
 (defun org-roam-graph-show-connected-component (&optional max-distance)
