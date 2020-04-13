@@ -40,13 +40,19 @@
 (require 'org-roam)
 (require 'bibtex-completion)
 
+(defun zp/org-roam-bibtex-completion-format-title (key)
+  "Format title from bibtex entry KEY."
+  (let* ((entry (bibtex-completion-get-entry key))
+         (title (bibtex-completion-apa-get-value "title" entry)))
+    (format "%s: %s" key title)))
+
 (defun org-roam-bibtex-completion-edit-notes (keys)
   "Open the notes associated with the selected entries using `find-file'."
   (dolist (key keys)
     (let ((refs (org-roam--get-ref-path-completions)))
       (if-let ((path (cdr (assoc key refs))))
           (find-file path)
-        (let* ((title key)
+        (let* ((title (zp/org-roam-bibtex-completion-format-title key))
                (org-roam-capture--info (list (cons 'title title)
                                              (cons 'ref (format "cite:%s" key))
                                              (cons 'slug (org-roam--title-to-slug key))))
