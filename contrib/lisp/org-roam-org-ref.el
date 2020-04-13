@@ -8,7 +8,7 @@
 ;; URL: https://github.com/jethrokuan/org-roam
 ;; Keywords: org-mode, roam, convenience
 ;; Version: 0.1
-;; Package-Requires: ((emacs "26.1") (s "1.12.0") (org "9.3") (org-roam "1.0.0-rc1") (helm-bibtex "2.0.0")
+;; Package-Requires: ((emacs "26.1") (s "1.12.0") (org "9.3") (org-roam "1.0.0") (helm-bibtex "2.0.0")
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -59,15 +59,25 @@
 (declare-function persp-switch "persp-mode" (name &optional frame (window (selected-window)) (called-interactively-p (called-interactively-p 'any))))
 (declare-function persp-names "persp-mode" (&optional (phash *persp-hash*) (reverse t)))
 
-(defvar org-roam-org-ref-preformat-templates nil
-  "Non-nil to enable template preformatting.
-See `org-roam-org-ref-edit-notes' for details.")
+(defgroup org-roam-org-ref nil
+  "Org-ref and bibtex-completion integration for org-roam."
+  :group 'org-roam
+  :group 'org-ref
+  :prefix "org-roam-org-ref-")
 
-(defvar org-roam-org-ref-preformat-keywords '("citekey" . "=key=")
+(defcustom org-roam-org-ref-preformat-templates nil
+  "Non-nil to enable template preformatting.
+See `org-roam-org-ref-edit-notes' for details."
+  :type '(choice
+          (const :tag "Yes" t)
+          (const :tag "No" nil))
+  :group 'org-roam-org-ref)
+
+(defcustom org-roam-org-ref-preformat-keywords "=key="
   "The template prompt wildcards for preformatting.
-Only relevant when `org-roam-org-ref-preformat-templates' is set to
-t. This can be a string, a list of strings or a list of cons
-cells of strings.
+Only relevant when `org-roam-org-ref-preformat-templates' is set
+to t. This can be a string, a list of strings or a cons-cell
+alist, where each element is (STRING . STRING).
 
 Use only alphanumerical characters, dash and underscore. See
 `org-roam-org-ref-edit-notes' for implementation details.
@@ -116,25 +126,62 @@ as the field name.
          :unnarrowed t)))
 
 Consult bibtex-completion package for additional information
-about bibtex field names.")
+about bibtex field names."
+  :type '(choice
+          (string :tag "Bibtex field name")
+          (group :tag "Bibtex field names" (repeat :tag "Bibtex field names" string))
+          (alist
+           :tag "Template wildcard keyword/Bibtex field name pairs"
+           :key-type (string :tag "Wildcard")
+           :value-type (string :tag "Field")))
+  :group 'org-roam-org-ref)
 
-(defvar org-roam-org-ref-persp-project `("notes" . ,org-roam-directory)
+(defcustom org-roam-org-ref-persp-project `("notes" . ,org-roam-directory)
   "Perspective name and path to the project with bibliography notes.
-A cons cell. Only relevant when `org-roam-org-ref-switch-persp'
-is set to t.
+A cons cell (PERSP-NAME . PROJECT-PATH). Only relevant when
+`org-roam-org-ref-switch-persp' is set to t.
 
-See `org-roam-org-ref-edit-notes' for details")
+Requires 'persp-mode' and 'projectile'.
 
-(defvar org-roam-org-ref-switch-persp nil
+PERSP-NAME should be a valid perspective name, PROJECT-PATH should be
+an open projectile project.
+
+See `org-roam-org-ref-edit-notes' for details"
+  :type '(cons (string :tag "Perspective name") (directory :tag "Projectile directory"))
+  :group 'org-roam-org-ref)
+
+(defcustom org-roam-org-ref-switch-persp nil
   "Non-nil to enable switching to the notes perspective.
 Set the name of the perspective and the path to the notes project
 in `org-roam-org-ref-persp-project' for this to take effect.
 
-See `org-roam-org-ref-edit-notes' for details.")
+Requires 'persp-mode' and 'projectile'.
+
+See `org-roam-org-ref-edit-notes' for details."
+  :type '(choice
+          (const :tag "Yes" t)
+          (const :tag "No" nil))
+  :group 'org-roam-org-ref)
+
+(defun org-roam-org-ref--switch-perspective ()
+  "Helper function for `org-roam-org-ref-edit-notes'."
+  (when (and (require 'projectile nil t)
+             (require 'persp-mode nil t))
+    (let ((notes-project (cdr org-roam-org-ref-persp-project))
+          (projects (projectile-relevant-open-projects))
+          openp)
+      (dolist (project projects openp)
+        (setq openp (or (f-equal? project notes-project) openp)))
+      (when openp
+        (let ((p-names (cdr (persp-names))))
+          (dolist (p-name p-names)
+            (when (s-equals? p-name (car org-roam-org-ref-persp-project))
+              (persp-switch p-name))))))))
 
 (defun org-roam-org-ref--preformat-template (template entry)
   "Helper function for `org-roam-org-ref--preformat-templates'.
-TEMPLATE is an org-roam template and ENTRY is a bibtex entry."
+TEMPLATE is an element of `org-roam-capture-templates' and ENTRY is a bibtex entry as
+returned by `bibtex-completion-get-entry'."
   ;; Handle org-roam-capture part
   (let* ((kwds (if (listp org-roam-org-ref-preformat-keywords) ; normalize org-roam-org-ref-preformat-keywords
                    org-roam-org-ref-preformat-keywords
@@ -182,21 +229,6 @@ TEMPLATE is an org-roam template and ENTRY is a bibtex entry."
                 tp (s-replace (car l) (nth 1 l) tp))))
       (setf (nth 4 template) tp))
     template))
-
-(defun org-roam-org-ref--switch-perspective ()
-  "Helper function for `org-roam-org-ref-edit-notes'."
-  (when (and (require 'projectile nil t)
-             (require 'persp-mode nil t))
-    (let ((notes-project (cdr org-roam-org-ref-persp-project))
-          (projects (projectile-relevant-open-projects))
-          openp)
-      (dolist (project projects openp)
-        (setq openp (or (f-equal? project notes-project) openp)))
-      (when openp
-        (let ((p-names (cdr (persp-names))))
-          (dolist (p-name p-names)
-            (when (s-equals? p-name (car org-roam-org-ref-persp-project))
-              (persp-switch p-name))))))))
 
 ;;;###autoload
 (defun org-roam-org-ref-notes-fn (citekey)
