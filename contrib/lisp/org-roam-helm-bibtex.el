@@ -7,6 +7,8 @@
 ;; 	Jethro Kuan <jethrokuan95@gmail.com>
 ;; Created: 12 April 2020
 ;; Keywords: bibtex, refs
+;; Version: 0.1
+;; Package-Requires: ((emacs "26.1") (s "1.12.0") (org "9.3") (org-roam "1.0.0") (helm-bibtex "2.0.0")
 
 ;; This file is not part of GNU Emacs.
 
