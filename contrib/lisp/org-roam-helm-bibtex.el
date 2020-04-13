@@ -36,7 +36,6 @@
 ;;;; Library Requires
 (eval-when-compile (require 'subr-x))
 (require 'org-roam)
-(require 'bibtex)
 (require 'bibtex-completion)
 
 (defun org-roam-bibtex-completion-edit-notes (keys)
