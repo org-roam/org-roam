@@ -212,15 +212,15 @@ For building and showing the graph in a single step see `org-roam-graph-show'."
   (unless org-roam-graph-executable
     (user-error "Can't find %s executable.  Please check if it is in your path"
                 org-roam-graph-executable))
-  (let* ((temp-dot (expand-file-name "graph.dot" temporary-file-directory))
-         (temp-graph (expand-file-name "graph.svg" temporary-file-directory))
-         (node-query (or node-query `[:select [file titles]
-                                      :from titles
-                                      ,@(org-roam-graph--expand-matcher 'file t)]))
-         (graph (org-roam-graph--build node-query)))
-    (with-temp-file temp-dot
-      (insert graph))
-    (call-process org-roam-graph-executable nil 0 nil temp-dot "-Tsvg" "-o" temp-graph)
+  (let* ((node-query (or node-query
+                         `[:select [file titles]
+                                   :from titles
+                                   ,@(org-roam-graph--expand-matcher 'file t)]))
+         (graph      (org-roam-graph--build node-query))
+         (temp-dot   (make-temp-file "graph." nil ".dot" graph))
+         (temp-graph (make-temp-file "graph." nil ".svg")))
+    (call-process org-roam-graph-executable nil 0 nil
+                  temp-dot "-Tsvg" "-o" temp-graph)
     temp-graph))
 
 (defun org-roam-graph--open (file)
