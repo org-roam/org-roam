@@ -98,3 +98,94 @@ of your `~/.doom.d/init.el` and run `~/.emacs.d/bin/doom sync`.
 [quelpa]: https://github.com/quelpa/quelpa
 [doom]: https://github.com/hlissner/doom-emacs
 [doom-getting-started]: https://github.com/hlissner/doom-emacs/blob/develop/docs/getting_started.org#configuring-packages
+
+## Windows
+
+On Windows, if you follow the installation instructions above, you will likely get the error message: **"No EmacSQL SQLite binary available, aborting"**, and `org-roam` won't start properly.
+
+You need to do some additional steps to get `org-roam` to work. 
+
+Essentially, you will need to have a binary file for `emacsql-sqlite` so that your Emacs can work with `sqlite` database -- `org-roam` uses it to track backlinks. The following options have been reported to work by Windows users in the community.
+
+Option 1. **Windows Subsystem for Linux (WSL)** 
+: This option lets you use Linux on your Windows machine. It's Linux, so you don't need to do anything specific for Windows. 
+
+Option 2. **mingw-x64**
+: Use mingw-x64. You would spend a bit of time to download it, and get familiar with how it works. You should be able to use Linux tools within your Windows [more contribution welcome].
+
+Option 3. **scoop**
+: Use [scoop](https://scoop.sh/) to install a couple of software tools (make and gcc) and manually compile a binary (`.exe`) file yourself. Find a short step-by-step guide below.
+
+Option 4. **emacsql-sqlite3**
+: Use another Emacs package called [`emacsql-sqlite3`](https://github.com/cireu/emacsql-sqlite3). You can download an [official binary](https://sqlite.org/download.html) for `sqlite3`. `emacsql-sqlite3` lets you use it. For this option to work, you need to adjust the `org-roam` source code, and get your modified version to work in your Emacs environment. Find a suggestion below.
+
+### scoop
+1. In PowerShell, install `scoop` ([instruction here](https://scoop.sh/)).
+
+   ```powershell
+   iwr -useb get.scoop.sh | iex
+   ```
+
+2. In PowerShell, install `make` and `gcc` via scoop
+
+   ```powershell
+   scoop install make gcc
+   ```
+
+3. In Emacs, install the `emacsql-sqlite` package for your Emacs if it is not done yet.
+
+4. In PowerShell, move to the directory where `emacsql.c` is stored.
+
+   With MELPA, it is likely to be under your ELPA folder:
+
+   ```
+   ~\AppData\Roaming\.emacs.d\elpa\emacsql-sqlite-20190727.1710\sqlite
+   ```
+
+   With Doom Emacs, it should be under your `.emacs\.local`:
+
+   ```
+    ~\.emacs.d\.local\straight\build\emacsql-sqlite\sqlite
+   ```
+
+   Check the files via `dir` command. You should see these files:
+
+   ```powershell
+   Mode                LastWriteTime         Length Name
+   ----                -------------         ------ ----
+   -a----       22/03/2020  12:10 PM           5170 emacsql.c
+   -a----       22/03/2020  12:10 PM            439 Makefile
+   -a----       22/03/2020  12:10 PM        7516138 sqlite3.c
+   -a----       22/03/2020  12:10 PM         526684 sqlite3.h
+   ```
+
+5. Compile the `.exe` file with `make`
+
+
+   ```powershell
+   make emacsql-sqlite CC=gcc LDLIBS=
+   ```
+
+    You will see the process triggered with lots of text automatically scrolling down; it may take a couple of minutes for compilation to finish.
+
+    Once compilation is done, check that `emacsql-sqlite.exe` has been added to the directory.
+
+6. Relaunch Emacs, use `org-roam`
+   
+   When you start `org-roam` (e.g. via `org-roam-mode`), now you should no longer see the "No EmacSQL SQLite binary available, aborting" error. You are good to go.
+
+
+### emacsql-sqlite3
+
+1. In Emacs, install the `emacsql-sqlite3` package
+
+2. Using your text editor, etc. modify `org-roam-db.el`:
+
+    1. Replace `(require 'emacsql-sqlite)` with `(require 'emacsql-sqlite3)`
+
+    2. Comment/deactivate the complete `(defconst org-roam-db--sqlite-available-p ... )`
+
+    3. In `(defun org-roam-db ...`, replace `emacsql-sqlite`
+with `emacsql-sqlite3`
+
+3. If you compile `.el` files, ensure to replace `org-roam-db.elc` with the new source you modified.

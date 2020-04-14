@@ -253,8 +253,14 @@ This is equivalent to removing the node from the graph."
 If the file does not have any connections, nil is returned."
   (let* ((query "WITH RECURSIVE
                    links_of(file, link) AS
-                     (SELECT \"from\", \"to\" FROM links UNION
-                      SELECT \"to\", \"from\" FROM links),
+                     (WITH roamlinks AS (SELECT * FROM links WHERE \"type\" = '\"roam\"'),
+                           citelinks AS (SELECT * FROM links
+                                                  JOIN refs ON links.\"to\" = refs.\"ref\"
+                                                            AND links.\"type\" = '\"cite\"')
+                      SELECT \"from\", \"to\" FROM roamlinks UNION
+                      SELECT \"to\", \"from\" FROM roamlinks UNION
+                      SELECT \"file\", \"from\" FROM citelinks UNION
+                      SELECT \"from\", \"file\" FROM citelinks),
                    connected_component(file) AS
                      (SELECT link FROM links_of WHERE file = $s1
                       UNION
@@ -268,8 +274,14 @@ If the file does not have any connections, nil is returned."
 including the file itself.  If the file does not have any connections, nil is returned."
   (let* ((query "WITH RECURSIVE
                    links_of(file, link) AS
-                     (SELECT \"from\", \"to\" FROM links UNION
-                      SELECT \"to\", \"from\" FROM links),
+                     (WITH roamlinks AS (SELECT * FROM links WHERE \"type\" = '\"roam\"'),
+                           citelinks AS (SELECT * FROM links
+                                                  JOIN refs ON links.\"to\" = refs.\"ref\"
+                                                            AND links.\"type\" = '\"cite\"')
+                      SELECT \"from\", \"to\" FROM roamlinks UNION
+                      SELECT \"to\", \"from\" FROM roamlinks UNION
+                      SELECT \"file\", \"from\" FROM citelinks UNION
+                      SELECT \"from\", \"file\" FROM citelinks),
                    -- Links are traversed in a breadth-first search.  In order to calculate the
                    -- distance of nodes and to avoid following cyclic links, the visited nodes
                    -- are tracked in 'trace'.
