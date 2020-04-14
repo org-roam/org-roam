@@ -42,6 +42,12 @@ Or without `use-package`:
 The [Configuration](configuration.md) page details some of the common
 configuration options available.
 
+### Completion
+
+Link auto-completion is offered via
+[company-org-roam](https://github.com/jethrokuan/company-org-roam/), refer to
+the documentation there for further details.
+
 ## Spacemacs
 
 If you are using Spacemacs, install org-roam by creating a simple layer that
