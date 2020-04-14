@@ -227,7 +227,7 @@ For building and showing the graph in a single step see `org-roam-graph-show'."
   "Open FILE using `org-roam-graph-viewer', with `view-file' as a fallback."
   (if (and org-roam-graph-viewer (executable-find org-roam-graph-viewer))
       (call-process org-roam-graph-viewer nil 0 nil file)
-    (view-file temp-graph)))
+    (view-file file)))
 
 (defun org-roam-graph-show (&optional node-query)
   "Generate and display a graph showing the relations between nodes in NODE-QUERY.
