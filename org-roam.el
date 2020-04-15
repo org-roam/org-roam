@@ -322,8 +322,15 @@ If PREFIX, downcase the title before insertion."
                         (buffer-substring-no-properties
                          (car region) (cdr region))))
          (completions (org-roam--get-title-path-completions))
-         (title (org-roam-completion--completing-read "File: " completions
-                                                      :initial-input region-text))
+         (title-current (when prefill-current
+                          (org-roam--get-title-or-slug (buffer-file-name))))
+         (title (org-roam-completion--completing-read
+                 "File: " completions
+                 :initial-input (if prefill-current
+                                    (concat title-current
+                                            ": "
+                                            region-text)
+                                  region-text)))
          (region-or-title (or region-text title))
          (target-file-path (cdr (assoc title completions)))
          (link-description (org-roam--format-link-title (if prefix
