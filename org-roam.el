@@ -314,11 +314,21 @@ See `org-roam-insert' for details."
   :type 'string
   :group 'org-roam)
 
-(defun org-roam-insert (prefix &optional prefill-current)
+(defun org-roam--format-title-as-topic (title &optional string)
+  "Format TITLE as a topic.
+Concatenate TITLE and `org-roam-title-separator', and return the
+resulting string.
+If STRING is non-nil, also concatenates it before returning."
+  (concat title
+          org-roam-title-separator
+          string))
+
+(defun org-roam-insert (prefix &optional prefill-fn)
   "Find an Org-roam file, and insert a relative org link to it at point.
 If PREFIX, downcase the title before insertion.
-If PREFILL-CURRENT is non-nil, insert the title of the current note in the
-completion form."
+PREFILL-FN is the name of function to prefill the completion
+form.  The function should accept two arguments: the title of the
+current buffer, and the content of the region if it is active."
   (interactive "P")
   (unless (org-roam--org-roam-file-p
            (buffer-file-name (buffer-base-buffer)))
@@ -330,14 +340,13 @@ completion form."
                         (buffer-substring-no-properties
                          (car region) (cdr region))))
          (completions (org-roam--get-title-path-completions))
-         (title-current (when prefill-current
+         (title-current (when prefill-fn
                           (org-roam--get-title-or-slug (buffer-file-name))))
          (title (org-roam-completion--completing-read
                  "File: " completions
-                 :initial-input (if prefill-current
-                                    (concat title-current
-                                            org-roam-title-separator
-                                            region-text)
+                 :initial-input (if prefill-fn
+                                    (funcall prefill-fn
+                                             title-current region-text)
                                   region-text)))
          (region-or-title (or region-text title))
          (target-file-path (cdr (assoc title completions)))
@@ -367,7 +376,7 @@ The completion template will be prefilled with the title of the current note
 and followed by `org-roam-title-separator'.
 If PREFIX, downcase the title before insertion."
   (interactive "P")
-  (org-roam-insert prefix t))
+  (org-roam-insert prefix #'org-roam--format-title-as-topic))
 
 ;;;; org-roam-find-file
 (defun org-roam--get-title-path-completions ()
