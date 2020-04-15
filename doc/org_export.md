@@ -28,7 +28,7 @@ This would display only the backlinks and not the contents.
 ```
 
 
-# Backlinks and Contents
+### Backlinks and Contents
 
 This would insert both backlinks and the contents, just like the org-roam buffer. This might be especially useful if you host a web version of your personal knowledgebase and want to browse the files along with the backlinks from mobile devices.
 
