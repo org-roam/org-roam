@@ -87,14 +87,22 @@ Formatter may be a function that takes title as its only argument."
   :type 'boolean
   :group 'org-roam)
 
-;;;; Dynamic variables
-(defvar org-roam-last-window nil
-  "Last window `org-roam' was called from.")
-
 (defcustom org-roam-verbose t
   "Echo messages that are not errors."
   :type 'boolean
   :group 'org-roam)
+
+(defcustom org-roam-file-extensions '("org")
+  "Detected file extensions to include in the Org-roam ecosystem.
+While the file extensions may be different, the file format needs
+to be an `org-mode' file, and it is the user's responsibility to
+ensure that."
+  :type '(repeat string)
+  :group 'org-roam)
+
+;;;; Dynamic variables
+(defvar org-roam-last-window nil
+  "Last window `org-roam' was called from.")
 
 ;;; Utilities
 ;;;; General Utilities
@@ -148,10 +156,9 @@ Like `file-name-extension', but does not strip version number."
 (defun org-roam--org-file-p (path)
   "Check if PATH is pointing to an org file."
   (let ((ext (org-roam--file-name-extension path)))
-    (or (string= ext "org")
-        (and
-         (string= ext "gpg")
-         (string= (org-roam--file-name-extension (file-name-sans-extension path)) "org")))))
+    (when (string= ext "gpg")           ; Handle encrypted files
+      (setq ext (org-roam--file-name-extension (file-name-sans-extension path))))
+    (member ext org-roam-file-extensions)))
 
 (defun org-roam--org-roam-file-p (&optional file)
   "Return t if FILE is part of Org-roam system, nil otherwise.

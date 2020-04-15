@@ -13,6 +13,7 @@
 * [#385][gh-385] Add `org-roam-graph-node-extra-config` to configure Graphviz nodes
 * [#435][gh-435] Add `org-roam-graph-edge-extra-config` to configure Graphviz edges
 * [#439][gh-439] Add support for `org-ref` citations to display as edges in graph. Add `org-roam-graph-edge-cites-extra-config` to configure these edges
+* [#465][gh-465] Add `org-roam-file-extensions` to allow detection of org files with different file extensions
 
 ## 1.0.0 (23-03-2020)
 
