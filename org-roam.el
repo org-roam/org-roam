@@ -308,9 +308,17 @@ specified via the #+ROAM_ALIAS property."
      (concat "file:" (file-relative-name target here))
      description)))
 
-(defun org-roam-insert (prefix)
+(defcustom org-roam-title-separator ": "
+  "Separator to use when breaking off titles.
+See `org-roam-insert' for details."
+  :type 'string
+  :group 'org-roam)
+
+(defun org-roam-insert (prefix &optional prefill-current)
   "Find an Org-roam file, and insert a relative org link to it at point.
-If PREFIX, downcase the title before insertion."
+If PREFIX, downcase the title before insertion.
+If PREFILL-CURRENT is non-nil, insert the title of the current note in the
+completion form."
   (interactive "P")
   (unless (org-roam--org-roam-file-p
            (buffer-file-name (buffer-base-buffer)))
@@ -328,7 +336,7 @@ If PREFIX, downcase the title before insertion."
                  "File: " completions
                  :initial-input (if prefill-current
                                     (concat title-current
-                                            ": "
+                                            org-roam-title-separator
                                             region-text)
                                   region-text)))
          (region-or-title (or region-text title))
