@@ -361,6 +361,14 @@ completion form."
 							       :capture-fn 'org-roam-insert))
 	(org-roam--capture)))))
 
+(defun org-roam-insert-prefill-current (prefix)
+  "Find an Org-roam file, and insert a relative org link to it at point.
+The completion template will be prefilled with the title of the current note
+and followed by `org-roam-title-separator'.
+If PREFIX, downcase the title before insertion."
+  (interactive "P")
+  (org-roam-insert prefix t))
+
 ;;;; org-roam-find-file
 (defun org-roam--get-title-path-completions ()
   "Return a list of cons pairs for titles to absolute path of Org-roam files."
