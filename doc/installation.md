@@ -56,8 +56,7 @@ wraps Org-roam. Paste the following into a new file
 
 ```emacs-lisp
 (defconst org-roam-packages
-  '((org-roam :location
-              (recipe :fetcher github :repo "jethrokuan/org-roam"))))
+  '(org-roam))
 
 (defun org-roam/init-org-roam ()
   (use-package org-roam
