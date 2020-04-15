@@ -163,12 +163,12 @@ Like `file-name-extension', but does not strip version number."
 (defun org-roam--org-roam-file-p (&optional file)
   "Return t if FILE is part of Org-roam system, nil otherwise.
 If FILE is not specified, use the current buffer's file-path."
-  (let ((path (or file
+  (if-let ((path (or file
                   (buffer-file-name))))
-    (and path
-         (org-roam--org-file-p path)
-         (f-descendant-of-p (file-truename path)
-                            (file-truename org-roam-directory)))))
+      (save-match-data
+	(org-roam--org-file-p path)
+	(f-descendant-of-p (file-truename path)
+			   (file-truename org-roam-directory)))))
 
 (defun org-roam--list-files (dir)
   "Return all Org-roam files located within DIR, at any nesting level.
