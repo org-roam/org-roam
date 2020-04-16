@@ -47,18 +47,13 @@ This would insert both backlinks and the contents, just like the org-roam buffer
                                 file-from
                                 (org-roam--get-title-or-slug file-from)))
                 (dolist (backlink bls)
+                (insert backlink)
                   (pcase-let ((`(,file-from _ ,props) backlink))
-                    (insert (propertize
-                             (s-trim (s-replace "\n" " "
-                                                (plist-get props :content)))
-                             'help-echo "mouse-1: visit backlinked note"
-                             'file-from file-from
-                             'file-from-point (plist-get props :point)))
-                    (insert "\n\n"))))))
-        (insert "\n\n* No backlinks!"))
+                    (insert (s-trim (s-replace "\n" " " (plist-get props :content))))
+                    (insert "\n\n"))
+))))
+      (buffer-string)))
 
-      (buffer-string))
-    )
 
 
   (defun my/org-export-preprocessor (backend)
