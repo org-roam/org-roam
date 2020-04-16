@@ -53,10 +53,9 @@ search engine and indexer.
 
 ## Org-journal
 
-[Org-journal](https://github.com/bastibe/org-journal) is a more
-powerful alternative to the simple function `org-roam-today`. It
-provides better journaling capabilities, and a nice calendar interface
-to see all dated entries.
+[Org-journal](https://github.com/bastibe/org-journal) is a more powerful
+alternative to the simple function `org-roam-dailies-today`. It provides better
+journaling capabilities, and a nice calendar interface to see all dated entries.
 
 ```emacs-lisp
 (use-package org-journal
