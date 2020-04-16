@@ -50,6 +50,7 @@
 (require 'org-roam-capture)
 (require 'org-roam-graph)
 (require 'org-roam-completion)
+(require 'org-roam-dailies)
 
 ;; To detect cite: links
 (require 'org-ref nil t)
@@ -435,17 +436,6 @@ INFO is an alist containing additional information."
                                                            :require-match t)))
       (switch-to-buffer (cdr (assoc name names-and-buffers))))))
 
-;;;; Daily notes
-(defcustom org-roam-date-title-format "%Y-%m-%d"
-  "Format string passed to `format-time-string' for getting a date file's title."
-  :type 'string
-  :group 'org-roam)
-
-(defcustom org-roam-date-filename-format "%Y-%m-%d"
-  "Format string passed to `format-time-string' for getting a date file's filename."
-  :type 'string
-  :group 'org-roam)
-
 (defun org-roam--file-path-from-id (id)
   "The file path for an Org-roam file, with identifier ID."
   (file-truename
@@ -454,47 +444,6 @@ INFO is an alist containing additional information."
         (concat id ".org.gpg")
       (concat id ".org"))
     org-roam-directory)))
-
-(defun org-roam--file-for-time (time)
-  "Create and find file for TIME."
-  (let* ((title (format-time-string org-roam-date-title-format time))
-         (filename (format-time-string org-roam-date-filename-format time))
-         (file-path (org-roam--file-path-from-id filename)))
-    (if (file-exists-p file-path)
-        (find-file file-path)
-      (let ((org-roam-capture-templates (list (list "d" "daily" 'plain (list 'function #'org-roam-capture--get-point)
-                                                    ""
-                                                    :immediate-finish t
-                                                    :file-name "${filename}"
-                                                    :head "#+TITLE: ${title}")))
-            (org-roam-capture--context 'title)
-            (org-roam-capture--info (list (cons 'title title)
-                                          (cons 'filename filename))))
-        (add-hook 'org-capture-after-finalize-hook #'org-roam-capture--find-file-h)
-        (org-roam--capture)))))
-
-(defun org-roam-today ()
-  "Create and find file for today."
-  (interactive)
-  (org-roam--file-for-time (current-time)))
-
-(defun org-roam-tomorrow (n)
-  "Create and find the file for tomorrow.
-With numeric argument N, use N days in the future."
-  (interactive "p")
-  (org-roam--file-for-time (time-add (* n 86400) (current-time))))
-
-(defun org-roam-yesterday (n)
-  "Create and find the file for yesterday.
-With numeric argument N, use N days in the past."
-  (interactive "p")
-  (org-roam-tomorrow (- n)))
-
-(defun org-roam-date ()
-  "Create the file for any date using the calendar."
-  (interactive)
-  (let ((time (org-read-date nil 'to-time nil "Date:  ")))
-    (org-roam--file-for-time time)))
 
 ;;; The org-roam buffer
 ;;;; org-roam-link-face

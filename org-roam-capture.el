@@ -217,20 +217,19 @@ the file if the original value of :no-save is not t and
                         org-roam-capture--header-default))
          (org-template (org-capture-get :template))
          (roam-template (concat roam-head org-template)))
-    (make-directory (file-name-directory file-path) t)
-    (when (file-exists-p file-path)
-      (error (format "File exists at %s, aborting" file-path)))
-    (org-roam-capture--put :orig-no-save (org-capture-get :no-save)
-                           :new-file t)
-    (org-capture-put :template
-                     ;; Fixes org-capture-place-plain-text throwing 'invalid search bound'
-                     ;; when both :unnarowed t and "%?" is missing from the template string;
-                     ;; may become unnecessary when the upstream bug is fixed
-                     (if (s-contains-p "%?" roam-template)
-                         roam-template
-                       (concat roam-template "%?"))
-                     :type 'plain
-                     :no-save t)
+    (unless (file-exists-p file-path)
+      (make-directory (file-name-directory file-path) t)
+      (org-roam-capture--put :orig-no-save (org-capture-get :no-save)
+                             :new-file t)
+      (org-capture-put :template
+                       ;; Fixes org-capture-place-plain-text throwing 'invalid search bound'
+                       ;; when both :unnarowed t and "%?" is missing from the template string;
+                       ;; may become unnecessary when the upstream bug is fixed
+                       (if (s-contains-p "%?" roam-template)
+                           roam-template
+                         (concat roam-template "%?"))
+                       :type 'plain
+                       :no-save t))
     file-path))
 
 (defun org-roam-capture--expand-template ()
@@ -250,6 +249,10 @@ The file to use is dependent on the context:
 If the search is via title, it is assumed that the file does not
 yet exist, and Org-roam will attempt to create new file.
 
+If the search is via daily notes, 'time will be passed via
+`org-roam-capture--info'. This is used to alter the default time
+in `org-capture-templates'.
+
 If the search is via ref, it is matched against the Org-roam database.
 If there is no file with that ref, a file with that ref is created.
 
@@ -260,6 +263,9 @@ This function is used solely in Org-roam's capture templates: see
                       (or (cdr (assoc 'file org-roam-capture--info))
                           (org-roam-capture--new-file)))
                      ('title
+                      (org-roam-capture--new-file))
+                     ('dailies
+                      (org-capture-put :default-time (cdr (assoc 'time org-roam-capture--info)))
                       (org-roam-capture--new-file))
                      ('ref
                       (let ((completions (org-roam--get-ref-path-completions))
