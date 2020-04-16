@@ -217,6 +217,7 @@ the file if the original value of :no-save is not t and
                         org-roam-capture--header-default))
          (org-template (org-capture-get :template))
          (roam-template (concat roam-head org-template)))
+    (make-directory (file-name-directory file-path) t)
     (when (file-exists-p file-path)
       (error (format "File exists at %s, aborting" file-path)))
     (org-roam-capture--put :orig-no-save (org-capture-get :no-save)
