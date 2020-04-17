@@ -151,11 +151,9 @@ Next, it expands the remaining template string using
 
 (defun org-roam-capture--find-file-h ()
   "Opens the newly created template file.
-This is added as a hook to `org-capture-after-finalize-hook'."
+This is run right before `org-roam-capture-after-finalize-hook'."
   (when-let ((file-path (org-roam-capture--get :file-path)))
-    (unless org-note-abort
-      (find-file file-path)))
-  (remove-hook 'org-capture-after-finalize-hook #'org-roam-capture--find-file-h))
+    (find-file file-path)))
 
 (defun org-roam-capture--insert-link-h ()
   "Insert the link into the original buffer, after the capture process is done.
@@ -302,6 +300,20 @@ This function is used solely in Org-roam's capture templates: see
         (push key converted)
         (push val converted)))
     (append (nreverse converted) `(:org-roam ,org-roam-plist))))
+
+(defun org-roam-capture--run-after-find-file-hook ()
+  "Run the hooks defined in `org-roam-capture-after-finalize-hook'.
+This is added as a hook to `org-capture-finalize-hook'."
+  (unless org-note-abort
+    (org-roam-capture--find-file-h)
+    (run-hooks 'org-roam-capture-after-find-file-hook))
+  (remove-hook 'org-capture-after-finalize-hook #'org-roam-capture--run-after-find-file-hook))
+
+(defcustom org-roam-capture-after-find-file-hook nil
+  "Hook that is run right after an Org-roam capture process is finalized.
+Suitable for window cleanup or running functions at point."
+  :group 'org-roam
+  :type 'hook)
 
 (defun org-roam--capture (&optional goto keys)
   "Create a new file, and return the path to the edited file.

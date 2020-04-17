@@ -384,7 +384,7 @@ INITIAL-PROMPT is the initial title prompt."
         (let ((org-roam-capture--info (list (cons 'title title)
                                             (cons 'slug (org-roam--title-to-slug title))))
               (org-roam-capture--context 'title))
-          (add-hook 'org-capture-after-finalize-hook #'org-roam-capture--find-file-h)
+          (add-hook 'org-capture-after-finalize-hook #'org-roam-capture--run-after-find-file-hook)
           (org-roam--capture))))))
 
 ;;;; org-roam-find-directory
