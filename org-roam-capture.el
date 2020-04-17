@@ -149,12 +149,6 @@ Next, it expands the remaining template string using
                       (completing-read (format "%s: " key ) nil))) nil)
       (org-capture-fill-template)))
 
-(defun org-roam-capture--find-file-h ()
-  "Opens the newly created template file.
-This is run right before `org-roam-capture-after-finalize-hook'."
-  (when-let ((file-path (org-roam-capture--get :file-path)))
-    (find-file file-path)))
-
 (defun org-roam-capture--insert-link-h ()
   "Insert the link into the original buffer, after the capture process is done.
 This is added as a hook to `org-capture-after-finalize-hook'."
@@ -305,7 +299,8 @@ This function is used solely in Org-roam's capture templates: see
   "Run the hooks defined in `org-roam-capture-after-finalize-hook'.
 This is added as a hook to `org-capture-finalize-hook'."
   (unless org-note-abort
-    (org-roam-capture--find-file-h)
+    (when-let ((file-path (org-roam-capture--get :file-path)))
+      (find-file file-path))
     (run-hooks 'org-roam-capture-after-find-file-hook))
   (remove-hook 'org-capture-after-finalize-hook #'org-roam-capture--run-after-find-file-hook))
 
