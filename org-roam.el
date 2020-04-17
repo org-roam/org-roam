@@ -357,6 +357,13 @@ If PREFIX, downcase the title before insertion."
 							       :capture-fn 'org-roam-insert))
 	(org-roam--capture)))))
 
+(defun org-roam-insert-non-ref (prefix)
+  "Find an Org-roam, non-ref file, and insert a relative org link to it at point.
+See `org-roam-insert' and
+`org-roam--get-non-ref-path-completions' for details."
+  (interactive "P")
+  (org-roam-insert prefix #'org-roam--get-non-ref-path-completions))
+
 ;;;; org-roam-find-file
 (defun org-roam--get-title-path-completions ()
   "Return a list of cons pairs for titles to absolute path of Org-roam files."
@@ -410,6 +417,13 @@ CANDIDATES is a an alist of candidates to consider.  Defaults to
             (path (cdr candidate)))
         (unless (member path refs-path)
           (push (cons title path) completions))))))
+
+(defun org-roam-find-non-ref-file (&optional initial-prompt)
+  "Find and open an Org-roam, non-ref file.
+See `org-roam-find-files' and
+`org-roam--get-non-ref-path-completions' for details."
+  (interactive)
+  (org-roam-find initial prompt #'org-roam--get-non-ref-path-completions))
 
 ;;;; org-roam-find-directory
 (defun org-roam-find-directory ()
