@@ -318,7 +318,10 @@ specified via the #+ROAM_ALIAS property."
 
 (defun org-roam-insert (prefix &optional filter)
   "Find an Org-roam file, and insert a relative org link to it at point.
-If PREFIX, downcase the title before insertion."
+If PREFIX, downcase the title before insertion.
+FILTER is the name of a function to apply on the candidates which
+takes as its argument an alist of path-completions.  See
+`org-roam--get-title-path-completions' for details."
   (interactive "P")
   (unless (org-roam--org-roam-file-p
            (buffer-file-name (buffer-base-buffer)))
