@@ -307,13 +307,16 @@ specified via the #+ROAM_ALIAS property."
 
 (defun org-roam--format-link (target &optional description)
   "Formats an org link for a given file TARGET and link DESCRIPTION."
-  (let* ((here (-> (or (buffer-base-buffer)
-                       (current-buffer))
-                   (buffer-file-name)
-                   (file-truename)
-                   (file-name-directory))))
+  (let* ((here (ignore-errors
+                 (-> (or (buffer-base-buffer)
+                         (current-buffer))
+                     (buffer-file-name)
+                     (file-truename)
+                     (file-name-directory)))))
     (org-link-make-string
-     (concat "file:" (file-relative-name target here))
+     (concat "file:" (if here
+                         (file-relative-name target here)
+                       target))
      description)))
 
 (defun org-roam-insert (prefix)
