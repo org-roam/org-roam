@@ -42,6 +42,12 @@ Or without `use-package`:
 The [Configuration](configuration.md) page details some of the common
 configuration options available.
 
+### Completion
+
+Link auto-completion is offered via
+[company-org-roam](https://github.com/jethrokuan/company-org-roam/), refer to
+the documentation there for further details.
+
 ## Spacemacs
 
 If you are using Spacemacs, install org-roam by creating a simple layer that
@@ -50,8 +56,7 @@ wraps Org-roam. Paste the following into a new file
 
 ```emacs-lisp
 (defconst org-roam-packages
-  '((org-roam :location
-              (recipe :fetcher github :repo "jethrokuan/org-roam"))))
+  '(org-roam))
 
 (defun org-roam/init-org-roam ()
   (use-package org-roam
@@ -64,14 +69,14 @@ wraps Org-roam. Paste the following into a new file
       (spacemacs/declare-prefix "ar" "org-roam")
       (spacemacs/set-leader-keys
        "arl" 'org-roam
-       "art" 'org-roam-today
+       "art" 'org-roam-dailies-today
        "arf" 'org-roam-find-file
        "arg" 'org-roam-graph-show)
 
       (spacemacs/declare-prefix-for-mode 'org-mode "mr" "org-roam")
       (spacemacs/set-leader-keys-for-major-mode 'org-mode
                                                 "rl" 'org-roam
-                                                "rt" 'org-roam-today
+                                                "rt" 'org-roam-dailies-today
                                                 "rb" 'org-roam-switch-to-buffer
                                                 "rf" 'org-roam-find-file
                                                 "ri" 'org-roam-insert
@@ -120,59 +125,58 @@ Option 4. **emacsql-sqlite3**
 : Use another Emacs package called [`emacsql-sqlite3`](https://github.com/cireu/emacsql-sqlite3). You can download an [official binary](https://sqlite.org/download.html) for `sqlite3`. `emacsql-sqlite3` lets you use it. For this option to work, you need to adjust the `org-roam` source code, and get your modified version to work in your Emacs environment. Find a suggestion below.
 
 ### scoop
-1. In PowerShell, install `scoop` ([instruction here](https://scoop.sh/)).
+**Step 1.** In PowerShell, install `scoop` ([instruction here](https://scoop.sh/)).
 
-   ```powershell
-   iwr -useb get.scoop.sh | iex
-   ```
+```powershell
+iwr -useb get.scoop.sh | iex
+```
 
-2. In PowerShell, install `make` and `gcc` via scoop
+**Step 2.** In PowerShell, install `make` and `gcc` via scoop
 
-   ```powershell
-   scoop install make gcc
-   ```
+```powershell
+scoop install make gcc
+```
 
-3. In Emacs, install the `emacsql-sqlite` package for your Emacs if it is not done yet.
+**Step 3.** In Emacs, install the `emacsql-sqlite` package for your Emacs if it is not done yet.
 
-4. In PowerShell, move to the directory where `emacsql.c` is stored.
+**Step 4.** In PowerShell, move to the directory where `emacsql.c` is stored.
 
-   With MELPA, it is likely to be under your ELPA folder:
+With MELPA, it is likely to be under your ELPA folder:
 
-   ```
-   ~\AppData\Roaming\.emacs.d\elpa\emacsql-sqlite-20190727.1710\sqlite
-   ```
+```
+~\AppData\Roaming\.emacs.d\elpa\emacsql-sqlite-20190727.1710\sqlite
+```
 
-   With Doom Emacs, it should be under your `.emacs\.local`:
+With Doom Emacs, it should be under your `.emacs\.local`:
 
-   ```
-    ~\.emacs.d\.local\straight\build\emacsql-sqlite\sqlite
-   ```
+```
+~\.emacs.d\.local\straight\build\emacsql-sqlite\sqlite
+```
 
-   Check the files via `dir` command. You should see these files:
+Check the files via `dir` command. You should see these files:
 
-   ```powershell
-   Mode                LastWriteTime         Length Name
-   ----                -------------         ------ ----
-   -a----       22/03/2020  12:10 PM           5170 emacsql.c
-   -a----       22/03/2020  12:10 PM            439 Makefile
-   -a----       22/03/2020  12:10 PM        7516138 sqlite3.c
-   -a----       22/03/2020  12:10 PM         526684 sqlite3.h
-   ```
+```powershell
+Mode                LastWriteTime         Length Name
+----                -------------         ------ ----
+-a----       22/03/2020  12:10 PM           5170 emacsql.c
+-a----       22/03/2020  12:10 PM            439 Makefile
+-a----       22/03/2020  12:10 PM        7516138 sqlite3.c
+-a----       22/03/2020  12:10 PM         526684 sqlite3.h
+```
 
-5. Compile the `.exe` file with `make`
+**Step 5.** Compile the `.exe` file with `make`
 
+```powershell
+make emacsql-sqlite CC=gcc LDLIBS=
+```
 
-   ```powershell
-   make emacsql-sqlite CC=gcc LDLIBS=
-   ```
+You will see the process triggered with lots of text automatically scrolling down; it may take a couple of minutes for compilation to finish.
 
-    You will see the process triggered with lots of text automatically scrolling down; it may take a couple of minutes for compilation to finish.
+Once compilation is done, check that `emacsql-sqlite.exe` has been added to the directory.
 
-    Once compilation is done, check that `emacsql-sqlite.exe` has been added to the directory.
-
-6. Relaunch Emacs, use `org-roam`
+**Step 6.** Relaunch Emacs, use `org-roam`
    
-   When you start `org-roam` (e.g. via `org-roam-mode`), now you should no longer see the "No EmacSQL SQLite binary available, aborting" error. You are good to go.
+When you start `org-roam` (e.g. via `org-roam-mode`), now you should no longer see the "No EmacSQL SQLite binary available, aborting" error. You are good to go.
 
 
 ### emacsql-sqlite3

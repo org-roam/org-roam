@@ -59,6 +59,14 @@
   "org-roam 1.0.0")
 (define-obsolete-function-alias 'org-roam--set-up-buffer 'org-roam-buffer--get-create
   "org-roam 1.0.0")
+(define-obsolete-function-alias 'org-roam-today 'org-roam-dailies-today
+  "org-roam 1.0.0")
+(define-obsolete-function-alias 'org-roam-tomorrow 'org-roam-dailies-tomorrow
+  "org-roam 1.0.0")
+(define-obsolete-function-alias 'org-roam-yesterday 'org-roam-dailies-yesterday
+  "org-roam 1.0.0")
+(define-obsolete-function-alias 'org-roam-date 'org-roam-dailies-date
+  "org-roam 1.0.0")
 
 ;;;; Variables
 (define-obsolete-variable-alias 'org-roam-graphviz-extra-options
@@ -69,6 +77,11 @@
   'org-roam-db--connection "org-roam 1.0.0")
 (define-obsolete-variable-alias 'org-roam--current-buffer
   'org-roam-buffer--current "org-roam 1.0.0")
+
+(define-obsolete-variable-alias 'org-roam-date-title-format
+  'org-roam-dailies-capture-templates "org-roam 1.0.0")
+(define-obsolete-variable-alias 'org-roam-date-filename-format
+  'org-roam-dailies-capture-templates "org-roam 1.0.0")
 
 (provide 'org-roam-compat)
 
