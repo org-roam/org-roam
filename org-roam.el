@@ -316,10 +316,10 @@ specified via the #+ROAM_ALIAS property."
      (concat "file:" (file-relative-name target here))
      description)))
 
-(defun org-roam-insert (prefix &optional filter)
+(defun org-roam-insert (prefix &optional filter-fn)
   "Find an Org-roam file, and insert a relative org link to it at point.
 If PREFIX, downcase the title before insertion.
-FILTER is the name of a function to apply on the candidates which
+FILTER-FN is the name of a function to apply on the candidates which
 takes as its argument an alist of path-completions.  See
 `org-roam--get-title-path-completions' for details."
   (interactive "P")
@@ -333,8 +333,8 @@ takes as its argument an alist of path-completions.  See
                         (buffer-substring-no-properties
                          (car region) (cdr region))))
          (completions (--> (org-roam--get-title-path-completions)
-                           (if filter
-                               (funcall filter it)
+                           (if filter-fn
+                               (funcall filter-fn it)
                              it)))
          (title (org-roam-completion--completing-read "File: " completions
                                                       :initial-input region-text))
@@ -375,16 +375,16 @@ takes as its argument an alist of path-completions.  See
                       file-path) res))))
     res))
 
-(defun org-roam-find-file (&optional initial-prompt filter)
+(defun org-roam-find-file (&optional initial-prompt filter-fn)
   "Find and open an Org-roam file.
 INITIAL-PROMPT is the initial title prompt.
-FILTER is the name of a function to apply on the candidates which
+FILTER-FN is the name of a function to apply on the candidates which
 takes as its argument an alist of path-completions.  See
 `org-roam--get-title-path-completions' for details."
   (interactive)
   (let* ((completions (--> (org-roam--get-title-path-completions)
-                           (if filter
-                               (funcall filter it)
+                           (if filter-fn
+                               (funcall filter-fn it)
                              it)))
          (title (org-roam-completion--completing-read "File: " completions
                                                       :initial-input initial-prompt))
