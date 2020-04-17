@@ -42,8 +42,15 @@
 
 ;;;; Options
 (defcustom org-roam-graph-viewer (executable-find "firefox")
-  "Path to executable for viewing SVG."
-  :type 'string
+  "Method to view the org-roam graph.
+It may be one of the following:
+  - a string representing the path to the executable for viewing the graph.
+  - a function accepting a single argument: the graph file path.
+  - nil uses `view-file' to view the graph."
+  :type '(choice
+          (string   :tag "Path to executable")
+          (function :tag "Function to display graph" eww-open-file)
+          (const    :tag "view-file"))
   :group 'org-roam)
 
 (defcustom org-roam-graph-executable (executable-find "dot")
@@ -201,6 +208,19 @@ into a digraph."
     (call-process org-roam-graph-executable nil 0 nil
                   temp-dot "-Tsvg" "-o" temp-graph)
     temp-graph))
+
+(defun org-roam-graph--open (file)
+  "Open FILE using `org-roam-graph-viewer' with `view-file' as a fallback."
+  (pcase org-roam-graph-viewer
+    ((pred stringp)
+     (if (executable-find org-roam-graph-viewer)
+         (condition-case err
+             (call-process org-roam-graph-viewer nil 0 nil file)
+           ((error (user-error "Failed to open org-roam graph: %s" err))))
+       (user-error "Executable not found: \"%s\"" org-roam-graph-viewer)))
+    ((pred functionp) (funcall org-roam-graph-viewer file))
+    ('nil (view-file file))
+    (_ (signal 'wrong-type-argument `((functionp stringp null) ,org-roam-graph-viewer)))))
 
 (defun org-roam-graph--build-connected-component (file &optional max-distance)
   "Build a graph of nodes connected to FILE.
