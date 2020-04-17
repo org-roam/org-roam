@@ -2,10 +2,9 @@ While exporting your documents to another format such as HTML -- whether using O
 
 Following are two different configs that might be suitable for different use-cases. Add one of these snippets in your Emacs init file.
 
-
 ### Only Backlinks
 
-This would display only the backlinks and not the contents.
+This will display only the backlinks and not the contents.
 
 ```emacs-lisp
 (defun my/org-roam--backlinks-list (file)
@@ -27,7 +26,6 @@ This would display only the backlinks and not the contents.
 (add-hook 'org-export-before-processing-hook 'my/org-export-preprocessor)
 ```
 
-
 ### Backlinks and Contents
 
 This would insert both backlinks and the contents, just like the org-roam buffer. This might be especially useful if you host a web version of your personal knowledgebase and want to browse the files along with the backlinks from mobile devices.
@@ -48,13 +46,9 @@ This would insert both backlinks and the contents, just like the org-roam buffer
                               (org-roam--get-title-or-slug file-from)))
               (dolist (backlink bls)
                 (pcase-let ((`(,file-from _ ,props) backlink))
-
                   (insert (s-trim (s-replace "\n" " " (plist-get props :content))))
                   (insert "\n\n")))))))
     (buffer-string)))
-
-
-
 
   (defun my/org-export-preprocessor (backend)
     (let ((links (my/org-roam--backlinks-list-with-content (buffer-file-name))))
