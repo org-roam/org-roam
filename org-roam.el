@@ -412,11 +412,12 @@ CANDIDATES is a an alist of candidates to consider.  Defaults to
          (refs-path (->> (org-roam--get-ref-path-completions)
                          (mapcar #'cdr)))
          completions)
-    (dolist (candidate candidates (nreverse completions))
+    (dolist (candidate candidates completions)
       (let ((title (car candidate))
             (path (cdr candidate)))
         (unless (member path refs-path)
-          (push (cons title path) completions))))))
+          (setq completions (nconc completions
+                                   (list (cons title path)))))))))
 
 (defun org-roam-find-non-ref-file (&optional initial-prompt)
   "Find and open an Org-roam, non-ref file.
