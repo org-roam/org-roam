@@ -218,17 +218,18 @@ the file if the original value of :no-save is not t and
          (org-template (org-capture-get :template))
          (roam-template (concat roam-head org-template)))
     (unless (file-exists-p file-path)
+      (make-directory (file-name-directory file-path) t)
       (org-roam-capture--put :orig-no-save (org-capture-get :no-save)
                              :new-file t)
       (org-capture-put :template
-                     ;; Fixes org-capture-place-plain-text throwing 'invalid search bound'
-                     ;; when both :unnarowed t and "%?" is missing from the template string;
-                     ;; may become unnecessary when the upstream bug is fixed
-                     (if (s-contains-p "%?" roam-template)
-                         roam-template
-                       (concat roam-template "%?"))
-                     :type 'plain
-                     :no-save t))
+                       ;; Fixes org-capture-place-plain-text throwing 'invalid search bound'
+                       ;; when both :unnarowed t and "%?" is missing from the template string;
+                       ;; may become unnecessary when the upstream bug is fixed
+                       (if (s-contains-p "%?" roam-template)
+                           roam-template
+                         (concat roam-template "%?"))
+                       :type 'plain
+                       :no-save t))
     file-path))
 
 (defun org-roam-capture--expand-template ()
