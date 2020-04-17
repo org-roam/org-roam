@@ -369,11 +369,17 @@ If PREFIX, downcase the title before insertion."
                       file-path) res))))
     res))
 
-(defun org-roam-find-file (&optional initial-prompt)
+(defun org-roam-find-file (&optional initial-prompt filter)
   "Find and open an Org-roam file.
-INITIAL-PROMPT is the initial title prompt."
+INITIAL-PROMPT is the initial title prompt.
+FILTER is the name of a function to apply on the candidates which
+takes as its argument an alist of path-completions.  See
+`org-roam--get-title-path-completions' for details."
   (interactive)
-  (let* ((completions (org-roam--get-title-path-completions))
+  (let* ((completions (--> (org-roam--get-title-path-completions)
+                           (if filter
+                               (funcall filter it)
+                             it)))
          (title (org-roam-completion--completing-read "File: " completions
                                                       :initial-input initial-prompt))
          (file-path (cdr (assoc title completions))))
