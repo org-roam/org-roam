@@ -50,7 +50,7 @@ org-capture expands `%<%Y%m%d%H%M%S>` with timestamp: e.g.
 All of the flexibility afforded by emacs and org-mode are
 available. For example, if you want to encode a UTC timestamp in the
 filename, you can take advantage of org-mode's `%(EXP)` template
-expansion to call `format-time-string` directy to provide its third
+expansion to call `format-time-string` directly to provide its third
 argument to specify UTC.
 
 ``` emacs-lisp
