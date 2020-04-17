@@ -417,7 +417,7 @@ CANDIDATES is a an alist of candidates to consider.  Defaults to
             (path (cdr candidate)))
         (unless (member path refs-path)
           (setq completions (nconc completions
-                                   (list (cons title path)))))))))
+                                   (list candidate))))))))
 
 (defun org-roam-find-non-ref-file (&optional initial-prompt)
   "Find and open an Org-roam, non-ref file.
