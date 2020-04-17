@@ -316,7 +316,7 @@ specified via the #+ROAM_ALIAS property."
      (concat "file:" (file-relative-name target here))
      description)))
 
-(defun org-roam-insert (prefix)
+(defun org-roam-insert (prefix &optional filter)
   "Find an Org-roam file, and insert a relative org link to it at point.
 If PREFIX, downcase the title before insertion."
   (interactive "P")
@@ -329,7 +329,10 @@ If PREFIX, downcase the title before insertion."
          (region-text (when region
                         (buffer-substring-no-properties
                          (car region) (cdr region))))
-         (completions (org-roam--get-title-path-completions))
+         (completions (--> (org-roam--get-title-path-completions)
+                           (if filter
+                               (funcall filter it)
+                             it)))
          (title (org-roam-completion--completing-read "File: " completions
                                                       :initial-input region-text))
          (region-or-title (or region-text title))
