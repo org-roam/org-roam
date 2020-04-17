@@ -311,7 +311,7 @@ This is added as a hook to `org-capture-finalize-hook'."
 
 (defcustom org-roam-capture-after-find-file-hook nil
   "Hook that is run right after an Org-roam capture process is finalized.
-Suitable for window cleanup or running functions at point."
+Suitable for moving point."
   :group 'org-roam
   :type 'hook)
 
