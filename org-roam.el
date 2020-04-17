@@ -369,6 +369,21 @@ If PREFIX, downcase the title before insertion."
                       file-path) res))))
     res))
 
+(defun org-roam--get-non-ref-path-completions (&optional candidates)
+  "Return a list of cons for titles of non-ref notes to absolute path.
+CANDIDATES is a an alist of candidates to consider.  Defaults to
+`org-roam--get-title-path-completions' otherwise."
+  (let* ((candidates (or candidates
+                         (org-roam--get-title-path-completions)))
+         (refs-path (->> (org-roam--get-ref-path-completions)
+                         (mapcar #'cdr)))
+         completions)
+    (dolist (candidate candidates (nreverse completions))
+      (let ((title (car candidate))
+            (path (cdr candidate)))
+        (unless (member path refs-path)
+          (push (cons title path) completions))))))
+
 (defun org-roam-find-file (&optional initial-prompt filter)
   "Find and open an Org-roam file.
 INITIAL-PROMPT is the initial title prompt.
