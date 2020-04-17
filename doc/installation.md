@@ -69,14 +69,14 @@ wraps Org-roam. Paste the following into a new file
       (spacemacs/declare-prefix "ar" "org-roam")
       (spacemacs/set-leader-keys
        "arl" 'org-roam
-       "art" 'org-roam-today
+       "art" 'org-roam-dailies-today
        "arf" 'org-roam-find-file
        "arg" 'org-roam-graph-show)
 
       (spacemacs/declare-prefix-for-mode 'org-mode "mr" "org-roam")
       (spacemacs/set-leader-keys-for-major-mode 'org-mode
                                                 "rl" 'org-roam
-                                                "rt" 'org-roam-today
+                                                "rt" 'org-roam-dailies-today
                                                 "rb" 'org-roam-switch-to-buffer
                                                 "rf" 'org-roam-find-file
                                                 "ri" 'org-roam-insert
