@@ -319,9 +319,12 @@ specified via the #+ROAM_ALIAS property."
                        target))
      description)))
 
-(defun org-roam-insert (prefix)
+(defun org-roam-insert (prefix &optional filter-fn)
   "Find an Org-roam file, and insert a relative org link to it at point.
-If PREFIX, downcase the title before insertion."
+If PREFIX, downcase the title before insertion.
+FILTER-FN is the name of a function to apply on the candidates
+which takes as its argument an alist of path-completions.  See
+`org-roam--get-title-path-completions' for details."
   (interactive "P")
   (let* ((region (and (region-active-p)
                       ;; following may lose active region, so save it
@@ -329,7 +332,10 @@ If PREFIX, downcase the title before insertion."
          (region-text (when region
                         (buffer-substring-no-properties
                          (car region) (cdr region))))
-         (completions (org-roam--get-title-path-completions))
+         (completions (--> (org-roam--get-title-path-completions)
+                           (if filter-fn
+                               (funcall filter-fn it)
+                             it)))
          (title (org-roam-completion--completing-read "File: " completions
                                                       :initial-input region-text))
          (region-or-title (or region-text title))
@@ -369,11 +375,17 @@ If PREFIX, downcase the title before insertion."
                       file-path) res))))
     res))
 
-(defun org-roam-find-file (&optional initial-prompt)
+(defun org-roam-find-file (&optional initial-prompt filter-fn)
   "Find and open an Org-roam file.
-INITIAL-PROMPT is the initial title prompt."
+INITIAL-PROMPT is the initial title prompt.
+FILTER-FN is the name of a function to apply on the candidates
+which takes as its argument an alist of path-completions.  See
+`org-roam--get-title-path-completions' for details."
   (interactive)
-  (let* ((completions (org-roam--get-title-path-completions))
+  (let* ((completions (--> (org-roam--get-title-path-completions)
+                           (if filter-fn
+                               (funcall filter-fn it)
+                             it)))
          (title (org-roam-completion--completing-read "File: " completions
                                                       :initial-input initial-prompt))
          (file-path (cdr (assoc title completions))))
