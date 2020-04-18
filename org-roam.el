@@ -307,13 +307,16 @@ specified via the #+ROAM_ALIAS property."
 
 (defun org-roam--format-link (target &optional description)
   "Formats an org link for a given file TARGET and link DESCRIPTION."
-  (let* ((here (-> (or (buffer-base-buffer)
-                       (current-buffer))
-                   (buffer-file-name)
-                   (file-truename)
-                   (file-name-directory))))
+  (let* ((here (ignore-errors
+                 (-> (or (buffer-base-buffer)
+                         (current-buffer))
+                     (buffer-file-name)
+                     (file-truename)
+                     (file-name-directory)))))
     (org-link-make-string
-     (concat "file:" (file-relative-name target here))
+     (concat "file:" (if here
+                         (file-relative-name target here)
+                       target))
      description)))
 
 (defun org-roam-insert (prefix &optional filter-fn)
@@ -323,9 +326,6 @@ FILTER-FN is the name of a function to apply on the candidates
 which takes as its argument an alist of path-completions.  See
 `org-roam--get-title-path-completions' for details."
   (interactive "P")
-  (unless (org-roam--org-roam-file-p
-           (buffer-file-name (buffer-base-buffer)))
-    (user-error "Not in an Org-roam file"))
   (let* ((region (and (region-active-p)
                       ;; following may lose active region, so save it
                       (cons (region-beginning) (region-end))))
