@@ -14,7 +14,7 @@ The recommended method of configuration is to use [use-package][use-package].
 
 ```emacs-lisp
 (use-package org-roam
-      :hook 
+      :hook
       (after-init . org-roam-mode)
       :custom
       (org-roam-directory "/path/to/org-files/")
@@ -22,7 +22,7 @@ The recommended method of configuration is to use [use-package][use-package].
               (("C-c n l" . org-roam)
                ("C-c n f" . org-roam-find-file)
                ("C-c n b" . org-roam-switch-to-buffer)
-               ("C-c n g" . org-roam-graph-show))
+               ("C-c n g" . org-roam-graph))
               :map org-mode-map
               (("C-c n i" . org-roam-insert))))
 ```
@@ -34,7 +34,7 @@ Or without `use-package`:
 (define-key org-roam-mode-map (kbd "C-c n l") #'org-roam)
 (define-key org-roam-mode-map (kbd "C-c n f") #'org-roam-find-file)
 (define-key org-roam-mode-map (kbd "C-c n b") #'org-roam-switch-to-buffer)
-(define-key org-roam-mode-map (kbd "C-c n g") #'org-roam-graph-show)
+(define-key org-roam-mode-map (kbd "C-c n g") #'org-roam-graph)
 (define-key org-mode-map (kbd "C-c n i") #'org-roam-insert)
 (org-roam-mode +1)
 ```
@@ -71,7 +71,7 @@ wraps Org-roam. Paste the following into a new file
        "arl" 'org-roam
        "art" 'org-roam-dailies-today
        "arf" 'org-roam-find-file
-       "arg" 'org-roam-graph-show)
+       "arg" 'org-roam-graph)
 
       (spacemacs/declare-prefix-for-mode 'org-mode "mr" "org-roam")
       (spacemacs/set-leader-keys-for-major-mode 'org-mode
@@ -80,7 +80,7 @@ wraps Org-roam. Paste the following into a new file
                                                 "rb" 'org-roam-switch-to-buffer
                                                 "rf" 'org-roam-find-file
                                                 "ri" 'org-roam-insert
-                                                "rg" 'org-roam-graph-show))))
+                                                "rg" 'org-roam-graph))))
 ```
 
 Next, append `org-roam` to the `dotspacemacs-configuration-layers`
@@ -94,7 +94,7 @@ with that of the ranger layer. You might want to change it to 'aor'
 
 ## Doom Emacs
 
-[Doom Emacs][doom] has a `+roam` flag on its `org` module for easy 
+[Doom Emacs][doom] has a `+roam` flag on its `org` module for easy
 installation and configuration. Simply add the flag to the `org` section
 of your `~/.doom.d/init.el` and run `~/.emacs.d/bin/doom sync`.
 
@@ -108,12 +108,12 @@ of your `~/.doom.d/init.el` and run `~/.emacs.d/bin/doom sync`.
 
 On Windows, if you follow the installation instructions above, you will likely get the error message: **"No EmacSQL SQLite binary available, aborting"**, and `org-roam` won't start properly.
 
-You need to do some additional steps to get `org-roam` to work. 
+You need to do some additional steps to get `org-roam` to work.
 
 Essentially, you will need to have a binary file for `emacsql-sqlite` so that your Emacs can work with `sqlite` database -- `org-roam` uses it to track backlinks. The following options have been reported to work by Windows users in the community.
 
-Option 1. **Windows Subsystem for Linux (WSL)** 
-: This option lets you use Linux on your Windows machine. It's Linux, so you don't need to do anything specific for Windows. 
+Option 1. **Windows Subsystem for Linux (WSL)**
+: This option lets you use Linux on your Windows machine. It's Linux, so you don't need to do anything specific for Windows.
 
 Option 2. **mingw-x64**
 : Use mingw-x64. You would spend a bit of time to download it, and get familiar with how it works. You should be able to use Linux tools within your Windows [more contribution welcome].
@@ -175,7 +175,7 @@ You will see the process triggered with lots of text automatically scrolling dow
 Once compilation is done, check that `emacsql-sqlite.exe` has been added to the directory.
 
 **Step 6.** Relaunch Emacs, use `org-roam`
-   
+
 When you start `org-roam` (e.g. via `org-roam-mode`), now you should no longer see the "No EmacSQL SQLite binary available, aborting" error. You are good to go.
 
 
