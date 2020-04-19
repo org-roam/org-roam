@@ -396,7 +396,7 @@ which takes as its argument an alist of path-completions.  See
         (let ((org-roam-capture--info (list (cons 'title title)
                                             (cons 'slug (org-roam--title-to-slug title))))
               (org-roam-capture--context 'title))
-          (add-hook 'org-capture-after-finalize-hook #'org-roam-capture--run-after-find-file-hook)
+          (add-hook 'org-capture-after-finalize-hook #'org-roam-capture--find-file-h)
           (org-roam--capture))))))
 
 ;;;; org-roam-find-directory

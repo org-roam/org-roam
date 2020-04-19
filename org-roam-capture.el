@@ -295,14 +295,14 @@ This function is used solely in Org-roam's capture templates: see
         (push val converted)))
     (append (nreverse converted) `(:org-roam ,org-roam-plist))))
 
-(defun org-roam-capture--run-after-find-file-hook ()
+(defun org-roam-capture--find-file-h ()
   "Run the hooks defined in `org-roam-capture-after-finalize-hook'.
 This is added as a hook to `org-capture-finalize-hook'."
   (unless org-note-abort
     (when-let ((file-path (org-roam-capture--get :file-path)))
       (find-file file-path))
     (run-hooks 'org-roam-capture-after-find-file-hook))
-  (remove-hook 'org-capture-after-finalize-hook #'org-roam-capture--run-after-find-file-hook))
+  (remove-hook 'org-capture-after-finalize-hook #'org-roam-capture--find-file-h))
 
 (defcustom org-roam-capture-after-find-file-hook nil
   "Hook that is run right after an Org-roam capture process is finalized.
