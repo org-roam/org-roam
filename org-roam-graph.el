@@ -235,12 +235,6 @@ If MAX-DISTANCE is non-nil, limit nodes to MAX-DISTANCE steps."
                   :where (in file [,@files])]))
     (org-roam-graph--build query)))
 
-(defun org-roam-graph--open (file)
-  "Open FILE using `org-roam-graph-viewer', with `view-file' as a fallback."
-  (if (and org-roam-graph-viewer (executable-find org-roam-graph-viewer))
-      (call-process org-roam-graph-viewer nil 0 nil file)
-    (view-file file)))
-
 ;;;; Commands
 ;;;###autoload
 (defun org-roam-graph (&optional arg file node-query)
