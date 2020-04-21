@@ -4,7 +4,7 @@
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
 ;; URL: https://github.com/jethrokuan/org-roam
 ;; Keywords: org-mode, roam, convenience
-;; Version: 1.0.0-rc1
+;; Version: 1.1.0
 ;; Package-Requires: ((emacs "26.1") (org "9.3"))
 
 ;; This file is NOT part of GNU Emacs.
