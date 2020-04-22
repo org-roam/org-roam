@@ -113,7 +113,7 @@ within Org-mode.
 
 ### Bibliography
 
-[org-roam-bibtex](https://github.com/Zaeph/org-roam-bibtex) offers tight
+[org-roam-bibtex](https://github.com/zaeph/org-roam-bibtex) offers tight
 integration between [org-ref][org-ref], [helm-bibtex][helm-bibtex] and
 `org-roam`. This helps you manage your bibliographic notes under `org-roam`.
 
