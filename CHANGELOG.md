@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.1 (TBD)
+
+### Bugfixes
+* [#509](https://github.com/jethrokuan/org-roam/pull/509) fix backup files being tracked in database
+* [#509](https://github.com/jethrokuan/org-roam/pull/509) fix external org files being tracked in database
+
 ## 1.1.0 (21-04-2020)
 
 To the average user, this release is mainly a bugfix release with additional options to customize. However, the changes made to the source is significant. Most notably, in this release:

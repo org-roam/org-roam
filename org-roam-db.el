@@ -330,16 +330,16 @@ including the file itself.  If the file does not have any connections, nil is re
 
 (defun org-roam-db--update-file (&optional file-path)
   "Update Org-roam cache for FILE-PATH."
-  (let (buf)
-    (if file-path
-        (setq buf (find-file-noselect file-path))
-      (setq buf (current-buffer)))
-    (with-current-buffer buf
-      (save-excursion
-        (org-roam-db--update-titles)
-        (org-roam-db--update-refs)
-        (org-roam-db--update-cache-links)
-        (org-roam-buffer--update-maybe :redisplay t)))))
+  (when (org-roam--org-roam-file-p file-path)
+    (let ((buf (or (and file-path
+                        (find-file-noselect file-path))
+                   (current-buffer))))
+      (with-current-buffer buf
+        (save-excursion
+          (org-roam-db--update-titles)
+          (org-roam-db--update-refs)
+          (org-roam-db--update-cache-links)
+          (org-roam-buffer--update-maybe :redisplay t))))))
 
 ;;;;; org-roam-db-build-cache
 (defun org-roam-db-build-cache ()
