@@ -398,17 +398,26 @@ which takes as its argument an alist of path-completions.  See
 ;;;; org-roam-find-index
 (defcustom org-roam-index-file nil
   "Path to the Org-roam index file.
-The path can either be relative (to `org-roam-directory') or
-absolute.
-If it is not defined, the index is assumed to be a note in
-`org-roam-directory' whose title is 'Index'.")
+The path can be a string or a function.  If it is a string, it
+should be the path (absolute or relative to `org-roam-directory')
+to the index file.  If it is is a function, the function should
+return the path to the index file.  Otherwise, the index is
+assumed to be a note in `org-roam-directory' whose title is
+'Index'."
+  :type '(choice
+          (string :tag "Path to index" "%s")
+          (function :tag "Function to generate the path"))
+  :group 'org-roam)
 
 (defun org-roam--get-index-path ()
   "Return the path to the index in `org-roam-directory'.
 The path to the index can be defined in `org-roam-index-file'.
 Otherwise, it is assumed to be a note in `org-roam-directory'
 whose title is 'Index'."
-  (let ((path org-roam-index-file))
+  (let ((path (--> org-roam-index-file
+                   (if (functionp it)
+                       (funcall it)
+                     it))))
     (or (and org-roam-index-file
              (if (f-relative-p path)
                  (concat (file-truename org-roam-directory) path)
