@@ -403,7 +403,7 @@ absolute.
 If it is not defined, the index is assumed to be a note in
 `org-roam-directory' whose title is 'Index'.")
 
-(defun org-roam--find-index ()
+(defun org-roam--get-index-path ()
   "Return the path to the index in `org-roam-directory'.
 The path to the index can be defined in `org-roam-index-file'.
 Otherwise, it is assumed to be a note in `org-roam-directory'
@@ -423,7 +423,7 @@ Otherwise, the function will look in your `org-roam-directory'
 for a note whose title is 'Index'.  If it does not exist, the
 command will offer you to create one."
   (interactive)
-  (let ((index (org-roam--find-index)))
+  (let ((index (org-roam--get-index-path)))
     (if (and index
              (file-exists-p index))
         (find-file index)
