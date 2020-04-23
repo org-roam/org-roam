@@ -395,6 +395,41 @@ which takes as its argument an alist of path-completions.  See
   (interactive)
   (find-file org-roam-directory))
 
+;;;; org-roam-find-index
+(defcustom org-roam-index-file nil
+  "Path to the Org-roam index file.
+The path can either be relative (to `org-roam-directory') or
+absolute.
+If it is not defined, the index is assumed to be a note in
+`org-roam-directory' whose title is 'Index'.")
+
+(defun org-roam--find-index ()
+  "Return the path to the index in `org-roam-directory'.
+The path to the index can be defined in `org-roam-index-file'.
+Otherwise, it is assumed to be a note in `org-roam-directory'
+whose title is 'Index'."
+  (let ((path org-roam-index-file))
+    (or (and org-roam-index-file
+             (if (f-relative-p path)
+                 (concat (file-truename org-roam-directory) path)
+               path))
+        (cdr (assoc "Index"
+                    (org-roam--get-title-path-completions))))))
+
+(defun org-roam-find-index ()
+  "Find the index file in `org-roam-directory'.
+The path to the index can be defined in `org-roam-index-file'.
+Otherwise, the function will look in your `org-roam-directory'
+for a note whose title is 'Index'.  If it does not exist, the
+command will offer you to create one."
+  (interactive)
+  (let ((index (org-roam--find-index)))
+    (if (and index
+             (file-exists-p index))
+        (find-file index)
+      (when (y-or-n-p "Index file does not exist.  Would you like to create it?")
+        (org-roam-find-file "Index")))))
+
 ;;;; org-roam-find-ref
 (defun org-roam--get-ref-path-completions ()
   "Return a list of cons pairs for refs to absolute path of Org-roam files."
