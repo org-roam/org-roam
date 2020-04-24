@@ -250,11 +250,29 @@ it as FILE-PATH."
   :type 'boolean
   :group 'org-roam)
 
+(defcustom org-roam-title-subdir-format 'default
+  "Function to use to format the titles of entries with subdirs.
+Only relevant when `org-roam-title-include-subdirs' is non-nil.
+The value should be a function that takes two arguments: the
+title of the note, and the subdirs as a list.  If set to
+'default, `org-roam--format-title-with-subdirs' is used."
+  :type '(choice
+          (const :tag "Default" 'default)
+          (function :tag "Custom function"))
+  :group 'org-roam)
+
 (defcustom org-roam-title-subdir-separator "/"
   "String to use to separate subdirs when
 `org-roam-title-include-subdirs' is non-nil."
   :type 'string
   :group 'org-roam)
+
+(defun org-roam--format-title-with-subdirs (title subdirs)
+  "Format TITLE with SUBDIRS as '\(SUBDIRS)TITLE'."
+  (let* ((separator org-roam-title-subdir-separator)
+         (subdirs (and subdirs
+                       (format "(%s) " (string-join subdirs separator)))))
+    (concat subdirs title)))
 
 (defun org-roam--format-title (title file-path)
   "Format TITLE with relative sub-directory from `org-roam-directory'.
@@ -266,13 +284,23 @@ FILE_PATH should be the absolute path to the note."
                                (current-buffer))
                            (buffer-file-name)
                            (file-truename))))
-             (separator org-roam-title-subdir-separator)
-             (dir (--> path
-                       (file-name-directory it)
-                       (unless (equal root it)
-                         (file-relative-name it root)))))
-        (concat (when dir (s-replace "/" separator dir))
-                title))
+             (subdirs (--> path
+                           (file-name-directory it)
+                           (unless (equal root it)
+                             (--> it
+                                  (file-relative-name it root)
+                                  ;; Transform path-string to list of subdirs
+                                  (split-string (substring it nil -1) "/"))))))
+        (pcase org-roam-title-subdir-format
+          ((pred functionp)
+           (funcall org-roam-title-subdir-format title subdirs))
+          ((or 't 'default)
+           (org-roam--format-title-with-subdirs title subdirs))
+          ('nil
+           (error "`org-roam-title-subdir-format' should not be nil"))
+          (wrong-type (signal 'wrong-type-argument
+                              `((functionp symbolp)
+                                ,wrong-type)))))
     title))
 
 (defun org-roam--extract-titles (&optional file-path)
