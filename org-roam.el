@@ -5,7 +5,7 @@
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
 ;; URL: https://github.com/jethrokuan/org-roam
 ;; Keywords: org-mode, roam, convenience
-;; Version: 1.0.0-rc1
+;; Version: 1.1.0
 ;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (s "1.12.0") (org "9.3") (emacsql "3.0.0") (emacsql-sqlite "1.0.0"))
 
 ;; This file is NOT part of GNU Emacs.
@@ -167,29 +167,19 @@ If FILE is not specified, use the current buffer's file-path."
   (if-let ((path (or file
                   (buffer-file-name))))
       (save-match-data
-	(org-roam--org-file-p path)
-	(f-descendant-of-p (file-truename path)
-			   (file-truename org-roam-directory)))))
+        (and
+         (org-roam--org-file-p path)
+         (f-descendant-of-p (file-truename path)
+                            (file-truename org-roam-directory))))))
 
 (defun org-roam--list-files (dir)
   "Return all Org-roam files located within DIR, at any nesting level.
 Ignores hidden files and directories."
-  (if (file-exists-p dir)
-      (let ((files (directory-files dir t "." t))
-            (dir-ignore-regexp (concat "\\(?:"
-                                       "\\."
-                                       "\\|\\.\\."
-                                       "\\)$"))
-            result)
-        (dolist (file files)
-          (cond
-           ((file-directory-p file)
-            (unless (string-match dir-ignore-regexp file)
-              (setq result (append (org-roam--list-files file) result))))
-           ((and (file-readable-p file)
-                 (org-roam--org-file-p file))
-            (setq result (cons (file-truename file) result)))))
-        result)))
+  (let ((regex (concat "\\.\\(?:"(mapconcat #'regexp-quote org-roam-file-extensions "\\|" )"\\)\\(?:\\.gpg\\)?\\'"))
+        result)
+    (dolist (file (directory-files-recursively dir regex) result)
+      (when (and (file-readable-p file) (org-roam--org-file-p file))
+        (push file result)))))
 
 (defun org-roam--list-all-files ()
   "Return a list of all Org-roam files within `org-roam-directory'."
@@ -340,29 +330,35 @@ specified via the #+ROAM_ALIAS property."
 
 (defun org-roam--format-link (target &optional description)
   "Formats an org link for a given file TARGET and link DESCRIPTION."
-  (let* ((here (-> (or (buffer-base-buffer)
-                       (current-buffer))
-                   (buffer-file-name)
-                   (file-truename)
-                   (file-name-directory))))
+  (let* ((here (ignore-errors
+                 (-> (or (buffer-base-buffer)
+                         (current-buffer))
+                     (buffer-file-name)
+                     (file-truename)
+                     (file-name-directory)))))
     (org-link-make-string
-     (concat "file:" (file-relative-name target here))
+     (concat "file:" (if here
+                         (file-relative-name target here)
+                       target))
      description)))
 
-(defun org-roam-insert (prefix)
+(defun org-roam-insert (prefix &optional filter-fn)
   "Find an Org-roam file, and insert a relative org link to it at point.
-If PREFIX, downcase the title before insertion."
+If PREFIX, downcase the title before insertion.
+FILTER-FN is the name of a function to apply on the candidates
+which takes as its argument an alist of path-completions.  See
+`org-roam--get-title-path-completions' for details."
   (interactive "P")
-  (unless (org-roam--org-roam-file-p
-           (buffer-file-name (buffer-base-buffer)))
-    (user-error "Not in an Org-roam file"))
   (let* ((region (and (region-active-p)
                       ;; following may lose active region, so save it
                       (cons (region-beginning) (region-end))))
          (region-text (when region
                         (buffer-substring-no-properties
                          (car region) (cdr region))))
-         (completions (org-roam--get-title-path-completions))
+         (completions (--> (org-roam--get-title-path-completions)
+                           (if filter-fn
+                               (funcall filter-fn it)
+                             it)))
          (title (org-roam-completion--completing-read "File: " completions
                                                       :initial-input region-text))
          (region-or-title (or region-text title))
@@ -402,11 +398,17 @@ If PREFIX, downcase the title before insertion."
                       file-path) res))))
     res))
 
-(defun org-roam-find-file (&optional initial-prompt)
+(defun org-roam-find-file (&optional initial-prompt filter-fn)
   "Find and open an Org-roam file.
-INITIAL-PROMPT is the initial title prompt."
+INITIAL-PROMPT is the initial title prompt.
+FILTER-FN is the name of a function to apply on the candidates
+which takes as its argument an alist of path-completions.  See
+`org-roam--get-title-path-completions' for details."
   (interactive)
-  (let* ((completions (org-roam--get-title-path-completions))
+  (let* ((completions (--> (org-roam--get-title-path-completions)
+                           (if filter-fn
+                               (funcall filter-fn it)
+                             it)))
          (title (org-roam-completion--completing-read "File: " completions
                                                       :initial-input initial-prompt))
          (file-path (cdr (assoc title completions))))
@@ -561,6 +563,15 @@ for Org-ref cite links."
                       :order-by (asc from)]
                      target))
 
+(defun org-roam-store-link ()
+  "Store a link to an `org-roam' file."
+  (when (org-before-first-heading-p)
+    (when-let ((title (cdr (assoc "TITLE" (org-roam--extract-global-props '("TITLE"))))))
+      (org-link-store-props
+       :type        "file"
+       :link        (format "file:%s" (abbreviate-file-name buffer-file-name))
+       :description title))))
+
 ;;;###autoload
 (defalias 'org-roam 'org-roam-buffer-toggle-display)
 
@@ -615,7 +626,7 @@ Otherwise, behave as if called interactively."
     (setq org-roam-last-window (get-buffer-window))
     (add-hook 'post-command-hook #'org-roam-buffer--update-maybe nil t)
     (add-hook 'after-save-hook #'org-roam-db--update-file nil t)
-    (org-link-set-parameters "file" :face 'org-roam--roam-link-face)
+    (org-link-set-parameters "file" :face 'org-roam--roam-link-face :store #'org-roam-store-link)
     (org-roam-buffer--update-maybe :redisplay t)))
 
 (defun org-roam--delete-file-advice (file &optional _trash)

@@ -5,7 +5,7 @@
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
 ;; URL: https://github.com/jethrokuan/org-roam
 ;; Keywords: org-mode, roam, convenience
-;; Version: 1.0.0-rc1
+;; Version: 1.1.0
 ;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (s "1.12.0") (org "9.3") (emacsql "3.0.0") (emacsql-sqlite "1.0.0"))
 
 ;; This file is NOT part of GNU Emacs.
@@ -330,16 +330,16 @@ including the file itself.  If the file does not have any connections, nil is re
 
 (defun org-roam-db--update-file (&optional file-path)
   "Update Org-roam cache for FILE-PATH."
-  (let (buf)
-    (if file-path
-        (setq buf (find-file-noselect file-path))
-      (setq buf (current-buffer)))
-    (with-current-buffer buf
-      (save-excursion
-        (org-roam-db--update-titles)
-        (org-roam-db--update-refs)
-        (org-roam-db--update-cache-links)
-        (org-roam-buffer--update-maybe :redisplay t)))))
+  (when (org-roam--org-roam-file-p file-path)
+    (let ((buf (or (and file-path
+                        (find-file-noselect file-path))
+                   (current-buffer))))
+      (with-current-buffer buf
+        (save-excursion
+          (org-roam-db--update-titles)
+          (org-roam-db--update-refs)
+          (org-roam-db--update-cache-links)
+          (org-roam-buffer--update-maybe :redisplay t))))))
 
 ;;;;; org-roam-db-build-cache
 (defun org-roam-db-build-cache ()

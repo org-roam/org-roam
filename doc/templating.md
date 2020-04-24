@@ -48,6 +48,43 @@ For example, take the template: `"%<%Y%m%d%H%M%S>-${title}"`, with the title
 org-capture expands `%<%Y%m%d%H%M%S>` with timestamp: e.g.
 `20200213032037-Foo`.
 
+All of the flexibility afforded by emacs and org-mode are
+available. For example, if you want to encode a UTC timestamp in the
+filename, you can take advantage of org-mode's `%(EXP)` template
+expansion to call `format-time-string` directly to provide its third
+argument to specify UTC.
+
+``` emacs-lisp
+("d" "default" plain (function org-roam--capture-get-point)
+     "%?"
+     :file-name "%(format-time-string \"%Y-%m-%d--%H-%M-%SZ--${slug}\" (current-time) t)"
+     :head "#+TITLE: ${title}\n"
+     :unnarrowed t)
+```
+
+Similarly, if you want to change how titles are transformed into
+slugs, you can override `org-roam--title-to-slug`. For example, to use
+hyphens instead of underscores:
+
+
+``` emacs-lisp
+  (defun org-roam--title-to-slug (title)
+    "Convert TITLE to a filename-suitable slug. Uses hyphens rather than underscores."
+    (cl-flet* ((nonspacing-mark-p (char)
+                                  (eq 'Mn (get-char-code-property char 'general-category)))
+               (strip-nonspacing-marks (s)
+                                       (apply #'string (seq-remove #'nonspacing-mark-p
+                                                                   (ucs-normalize-NFD-string s))))
+               (cl-replace (title pair)
+                           (replace-regexp-in-string (car pair) (cdr pair) title)))
+      (let* ((pairs `(("[^[:alnum:][:digit:]]" . "-")  ;; convert anything not alphanumeric
+                      ("--*" . "-")  ;; remove sequential underscores
+                      ("^-" . "")  ;; remove starting underscore
+                      ("-$" . "")))  ;; remove ending underscore
+             (slug (-reduce-from #'cl-replace (strip-nonspacing-marks title) pairs)))
+        (s-downcase slug))))
+```
+
 This templating system is used throughout org-roam templates.
 
 ### Template examples

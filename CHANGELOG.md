@@ -1,19 +1,44 @@
 # Changelog
 
-## 1.0.1 (TBD)
+## 1.1.1 (TBD)
 
+### Bugfixes
+* [#509](https://github.com/jethrokuan/org-roam/pull/509) fix backup files being tracked in database
+* [#509](https://github.com/jethrokuan/org-roam/pull/509) fix external org files being tracked in database
+
+## 1.1.0 (21-04-2020)
+
+To the average user, this release is mainly a bugfix release with additional options to customize. However, the changes made to the source is significant. Most notably, in this release:
+
+1. The codebase has been modularized into separate files, to ease future maintenance and adding of new features (mainly by [@progfolio](https://github.com/progfolio)). Because of these changes, we had to rename many functions and variables: the old names are kept for backwards compatibility, but you are encouraged to use the new function names. You'll receive a warning when you're calling the function with its obsolete name.
+2. [@kljohann](https://github.com/kljohann) did some fantastic work on graph generation: allowing building images for connected components within the graph up to a specified distance
+3. We also started supporting `org-ref` natively: cite links now show up in both the graph and the org-roam buffer.
+
+In the coming months, you can expect work on bigger projects (e.g. revamping the org-roam buffer). 
+ 
 ### Breaking Changes
 * [#385](https://github.com/jethrokuan/org-roam/pull/385) Deprecate `org-roam-graph-node-shape` in favour of `org-roam-graph-node-extra-config`.
+* [#473](https://github.com/jethrokuan/org-roam/pull/473) Deprecate `org-roam-date-filename-format` and `org-roam-date-title-format`, in favour of `org-roam-dailies-capture-templates`.
 
 ### New Features
-* [#350](https://github.com/jethrokuan/org-roam/pull/350) Add `org-roam-db-location`
-* [#359](https://github.com/jethrokuan/org-roam/pull/359) Add `org-roam-verbose`
+* [#350](https://github.com/jethrokuan/org-roam/pull/350) Add `org-roam-db-location` to customize location of org-roam database.
+* [#359](https://github.com/jethrokuan/org-roam/pull/359) Add `org-roam-verbose` to allow or silence printing of information.
 * [#374](https://github.com/jethrokuan/org-roam/pull/374) Add support for `org-ref` `cite:` links
 * [#380](https://github.com/jethrokuan/org-roam/pull/380) Allow `org-roam-buffer-position` to also be `top` or `bottom`
 * [#385](https://github.com/jethrokuan/org-roam/pull/385) Add `org-roam-graph-node-extra-config` to configure Graphviz nodes
+* [#398](https://github.com/jethrokuan/org-roam/pull/398), [#418](https://github.com/jethrokuan/org-roam/pull/418) Add graph building for connected components
 * [#435](https://github.com/jethrokuan/org-roam/pull/435) Add `org-roam-graph-edge-extra-config` to configure Graphviz edges
 * [#439](https://github.com/jethrokuan/org-roam/pull/439) Add support for `org-ref` citations to display as edges in graph. Add `org-roam-graph-edge-cites-extra-config` to configure these edges
 * [#465](https://github.com/jethrokuan/org-roam/pull/465) Add `org-roam-file-extensions` to allow detection of org files with different file extensions
+* [#488](https://github.com/jethrokuan/org-roam/pull/488) Allow a function for `org-roam-graph-viewer`
+* [#491](https://github.com/jethrokuan/org-roam/pull/491) Use TITLE as description when linking before first heading
+
+### Bugfixes
+* [#470](https://github.com/jethrokuan/org-roam/pull/470) Add workaround for undocumented `file-truename` behaviour in `org-roam--org-roam-file-p`.
+
+### Internal Changes
+* [#363](https://github.com/jethrokuan/org-roam/pull/363), [#473](https://github.com/jethrokuan/org-roam/pull/473) Modularize org-roam features.
+* [#497](https://github.com/jethrokuan/org-roam/pull/497) Simplify `org-roam--list-files` implementation
 
 ## 1.0.0 (23-03-2020)
 

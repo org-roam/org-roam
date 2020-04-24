@@ -111,10 +111,11 @@ latex equations:
 that allow synchronised annotation of documents (PDF, EPUB etc.)
 within Org-mode.
 
-### Org-ref
+### Bibliography
 
-[Org-ref][org-ref] does citation and bibliography management in
-Org-mode, and a great tool for scientific notes.
+[org-roam-bibtex](https://github.com/zaeph/org-roam-bibtex) offers tight
+integration between [org-ref][org-ref], [helm-bibtex][helm-bibtex] and
+`org-roam`. This helps you manage your bibliographic notes under `org-roam`.
 
 ### Spaced Repetition
 
@@ -129,6 +130,7 @@ large number of files. Other alternatives include
 [org-noter]: https://github.com/weirdNox/org-noter
 [interleave]: https://github.com/rudolfochrist/interleave
 [org-ref]: https://github.com/jkitchin/org-ref
+[helm-bibtex]: https://github.com/tmalsburg/helm-bibtex
 [org-fc]: https://github.com/l3kn/org-fc/
 [org-drill]: https://orgmode.org/worg/org-contrib/org-drill.html
 [pamparam]: https://github.com/abo-abo/pamparam

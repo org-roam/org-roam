@@ -5,7 +5,7 @@
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
 ;; URL: https://github.com/jethrokuan/org-roam
 ;; Keywords: org-mode, roam, convenience
-;; Version: 1.0.0-rc1
+;; Version: 1.1.0
 ;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (s "1.12.0") (org "9.3") (emacsql "3.0.0") (emacsql-sqlite "1.0.0"))
 
 ;; This file is NOT part of GNU Emacs.
@@ -67,17 +67,25 @@
   "org-roam 1.0.0")
 (define-obsolete-function-alias 'org-roam-date 'org-roam-dailies-date
   "org-roam 1.0.0")
+(define-obsolete-function-alias 'org-roam-graph-show  'org-roam-graph
+  "org-roam 1.0.0")
+(define-obsolete-function-alias 'org-roam-graph-build 'org-roam-graph
+  "org-roam 1.0.0")
 
 ;;;; Variables
 (define-obsolete-variable-alias 'org-roam-graphviz-extra-options
   'org-roam-graph-extra-config "org-roam 1.0.0")
 (define-obsolete-variable-alias 'org-roam-grapher-extra-options
   'org-roam-graph-extra-config "org-roam 1.0.0")
+(make-obsolete-variable 'org-roam-graph-node-shape  'org-roam-graph-node-extra-config "org-roam 1.0.0")
+(defcustom org-roam-graph-node-shape "ellipse"
+  "Shape of graph nodes."
+  :type 'string
+  :group 'org-roam)
 (define-obsolete-variable-alias 'org-roam--db-connection
   'org-roam-db--connection "org-roam 1.0.0")
 (define-obsolete-variable-alias 'org-roam--current-buffer
   'org-roam-buffer--current "org-roam 1.0.0")
-
 (define-obsolete-variable-alias 'org-roam-date-title-format
   'org-roam-dailies-capture-templates "org-roam 1.0.0")
 (define-obsolete-variable-alias 'org-roam-date-filename-format
