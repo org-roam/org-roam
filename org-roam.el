@@ -421,12 +421,10 @@ whose title is 'Index'."
                  (wrong-type (signal 'wrong-type-argument
                                      `((functionp stringp)
                                        ,wrong-type))))))
-    (or (and org-roam-index-file
-             (if (f-relative-p path)
-                 (concat (file-truename org-roam-directory) path)
-               path))
-        (cdr (assoc "Index"
-                    (org-roam--get-title-path-completions))))))
+    (pcase index
+      ('nil (cdr (assoc "Index" (org-roam--get-title-path-completions))))
+      ((pred (f-relative-p)) (concat (file-truename org-roam-directory) path))
+      (_ index))))
 
 (defun org-roam-find-index ()
   "Find the index file in `org-roam-directory'.
