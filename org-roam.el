@@ -436,7 +436,7 @@ command will offer you to create one."
     (if (and index
              (file-exists-p index))
         (find-file index)
-      (when (y-or-n-p "Index file does not exist.  Would you like to create it?")
+      (when (y-or-n-p? "Index file does not exist.  Would you like to create it?")
         (org-roam-find-file "Index")))))
 
 ;;;; org-roam-find-ref
