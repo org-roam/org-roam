@@ -603,20 +603,45 @@ INFO is an alist containing additional information."
 ;;;; org-roam-link-face
 (defface org-roam-link
   '((t :inherit org-link))
-  "Face for org-roam link."
+  "Face for Org-roam links."
   :group 'org-roam-faces)
 
-(defface org-roam-backlink
+(defface org-roam-link-current
   '((t :inherit org-block))
-  "Face for org-roam backlinks in backlinks buffer"
+  "Face for Org-roam links pointing to the current buffer."
   :group 'org-roam-faces)
+
+(defun org-roam--in-buffer-p ()
+  "Return t if in the Org-roam buffer."
+  (string= (buffer-name)
+           org-roam-buffer))
+
+(defun org-roam--retrieve-link-path (&optional pom)
+  "Retrieve the path of the link at point or POM.
+POM can be a position in the current buffer or a marker."
+  (let ((pom (or pom (point))))
+    (org-with-point-at pom
+      (plist-get (cadr (org-element-context)) :path))))
+
+(defun org-roam--backlink-to-current-p ()
+  "Return t if backlink is to the current Org-roam file."
+  (let ((current (buffer-file-name org-roam-buffer--current))
+        (backlink-dest (org-roam--retrieve-link-path)))
+    (string= current backlink-dest)))
 
 (defun org-roam--roam-link-face (path)
   "Conditional face for org file links.
-Applies `org-roam-link-face' if PATH corresponds to a Roam file."
-  (if (org-roam--org-roam-file-p path)
-      'org-roam-link
-    'org-link))
+Applies `org-roam-link-current' if PATH corresponds to the
+currently opened Org-roam file in the backlink buffer, or
+`org-roam-link-face' if PATH corresponds to any other Org-roam
+file."
+  (cond ((and (org-roam--in-buffer-p)
+              (org-roam--backlink-to-current-p))
+         'org-roam-link-current)
+        ((org-roam--org-roam-file-p path)
+         'org-roam-link)
+        (t
+         'org-link)))
 
 ;;;; org-roam-backlinks-mode
 (defvar org-roam-backlinks-mode-map
