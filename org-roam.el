@@ -245,8 +245,8 @@ it as FILE-PATH."
                       (list :content content :point begin)))))))))
 
 (defcustom org-roam-title-include-subdirs nil
-  "When non-nil, include sub-directories relative to
-`org-roam-directory' in title completions."
+  "When non-nil, include subdirs in title completions.
+The subdirs will be relative to `org-roam-directory'."
   :type 'boolean
   :group 'org-roam)
 
