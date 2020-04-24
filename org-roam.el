@@ -414,10 +414,13 @@ assumed to be a note in `org-roam-directory' whose title is
 The path to the index can be defined in `org-roam-index-file'.
 Otherwise, it is assumed to be a note in `org-roam-directory'
 whose title is 'Index'."
-  (let ((path (--> org-roam-index-file
-                   (if (functionp it)
-                       (funcall it)
-                     it))))
+  (let* ((index org-roam-index-file)
+         (path (pcase index
+                 ((pred functionp) (funcall index))
+                 ((pred stringp) index)
+                 (wrong-type (signal 'wrong-type-argument
+                                     `((functionp stringp)
+                                       ,wrong-type))))))
     (or (and org-roam-index-file
              (if (f-relative-p path)
                  (concat (file-truename org-roam-directory) path)
