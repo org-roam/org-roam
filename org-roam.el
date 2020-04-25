@@ -422,9 +422,9 @@ whose title is 'Index'."
                  (wrong-type (signal 'wrong-type-argument
                                      `((functionp stringp)
                                        ,wrong-type))))))
-    (pcase index
-      ((pred (f-relative-p)) (concat (file-truename org-roam-directory) path))
-      (_ index))))
+    (if (f-relative-p index)
+        (concat (file-truename org-roam-directory) path)
+      index)))
 
 (defun org-roam-find-index ()
   "Find the index file in `org-roam-directory'.
