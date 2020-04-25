@@ -262,8 +262,8 @@ title of the note, and the subdirs as a list.  If set to
   :group 'org-roam)
 
 (defcustom org-roam-title-subdir-separator "/"
-  "String to use to separate subdirs when
-`org-roam-title-include-subdirs' is non-nil."
+  "String to use to separate subdirs.
+Only relevant when `org-roam-title-include-subdirs' is non-nil."
   :type 'string
   :group 'org-roam)
 
@@ -274,11 +274,13 @@ title of the note, and the subdirs as a list.  If set to
                        (format "(%s) " (string-join subdirs separator)))))
     (concat subdirs title)))
 
-(defun org-roam--format-title (title file-path)
-  "Format TITLE with relative sub-directory from `org-roam-directory'.
-FILE_PATH should be the absolute path to the note."
+(defun org-roam--format-title (title &optional file-path)
+  "Format TITLE with relative subdirs from `org-roam-directory'.
+If FILE-PATH is not provided, the file associated with the
+current buffer is used.."
   (if org-roam-title-include-subdirs
       (let* ((root (expand-file-name org-roam-directory))
+             ;; If file-path is not provided, compute it
              (path (or file-path
                        (-> (or (buffer-base-buffer)
                                (current-buffer))
@@ -305,8 +307,8 @@ FILE_PATH should be the absolute path to the note."
 
 (defun org-roam--extract-titles (&optional file-path)
   "Extract the titles from current buffer.
-Titles are obtained via the #+TITLE property, or aliases
-specified via the #+ROAM_ALIAS property."
+Titles are obtained via the '#+TITLE' property, or aliases
+specified via the '#+ROAM_ALIAS' property."
   (let* ((props (org-roam--extract-global-props '("TITLE" "ROAM_ALIAS")))
          (aliases (cdr (assoc "ROAM_ALIAS" props)))
          (title (cdr (assoc "TITLE" props)))
