@@ -417,7 +417,7 @@ whose title is 'Index'."
   (let* ((index org-roam-index-file)
          (path (pcase index
                  ((pred functionp) (funcall index))
-                 ((pred stringp) index)
+                 ((or (pred stringp) 'nil) index)
                  (wrong-type (signal 'wrong-type-argument
                                      `((functionp stringp)
                                        ,wrong-type))))))
