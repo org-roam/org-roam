@@ -308,7 +308,7 @@ including the file itself.  If the file does not have any connections, nil is re
     (org-roam-db-query [:delete :from titles
                         :where (= file $s1)]
                        file)
-    (org-roam-db--insert-titles file (org-roam--extract-titles))))
+    (org-roam-db--insert-titles file (org-roam--extract-titles file))))
 
 (defun org-roam-db--update-refs ()
   "Update the ref of the current buffer into the cache."

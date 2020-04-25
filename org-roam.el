@@ -277,7 +277,7 @@ Only relevant when `org-roam-title-include-subdirs' is non-nil."
 (defun org-roam--format-title (title &optional file-path)
   "Format TITLE with relative subdirs from `org-roam-directory'.
 If FILE-PATH is not provided, the file associated with the
-current buffer is used.."
+current buffer is used."
   (if org-roam-title-include-subdirs
       (let* ((root (expand-file-name org-roam-directory))
              ;; If file-path is not provided, compute it
@@ -314,7 +314,7 @@ specified via the '#+ROAM_ALIAS' property."
          (title (cdr (assoc "TITLE" props)))
          (alias-list (org-roam--aliases-str-to-list aliases)))
     (mapcar (lambda (title)
-              (org-roam--format-title title file-path))
+              (org-roam--format-titles title file-path))
             (if title
                 (cons title alias-list)
               alias-list))))
