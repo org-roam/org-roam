@@ -200,18 +200,24 @@ The search terminates when the first property is encountered."
         (push (cons prop p) res)))
     res))
 
+(defvar org-roam--org-link-file-bracket-re
+  "\\[\\[file:\\(\\(?:[^][\\]\\|\\\\\\(?:\\\\\\\\\\)*[][]\\|\\\\+[^][]\\)+\\)]\\(?:\\[\\(\\(?:.\\|
+\\)+?\\)]\\)?]"
+  "Matches a 'file:' link in double brackets.")
+
 (defun org-roam--expand-links (content path)
   "Crawl CONTENT for relative links and expand them.
 PATH should be the root from which to compute the relativity."
-  (let ((dir (file-name-directory path)))
+  (let ((dir (file-name-directory path))
+        (re org-roam--org-link-file-bracket-re))
     (with-temp-buffer
       (insert content)
       (goto-char (point-min))
       ;; Loop over links
-      (while (re-search-forward org-link-bracket-re (point-max) t)
+      (while (re-search-forward re (point-max) t)
         (goto-char (match-beginning 1))
         ;; Strip 'file:'
-        (setq link (substring (match-string 1) 5))
+        (setq link (match-string 1))
         ;; Delete relative link
         (when (f-relative-p link)
           (delete-region (match-beginning 1)
