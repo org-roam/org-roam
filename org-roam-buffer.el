@@ -108,8 +108,9 @@ When non-nil, the window will not be closed when deleting other windows."
             (key-backlinks (org-roam--get-backlinks (s-chop-prefix "cite:" roam-key)))
             (grouped-backlinks (--group-by (nth 0 it) key-backlinks)))
       (progn
-        (insert (format "\n\n* %d Cite backlinks\n"
-                        (length key-backlinks)))
+        (insert (let ((l (length key-backlinks)))
+                  (format "\n\n* %d Cite backlink%s\n"
+                          l (if (> l 1) "s" ""))))
         (dolist (group grouped-backlinks)
           (let ((file-from (car group))
                 (bls (cdr group)))
@@ -133,8 +134,9 @@ When non-nil, the window will not be closed when deleting other windows."
             (backlinks (org-roam--get-backlinks file-path))
             (grouped-backlinks (--group-by (nth 0 it) backlinks)))
       (progn
-        (insert (format "\n\n* %d Backlinks\n"
-                        (length backlinks)))
+        (insert (let ((l (length backlinks)))
+                     (format "\n\n* %d Backlink%s\n"
+                             l (if (> l 1) "s" ""))))
         (dolist (group grouped-backlinks)
           (let ((file-from (car group))
                 (bls (cdr group)))
