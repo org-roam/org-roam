@@ -216,7 +216,7 @@ into a digraph."
      (if (executable-find org-roam-graph-viewer)
          (condition-case err
              (call-process org-roam-graph-viewer nil 0 nil file)
-           ((error (user-error "Failed to open org-roam graph: %s" err))))
+           (error (user-error "Failed to open org-roam graph: %s" err)))
        (user-error "Executable not found: \"%s\"" org-roam-graph-viewer)))
     ((pred functionp) (funcall org-roam-graph-viewer file))
     ('nil (view-file file))
