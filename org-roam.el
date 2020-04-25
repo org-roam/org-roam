@@ -417,12 +417,12 @@ whose title is 'Index'."
   (let* ((index org-roam-index-file)
          (path (pcase index
                  ((pred functionp) (funcall index))
-                 ((or (pred stringp) 'nil) index)
+                 ((pred stringp) index)
+                 ('nil (user-error "You need to set `org-roam-index-file' before you can jump to it"))
                  (wrong-type (signal 'wrong-type-argument
                                      `((functionp stringp)
                                        ,wrong-type))))))
     (pcase index
-      ('nil (cdr (assoc "Index" (org-roam--get-title-path-completions))))
       ((pred (f-relative-p)) (concat (file-truename org-roam-directory) path))
       (_ index))))
 
