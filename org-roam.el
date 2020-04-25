@@ -268,7 +268,7 @@ Only relevant when `org-roam-title-include-subdirs' is non-nil."
   :group 'org-roam)
 
 (defun org-roam--format-title-with-subdirs (title subdirs)
-  "Format TITLE with SUBDIRS as '\(SUBDIRS)TITLE'."
+  "Format TITLE with SUBDIRS as '\(SUBDIRS) TITLE'."
   (let* ((separator org-roam-title-subdir-separator)
          (subdirs (and subdirs
                        (format "(%s) " (string-join subdirs separator)))))
@@ -276,6 +276,8 @@ Only relevant when `org-roam-title-include-subdirs' is non-nil."
 
 (defun org-roam--format-title (title &optional file-path)
   "Format TITLE with relative subdirs from `org-roam-directory'.
+When `org-roam-title-include-subdirs' is non-nil, FILE-PATH is
+used to compute which subdirs should be included in the title.
 If FILE-PATH is not provided, the file associated with the
 current buffer is used."
   (if org-roam-title-include-subdirs
@@ -305,7 +307,7 @@ current buffer is used."
                                 ,wrong-type)))))
     title))
 
-(defun org-roam--extract-titles (&optional file-path)
+(defun org-roam--extract-titles ()
   "Extract the titles from current buffer.
 Titles are obtained via the '#+TITLE' property, or aliases
 specified via the '#+ROAM_ALIAS' property."
@@ -313,11 +315,18 @@ specified via the '#+ROAM_ALIAS' property."
          (aliases (cdr (assoc "ROAM_ALIAS" props)))
          (title (cdr (assoc "TITLE" props)))
          (alias-list (org-roam--aliases-str-to-list aliases)))
+    (if title
+        (cons title alias-list)
+      alias-list)))
+
+(defun org-roam--extract-and-format-titles (&optional file-path)
+  "Extract the titles from the current buffer and format them.
+If FILE-PATH is not provided, the file associated with the
+current buffer is used."
+  (let ((titles (org-roam--extract-titles)))
     (mapcar (lambda (title)
-              (org-roam--format-titles title file-path))
-            (if title
-                (cons title alias-list)
-              alias-list))))
+              (org-roam--format-title title file-path))
+            titles)))
 
 (defun org-roam--extract-ref ()
   "Extract the ref from current buffer."
