@@ -152,6 +152,19 @@ buffer."
 		  (plist-get (buffer-local-value 'org-capture-current-plist (current-buffer)) :org-roam)))
 	   (buffer-list)))
 
+(define-minor-mode org-roam-capture-mode
+  "Minor mode for the `org-roam-captue'."
+  :lighter " orc"
+  ;; :keymap org-roam-capture-mode-map
+
+  (when (and org-roam-capture-mode
+             (eq (org-roam-capture--get :capture-fn)
+                 'org-roam-insert))
+    (add-hook 'org-capture-before-finalize-hook
+                #'org-roam-capture--insert-link-h nil 'local)))
+
+(add-hook 'org-capture-mode-hook #'org-roam-capture-mode)
+
 (defun org-roam-capture--fill-template (str &optional info)
   "Expand the template STR, returning the string.
 This is an extension of org-capture's template expansion.
@@ -180,7 +193,8 @@ This is added as a hook to `org-capture-after-finalize-hook'."
           (desc (org-roam-capture--get-local :link-description)))
       (org-with-point-at (org-roam-capture--get-local :insert-at)
         (insert (org-roam--format-link path desc)))))
-  (remove-hook 'org-capture-before-finalize-hook #'org-roam-capture--insert-link-h))
+  ;; (remove-hook 'org-capture-before-finalize-hook #'org-roam-capture--insert-link-h)
+  )
 
 (defun org-roam-capture--save-file-maybe-h ()
   "Save the file conditionally.

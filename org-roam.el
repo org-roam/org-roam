@@ -344,7 +344,7 @@ which takes as its argument an alist of path-completions.  See
       (let ((org-roam-capture--info (list (cons 'title title)
 					  (cons 'slug (org-roam--title-to-slug title))))
 	    (org-roam-capture--context 'title))
-	(add-hook 'org-capture-before-finalize-hook #'org-roam-capture--insert-link-h)
+	;; (add-hook 'org-capture-before-finalize-hook #'org-roam-capture--insert-link-h)
 	(setq org-roam-capture-additional-template-props
               (list :region region
 		    :link-description link-description
