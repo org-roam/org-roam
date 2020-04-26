@@ -103,7 +103,7 @@ Template string   :\n%v")
   (let ((org-roam-capture-templates org-roam-dailies-capture-templates)
         (org-roam-capture--info (list (cons 'time time)))
         (org-roam-capture--context 'dailies))
-    (add-hook 'org-capture-after-finalize-hook #'org-roam-capture--find-file-h)
+    (setq org-roam-capture-additional-template-props (list :finalize 'find-file))
     (org-roam--with-template-error 'org-roam-dailies-capture-templates
       (org-roam-capture--capture))))
 
