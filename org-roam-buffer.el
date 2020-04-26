@@ -100,6 +100,16 @@ When non-nil, the window will not be closed when deleting other windows."
                        'font-lock-face
                        'org-document-title)))
 
+(defun org-roam--pluralize (string number)
+  "Conditionally pluralize STRING if NUMBER is above 1."
+  (let ((l (pcase number
+             ((pred (listp)) (length number))
+             ((pred (integerp)) number)
+             (wrong-type (signal 'wrong-type-argument
+                                 `((listp integerp)
+                                   ,wrong-type))))))
+    (format "%s%s" string (if (> l 1) "s" ""))))
+
 (defun org-roam-buffer--insert-citelinks ()
   "Insert citation backlinks for the current buffer."
   (if-let* ((roam-key (with-temp-buffer
@@ -109,8 +119,8 @@ When non-nil, the window will not be closed when deleting other windows."
             (grouped-backlinks (--group-by (nth 0 it) key-backlinks)))
       (progn
         (insert (let ((l (length key-backlinks)))
-                  (format "\n\n* %d Cite backlink%s\n"
-                          l (if (> l 1) "s" ""))))
+                  (format "\n\n* %d %s\n"
+                          l (org-roam--pluralize "Cite backlink" l))))
         (dolist (group grouped-backlinks)
           (let ((file-from (car group))
                 (bls (cdr group)))
@@ -135,8 +145,8 @@ When non-nil, the window will not be closed when deleting other windows."
             (grouped-backlinks (--group-by (nth 0 it) backlinks)))
       (progn
         (insert (let ((l (length backlinks)))
-                     (format "\n\n* %d Backlink%s\n"
-                             l (if (> l 1) "s" ""))))
+                     (format "\n\n* %d %s\n"
+                             l (org-roam--pluralize "Backlink" l))))
         (dolist (group grouped-backlinks)
           (let ((file-from (car group))
                 (bls (cdr group)))
