@@ -339,12 +339,12 @@ which takes as its argument an alist of path-completions.  See
           (when region ;; Remove previously selected text.
             (delete-region (car region) (cdr region)))
           (insert (org-roam--format-link target-file-path link-description)))
-      (when (org-roam-capture--in-process-p)
-	(user-error "Nested Org-roam capture processes not supported"))
+      ;; (when (org-roam-capture--in-process-p)
+      ;;   (user-error "Nested Org-roam capture processes not supported"))
       (let ((org-roam-capture--info (list (cons 'title title)
 					  (cons 'slug (org-roam--title-to-slug title))))
 	    (org-roam-capture--context 'title))
-	(add-hook 'org-capture-after-finalize-hook #'org-roam-capture--insert-link-h)
+	(add-hook 'org-capture-before-finalize-hook #'org-roam-capture--insert-link-h)
 	(setq org-roam-capture-additional-template-props
               (list :region region
 		    :link-description link-description

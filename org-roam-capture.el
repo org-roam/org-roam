@@ -172,14 +172,15 @@ Next, it expands the remaining template string using
   "Insert the link into the original buffer, after the capture process is done.
 This is added as a hook to `org-capture-after-finalize-hook'."
   (when (and (not org-note-abort)
-             (eq (org-roam-capture--get :capture-fn)
+             (eq (org-roam-capture--get-local :capture-fn)
                  'org-roam-insert))
-    (when-let ((region (org-roam-capture--get :region))) ;; Remove previously selected text.
+    (when-let ((region (org-roam-capture--get-local :region))) ;; Remove previously selected text.
       (delete-region (car region) (cdr region)))
-    (org-with-point-at (org-roam-capture--get :insert-at)
-      (insert (org-roam--format-link (org-roam-capture--get :file-path)
-                                     (org-roam-capture--get :link-description)))))
-  (remove-hook 'org-capture-after-finalize-hook #'org-roam-capture--insert-link-h))
+    (let ((path (org-roam-capture--get-local :file-path))
+          (desc (org-roam-capture--get-local :link-description)))
+      (org-with-point-at (org-roam-capture--get-local :insert-at)
+        (insert (org-roam--format-link path desc)))))
+  (remove-hook 'org-capture-before-finalize-hook #'org-roam-capture--insert-link-h))
 
 (defun org-roam-capture--save-file-maybe-h ()
   "Save the file conditionally.
@@ -286,11 +287,11 @@ This function is used solely in Org-roam's capture templates: see
                             (org-roam-capture--new-file))))
                      (_ (error "Invalid org-roam-capture-context")))))
     (org-roam-capture--expand-template)
-    (org-roam-capture--put :file-path file-path)
+    (org-roam-capture--put-local :file-path file-path)
     (while org-roam-capture-additional-template-props
       (let ((prop (pop org-roam-capture-additional-template-props))
             (val (pop org-roam-capture-additional-template-props)))
-        (org-roam-capture--put prop val)))
+        (org-roam-capture--put-local prop val)))
     (set-buffer (org-capture-target-buffer file-path))
     (widen)
     (goto-char (point-max))))
@@ -347,8 +348,8 @@ GOTO and KEYS argument have the same functionality as
   "Launches an `org-capture' process for a new or existing note.
 This uses the templates defined at `org-roam-capture-templates'."
   (interactive)
-  (when (org-roam-capture--in-process-p)
-    (user-error "Nested Org-roam capture processes not supported"))
+  ;; (when (org-roam-capture--in-process-p)
+  ;;   (user-error "Nested Org-roam capture processes not supported"))
   (let* ((completions (org-roam--get-title-path-completions))
          (title (org-roam-completion--completing-read "File: " completions))
          (file-path (cdr (assoc title completions))))
