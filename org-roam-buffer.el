@@ -108,7 +108,7 @@ When non-nil, the window will not be closed when deleting other windows."
              (wrong-type (signal 'wrong-type-argument
                                  `((listp integerp)
                                    ,wrong-type))))))
-    (format "%s%s" string (if (> l 1) "s" ""))))
+    (concat string (when (> l 1) "s"))))
 
 (defun org-roam-buffer--insert-citelinks ()
   "Insert citation backlinks for the current buffer."
