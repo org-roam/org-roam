@@ -25,6 +25,14 @@ javascript:location.href =
 + '&title='
 + encodeURIComponent(document.title)
 ```
+or as a keybinding in qutebrowser, adding the following to the autoconfig.yml file:
+```yml
+settings:
+  bindings.commands:
+    global:
+      normal:
+        gc: open javascript:void(location.href='org-protocol://roam-ref?template=r&ref='+encodeURIComponent(location.href)+'&title='+encodeURIComponent(document.title))
+```
 
 where `template` is the template key for a template in
 `org-roam-capture-ref-templates`. More documentation on the templating
