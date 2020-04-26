@@ -2,6 +2,9 @@
 
 ## 1.1.1 (TBD)
 
+### Breaking Changes
+* [#523](https://github.com/jethrokuan/org-roam/pull/523) remove `org-roam-completion-fuzzy-match` in favor of using completion mechanism's configuration options directly 
+
 ### Bugfixes
 * [#509](https://github.com/jethrokuan/org-roam/pull/509) fix backup files being tracked in database
 * [#509](https://github.com/jethrokuan/org-roam/pull/509) fix external org files being tracked in database

@@ -47,11 +47,6 @@
           (function :tag "Custom function"))
   :group 'org-roam)
 
-(defcustom org-roam-completion-fuzzy-match nil
-  "Whether to fuzzy match Org-roam's completion candidates."
-  :type 'boolean
-  :group 'org-roam)
-
 (defun org-roam-completion--helm-candidate-transformer (candidates _source)
   "Transforms CANDIDATES for Helm-based completing read.
 SOURCE is not used."
@@ -82,9 +77,7 @@ Return user choice."
                           :require-match require-match
                           :action (prog1 action
                                     (setq action nil))
-                          :caller 'org-roam--completing-read
-                          :re-builder (if org-roam-completion-fuzzy-match 'ivy--regex-fuzzy
-                                        'regexp-quote))
+                          :caller 'org-roam--completing-read)
               (user-error "Please install ivy from \
 https://github.com/abo-abo/swiper")))
            ((eq org-roam-completion-system 'helm)
@@ -96,8 +89,7 @@ https://github.com/emacs-helm/helm"))
                             :candidates (mapcar #'car choices)
                             :filtered-candidate-transformer
                             (and (not require-match)
-                                 #'org-roam-completion--helm-candidate-transformer)
-                            :fuzzy-match org-roam-completion-fuzzy-match))
+                                 #'org-roam-completion--helm-candidate-transformer)))
                   (buf (concat "*org-roam "
                                (s-downcase (s-chop-suffix ":" (s-trim prompt)))
                                "*")))
