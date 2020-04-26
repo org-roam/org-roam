@@ -92,7 +92,7 @@ number of password prompts, you may wish to cache the password.
 
 Org-roam generates an SVG image using
 [Graphviz](https://graphviz.org/). To setup graph navigation, see the
-[Graph Setup](graph_setup.md) page.
+[Roam Protocol](roam_protocol.md) page.
 
 Org-roam tries its best to locate the Graphviz executable from your
 `PATH`, but if it fails to do so, you may set it manually:
