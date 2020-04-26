@@ -345,9 +345,11 @@ which takes as its argument an alist of path-completions.  See
 					  (cons 'slug (org-roam--title-to-slug title))))
 	    (org-roam-capture--context 'title))
 	(add-hook 'org-capture-after-finalize-hook #'org-roam-capture--insert-link-h)
-	(setq org-roam-capture-additional-template-props (list :region region
-							       :link-description link-description
-							       :capture-fn 'org-roam-insert))
+	(setq org-roam-capture-additional-template-props
+              (list :region region
+		    :link-description link-description
+                    :insert-at (point-marker)
+		    :capture-fn 'org-roam-insert))
 	(org-roam--capture)))))
 
 ;;;; org-roam-find-file

@@ -157,8 +157,9 @@ This is added as a hook to `org-capture-after-finalize-hook'."
                  'org-roam-insert))
     (when-let ((region (org-roam-capture--get :region))) ;; Remove previously selected text.
       (delete-region (car region) (cdr region)))
-    (insert (org-roam--format-link (org-roam-capture--get :file-path)
-                                   (org-roam-capture--get :link-description))))
+    (org-with-point-at (org-roam-capture--get :insert-at)
+      (insert (org-roam--format-link (org-roam-capture--get :file-path)
+                                     (org-roam-capture--get :link-description)))))
   (remove-hook 'org-capture-after-finalize-hook #'org-roam-capture--insert-link-h))
 
 (defun org-roam-capture--save-file-maybe-h ()
