@@ -113,18 +113,37 @@ applies.
   "The Org-roam templates used during a capture from the roam-ref protocol.
 Details on how to specify for the template is given in `org-roam-capture-templates'.")
 
-(defun org-roam-capture--get (keyword)
-  "Gets the value for KEYWORD from the `org-roam-capture-template'."
-  (plist-get (plist-get org-capture-plist :org-roam) keyword))
+(defun org-roam-capture--get (keyword &optional local)
+  "Get the value for KEYWORD from the `org-roam-capture-template'.
+When LOCAL is non-nil, get the local value for the current
+buffer."
+  (let ((p (if local
+               org-capture-current-plist
+             org-capture-plist)))
+    (plist-get (plist-get p :org-roam) keyword)))
 
-(defun org-roam-capture--put (&rest stuff)
-  "Puts properties from STUFF into the `org-roam-capture-template'."
+(defun org-roam-capture--get-local (keyword)
+  "Get the local value for KEYWORD from the `org-roam-capture-template'."
+  (org-roam-capture--get keyword t))
+
+(defun org-roam-capture--prepare-plist (stuff)
+  "Prepare properties from STUFF for `org-roam-capture-template'."
   (let ((p (plist-get org-capture-plist :org-roam)))
     (while stuff
-      (setq p (plist-put p
-                         (pop stuff) (pop stuff))))
+      (setq p (plist-put p (pop stuff) (pop stuff))))
+    p))
+
+(defun org-roam-capture--put (&rest stuff)
+  "Put properties from STUFF into the `org-roam-capture-template'."
+  (let ((p (org-roam-capture--prepare-plist stuff)))
     (setq org-capture-plist
           (plist-put org-capture-plist :org-roam p))))
+
+(defun org-roam-capture--put-local (&rest stuff)
+  "Put properties from STUFF into the `org-roam-capture-template'."
+  (let ((p (org-roam-capture--prepare-plist stuff)))
+    (setq org-capture-current-plist
+          (plist-put org-capture-current-plist :org-roam p))))
 
 (defun org-roam-capture--in-process-p ()
   "Return non-nil if a `org-roam-capture' buffer exists."
@@ -134,7 +153,7 @@ Details on how to specify for the template is given in `org-roam-capture-templat
 	   (buffer-list)))
 
 (defun org-roam-capture--fill-template (str &optional info)
-  "Expands the template STR, returning the string.
+  "Expand the template STR, returning the string.
 This is an extension of org-capture's template expansion.
 
 First, it expands ${var} occurrences in STR, using the INFO alist.
