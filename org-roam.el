@@ -246,11 +246,19 @@ it as FILE-PATH."
 
 (defun org-roam--extract-titles ()
   "Extract the titles from current buffer.
-Titles are obtained via the #+TITLE property, or aliases
-specified via the #+ROAM_ALIAS property."
+Titles are obtained via:
+
+1. The #+TITLE property or the first headline
+2. The aliases specified via the #+ROAM_ALIAS property."
   (let* ((props (org-roam--extract-global-props '("TITLE" "ROAM_ALIAS")))
          (aliases (cdr (assoc "ROAM_ALIAS" props)))
-         (title (cdr (assoc "TITLE" props)))
+         (title (or (cdr (assoc "TITLE" props))
+                    (org-element-map
+                        (org-element-parse-buffer)
+                        'headline
+                      (lambda (h)
+                        (org-no-properties (org-element-property :raw-value h)))
+                      :first-match t)))
          (alias-list (org-roam--aliases-str-to-list aliases)))
     (if title
         (cons title alias-list)
