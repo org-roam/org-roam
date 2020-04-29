@@ -77,6 +77,21 @@ Org-roam files are created and prefilled using Org-roam's templating
 system. The templating system is customizable, and the system is
 described in detail in the [Org-roam Template](templating.md) page.
 
+### Index
+
+As your collection grows, you might want to create an index where you keep
+links to your main files.
+
+In Org-roam, you can define the path to your index file by setting `org-roam-index-file`.
+
+```emacs-lisp
+(setq org-roam-index-file "index.org")
+```
+
+You can then bind `org-roam-find-index` in your configuration to access it (see [Basic Install and
+Configuration](installation.md/#basic-install-and-configuration) to review how
+to set key-bindings).
+
 ### Encryption
 
 Encryption (via GPG) can be enabled for all new files by setting

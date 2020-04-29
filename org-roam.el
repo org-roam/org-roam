@@ -395,6 +395,51 @@ which takes as its argument an alist of path-completions.  See
   (interactive)
   (find-file org-roam-directory))
 
+;;;; org-roam-find-index
+(defcustom org-roam-index-file nil
+  "Path to the Org-roam index file.
+The path can be a string or a function.  If it is a string, it
+should be the path (absolute or relative to `org-roam-directory')
+to the index file.  If it is is a function, the function should
+return the path to the index file.  Otherwise, the index is
+assumed to be a note in `org-roam-directory' whose title is
+'Index'."
+  :type '(choice
+          (string :tag "Path to index" "%s")
+          (function :tag "Function to generate the path"))
+  :group 'org-roam)
+
+(defun org-roam--get-index-path ()
+  "Return the path to the index in `org-roam-directory'.
+The path to the index can be defined in `org-roam-index-file'.
+Otherwise, it is assumed to be a note in `org-roam-directory'
+whose title is 'Index'."
+  (let* ((index org-roam-index-file)
+         (path (pcase index
+                 ((pred functionp) (funcall index))
+                 ((pred stringp) index)
+                 ('nil (user-error "You need to set `org-roam-index-file' before you can jump to it"))
+                 (wrong-type (signal 'wrong-type-argument
+                                     `((functionp stringp)
+                                       ,wrong-type))))))
+    (if (f-relative-p index)
+        (concat (file-truename org-roam-directory) path)
+      index)))
+
+(defun org-roam-find-index ()
+  "Find the index file in `org-roam-directory'.
+The path to the index can be defined in `org-roam-index-file'.
+Otherwise, the function will look in your `org-roam-directory'
+for a note whose title is 'Index'.  If it does not exist, the
+command will offer you to create one."
+  (interactive)
+  (let ((index (org-roam--get-index-path)))
+    (if (and index
+             (file-exists-p index))
+        (find-file index)
+      (when (y-or-n-p "Index file does not exist.  Would you like to create it? ")
+        (org-roam-find-file "Index")))))
+
 ;;;; org-roam-find-ref
 (defun org-roam--get-ref-path-completions ()
   "Return a list of cons pairs for refs to absolute path of Org-roam files."
