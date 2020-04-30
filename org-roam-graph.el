@@ -99,7 +99,7 @@ Example:
 
 (defcustom org-roam-graph-short-titles t
   "When this is non-nil, truncate titles in graph nodes.
-The title will be trancated according to `org-roam-graph-max-title-length'.
+The title will be truncated according to `org-roam-graph-max-title-length'.
 
 This can also be set to symbol 'wrap, in which case long titles
 will be wrapped with `org-roam-graph-max-title-length' as the
