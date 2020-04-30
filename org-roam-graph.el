@@ -163,7 +163,8 @@ into a digraph."
         (insert (org-roam-graph--dot-option option) ";\n"))
       (dolist (attribute '("node" "edge"))
         (insert (format " %s [%s];\n" attribute
-                        (mapconcat #'org-roam-graph--dot-option
+                        (mapconcat (lambda (var)
+                                     (org-roam-graph--dot-option var nil "\""))
                                    (symbol-value
                                     (intern (concat "org-roam-graph-" attribute "-extra-config")))
                                    ","))))

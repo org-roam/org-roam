@@ -8,6 +8,10 @@
 ### Bugfixes
 * [#509](https://github.com/jethrokuan/org-roam/pull/509) fix backup files being tracked in database
 * [#509](https://github.com/jethrokuan/org-roam/pull/509) fix external org files being tracked in database
+* [#537](https://github.com/jethrokuan/org-roam/pull/537) quote graphviz node and edge configuration options to allow multi-word configurations
+
+### Features
+* [#538](https://github.com/jethrokuan/org-roam/pull/538) Optionally use text in first headline as title 
 
 ## 1.1.0 (21-04-2020)
 
