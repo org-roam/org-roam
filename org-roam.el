@@ -359,9 +359,9 @@ Titles are obtained via:
   "Extract the titles from the current buffer and format them.
 If FILE-PATH is not provided, the file associated with the
 current buffer is used."
-  (->> (org-roam--extract-titles)
-       (mapcar (lambda (title)
-                 (org-roam--format-title title file-path)))))
+  (mapcar (lambda (title)
+            (org-roam--format-title title file-path))
+          (org-roam--extract-titles)))
 
 (defun org-roam--extract-ref ()
   "Extract the ref from current buffer."
