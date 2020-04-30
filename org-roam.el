@@ -272,6 +272,69 @@ it as FILE-PATH."
                       link-type
                       (list :content content :point begin)))))))))
 
+(defcustom org-roam-title-include-subdirs nil
+  "When non-nil, include subdirs in title completions.
+The subdirs will be relative to `org-roam-directory'."
+  :type 'boolean
+  :group 'org-roam)
+
+(defcustom org-roam-title-subdir-format 'default
+  "Function to use to format the titles of entries with subdirs.
+Only relevant when `org-roam-title-include-subdirs' is non-nil.
+The value should be a function that takes two arguments: the
+title of the note, and the subdirs as a list.  If set to
+'default, `org-roam--format-title-with-subdirs' is used."
+  :type '(choice
+          (const :tag "Default" 'default)
+          (function :tag "Custom function"))
+  :group 'org-roam)
+
+(defcustom org-roam-title-subdir-separator "/"
+  "String to use to separate subdirs.
+Only relevant when `org-roam-title-include-subdirs' is non-nil."
+  :type 'string
+  :group 'org-roam)
+
+(defun org-roam--format-title-with-subdirs (title subdirs)
+  "Format TITLE with SUBDIRS as '\(SUBDIRS) TITLE'."
+  (let* ((separator org-roam-title-subdir-separator)
+         (subdirs (and subdirs
+                       (format "(%s) " (string-join subdirs separator)))))
+    (concat subdirs title)))
+
+(defun org-roam--format-title (title &optional file-path)
+  "Format TITLE with relative subdirs from `org-roam-directory'.
+When `org-roam-title-include-subdirs' is non-nil, FILE-PATH is
+used to compute which subdirs should be included in the title.
+If FILE-PATH is not provided, the file associated with the
+current buffer is used."
+  (if org-roam-title-include-subdirs
+      (let* ((root (expand-file-name org-roam-directory))
+             ;; If file-path is not provided, compute it
+             (path (or file-path
+                       (-> (or (buffer-base-buffer)
+                               (current-buffer))
+                           (buffer-file-name)
+                           (file-truename))))
+             (subdirs (--> path
+                           (file-name-directory it)
+                           (unless (equal root it)
+                             (--> it
+                                  (file-relative-name it root)
+                                  ;; Transform path-string to list of subdirs
+                                  (split-string (substring it nil -1) "/"))))))
+        (pcase org-roam-title-subdir-format
+          ((pred functionp)
+           (funcall org-roam-title-subdir-format title subdirs))
+          ((or 't 'default)
+           (org-roam--format-title-with-subdirs title subdirs))
+          ('nil
+           (error "`org-roam-title-subdir-format' should not be nil"))
+          (wrong-type (signal 'wrong-type-argument
+                              `((functionp symbolp)
+                                ,wrong-type)))))
+    title))
+
 (defun org-roam--extract-titles ()
   "Extract the titles from current buffer.
 Titles are obtained via:
@@ -291,6 +354,14 @@ Titles are obtained via:
     (if title
         (cons title alias-list)
       alias-list)))
+
+(defun org-roam--extract-and-format-titles (&optional file-path)
+  "Extract the titles from the current buffer and format them.
+If FILE-PATH is not provided, the file associated with the
+current buffer is used."
+  (mapcar (lambda (title)
+            (org-roam--format-title title file-path))
+          (org-roam--extract-titles)))
 
 (defun org-roam--extract-ref ()
   "Extract the ref from current buffer."
