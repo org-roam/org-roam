@@ -613,8 +613,8 @@ INFO is an alist containing additional information."
 
 (defun org-roam--in-buffer-p ()
   "Return t if in the Org-roam buffer."
-  (string= (buffer-name)
-           org-roam-buffer))
+  (and (boundp org-roam-backlinks-mode)
+       org-roam-backlinks-mode))
 
 (defun org-roam--retrieve-link-path (&optional pom)
   "Retrieve the path of the link at point or POM.
