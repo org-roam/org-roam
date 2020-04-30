@@ -97,10 +97,17 @@ Example:
   :type 'number
   :group 'org-roam)
 
-(defcustom org-roam-graph-wrap-title t
-  "When this is non-nil, wrap the title instead of truncating it.
-The value of `org-roam-graph-max-title-length` is used for wrapping."
-  :type 'boolean
+(defcustom org-roam-graph-short-titles t
+  "When this is non-nil, truncate titles in graph nodes.
+The title will be trancated according to `org-roam-graph-max-title-length'.
+
+This can also be set to symbol 'wrap, in which case long titles
+will be wrapped with `org-roam-graph-max-title-length' as the
+maximum line width."
+  :type '(choice
+          (const :tag "Yes" t)
+          (const :tag "Wrap" wrap)
+          (const :tag "No" nil))
   :group 'org-roam)
 
 (defcustom org-roam-graph-exclude-matcher nil
@@ -184,9 +191,10 @@ into a digraph."
         (let* ((file (xml-escape-string (car node)))
                (title (or (caadr node)
                           (org-roam--path-to-slug file)))
-               (shortened-title (or (and org-roam-graph-wrap-title
-                                         (s-word-wrap org-roam-graph-max-title-length title))
-                                    (s-truncate org-roam-graph-max-title-length title)))
+               (shortened-title (pcase org-roam-graph-short-titles
+                                  (`nil title)
+                                  (`wrap  (s-word-wrap org-roam-graph-max-title-length title))
+                                  (_ (s-truncate org-roam-graph-max-title-length title))))
                (node-properties
                 `(("label"   . ,(s-replace "\"" "\\\"" shortened-title))
                   ("URL"     . ,(concat "org-protocol://roam-file?file=" (url-hexify-string file)))
