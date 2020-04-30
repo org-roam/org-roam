@@ -502,7 +502,7 @@ which takes as its argument an alist of path-completions.  See
   (interactive)
   (find-file org-roam-directory))
 
-;;;; org-roam-find-index
+;;;; org-roam-jump-to-index
 (defcustom org-roam-index-file nil
   "Path to the Org-roam index file.
 The path can be a string or a function.  If it is a string, it
@@ -533,7 +533,7 @@ whose title is 'Index'."
         (concat (file-truename org-roam-directory) path)
       index)))
 
-(defun org-roam-find-index ()
+(defun org-roam-jump-to-index ()
   "Find the index file in `org-roam-directory'.
 The path to the index can be defined in `org-roam-index-file'.
 Otherwise, the function will look in your `org-roam-directory'
