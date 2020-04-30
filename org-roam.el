@@ -200,6 +200,32 @@ The search terminates when the first property is encountered."
         (push (cons prop p) res)))
     res))
 
+(defvar org-roam--org-link-file-bracket-re
+  "\\[\\[file:\\(\\(?:[^][\\]\\|\\\\\\(?:\\\\\\\\\\)*[][]\\|\\\\+[^][]\\)+\\)]\\(?:\\[\\(\\(?:.\\|
+\\)+?\\)]\\)?]"
+  "Matches a 'file:' link in double brackets.")
+
+(defun org-roam--expand-links (content path)
+  "Crawl CONTENT for relative links and expand them.
+PATH should be the root from which to compute the relativity."
+  (let ((dir (file-name-directory path))
+        (re org-roam--org-link-file-bracket-re))
+    (with-temp-buffer
+      (insert content)
+      (goto-char (point-min))
+      ;; Loop over links
+      (while (re-search-forward re (point-max) t)
+        (goto-char (match-beginning 1))
+        ;; Strip 'file:'
+        (setq link (match-string 1))
+        ;; Delete relative link
+        (when (f-relative-p link)
+          (delete-region (match-beginning 1)
+                         (match-end 1))
+          (insert (expand-file-name
+                   (concat dir link)))))
+      (buffer-string))))
+
 (defun org-roam--extract-links (&optional file-path)
   "Extracts all link items within the current buffer.
 Link items are of the form:
@@ -231,11 +257,13 @@ it as FILE-PATH."
                    (begin (or (org-element-property :content-begin element)
                               (org-element-property :begin element)))
                    (content (or (org-element-property :raw-value element)
-                                (buffer-substring
+                                (buffer-substring-no-properties
                                  begin
                                  (or (org-element-property :content-end element)
                                      (org-element-property :end element)))))
-                   (content (string-trim content)))
+                   (content (string-trim content))
+                   ;; Expand all relative links to absolute links
+                   (content (org-roam--expand-links content file-path)))
               (vector file-path
                       (cond ((string= link-type "roam")
                              (file-truename (expand-file-name path (file-name-directory file-path))))
@@ -309,11 +337,19 @@ current buffer is used."
 
 (defun org-roam--extract-titles ()
   "Extract the titles from current buffer.
-Titles are obtained via the '#+TITLE' property, or aliases
-specified via the '#+ROAM_ALIAS' property."
+Titles are obtained via:
+
+1. The #+TITLE property or the first headline
+2. The aliases specified via the #+ROAM_ALIAS property."
   (let* ((props (org-roam--extract-global-props '("TITLE" "ROAM_ALIAS")))
          (aliases (cdr (assoc "ROAM_ALIAS" props)))
-         (title (cdr (assoc "TITLE" props)))
+         (title (or (cdr (assoc "TITLE" props))
+                    (org-element-map
+                        (org-element-parse-buffer)
+                        'headline
+                      (lambda (h)
+                        (org-no-properties (org-element-property :raw-value h)))
+                      :first-match t)))
          (alias-list (org-roam--aliases-str-to-list aliases)))
     (if title
         (cons title alias-list)
@@ -466,6 +502,51 @@ which takes as its argument an alist of path-completions.  See
   "Find and open `org-roam-directory'."
   (interactive)
   (find-file org-roam-directory))
+
+;;;; org-roam-find-index
+(defcustom org-roam-index-file nil
+  "Path to the Org-roam index file.
+The path can be a string or a function.  If it is a string, it
+should be the path (absolute or relative to `org-roam-directory')
+to the index file.  If it is is a function, the function should
+return the path to the index file.  Otherwise, the index is
+assumed to be a note in `org-roam-directory' whose title is
+'Index'."
+  :type '(choice
+          (string :tag "Path to index" "%s")
+          (function :tag "Function to generate the path"))
+  :group 'org-roam)
+
+(defun org-roam--get-index-path ()
+  "Return the path to the index in `org-roam-directory'.
+The path to the index can be defined in `org-roam-index-file'.
+Otherwise, it is assumed to be a note in `org-roam-directory'
+whose title is 'Index'."
+  (let* ((index org-roam-index-file)
+         (path (pcase index
+                 ((pred functionp) (funcall index))
+                 ((pred stringp) index)
+                 ('nil (user-error "You need to set `org-roam-index-file' before you can jump to it"))
+                 (wrong-type (signal 'wrong-type-argument
+                                     `((functionp stringp)
+                                       ,wrong-type))))))
+    (if (f-relative-p index)
+        (concat (file-truename org-roam-directory) path)
+      index)))
+
+(defun org-roam-find-index ()
+  "Find the index file in `org-roam-directory'.
+The path to the index can be defined in `org-roam-index-file'.
+Otherwise, the function will look in your `org-roam-directory'
+for a note whose title is 'Index'.  If it does not exist, the
+command will offer you to create one."
+  (interactive)
+  (let ((index (org-roam--get-index-path)))
+    (if (and index
+             (file-exists-p index))
+        (find-file index)
+      (when (y-or-n-p "Index file does not exist.  Would you like to create it? ")
+        (org-roam-find-file "Index")))))
 
 ;;;; org-roam-find-ref
 (defun org-roam--get-ref-path-completions ()

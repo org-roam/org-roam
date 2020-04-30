@@ -65,14 +65,20 @@ Example:
   :type '(alist)
   :group 'org-roam)
 
-(defcustom org-roam-graph-node-extra-config nil
+(defcustom org-roam-graph-node-extra-config
+  '(("shape"      . "underline")
+    ("style"      . "rounded,filled")
+    ("fillcolor"  . "#EEEEEE")
+    ("color"      . "#C9C9C9")
+    ("fontcolor"  . "#111111"))
   "Extra options for graphviz nodes.
 Example:
  '((\"color\" . \"skyblue\"))"
   :type '(alist)
   :group 'org-roam)
 
-(defcustom org-roam-graph-edge-extra-config nil
+(defcustom org-roam-graph-edge-extra-config
+  '(("color" . "#333333"))
   "Extra options for graphviz edges.
 Example:
  '((\"dir\" . \"back\"))"
@@ -163,7 +169,8 @@ into a digraph."
         (insert (org-roam-graph--dot-option option) ";\n"))
       (dolist (attribute '("node" "edge"))
         (insert (format " %s [%s];\n" attribute
-                        (mapconcat #'org-roam-graph--dot-option
+                        (mapconcat (lambda (var)
+                                     (org-roam-graph--dot-option var nil "\""))
                                    (symbol-value
                                     (intern (concat "org-roam-graph-" attribute "-extra-config")))
                                    ","))))
