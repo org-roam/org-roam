@@ -304,12 +304,11 @@ including the file itself.  If the file does not have any connections, nil is re
 ;;;;; Updating
 (defun org-roam-db--update-titles ()
   "Update the title of the current buffer into the cache."
-  (let ((file (file-truename (buffer-file-name)))
-        title)
+  (let* ((file (file-truename (buffer-file-name)))
+         (title (org-roam--extract-and-format-titles file)))
     (org-roam-db-query [:delete :from titles
                         :where (= file $s1)]
                        file)
-    (setq title (org-roam--extract-and-format-titles file))
     (org-roam-db--insert-titles file title)))
 
 (defun org-roam-db--update-refs ()
