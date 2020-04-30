@@ -617,8 +617,9 @@ INFO is an alist containing additional information."
        org-roam-backlinks-mode))
 
 (defun org-roam--retrieve-link-path (&optional pom)
-  "Retrieve the path of the link at point or POM.
-POM can be a position in the current buffer or a marker."
+  "Retrieve the path of the link at POM.
+The point-or-marker POM can either be a position in the current
+buffer or a marker."
   (let ((pom (or pom (point))))
     (org-with-point-at pom
       (plist-get (cadr (org-element-context)) :path))))
