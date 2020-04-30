@@ -200,6 +200,32 @@ The search terminates when the first property is encountered."
         (push (cons prop p) res)))
     res))
 
+(defvar org-roam--org-link-file-bracket-re
+  "\\[\\[file:\\(\\(?:[^][\\]\\|\\\\\\(?:\\\\\\\\\\)*[][]\\|\\\\+[^][]\\)+\\)]\\(?:\\[\\(\\(?:.\\|
+\\)+?\\)]\\)?]"
+  "Matches a 'file:' link in double brackets.")
+
+(defun org-roam--expand-links (content path)
+  "Crawl CONTENT for relative links and expand them.
+PATH should be the root from which to compute the relativity."
+  (let ((dir (file-name-directory path))
+        (re org-roam--org-link-file-bracket-re))
+    (with-temp-buffer
+      (insert content)
+      (goto-char (point-min))
+      ;; Loop over links
+      (while (re-search-forward re (point-max) t)
+        (goto-char (match-beginning 1))
+        ;; Strip 'file:'
+        (setq link (match-string 1))
+        ;; Delete relative link
+        (when (f-relative-p link)
+          (delete-region (match-beginning 1)
+                         (match-end 1))
+          (insert (expand-file-name
+                   (concat dir link)))))
+      (buffer-string))))
+
 (defun org-roam--extract-links (&optional file-path)
   "Extracts all link items within the current buffer.
 Link items are of the form:
@@ -231,11 +257,13 @@ it as FILE-PATH."
                    (begin (or (org-element-property :content-begin element)
                               (org-element-property :begin element)))
                    (content (or (org-element-property :raw-value element)
-                                (buffer-substring
+                                (buffer-substring-no-properties
                                  begin
                                  (or (org-element-property :content-end element)
                                      (org-element-property :end element)))))
-                   (content (string-trim content)))
+                   (content (string-trim content))
+                   ;; Expand all relative links to absolute links
+                   (content (org-roam--expand-links content file-path)))
               (vector file-path
                       (cond ((string= link-type "roam")
                              (file-truename (expand-file-name path (file-name-directory file-path))))
