@@ -133,7 +133,8 @@ SQL can be either the emacsql vector representation, or a string."
 
     (refs
      [(ref :unique :not-null)
-      (file :not-null)])))
+      (file :not-null)
+      (key :not-null)])))
 
 (defun org-roam-db--init (db)
   "Initialize database DB with the correct schema and user version."
@@ -227,10 +228,11 @@ This is equivalent to removing the node from the graph."
 
 (defun org-roam-db--insert-ref (file ref)
   "Insert REF for FILE into the Org-roam cache."
-  (org-roam-db-query
-   [:insert :into refs
-    :values $v1]
-   (list (vector ref file))))
+  (let ((key (elt (split-string ref ":") 1)))
+    (org-roam-db-query
+     [:insert :into refs
+              :values $v1]
+     (list (vector ref file key)))))
 
 ;;;;; Fetching
 (defun org-roam-db--get-current-files ()
@@ -255,7 +257,7 @@ If the file does not have any connections, nil is returned."
                    links_of(file, link) AS
                      (WITH roamlinks AS (SELECT * FROM links WHERE \"type\" = '\"roam\"'),
                            citelinks AS (SELECT * FROM links
-                                                  JOIN refs ON links.\"to\" = refs.\"ref\"
+                                                  JOIN refs ON links.\"to\" = refs.\"key\"
                                                             AND links.\"type\" = '\"cite\"')
                       SELECT \"from\", \"to\" FROM roamlinks UNION
                       SELECT \"to\", \"from\" FROM roamlinks UNION
@@ -276,7 +278,7 @@ including the file itself.  If the file does not have any connections, nil is re
                    links_of(file, link) AS
                      (WITH roamlinks AS (SELECT * FROM links WHERE \"type\" = '\"roam\"'),
                            citelinks AS (SELECT * FROM links
-                                                  JOIN refs ON links.\"to\" = refs.\"ref\"
+                                                  JOIN refs ON links.\"to\" = refs.\"key\"
                                                             AND links.\"type\" = '\"cite\"')
                       SELECT \"from\", \"to\" FROM roamlinks UNION
                       SELECT \"to\", \"from\" FROM roamlinks UNION
@@ -364,8 +366,9 @@ including the file itself.  If the file does not have any connections, nil is re
               (setq all-links (append links all-links)))
             (let ((titles (org-roam--extract-and-format-titles file)))
               (setq all-titles (cons (vector file titles) all-titles)))
-            (when-let ((ref (org-roam--extract-ref)))
-              (setq all-refs (cons (vector ref file) all-refs))))
+            (when-let* ((ref (org-roam--extract-ref))
+                        (key (elt (split-string ref ":") 1)))
+              (setq all-refs (cons (vector ref file key) all-refs))))
           (remhash file current-files))))
     (dolist (file (hash-table-keys current-files))
       ;; These files are no longer around, remove from cache...
