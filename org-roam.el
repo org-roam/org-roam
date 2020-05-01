@@ -237,49 +237,53 @@ FILE-FROM is typically the buffer file path, but this may not exist, for example
 in temp buffers.  In cases where this occurs, we do know the file path, and pass
 it as FILE-PATH."
   (let ((file-path (or file-path
-                       (file-truename (buffer-file-name)))))
-    (->>
-     (org-element-map (org-element-parse-buffer) 'link
-       (lambda (link)
-         (let* ((type (org-element-property :type link))
-                (path (org-element-property :path link))
-                (start (org-element-property :begin link))
-                (link-type (cond ((and (string= type "file")
-                                       (org-roam--org-file-p path))
-                                  "roam")
-                                 ((and
-                                   (require 'org-ref nil t)
-                                   (-contains? org-ref-cite-types type))
-                                  "cite")
-                                 (t nil))))
-           (when link-type
-             (goto-char start)
-             (let* ((element (org-element-at-point))
-                    (begin (or (org-element-property :content-begin element)
-                               (org-element-property :begin element)))
-                    (content (or (org-element-property :raw-value element)
-                                 (buffer-substring-no-properties
-                                  begin
-                                  (or (org-element-property :content-end element)
-                                      (org-element-property :end element)))))
-                    (content (string-trim content))
-                    ;; Expand all relative links to absolute links
-                    (content (org-roam--expand-links content file-path)))
-               (vector file-path
-                       (cond ((string= link-type "roam")
-                              (file-truename (expand-file-name path (file-name-directory file-path))))
-                             ((string= link-type "cite")
-                              path))
-                       link-type
-                       (list :content content :point begin)))))))
-     (mapcan (lambda (linkvec)          ; Split any multi-cite citations
-               (if (and (string= (aref linkvec 2) "cite") (require 'org-ref nil t))
-                   (mapcar (lambda (ref) (vector (aref linkvec 0)
-                                                 ref
-                                                 (aref linkvec 2)
-                                                 (aref linkvec 3)))
-                           (org-ref-split-and-strip-string (aref linkvec 1)))
-                 (list linkvec)))))))
+                       (file-truename (buffer-file-name))))
+        links)
+    (org-element-map (org-element-parse-buffer) 'link
+      (lambda (link)
+        (let* ((type (org-element-property :type link))
+               (path (org-element-property :path link))
+               (start (org-element-property :begin link))
+               (link-type (cond ((and (string= type "file")
+                                      (org-roam--org-file-p path))
+                                 "roam")
+                                ((and
+                                  (require 'org-ref nil t)
+                                  (-contains? org-ref-cite-types type))
+                                 "cite")
+                                (t nil))))
+          (when link-type
+            (goto-char start)
+            (let* ((element (org-element-at-point))
+                   (begin (or (org-element-property :content-begin element)
+                              (org-element-property :begin element)))
+                   (content (or (org-element-property :raw-value element)
+                                (buffer-substring-no-properties
+                                 begin
+                                 (or (org-element-property :content-end element)
+                                     (org-element-property :end element)))))
+                   (content (string-trim content))
+                   ;; Expand all relative links to absolute links
+                   (content (org-roam--expand-links content file-path)))
+              (let ((context (list :content content :point begin)))
+                (pcase link-type
+                  ("roam"
+                   (push (vector file-path
+                                 (file-truename (expand-file-name path (file-name-directory file-path)))
+                                 link-type
+                                 context)
+                         links))
+                  ("cite"
+                   (require 'org-ref nil t)
+                   ;; Separate citekeys and process them individually
+                   (seq-do (lambda (citekey)
+                             (push (vector file-path
+                                           citekey
+                                           link-type
+                                           context)
+                                   links))
+                           (org-ref-split-and-strip-string path))))))))))
+    links))
 
 (defcustom org-roam-title-include-subdirs nil
   "When non-nil, include subdirs in title completions.
