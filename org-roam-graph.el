@@ -97,6 +97,19 @@ Example:
   :type 'number
   :group 'org-roam)
 
+(defcustom org-roam-graph-shorten-titles 'truncate
+  "Determines how long titles appear in graph nodes.
+Recognized values are the symbols `truncate' and `wrap', in which
+cases the title will be truncated or wrapped, respectively, if it
+is longer than `org-roam-graph-max-title-length'.
+
+All other values including nil will have no effect."
+  :type '(choice
+          (const :tag "truncate" truncate)
+          (const :tag "wrap" wrap)
+          (const :tag "no" nil))
+  :group 'org-roam)
+
 (defcustom org-roam-graph-exclude-matcher nil
   "Matcher for excluding nodes from the generated graph.
 Any nodes and links for file paths matching this string is
@@ -178,7 +191,10 @@ into a digraph."
         (let* ((file (xml-escape-string (car node)))
                (title (or (caadr node)
                           (org-roam--path-to-slug file)))
-               (shortened-title (s-truncate org-roam-graph-max-title-length title))
+               (shortened-title (pcase org-roam-graph-shorten-titles
+                                  (`truncate (s-truncate org-roam-graph-max-title-length title))
+                                  (`wrap (s-word-wrap org-roam-graph-max-title-length title))
+                                  (_ title)))
                (node-properties
                 `(("label"   . ,(s-replace "\"" "\\\"" shortened-title))
                   ("URL"     . ,(concat "org-protocol://roam-file?file=" (url-hexify-string file)))
