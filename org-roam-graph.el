@@ -97,17 +97,17 @@ Example:
   :type 'number
   :group 'org-roam)
 
-(defcustom org-roam-graph-short-titles t
-  "When this is non-nil, truncate titles in graph nodes.
-The title will be truncated according to `org-roam-graph-max-title-length'.
+(defcustom org-roam-graph-shorten-titles 'truncate
+  "Determines how long titles appear in graph nodes.
+Recognized values are the symbols `truncate' and `wrap', in which
+cases the title will be truncated or wrapped, respectively, if it
+is longer than `org-roam-graph-max-title-length'.
 
-This can also be set to symbol 'wrap, in which case long titles
-will be wrapped with `org-roam-graph-max-title-length' as the
-maximum line width."
+All other values including nil will have no effect."
   :type '(choice
-          (const :tag "Yes" t)
-          (const :tag "Wrap" wrap)
-          (const :tag "No" nil))
+          (const :tag "truncate" truncate)
+          (const :tag "wrap" wrap)
+          (const :tag "no" nil))
   :group 'org-roam)
 
 (defcustom org-roam-graph-exclude-matcher nil
@@ -191,10 +191,10 @@ into a digraph."
         (let* ((file (xml-escape-string (car node)))
                (title (or (caadr node)
                           (org-roam--path-to-slug file)))
-               (shortened-title (pcase org-roam-graph-short-titles
-                                  (`nil title)
-                                  (`wrap  (s-word-wrap org-roam-graph-max-title-length title))
-                                  (_ (s-truncate org-roam-graph-max-title-length title))))
+               (shortened-title (pcase org-roam-graph-shorten-titles
+                                  (`truncate (s-truncate org-roam-graph-max-title-length title))
+                                  (`wrap (s-word-wrap org-roam-graph-max-title-length title))
+                                  (_ title)))
                (node-properties
                 `(("label"   . ,(s-replace "\"" "\\\"" shortened-title))
                   ("URL"     . ,(concat "org-protocol://roam-file?file=" (url-hexify-string file)))
