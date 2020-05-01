@@ -257,7 +257,7 @@ If the file does not have any connections, nil is returned."
                    links_of(file, link) AS
                      (WITH roamlinks AS (SELECT * FROM links WHERE \"type\" = '\"roam\"'),
                            citelinks AS (SELECT * FROM links
-                                                  JOIN refs ON links.\"to\" = refs.\"ref\"
+                                                  JOIN refs ON links.\"to\" = refs.\"key\"
                                                             AND links.\"type\" = '\"cite\"')
                       SELECT \"from\", \"to\" FROM roamlinks UNION
                       SELECT \"to\", \"from\" FROM roamlinks UNION
@@ -278,7 +278,7 @@ including the file itself.  If the file does not have any connections, nil is re
                    links_of(file, link) AS
                      (WITH roamlinks AS (SELECT * FROM links WHERE \"type\" = '\"roam\"'),
                            citelinks AS (SELECT * FROM links
-                                                  JOIN refs ON links.\"to\" = refs.\"ref\"
+                                                  JOIN refs ON links.\"to\" = refs.\"key\"
                                                             AND links.\"type\" = '\"cite\"')
                       SELECT \"from\", \"to\" FROM roamlinks UNION
                       SELECT \"to\", \"from\" FROM roamlinks UNION
