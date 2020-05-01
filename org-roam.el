@@ -238,6 +238,14 @@ in temp buffers.  In cases where this occurs, we do know the file path, and pass
 it as FILE-PATH."
   (let ((file-path (or file-path
                        (file-truename (buffer-file-name)))))
+    (mapcan (lambda (linkvec)           ; Split any multi-cite citations
+              (if (string= (aref linkvec 2) "cite")
+                  (mapcar (lambda (ref) (vector (aref linkvec 0)
+                                                ref
+                                                (aref linkvec 2)
+                                                (aref linkvec 3)))
+                          (split-string (aref linkvec 1) ","))
+                (list linkvec)))
     (org-element-map (org-element-parse-buffer) 'link
       (lambda (link)
         (let* ((type (org-element-property :type link))
@@ -270,7 +278,7 @@ it as FILE-PATH."
                             ((string= link-type "cite")
                              path))
                       link-type
-                      (list :content content :point begin)))))))))
+                      (list :content content :point begin))))))))))
 
 (defcustom org-roam-title-include-subdirs nil
   "When non-nil, include subdirs in title completions.
