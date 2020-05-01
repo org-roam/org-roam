@@ -265,24 +265,19 @@ it as FILE-PATH."
                    (content (string-trim content))
                    ;; Expand all relative links to absolute links
                    (content (org-roam--expand-links content file-path)))
-              (let ((context (list :content content :point begin)))
-                (pcase link-type
-                  ("roam"
-                   (push (vector file-path
-                                 (file-truename (expand-file-name path (file-name-directory file-path)))
-                                 link-type
-                                 context)
-                         links))
-                  ("cite"
-                   (require 'org-ref nil t)
-                   ;; Separate citekeys and process them individually
-                   (seq-do (lambda (citekey)
-                             (push (vector file-path
-                                           citekey
-                                           link-type
-                                           context)
-                                   links))
-                           (org-ref-split-and-strip-string path))))))))))
+              (let ((context (list :content content :point begin))
+                    (names (pcase link-type
+                             ("roam"
+                              (list (file-truename (expand-file-name path (file-name-directory file-path)))))
+                             ("cite"
+                              (org-ref-split-and-strip-string path)))))
+                (seq-do (lambda (name)
+                          (push (vector file-path
+                                        name
+                                        link-type
+                                        context)
+                                links))
+                        names)))))))
     links))
 
 (defcustom org-roam-title-include-subdirs nil
