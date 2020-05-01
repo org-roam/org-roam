@@ -159,7 +159,7 @@ into a digraph."
            (edges-cites-query
             `[:with selected :as [:select [file] :from ,node-query]
               :select :distinct [file from]
-              :from links :inner :join refs :on (and (= links:to refs:ref)
+              :from links :inner :join refs :on (and (= links:to refs:key)
                                                      (= links:type "cite"))
               :where (and (in file selected) (in from selected))])
            (edges       (org-roam-db-query edges-query))
