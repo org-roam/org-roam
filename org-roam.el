@@ -273,12 +273,12 @@ it as FILE-PATH."
                        link-type
                        (list :content content :point begin)))))))
      (mapcan (lambda (linkvec)          ; Split any multi-cite citations
-               (if (string= (aref linkvec 2) "cite")
+               (if (and (string= (aref linkvec 2) "cite") (require 'org-ref nil t))
                    (mapcar (lambda (ref) (vector (aref linkvec 0)
                                                  ref
                                                  (aref linkvec 2)
                                                  (aref linkvec 3)))
-                           (split-string (aref linkvec 1) ","))
+                           (org-ref-split-and-strip-string (aref linkvec 1)))
                  (list linkvec)))))))
 
 (defcustom org-roam-title-include-subdirs nil
