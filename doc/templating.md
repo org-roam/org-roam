@@ -19,7 +19,8 @@ The org-roam capture template extends org-capture's template with 2
 additional properties:
 
 1. `:file-name`: This is the file name template used when a new note
-   is created.
+   is created. Notes can be placed in sub-directories by prepending them to
+   the filename (`sub/file-name`)
 2. `:head`: This is the template that is inserted on initial note
    creation.
 

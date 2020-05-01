@@ -237,7 +237,8 @@ FILE-FROM is typically the buffer file path, but this may not exist, for example
 in temp buffers.  In cases where this occurs, we do know the file path, and pass
 it as FILE-PATH."
   (let ((file-path (or file-path
-                       (file-truename (buffer-file-name)))))
+                       (file-truename (buffer-file-name))))
+        links)
     (org-element-map (org-element-parse-buffer) 'link
       (lambda (link)
         (let* ((type (org-element-property :type link))
@@ -264,13 +265,83 @@ it as FILE-PATH."
                    (content (string-trim content))
                    ;; Expand all relative links to absolute links
                    (content (org-roam--expand-links content file-path)))
-              (vector file-path
-                      (cond ((string= link-type "roam")
-                             (file-truename (expand-file-name path (file-name-directory file-path))))
-                            ((string= link-type "cite")
-                             path))
-                      link-type
-                      (list :content content :point begin)))))))))
+              (let ((context (list :content content :point begin))
+                    (names (pcase link-type
+                             ("roam"
+                              (list (file-truename (expand-file-name path (file-name-directory file-path)))))
+                             ("cite"
+                              (org-ref-split-and-strip-string path)))))
+                (seq-do (lambda (name)
+                          (push (vector file-path
+                                        name
+                                        link-type
+                                        context)
+                                links))
+                        names)))))))
+    links))
+
+(defcustom org-roam-title-include-subdirs nil
+  "When non-nil, include subdirs in title completions.
+The subdirs will be relative to `org-roam-directory'."
+  :type 'boolean
+  :group 'org-roam)
+
+(defcustom org-roam-title-subdir-format 'default
+  "Function to use to format the titles of entries with subdirs.
+Only relevant when `org-roam-title-include-subdirs' is non-nil.
+The value should be a function that takes two arguments: the
+title of the note, and the subdirs as a list.  If set to
+'default, `org-roam--format-title-with-subdirs' is used."
+  :type '(choice
+          (const :tag "Default" 'default)
+          (function :tag "Custom function"))
+  :group 'org-roam)
+
+(defcustom org-roam-title-subdir-separator "/"
+  "String to use to separate subdirs.
+Only relevant when `org-roam-title-include-subdirs' is non-nil."
+  :type 'string
+  :group 'org-roam)
+
+(defun org-roam--format-title-with-subdirs (title subdirs)
+  "Format TITLE with SUBDIRS as '\(SUBDIRS) TITLE'."
+  (let* ((separator org-roam-title-subdir-separator)
+         (subdirs (and subdirs
+                       (format "(%s) " (string-join subdirs separator)))))
+    (concat subdirs title)))
+
+(defun org-roam--format-title (title &optional file-path)
+  "Format TITLE with relative subdirs from `org-roam-directory'.
+When `org-roam-title-include-subdirs' is non-nil, FILE-PATH is
+used to compute which subdirs should be included in the title.
+If FILE-PATH is not provided, the file associated with the
+current buffer is used."
+  (if org-roam-title-include-subdirs
+      (let* ((root (expand-file-name org-roam-directory))
+             ;; If file-path is not provided, compute it
+             (path (or file-path
+                       (-> (or (buffer-base-buffer)
+                               (current-buffer))
+                           (buffer-file-name)
+                           (file-truename))))
+             (subdirs (--> path
+                           (file-name-directory it)
+                           (unless (equal root it)
+                             (--> it
+                                  (file-relative-name it root)
+                                  ;; Transform path-string to list of subdirs
+                                  (split-string (substring it nil -1) "/"))))))
+        (pcase org-roam-title-subdir-format
+          ((pred functionp)
+           (funcall org-roam-title-subdir-format title subdirs))
+          ((or 't 'default)
+           (org-roam--format-title-with-subdirs title subdirs))
+          ('nil
+           (error "`org-roam-title-subdir-format' should not be nil"))
+          (wrong-type (signal 'wrong-type-argument
+                              `((functionp symbolp)
+                                ,wrong-type)))))
+    title))
 
 (defun org-roam--extract-titles ()
   "Extract the titles from current buffer.
@@ -291,6 +362,14 @@ Titles are obtained via:
     (if title
         (cons title alias-list)
       alias-list)))
+
+(defun org-roam--extract-and-format-titles (&optional file-path)
+  "Extract the titles from the current buffer and format them.
+If FILE-PATH is not provided, the file associated with the
+current buffer is used."
+  (mapcar (lambda (title)
+            (org-roam--format-title title file-path))
+          (org-roam--extract-titles)))
 
 (defun org-roam--extract-ref ()
   "Extract the ref from current buffer."
@@ -431,7 +510,7 @@ which takes as its argument an alist of path-completions.  See
   (interactive)
   (find-file org-roam-directory))
 
-;;;; org-roam-find-index
+;;;; org-roam-jump-to-index
 (defcustom org-roam-index-file nil
   "Path to the Org-roam index file.
 The path can be a string or a function.  If it is a string, it
@@ -462,7 +541,7 @@ whose title is 'Index'."
         (concat (file-truename org-roam-directory) path)
       index)))
 
-(defun org-roam-find-index ()
+(defun org-roam-jump-to-index ()
   "Find the index file in `org-roam-directory'.
 The path to the index can be defined in `org-roam-index-file'.
 Otherwise, the function will look in your `org-roam-directory'
@@ -532,20 +611,46 @@ INFO is an alist containing additional information."
 ;;;; org-roam-link-face
 (defface org-roam-link
   '((t :inherit org-link))
-  "Face for org-roam link."
+  "Face for Org-roam links."
   :group 'org-roam-faces)
 
-(defface org-roam-backlink
+(defface org-roam-link-current
   '((t :inherit org-block))
-  "Face for org-roam backlinks in backlinks buffer"
+  "Face for Org-roam links pointing to the current buffer."
   :group 'org-roam-faces)
+
+(defun org-roam--in-buffer-p ()
+  "Return t if in the Org-roam buffer."
+  (and (boundp org-roam-backlinks-mode)
+       org-roam-backlinks-mode))
+
+(defun org-roam--retrieve-link-path (&optional pom)
+  "Retrieve the path of the link at POM.
+The point-or-marker POM can either be a position in the current
+buffer or a marker."
+  (let ((pom (or pom (point))))
+    (org-with-point-at pom
+      (plist-get (cadr (org-element-context)) :path))))
+
+(defun org-roam--backlink-to-current-p ()
+  "Return t if backlink is to the current Org-roam file."
+  (let ((current (buffer-file-name org-roam-buffer--current))
+        (backlink-dest (org-roam--retrieve-link-path)))
+    (string= current backlink-dest)))
 
 (defun org-roam--roam-link-face (path)
   "Conditional face for org file links.
-Applies `org-roam-link-face' if PATH corresponds to a Roam file."
-  (if (org-roam--org-roam-file-p path)
-      'org-roam-link
-    'org-link))
+Applies `org-roam-link-current' if PATH corresponds to the
+currently opened Org-roam file in the backlink buffer, or
+`org-roam-link-face' if PATH corresponds to any other Org-roam
+file."
+  (cond ((and (org-roam--in-buffer-p)
+              (org-roam--backlink-to-current-p))
+         'org-roam-link-current)
+        ((org-roam--org-roam-file-p path)
+         'org-roam-link)
+        (t
+         'org-link)))
 
 ;;;; org-roam-backlinks-mode
 (defvar org-roam-backlinks-mode-map

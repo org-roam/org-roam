@@ -88,7 +88,7 @@ In Org-roam, you can define the path to your index file by setting `org-roam-ind
 (setq org-roam-index-file "index.org")
 ```
 
-You can then bind `org-roam-find-index` in your configuration to access it (see [Basic Install and
+You can then bind `org-roam-jump-to-index` in your configuration to access it (see [Basic Install and
 Configuration](installation.md/#basic-install-and-configuration) to review how
 to set key-bindings).
 
