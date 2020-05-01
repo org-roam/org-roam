@@ -136,7 +136,7 @@ SQL can be either the emacsql vector representation, or a string."
     (refs
      [(ref :unique :not-null)
       (file :not-null)
-      (type :not-null)])))
+      (key :not-null)])))
 
 (defun org-roam-db--init (db)
   "Initialize database DB with the correct schema and user version."
@@ -223,20 +223,13 @@ This is equivalent to removing the node from the graph."
     :values $v1]
    (list (vector file titles))))
 
-(defun org-roam-db--insert-tags (file tags)
-  "Insert TAGS for a FILE into the Org-roam cache."
-  (org-roam-db-query
-   [:insert :into tags
-    :values $v1]
-   (list (vector file tags))))
-
 (defun org-roam-db--insert-ref (file ref)
   "Insert REF for FILE into the Org-roam cache."
-  (let ((key (cdr ref))
-        (type (car ref)))
+  (let ((key (elt (split-string ref ":") 1)))
     (org-roam-db-query
-     [:insert :into refs :values $v1]
-     (list (vector key file type)))))
+     [:insert :into refs
+              :values $v1]
+     (list (vector ref file key)))))
 
 ;;;;; Fetching
 (defun org-roam-db--get-current-files ()
@@ -261,7 +254,7 @@ If the file does not have any connections, nil is returned."
                    links_of(file, link) AS
                      (WITH roamlinks AS (SELECT * FROM links WHERE \"type\" = '\"roam\"'),
                            citelinks AS (SELECT * FROM links
-                                                  JOIN refs ON links.\"to\" = refs.\"ref\"
+                                                  JOIN refs ON links.\"to\" = refs.\"key\"
                                                             AND links.\"type\" = '\"cite\"')
                       SELECT \"from\", \"to\" FROM roamlinks UNION
                       SELECT \"to\", \"from\" FROM roamlinks UNION
@@ -283,7 +276,7 @@ connections, nil is returned."
                    links_of(file, link) AS
                      (WITH roamlinks AS (SELECT * FROM links WHERE \"type\" = '\"roam\"'),
                            citelinks AS (SELECT * FROM links
-                                                  JOIN refs ON links.\"to\" = refs.\"ref\"
+                                                  JOIN refs ON links.\"to\" = refs.\"key\"
                                                             AND links.\"type\" = '\"cite\"')
                       SELECT \"from\", \"to\" FROM roamlinks UNION
                       SELECT \"to\", \"from\" FROM roamlinks UNION
@@ -383,29 +376,22 @@ If FORCE, force a rebuild of the cache from scratch."
          (current-files (org-roam-db--get-current-files))
          all-files all-links all-titles all-refs all-tags)
     (dolist (file org-roam-files)
-      (let* ((attr (file-attributes file))
-             (atime (file-attribute-access-time attr))
-             (mtime (file-attribute-modification-time attr)))
-        (org-roam--with-temp-buffer
-          (insert-file-contents file)
-          (let ((contents-hash (secure-hash 'sha1 (current-buffer))))
-            (unless (string= (gethash file current-files)
-                             contents-hash)
-              (org-roam-db--clear-file file)
-              (push (vector file contents-hash (list :atime atime :mtime mtime))
-                    all-files)
-              (when-let (links (org-roam--extract-links file))
-                (push links all-links))
-              (when-let (tags (org-roam--extract-tags file))
-                (push (vector file tags) all-tags))
-              (let ((titles (org-roam--extract-titles)))
-                (push (vector file titles)
-                      all-titles))
-              (when-let* ((ref (org-roam--extract-ref))
-                          (type (car ref))
-                          (key (cdr ref)))
-                (setq all-refs (cons (vector key file type) all-refs))))
-            (remhash file current-files)))))
+      (org-roam--with-temp-buffer
+        (insert-file-contents file)
+        (let ((contents-hash (secure-hash 'sha1 (current-buffer))))
+          (unless (string= (gethash file current-files)
+                           contents-hash)
+            (org-roam-db--clear-file file)
+            (setq all-files
+                  (cons (vector file contents-hash time) all-files))
+            (when-let (links (org-roam--extract-links file))
+              (setq all-links (append links all-links)))
+            (let ((titles (org-roam--extract-and-format-titles file)))
+              (setq all-titles (cons (vector file titles) all-titles)))
+            (when-let* ((ref (org-roam--extract-ref))
+                        (key (elt (split-string ref ":") 1)))
+              (setq all-refs (cons (vector ref file key) all-refs))))
+          (remhash file current-files))))
     (dolist (file (hash-table-keys current-files))
       ;; These files are no longer around, remove from cache...
       (org-roam-db--clear-file file))
