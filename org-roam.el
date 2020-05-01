@@ -237,7 +237,8 @@ FILE-FROM is typically the buffer file path, but this may not exist, for example
 in temp buffers.  In cases where this occurs, we do know the file path, and pass
 it as FILE-PATH."
   (let ((file-path (or file-path
-                       (file-truename (buffer-file-name)))))
+                       (file-truename (buffer-file-name))))
+        links)
     (org-element-map (org-element-parse-buffer) 'link
       (lambda (link)
         (let* ((type (org-element-property :type link))
@@ -264,13 +265,20 @@ it as FILE-PATH."
                    (content (string-trim content))
                    ;; Expand all relative links to absolute links
                    (content (org-roam--expand-links content file-path)))
-              (vector file-path
-                      (cond ((string= link-type "roam")
-                             (file-truename (expand-file-name path (file-name-directory file-path))))
-                            ((string= link-type "cite")
-                             path))
-                      link-type
-                      (list :content content :point begin)))))))))
+              (let ((context (list :content content :point begin))
+                    (names (pcase link-type
+                             ("roam"
+                              (list (file-truename (expand-file-name path (file-name-directory file-path)))))
+                             ("cite"
+                              (org-ref-split-and-strip-string path)))))
+                (seq-do (lambda (name)
+                          (push (vector file-path
+                                        name
+                                        link-type
+                                        context)
+                                links))
+                        names)))))))
+    links))
 
 (defcustom org-roam-title-include-subdirs nil
   "When non-nil, include subdirs in title completions.
