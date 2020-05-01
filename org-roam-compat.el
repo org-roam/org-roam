@@ -71,6 +71,8 @@
   "org-roam 1.0.0")
 (define-obsolete-function-alias 'org-roam-graph-build 'org-roam-graph
   "org-roam 1.0.0")
+(define-obsolete-function-alias 'org-roam-find-index 'org-roam-jump-to-index
+  "org-roam 1.1.0")
 
 ;;;; Variables
 (define-obsolete-variable-alias 'org-roam-graphviz-extra-options
