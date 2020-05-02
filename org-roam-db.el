@@ -43,6 +43,8 @@
 (declare-function org-roam--extract-ref         "org-roam")
 (declare-function org-roam--extract-links       "org-roam")
 (declare-function org-roam--list-files          "org-roam")
+(declare-function org-roam--cite-prefix         "org-roam")
+(declare-function org-roam--ref-type            "org-roam")
 (declare-function org-roam-buffer--update-maybe "org-roam-buffer")
 
 ;;;; Options
@@ -226,23 +228,10 @@ This is equivalent to removing the node from the graph."
     :values $v1]
    (list (vector file titles))))
 
-(defun org-roam-db--ref-type (ref)
-  (let* ((cite-prefix (seq-find
-                       (lambda (prefix) (s-prefix? prefix ref))
-                       (-map (lambda (type) (concat type ":"))
-                             org-ref-cite-types)))
-         (is-website (seq-some
-                      (lambda (prefix) (s-prefix? prefix ref))
-                      '("http" "https")))
-         (type (cond (cite-prefix "cite")
-                     (is-website "website")
-                     (t "roam"))))
-    type))
-
 (defun org-roam-db--insert-ref (file ref)
   "Insert REF for FILE into the Org-roam cache."
-  (let* ((type org-roam-db--ref-type ref)
-         (key (cond ((string= "cite" type) (s-chop-prefix cite-prefix ref))
+  (let* ((type org-roam--ref-type ref)
+         (key (cond ((string= "cite" type) (s-chop-prefix (org-roam--cite-prefix ref) ref))
                     (t ref))))
     (org-roam-db-query
      [:insert :into refs :values $v1]
@@ -381,8 +370,8 @@ including the file itself.  If the file does not have any connections, nil is re
             (let ((titles (org-roam--extract-and-format-titles file)))
               (setq all-titles (cons (vector file titles) all-titles)))
             (when-let* ((ref (org-roam--extract-ref))
-                        (type (org-roam-db--ref-type ref))
-                        (key (cond ((string= "cite" type) (s-chop-prefix cite-prefix ref))
+                        (type (org-roam--ref-type ref))
+                        (key (cond ((string= "cite" type) (s-chop-prefix (org-roam--cite-prefix ref) ref))
                                    (t ref))))
               (setq all-refs (cons (vector key file type) all-refs))))
           (remhash file current-files))))

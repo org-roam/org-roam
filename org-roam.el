@@ -374,6 +374,24 @@ current buffer is used."
 (defun org-roam--extract-ref ()
   "Extract the ref from current buffer."
   (cdr (assoc "ROAM_KEY" (org-roam--extract-global-props '("ROAM_KEY")))))
+
+(defun org-roam--ref-type (ref)
+  (let* ((cite-prefix (org-roam--cite-prefix ref))
+         (is-website (seq-some
+                      (lambda (prefix) (s-prefix? prefix ref))
+                      '("http" "https")))
+         (type (cond (cite-prefix "cite")
+                     (is-website "website")
+                     (t "roam"))))
+    type))
+
+(defun org-roam--cite-prefix (ref)
+  (seq-find
+   (lambda (prefix) (s-prefix? prefix ref))
+   (-map (lambda (type) (concat type ":"))
+         org-ref-cite-types)))
+
+
 ;;;; Title/Path/Slug conversion
 (defun org-roam--path-to-slug (path)
   "Return a slug from PATH."
