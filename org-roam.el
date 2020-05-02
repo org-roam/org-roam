@@ -638,6 +638,7 @@ Examples:
   (cdr (assoc "ROAM_KEY" (org-roam--extract-global-props '("ROAM_KEY")))))
 
 (defun org-roam--ref-type (ref)
+  "Determine the type of the REF from the prefix."
   (let* ((cite-prefix (org-roam--cite-prefix ref))
          (is-website (seq-some
                       (lambda (prefix) (s-prefix? prefix ref))
@@ -648,6 +649,7 @@ Examples:
     type))
 
 (defun org-roam--cite-prefix (ref)
+  "Return citation prefix of REF if belongs to `org-ref-cite-types`."
   (seq-find
    (lambda (prefix) (s-prefix? prefix ref))
    (-map (lambda (type) (concat type ":"))
