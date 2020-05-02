@@ -634,23 +634,25 @@ Examples:
     type))
 
 (defun org-roam--extract-ref ()
-  "Extract the ref from current buffer and return the type and the key of the ref."
-  (pcase (cdr (assoc "ROAM_KEY"
-                     (org-roam--extract-global-props '("ROAM_KEY"))))
-    ('nil nil)
-    ((pred string-empty-p)
-     (user-error "ROAM_KEY cannot be empty"))
-    (ref
-     (let* ((type (org-roam--ref-type ref))
-            (key (cond ((string= "cite" type)
-                        (s-chop-prefix (org-roam--cite-prefix ref) ref))
-                       (t ref))))
-       (cons type key)))))
+  "Extract the ref from current buffer."
+  (cdr (assoc "ROAM_KEY" (org-roam--extract-global-props '("ROAM_KEY")))))
 
-(defun org-roam--ref-type-p (type)
-  "Return t if the ref from current buffer is TYPE."
-  (let ((current (car (org-roam--extract-ref))))
-    (eq current type)))
+(defun org-roam--ref-type (ref)
+  (let* ((cite-prefix (org-roam--cite-prefix ref))
+         (is-website (seq-some
+                      (lambda (prefix) (s-prefix? prefix ref))
+                      '("http" "https")))
+         (type (cond (cite-prefix "cite")
+                     (is-website "website")
+                     (t "roam"))))
+    type))
+
+(defun org-roam--cite-prefix (ref)
+  (seq-find
+   (lambda (prefix) (s-prefix? prefix ref))
+   (-map (lambda (type) (concat type ":"))
+         org-ref-cite-types)))
+
 
 ;;;; Title/Path/Slug conversion
 (defun org-roam--path-to-slug (path)

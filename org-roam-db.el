@@ -40,13 +40,13 @@
 (defvar org-roam-directory)
 (defvar org-roam-verbose)
 
-(declare-function org-roam--org-roam-file-p                "org-roam")
-(declare-function org-roam--extract-titles                 "org-roam")
-(declare-function org-roam--extract-ref                    "org-roam")
-(declare-function org-roam--extract-tags                   "org-roam")
-(declare-function org-roam--extract-links                  "org-roam")
-(declare-function org-roam--list-all-files                 "org-roam")
-(declare-function org-roam-buffer--update-maybe            "org-roam-buffer")
+(declare-function org-roam--extract-titles      "org-roam")
+(declare-function org-roam--extract-ref         "org-roam")
+(declare-function org-roam--extract-links       "org-roam")
+(declare-function org-roam--list-files          "org-roam")
+(declare-function org-roam--cite-prefix         "org-roam")
+(declare-function org-roam--ref-type            "org-roam")
+(declare-function org-roam-buffer--update-maybe "org-roam-buffer")
 
 ;;;; Options
 (defcustom org-roam-db-location nil
@@ -223,23 +223,10 @@ This is equivalent to removing the node from the graph."
     :values $v1]
    (list (vector file titles))))
 
-(defun org-roam-db--ref-type (ref)
-  (let* ((cite-prefix (seq-find
-                       (lambda (prefix) (s-prefix? prefix ref))
-                       (-map (lambda (type) (concat type ":"))
-                             org-ref-cite-types)))
-         (is-website (seq-some
-                      (lambda (prefix) (s-prefix? prefix ref))
-                      '("http" "https")))
-         (type (cond (cite-prefix "cite")
-                     (is-website "website")
-                     (t "roam"))))
-    type))
-
 (defun org-roam-db--insert-ref (file ref)
   "Insert REF for FILE into the Org-roam cache."
-  (let* ((type org-roam-db--ref-type ref)
-         (key (cond ((string= "cite" type) (s-chop-prefix cite-prefix ref))
+  (let* ((type org-roam--ref-type ref)
+         (key (cond ((string= "cite" type) (s-chop-prefix (org-roam--cite-prefix ref) ref))
                     (t ref))))
     (org-roam-db-query
      [:insert :into refs :values $v1]
@@ -403,8 +390,8 @@ If FORCE, force a rebuild of the cache from scratch."
             (let ((titles (org-roam--extract-and-format-titles file)))
               (setq all-titles (cons (vector file titles) all-titles)))
             (when-let* ((ref (org-roam--extract-ref))
-                        (type (org-roam-db--ref-type ref))
-                        (key (cond ((string= "cite" type) (s-chop-prefix cite-prefix ref))
+                        (type (org-roam--ref-type ref))
+                        (key (cond ((string= "cite" type) (s-chop-prefix (org-roam--cite-prefix ref) ref))
                                    (t ref))))
               (setq all-refs (cons (vector key file type) all-refs))))
           (remhash file current-files))))
