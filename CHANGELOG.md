@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.2 
+
+### Bugfixes
+* [#547](https://github.com/jethrokuan/org-roam/pull/547) Fix unlinked references by changing db refs table structure.
+
 ## 1.1.1 (TBD)
 
 ### Breaking Changes
