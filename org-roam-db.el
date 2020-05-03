@@ -155,8 +155,7 @@ SQL can be either the emacsql vector representation, or a string."
         (progn
           (message (format "Upgrading the Org-roam database from version %d to version %d"
                         version org-roam-db--version))
-          (delete-file (org-roam-db--get))
-          (org-roam-db-build-cache))))
+          (org-roam-db-build-cache t))))
   version)
 
 (defun org-roam-db--close (&optional db)
