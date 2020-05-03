@@ -12,7 +12,8 @@
 * [#545](https://github.com/jethrokuan/org-roam/pull/545) fix `org-roam--extract-links` to ensure that multiple citations (`cite:key1,key2`) are split correctly
 
 ### Features
-* [#538](https://github.com/jethrokuan/org-roam/pull/538) Optionally use text in first headline as title 
+* [#538](https://github.com/jethrokuan/org-roam/pull/538) Optionally use text in first headline as title
+* [#553](https://github.com/jethrokuan/org-roam/pull/553) Add prefix argument to `org-roam-db-build-cache` for forcing rebuilds
 
 ## 1.1.0 (21-04-2020)
 
