@@ -342,9 +342,11 @@ including the file itself.  If the file does not have any connections, nil is re
           (org-roam-db--update-cache-links)
           (org-roam-buffer--update-maybe :redisplay t))))))
 
-(defun org-roam-db-build-cache ()
-  "Build the cache for `org-roam-directory'."
-  (interactive)
+(defun org-roam-db-build-cache (&optional force)
+  "Build the cache for `org-roam-directory'.
+If FORCE, force a rebuild of the cache from scratch."
+  (interactive "P")
+  (when force (delete-file (org-roam-db--get)))
   (org-roam-db--close) ;; Force a reconnect
   (org-roam-db) ;; To initialize the database, no-op if already initialized
   (let* ((org-roam-files (org-roam--list-all-files))
