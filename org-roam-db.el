@@ -93,7 +93,7 @@ Performs a database upgrade when required."
         (when init-db
           (org-roam-db--init conn))
         (let* ((version (caar (emacsql conn "PRAGMA user_version")))
-               (version (org-roam-db--maybe-update conn version)))
+               (version (org-roam-db--update-maybe conn version)))
           (cond
            ((> version org-roam-db--version)
             (emacsql-close conn)
@@ -143,14 +143,14 @@ SQL can be either the emacsql vector representation, or a string."
       (emacsql db [:create-table $i1 $S2] table schema))
     (emacsql db (format "PRAGMA user_version = %s" org-roam-db--version))))
 
-(defun org-roam-db--maybe-update (db version)
+(defun org-roam-db--update-maybe (db version)
   "Upgrades the database schema for DB, if VERSION is old."
   (emacsql-with-transaction db
     'ignore
     (if (< version org-roam-db--version)
         (progn
           (message (format "Upgrading the Org-roam database from version %d to version %d"
-                        version org-roam-db--version))
+                           version org-roam-db--version))
           (org-roam-db-build-cache t))))
   version)
 

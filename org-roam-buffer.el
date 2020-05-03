@@ -191,6 +191,7 @@ When non-nil, the window will not be closed when deleting other windows."
         (run-hooks 'org-roam-buffer-prepare-hook)
         (read-only-mode 1)))))
 
+
 (cl-defun org-roam-buffer--update-maybe (&key redisplay)
   "Reconstructs `org-roam-buffer'.
 This needs to be quick or infrequent, because this is run at
