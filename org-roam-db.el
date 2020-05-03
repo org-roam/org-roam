@@ -56,7 +56,11 @@ when used with multiple Org-roam instances."
   :type 'string
   :group 'org-roam)
 
-(defconst org-roam-db--version 5)
+(defconst org-roam-db--version 3)
+(defconst org-roam-db--sqlite-available-p
+  (with-demoted-errors "Org-roam initialization: %S"
+    (emacsql-sqlite-ensure-binary)
+    t))
 
 (defvar org-roam-db--connection (make-hash-table :test #'equal)
   "Database connection to Org-roam database.")
@@ -149,9 +153,10 @@ SQL can be either the emacsql vector representation, or a string."
     'ignore
     (if (< version org-roam-db--version)
         (progn
-          (org-roam-message (format "Upgrading the Org-roam database from version %d to version %d"
-                                    version org-roam-db--version))
-          (org-roam-db-build-cache t))))
+          (message (format "Upgrading the Org-roam database from version %d to version %d"
+                        version org-roam-db--version))
+          (delete-file (org-roam-db--get))
+          (org-roam-db-build-cache))))
   version)
 
 (defun org-roam-db--close (&optional db)
