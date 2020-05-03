@@ -173,7 +173,8 @@ into a digraph."
             `[:with selected :as [:select [file] :from ,node-query]
               :select :distinct [file from]
               :from links :inner :join refs :on (and (= links:to refs:ref)
-                                                     (= links:type "cite"))
+                                                     (= links:type "cite")
+                                                     (= refs:type "cite"))
               :where (and (in file selected) (in from selected))])
            (edges       (org-roam-db-query edges-query))
            (edges-cites (org-roam-db-query edges-cites-query)))
