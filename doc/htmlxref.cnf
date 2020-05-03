@@ -1,0 +1,15 @@
+# https://www.gnu.org/software/texinfo/manual/texinfo/html_node/HTML-Xref-Configuration.html
+
+EMACS = https://www.gnu.org/software/emacs/manual
+
+auth		mono	${EMACS}/html_mono/auth.html
+auth		node	${EMACS}/html_node/auth/
+
+ediff		mono	${EMACS}/html_mono/ediff.html
+ediff		node	${EMACS}/html_node/ediff/
+
+elisp		mono	${EMACS}/html_mono/elisp.html
+elisp		node	${EMACS}/html_node/elisp/
+
+emacs		mono	${EMACS}/html_mono/emacs.html
+emacs		node	${EMACS}/html_node/emacs/
