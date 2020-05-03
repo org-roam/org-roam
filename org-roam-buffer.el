@@ -116,32 +116,32 @@ For example: (setq org-roam-buffer-window-parameters '((no-other-window . t)))"
 
 (defun org-roam-buffer--insert-citelinks ()
   "Insert citation backlinks for the current buffer."
-  (when-let ((org-ref-p (require 'org-ref nil t)) ;; Ensure that org-ref is present
-             (ref (cdr (with-temp-buffer
-                        (insert-buffer-substring org-roam-buffer--current)
-                        (org-roam--extract-ref)))))
-    (if-let* ((key-backlinks (org-roam--get-backlinks ref))
-              (grouped-backlinks (--group-by (nth 0 it) key-backlinks)))
-        (progn
-          (insert (let ((l (length key-backlinks)))
-                    (format "\n\n* %d %s\n"
-                            l (org-roam-buffer--pluralize "Cite backlink" l))))
-          (dolist (group grouped-backlinks)
-            (let ((file-from (car group))
-                  (bls (cdr group)))
-              (insert (format "** [[file:%s][%s]]\n"
-                              file-from
-                              (org-roam--get-title-or-slug file-from)))
-              (dolist (backlink bls)
-                (pcase-let ((`(,file-from _ ,props) backlink))
-                  (insert (propertize
-                           (s-trim (s-replace "\n" " "
-                                              (plist-get props :content)))
-                           'help-echo "mouse-1: visit backlinked note"
-                           'file-from file-from
-                           'file-from-point (plist-get props :point)))
-                  (insert "\n\n"))))))
-      (insert "\n\n* No cite backlinks!"))))
+  (if-let* ((ref (with-temp-buffer
+                   (insert-buffer-substring org-roam-buffer--current)
+                   (org-roam--extract-ref)))
+            (org-ref-p (require 'org-ref nil t)) ; Ensure that org-ref is present
+            (key-backlinks (org-roam--get-backlinks (cdr ref)))
+            (grouped-backlinks (--group-by (nth 0 it) key-backlinks)))
+      (progn
+        (insert (let ((l (length key-backlinks)))
+                  (format "\n\n* %d %s\n"
+                          l (org-roam--pluralize "Cite backlink" l))))
+        (dolist (group grouped-backlinks)
+          (let ((file-from (car group))
+                (bls (cdr group)))
+            (insert (format "** [[file:%s][%s]]\n"
+                            file-from
+                            (org-roam--get-title-or-slug file-from)))
+            (dolist (backlink bls)
+              (pcase-let ((`(,file-from _ ,props) backlink))
+                (insert (propertize
+                         (s-trim (s-replace "\n" " "
+                                            (plist-get props :content)))
+                         'help-echo "mouse-1: visit backlinked note"
+                         'file-from file-from
+                         'file-from-point (plist-get props :point)))
+                (insert "\n\n"))))))
+    (insert "\n\n* No cite backlinks!")))
 
 (defun org-roam-buffer--insert-backlinks ()
   "Insert the org-roam-buffer backlinks string for the current buffer."

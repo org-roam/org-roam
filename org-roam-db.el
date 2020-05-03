@@ -44,8 +44,6 @@
 (declare-function org-roam--extract-ref         "org-roam")
 (declare-function org-roam--extract-links       "org-roam")
 (declare-function org-roam--list-files          "org-roam")
-(declare-function org-roam--cite-prefix         "org-roam")
-(declare-function org-roam--ref-type            "org-roam")
 (declare-function org-roam-buffer--update-maybe "org-roam-buffer")
 
 ;;;; Options
@@ -225,9 +223,8 @@ This is equivalent to removing the node from the graph."
 
 (defun org-roam-db--insert-ref (file ref)
   "Insert REF for FILE into the Org-roam cache."
-  (let* ((type org-roam--ref-type ref)
-         (key (cond ((string= "cite" type) (s-chop-prefix (org-roam--cite-prefix ref) ref))
-                    (t ref))))
+  (let ((key (cdr ref))
+        (type (car ref)))
     (org-roam-db-query
      [:insert :into refs :values $v1]
      (list (vector key file type)))))
@@ -390,9 +387,8 @@ If FORCE, force a rebuild of the cache from scratch."
             (let ((titles (org-roam--extract-and-format-titles file)))
               (setq all-titles (cons (vector file titles) all-titles)))
             (when-let* ((ref (org-roam--extract-ref))
-                        (type (org-roam--ref-type ref))
-                        (key (cond ((string= "cite" type) (s-chop-prefix (org-roam--cite-prefix ref) ref))
-                                   (t ref))))
+                        (type (car ref))
+                        (key (cdr ref)))
               (setq all-refs (cons (vector key file type) all-refs))))
           (remhash file current-files))))
     (dolist (file (hash-table-keys current-files))

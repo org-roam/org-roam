@@ -633,9 +633,19 @@ Examples:
                      (t "roam"))))
     type))
 
+(defun org-roam--ref-type-p (type)
+  "Return t if the ref from current buffer is TYPE."
+  (let ((current (car (org-roam--extract-ref))))
+    (eq current type)))
+
 (defun org-roam--extract-ref ()
-  "Extract the ref from current buffer."
-  (cdr (assoc "ROAM_KEY" (org-roam--extract-global-props '("ROAM_KEY")))))
+  "Extract the ref from current buffer and return the type and the key of the ref."
+  (let* ((ref (cdr (assoc "ROAM_KEY" (org-roam--extract-global-props '("ROAM_KEY")))))
+         (type (org-roam--ref-type ref))
+         (key (cond ((string= "cite" type)
+                     (s-chop-prefix (org-roam--cite-prefix ref) ref))
+                    (t ref))))
+    (cons type key)))
 
 (defun org-roam--ref-type (ref)
   "Determine the type of the REF from the prefix."
@@ -649,12 +659,13 @@ Examples:
     type))
 
 (defun org-roam--cite-prefix (ref)
-  "Return citation prefix of REF if belongs to `org-ref-cite-types`."
+  "Return the citation prefix of REF (e.g. \"cite:\",\"parencite:\" etc.) if it has a prefix of
+  one of the `org-ref-cite-types`, return `nil` otherwise. This can be used to determine if a ref
+  should be a \"cite\" type."
   (seq-find
    (lambda (prefix) (s-prefix? prefix ref))
    (-map (lambda (type) (concat type ":"))
          org-ref-cite-types)))
-
 
 ;;;; Title/Path/Slug conversion
 (defun org-roam--path-to-slug (path)
