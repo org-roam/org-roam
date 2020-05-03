@@ -154,7 +154,7 @@ SQL can be either the emacsql vector representation, or a string."
     (if (< version org-roam-db--version)
         (progn
           (message (format "Upgrading the Org-roam database from version %d to version %d"
-                        version org-roam-db--version))
+                           version org-roam-db--version))
           (org-roam-db-build-cache t))))
   version)
 

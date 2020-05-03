@@ -1,45 +1,18 @@
 # Changelog
 
-## 1.1.2 
-
-### Bugfixes
-* [#547](https://github.com/jethrokuan/org-roam/pull/547) Fix unlinked references by changing db refs table structure.
-
 ## 1.1.1 (TBD)
 
 ### Breaking Changes
-
-- [#701](https://github.com/org-roam/org-roam/pull/701) Use `emacsql-sqlite3` instead of `emacsql-sqlite` for better Windows compatibility. This requires the presence of the standard `sqlite3` binary on your machine.
-- [#750](https://github.com/org-roam/org-roam/pull/750) Deprecate `org-roam-buffer-no-delete-other-windows` in favour of `org-roam-buffer-window-parameters`.
-
-### Features
-
-- [#757](https://github.com/org-roam/org-roam/pull/757) Roam global properties are now case-insensitive
-
-## 1.1.1 (18-05-2020)
-
-In this release, we added two new features:
-
-1. `org-roam-doctor`: a linting system that helps you discover possible problems with your Org-roam files. This is in the spirit of keeping notes in top quality.
-2. A tagging system: one can now use sub-directories, and the `#+ROAM_TAG` key add additional meta data to notes. For more information, see [here](https://org-roam.github.io/org-roam/manual/Tags.html#Tags).
-
-As usual, this release comes with a multitude of bug-fixes and refactorings.
-
-### Breaking Changes
-
-- [#523](https://github.com/org-roam/org-roam/pull/523) remove `org-roam-completion-fuzzy-match` in favor of using completion mechanism's configuration options directly
-- [#547](https://github.com/org-roam/org-roam/pull/547) Deprecate `org-roam-db--maybe-update`, in favour of `org-roam-db--update-maybe`
-- [#604](https://github.com/org-roam/org-roam/pull/604) Deprecate `org-roam-title-include-subdirs`, `org-roam-title-subdir-format` `org-roam-title-subdir-separator`, for a more general tagging system built on subdirectories
+* [#523](https://github.com/jethrokuan/org-roam/pull/523) remove `org-roam-completion-fuzzy-match` in favor of using completion mechanism's configuration options directly 
+* [#547](https://github.com/jethrokuan/org-roam/pull/547) Deprecate `org-roam-db--maybe-update`, in favour of `org-roam-db--update-maybe`.
+* [#547](https://github.com/jethrokuan/org-roam/pull/547) Upgrade the database version from 2 to 3.
 
 ### Bugfixes
-
-- [#509](https://github.com/org-roam/org-roam/pull/509) fix backup files being tracked in database
-- [#509](https://github.com/org-roam/org-roam/pull/509) fix external org files being tracked in database
-- [#537](https://github.com/org-roam/org-roam/pull/537) quote graphviz node and edge configuration options to allow multi-word configurations
-- [#545](https://github.com/org-roam/org-roam/pull/545) fix `org-roam--extract-links` to ensure that multiple citations (`cite:key1,key2`) are split correctly
-- [#547](https://github.com/org-roam/org-roam/pull/547) Fix unlinked citations
-- [#660](https://github.com/org-roam/org-roam/pull/660) fix rename-file advice not working for renaming to directories
-- [#660](https://github.com/org-roam/org-roam/pull/660) fix links breaking within file on file movement
+* [#509](https://github.com/jethrokuan/org-roam/pull/509) fix backup files being tracked in database
+* [#509](https://github.com/jethrokuan/org-roam/pull/509) fix external org files being tracked in database
+* [#537](https://github.com/jethrokuan/org-roam/pull/537) quote graphviz node and edge configuration options to allow multi-word configurations
+* [#545](https://github.com/jethrokuan/org-roam/pull/545) fix `org-roam--extract-links` to ensure that multiple citations (`cite:key1,key2`) are split correctly
+* [#547](https://github.com/jethrokuan/org-roam/pull/547) Fix unlinked citations.
 
 ### Features
 

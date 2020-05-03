@@ -73,15 +73,8 @@
   "org-roam 1.0.0")
 (define-obsolete-function-alias 'org-roam-find-index 'org-roam-jump-to-index
   "org-roam 1.1.0")
-(define-obsolete-function-alias 'org-roam--pluralize 'org-roam-buffer--pluralize
-  "org-roam 1.1.0")
-(define-obsolete-function-alias 'org-roam--capture 'org-roam-capture--capture
-  "org-roam 1.1.0")
 (define-obsolete-function-alias 'org-roam-db--maybe-update 'org-roam-db--update-maybe
-  "org-roam 1.1.0")
-
-(when (version< (org-version) "9.3")
-  (defalias 'org-link-make-string 'org-make-link-string))
+  "org-roam 1.1.1")
 
 ;;;; Variables
 (define-obsolete-variable-alias 'org-roam-buffer-no-delete-other-windows
