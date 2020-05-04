@@ -313,7 +313,7 @@ Suitable for moving point."
   :group 'org-roam
   :type 'hook)
 
-(defun org-roam--capture (&optional goto keys)
+(defun org-roam-capture--capture (&optional goto keys)
   "Create a new file, and return the path to the edited file.
 The templates are defined at `org-roam-capture-templates'.  The
 GOTO and KEYS argument have the same functionality as
@@ -339,7 +339,7 @@ This uses the templates defined at `org-roam-capture-templates'."
                                         (cons 'file file-path)))
           (org-roam-capture--context 'capture))
       (setq org-roam-capture-additional-template-props (list :capture-fn 'org-roam-capture))
-      (org-roam--capture))))
+      (org-roam-capture--capture))))
 
 (provide 'org-roam-capture)
 

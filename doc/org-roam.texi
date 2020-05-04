@@ -422,7 +422,7 @@ The template is given a description of @samp{"default"}.
 @samp{(function org-roam--capture-get-point)} should not be changed.
 
 @item
-@samp{"%?"} is the template inserted on each call to @samp{org-roam--capture}.
+@samp{"%?"} is the template inserted on each call to @samp{org-roam-capture--capture}.
 This template means don't insert any content, but place the cursor
 here.
 
