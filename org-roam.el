@@ -590,7 +590,9 @@ command will offer you to create one."
 ;;;; org-roam-find-ref
 (defcustom org-roam-include-type-in-ref-path-completions nil
   "When t, include the type in ref-path completions.
-Note that this only affects interactive calls.")
+Note that this only affects interactive calls."
+  :type 'boolean
+  :group 'org-roam)
 
 (defun org-roam--get-ref-path-completions (&optional interactive)
   "Return a list of cons pairs for refs to absolute path of Org-roam files."
