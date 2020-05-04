@@ -758,53 +758,47 @@ whose title is 'Index'."
         (concat (file-truename org-roam-directory) path)
       index)))
 
-;;;; org-roam-find-ref
-(defun org-roam--get-ref-path-completions (&optional interactive filter)
-  "Return an alist of refs to absolute path of Org-roam files.
-When `org-roam-include-type-in-ref-path-completions' and
-INTERACTIVE are non-nil, format the car of the
-completion-candidates as 'type:ref'.
-FILTER can either be a string or a function:
-- If it is a string, it should be the type of refs to include as
-candidates (e.g. \"cite\" ,\"website\" ,etc.)
-- If it is a function, it should be the name of a function that
-takes three arguments: the type, the ref, and the file of the
-current candidate.  It should return t if that candidate is to be
-included as a candidate."
-  (let ((rows (org-roam-db-query [:select [refs:type refs:ref refs:file ] :from refs
-                                  :left :join files
-                                  :on (= refs:file files:file)]))
-        (include-type (and interactive
-                           org-roam-include-type-in-ref-path-completions))
-        completions)
-    (seq-sort-by (lambda (x)
-                   (plist-get (nth 3 x) :mtime))
-                 #'time-less-p
-                 rows)
-    (dolist (row rows completions)
-      (pcase-let ((`(,type ,ref ,file-path) row))
-        (when (pcase filter
-                ('nil t)
-                ((pred stringp) (string= type filter))
-                ((pred functionp) (funcall filter type ref file-path))
-                (wrong-type (signal 'wrong-type-argument
-                                    `((stringp functionp)
-                                      ,wrong-type))))
-          (let ((k (concat
-                    (when include-type
-                      (format "(%s) " type))
-                    ref))
-                (v (list :path file-path :type type :ref ref)))
-            (push (cons k v) completions)))))))
+(defun org-roam-jump-to-index ()
+  "Find the index file in `org-roam-directory'.
+The path to the index can be defined in `org-roam-index-file'.
+Otherwise, the function will look in your `org-roam-directory'
+for a note whose title is 'Index'.  If it does not exist, the
+command will offer you to create one."
+  (interactive)
+  (let ((index (org-roam--get-index-path)))
+    (if (and index
+             (file-exists-p index))
+        (find-file index)
+      (when (y-or-n-p "Index file does not exist.  Would you like to create it? ")
+        (org-roam-find-file "Index")))))
 
-(defun org-roam--find-ref (ref)
-  "Find and open and Org-roam file from REF if it exists.
-REF should be the value of '#+ROAM_KEY:' without any
-type-information (e.g. 'cite:').
-Return nil if the file does not exist."
-  (when-let* ((completions (org-roam--get-ref-path-completions))
-              (file (plist-get (cdr (assoc ref completions)) :path)))
-    (find-file file)))
+;;;; org-roam-find-ref
+(defcustom org-roam-include-type-in-ref-path-completions nil
+  "When t, include the type in ref-path completions.
+Note that this only affects interactive calls.")
+
+(defun org-roam--get-ref-path-completions ()
+  "Return a list of cons pairs for refs to absolute path of Org-roam files."
+  (let ((rows (org-roam-db-query [:select [type ref file] :from refs]))
+        (include-type org-roam-include-type-in-ref-path-completions))
+    (mapcar (lambda (row)
+              (cl-destructuring-bind (type ref file) row
+                (cons (if include-type
+                          (format "%s:%s" type ref)
+                        ref)
+                      file)))
+            rows)))
+
+(defun org-roam-find-ref (&optional info)
+  "Find and open an Org-roam file from a ref.
+INFO is an alist containing additional information."
+  (interactive)
+  (let* ((completions (org-roam--get-ref-path-completions))
+         (ref (or (cdr (assoc 'ref info))
+                  (org-roam-completion--completing-read "Ref: "
+                                                        completions
+                                                        :require-match t))))
+    (find-file (cdr (assoc ref completions)))))
 
 (defun org-roam--get-roam-buffers ()
   "Return a list of buffers that are Org-roam files."
