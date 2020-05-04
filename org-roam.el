@@ -614,18 +614,26 @@ are non-nil, format the car of the completion-candidates as
                       file)))
             rows)))
 
-(defun org-roam-find-ref (arg &optional info)
+(defun org-roam--find-ref (ref)
+  "Find and open and Org-roam file from REF if it exists.
+REF should be the value of '#+ROAM_KEY:' without any
+type-information (e.g. 'cite:').
+Return nil if the file does not exist."
+  (when-let* ((completions (org-roam--get-ref-path-completions))
+              (file (cdr (assoc ref completions))))
+    (find-file file)))
+
+(defun org-roam-find-ref (arg)
   "Find and open an Org-roam file from a ref.
-INFO is an alist containing additional information.
 ARG is used to forward interactive calls to
 `org-roam--get-ref-path-completions'"
   (interactive "p")
   (let* ((completions (org-roam--get-ref-path-completions arg))
-         (ref (or (cdr (assoc 'ref info))
-                  (org-roam-completion--completing-read "Ref: "
-                                                        completions
-                                                        :require-match t))))
-    (find-file (cdr (assoc ref completions)))))
+         (ref (org-roam-completion--completing-read "Ref: "
+                                                    completions
+                                                    :require-match t))
+         (file (cdr (assoc ref completions))))
+    (find-file file)))
 
 (defun org-roam--get-roam-buffers ()
   "Return a list of buffers that are Org-roam files."
