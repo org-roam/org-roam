@@ -404,7 +404,7 @@ current buffer is used."
 (defun org-roam--cite-prefix (ref)
   "Return the citation prefix of REF, or nil otherwise.
 The prefixes are defined in `org-ref-cite-types`.
-Examples:   
+Examples:
    (org-roam--cite-prefix \"cite:foo\") -> \"cite:\"
    (org-roam--cite-prefix \"https://google.com\") -> nil"
   (when (require 'org-ref nil t)
@@ -712,7 +712,7 @@ file."
     (define-key map [mouse-1] 'org-open-at-point)
     (define-key map (kbd "RET") 'org-open-at-point)
     map)
-  "Keymap for `org-roam-backlinks-mode'.")
+  "Keymap for symbol `org-roam-backlinks-mode'.")
 
 (define-minor-mode org-roam-backlinks-mode
   "Minor mode for the `org-roam-buffer'.
@@ -785,7 +785,7 @@ for Org-ref cite links."
 ;;; The global minor org-roam-mode
 (defvar org-roam-mode-map
   (make-sparse-keymap)
-  "Keymap for mode `org-roam-mode'.")
+  "Keymap for mode symbol `org-roam-mode'.")
 
 ;;;###autoload
 (define-minor-mode org-roam-mode
@@ -828,7 +828,7 @@ Otherwise, behave as if called interactively."
         (remove-hook 'after-save-hook #'org-roam-db--update-file t))))))
 
 (defun org-roam--find-file-hook-function ()
-  "Called by `find-file-hook' when mode `org-roam-mode' is on."
+  "Called by `find-file-hook' when mode symbol `org-roam-mode' is on."
   (when (org-roam--org-roam-file-p)
     (setq org-roam-last-window (get-buffer-window))
     (add-hook 'post-command-hook #'org-roam-buffer--update-maybe nil t)
