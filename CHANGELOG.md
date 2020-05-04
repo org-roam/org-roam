@@ -4,12 +4,15 @@
 
 ### Breaking Changes
 * [#523](https://github.com/jethrokuan/org-roam/pull/523) remove `org-roam-completion-fuzzy-match` in favor of using completion mechanism's configuration options directly 
+* [#547](https://github.com/jethrokuan/org-roam/pull/547) Deprecate `org-roam-db--maybe-update`, in favour of `org-roam-db--update-maybe`.
+* [#547](https://github.com/jethrokuan/org-roam/pull/547) Added `type` column to the `refs` table.
 
 ### Bugfixes
 * [#509](https://github.com/jethrokuan/org-roam/pull/509) fix backup files being tracked in database
 * [#509](https://github.com/jethrokuan/org-roam/pull/509) fix external org files being tracked in database
 * [#537](https://github.com/jethrokuan/org-roam/pull/537) quote graphviz node and edge configuration options to allow multi-word configurations
 * [#545](https://github.com/jethrokuan/org-roam/pull/545) fix `org-roam--extract-links` to ensure that multiple citations (`cite:key1,key2`) are split correctly
+* [#547](https://github.com/jethrokuan/org-roam/pull/547) Fix unlinked citations.
 
 ### Features
 * [#538](https://github.com/jethrokuan/org-roam/pull/538) Optionally use text in first headline as title

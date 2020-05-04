@@ -56,7 +56,7 @@ when used with multiple Org-roam instances."
   :type 'string
   :group 'org-roam)
 
-(defconst org-roam-db--version 2)
+(defconst org-roam-db--version 3)
 (defconst org-roam-db--sqlite-available-p
   (with-demoted-errors "Org-roam initialization: %S"
     (emacsql-sqlite-ensure-binary)
@@ -94,7 +94,7 @@ Performs a database upgrade when required."
         (when init-db
           (org-roam-db--init conn))
         (let* ((version (caar (emacsql conn "PRAGMA user_version")))
-               (version (org-roam-db--maybe-update conn version)))
+               (version (org-roam-db--update-maybe conn version)))
           (cond
            ((> version org-roam-db--version)
             (emacsql-close conn)
@@ -134,7 +134,8 @@ SQL can be either the emacsql vector representation, or a string."
 
     (refs
      [(ref :unique :not-null)
-      (file :not-null)])))
+      (file :not-null)
+      (type :not-null)])))
 
 (defun org-roam-db--init (db)
   "Initialize database DB with the correct schema and user version."
@@ -143,16 +144,16 @@ SQL can be either the emacsql vector representation, or a string."
       (emacsql db [:create-table $i1 $S2] table schema))
     (emacsql db (format "PRAGMA user_version = %s" org-roam-db--version))))
 
-(defun org-roam-db--maybe-update (db version)
+(defun org-roam-db--update-maybe (db version)
   "Upgrades the database schema for DB, if VERSION is old."
   (emacsql-with-transaction db
     'ignore
-    (when (= version 1)
-      (progn
-        (warn "No good way to perform a DB upgrade, rebuilding from scratch...")
-        (delete-file (org-roam-db--get))
-        (org-roam-db-build-cache)))
-    version))
+    (if (< version org-roam-db--version)
+        (progn
+          (message (format "Upgrading the Org-roam database from version %d to version %d"
+                           version org-roam-db--version))
+          (org-roam-db-build-cache t))))
+  version)
 
 (defun org-roam-db--close (&optional db)
   "Closes the database connection for database DB.
@@ -228,10 +229,11 @@ This is equivalent to removing the node from the graph."
 
 (defun org-roam-db--insert-ref (file ref)
   "Insert REF for FILE into the Org-roam cache."
-  (org-roam-db-query
-   [:insert :into refs
-    :values $v1]
-   (list (vector ref file))))
+  (let ((key (cdr ref))
+        (type (car ref)))
+    (org-roam-db-query
+     [:insert :into refs :values $v1]
+     (list (vector key file type)))))
 
 ;;;;; Fetching
 (defun org-roam-db--get-current-files ()
@@ -368,8 +370,10 @@ If FORCE, force a rebuild of the cache from scratch."
               (setq all-links (append links all-links)))
             (let ((titles (org-roam--extract-and-format-titles file)))
               (setq all-titles (cons (vector file titles) all-titles)))
-            (when-let ((ref (org-roam--extract-ref)))
-              (setq all-refs (cons (vector ref file) all-refs))))
+            (when-let* ((ref (org-roam--extract-ref))
+                        (type (car ref))
+                        (key (cdr ref)))
+              (setq all-refs (cons (vector key file type) all-refs))))
           (remhash file current-files))))
     (dolist (file (hash-table-keys current-files))
       ;; These files are no longer around, remove from cache...
