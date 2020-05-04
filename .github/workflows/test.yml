@@ -56,7 +56,7 @@ jobs:
     # as failures, so linting and testing are run as separate steps.
 
     - name: Lint
-      continue-on-error: true
+      continue-on-error: false
       run: ./makem.sh -vv --sandbox $SANDBOX_DIR lint
 
     - name: Test

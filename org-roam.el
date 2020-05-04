@@ -42,6 +42,7 @@
 (require 's)
 (require 'f)
 (require 'cl-lib)
+
 ;;;; org-roam features
 (require 'org-roam-compat)
 (require 'org-roam-macs)
@@ -54,6 +55,8 @@
 
 ;; To detect cite: links
 (require 'org-ref nil t)
+(defvar org-ref-cite-types) ;; from org-ref-core.el
+(declare-function org-ref-split-and-strip-string "ext:org-ref-utils" (string))
 
 ;;;; Customizable Variables
 (defgroup org-roam nil
@@ -209,7 +212,8 @@ The search terminates when the first property is encountered."
   "Crawl CONTENT for relative links and expand them.
 PATH should be the root from which to compute the relativity."
   (let ((dir (file-name-directory path))
-        (re org-roam--org-link-file-bracket-re))
+        (re org-roam--org-link-file-bracket-re)
+        link)
     (with-temp-buffer
       (insert content)
       (goto-char (point-min))
@@ -435,7 +439,6 @@ current buffer is used."
       (s-downcase slug))))
 
 ;;; Interactive Commands
-;;;; org-roam-insert
 (defun org-roam--format-link-title (title)
   "Return the link title, given the file TITLE."
   (if (functionp org-roam-link-title-format)
@@ -487,17 +490,16 @@ which takes as its argument an alist of path-completions.  See
             (delete-region (car region) (cdr region)))
           (insert (org-roam--format-link target-file-path link-description)))
       (when (org-roam-capture--in-process-p)
-	(user-error "Nested Org-roam capture processes not supported"))
+        (user-error "Nested Org-roam capture processes not supported"))
       (let ((org-roam-capture--info (list (cons 'title title)
-					  (cons 'slug (org-roam--title-to-slug title))))
-	    (org-roam-capture--context 'title))
-	(add-hook 'org-capture-after-finalize-hook #'org-roam-capture--insert-link-h)
-	(setq org-roam-capture-additional-template-props (list :region region
-							       :link-description link-description
-							       :capture-fn 'org-roam-insert))
-	(org-roam--capture)))))
+                                          (cons 'slug (org-roam--title-to-slug title))))
+            (org-roam-capture--context 'title))
+        (add-hook 'org-capture-after-finalize-hook #'org-roam-capture--insert-link-h)
+        (setq org-roam-capture-additional-template-props (list :region region
+                                                               :link-description link-description
+                                                               :capture-fn 'org-roam-insert))
+        (org-roam-capture--capture)))))
 
-;;;; org-roam-find-file
 (defun org-roam--get-title-path-completions ()
   "Return a list of cons pairs for titles to absolute path of Org-roam files."
   (let* ((rows (org-roam-db-query [:select [file titles] :from titles]))
@@ -534,15 +536,13 @@ which takes as its argument an alist of path-completions.  See
                                             (cons 'slug (org-roam--title-to-slug title))))
               (org-roam-capture--context 'title))
           (add-hook 'org-capture-after-finalize-hook #'org-roam-capture--find-file-h)
-          (org-roam--capture))))))
+          (org-roam-capture--capture))))))
 
-;;;; org-roam-find-directory
 (defun org-roam-find-directory ()
   "Find and open `org-roam-directory'."
   (interactive)
   (find-file org-roam-directory))
 
-;;;; org-roam-jump-to-index
 (defcustom org-roam-index-file nil
   "Path to the Org-roam index file.
 The path can be a string or a function.  If it is a string, it
@@ -587,7 +587,6 @@ command will offer you to create one."
       (when (y-or-n-p "Index file does not exist.  Would you like to create it? ")
         (org-roam-find-file "Index")))))
 
-;;;; org-roam-find-ref
 (defun org-roam--get-ref-path-completions ()
   "Return a list of cons pairs for refs to absolute path of Org-roam files."
   (let ((rows (org-roam-db-query [:select [ref file] :from refs])))
@@ -606,7 +605,6 @@ INFO is an alist containing additional information."
                                                         :require-match t))))
     (find-file (cdr (assoc ref completions)))))
 
-;;;; org-roam-switch-to-buffer
 (defun org-roam--get-roam-buffers ()
   "Return a list of buffers that are Org-roam files."
   (--filter (and (with-current-buffer it (derived-mode-p 'org-mode))
@@ -676,7 +674,9 @@ Applies `org-roam-link-current' if PATH corresponds to the
 currently opened Org-roam file in the backlink buffer, or
 `org-roam-link-face' if PATH corresponds to any other Org-roam
 file."
-  (cond ((and (org-roam--in-buffer-p)
+  (cond ((not (file-exists-p path))
+         'error)
+        ((and (org-roam--in-buffer-p)
               (org-roam--backlink-to-current-p))
          'org-roam-link-current)
         ((org-roam--org-roam-file-p path)
@@ -863,10 +863,6 @@ Otherwise, behave as if called interactively."
               (replace-match (format "[[file:%s][\\1]]" relative-path))))
           (org-roam-db--update-file file-from)))
       (org-roam-db--update-file new-path))))
-;;; -
+
 (provide 'org-roam)
 ;;; org-roam.el ends here
-
-;; Local Variables:
-;; outline-regexp: ";;;+ "
-;; End:

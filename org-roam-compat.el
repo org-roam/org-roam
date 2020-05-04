@@ -73,19 +73,20 @@
   "org-roam 1.0.0")
 (define-obsolete-function-alias 'org-roam-find-index 'org-roam-jump-to-index
   "org-roam 1.1.0")
+(define-obsolete-function-alias 'org-roam--pluralize 'org-roam-buffer--pluralize
+  "org-roam 1.1.0")
+(define-obsolete-function-alias 'org-roam--capture 'org-roam-capture--capture
+  "org-roam 1.1.0")
 (define-obsolete-function-alias 'org-roam-db--maybe-update 'org-roam-db--update-maybe
-  "org-roam 1.1.1")
+  "org-roam 1.1.0")
 
 ;;;; Variables
 (define-obsolete-variable-alias 'org-roam-graphviz-extra-options
   'org-roam-graph-extra-config "org-roam 1.0.0")
 (define-obsolete-variable-alias 'org-roam-grapher-extra-options
   'org-roam-graph-extra-config "org-roam 1.0.0")
-(make-obsolete-variable 'org-roam-graph-node-shape  'org-roam-graph-node-extra-config "org-roam 1.0.0")
-(defcustom org-roam-graph-node-shape "ellipse"
-  "Shape of graph nodes."
-  :type 'string
-  :group 'org-roam)
+(define-obsolete-variable-alias 'org-roam-graph-node-shape
+  'org-roam-graph-node-extra-config "org-roam 1.0.0")
 (define-obsolete-variable-alias 'org-roam--db-connection
   'org-roam-db--connection "org-roam 1.0.0")
 (define-obsolete-variable-alias 'org-roam--current-buffer

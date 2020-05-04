@@ -272,15 +272,16 @@ ARG may be any of the following values:
   - `\\[universal-argument]' -   build the graph for FILE.
   - `\\[universal-argument]' -N  build the graph for FILE limiting nodes to N steps."
   (interactive "P")
-  (let ((file (or file (buffer-file-name))))
-    (unless file
-      (user-error "Cannot build graph for nil file. Is current buffer visiting a file?"))
-    (unless (org-roam--org-roam-file-p file)
-      (user-error "\"%s\" is not an org-roam file" file))
+  (let ((file (or file (buffer-file-name (buffer-base-buffer)))))
+    (unless (or (not arg) (equal arg '(16)))
+      (unless file
+        (user-error "Cannot build graph for nil file. Is current buffer visiting a file?"))
+      (unless (org-roam--org-roam-file-p file)
+        (user-error "\"%s\" is not an org-roam file" file)))
     (pcase arg
       ('nil            (org-roam-graph--open (org-roam-graph--build node-query)))
       ('(4)            (org-roam-graph--open (org-roam-graph--build-connected-component file)))
-      ((pred integerp) (let ((graph (org-roam-graph--build-connected-component (buffer-file-name) (abs arg))))
+      ((pred integerp) (let ((graph (org-roam-graph--build-connected-component file (abs arg))))
                          (when (>= arg 0)
                            (org-roam-graph--open graph))))
       ('(16)           (org-roam-graph--build node-query))
