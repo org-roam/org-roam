@@ -107,7 +107,7 @@
 
     (expect (org-roam-db-query [:select * :from refs])
             :to-have-same-items-as
-            (list (list "https://google.com/" (org-roam-test-abs-path "web_ref.org"))))
+            (list (list "https://google.com/" (org-roam-test-abs-path "web_ref.org") "website")))
 
     ;; Expect rebuilds to be really quick (nothing changed)
     (expect (org-roam-db-build-cache)
@@ -299,7 +299,7 @@
   (it "delete web_ref"
     (expect (org-roam-db-query [:select * :from refs])
             :to-have-same-items-as
-            (list (list "https://google.com/" (org-roam-test-abs-path "web_ref.org"))))
+            (list (list "https://google.com/" (org-roam-test-abs-path "web_ref.org") "website")))
     (delete-file (org-roam-test-abs-path "web_ref.org"))
     (expect (org-roam-db-query [:select * :from refs])
             :to-have-same-items-as
