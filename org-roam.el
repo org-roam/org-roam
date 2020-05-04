@@ -660,13 +660,12 @@ Examples:
     type))
 
 (defun org-roam--cite-prefix (ref)
-  "Return the citation prefix of REF (e.g. \"cite:\",\"parencite:\" etc.) if it has a prefix of
-  one of the `org-ref-cite-types`, return `nil` otherwise. This can be used to determine if a ref
-  should be a \"cite\" type."
-  (seq-find
-   (lambda (prefix) (s-prefix? prefix ref))
-   (-map (lambda (type) (concat type ":"))
-         org-ref-cite-types)))
+  "Return the citation prefix of REF (e.g. \"cite:\",\"parencite:\" etc.) if it has a prefix of one of the `org-ref-cite-types`, otherwise, return `nil`.  This can be used to determine if a ref should be a \"cite\" type."
+  (when (require 'org-ref nil t)
+   (seq-find
+    (lambda (prefix) (s-prefix? prefix ref))
+    (-map (lambda (type) (concat type ":"))
+          org-ref-cite-types))))
 
 ;;;; Title/Path/Slug conversion
 (defun org-roam--path-to-slug (path)
