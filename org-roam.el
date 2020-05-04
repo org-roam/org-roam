@@ -42,6 +42,7 @@
 (require 's)
 (require 'f)
 (require 'cl-lib)
+
 ;;;; org-roam features
 (require 'org-roam-compat)
 (require 'org-roam-macs)
@@ -54,6 +55,7 @@
 
 ;; To detect cite: links
 (require 'org-ref nil t)
+(defvar org-ref-cite-types) ;; from org-ref-core.el
 
 ;;;; Customizable Variables
 (defgroup org-roam nil

@@ -695,7 +695,7 @@ function lint {
     lint-checkdoc
     lint-compile
     lint-declare
-    lint-indent
+    # lint-indent
     lint-package
     lint-regexps
 }
