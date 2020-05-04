@@ -598,21 +598,36 @@ See `org-roam--get-ref-path-completions' for details."
   :type 'boolean
   :group 'org-roam)
 
-(defun org-roam--get-ref-path-completions (&optional interactive)
+(defun org-roam--get-ref-path-completions (&optional interactive filter)
   "Return a list of cons pairs for refs to absolute path of Org-roam files.
-When INTERACTIVE `org-roam-include-type-in-ref-path-completions'
-are non-nil, format the car of the completion-candidates as
-'type:ref'."
+When `org-roam-include-type-in-ref-path-completions' and
+INTERACTIVE are non-nil, format the car of the
+completion-candidates as 'type:ref'.
+FILTER can either be a string or a function:
+- If it is a string, it should be the type of refs to include as
+candidates (e.g. \"cite\" ,\"website\" ,etc.)
+- If it is a function, it should be the name of a function that
+takes three arguments: the type, the ref, and the file of the
+current candidate.  It should return t if that candidate is to be
+included as a candidate."
   (let ((rows (org-roam-db-query [:select [type ref file] :from refs]))
         (include-type (and interactive
-                           org-roam-include-type-in-ref-path-completions)))
-    (mapcar (lambda (row)
-              (cl-destructuring-bind (type ref file) row
-                (cons (if include-type
-                          (format "%s:%s" type ref)
-                        ref)
-                      file)))
-            rows)))
+                           org-roam-include-type-in-ref-path-completions))
+        candidates)
+    (dolist (row rows (nreverse candidates))
+      (cl-destructuring-bind (type ref file) row
+        (when (pcase filter
+                ('nil t)
+                ((pred stringp) (string= type filter))
+                ((pred functionp) (funcall filter type ref file))
+                (wrong-type (signal 'wrong-type-argument
+                                    `((stringp functionp)
+                                      ,wrong-type))))
+          (let ((candidate (cons (if include-type
+                                     (format "%s:%s" type ref)
+                                   ref)
+                                 file)))
+            (push candidate candidates)))))))
 
 (defun org-roam--find-ref (ref)
   "Find and open and Org-roam file from REF if it exists.
@@ -623,12 +638,19 @@ Return nil if the file does not exist."
               (file (cdr (assoc ref completions))))
     (find-file file)))
 
-(defun org-roam-find-ref (arg)
+(defun org-roam-find-ref (arg &optional filter)
   "Find and open an Org-roam file from a ref.
 ARG is used to forward interactive calls to
-`org-roam--get-ref-path-completions'"
+`org-roam--get-ref-path-completions'
+FILTER can either be a string or a function:
+- If it is a string, it should be the type of refs to include as
+candidates (e.g. \"cite\" ,\"website\" ,etc.)
+- If it is a function, it should be the name of a function that
+takes three arguments: the type, the ref, and the file of the
+current candidate.  It should return t if that candidate is to be
+included as a candidate."
   (interactive "p")
-  (let* ((completions (org-roam--get-ref-path-completions arg))
+  (let* ((completions (org-roam--get-ref-path-completions arg filter))
          (ref (org-roam-completion--completing-read "Ref: "
                                                     completions
                                                     :require-match t))
