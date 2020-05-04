@@ -674,7 +674,7 @@ ARG is used to forward interactive calls to
 (defface org-roam-link-invalid
   '((t :inherit (error org-link)))
   "Face for Org-roam links that are not valid.
-Typically, this face is used for links without a destination."
+This face is used for links without a destination."
   :group 'org-roam-faces)
 
 (defun org-roam--in-buffer-p ()
