@@ -671,7 +671,7 @@ ARG is used to forward interactive calls to
   "Face for Org-roam links pointing to the current buffer."
   :group 'org-roam-faces)
 
-(defface org-roam-link-without-destination
+(defface org-roam-link-invalid
   '((t :inherit (error org-link)))
   "Face for Org-roam links that points to nowhere."
   :group 'org-roam-faces)
@@ -702,7 +702,7 @@ currently opened Org-roam file in the backlink buffer, or
 `org-roam-link-face' if PATH corresponds to any other Org-roam
 file."
   (cond ((not (file-exists-p path))
-         'org-roam-link-without-destination)
+         'org-roam-link-invalid)
         ((and (org-roam--in-buffer-p)
               (org-roam--backlink-to-current-p))
          'org-roam-link-current)
