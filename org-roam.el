@@ -644,7 +644,9 @@ Applies `org-roam-link-current' if PATH corresponds to the
 currently opened Org-roam file in the backlink buffer, or
 `org-roam-link-face' if PATH corresponds to any other Org-roam
 file."
-  (cond ((and (org-roam--in-buffer-p)
+  (cond ((not (file-exists-p path))
+         'error)
+        ((and (org-roam--in-buffer-p)
               (org-roam--backlink-to-current-p))
          'org-roam-link-current)
         ((org-roam--org-roam-file-p path)
