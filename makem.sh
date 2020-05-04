@@ -467,6 +467,7 @@ function sandbox {
     if [[ $install_deps ]]
     then
         local deps=($(dependencies))
+        deps+=("org-ref")
         debug "Installing dependencies: ${deps[@]}"
 
         for package in "${deps[@]}"
