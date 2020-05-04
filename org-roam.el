@@ -592,10 +592,11 @@ command will offer you to create one."
   "When t, include the type in ref-path completions.
 Note that this only affects interactive calls.")
 
-(defun org-roam--get-ref-path-completions ()
+(defun org-roam--get-ref-path-completions (&optional interactive)
   "Return a list of cons pairs for refs to absolute path of Org-roam files."
   (let ((rows (org-roam-db-query [:select [type ref file] :from refs]))
-        (include-type org-roam-include-type-in-ref-path-completions))
+        (include-type (and interactive
+                           org-roam-include-type-in-ref-path-completions)))
     (mapcar (lambda (row)
               (cl-destructuring-bind (type ref file) row
                 (cons (if include-type
@@ -604,11 +605,11 @@ Note that this only affects interactive calls.")
                       file)))
             rows)))
 
-(defun org-roam-find-ref (&optional info)
+(defun org-roam-find-ref (arg &optional info)
   "Find and open an Org-roam file from a ref.
 INFO is an alist containing additional information."
-  (interactive)
-  (let* ((completions (org-roam--get-ref-path-completions))
+  (interactive "p")
+  (let* ((completions (org-roam--get-ref-path-completions arg))
          (ref (or (cdr (assoc 'ref info))
                   (org-roam-completion--completing-read "Ref: "
                                                         completions
