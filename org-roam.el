@@ -404,7 +404,7 @@ current buffer is used."
 (defun org-roam--cite-prefix (ref)
   "Return the citation prefix of REF, or nil otherwise.
 The prefixes are defined in `org-ref-cite-types`.
-Examples:
+Examples:   
    (org-roam--cite-prefix \"cite:foo\") -> \"cite:\"
    (org-roam--cite-prefix \"https://google.com\") -> nil"
   (when (require 'org-ref nil t)
@@ -599,7 +599,10 @@ See `org-roam--get-ref-path-completions' for details."
   :group 'org-roam)
 
 (defun org-roam--get-ref-path-completions (&optional interactive)
-  "Return a list of cons pairs for refs to absolute path of Org-roam files."
+  "Return a list of cons pairs for refs to absolute path of Org-roam files.
+When INTERACTIVE `org-roam-include-type-in-ref-path-completions'
+are non-nil, format the car of the completion-candidates as
+'type:ref'."
   (let ((rows (org-roam-db-query [:select [type ref file] :from refs]))
         (include-type (and interactive
                            org-roam-include-type-in-ref-path-completions)))
