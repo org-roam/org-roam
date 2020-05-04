@@ -775,7 +775,8 @@ command will offer you to create one."
 ;;;; org-roam-find-ref
 (defcustom org-roam-include-type-in-ref-path-completions nil
   "When t, include the type in ref-path completions.
-Note that this only affects interactive calls."
+Note that this only affects interactive calls.
+See `org-roam--get-ref-path-completions' for details."
   :type 'boolean
   :group 'org-roam)
 
@@ -794,7 +795,9 @@ Note that this only affects interactive calls."
 
 (defun org-roam-find-ref (arg &optional info)
   "Find and open an Org-roam file from a ref.
-INFO is an alist containing additional information."
+INFO is an alist containing additional information.
+ARG is used to forward interactive calls to
+`org-roam--get-ref-path-completions'"
   (interactive "p")
   (let* ((completions (org-roam--get-ref-path-completions arg))
          (ref (or (cdr (assoc 'ref info))
