@@ -14,6 +14,7 @@
 ### Features
 * [#538](https://github.com/jethrokuan/org-roam/pull/538) Optionally use text in first headline as title
 * [#553](https://github.com/jethrokuan/org-roam/pull/553) Add prefix argument to `org-roam-db-build-cache` for forcing rebuilds
+* [#560](https://github.com/jethrokuan/org-roam/pull/560) Apply 'error face to distinguish broken links
 
 ## 1.1.0 (21-04-2020)
 
