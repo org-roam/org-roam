@@ -129,9 +129,11 @@ Details on how to specify for the template is given in `org-roam-capture-templat
 (defun org-roam-capture--in-process-p ()
   "Return non-nil if a `org-roam-capture' buffer exists."
   (cl-some (lambda (buffer)
-	     (and (eq (buffer-local-value 'major-mode (current-buffer)) 'org-mode)
-		  (plist-get (buffer-local-value 'org-capture-current-plist (current-buffer)) :org-roam)))
-	   (buffer-list)))
+             (and (eq (buffer-local-value 'major-mode buffer)
+                      'org-mode)
+                  (plist-get (buffer-local-value 'org-capture-current-plist buffer)
+                             :org-roam)))
+           (buffer-list)))
 
 (defun org-roam-capture--fill-template (str &optional info)
   "Expands the template STR, returning the string.

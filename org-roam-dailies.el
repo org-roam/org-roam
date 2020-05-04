@@ -69,7 +69,7 @@ With numeric argument N, use N days in the future."
   "Create and find the file for yesterday.
 With numeric argument N, use N days in the past."
   (interactive "p")
-  (org-roam-tomorrow (- n)))
+  (org-roam-dailies-tomorrow (- n)))
 
 (defun org-roam-dailies-date ()
   "Create the file for any date using the calendar interface."

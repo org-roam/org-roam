@@ -209,7 +209,8 @@ The search terminates when the first property is encountered."
   "Crawl CONTENT for relative links and expand them.
 PATH should be the root from which to compute the relativity."
   (let ((dir (file-name-directory path))
-        (re org-roam--org-link-file-bracket-re))
+        (re org-roam--org-link-file-bracket-re)
+        link)
     (with-temp-buffer
       (insert content)
       (goto-char (point-min))

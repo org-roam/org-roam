@@ -40,6 +40,8 @@
 (defvar org-return-follows-link)
 (defvar org-roam-backlinks-mode)
 (defvar org-roam-last-window)
+(defvar org-ref-cite-types) ;; in org-ref-core.el
+
 (declare-function org-roam-db--ensure-built   "org-roam-db")
 (declare-function org-roam--extract-ref       "org-roam")
 (declare-function org-roam--get-title-or-slug "org-roam")

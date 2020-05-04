@@ -39,11 +39,12 @@
 (defvar org-roam-directory)
 (defvar org-roam-verbose)
 
-(declare-function org-roam--extract-titles      "org-roam")
-(declare-function org-roam--extract-ref         "org-roam")
-(declare-function org-roam--extract-links       "org-roam")
-(declare-function org-roam--list-files          "org-roam")
-(declare-function org-roam-buffer--update-maybe "org-roam-buffer")
+(declare-function org-roam--org-roam-file-p                "org-roam")
+(declare-function org-roam--extract-and-format-titles      "org-roam")
+(declare-function org-roam--extract-ref                    "org-roam")
+(declare-function org-roam--extract-links                  "org-roam")
+(declare-function org-roam--list-all-files                 "org-roam")
+(declare-function org-roam-buffer--update-maybe           "org-roam-buffer")
 
 ;;;; Options
 (defcustom org-roam-db-location nil
@@ -270,8 +271,9 @@ If the file does not have any connections, nil is returned."
     files))
 
 (defun org-roam-db--links-with-max-distance (file max-distance)
-  "Return all files reachable from/connected to FILE in at most MAX-DISTANCE steps,
-including the file itself.  If the file does not have any connections, nil is returned."
+  "Return all files connected to FILE in at most MAX-DISTANCE steps.
+This includes the file itself. If the file does not have any
+connections, nil is returned."
   (let* ((query "WITH RECURSIVE
                    links_of(file, link) AS
                      (WITH roamlinks AS (SELECT * FROM links WHERE \"type\" = '\"roam\"'),
