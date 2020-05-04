@@ -155,6 +155,7 @@ function elisp-checkdoc-file {
     (when makem-checkdoc-errors-p
       (kill-emacs 1))))
 
+(setq sentence-end-double-space nil)
 (setq checkdoc-spellcheck-documentation-flag nil)
 (makem-checkdoc-files-and-exit)
 EOF
