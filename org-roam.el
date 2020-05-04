@@ -56,6 +56,7 @@
 ;; To detect cite: links
 (require 'org-ref nil t)
 (defvar org-ref-cite-types) ;; from org-ref-core.el
+(declare-function 'org-ref-split-and-strip-string "ext:org-ref-utils" (string))
 
 ;;;; Customizable Variables
 (defgroup org-roam nil

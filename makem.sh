@@ -326,7 +326,7 @@ function dirnames {
 
 function filter-files-exclude-default {
     # Filter out paths (STDIN) which should be excluded by default.
-    egrep -v "(/\.cask/|-autoloads.el|.dir-locals)"
+    egrep -v "(/\.cask/|-autoloads.el|-macs.el|.dir-locals)"
 }
 
 function filter-files-exclude-args {
