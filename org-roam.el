@@ -458,15 +458,15 @@ which takes as its argument an alist of path-completions.  See
             (delete-region (car region) (cdr region)))
           (insert (org-roam--format-link target-file-path link-description)))
       (when (org-roam-capture--in-process-p)
-	(user-error "Nested Org-roam capture processes not supported"))
+        (user-error "Nested Org-roam capture processes not supported"))
       (let ((org-roam-capture--info (list (cons 'title title)
-					  (cons 'slug (org-roam--title-to-slug title))))
-	    (org-roam-capture--context 'title))
-	(add-hook 'org-capture-after-finalize-hook #'org-roam-capture--insert-link-h)
-	(setq org-roam-capture-additional-template-props (list :region region
-							       :link-description link-description
-							       :capture-fn 'org-roam-insert))
-	(org-roam--capture)))))
+                                          (cons 'slug (org-roam--title-to-slug title))))
+            (org-roam-capture--context 'title))
+        (add-hook 'org-capture-after-finalize-hook #'org-roam-capture--insert-link-h)
+        (setq org-roam-capture-additional-template-props (list :region region
+                                                               :link-description link-description
+                                                               :capture-fn 'org-roam-insert))
+        (org-roam-capture--capture)))))
 
 ;;;; org-roam-find-file
 (defun org-roam--get-title-path-completions ()
@@ -505,7 +505,7 @@ which takes as its argument an alist of path-completions.  See
                                             (cons 'slug (org-roam--title-to-slug title))))
               (org-roam-capture--context 'title))
           (add-hook 'org-capture-after-finalize-hook #'org-roam-capture--find-file-h)
-          (org-roam--capture))))))
+          (org-roam-capture--capture))))))
 
 ;;;; org-roam-find-directory
 (defun org-roam-find-directory ()

@@ -1,4 +1,4 @@
-;;; org-roam-dialies.el --- Roam Research replica with Org-mode -*- coding: utf-8; lexical-binding: t -*-
+;;; org-roam-dailies.el --- Roam Research replica with Org-mode -*- coding: utf-8; lexical-binding: t -*-
 ;;;
 ;; Copyright © 2020 Jethro Kuan <jethrokuan95@gmail.com>
 
@@ -52,7 +52,7 @@
         (org-roam-capture--info (list (cons 'time time)))
         (org-roam-capture--context 'dailies))
     (add-hook 'org-capture-after-finalize-hook #'org-roam-capture--find-file-h)
-    (org-roam--capture)))
+    (org-roam-capture--capture)))
 
 (defun org-roam-dailies-today ()
   "Create and find the daily note for today."
@@ -78,4 +78,5 @@ With numeric argument N, use N days in the past."
     (org-roam-dailies--file-for-time time)))
 
 (provide 'org-roam-dailies)
+
 ;;; org-roam-dailies.el ends here
