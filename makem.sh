@@ -155,7 +155,8 @@ function elisp-checkdoc-file {
     (when makem-checkdoc-errors-p
       (kill-emacs 1))))
 
-(setq checkdoc-spellcheck-documentation-flag t)
+(setq sentence-end-double-space nil)
+(setq checkdoc-spellcheck-documentation-flag nil)
 (makem-checkdoc-files-and-exit)
 EOF
     echo $file
@@ -325,7 +326,7 @@ function dirnames {
 
 function filter-files-exclude-default {
     # Filter out paths (STDIN) which should be excluded by default.
-    egrep -v "(/\.cask/|-autoloads.el|.dir-locals)"
+    egrep -v "(/\.cask/|-autoloads.el|-macs.el|.dir-locals)"
 }
 
 function filter-files-exclude-args {
@@ -694,7 +695,7 @@ function lint {
     lint-checkdoc
     lint-compile
     lint-declare
-    lint-indent
+    # lint-indent
     lint-package
     lint-regexps
 }

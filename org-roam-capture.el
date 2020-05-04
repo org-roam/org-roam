@@ -129,9 +129,11 @@ Details on how to specify for the template is given in `org-roam-capture-templat
 (defun org-roam-capture--in-process-p ()
   "Return non-nil if a `org-roam-capture' buffer exists."
   (cl-some (lambda (buffer)
-	     (and (eq (buffer-local-value 'major-mode (current-buffer)) 'org-mode)
-		  (plist-get (buffer-local-value 'org-capture-current-plist (current-buffer)) :org-roam)))
-	   (buffer-list)))
+             (and (eq (buffer-local-value 'major-mode buffer)
+                      'org-mode)
+                  (plist-get (buffer-local-value 'org-capture-current-plist buffer)
+                             :org-roam)))
+           (buffer-list)))
 
 (defun org-roam-capture--fill-template (str &optional info)
   "Expands the template STR, returning the string.
@@ -311,7 +313,7 @@ Suitable for moving point."
   :group 'org-roam
   :type 'hook)
 
-(defun org-roam--capture (&optional goto keys)
+(defun org-roam-capture--capture (&optional goto keys)
   "Create a new file, and return the path to the edited file.
 The templates are defined at `org-roam-capture-templates'.  The
 GOTO and KEYS argument have the same functionality as
@@ -337,7 +339,7 @@ This uses the templates defined at `org-roam-capture-templates'."
                                         (cons 'file file-path)))
           (org-roam-capture--context 'capture))
       (setq org-roam-capture-additional-template-props (list :capture-fn 'org-roam-capture))
-      (org-roam--capture))))
+      (org-roam-capture--capture))))
 
 (provide 'org-roam-capture)
 
