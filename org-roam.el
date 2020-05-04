@@ -587,12 +587,22 @@ command will offer you to create one."
       (when (y-or-n-p "Index file does not exist.  Would you like to create it? ")
         (org-roam-find-file "Index")))))
 
+;;;; org-roam-find-ref
+(defcustom org-roam-include-type-in-ref-path-completions nil
+  "When t, include the type in ref-path completions.
+Note that this only affects interactive calls.")
+
 (defun org-roam--get-ref-path-completions ()
   "Return a list of cons pairs for refs to absolute path of Org-roam files."
-  (let ((rows (org-roam-db-query [:select [ref file] :from refs])))
+  (let ((rows (org-roam-db-query [:select [type ref file] :from refs]))
+        (include-type org-roam-include-type-in-ref-path-completions))
     (mapcar (lambda (row)
-              (cons (car row)
-                    (cadr row))) rows)))
+              (cl-destructuring-bind (type ref file) row
+                (cons (if include-type
+                          (format "%s:%s" type ref)
+                        ref)
+                      file)))
+            rows)))
 
 (defun org-roam-find-ref (&optional info)
   "Find and open an Org-roam file from a ref.
