@@ -787,11 +787,11 @@ Otherwise, behave as if called interactively."
   :global t
   (cond
    (org-roam-mode
-    (org-roam-db-build-cache)
     (add-hook 'find-file-hook #'org-roam--find-file-hook-function)
     (add-hook 'kill-emacs-hook #'org-roam-db--close-all)
     (advice-add 'rename-file :after #'org-roam--rename-file-advice)
-    (advice-add 'delete-file :before #'org-roam--delete-file-advice))
+    (advice-add 'delete-file :before #'org-roam--delete-file-advice)
+    (org-roam-db-build-cache))
    (t
     (remove-hook 'find-file-hook #'org-roam--find-file-hook-function)
     (remove-hook 'kill-emacs-hook #'org-roam-db--close-all)
