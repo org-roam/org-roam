@@ -56,7 +56,7 @@
 ;; To detect cite: links
 (require 'org-ref nil t)
 (defvar org-ref-cite-types) ;; from org-ref-core.el
-(declare-function 'org-ref-split-and-strip-string "ext:org-ref-utils" (string))
+(declare-function org-ref-split-and-strip-string "ext:org-ref-utils" (string))
 
 ;;;; Customizable Variables
 (defgroup org-roam nil
@@ -407,7 +407,6 @@ current buffer is used."
       (s-downcase slug))))
 
 ;;; Interactive Commands
-;;;; org-roam-insert
 (defun org-roam--format-link-title (title)
   "Return the link title, given the file TITLE."
   (if (functionp org-roam-link-title-format)
@@ -469,7 +468,6 @@ which takes as its argument an alist of path-completions.  See
                                                                :capture-fn 'org-roam-insert))
         (org-roam-capture--capture)))))
 
-;;;; org-roam-find-file
 (defun org-roam--get-title-path-completions ()
   "Return a list of cons pairs for titles to absolute path of Org-roam files."
   (let* ((rows (org-roam-db-query [:select [file titles] :from titles]))
@@ -508,13 +506,11 @@ which takes as its argument an alist of path-completions.  See
           (add-hook 'org-capture-after-finalize-hook #'org-roam-capture--find-file-h)
           (org-roam-capture--capture))))))
 
-;;;; org-roam-find-directory
 (defun org-roam-find-directory ()
   "Find and open `org-roam-directory'."
   (interactive)
   (find-file org-roam-directory))
 
-;;;; org-roam-jump-to-index
 (defcustom org-roam-index-file nil
   "Path to the Org-roam index file.
 The path can be a string or a function.  If it is a string, it
@@ -559,7 +555,6 @@ command will offer you to create one."
       (when (y-or-n-p "Index file does not exist.  Would you like to create it? ")
         (org-roam-find-file "Index")))))
 
-;;;; org-roam-find-ref
 (defun org-roam--get-ref-path-completions ()
   "Return a list of cons pairs for refs to absolute path of Org-roam files."
   (let ((rows (org-roam-db-query [:select [ref file] :from refs])))
@@ -578,7 +573,6 @@ INFO is an alist containing additional information."
                                                         :require-match t))))
     (find-file (cdr (assoc ref completions)))))
 
-;;;; org-roam-switch-to-buffer
 (defun org-roam--get-roam-buffers ()
   "Return a list of buffers that are Org-roam files."
   (--filter (and (with-current-buffer it (derived-mode-p 'org-mode))
@@ -837,10 +831,6 @@ Otherwise, behave as if called interactively."
               (replace-match (format "[[file:%s][\\1]]" relative-path))))
           (org-roam-db--update-file file-from)))
       (org-roam-db--update-file new-path))))
-;;; -
+
 (provide 'org-roam)
 ;;; org-roam.el ends here
-
-;; Local Variables:
-;; outline-regexp: ";;;+ "
-;; End:
