@@ -662,7 +662,7 @@ Examples:
 (defun org-roam--cite-prefix (ref)
   "Return the citation prefix of REF, or nil otherwise.
 The prefixes are defined in `org-ref-cite-types`.
-Examples:
+Examples:   
    (org-roam--cite-prefix \"cite:foo\") -> \"cite:\"
    (org-roam--cite-prefix \"https://google.com\") -> nil"
   (when (require 'org-ref nil t)
