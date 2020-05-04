@@ -77,6 +77,8 @@
   "org-roam 1.1.0")
 (define-obsolete-function-alias 'org-roam--capture 'org-roam-capture--capture
   "org-roam 1.1.0")
+(define-obsolete-function-alias 'org-roam-db--maybe-update 'org-roam-db--update-maybe
+  "org-roam 1.1.0")
 
 ;;;; Variables
 (define-obsolete-variable-alias 'org-roam-graphviz-extra-options

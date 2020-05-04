@@ -375,9 +375,44 @@ current buffer is used."
             (org-roam--format-title title file-path))
           (org-roam--extract-titles)))
 
+(defun org-roam--ref-type-p (type)
+  "Return t if the ref from current buffer is TYPE."
+  (let ((current (car (org-roam--extract-ref))))
+    (eq current type)))
+
 (defun org-roam--extract-ref ()
-  "Extract the ref from current buffer."
-  (cdr (assoc "ROAM_KEY" (org-roam--extract-global-props '("ROAM_KEY")))))
+  "Extract the ref from current buffer and return the type and the key of the ref."
+  (if-let ((ref (cdr (assoc "ROAM_KEY" (org-roam--extract-global-props '("ROAM_KEY"))))))
+      (let* ((type (org-roam--ref-type ref))
+             (key (cond ((string= "cite" type)
+                         (s-chop-prefix (org-roam--cite-prefix ref) ref))
+                        (t ref))))
+        (cons type key))
+    nil))
+
+(defun org-roam--ref-type (ref)
+  "Determine the type of the REF from the prefix."
+  (let* ((cite-prefix (org-roam--cite-prefix ref))
+         (is-website (seq-some
+                      (lambda (prefix) (s-prefix? prefix ref))
+                      '("http" "https")))
+         (type (cond (cite-prefix "cite")
+                     (is-website "website")
+                     (t "roam"))))
+    type))
+
+(defun org-roam--cite-prefix (ref)
+  "Return the citation prefix of REF, or nil otherwise.
+The prefixes are defined in `org-ref-cite-types`.
+Examples:
+   (org-roam--cite-prefix \"cite:foo\") -> \"cite:\"
+   (org-roam--cite-prefix \"https://google.com\") -> nil"
+  (when (require 'org-ref nil t)
+   (seq-find
+    (lambda (prefix) (s-prefix? prefix ref))
+    (-map (lambda (type) (concat type ":"))
+          org-ref-cite-types))))
+
 ;;;; Title/Path/Slug conversion
 (defun org-roam--path-to-slug (path)
   "Return a slug from PATH."
@@ -555,18 +590,37 @@ command will offer you to create one."
       (when (y-or-n-p "Index file does not exist.  Would you like to create it? ")
         (org-roam-find-file "Index")))))
 
-(defun org-roam--get-ref-path-completions ()
-  "Return a list of cons pairs for refs to absolute path of Org-roam files."
-  (let ((rows (org-roam-db-query [:select [ref file] :from refs])))
-    (mapcar (lambda (row)
-              (cons (car row)
-                    (cadr row))) rows)))
+;;;; org-roam-find-ref
+(defcustom org-roam-include-type-in-ref-path-completions nil
+  "When t, include the type in ref-path completions.
+Note that this only affects interactive calls.
+See `org-roam--get-ref-path-completions' for details."
+  :type 'boolean
+  :group 'org-roam)
 
-(defun org-roam-find-ref (&optional info)
+(defun org-roam--get-ref-path-completions (&optional interactive)
+  "Return a list of cons pairs for refs to absolute path of Org-roam files.
+When INTERACTIVE `org-roam-include-type-in-ref-path-completions'
+are non-nil, format the car of the completion-candidates as
+'type:ref'."
+  (let ((rows (org-roam-db-query [:select [type ref file] :from refs]))
+        (include-type (and interactive
+                           org-roam-include-type-in-ref-path-completions)))
+    (mapcar (lambda (row)
+              (cl-destructuring-bind (type ref file) row
+                (cons (if include-type
+                          (format "%s:%s" type ref)
+                        ref)
+                      file)))
+            rows)))
+
+(defun org-roam-find-ref (arg &optional info)
   "Find and open an Org-roam file from a ref.
-INFO is an alist containing additional information."
-  (interactive)
-  (let* ((completions (org-roam--get-ref-path-completions))
+INFO is an alist containing additional information.
+ARG is used to forward interactive calls to
+`org-roam--get-ref-path-completions'"
+  (interactive "p")
+  (let* ((completions (org-roam--get-ref-path-completions arg))
          (ref (or (cdr (assoc 'ref info))
                   (org-roam-completion--completing-read "Ref: "
                                                         completions
@@ -658,7 +712,7 @@ file."
     (define-key map [mouse-1] 'org-open-at-point)
     (define-key map (kbd "RET") 'org-open-at-point)
     map)
-  "Keymap for `org-roam-backlinks-mode'.")
+  "Keymap for symbol `org-roam-backlinks-mode'.")
 
 (define-minor-mode org-roam-backlinks-mode
   "Minor mode for the `org-roam-buffer'.
@@ -731,7 +785,7 @@ for Org-ref cite links."
 ;;; The global minor org-roam-mode
 (defvar org-roam-mode-map
   (make-sparse-keymap)
-  "Keymap for mode `org-roam-mode'.")
+  "Keymap for mode symbol `org-roam-mode'.")
 
 ;;;###autoload
 (define-minor-mode org-roam-mode
@@ -755,11 +809,11 @@ Otherwise, behave as if called interactively."
   :global t
   (cond
    (org-roam-mode
-    (org-roam-db-build-cache)
     (add-hook 'find-file-hook #'org-roam--find-file-hook-function)
     (add-hook 'kill-emacs-hook #'org-roam-db--close-all)
     (advice-add 'rename-file :after #'org-roam--rename-file-advice)
-    (advice-add 'delete-file :before #'org-roam--delete-file-advice))
+    (advice-add 'delete-file :before #'org-roam--delete-file-advice)
+    (org-roam-db-build-cache))
    (t
     (remove-hook 'find-file-hook #'org-roam--find-file-hook-function)
     (remove-hook 'kill-emacs-hook #'org-roam-db--close-all)
@@ -774,7 +828,7 @@ Otherwise, behave as if called interactively."
         (remove-hook 'after-save-hook #'org-roam-db--update-file t))))))
 
 (defun org-roam--find-file-hook-function ()
-  "Called by `find-file-hook' when mode `org-roam-mode' is on."
+  "Called by `find-file-hook' when mode symbol `org-roam-mode' is on."
   (when (org-roam--org-roam-file-p)
     (setq org-roam-last-window (get-buffer-window))
     (add-hook 'post-command-hook #'org-roam-buffer--update-maybe nil t)
