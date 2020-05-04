@@ -587,18 +587,34 @@ command will offer you to create one."
       (when (y-or-n-p "Index file does not exist.  Would you like to create it? ")
         (org-roam-find-file "Index")))))
 
-(defun org-roam--get-ref-path-completions ()
-  "Return a list of cons pairs for refs to absolute path of Org-roam files."
-  (let ((rows (org-roam-db-query [:select [ref file] :from refs])))
-    (mapcar (lambda (row)
-              (cons (car row)
-                    (cadr row))) rows)))
+;;;; org-roam-find-ref
+(defcustom org-roam-include-type-in-ref-path-completions nil
+  "When t, include the type in ref-path completions.
+Note that this only affects interactive calls.
+See `org-roam--get-ref-path-completions' for details."
+  :type 'boolean
+  :group 'org-roam)
 
-(defun org-roam-find-ref (&optional info)
+(defun org-roam--get-ref-path-completions (&optional interactive)
+  "Return a list of cons pairs for refs to absolute path of Org-roam files."
+  (let ((rows (org-roam-db-query [:select [type ref file] :from refs]))
+        (include-type (and interactive
+                           org-roam-include-type-in-ref-path-completions)))
+    (mapcar (lambda (row)
+              (cl-destructuring-bind (type ref file) row
+                (cons (if include-type
+                          (format "%s:%s" type ref)
+                        ref)
+                      file)))
+            rows)))
+
+(defun org-roam-find-ref (arg &optional info)
   "Find and open an Org-roam file from a ref.
-INFO is an alist containing additional information."
-  (interactive)
-  (let* ((completions (org-roam--get-ref-path-completions))
+INFO is an alist containing additional information.
+ARG is used to forward interactive calls to
+`org-roam--get-ref-path-completions'"
+  (interactive "p")
+  (let* ((completions (org-roam--get-ref-path-completions arg))
          (ref (or (cdr (assoc 'ref info))
                   (org-roam-completion--completing-read "Ref: "
                                                         completions
