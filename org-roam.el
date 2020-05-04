@@ -667,7 +667,7 @@ ARG is used to forward interactive calls to
   :group 'org-roam-faces)
 
 (defface org-roam-link-current
-  '((t :inherit org-block))
+  '((t :inherit org-link))
   "Face for Org-roam links pointing to the current buffer."
   :group 'org-roam-faces)
 
