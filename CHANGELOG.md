@@ -5,7 +5,7 @@
 ### Breaking Changes
 * [#523](https://github.com/jethrokuan/org-roam/pull/523) remove `org-roam-completion-fuzzy-match` in favor of using completion mechanism's configuration options directly 
 * [#547](https://github.com/jethrokuan/org-roam/pull/547) Deprecate `org-roam-db--maybe-update`, in favour of `org-roam-db--update-maybe`.
-* [#547](https://github.com/jethrokuan/org-roam/pull/547) Upgrade the database version from 2 to 3.
+* [#547](https://github.com/jethrokuan/org-roam/pull/547) Added `type` column to the `refs` table.
 
 ### Bugfixes
 * [#509](https://github.com/jethrokuan/org-roam/pull/509) fix backup files being tracked in database
