@@ -663,6 +663,38 @@ where =template= is the template key for a template in
 =org-roam-capture-ref-templates= (see [[*The Templating System][The Templating System]]). These templates
 should contain a =#+ROAM_KEY: ${ref}= in it.
 
+* Diagnosing and Repairing Files
+
+Org-roam provides a utility for diagnosing and repairing problematic files via
+=org-roam-doctor=. By default, =org-roam-doctor= runs the check across all Org-roam
+files, and this can take some time. To run the check only for the current file,
+run =C-u M-x org-roam-doctor=.
+
+- Function: org-roam-doctor &optional this-buffer
+
+  Perform a check on Org-roam files to ensure cleanliness. If THIS-BUFFER, run
+  the check only for the current buffer.
+
+The checks run are defined in =org-roam-doctor--checkers=. Each checker is an instance of =org-roam-doctor-checker=. To define a checker, use =make-org-roam-doctor-checker=. Here is a sample definition:
+
+#+BEGIN_SRC emacs-lisp
+(make-org-roam-doctor-checker
+    :name 'org-roam-doctor-broken-links
+    :description "Fix broken links."
+    :actions '(("d" . ("Unlink" . org-roam-doctor--remove-link))
+               ("r" . ("Replace link" . org-roam-doctor--replace-link))
+               ("R" . ("Replace link (keep label)" . org-roam-doctor--replace-link-keep-label))))
+#+END_SRC
+
+The =:name= property is the name of the function run. The function takes in the
+Org parse tree, and returns a list of =(point error-message)=. =:description= is a
+short description of what the checker does. =:actions= is an alist containing
+elements of the form =(char . (prompt . function))=. These actions are defined per
+checker, to perform autofixes for the errors. For each error detected,
+=org-roam-doctor= will move the point to the current error, and pop-up a help
+window displaying the error message, as well as the list of actions that can be
+taken provided in =:actions=.
+
 * Keystroke Index
 :PROPERTIES:
 :APPENDIX:   t
