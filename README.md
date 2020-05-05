@@ -31,11 +31,12 @@ Important links:
 
 ## A Preview
 
-Here's a screenshot of `org-roam`. The `org-roam` buffer shows
-backlinks for the active org buffer in the left window, as well as the
-surrounding content in the backlink file. The database is built once,
-and updated incrementally. The graph is generated from the link
-structure, and can be used to navigate to the respective files.
+Here's a screencast of Org-roam. The `org-roam-buffer` (window on the
+right) shows backlinks for the active Org-roam buffer (window on the
+left), as well as the surrounding content in the backlink file. The
+database is built once, and updated incrementally. The graph is
+generated from the link structure, and can be used to navigate to the
+respective files.
 
 ![img](doc/images/org-roam-graph.gif)
 
