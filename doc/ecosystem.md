@@ -117,6 +117,8 @@ within Org-mode.
 integration between [org-ref][org-ref], [helm-bibtex][helm-bibtex] and
 `org-roam`. This helps you manage your bibliographic notes under `org-roam`.
 
+![org-download](images/org-roam-bibtex.gif)
+
 ### Spaced Repetition
 
 [Org-fc][org-fc] is a spaced repetition system that scales well with a
