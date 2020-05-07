@@ -219,7 +219,7 @@ into a digraph."
 
 (defun org-roam-graph--build (&optional node-query)
   "Generate a graph showing the relations between nodes in NODE-QUERY."
-  (let* ((name org-roam-graph-executable))
+  (let ((name org-roam-graph-executable))
     (unless (stringp name)
       (user-error "`org-roam-graph-executable' must be a string"))
     (unless (executable-find org-roam-graph-executable)
