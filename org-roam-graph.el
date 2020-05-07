@@ -53,8 +53,8 @@ It may be one of the following:
           (const    :tag "view-file"))
   :group 'org-roam)
 
-(defcustom org-roam-graph-executable (executable-find "dot")
-  "Name of graphing executable."
+(defcustom org-roam-graph-executable "dot"
+  "Name or path of graphing executable."
   :type 'string
   :group 'org-roam)
 
