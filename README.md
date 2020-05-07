@@ -27,7 +27,7 @@ As of February 2020, it is in a very early stage of development.
 Important links:
 
 - **[Documentation][docs]**
-- **[Org-roam Slack][slack]**
+- **[Org-roam Discourse][discourse]**
 
 ## A Preview
 
@@ -64,6 +64,12 @@ Here's a sample configuration with using `use-package`:
               (("C-c n i" . org-roam-insert))))
 ```
 
+`org-roam-graph` by default expects to find the `dot` executable 
+from the `graphviz` package in the `$PATH`.
+Ensure `graphviz` is installed if you want to use this feature
+or customize your configuration for `org-roam-graph` to use a 
+different tool.
+
 For more detailed installation and configuration instructions (including for
 Doom and Spacemacs users), please see [the
 documentation](https://org-roam.readthedocs.io/en/master/installation/).
@@ -92,4 +98,4 @@ General Public License, Version 3
 [org]: https://orgmode.org/
 [badge-license]: https://img.shields.io/badge/license-GPL_3-green.svg
 [docs]: https://org-roam.readthedocs.io/
-[slack]: https://join.slack.com/t/orgroam/shared_invite/zt-deoqamys-043YQ~s5Tay3iJ5QRI~Lxg
+[discourse]: https://org-roam.discourse.group/
