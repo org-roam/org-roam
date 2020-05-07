@@ -54,7 +54,7 @@ It may be one of the following:
   :group 'org-roam)
 
 (defcustom org-roam-graph-executable "dot"
-  "Name or path of graphing executable."
+  "Path to graphing executable, or its name."
   :type 'string
   :group 'org-roam)
 
