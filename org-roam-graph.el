@@ -219,8 +219,11 @@ into a digraph."
 
 (defun org-roam-graph--build (&optional node-query)
   "Generate a graph showing the relations between nodes in NODE-QUERY."
-  (unless org-roam-graph-executable
-    (user-error (concat "Cannot find executable to generate the graph.  "
+  (unless (ignore-errors (executable-find org-roam-graph-executable))
+    (user-error (concat "Cannot find executable "
+                        (when-let ((s org-roam-graph-executable))
+                          (format  "\"%s\" " s))
+                        "to generate the graph.  "
                         "Please adjust `org-roam-graph-executable'")))
   (let* ((node-query (or node-query
                          `[:select [file titles]
