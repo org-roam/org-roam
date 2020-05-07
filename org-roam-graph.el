@@ -219,14 +219,13 @@ into a digraph."
 
 (defun org-roam-graph--build (&optional node-query)
   "Generate a graph showing the relations between nodes in NODE-QUERY."
-  (let* ((name org-roam-graph-executable)
-         (exec (ignore-errors (executable-find name))))
-    (unless exec
-      (user-error (concat "Cannot find executable "
-                          (when name
-                            (format "\"%s\" " name))
-                          "to generate the graph.  "
-                          "Please adjust `org-roam-graph-executable'")))
+  (let* ((name org-roam-graph-executable))
+    (unless (stringp name)
+      (user-error "`org-roam-graph-executable' must be a string"))
+    (unless (executable-find org-roam-graph-executable)
+      (user-error (concat "Cannot find executable \"%s\" to generate the graph.  "
+                          "Please adjust `org-roam-graph-executable'")
+                  name))
     (let* ((node-query (or node-query
                            `[:select [file titles]
                              :from titles
@@ -234,7 +233,7 @@ into a digraph."
            (graph (org-roam-graph--dot node-query))
            (temp-dot (make-temp-file "graph." nil ".dot" graph))
            (temp-graph (make-temp-file "graph." nil ".svg")))
-      (call-process exec nil 0 nil temp-dot "-Tsvg" "-o" temp-graph)
+      (call-process name nil 0 nil temp-dot "-Tsvg" "-o" temp-graph)
       temp-graph)))
 
 (defun org-roam-graph--open (file)
