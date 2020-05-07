@@ -52,7 +52,7 @@
     (setq org-roam-directory new-dir)
     (org-roam-mode +1)
     (org-roam-db-build-cache t)
-    (sleep-for 2)))
+    (sleep-for 5)))
 
 ;;; Tests
 (describe "org-roam-db-build-cache"
