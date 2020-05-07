@@ -46,7 +46,6 @@
 
 (defun org-roam-test-init ()
   "."
-  (org-roam-db--close)
   (let ((original-dir org-roam-test-directory)
         (new-dir (expand-file-name (make-temp-name "org-roam") temporary-file-directory)))
     (copy-directory original-dir new-dir)
@@ -57,7 +56,8 @@
 (describe "org-roam-db-build-cache"
   (it "initializes correctly"
     (org-roam-test-init)
-    (org-roam-db-build-cache)
+    (sit-for 2)
+    (org-roam-db-build-cache t)
 
     ;; Cache
     (expect (caar (org-roam-db-query [:select (funcall count) :from files])) :to-be 8)
