@@ -54,8 +54,8 @@
     (sleep-for 2)))
 
 (defun org-roam-test-teardown ()
-  (delete-directory org-roam-directory t)
   (org-roam-mode -1)
+  (delete-file org-roam-db--get)
   (org-roam-db--close))
 
 ;;; Tests
