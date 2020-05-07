@@ -29,7 +29,6 @@
 (require 'buttercup)
 (require 'with-simulated-input)
 (require 'org-roam)
-(require 'org-roam-db)
 (require 'dash)
 
 (defun org-roam-test-abs-path (file-path)
@@ -56,7 +55,7 @@
 
 (defun org-roam-test-teardown ()
   (org-roam-mode -1)
-  (delete-file org-roam-db--get)
+  (delete-file (org-roam-db--get))
   (org-roam-db--close))
 
 ;;; Tests
