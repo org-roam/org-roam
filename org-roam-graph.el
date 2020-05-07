@@ -221,8 +221,7 @@ into a digraph."
   "Generate a graph showing the relations between nodes in NODE-QUERY."
   (unless org-roam-graph-executable
     (user-error (concat "Couldn’t find the executable to generate the graph.  "
-                        "Please adjust `org-roam-graph-executable'")
-                org-roam-graph-executable))
+                        "Please adjust `org-roam-graph-executable'")))
   (let* ((node-query (or node-query
                          `[:select [file titles]
                            :from titles
