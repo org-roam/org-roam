@@ -221,7 +221,7 @@ into a digraph."
   "Generate a graph showing the relations between nodes in NODE-QUERY."
   (let ((name org-roam-graph-executable))
     (unless (stringp name)
-      (user-error "`org-roam-graph-executable' must be a string"))
+      (user-error "`org-roam-graph-executable' is not a string"))
     (unless (executable-find org-roam-graph-executable)
       (user-error (concat "Cannot find executable \"%s\" to generate the graph.  "
                           "Please adjust `org-roam-graph-executable'")
