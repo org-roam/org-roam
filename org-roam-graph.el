@@ -54,7 +54,7 @@ It may be one of the following:
   :group 'org-roam)
 
 (defcustom org-roam-graph-executable "dot"
-  "Path to graphing executable."
+  "Name of graphing executable."
   :type 'string
   :group 'org-roam)
 
@@ -219,8 +219,8 @@ into a digraph."
 
 (defun org-roam-graph--build (&optional node-query)
   "Generate a graph showing the relations between nodes in NODE-QUERY."
-    (user-error (concat "Couldn’t find the executable %s to generate the graph.  "
   (unless (executable-find org-roam-graph-executable)
+    (user-error (concat "Cannot find executable \"%s\" to generate the graph.  "
                         "Please adjust `org-roam-graph-executable'")
                 org-roam-graph-executable))
   (let* ((node-query (or node-query
