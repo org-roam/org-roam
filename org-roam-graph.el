@@ -219,22 +219,23 @@ into a digraph."
 
 (defun org-roam-graph--build (&optional node-query)
   "Generate a graph showing the relations between nodes in NODE-QUERY."
-  (unless (ignore-errors (executable-find org-roam-graph-executable))
-    (user-error (concat "Cannot find executable "
-                        (when-let ((s org-roam-graph-executable))
-                          (format  "\"%s\" " s))
-                        "to generate the graph.  "
-                        "Please adjust `org-roam-graph-executable'")))
-  (let* ((node-query (or node-query
-                         `[:select [file titles]
-                           :from titles
-                           ,@(org-roam-graph--expand-matcher 'file t)]))
-         (graph      (org-roam-graph--dot node-query))
-         (temp-dot   (make-temp-file "graph." nil ".dot" graph))
-         (temp-graph (make-temp-file "graph." nil ".svg")))
-    (call-process org-roam-graph-executable nil 0 nil
-                  temp-dot "-Tsvg" "-o" temp-graph)
-    temp-graph))
+  (let* ((name org-roam-graph-executable)
+         (exec (ignore-errors (executable-find name))))
+    (unless exec
+      (user-error (concat "Cannot find executable "
+                          (when name
+                            (format "\"%s\" " name))
+                          "to generate the graph.  "
+                          "Please adjust `org-roam-graph-executable'")))
+    (let* ((node-query (or node-query
+                           `[:select [file titles]
+                             :from titles
+                             ,@(org-roam-graph--expand-matcher 'file t)]))
+           (graph (org-roam-graph--dot node-query))
+           (temp-dot (make-temp-file "graph." nil ".dot" graph))
+           (temp-graph (make-temp-file "graph." nil ".svg")))
+      (call-process exec nil 0 nil temp-dot "-Tsvg" "-o" temp-graph)
+      temp-graph)))
 
 (defun org-roam-graph--open (file)
   "Open FILE using `org-roam-graph-viewer' with `view-file' as a fallback."
