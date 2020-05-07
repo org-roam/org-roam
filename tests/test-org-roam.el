@@ -55,7 +55,8 @@
 
 (defun org-roam-test-teardown ()
   (delete-directory org-roam-directory)
-  (org-roam-mode -1))
+  (org-roam-mode -1)
+  (org-roam-db--close))
 
 ;;; Tests
 (describe "org-roam-db-build-cache"
