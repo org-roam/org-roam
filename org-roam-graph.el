@@ -53,7 +53,7 @@ It may be one of the following:
           (const    :tag "view-file"))
   :group 'org-roam)
 
-(defcustom org-roam-graph-executable (executable-find "dot")
+(defcustom org-roam-graph-executable "dot"
   "Path to graphing executable."
   :type 'string
   :group 'org-roam)
@@ -220,8 +220,9 @@ into a digraph."
 (defun org-roam-graph--build (&optional node-query)
   "Generate a graph showing the relations between nodes in NODE-QUERY."
   (unless org-roam-graph-executable
-    (user-error (concat "Couldn’t find the executable to generate the graph.  "
-                        "Please adjust `org-roam-graph-executable'")))
+    (user-error (concat "Couldn’t find the executable %s to generate the graph.  "
+                        "Please adjust `org-roam-graph-executable'")
+                org-roam-graph-executable))
   (let* ((node-query (or node-query
                          `[:select [file titles]
                            :from titles
