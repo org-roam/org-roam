@@ -229,6 +229,9 @@ Org-roam abuses =org-capture=, extending its syntax. To first understand how
 org-roam's templating system works, it may be useful to look into basic usage of
 =org-capture=.
 
+Org-roam's templates can be customized by modifying the variable
+=org-roam-capture-templates=.
+
 ** Template Walkthrough
 
 To demonstrate the additions made to org-capture templates. Here, we walkthrough
