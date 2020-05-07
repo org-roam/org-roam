@@ -50,14 +50,14 @@
         (new-dir (expand-file-name (make-temp-name "org-roam") temporary-file-directory)))
     (copy-directory original-dir new-dir)
     (setq org-roam-directory new-dir)
-    (org-roam-mode +1)))
+    (org-roam-mode +1)
+    (org-roam-db-build-cache t)
+    (sleep-for 2)))
 
 ;;; Tests
 (describe "org-roam-db-build-cache"
   (it "initializes correctly"
     (org-roam-test-init)
-    (sit-for 2)
-    (org-roam-db-build-cache t)
 
     ;; Cache
     (expect (caar (org-roam-db-query [:select (funcall count) :from files])) :to-be 8)
@@ -116,9 +116,7 @@
 
 (describe "org-roam-insert"
   (before-each
-    (org-roam-test-init)
-    (org-roam-db--clear)
-    (org-roam-db-build-cache))
+    (org-roam-test-init))
 
   (it "temp1 -> foo"
     (let ((buf (org-roam-test-find-new-file "temp1.org")))
@@ -154,9 +152,7 @@
 
 (describe "rename file updates cache"
   (before-each
-    (org-roam-test-init)
-    (org-roam-db--clear)
-    (org-roam-db-build-cache))
+    (org-roam-test-init))
 
   (it "foo -> new_foo"
     (rename-file (org-roam-test-abs-path "foo.org")
@@ -276,10 +272,7 @@
 
 (describe "delete file updates cache"
   (before-each
-    (org-roam-test-init)
-    (org-roam-db--clear)
-    (org-roam-db-build-cache)
-    (sleep-for 1))
+    (org-roam-test-init))
 
   (it "delete foo"
     (delete-file (org-roam-test-abs-path "foo.org"))
