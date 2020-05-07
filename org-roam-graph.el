@@ -53,8 +53,8 @@ It may be one of the following:
           (const    :tag "view-file"))
   :group 'org-roam)
 
-(defcustom org-roam-graph-executable (executable-find "dot")
-  "Path to graphing executable."
+(defcustom org-roam-graph-executable "dot"
+  "Path to graphing executable, or its name."
   :type 'string
   :group 'org-roam)
 
@@ -219,19 +219,23 @@ into a digraph."
 
 (defun org-roam-graph--build (&optional node-query)
   "Generate a graph showing the relations between nodes in NODE-QUERY."
-  (unless org-roam-graph-executable
-    (user-error "Can't find %s executable.  Please check if it is in your path"
-                org-roam-graph-executable))
-  (let* ((node-query (or node-query
-                         `[:select [file titles]
-                           :from titles
-                           ,@(org-roam-graph--expand-matcher 'file t)]))
-         (graph      (org-roam-graph--dot node-query))
-         (temp-dot   (make-temp-file "graph." nil ".dot" graph))
-         (temp-graph (make-temp-file "graph." nil ".svg")))
-    (call-process org-roam-graph-executable nil 0 nil
-                  temp-dot "-Tsvg" "-o" temp-graph)
-    temp-graph))
+  (let* ((name org-roam-graph-executable)
+         (exec (ignore-errors (executable-find name))))
+    (unless exec
+      (user-error (concat "Cannot find executable "
+                          (when name
+                            (format "\"%s\" " name))
+                          "to generate the graph.  "
+                          "Please adjust `org-roam-graph-executable'")))
+    (let* ((node-query (or node-query
+                           `[:select [file titles]
+                             :from titles
+                             ,@(org-roam-graph--expand-matcher 'file t)]))
+           (graph (org-roam-graph--dot node-query))
+           (temp-dot (make-temp-file "graph." nil ".dot" graph))
+           (temp-graph (make-temp-file "graph." nil ".svg")))
+      (call-process exec nil 0 nil temp-dot "-Tsvg" "-o" temp-graph)
+      temp-graph)))
 
 (defun org-roam-graph--open (file)
   "Open FILE using `org-roam-graph-viewer' with `view-file' as a fallback."
