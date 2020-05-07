@@ -13,6 +13,9 @@ not designed for such use. Org-roam abuses `org-capture` to some
 extent, extending its syntax. To first understand how org-roam's
 templating system works, it may be useful to look into org-capture.
 
+Org-roam's templates can be customized by modifying the variable
+`org-roam-capture-templates`.
+
 ## Org-roam Templates
 
 The org-roam capture template extends org-capture's template with 2
