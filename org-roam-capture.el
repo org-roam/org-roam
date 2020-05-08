@@ -321,10 +321,7 @@ GOTO and KEYS argument have the same functionality as
     (when (= (length org-capture-templates) 1)
       (setq keys (caar org-capture-templates)))
     (add-hook 'org-capture-after-finalize-hook #'org-roam-capture--save-file-maybe-h)
-    (condition-case err
-        (org-capture goto keys)
-      (error (user-error "%s.  Please adjust `org-roam-capture-templates'"
-                         (error-message-string err))))))
+    (org-capture goto keys)))
 
 ;;;###autoload
 (defun org-roam-capture ()
@@ -341,7 +338,10 @@ This uses the templates defined at `org-roam-capture-templates'."
                                         (cons 'file file-path)))
           (org-roam-capture--context 'capture))
       (setq org-roam-capture-additional-template-props (list :capture-fn 'org-roam-capture))
-      (org-roam-capture--capture))))
+      (condition-case err
+          (org-roam-capture--capture)
+        (error (user-error "%s.  Please adjust `org-roam-capture-templates'"
+                           (error-message-string err)))))))
 
 (provide 'org-roam-capture)
 
