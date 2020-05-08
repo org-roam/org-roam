@@ -291,7 +291,7 @@ See `org-roam-capture-templates' for details."
      'group)
     ((pred (lambda (x)
              (>= (length x) 5)))
-     (pcase (subseq template 0 5)
+     (pcase (cl-subseq template 0 5)
        (`(,(pred stringp)
           ,(pred stringp)
           ,(pred symbolp)
