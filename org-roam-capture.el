@@ -310,7 +310,7 @@ See `org-roam-capture-templates' for details."
   (pcase (org-roam-capture--validate-template template)
     ('group
      template)
-    (t
+    (_
      (let ((copy (copy-tree template))
            converted
            org-roam-plist
