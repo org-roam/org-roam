@@ -888,11 +888,35 @@ otherwise."
         (t
          'org-roam-link-invalid)))
 
+(defun org-roam--get-file-from-title (title)
+  "Return filename from Org-roam database corresponding to TITLE.
+TITLE is TITLE/ALIAS of an Org-roam note.
+Return nil if no match is found."
+  (caar (org-roam-db-query [:select [file] :from titles :where (like titles $r1) :limit 1]
+                           (format "%%\"%s\"%%" title))))
+
+(defun org-roam--roam-link-find-file (title)
+  "Find and open an Org-roam file based on its TITLE/ALIAS.
+TITLE is TITLE/ALIAS of potential Org-roam note.
+If TITLE doesn't match an existing note, prompt Org-roam
+note creation using `org-roam-capture--capture'"
+  (let* ((file-path (org-roam--get-file-from-title title)))
+    (if file-path
+        (find-file file-path)
+      (if (org-roam-capture--in-process-p)
+          (user-error "Org-roam capture in process")
+        (let ((org-roam-capture--info (list (cons 'title title)
+                                            (cons 'slug (org-roam--title-to-slug title))))
+              (org-roam-capture--context 'title))
+          (add-hook 'org-capture-after-finalize-hook #'org-roam-capture--find-file-h)
+          (org-roam-capture--capture))))))
+
 (org-link-set-parameters
  "roam"
  :display 'full
  :face 'org-roam--custom-roam-link-face
- :activate-func 'org-roam--roam-link-activate)
+ :activate-func 'org-roam--roam-link-activate
+ :follow 'org-roam--roam-link-find-file)
 
 ;;;###autoload
 (defalias 'org-roam 'org-roam-buffer-toggle-display)
