@@ -289,7 +289,7 @@ This function is used solely in Org-roam's capture templates: see
            org-roam-plist
            key
            val)
-       ;;put positional args on converted template
+       ;; Convert positional args before taking care of the plist-args
        (dotimes (_ 5)
          (push (pop copy) converted))
        (while (setq key (pop copy)
