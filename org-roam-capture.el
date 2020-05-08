@@ -33,6 +33,7 @@
 (require 'org-capture)
 (require 'dash)
 (require 's)
+(require 'seq)
 
 ;; Declarations
 (defvar org-roam-encrypt-files)
@@ -291,7 +292,7 @@ See `org-roam-capture-templates' for details."
      'group)
     ((pred (lambda (x)
              (>= (length x) 5)))
-     (pcase (cl-subseq template 0 5)
+     (pcase (seq-subseq template 0 5)
        (`(,(pred stringp)
           ,(pred stringp)
           ,(pred symbolp)
