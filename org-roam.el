@@ -384,6 +384,7 @@ current buffer is used."
   "Extract the ref from current buffer and return the type and the key of the ref."
   (pcase (cdr (assoc "ROAM_KEY"
                      (org-roam--extract-global-props '("ROAM_KEY"))))
+    ('nil nil)
     ((pred string-empty-p)
      (user-error "ROAM_KEY cannot be empty"))
     (ref
