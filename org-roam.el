@@ -826,6 +826,13 @@ for Org-ref cite links."
   "Face for roam: link brackets."
   :group 'org-roam-faces)
 
+(defun org-roam--org-roam-title-p (title)
+  "Return t if TITLE is part of Org-roam system, nil otherwise.
+TITLE may be either an Org-roam TITLE or ALIAS"
+  (if (org-roam-db-query [:select 1 :from titles :where (like titles $r1) :limit 1]
+                         (format "%%\"%s\"%%" title))
+      t nil))
+
 (defun org-roam--roam-link-activate (start end _path bracketp)
   "Hides roam: link prefix and determines additional font-locking.
 Optionally hide brackets before/after the link, or change their face.
@@ -866,9 +873,25 @@ link has brackets."
          '(face all-the-icons-dcyan))
         ))))
 
+(defun org-roam--custom-roam-link-face (path)
+  "Conditional face for custom roam-links.
+Applies `org-roam-link-current' if PATH corresponds to the
+currently opened Org-roam file in the backlink buffer,
+`org-roam-link' if PATH corresponds to any other Org-roam
+TITLE/ALIAS in the Org-roam database, or `org-roam-link-invalid'
+otherwise."
+  (cond ((and (org-roam--in-buffer-p)
+              (org-roam--backlink-to-current-p))
+         'org-roam-link-current)
+        ((org-roam--org-roam-title-p path)
+         'org-roam-link)
+        (t
+         'org-roam-link-invalid)))
+
 (org-link-set-parameters
  "roam"
  :display 'full
+ :face 'org-roam--custom-roam-link-face
  :activate-func 'org-roam--roam-link-activate)
 
 ;;;###autoload
