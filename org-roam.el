@@ -879,6 +879,13 @@ link has brackets."
          '(face all-the-icons-dcyan))
         ))))
 
+(defun org-roam--roam-backlink-to-current-p (path)
+  "Return t if roam-link backlink is to the current Org-roam file.
+PATH is a potential TITLE/ALIAS of an existing Org-roam note."
+  (let ((current (buffer-file-name org-roam-buffer--current))
+        (backlink-dest (org-roam--get-file-from-title path)))
+    (string= current backlink-dest)))
+
 (defun org-roam--custom-roam-link-face (path)
   "Conditional face for custom roam-links.
 Applies `org-roam-link-current' if PATH corresponds to the
@@ -887,7 +894,7 @@ currently opened Org-roam file in the backlink buffer,
 TITLE/ALIAS in the Org-roam database, or `org-roam-link-invalid'
 otherwise."
   (cond ((and (org-roam--in-buffer-p)
-              (org-roam--backlink-to-current-p))
+              (org-roam--roam-backlink-to-current-p path))
          'org-roam-link-current)
         ((org-roam--org-roam-title-p path)
          'org-roam-link)
