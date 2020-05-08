@@ -307,25 +307,31 @@ See `org-roam-capture-templates' for details."
 
 (defun org-roam-capture--convert-template (template)
   "Convert TEMPLATE from Org-roam syntax to `org-capture-templates' syntax."
-  (if (eq (org-roam-capture--validate-template template) 'group)
-      template
-    (let ((copy (copy-tree template))
-          converted
-          org-roam-plist
-          key
-          val)
-      ;;put positional args on converted template
-      (dotimes (_ 5)
-        (push (pop copy) converted))
-      (while (setq key (pop copy)
-                   val (pop copy))
-        (if (member key org-roam-capture--template-keywords)
-            (progn
-              (push val org-roam-plist)
-              (push key org-roam-plist))
-          (push key converted)
-          (push val converted)))
-      (append (nreverse converted) `(:org-roam ,org-roam-plist)))))
+  (pcase (org-roam-capture--validate-template template)
+    ('group
+     template)
+    (t
+     (let ((copy (copy-tree template))
+           converted
+           org-roam-plist
+           key
+           val)
+       ;;put positional args on converted template
+       (dotimes (_ 5)
+         (push (pop copy) converted))
+       (while (setq key (pop copy)
+                    val (pop copy))
+         (if (member key org-roam-capture--template-keywords)
+             (progn
+               (push val org-roam-plist)
+               (push key org-roam-plist))
+           (push key converted)
+           (push val converted)))
+       (append (nreverse converted) `(:org-roam ,org-roam-plist))))
+    ('nil
+     (signal 'org-roam-malformed-template
+             `((list stringp stringp symbolp listp stringp …)
+               (list ,@template))))))
 
 (defun org-roam-capture--find-file-h ()
   "Opens the newly created template file.
