@@ -277,33 +277,53 @@ This function is used solely in Org-roam's capture templates: see
     (widen)
     (goto-char (point-max))))
 
+(define-error 'org-roam-malformed-template
+  "Malformed template in `org-roam-capture-templates'"
+  'org-roam-errors)
+
+(defun org-roam-capture--validate-template (template)
+  "Validate TEMPLATE by checking its elements.
+Return t if the TEMPLATE is well-formed.
+See `org-roam-capture-templates' for details."
+  (pcase template
+    (`(,(pred stringp) ,(pred stringp))
+     'group)
+    ((pred (lambda (x)
+             (>= (length x) 5)))
+     (pcase (subseq template 0 5)
+       (`(,(pred stringp)
+          ,(pred stringp)
+          ,(pred symbolp)
+          ,(pred listp)
+          ,(pred stringp))
+        t)
+       (malformed-template
+        (signal 'org-roam-malformed-template
+                `((list stringp stringp symbolp listp stringp …)
+                  (list ,@malformed-template …))))))
+    (_ (user-error "Malformed template in `org-roam-capture-templates'"))))
+
 (defun org-roam-capture--convert-template (template)
   "Convert TEMPLATE from Org-roam syntax to `org-capture-templates' syntax."
-  (let* ((copy (copy-tree template))
-         converted
-         org-roam-plist
-         key
-         val)
-    ;;put positional args on converted template
-    (pcase template
-      (`(,(pred stringp) ,(pred stringp))
-       template)
-      ((pred (lambda (x)
-               (> (length x) 2)))
-       (dotimes (_ 5)
-         (push (pop copy) converted))
-       (while (setq key (pop copy)
-                    val (pop copy))
-         (if (member key org-roam-capture--template-keywords)
-             (progn
-               (push val org-roam-plist)
-               (push key org-roam-plist))
-           (push key converted)
-           (push val converted)))
-       (append (nreverse converted) `(:org-roam ,org-roam-plist)))
-      (_
-       (user-error (concat "Malformed template.  "
-                           "Please adjust `org-roam-capture-templates'"))))))
+  (if (eq (org-roam-capture--validate-template template) 'group)
+      template
+    (let ((copy (copy-tree template))
+          converted
+          org-roam-plist
+          key
+          val)
+      ;;put positional args on converted template
+      (dotimes (_ 5)
+        (push (pop copy) converted))
+      (while (setq key (pop copy)
+                   val (pop copy))
+        (if (member key org-roam-capture--template-keywords)
+            (progn
+              (push val org-roam-plist)
+              (push key org-roam-plist))
+          (push key converted)
+          (push val converted)))
+      (append (nreverse converted) `(:org-roam ,org-roam-plist)))))
 
 (defun org-roam-capture--find-file-h ()
   "Opens the newly created template file.
