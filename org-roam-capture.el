@@ -285,17 +285,25 @@ This function is used solely in Org-roam's capture templates: see
          key
          val)
     ;;put positional args on converted template
-    (dotimes (_ 5)
-      (push (pop copy) converted))
-    (while (setq key (pop copy)
-                 val (pop copy))
-      (if (member key org-roam-capture--template-keywords)
-          (progn
-            (push val org-roam-plist)
-            (push key org-roam-plist))
-        (push key converted)
-        (push val converted)))
-    (append (nreverse converted) `(:org-roam ,org-roam-plist))))
+    (pcase template
+      (`(,(pred stringp) ,(pred stringp))
+       template)
+      ((pred (lambda (x)
+               (> (length x) 2)))
+       (dotimes (_ 5)
+         (push (pop copy) converted))
+       (while (setq key (pop copy)
+                    val (pop copy))
+         (if (member key org-roam-capture--template-keywords)
+             (progn
+               (push val org-roam-plist)
+               (push key org-roam-plist))
+           (push key converted)
+           (push val converted)))
+       (append (nreverse converted) `(:org-roam ,org-roam-plist)))
+      (_
+       (user-error (concat "Malformed template.  "
+                           "Please adjust `org-roam-capture-templates'"))))))
 
 (defun org-roam-capture--find-file-h ()
   "Opens the newly created template file.
