@@ -382,15 +382,16 @@ current buffer is used."
 
 (defun org-roam--extract-ref ()
   "Extract the ref from current buffer and return the type and the key of the ref."
-  (if-let* ((ref (cdr (assoc "ROAM_KEY"
-                             (org-roam--extract-global-props '("ROAM_KEY")))))
-            (not-empty (not (string-empty-p ref)))
-            (type (org-roam--ref-type ref))
+  (pcase (cdr (assoc "ROAM_KEY"
+                     (org-roam--extract-global-props '("ROAM_KEY"))))
+    ((pred string-empty-p)
+     (user-error "ROAM_KEY cannot be empty"))
+    (ref
+     (let* ((type (org-roam--ref-type ref))
             (key (cond ((string= "cite" type)
                         (s-chop-prefix (org-roam--cite-prefix ref) ref))
                        (t ref))))
-      (cons type key)
-    nil))
+       (cons type key)))))
 
 (defun org-roam--ref-type (ref)
   "Determine the type of the REF from the prefix."
