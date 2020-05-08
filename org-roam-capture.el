@@ -283,7 +283,8 @@ This function is used solely in Org-roam's capture templates: see
 
 (defun org-roam-capture--validate-template (template)
   "Validate TEMPLATE by checking its elements.
-Return t if the TEMPLATE is well-formed.
+Return t if the TEMPLATE is well-formed, nil otherwise.
+As a special case, return 'group if TEMPLATE is a template-group.
 See `org-roam-capture-templates' for details."
   (pcase template
     (`(,(pred stringp) ,(pred stringp))
