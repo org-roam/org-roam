@@ -278,32 +278,35 @@ This function is used solely in Org-roam's capture templates: see
     (widen)
     (goto-char (point-max))))
 
-(define-error 'org-roam-malformed-template
-  "Malformed template in `org-roam-capture-templates'"
-  'org-roam-errors)
-
 (defun org-roam-capture--validate-template (template)
   "Validate TEMPLATE by checking its elements.
 Return t if the TEMPLATE is well-formed, nil otherwise.
 As a special case, return 'group if TEMPLATE is a template-group.
 See `org-roam-capture-templates' for details."
-  (pcase template
-    (`(,(pred stringp) ,(pred stringp))
-     'group)
-    ((pred (lambda (x)
-             (>= (length x) 5)))
-     (pcase (cl-subseq template 0 5)
-       (`(,(pred stringp)
-          ,(pred stringp)
-          ,(pred symbolp)
-          ,(pred listp)
-          ,(pred stringp))
-        t)
-       (malformed-template
-        (signal 'org-roam-malformed-template
-                `((list stringp stringp symbolp listp stringp …)
-                  (list ,@malformed-template …))))))
-    (_ (user-error "Malformed template in `org-roam-capture-templates'"))))
+  (condition-case err
+      (pcase template
+        (`(,(pred stringp) ,(pred stringp))
+         'group)
+        ((pred (lambda (x)
+                 (>= (length x) 5)))
+         (pcase (cl-subseq template 0 5)
+           (`(,(pred stringp)
+              ,(pred stringp)
+              ,(pred symbolp)
+              ,(pred listp)
+              ,(pred stringp))
+            t)
+           (malformed-template
+            (signal 'wrong-type-argument
+                    `((list stringp stringp symbolp listp stringp …)
+                      (list ,@malformed-template …))))))
+        ((pred (lambda (x) (not (listp x))))
+         (signal 'wrong-type-argument `((listp) ,template)))
+        (_
+         (signal 'wrong-type-argument `((,@template)))))
+    (wrong-type-argument
+     (user-error "Malformed template in `org-roam-capture-templates: %s"
+                 (error-message-string err)))))
 
 (defun org-roam-capture--convert-template (template)
   "Convert TEMPLATE from Org-roam syntax to `org-capture-templates' syntax."
