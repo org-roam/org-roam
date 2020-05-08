@@ -815,6 +815,62 @@ for Org-ref cite links."
        :link        (format "file:%s" (abbreviate-file-name buffer-file-name))
        :description title))))
 
+;;; Custom org-link, roam:
+(defcustom org-roam-show-roam-brackets nil
+  "Whether to show brackets around [[roam:]] links."
+  :type 'boolean
+  :group 'org-roam)
+
+(defface org-roam-link-brackets
+  '((t :inherit org-link))
+  "Face for roam: link brackets."
+  :group 'org-roam-faces)
+
+(defun org-roam--roam-link-activate (start end _path bracketp)
+  "Hides roam: link prefix and determines additional font-locking.
+Optionally hide brackets before/after the link, or change their face.
+If link uses a Description syntax, hide link path also, and optionally
+show a single bracket pair around Description.
+START and END are buffer position at start/end of the link, PATH is the
+link's path as a string, and BRACKETP is a boolean that is non-nil when the
+link has brackets."
+  (when bracketp
+    (save-excursion
+      (save-match-data
+        (goto-char start)
+        (re-search-forward "\\(\\[\\[\\)\\(roam:\\).+\\(\\]\\]\\)" end t)
+        ;; Optionally hide starting brackets or change their face
+        (add-text-properties
+         (match-beginning 1)
+         (match-end 1)
+         '(face org-roam-link-brackets invisible org-roam-show-roam-brackets))
+        ;; Check if link is plain or Descriptive
+        (if (not (string-match-p "\\]\\[" (buffer-substring start end)))
+            ;; If plain, hide roam: prefix
+            (add-text-properties
+             (match-beginning 2)
+             (match-end 2)
+             '(invisible t))
+          ;; If descriptive, hide roam: and path. Optionally show single brackets
+          (progn (if org-roam-show-roam-brackets
+                     (add-text-properties (+ start 1) (- end 1) '(invisible t))
+                   (add-text-properties start end '(invisible t)))
+                 (save-match-data
+                   (goto-char start)
+                   (re-search-forward org-link-bracket-re end t)
+                   (add-text-properties (match-beginning 2) (match-end 2) '(invisible nil)))))
+        ;; Optionally ending hide brackets or change their face
+        (add-text-properties
+         (match-beginning 3)
+         (match-end 3)
+         '(face all-the-icons-dcyan))
+        ))))
+
+(org-link-set-parameters
+ "roam"
+ :display 'full
+ :activate-func 'org-roam--roam-link-activate)
+
 ;;;###autoload
 (defalias 'org-roam 'org-roam-buffer-toggle-display)
 
