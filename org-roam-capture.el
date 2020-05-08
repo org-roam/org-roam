@@ -278,44 +278,10 @@ This function is used solely in Org-roam's capture templates: see
     (widen)
     (goto-char (point-max))))
 
-(defun org-roam-capture--validate-template (template)
-  "Validate TEMPLATE by checking its elements.
-Return t if the TEMPLATE is well-formed, nil otherwise.
-As a special case, return 'group if TEMPLATE is a template-group.
-See `org-roam-capture-templates' for details."
-  (let ((correct-format '((stringp stringp symbolp listp stringp …))))
-    (condition-case err
-        (pcase template
-          ;; Check if TEMPLATE is a special group-template
-          (`(,(pred stringp) ,(pred stringp))
-           'group)
-          ;; Validate elements in TEMPLATE
-          ((pred (lambda (x)
-                   (>= (length x) 5)))
-           (pcase (cl-subseq template 0 5)
-             (`(,(pred stringp)
-                ,(pred stringp)
-                ,(pred symbolp)
-                ,(pred listp)
-                ,(pred stringp))
-              t)
-             ;; Error if elements in TEMPLATE are not the right type
-             (wrong-type
-              (signal 'wrong-type-argument `(,correct-format
-                                             (,@wrong-type …))))))
-
-          ;; Catch-all if nothing matched
-          (wrong-type
-           (signal 'wrong-type-argument `(,correct-format
-                                          ,wrong-type))))
-      (wrong-type-argument
-       (user-error "Malformed template in `org-roam-capture-templates: %s"
-                   (error-message-string err))))))
-
 (defun org-roam-capture--convert-template (template)
   "Convert TEMPLATE from Org-roam syntax to `org-capture-templates' syntax."
-  (pcase (org-roam-capture--validate-template template)
-    ('group
+  (pcase template
+    (`(,(pred stringp) ,(pred stringp))
      template)
     (_
      (let ((copy (copy-tree template))
@@ -334,11 +300,7 @@ See `org-roam-capture-templates' for details."
                (push key org-roam-plist))
            (push key converted)
            (push val converted)))
-       (append (nreverse converted) `(:org-roam ,org-roam-plist))))
-    ('nil
-     (signal 'org-roam-malformed-template
-             `((list stringp stringp symbolp listp stringp …)
-               (list ,@template))))))
+       (append (nreverse converted) `(:org-roam ,org-roam-plist))))))
 
 (defun org-roam-capture--find-file-h ()
   "Opens the newly created template file.
