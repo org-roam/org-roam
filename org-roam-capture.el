@@ -300,12 +300,11 @@ See `org-roam-capture-templates' for details."
                 ,(pred stringp))
               t)
              ;; Error if elements in TEMPLATE are not the right type
-             (malformed-template
-              (signal 'wrong-type-argument
-                      `(,correct-format
-                        (,@malformed-template …))))))
+             (wrong-type
+              (signal 'wrong-type-argument `(,correct-format
+                                             (,@wrong-type …))))))
 
-          ;; Catch-all
+          ;; Catch-all if nothing matched
           (wrong-type
            (signal 'wrong-type-argument `(,correct-format
                                           ,wrong-type))))
