@@ -283,12 +283,9 @@ This function is used solely in Org-roam's capture templates: see
 Return t if the TEMPLATE is well-formed, nil otherwise.
 As a special case, return 'group if TEMPLATE is a template-group.
 See `org-roam-capture-templates' for details."
-  (let ((correct-format '(list stringp stringp symbolp listp stringp …)))
+  (let ((correct-format '((stringp stringp symbolp listp stringp …))))
     (condition-case err
         (pcase template
-          ;; Error if TEMPLATE is not a list
-          ((pred (lambda (x) (not (listp x))))
-           (signal 'wrong-type-argument `((listp) ,template)))
           ;; Check if TEMPLATE is a special group-template
           (`(,(pred stringp) ,(pred stringp))
            'group)
@@ -306,12 +303,12 @@ See `org-roam-capture-templates' for details."
              (malformed-template
               (signal 'wrong-type-argument
                       `(,correct-format
-                        (list ,@malformed-template …))))))
+                        (,@malformed-template …))))))
 
           ;; Catch-all
-          (_
+          (wrong-type
            (signal 'wrong-type-argument `(,correct-format
-                                          (list ,@template)))))
+                                          ,wrong-type))))
       (wrong-type-argument
        (user-error "Malformed template in `org-roam-capture-templates: %s"
                    (error-message-string err))))))
