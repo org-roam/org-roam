@@ -245,7 +245,7 @@ If the search is via title, it is assumed that the file does not
 yet exist, and Org-roam will attempt to create new file.
 
 If the search is via daily notes, 'time will be passed via
-`org-roam-capture--info'.  This is used to alter the default time
+`org-roam-capture--info'. This is used to alter the default time
 in `org-capture-templates'.
 
 If the search is via ref, it is matched against the Org-roam database.
