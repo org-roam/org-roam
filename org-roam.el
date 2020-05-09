@@ -924,12 +924,110 @@ note creation using `org-roam-capture--capture'"
           (add-hook 'org-capture-after-finalize-hook #'org-roam-capture--find-file-h)
           (org-roam-capture--capture))))))
 
+(defun org-roam--convert-roam-to-file-link (element)
+  "Convert a custom roam-link to standard org file-link.
+ELEMENT is the `org-element-at-point'.
+Ignore roam-links that do not point to an existing Org-roam file."
+  (let* ((path (org-element-property :path element))
+         (filename (org-roam--get-file-from-title path)))
+    (when filename
+      (let* ((start (org-element-property :begin element))
+             (end (org-element-property :end element))
+             (contents-begin (org-element-property :contents-begin element))
+             (contents-end (org-element-property :contents-end element))
+             (desc (and contents-begin contents-end
+                        (buffer-substring-no-properties contents-begin contents-end)))
+             (link-desc (if desc
+                            desc
+                          (org-roam--format-link-title path))))
+        (setf (buffer-substring start end)
+              (concat (org-roam--format-link filename link-desc)
+                      (make-string (org-element-property :post-blank element) ?\s))))
+      )))
+
+(defun org-roam--get-title-from-file (path)
+  "Return title/aliases for a filename PATH in the Org-roam database.
+This function differs from `org-roam-db--get-titles' because it will
+match against a filename without an absolute path."
+  (org-roam-db-query [:select [titles] :from titles :where (like file $r1) :limit 1]
+                           (format "%%/%s%%" path)))
+
+(defun org-roam--convert-file-to-roam-link (element)
+  "Convert a standard org file-link to a custom roam-link.
+ELEMENT is the `org-element-at-point'.
+Ignore file-links that are not in Org-roam database."
+  (let ((path (org-element-property :path element)))
+    (when (org-roam--org-roam-file-p path)
+      (let* ((start (org-element-property :begin element))
+             (end (org-element-property :end element))
+             (contents-begin (org-element-property :contents-begin element))
+             (contents-end (org-element-property :contents-end element))
+             (desc (and contents-begin contents-end
+                        (buffer-substring-no-properties contents-begin contents-end)))
+             (list-titles (caar (org-roam--get-title-from-file path)))
+             (-compare-fn #'equalp)
+             (title (if (-contains? list-titles desc)
+                            desc
+                      (car list-titles)))
+             (link-desc (if (string= title desc)
+                            nil
+                          desc)))
+        (when title
+          (setf (buffer-substring start end)
+              (concat (org-link-make-string (concat "roam:" title) link-desc)
+                      (make-string (org-element-property :post-blank element) ?\s)))
+      )))))
+
+(defun org-roam-convert-roam-to-file-link ()
+  "Convert a custom roam-link to standard org file-link."
+  (interactive)
+  (let ((elem (org-element-context)))
+    (when (and (eq 'link (car elem))
+               (string= "roam" (org-element-property :type elem)))
+      (org-roam--convert-roam-to-file-link elem)
+      )))
+
+(defun org-roam-convert-file-to-roam-link ()
+  "Convert a standard org file-link to custom roam-link."
+  (interactive)
+  (let ((elem (org-element-context)))
+    (when (and (eq 'link (car elem))
+               (string= "file" (org-element-property :type elem)))
+      (org-roam--convert-file-to-roam-link elem)
+      )))
+
+(defun org-roam-convert-buffer-links (file-or-roam)
+  "Convert all Org-roam links in the current buffer.
+FILE-OR-ROAM should be one of `file' or `roam', and
+indicate the link-type the buffer should convert to."
+  (interactive
+   (let ((completion-ignore-case t))
+     (list (completing-read "Convert to link type: " '("file" "roam") nil t))))
+  (save-excursion
+    (goto-char (point-min))
+    (org-next-link)
+    (while (not org-link--search-failed)
+      (let* ((elem (org-element-context))
+             (type (org-element-property :type elem)))
+        (if (and (string= file-or-roam "roam")
+                 (string= type "file"))
+            (org-roam--convert-file-to-roam-link elem)
+          (when (and (string= file-or-roam "file")
+                     (string= type "roam"))
+            (org-roam--convert-roam-to-file-link elem)))
+        (org-next-link)
+        ))))
+
 (org-link-set-parameters
  "roam"
  :display 'full
  :face 'org-roam--custom-roam-link-face
  :activate-func 'org-roam--roam-link-activate
- :follow 'org-roam--roam-link-find-file)
+ :follow 'org-roam--roam-link-find-file
+ :keymap (let ((map (copy-keymap org-mouse-map)))
+           (define-key map (kbd "M-f") 'org-roam-convert-roam-to-file-link)
+           (define-key map (kbd "M-r") 'org-roam-convert-file-to-roam-link)
+           map))
 
 ;;;###autoload
 (defalias 'org-roam 'org-roam-buffer-toggle-display)
