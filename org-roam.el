@@ -105,7 +105,7 @@ ensure that."
   :group 'org-roam)
 
 (defcustom org-roam-use-roam-links nil
-  "When t org-roam-insert inserts roam-link instead of org file-link."
+  "When t `org-roam-insert' inserts roam-link instead of org file-link."
   :type 'boolean
   :group 'org-roam)
 
@@ -1049,7 +1049,7 @@ indicate the link-type the buffer should convert to."
         ))))
 
 (defun org-roam--auto-create-file (title &optional manual)
-  "Call org-roam-capture with a template using :immediate-finish t.
+  "Call `org-roam-capture' with a template using :immediate-finish t.
 TITLE is the title for the file to be created.
 MANUAL is boolean allowing manual selection of capture template(s)."
   (let ((org-roam-capture--info (list (cons 'title title)
@@ -1060,7 +1060,7 @@ MANUAL is boolean allowing manual selection of capture template(s)."
 
 (defun org-roam-auto-create-buffer (&optional manual)
   "Create all non-existant roam-link files in current buffer.
-MANUAL is boolean which allows manual selection of org-roam-capture
+MANUAL is boolean which allows manual selection of `org-roam-capture'
 templates for each file created.
 If called with PREFIX `C-u' then manual is non-nil."
   (interactive "P")
