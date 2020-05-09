@@ -33,6 +33,7 @@
 (require 'org-capture)
 (require 'dash)
 (require 's)
+(require 'cl-lib)
 
 ;; Declarations
 (defvar org-roam-encrypt-files)
@@ -279,23 +280,21 @@ This function is used solely in Org-roam's capture templates: see
 
 (defun org-roam-capture--convert-template (template)
   "Convert TEMPLATE from Org-roam syntax to `org-capture-templates' syntax."
-  (let* ((copy (copy-tree template))
-         converted
-         org-roam-plist
-         key
-         val)
-    ;;put positional args on converted template
-    (dotimes (_ 5)
-      (push (pop copy) converted))
-    (while (setq key (pop copy)
-                 val (pop copy))
-      (if (member key org-roam-capture--template-keywords)
-          (progn
-            (push val org-roam-plist)
-            (push key org-roam-plist))
-        (push key converted)
-        (push val converted)))
-    (append (nreverse converted) `(:org-roam ,org-roam-plist))))
+  (pcase template
+    (`(,_key ,_description) template)
+    (`(,key ,description ,type ,target . ,rest)
+     (let ((converted `(,key ,description ,type ,target
+                             ,(unless (keywordp (car rest)) (pop rest))))
+           org-roam-plist
+           options)
+       (while rest
+         (let* ((key (pop rest))
+                (val (pop rest))
+                (custom (member key org-roam-capture--template-keywords)))
+           (push val (if custom org-roam-plist options))
+           (push key (if custom org-roam-plist options))))
+       (append converted options `(:org-roam ,org-roam-plist))))
+    (_ (user-error "Invalid capture template format: %s" template))))
 
 (defun org-roam-capture--find-file-h ()
   "Opens the newly created template file.
@@ -339,7 +338,10 @@ This uses the templates defined at `org-roam-capture-templates'."
                                         (cons 'file file-path)))
           (org-roam-capture--context 'capture))
       (setq org-roam-capture-additional-template-props (list :capture-fn 'org-roam-capture))
-      (org-roam-capture--capture))))
+      (condition-case err
+          (org-roam-capture--capture)
+        (error (user-error "%s.  Please adjust `org-roam-capture-templates'"
+                           (error-message-string err)))))))
 
 (provide 'org-roam-capture)
 
