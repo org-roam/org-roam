@@ -104,6 +104,11 @@ ensure that."
   :type '(repeat string)
   :group 'org-roam)
 
+(defcustom org-roam-use-roam-links nil
+  "When t org-roam-insert inserts roam-link instead of org file-link."
+  :type 'boolean
+  :group 'org-roam)
+
 ;;;; Dynamic variables
 (defvar org-roam-last-window nil
   "Last window `org-roam' was called from.")
@@ -473,7 +478,10 @@ Examples:
 If PREFIX, downcase the title before insertion.
 FILTER-FN is the name of a function to apply on the candidates
 which takes as its argument an alist of path-completions.  See
-`org-roam--get-title-path-completions' for details."
+`org-roam--get-title-path-completions' for details.
+If `org-roam-use-roam-links' is non-nil combine standard title
+completions with in-buffer roam-link titles, and insert roam-link
+instead of standard file-link."
   (interactive "P")
   (let* ((region (and (region-active-p)
                       ;; following may lose active region, so save it
@@ -485,14 +493,27 @@ which takes as its argument an alist of path-completions.  See
                            (if filter-fn
                                (funcall filter-fn it)
                              it)))
-         (title (org-roam-completion--completing-read "File: " completions
-                                                      :initial-input region-text))
+         (in-buffer-completions (--> (org-roam--current-buffer-roam-link-titles)
+                                     (if filter-fn
+                                         (funcall filter-fn it)
+                                       it)))
+         (title (if org-roam-use-roam-links
+                    (org-roam-completion--completing-read
+                     "Roam note: " (-union (map-keys completions) in-buffer-completions)
+                     :initial-input region-text)
+                  (org-roam-completion--completing-read "File: " completions
+                                                        :initial-input region-text)))
          (region-or-title (or region-text title))
          (target-file-path (cdr (assoc title completions)))
          (link-description (org-roam--format-link-title (if prefix
                                                             (downcase region-or-title)
                                                           region-or-title))))
-    (if (and target-file-path
+    (if org-roam-use-roam-links
+        (progn
+          (when region ;; Remove previously selected text.
+            (delete-region (car region) (cdr region)))
+          (insert (format "[[roam:%s]]" title)))
+      (if (and target-file-path
              (file-exists-p target-file-path))
         (progn
           (when region ;; Remove previously selected text.
@@ -507,7 +528,7 @@ which takes as its argument an alist of path-completions.  See
         (setq org-roam-capture-additional-template-props (list :region region
                                                                :link-description link-description
                                                                :capture-fn 'org-roam-insert))
-        (org-roam-capture--capture)))))
+        (org-roam-capture--capture))))))
 
 (defun org-roam--get-title-path-completions ()
   "Return a list of cons pairs for titles to absolute path of Org-roam files."
@@ -1045,12 +1066,35 @@ If called with PREFIX `C-u' then manual is non-nil."
             (org-roam--auto-create-file path manual))))
       )))
 
+(defun org-roam--current-buffer-roam-link-titles ()
+  "Return a list of unique roam-link titles in the current buffer."
+  (->> (org-element-map (org-element-parse-buffer) 'link
+         (lambda (link)
+           (let* ((type (org-element-property :type link))
+                  (path (org-element-property :path link))
+                  res)
+             (when (string= type "roam")
+               (cons path res))
+             )))
+       (-flatten)
+       (-distinct)))
+
+(defun org-roam--roam-link-completion (&optional _arg)
+  "Completion for roam-links in `org-mode'.
+ARG is optional prefix supplied through `org-mode'"
+  (let ((completions (--> (org-roam--get-title-path-completions)))
+        (in-buffer-completions (--> (org-roam--current-buffer-roam-link-titles))))
+    (format "roam:%s" (completing-read "Roam note: "
+                                       (-union (map-keys completions) in-buffer-completions))
+            )))
+
 (org-link-set-parameters
  "roam"
  :display 'full
  :face 'org-roam--custom-roam-link-face
  :activate-func 'org-roam--roam-link-activate
  :follow 'org-roam--roam-link-find-file
+ :complete 'org-roam--roam-link-completion
  :keymap (let ((map (copy-keymap org-mouse-map)))
            (define-key map (kbd "M-f") 'org-roam-convert-roam-to-file-link)
            map))
