@@ -1,6 +1,6 @@
 [![License GPL 3][badge-license]](http://www.gnu.org/licenses/gpl-3.0.txt)
 [![Documentation Status](https://readthedocs.org/projects/org-roam/badge/?version=latest)](https://org-roam.readthedocs.io/en/latest/?badge=latest)
-[![GitHub Release](https://img.shields.io/github/v/release/jethrokuan/org-roam)](https://img.shields.io/github/v/release/jethrokuan/org-roam)
+[![GitHub Release](https://img.shields.io/github/v/release/org-roam/org-roam)](https://img.shields.io/github/v/release/org-roam/org-roam)
 [![MELPA](https://melpa.org/packages/org-roam-badge.svg)](https://melpa.org/#/org-roam)
 
 ## Synopsis

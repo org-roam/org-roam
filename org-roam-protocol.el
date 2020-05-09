@@ -2,7 +2,7 @@
 
 ;; Copyright © 2020 Jethro Kuan <jethrokuan95@gmail.com>
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
-;; URL: https://github.com/jethrokuan/org-roam
+;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
 ;; Version: 1.1.0
 ;; Package-Requires: ((emacs "26.1") (org "9.3"))
