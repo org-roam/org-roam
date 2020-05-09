@@ -113,6 +113,9 @@ ensure that."
 (defvar org-roam-last-window nil
   "Last window `org-roam' was called from.")
 
+(defvar org-roam-link-message-timer nil
+  "Set by `org-roam-show-link-messages' or `org-roam-cancel-link-messages'.")
+
 ;;; Utilities
 ;;;; General Utilities
 (defun org-roam--plist-to-alist (plist)
@@ -1087,6 +1090,44 @@ ARG is optional prefix supplied through `org-mode'"
     (format "roam:%s" (completing-read "Roam note: "
                                        (-union (map-keys completions) in-buffer-completions))
             )))
+
+(defun org-roam--roam-link-message ()
+  "Send roam-link status message to minibuffer."
+  (when (string= major-mode "org-mode")
+    (let ((elem (org-element-context)))
+      (when (and (eq (car elem) 'link)
+                 (string= "roam" (org-element-property :type elem)))
+        (save-match-data
+          (let* ((title (org-element-property :path elem))
+                 (abs-file-path (org-roam--get-file-from-title title))
+                 (rel-file-path
+                  (when abs-file-path
+                    (string-match (format "%s\\(.*\\)" org-roam-directory) abs-file-path)))
+                 (file-path (when rel-file-path
+                              (concat "~org-roam-dir~" (match-string 1 abs-file-path))))
+                 (raw-link (org-element-property :raw-link elem)))
+            (if file-path
+                (message "file: %s → %s" file-path raw-link)
+              (message "No file found in db → %s" raw-link))))
+        ))))
+
+
+(defun org-roam-show-link-messages ()
+  "Enable minibuffer status message for roam-links.
+Follows example of `org-ref' and displays on idle timer."
+  (interactive)
+  (or org-roam-link-message-timer
+      (setq org-roam-link-message-timer
+            (run-with-idle-timer 0.5 t #'org-roam--roam-link-message))))
+
+(defun org-roam-cancel-link-messages ()
+  "Disable minibuffer status message for roam-links."
+  (interactive)
+  (cancel-timer org-roam-link-message-timer)
+  (setq org-roam-link-message-timer nil))
+
+;; Turn roam-link status message on by default
+(org-roam-show-link-messages)
 
 (org-link-set-parameters
  "roam"
