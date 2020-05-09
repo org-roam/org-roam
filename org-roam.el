@@ -396,13 +396,17 @@ current buffer is used."
 
 (defun org-roam--extract-ref ()
   "Extract the ref from current buffer and return the type and the key of the ref."
-  (if-let ((ref (cdr (assoc "ROAM_KEY" (org-roam--extract-global-props '("ROAM_KEY"))))))
-      (let* ((type (org-roam--ref-type ref))
-             (key (cond ((string= "cite" type)
-                         (s-chop-prefix (org-roam--cite-prefix ref) ref))
-                        (t ref))))
-        (cons type key))
-    nil))
+  (pcase (cdr (assoc "ROAM_KEY"
+                     (org-roam--extract-global-props '("ROAM_KEY"))))
+    ('nil nil)
+    ((pred string-empty-p)
+     (user-error "ROAM_KEY cannot be empty"))
+    (ref
+     (let* ((type (org-roam--ref-type ref))
+            (key (cond ((string= "cite" type)
+                        (s-chop-prefix (org-roam--cite-prefix ref) ref))
+                       (t ref))))
+       (cons type key)))))
 
 (defun org-roam--ref-type (ref)
   "Determine the type of the REF from the prefix."
@@ -531,7 +535,8 @@ instead of standard file-link."
         (setq org-roam-capture-additional-template-props (list :region region
                                                                :link-description link-description
                                                                :capture-fn 'org-roam-insert))
-        (org-roam-capture--capture))))))
+        (org-roam--with-template-error 'org-roam-capture-templates
+          (org-roam-capture--capture))))))
 
 (defun org-roam--get-title-path-completions ()
   "Return a list of cons pairs for titles to absolute path of Org-roam files."
@@ -569,7 +574,8 @@ which takes as its argument an alist of path-completions.  See
                                             (cons 'slug (org-roam--title-to-slug title))))
               (org-roam-capture--context 'title))
           (add-hook 'org-capture-after-finalize-hook #'org-roam-capture--find-file-h)
-          (org-roam-capture--capture))))))
+          (org-roam--with-template-error 'org-roam-capture-templates
+            (org-roam-capture--capture)))))))
 
 (defun org-roam-find-directory ()
   "Find and open `org-roam-directory'."

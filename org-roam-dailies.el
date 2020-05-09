@@ -34,6 +34,7 @@
 ;;; Library Requires
 (require 'org-capture)
 (require 'org-roam-capture)
+(require 'org-roam-macs)
 
 (defvar org-roam-dailies-capture-templates
   '(("d" "daily" plain (function org-roam-capture--get-point)
@@ -52,7 +53,8 @@
         (org-roam-capture--info (list (cons 'time time)))
         (org-roam-capture--context 'dailies))
     (add-hook 'org-capture-after-finalize-hook #'org-roam-capture--find-file-h)
-    (org-roam-capture--capture)))
+    (org-roam--with-template-error 'org-roam-dailies-capture-templates
+      (org-roam-capture--capture))))
 
 (defun org-roam-dailies-today ()
   "Create and find the daily note for today."
