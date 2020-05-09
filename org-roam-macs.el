@@ -43,6 +43,21 @@ Like `with-temp-buffer', but propagates `org-roam-directory'."
          (let ((org-roam-directory ,current-org-roam-directory))
            ,@body)))))
 
+(defmacro org-roam--with-template-error (templates &rest body)
+  "Eval BODY, and point to TEMPLATES on error.
+Provides more informative error messages so that users know where
+to look.
+
+\(fn TEMPLATES BODY...)"
+  (declare (debug (form body)) (indent 1))
+  `(condition-case err
+       ,@body
+     (error (user-error "%s.  Please adjust `%s'"
+                        (error-message-string err)
+                        ,templates))))
+
+
+
 (provide 'org-roam-macs)
 
 ;;; org-roam-macs.el ends here

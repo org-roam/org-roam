@@ -505,7 +505,8 @@ which takes as its argument an alist of path-completions.  See
         (setq org-roam-capture-additional-template-props (list :region region
                                                                :link-description link-description
                                                                :capture-fn 'org-roam-insert))
-        (org-roam-capture--capture)))))
+        (org-roam--with-template-error 'org-roam-capture-templates
+          (org-roam-capture--capture))))))
 
 (defun org-roam--get-title-path-completions ()
   "Return a list of cons pairs for titles to absolute path of Org-roam files."
@@ -543,7 +544,8 @@ which takes as its argument an alist of path-completions.  See
                                             (cons 'slug (org-roam--title-to-slug title))))
               (org-roam-capture--context 'title))
           (add-hook 'org-capture-after-finalize-hook #'org-roam-capture--find-file-h)
-          (org-roam-capture--capture))))))
+          (org-roam--with-template-error 'org-roam-capture-templates
+            (org-roam-capture--capture)))))))
 
 (defun org-roam-find-directory ()
   "Find and open `org-roam-directory'."
