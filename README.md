@@ -27,7 +27,7 @@ As of February 2020, it is in a very early stage of development.
 Important links:
 
 - **[Documentation][docs]**
-- **[Org-roam Discourse][discourse]**
+- **[Discourse][discourse]**
 - **[Org-roam Slack][slack]**
 
 ## A Preview
