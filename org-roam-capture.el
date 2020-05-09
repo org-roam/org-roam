@@ -79,7 +79,13 @@ note with the given `ref'.")
   "Keywords used in `org-roam-capture-templates' specific to Org-roam.")
 
 (defvar org-roam-capture-templates
-  '(("d" "default" plain (function org-roam-capture--get-point)
+  '(("a" "Automatic" plain (function org-roam--capture-get-point)
+     "%?"
+     :file-name "%<%Y%m%d%H%M%S>-${slug}"
+     :head "#+TITLE: ${title}\n#+AUTOMATICALLY_CREATED: %<%Y%m%d%H%M%S>\n"
+     :unnarrowed t
+     :immediate-finish t)
+    ("d" "default" plain (function org-roam-capture--get-point)
      "%?"
      :file-name "%<%Y%m%d%H%M%S>-${slug}"
      :head "#+TITLE: ${title}\n"
