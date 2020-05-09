@@ -1030,7 +1030,7 @@ indicate the link-type the buffer should convert to."
 
 (org-link-set-parameters
  "file"
- :leymap (let ((map (copy-keymap org-mouse-map)))
+ :keymap (let ((map (copy-keymap org-mouse-map)))
            (define-key map (kbd "M-r") 'org-roam-convert-file-to-roam-link)
            map))
 
