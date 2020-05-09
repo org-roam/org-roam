@@ -281,7 +281,7 @@ This function is used solely in Org-roam's capture templates: see
 (defun org-roam-capture--convert-template (template)
   "Convert TEMPLATE from Org-roam syntax to `org-capture-templates' syntax."
   (pcase template
-    (`(,key ,description) template)
+    (`(,_key ,_description) template)
     (`(,key ,description ,type ,target . ,rest)
      (let ((converted `(,key ,description ,type ,target
                              ,(unless (keywordp (car rest)) (pop rest))))
