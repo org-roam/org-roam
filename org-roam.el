@@ -1018,6 +1018,33 @@ indicate the link-type the buffer should convert to."
         (org-next-link)
         ))))
 
+(defun org-roam--auto-create-file (title &optional manual)
+  "Call org-roam-capture with a template using :immediate-finish t.
+TITLE is the title for the file to be created.
+MANUAL is boolean allowing manual selection of capture template(s)."
+  (let ((org-roam-capture--info (list (cons 'title title)
+                                      (cons 'slug (org-roam--title-to-slug title))))
+        (org-roam-capture--context 'title))
+    (if manual (org-roam-capture--capture)
+      (org-roam-capture--capture :keys "a"))))
+
+(defun org-roam-auto-create-buffer (&optional manual)
+  "Create all non-existant roam-link files in current buffer.
+MANUAL is boolean which allows manual selection of org-roam-capture
+templates for each file created.
+If called with PREFIX `C-u' then manual is non-nil."
+  (interactive "P")
+  (when (org-roam--org-roam-file-p)
+    (org-element-map (org-element-parse-buffer) 'link
+      (lambda (link)
+        (let* ((type (org-element-property :type link))
+               (path (org-element-property :path link))
+               (is-title (if (string= type "roam") t nil))
+               (roam-file (if is-title (org-roam--get-file-from-title path) t)))
+          (unless roam-file
+            (org-roam--auto-create-file path manual))))
+      )))
+
 (org-link-set-parameters
  "roam"
  :display 'full
