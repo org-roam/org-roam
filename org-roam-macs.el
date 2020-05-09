@@ -44,7 +44,9 @@ Like `with-temp-buffer', but propagates `org-roam-directory'."
            ,@body)))))
 
 (defmacro org-roam--with-template-error (templates &rest body)
-  "Eval BODY, and point user to TEMPLATES on error.
+  "Eval BODY, and point to TEMPLATES on error.
+Provides more informative error messages so that users know where
+to look.
 
 \(fn TEMPLATES BODY...)"
   (declare (debug (form body)) (indent 1))
