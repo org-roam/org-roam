@@ -1129,6 +1129,23 @@ Follows example of `org-ref' and displays on idle timer."
 ;; Turn roam-link status message on by default
 (org-roam-show-link-messages)
 
+(defun org-roam-insert-roam-link ()
+  "Shortcut to insert roam-link with standard completion prompt."
+  (interactive)
+  (insert "[[" (org-roam--roam-link-completion) "]]"))
+
+(defun org-roam-insert-roam-syntax ()
+  "Shortcut to insert roam-link syntax without completion.
+Move point inside brackets, ready for roam title entry."
+  (interactive)
+  (insert "[[roam:]]")
+  (backward-char 2))
+
+(defun org-roam--exit-roam-link ()
+  "When point is in roam-link, advance point forward out of the link."
+  (interactive)
+  (goto-char (org-element-property :end (org-element-context))))
+
 (org-link-set-parameters
  "roam"
  :display 'full
@@ -1138,6 +1155,7 @@ Follows example of `org-ref' and displays on idle timer."
  :complete 'org-roam--roam-link-completion
  :keymap (let ((map (copy-keymap org-mouse-map)))
            (define-key map (kbd "M-f") 'org-roam-convert-roam-to-file-link)
+           (define-key map (kbd "<tab>") 'org-roam--exit-roam-link)
            map))
 
 (org-link-set-parameters
