@@ -441,18 +441,6 @@ Examples:
            (slug (-reduce-from #'cl-replace (strip-nonspacing-marks title) pairs)))
       (s-downcase slug))))
 
-;;;; Handler for template errors
-(defmacro org-roam--with-template-error (templates &rest body)
-  "Eval BODY, and point user to TEMPLATES on error.
-
-\(fn TEMPLATES BODY...)"
-  (declare (debug (form body)) (indent 1))
-  `(condition-case err
-       ,@body
-     (error (user-error "%s.  Please adjust `%s'"
-                        (error-message-string err)
-                        ,templates))))
-
 ;;; Interactive Commands
 (defun org-roam--format-link-title (title)
   "Return the link title, given the file TITLE."
