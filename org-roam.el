@@ -536,7 +536,7 @@ instead of standard file-link."
                                                                :link-description link-description
                                                                :capture-fn 'org-roam-insert))
         (org-roam--with-template-error 'org-roam-capture-templates
-          (org-roam-capture--capture))))))
+          (org-roam-capture--capture)))))))
 
 (defun org-roam--get-title-path-completions ()
   "Return a list of cons pairs for titles to absolute path of Org-roam files."
