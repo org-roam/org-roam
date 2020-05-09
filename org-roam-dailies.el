@@ -34,6 +34,7 @@
 ;;; Library Requires
 (require 'org-capture)
 (require 'org-roam-capture)
+(require 'org-roam-macs)
 
 (defvar org-roam-dailies-capture-templates
   '(("d" "daily" plain (function org-roam-capture--get-point)
