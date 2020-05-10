@@ -886,7 +886,9 @@ link has brackets."
         (add-text-properties
          (match-beginning 1)
          (match-end 1)
-         '(face org-roam-link-brackets invisible org-roam-show-roam-brackets))
+         (if org-roam-show-roam-brackets
+             '(face org-roam-link-brackets invisible nil)
+           '(face org-roam-link-brackets invisible t)))
         ;; Check if link is plain or Descriptive
         (if (not (string-match-p "\\]\\[" (buffer-substring start end)))
             ;; If plain, hide roam: prefix
@@ -906,7 +908,9 @@ link has brackets."
         (add-text-properties
          (match-beginning 3)
          (match-end 3)
-         '(face all-the-icons-dcyan))
+         (if org-roam-show-roam-brackets
+             '(face org-roam-link-brackets invisible nil)
+           '(face org-roam-link-brackets invisible t)))
         ))))
 
 (defun org-roam--roam-backlink-to-current-p (path)
