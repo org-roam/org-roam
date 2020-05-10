@@ -1089,8 +1089,8 @@ If called with PREFIX `C-u' then manual is non-nil."
 (defun org-roam--roam-link-completion (&optional _arg)
   "Completion for roam-links in `org-mode'.
 ARG is optional prefix supplied through `org-mode'"
-  (let ((completions (--> (org-roam--get-title-path-completions)))
-        (in-buffer-completions (--> (org-roam--current-buffer-roam-link-titles))))
+  (let ((completions (org-roam--get-title-path-completions))
+        (in-buffer-completions (org-roam--current-buffer-roam-link-titles)))
     (format "roam:%s" (completing-read "Roam note: "
                                        (-union (map-keys completions) in-buffer-completions)))))
 
