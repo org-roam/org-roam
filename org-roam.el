@@ -3,7 +3,7 @@
 ;; Copyright © 2020 Jethro Kuan <jethrokuan95@gmail.com>
 
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
-;; URL: https://github.com/jethrokuan/org-roam
+;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
 ;; Version: 1.1.0
 ;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (s "1.12.0") (org "9.3") (emacsql "3.0.0") (emacsql-sqlite "1.0.0"))
@@ -52,6 +52,7 @@
 (require 'org-roam-graph)
 (require 'org-roam-completion)
 (require 'org-roam-dailies)
+(require 'org-roam-doctor)
 
 ;; To detect cite: links
 (require 'org-ref nil t)
@@ -63,7 +64,7 @@
   "Roam Research replica in Org-mode."
   :group 'org
   :prefix "org-roam-"
-  :link '(url-link :tag "Github" "https://github.com/jethrokuan/org-roam")
+  :link '(url-link :tag "Github" "https://github.com/org-roam/org-roam")
   :link '(url-link :tag "Online Manual" "https://org-roam.readthedocs.io/"))
 
 (defgroup org-roam-faces nil
@@ -457,7 +458,7 @@ Examples:
                     ("^_" . "")  ;; remove starting underscore
                     ("_$" . "")))  ;; remove ending underscore
            (slug (-reduce-from #'cl-replace (strip-nonspacing-marks title) pairs)))
-      (s-downcase slug))))
+      (downcase slug))))
 
 ;;; Interactive Commands
 (defun org-roam--format-link-title (title)
@@ -480,11 +481,12 @@ Examples:
                        target))
      description)))
 
-(defun org-roam-insert (prefix &optional filter-fn)
+(defun org-roam-insert (&optional lowercase filter-fn description)
   "Find an Org-roam file, and insert a relative org link to it at point.
-If PREFIX, downcase the title before insertion.
+If LOWERCASE, downcase the title before insertion.
 FILTER-FN is the name of a function to apply on the candidates
-which takes as its argument an alist of path-completions.  See
+which takes as its argument an alist of path-completions.
+If DESCRIPTION is provided, use this as the link label. See
 `org-roam--get-title-path-completions' for details.
 If `org-roam-use-roam-links' is non-nil combine standard title
 completions with in-buffer roam-link titles, and insert roam-link
@@ -510,18 +512,18 @@ instead of standard file-link."
                      :initial-input region-text)
                   (org-roam-completion--completing-read "File: " completions
                                                         :initial-input region-text)))
-         (region-or-title (or region-text title))
+         (description (or description region-text title))
          (target-file-path (cdr (assoc title completions)))
-         (link-description (org-roam--format-link-title (if prefix
-                                                            (downcase region-or-title)
-                                                          region-or-title))))
+         (link-description (org-roam--format-link-title (if lowercase
+                                                            (downcase description)
+                                                          description))))
     (if org-roam-use-roam-links
         (progn
           (when region ;; Remove previously selected text.
             (delete-region (car region) (cdr region)))
           (insert (format "[[roam:%s]]" title)))
       (if (and target-file-path
-             (file-exists-p target-file-path))
+               (file-exists-p target-file-path))
         (progn
           (when region ;; Remove previously selected text.
             (delete-region (car region) (cdr region)))

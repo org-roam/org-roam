@@ -2,7 +2,7 @@
 
 ;; Copyright © 2020 Jethro Kuan <jethrokuan95@gmail.com>
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
-;; URL: https://github.com/jethrokuan/org-roam
+;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
 ;; Version: 1.1.0
 ;; Package-Requires: ((emacs "26.1") (org "9.3"))
@@ -64,7 +64,7 @@ It opens or creates a note with the given ref.
       (raise-frame)
       (org-roam--with-template-error 'org-roam-capture-ref-templates
         (org-roam-capture--capture nil template))
-      (message "Item captured.")))
+      (org-roam-message "Item captured.")))
   nil)
 
 (defun org-roam-protocol-open-file (info)
