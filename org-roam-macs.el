@@ -62,7 +62,7 @@ to look.
 (defun org-roam-message (format-string &rest args)
   "Pass FORMAT-STRING and ARGS to `message' when `org-roam-verbose' is t."
   (when org-roam-verbose
-    (apply #'message `(,(concat "(org-roam) " format-string) ,@args))))
+    (funcall #'message (concat "(org-roam) " format-string) args)))
 
 (provide 'org-roam-macs)
 
