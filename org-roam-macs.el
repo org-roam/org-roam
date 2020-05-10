@@ -58,10 +58,11 @@ to look.
                         (error-message-string err)
                         ,templates))))
 
-(defmacro org-roam-message (msg)
-  "Message MSG when `org-roam-verbose' is true."
+(defmacro org-roam-message (format-string &rest args)
+  "Message MSG with ARGS when `org-roam-verbose' is true."
+  (declare (indent 0) (debug t))
   `(when org-roam-verbose
-     (message "(org-roam) %s" ,msg)))
+     (message (concat "(org-roam) " ,format-string) ,@args)))
 
 (provide 'org-roam-macs)
 
