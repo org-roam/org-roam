@@ -52,6 +52,8 @@
 (declare-function org-roam--list-all-files "org-roam")
 (declare-function org-roam--org-roam-file-p "org-roam")
 
+(defvar org-roam-verbose)
+
 (cl-defstruct (org-roam-doctor-checker (:copier nil))
   (name 'missing-checker-name)
   (description "")
