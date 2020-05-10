@@ -18,6 +18,7 @@
 * [#538](https://github.com/org-roam/org-roam/pull/538) Optionally use text in first headline as title
 * [#553](https://github.com/org-roam/org-roam/pull/553) Add prefix argument to `org-roam-db-build-cache` for forcing rebuilds
 * [#560](https://github.com/org-roam/org-roam/pull/560) Apply 'error face to distinguish broken links
+* [#570](https://github.com/org-roam/org-roam/pull/570) Add `org-roam-doctor` to diagnose org-roam files
 
 ## 1.1.0 (21-04-2020)
 

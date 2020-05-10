@@ -52,6 +52,7 @@
 (require 'org-roam-graph)
 (require 'org-roam-completion)
 (require 'org-roam-dailies)
+(require 'org-roam-doctor)
 
 ;; To detect cite: links
 (require 'org-ref nil t)
@@ -443,7 +444,7 @@ Examples:
                     ("^_" . "")  ;; remove starting underscore
                     ("_$" . "")))  ;; remove ending underscore
            (slug (-reduce-from #'cl-replace (strip-nonspacing-marks title) pairs)))
-      (s-downcase slug))))
+      (downcase slug))))
 
 ;;; Interactive Commands
 (defun org-roam--format-link-title (title)
@@ -466,11 +467,12 @@ Examples:
                        target))
      description)))
 
-(defun org-roam-insert (prefix &optional filter-fn)
+(defun org-roam-insert (&optional lowercase filter-fn description)
   "Find an Org-roam file, and insert a relative org link to it at point.
-If PREFIX, downcase the title before insertion.
+If LOWERCASE, downcase the title before insertion.
 FILTER-FN is the name of a function to apply on the candidates
-which takes as its argument an alist of path-completions.  See
+which takes as its argument an alist of path-completions.
+If DESCRIPTION is provided, use this as the link label. See
 `org-roam--get-title-path-completions' for details."
   (interactive "P")
   (let* ((region (and (region-active-p)
@@ -485,11 +487,11 @@ which takes as its argument an alist of path-completions.  See
                              it)))
          (title (org-roam-completion--completing-read "File: " completions
                                                       :initial-input region-text))
-         (region-or-title (or region-text title))
+         (description (or description region-text title))
          (target-file-path (cdr (assoc title completions)))
-         (link-description (org-roam--format-link-title (if prefix
-                                                            (downcase region-or-title)
-                                                          region-or-title))))
+         (link-description (org-roam--format-link-title (if lowercase
+                                                            (downcase description)
+                                                          description))))
     (if (and target-file-path
              (file-exists-p target-file-path))
         (progn
