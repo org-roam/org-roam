@@ -33,6 +33,8 @@
 ;;; Code:
 ;;;; Library Requires
 
+(defvar org-roam-verbose)
+
 (defmacro org-roam--with-temp-buffer (&rest body)
   "Execute BODY within a temp buffer.
 Like `with-temp-buffer', but propagates `org-roam-directory'."
@@ -56,7 +58,11 @@ to look.
                         (error-message-string err)
                         ,templates))))
 
-
+(defmacro org-roam-message (format-string &rest args)
+  "Message MSG with ARGS when `org-roam-verbose' is true."
+  (declare (indent 0) (debug t))
+  `(when org-roam-verbose
+     (message (concat "(org-roam) " ,format-string) ,@args)))
 
 (provide 'org-roam-macs)
 
