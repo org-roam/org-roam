@@ -59,7 +59,7 @@ to look.
                         (error-message-string err)
                         ,templates))))
 
-(defun org-roam-messgae (format-string &rest args)
+(defun org-roam-message (format-string &rest args)
   "Pass FORMAT-STRING and ARGS to `message' when `org-roam-verbose' is t."
   (when org-roam-verbose
     (message (concat "(org-roam) " format-string args))))
