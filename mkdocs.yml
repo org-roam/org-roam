@@ -1,5 +1,5 @@
 site_name: "Org-roam"
-repo_url: https://github.com/jethrokuan/org-roam/
+repo_url: https://github.com/org-roam/org-roam/
 edit_uri: edit/master/doc/
 copyright: "Copyright (C) 2020 Jethro Kuan and contributors"
 docs_dir: doc
