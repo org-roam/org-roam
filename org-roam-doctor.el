@@ -44,6 +44,7 @@
 ;; Library Requires
 (require 'cl-lib)
 (require 'org)
+(require 'org-roam-macs)
 (require 'org-element)
 
 (declare-function org-roam-insert "org-roam")
@@ -118,7 +119,7 @@ CHECKERS is the list of checkers used."
 
 (defun org-roam-doctor--skip ()
   "Skip the current error."
-  (message "Skipping..."))
+  (org-roam-message "Skipping..."))
 
 (defun org-roam-doctor--replace-link ()
   "Replace the current link with a new link."
@@ -218,7 +219,7 @@ If CHECKALL, run the check only for all Org-roam files."
           (unless (memq buf existing-buffers)
             (save-buffer buf)
             (kill-buffer buf))))))
-  (message "Linting completed."))
+  (org-roam-message "Linting completed."))
 
 (provide 'org-roam-doctor)
 

@@ -150,8 +150,8 @@ SQL can be either the emacsql vector representation, or a string."
     'ignore
     (if (< version org-roam-db--version)
         (progn
-          (message (format "Upgrading the Org-roam database from version %d to version %d"
-                           version org-roam-db--version))
+          (org-roam-message (format "Upgrading the Org-roam database from version %d to version %d"
+                                    version org-roam-db--version))
           (org-roam-db-build-cache t))))
   version)
 
@@ -403,13 +403,12 @@ If FORCE, force a rebuild of the cache from scratch."
                        :titles (length all-titles)
                        :refs (length all-refs)
                        :deleted (length (hash-table-keys current-files)))))
-      (when org-roam-verbose
-        (message "files: %s, links: %s, titles: %s, refs: %s, deleted: %s"
-                 (plist-get stats :files)
-                 (plist-get stats :links)
-                 (plist-get stats :titles)
-                 (plist-get stats :refs)
-                 (plist-get stats :deleted)))
+      (org-roam-message "files: %s, links: %s, titles: %s, refs: %s, deleted: %s"
+                        (plist-get stats :files)
+                        (plist-get stats :links)
+                        (plist-get stats :titles)
+                        (plist-get stats :refs)
+                        (plist-get stats :deleted))
       stats)))
 
 (provide 'org-roam-db)

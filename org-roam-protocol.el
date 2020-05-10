@@ -64,7 +64,7 @@ It opens or creates a note with the given ref.
       (raise-frame)
       (org-roam--with-template-error 'org-roam-capture-ref-templates
         (org-roam-capture--capture nil template))
-      (message "Item captured.")))
+      (org-roam-message "Item captured.")))
   nil)
 
 (defun org-roam-protocol-open-file (info)
