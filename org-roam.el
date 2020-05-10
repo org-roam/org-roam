@@ -258,7 +258,7 @@ it as FILE-PATH."
                (start (org-element-property :begin link))
                (link-type (cond ((and (string= type "file")
                                       (org-roam--org-file-p path))
-                                 "roam")
+                                 "org")
                                 ((string= type "roam")
                                  "roam")
                                 ((and
@@ -266,9 +266,8 @@ it as FILE-PATH."
                                   (-contains? org-ref-cite-types type))
                                  "cite")
                                 (t nil)))
-               (is-title (if (string= type "roam") t nil))
-               (roam-file (if is-title (org-roam--get-file-from-title path) t)))
-          ;; Ignore link if it is a roam-link and roam-file doesn't exist
+               ;; Skip roam-link if its corresponding file doesn't exist
+               (roam-file (if (string= link-type "roam") (org-roam--get-file-from-title path) t)))
           (when (and link-type roam-file)
             (goto-char start)
             (let* ((element (org-element-at-point))
@@ -284,9 +283,10 @@ it as FILE-PATH."
                    (content (org-roam--expand-links content file-path)))
               (let ((context (list :content content :point begin))
                     (names (pcase link-type
+                             ("org"
+                              (list (file-truename (expand-file-name path (file-name-directory file-path)))))
                              ("roam"
-                              (if is-title (list roam-file)
-                                (list (file-truename (expand-file-name path (file-name-directory file-path))))))
+                              (list roam-file))
                              ("cite"
                               (org-ref-split-and-strip-string path)))))
                 (seq-do (lambda (name)

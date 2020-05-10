@@ -256,7 +256,8 @@ This is equivalent to removing the node from the graph."
 If the file does not have any connections, nil is returned."
   (let* ((query "WITH RECURSIVE
                    links_of(file, link) AS
-                     (WITH roamlinks AS (SELECT * FROM links WHERE \"type\" = '\"roam\"'),
+                     (WITH roamlinks AS (SELECT * FROM links WHERE \"type\" = '\"org\"'
+                                                                OR \"type\" = '\"roam\"'),
                            citelinks AS (SELECT * FROM links
                                                   JOIN refs ON links.\"to\" = refs.\"ref\"
                                                             AND links.\"type\" = '\"cite\"')
@@ -278,7 +279,8 @@ This includes the file itself. If the file does not have any
 connections, nil is returned."
   (let* ((query "WITH RECURSIVE
                    links_of(file, link) AS
-                     (WITH roamlinks AS (SELECT * FROM links WHERE \"type\" = '\"roam\"'),
+                     (WITH roamlinks AS (SELECT * FROM links WHERE \"type\" = '\"org\"'
+                                                                OR \"type\" = '\"roam\"'),
                            citelinks AS (SELECT * FROM links
                                                   JOIN refs ON links.\"to\" = refs.\"ref\"
                                                             AND links.\"type\" = '\"cite\"')
