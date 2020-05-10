@@ -912,8 +912,7 @@ link has brackets."
          (match-end 3)
          (if org-roam-show-roam-brackets
              '(face org-roam-link-brackets invisible nil)
-           '(face org-roam-link-brackets invisible t)))
-        ))))
+           '(face org-roam-link-brackets invisible t)))))))
 
 (defun org-roam--roam-backlink-to-current-p (path)
   "Return t if roam-link backlink is to the current Org-roam file.
@@ -978,8 +977,7 @@ Ignore roam-links that do not point to an existing Org-roam file."
                           (org-roam--format-link-title path))))
         (setf (buffer-substring start end)
               (concat (org-roam--format-link filename link-desc)
-                      (make-string (org-element-property :post-blank element) ?\s))))
-      )))
+                      (make-string (org-element-property :post-blank element) ?\s)))))))
 
 (defun org-roam--get-title-from-file (path)
   "Return title/aliases for a filename PATH in the Org-roam database.
@@ -1001,7 +999,7 @@ Ignore file-links that are not in Org-roam database."
              (desc (and contents-begin contents-end
                         (buffer-substring-no-properties contents-begin contents-end)))
              (list-titles (caar (org-roam--get-title-from-file path)))
-             (-compare-fn #'equalp)
+             (-compare-fn #'cl-equalp)
              (title (if (-contains? list-titles desc)
                             desc
                       (car list-titles)))
@@ -1011,8 +1009,7 @@ Ignore file-links that are not in Org-roam database."
         (when title
           (setf (buffer-substring start end)
               (concat (org-link-make-string (concat "roam:" title) link-desc)
-                      (make-string (org-element-property :post-blank element) ?\s)))
-      )))))
+                      (make-string (org-element-property :post-blank element) ?\s))))))))
 
 (defun org-roam-convert-roam-to-file-link ()
   "Convert a custom roam-link to standard org file-link."
@@ -1020,8 +1017,7 @@ Ignore file-links that are not in Org-roam database."
   (let ((elem (org-element-context)))
     (when (and (eq 'link (car elem))
                (string= "roam" (org-element-property :type elem)))
-      (org-roam--convert-roam-to-file-link elem)
-      )))
+      (org-roam--convert-roam-to-file-link elem))))
 
 (defun org-roam-convert-file-to-roam-link ()
   "Convert a standard org file-link to custom roam-link."
@@ -1029,8 +1025,7 @@ Ignore file-links that are not in Org-roam database."
   (let ((elem (org-element-context)))
     (when (and (eq 'link (car elem))
                (string= "file" (org-element-property :type elem)))
-      (org-roam--convert-file-to-roam-link elem)
-      )))
+      (org-roam--convert-file-to-roam-link elem))))
 
 (defun org-roam-convert-buffer-links (file-or-roam)
   "Convert all Org-roam links in the current buffer.
@@ -1051,8 +1046,7 @@ indicate the link-type the buffer should convert to."
           (when (and (string= file-or-roam "file")
                      (string= type "roam"))
             (org-roam--convert-roam-to-file-link elem)))
-        (org-next-link)
-        ))))
+        (org-next-link)))))
 
 (defun org-roam--auto-create-file (title &optional manual)
   "Call `org-roam-capture' with a template using :immediate-finish t.
@@ -1078,8 +1072,7 @@ If called with PREFIX `C-u' then manual is non-nil."
                (is-title (if (string= type "roam") t nil))
                (roam-file (if is-title (org-roam--get-file-from-title path) t)))
           (unless roam-file
-            (org-roam--auto-create-file path manual))))
-      )))
+            (org-roam--auto-create-file path manual)))))))
 
 (defun org-roam--current-buffer-roam-link-titles ()
   "Return a list of unique roam-link titles in the current buffer."
@@ -1089,8 +1082,7 @@ If called with PREFIX `C-u' then manual is non-nil."
                   (path (org-element-property :path link))
                   res)
              (when (string= type "roam")
-               (cons path res))
-             )))
+               (cons path res)))))
        (-flatten)
        (-distinct)))
 
@@ -1100,8 +1092,7 @@ ARG is optional prefix supplied through `org-mode'"
   (let ((completions (--> (org-roam--get-title-path-completions)))
         (in-buffer-completions (--> (org-roam--current-buffer-roam-link-titles))))
     (format "roam:%s" (completing-read "Roam note: "
-                                       (-union (map-keys completions) in-buffer-completions))
-            )))
+                                       (-union (map-keys completions) in-buffer-completions)))))
 
 (defun org-roam--roam-link-message ()
   "Send roam-link status message to minibuffer."
@@ -1120,8 +1111,7 @@ ARG is optional prefix supplied through `org-mode'"
                  (raw-link (org-element-property :raw-link elem)))
             (if file-path
                 (message "file: %s → %s" file-path raw-link)
-              (message "No file found in db → %s" raw-link))))
-        ))))
+              (message "No file found in db → %s" raw-link))))))))
 
 
 (defun org-roam-show-link-messages ()
