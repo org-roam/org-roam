@@ -27,7 +27,7 @@
 
 ;;; Commentary:
 ;;
-;; This library implements macros used throughout org-roam
+;; This library implements macros and utiltiy functions used throughout org-roam
 ;;
 ;;
 ;;; Code:
@@ -58,11 +58,10 @@ to look.
                         (error-message-string err)
                         ,templates))))
 
-(defmacro org-roam-message (format-string &rest args)
-  "Message MSG with ARGS when `org-roam-verbose' is true."
-  (declare (indent 0) (debug t))
-  `(when org-roam-verbose
-     (message (concat "(org-roam) " ,format-string) ,@args)))
+(defun org-roam-messgae (format-string &rest args)
+  "Pass FORMAT-STRING and ARGS to `message' when `org-roam-verbose' is t."
+  (when org-roam-verbose
+    (message (concat "(org-roam) " format-string args))))
 
 (provide 'org-roam-macs)
 
