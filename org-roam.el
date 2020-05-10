@@ -1113,7 +1113,6 @@ ARG is optional prefix supplied through `org-mode'"
                 (message "file: %s → %s" file-path raw-link)
               (message "No file found in db → %s" raw-link))))))))
 
-
 (defun org-roam-show-link-messages ()
   "Enable minibuffer status message for roam-links.
 Follows example of `org-ref' and displays on idle timer."
@@ -1128,8 +1127,6 @@ Follows example of `org-ref' and displays on idle timer."
   (cancel-timer org-roam-link-message-timer)
   (setq org-roam-link-message-timer nil))
 
-;; Turn roam-link status message on by default
-(org-roam-show-link-messages)
 
 (defun org-roam-insert-roam-link ()
   "Shortcut to insert roam-link with standard completion prompt."
@@ -1147,24 +1144,6 @@ Move point inside brackets, ready for roam title entry."
   "When point is in roam-link, advance point forward out of the link."
   (interactive)
   (goto-char (org-element-property :end (org-element-context))))
-
-(org-link-set-parameters
- "roam"
- :display 'full
- :face 'org-roam--custom-roam-link-face
- :activate-func 'org-roam--roam-link-activate
- :follow 'org-roam--roam-link-find-file
- :complete 'org-roam--roam-link-completion
- :keymap (let ((map (copy-keymap org-mouse-map)))
-           (define-key map (kbd "M-f") 'org-roam-convert-roam-to-file-link)
-           (define-key map (kbd "<tab>") 'org-roam--exit-roam-link)
-           map))
-
-(org-link-set-parameters
- "file"
- :keymap (let ((map (copy-keymap org-mouse-map)))
-           (define-key map (kbd "M-r") 'org-roam-convert-file-to-roam-link)
-           map))
 
 ;;;###autoload
 (defalias 'org-roam 'org-roam-buffer-toggle-display)
@@ -1200,13 +1179,42 @@ Otherwise, behave as if called interactively."
     (add-hook 'kill-emacs-hook #'org-roam-db--close-all)
     (advice-add 'rename-file :after #'org-roam--rename-file-advice)
     (advice-add 'delete-file :before #'org-roam--delete-file-advice)
-    (org-roam-db-build-cache))
+    (org-roam-db-build-cache)
+    (org-link-set-parameters
+     "roam"
+     :display 'full
+     :face 'org-roam--custom-roam-link-face
+     :activate-func 'org-roam--roam-link-activate
+     :follow 'org-roam--roam-link-find-file
+     :complete 'org-roam--roam-link-completion
+     :keymap (let ((map (copy-keymap org-mouse-map)))
+               (define-key map (kbd "M-f") 'org-roam-convert-roam-to-file-link)
+               (define-key map (kbd "<tab>") 'org-roam--exit-roam-link)
+               map))
+    (org-link-set-parameters
+     "file"
+     :keymap (let ((map (copy-keymap org-mouse-map)))
+               (define-key map (kbd "M-r") 'org-roam-convert-file-to-roam-link)
+               map))
+    (when org-roam-verbose (org-roam-show-link-messages)))
    (t
     (remove-hook 'find-file-hook #'org-roam--find-file-hook-function)
     (remove-hook 'kill-emacs-hook #'org-roam-db--close-all)
     (advice-remove 'rename-file #'org-roam--rename-file-advice)
     (advice-remove 'delete-file #'org-roam--delete-file-advice)
     (org-roam-db--close-all)
+    (org-link-set-parameters
+     "roam"
+     :display 'org-link
+     :face 'org-link
+     :activate-func nil
+     :follow nil
+     :complete nil
+     :keymap (copy-keymap org-mouse-map))
+    (org-link-set-parameters
+     "file"
+     :keymap (copy-keymap org-mouse-map))
+    (org-roam-cancel-link-messages)
     ;; Disable local hooks for all org-roam buffers
     (dolist (buf (org-roam--get-roam-buffers))
       (with-current-buffer buf
