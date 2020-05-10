@@ -883,6 +883,7 @@ link has brackets."
         (goto-char start)
         (re-search-forward "\\(\\[\\[\\)\\(roam:\\).+\\(\\]\\]\\)" end t)
         ;; Optionally hide starting brackets or change their face
+        ;; Can't set invisible with org-roam-show-roam-brackets directly
         (add-text-properties
          (match-beginning 1)
          (match-end 1)
@@ -905,6 +906,7 @@ link has brackets."
                    (re-search-forward org-link-bracket-re end t)
                    (add-text-properties (match-beginning 2) (match-end 2) '(invisible nil)))))
         ;; Optionally ending hide brackets or change their face
+        ;; Can't set invisible with org-roam-show-roam-brackets directly
         (add-text-properties
          (match-beginning 3)
          (match-end 3)
