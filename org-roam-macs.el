@@ -61,7 +61,7 @@ to look.
 (defmacro org-roam-message (msg)
   "Message MSG when `org-roam-verbose' is true."
   `(when org-roam-verbose
-     (message msg)))
+     (message ,msg)))
 
 (provide 'org-roam-macs)
 
