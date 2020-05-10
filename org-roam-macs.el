@@ -27,7 +27,7 @@
 
 ;;; Commentary:
 ;;
-;; This library implements macros and utilty functions used throughout
+;; This library implements macros and utility functions used throughout
 ;; org-roam.
 ;;
 ;;
