@@ -1098,7 +1098,8 @@ ARG is optional prefix supplied through `org-mode'"
 
 (defun org-roam--roam-link-message ()
   "Send roam-link status message to minibuffer."
-  (when (string= major-mode "org-mode")
+  (when (and org-roam-verbose
+             (string= major-mode "org-mode"))
     (let ((elem (org-element-context)))
       (when (and (eq (car elem) 'link)
                  (string= "roam" (org-element-property :type elem)))
@@ -1112,8 +1113,8 @@ ARG is optional prefix supplied through `org-mode'"
                               (concat "~org-roam-dir~" (match-string 1 abs-file-path))))
                  (raw-link (org-element-property :raw-link elem)))
             (if file-path
-                (message "file: %s → %s" file-path raw-link)
-              (message "No file found in db → %s" raw-link))))))))
+                (org-roam-message "file: %s → %s" file-path raw-link)
+              (org-roam-message "No file found in db → %s" raw-link))))))))
 
 (defun org-roam-show-link-messages ()
   "Enable minibuffer status message for roam-links.
@@ -1198,7 +1199,7 @@ Otherwise, behave as if called interactively."
      :keymap (let ((map (copy-keymap org-mouse-map)))
                (define-key map (kbd "M-r") 'org-roam-convert-file-to-roam-link)
                map))
-    (when org-roam-verbose (org-roam-show-link-messages)))
+    (org-roam-show-link-messages))
    (t
     (remove-hook 'find-file-hook #'org-roam--find-file-hook-function)
     (remove-hook 'kill-emacs-hook #'org-roam-db--close-all)
