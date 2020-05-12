@@ -1,4 +1,4 @@
-;;; org-roam-completion.el --- Roam Research replica with Org-mode -*- coding: utf-8; lexical-binding: t -*-
+;;; org-roam-completion.el --- Roam Research replica with Org-mode -*- coding: utf-8; lexical-binding: t; eval: (require 'org-roam-dev); -*-
 
 ;; Copyright © 2020 Jethro Kuan <jethrokuan95@gmail.com>
 
