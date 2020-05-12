@@ -554,7 +554,7 @@ which takes as its argument an alist of path-completions.  See
   (interactive)
   (find-file org-roam-directory))
 
-(defcustom org-roam-index-file nil
+(defcustom org-roam-index-file "index.org"
   "Path to the Org-roam index file.
 The path can be a string or a function.  If it is a string, it
 should be the path (absolute or relative to `org-roam-directory')
