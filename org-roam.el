@@ -600,7 +600,9 @@ command will offer you to create one."
               (org-roam-capture-templates '(("i" "index" plain
                                              (function org-roam-capture--get-point)
                                              "%?"
-                                             :file-name "index"
+                                             :file-name (-> org-roam-index-file
+                                                            (file-name-nondirectory)
+                                                            (file-name-sans-extension))
                                              :head "#+TITLE: Index\n\n"
                                              :unnarrowed t))))
           (org-roam-capture--capture))))))
