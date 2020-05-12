@@ -1,4 +1,4 @@
-;;; org-roam-db.el --- org-roam database API -*- coding: utf-8; lexical-binding: t; -*-
+;;; org-roam-db.el --- Org-roam database API -*- coding: utf-8; lexical-binding: t; -*-
 
 ;; Copyright © 2020 Jethro Kuan <jethrokuan95@gmail.com>
 
