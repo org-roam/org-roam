@@ -88,7 +88,7 @@ Formatter may be a function that takes title as its only argument."
   :group 'org-roam)
 
 (defcustom org-roam-encrypt-files nil
-  "Whether to encrypt new files.  If true, create files with .org.gpg extension."
+  "Whether to encrypt new files.  If true, create files with .gpg extension."
   :type 'boolean
   :group 'org-roam)
 
@@ -99,6 +99,7 @@ Formatter may be a function that takes title as its only argument."
 
 (defcustom org-roam-file-extensions '("org")
   "Detected file extensions to include in the Org-roam ecosystem.
+The first item in the list is used as the default file extension.
 While the file extensions may be different, the file format needs
 to be an `org-mode' file, and it is the user's responsibility to
 ensure that."
@@ -691,11 +692,14 @@ included as a candidate."
 (defun org-roam--file-path-from-id (id)
   "The file path for an Org-roam file, with identifier ID."
   (file-truename
-   (expand-file-name
-    (if org-roam-encrypt-files
-        (concat id ".org.gpg")
-      (concat id ".org"))
-    org-roam-directory)))
+   (let* ((ext (or (car org-roam-file-extensions)
+                  "org"))
+          (file (concat id "." ext)))
+     (expand-file-name
+      (if org-roam-encrypt-files
+          (concat file ".gpg")
+        file)
+      org-roam-directory))))
 
 ;;; The org-roam buffer
 ;;;; org-roam-link-face
