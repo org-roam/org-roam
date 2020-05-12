@@ -596,16 +596,8 @@ command will offer you to create one."
              (file-exists-p index))
         (find-file index)
       (when (y-or-n-p "Index file does not exist.  Would you like to create it? ")
-        (let ((org-roam-capture--context 'title)
-              (org-roam-capture-templates `(("i" "index" plain
-                                             (function org-roam-capture--get-point)
-                                             "%?"
-                                             :file-name ,(-> org-roam-index-file
-                                                             (file-name-nondirectory)
-                                                             (file-name-sans-extension))
-                                             :head "#+TITLE: Index\n\n"
-                                             :unnarrowed t))))
-          (org-roam-capture--capture))))))
+        (find-file (org-roam--get-index-path))
+        (insert "#+TITLE: Index\n\n")))))
 
 ;;;; org-roam-find-ref
 (defcustom org-roam-include-type-in-ref-path-completions nil
