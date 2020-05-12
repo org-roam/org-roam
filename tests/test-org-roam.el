@@ -1,4 +1,4 @@
-;;; test-org-roam.el --- Tests for org-roam -*- lexical-binding: t; eval: (require 'org-roam-dev); -*-
+;;; test-org-roam.el --- Tests for Org-roam -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2020 Jethro Kuan
 
