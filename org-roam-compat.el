@@ -1,4 +1,4 @@
-;;; org-roam-compat.el --- Compatibility Code -*- coding: utf-8; lexical-binding: t -*-
+;;; org-roam-compat.el --- Compatibility Code -*- coding: utf-8; lexical-binding: t; eval: (require 'org-roam-dev); -*-
 
 ;; Copyright © 2020 Jethro Kuan <jethrokuan95@gmail.com>
 
