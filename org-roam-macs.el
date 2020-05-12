@@ -1,4 +1,4 @@
-;;; org-roam-macs.el --- Roam Research replica with Org-mode -*- coding: utf-8; lexical-binding: t; eval: (require 'org-roam-dev); -*-
+;;; org-roam-macs.el --- Roam Research replica with Org-mode -*- coding: utf-8; lexical-binding: t; -*-
 
 ;; Copyright © 2020 Jethro Kuan <jethrokuan95@gmail.com>
 

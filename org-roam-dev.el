@@ -1,4 +1,4 @@
-;;; org-roam-dev.el --- Org-roam development code -mode -*- coding: utf-8; lexical-binding: t -*-
+;;; org-roam-dev.el --- Org-roam development code -mode -*- coding: utf-8; lexical-binding: t; -*-
 
 ;; Copyright © 2020 Jethro Kuan <jethrokuan95@gmail.com>
 
