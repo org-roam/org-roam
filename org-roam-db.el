@@ -398,17 +398,18 @@ If FORCE, force a rebuild of the cache from scratch."
        [:insert :into refs
         :values $v1]
        all-refs))
-    (let ((stats (list :files (length all-files)
-                       :links (length all-links)
-                       :titles (length all-titles)
-                       :refs (length all-refs)
-                       :deleted (length (hash-table-keys current-files)))))
-      (org-roam-message "files: %s, links: %s, titles: %s, refs: %s, deleted: %s"
-                        (plist-get stats :files)
-                        (plist-get stats :links)
-                        (plist-get stats :titles)
-                        (plist-get stats :refs)
-                        (plist-get stats :deleted))
+    (let ((stats `(:files   ,(length all-files)
+                            :links   ,(length all-links)
+                            :titles  ,(length all-titles)
+                            :refs    ,(length all-refs)
+                            :deleted ,(length (hash-table-keys current-files)))))
+      (org-roam-message (replace-regexp-in-string
+                         ",$" ""
+                         (mapconcat (lambda (element)
+                                      (if (keywordp element)
+                                          (concat (substring (symbol-name element) 1) ":")
+                                        (format "%s," element)))
+                                    stats " ")))
       stats)))
 
 (provide 'org-roam-db)
