@@ -1,4 +1,4 @@
-;;; org-roam-doctor.el --- Linter for org-roam files -*- coding: utf-8; lexical-binding: t; -*-
+;;; org-roam-doctor.el --- Linter for Org-roam files -*- coding: utf-8; lexical-binding: t; -*-
 ;;
 ;; Copyright © 2020 Jethro Kuan <jethrokuan95@gmail.com>
 
