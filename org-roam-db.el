@@ -192,25 +192,15 @@ the current `org-roam-directory'."
     (org-roam-db-query [:delete :from links])
     (org-roam-db-query [:delete :from refs])))
 
-
 (defun org-roam-db--clear-file (&optional filepath)
   "Remove any related links to the file at FILEPATH.
 This is equivalent to removing the node from the graph."
-  (let* ((path (or filepath
-                   (buffer-file-name)))
-         (file (file-truename path)))
-    (org-roam-db-query [:delete :from files
-                        :where (= file $s1)]
-                       file)
-    (org-roam-db-query [:delete :from links
-                        :where (= from $s1)]
-                       file)
-    (org-roam-db-query [:delete :from titles
-                        :where (= file $s1)]
-                       file)
-    (org-roam-db-query [:delete :from refs
-                        :where (= file $s1)]
-                       file)))
+  (let ((file (file-truename (or filepath
+                                 (buffer-file-name (buffer-base-buffer))))))
+    (dolist (table (mapcar #'car org-roam-db--table-schemata))
+      (org-roam-db-query `[:delete :from ,table
+                           :where (= ,(if (eq table 'links) 'from 'file) $s1)]
+                         file))))
 
 ;;;;; Insertion
 (defun org-roam-db--insert-links (links)
