@@ -187,11 +187,8 @@ the current `org-roam-directory'."
   "Clears all entries in the caches."
   (interactive)
   (when (file-exists-p (org-roam-db--get))
-    (org-roam-db-query [:delete :from files])
-    (org-roam-db-query [:delete :from titles])
-    (org-roam-db-query [:delete :from links])
-    (org-roam-db-query [:delete :from refs])))
-
+    (dolist (table (mapcar #'car org-roam-db--table-schemata))
+      (org-roam-db-query `[:delete :from ,table]))))
 
 (defun org-roam-db--clear-file (&optional filepath)
   "Remove any related links to the file at FILEPATH.
