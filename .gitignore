@@ -2,7 +2,6 @@
 **/*.elc
 /doc/dir
 /doc/*.info
-/doc/*.html
 /doc/*.pdf
 /doc/*.epub
 /doc/META_INF/
