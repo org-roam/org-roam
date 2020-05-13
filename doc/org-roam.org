@@ -8,16 +8,13 @@
 #+TEXINFO_DIR_CATEGORY: Emacs
 #+TEXINFO_DIR_TITLE: Org-roam: (org-roam).
 #+TEXINFO_DIR_DESC: Rudimentary Roam Replica for Emacs.
-#+SUBTITLE: for version 1.1.0 (v1.1.0-29-g00fc215+1)
+#+SUBTITLE: for version 1.1.1
 
-#+TEXINFO_DEFFN: t
 #+OPTIONS: H:4 num:3 toc:2 creator:t
 #+PROPERTY: header-args :eval never
-#+BIND: ox-texinfo+-before-export-hook ox-texinfo+-update-copyright-years
-#+BIND: ox-texinfo+-before-export-hook ox-texinfo+-update-version-strings
-
 #+TEXINFO: @noindent
-This manual is for Org-roam version 1.1.0 (v1.1.0-29-g00fc215+1).
+
+This manual is for Org-roam version 1.1.1.
 
 #+BEGIN_QUOTE
 Copyright (C) 2020-2020 Jethro Kuan <jethrokuan95@gmail.com>
@@ -695,28 +692,6 @@ checker, to perform autofixes for the errors. For each error detected,
 window displaying the error message, as well as the list of actions that can be
 taken provided in =:actions=.
 
-* Keystroke Index
-:PROPERTIES:
-:APPENDIX:   t
-:INDEX:      ky
-:COOKIE_DATA: recursive
-:END:
-* Command Index
-:PROPERTIES:
-:APPENDIX:   t
-:INDEX:      cp
-:END:
-* Function Index
-:PROPERTIES:
-:APPENDIX:   t
-:INDEX:      fn
-:END:
-* Variable Index
-:PROPERTIES:
-:APPENDIX:   t
-:INDEX:      vr
-:END:
-
 * _ Copying
 :PROPERTIES:
 :COPYING:    t
@@ -931,9 +906,8 @@ file within that directory, at least once.
 
 * _ :ignore:
 # Local Variables:
-# eval: (require 'org-man     nil t)
-# eval: (require 'ox-texinfo+ nil t)
-# eval: (and (require 'ox-extra nil t) (ox-extras-activate '(ignore-headlines)))
+# before-save-hook: org-make-toc
+# after-save-hook: (lambda nil (progn (require 'ox-texinfo nil t) (org-texinfo-export-to-info)))
 # indent-tabs-mode: nil
 # org-src-preserve-indentation: nil
 # End:

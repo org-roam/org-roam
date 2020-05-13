@@ -58,6 +58,9 @@ init:
 docs:
 	@$(MAKE) -C doc all
 
+html:
+	@$(MAKE) -C doc html
+
 install: install-docs
 
 install-docs: docs
