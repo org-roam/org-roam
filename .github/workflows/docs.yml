@@ -20,7 +20,10 @@ jobs:
 
     - name: Build docs
       continue-on-error: false
-      run: make html
+      run: |
+        cd doc
+        makeinfo --html org-roam.texi
+        mv org-roam manual
 
     - name: Deploy 🚀
       uses: JamesIves/github-pages-deploy-action@releases/v3
