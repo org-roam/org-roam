@@ -30,6 +30,7 @@ html-dir:
 	@printf "Generating org-roam/*.html\n"
 	@$(MAKEINFO) --html org-roam.texi
 	mv org-roam manual
+	cp -r images manual
 
 %.pdf: %.texi
 	@printf "Generating $@\n"
