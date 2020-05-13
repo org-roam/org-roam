@@ -16,7 +16,7 @@ jobs:
 
     - name: Install deps
       run: |
-        sudo apt-get install makeinfo
+        sudo apt-get install texinfo
 
     - name: Build docs
       continue-on-error: false
