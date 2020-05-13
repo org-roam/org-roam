@@ -30,4 +30,5 @@ jobs:
       with:
         ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
         BRANCH: gh-pages # The branch the action should deploy to.
-        FOLDER: doc/org-roam # The folder the action should deploy.
+        FOLDER: doc # The folder the action should deploy.
+        CLEAN: true
