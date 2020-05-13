@@ -1,0 +1,99 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- Copyright (C) 2020-2020 Jethro Kuan <jethrokuan95@gmail.com>
+
+You can redistribute this document and/or modify it under the terms
+of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any
+later version.
+
+This document is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+ -->
+<!-- Created by GNU Texinfo 6.5, http://www.gnu.org/software/texinfo/ -->
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Graph Options (Org-roam User Manual)</title>
+
+<meta name="description" content="Graph Options (Org-roam User Manual)">
+<meta name="keywords" content="Graph Options (Org-roam User Manual)">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<link href="index.html#Top" rel="start" title="Top">
+<link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="Graphing.html#Graphing" rel="up" title="Graphing">
+<link href="Excluding-Nodes-and-Edges.html#Excluding-Nodes-and-Edges" rel="next" title="Excluding Nodes and Edges">
+<link href="Graphing.html#Graphing" rel="prev" title="Graphing">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.indentedblock {margin-right: 0em}
+blockquote.smallindentedblock {margin-right: 0em; font-size: smaller}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smalllisp {margin-left: 3.2em}
+kbd {font-style: oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: inherit; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: inherit; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nolinebreak {white-space: nowrap}
+span.roman {font-family: initial; font-weight: normal}
+span.sansserif {font-family: sans-serif; font-weight: normal}
+ul.no-bullet {list-style: none}
+-->
+</style>
+
+
+</head>
+
+<body lang="en">
+<a name="Graph-Options"></a>
+<div class="header">
+<p>
+Next: <a href="Excluding-Nodes-and-Edges.html#Excluding-Nodes-and-Edges" accesskey="n" rel="next">Excluding Nodes and Edges</a>, Up: <a href="Graphing.html#Graphing" accesskey="u" rel="up">Graphing</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<hr>
+<a name="Graph-Options-1"></a>
+<h3 class="section">9.1 Graph Options</h3>
+
+<p>Graphviz provides many options for customizing the graph output, and Org-roam supports some of them. See <a href="https://graphviz.gitlab.io/_pages/doc/info/attrs.html">https://graphviz.gitlab.io/_pages/doc/info/attrs.html</a> for customizable options.
+</p>
+<ul>
+<li> User Option: org-roam-graph-extra-config
+
+<p>Extra options passed to graphviz for the digraph (The &ldquo;G&rdquo; attributes).
+Example: &lsquo;<samp>'=((&quot;rankdir&quot; . &quot;LR&quot;))</samp>&rsquo;
+</p>
+</li><li> User Option: org-roam-graph-node-extra-config
+
+<p>Extra options for nodes in the graphviz output (The &ldquo;N&rdquo; attributes).
+Example: &lsquo;<samp>'((&quot;color&quot; . &quot;skyblue&quot;))</samp>&rsquo;
+</p>
+</li><li> User Option: org-roam-graph-edge-extra-config
+
+<p>Extra options for edges in the graphviz output (The &ldquo;E&rdquo; attributes).
+Example: &lsquo;<samp>'((&quot;dir&quot; . &quot;back&quot;))</samp>&rsquo;
+</p>
+</li><li> User Option: org-roam-graph-edge-cites-extra-config
+
+<p>Extra options for citation edges in the graphviz output.
+Example: &lsquo;<samp>'((&quot;color&quot; . &quot;red&quot;))</samp>&rsquo;
+</p></li></ul>
+
+
+
+
+</body>
+</html>

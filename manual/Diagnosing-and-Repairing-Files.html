@@ -1,0 +1,107 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- Copyright (C) 2020-2020 Jethro Kuan <jethrokuan95@gmail.com>
+
+You can redistribute this document and/or modify it under the terms
+of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any
+later version.
+
+This document is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+ -->
+<!-- Created by GNU Texinfo 6.5, http://www.gnu.org/software/texinfo/ -->
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Diagnosing and Repairing Files (Org-roam User Manual)</title>
+
+<meta name="description" content="Diagnosing and Repairing Files (Org-roam User Manual)">
+<meta name="keywords" content="Diagnosing and Repairing Files (Org-roam User Manual)">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<link href="index.html#Top" rel="start" title="Top">
+<link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="index.html#Top" rel="up" title="Top">
+<link href="Appendix.html#Appendix" rel="next" title="Appendix">
+<link href="The-roam_002dref-Protocol.html#The-roam_002dref-Protocol" rel="prev" title="The roam-ref Protocol">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.indentedblock {margin-right: 0em}
+blockquote.smallindentedblock {margin-right: 0em; font-size: smaller}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smalllisp {margin-left: 3.2em}
+kbd {font-style: oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: inherit; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: inherit; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nolinebreak {white-space: nowrap}
+span.roman {font-family: initial; font-weight: normal}
+span.sansserif {font-family: sans-serif; font-weight: normal}
+ul.no-bullet {list-style: none}
+-->
+</style>
+
+
+</head>
+
+<body lang="en">
+<a name="Diagnosing-and-Repairing-Files"></a>
+<div class="header">
+<p>
+Next: <a href="Appendix.html#Appendix" accesskey="n" rel="next">Appendix</a>, Previous: <a href="Roam-Protocol.html#Roam-Protocol" accesskey="p" rel="prev">Roam Protocol</a>, Up: <a href="index.html#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<hr>
+<a name="Diagnosing-and-Repairing-Files-1"></a>
+<h2 class="chapter">12 Diagnosing and Repairing Files</h2>
+
+<p>Org-roam provides a utility for diagnosing and repairing problematic files via
+&lsquo;<samp>org-roam-doctor</samp>&rsquo;. By default, &lsquo;<samp>org-roam-doctor</samp>&rsquo; runs the check across all Org-roam
+files, and this can take some time. To run the check only for the current file,
+run &lsquo;<samp>C-u M-x org-roam-doctor</samp>&rsquo;.
+</p>
+<ul>
+<li> Function: org-roam-doctor &amp;optional this-buffer
+
+<p>Perform a check on Org-roam files to ensure cleanliness. If THIS-BUFFER, run
+the check only for the current buffer.
+</p></li></ul>
+
+<p>The checks run are defined in &lsquo;<samp>org-roam-doctor--checkers</samp>&rsquo;. Each checker is an instance of &lsquo;<samp>org-roam-doctor-checker</samp>&rsquo;. To define a checker, use &lsquo;<samp>make-org-roam-doctor-checker</samp>&rsquo;. Here is a sample definition:
+</p>
+<div class="lisp">
+<pre class="lisp">(make-org-roam-doctor-checker
+    :name 'org-roam-doctor-broken-links
+    :description &quot;Fix broken links.&quot;
+    :actions '((&quot;d&quot; . (&quot;Unlink&quot; . org-roam-doctor--remove-link))
+               (&quot;r&quot; . (&quot;Replace link&quot; . org-roam-doctor--replace-link))
+               (&quot;R&quot; . (&quot;Replace link (keep label)&quot; . org-roam-doctor--replace-link-keep-label))))
+</pre></div>
+
+<p>The &lsquo;<samp>:name</samp>&rsquo; property is the name of the function run. The function takes in the
+Org parse tree, and returns a list of &lsquo;<samp>(point error-message)</samp>&rsquo;. &lsquo;<samp>:description</samp>&rsquo; is a
+short description of what the checker does. &lsquo;<samp>:actions</samp>&rsquo; is an alist containing
+elements of the form &lsquo;<samp>(char . (prompt . function))</samp>&rsquo;. These actions are defined per
+checker, to perform autofixes for the errors. For each error detected,
+&lsquo;<samp>org-roam-doctor</samp>&rsquo; will move the point to the current error, and pop-up a help
+window displaying the error message, as well as the list of actions that can be
+taken provided in &lsquo;<samp>:actions</samp>&rsquo;.
+</p>
+
+
+
+</body>
+</html>
