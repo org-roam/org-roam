@@ -1,14 +1,15 @@
 ---
 name: Bug Report
 about: Something's not working.
-title: ''
-labels: ''
-assignees: 'jethrokuan'
+title: ""
+labels: ""
+assignees: ""
 ---
 
 ### Description
 
 #### Steps to Reproduce
+
 <!--
 Example:
 
@@ -18,13 +19,15 @@ Example:
 ...
 -->
 
-
 #### Expected Results
+
 <!-- Example: File A is there -->
 
 #### Actual Results
+
 <!-- Example: File A is missing -->
 
 ### Versions
+
 - Emacs (`C-h v emacs-version`): vX.X.X
 - Org-roam commit: https://github.com/jethrokuan/org-roam/commit/commithashhere
