@@ -205,7 +205,7 @@ CHECKER is a org-roam-doctor checker instance."
 ;;;###autoload
 (defun org-roam-doctor (&optional checkall)
   "Perform a check on the current buffer to ensure cleanliness.
-If CHECKALL, run the check only for all Org-roam files."
+If CHECKALL, run the check for all Org-roam files."
   (interactive "P")
   (let ((files (if checkall
                   (org-roam--list-all-files)
