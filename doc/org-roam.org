@@ -207,7 +207,9 @@ Take for example the following org file:
 | ='alias=    | '("WWII" "World War II") |
 
 One can freely control which extraction methods to use by customizing
-=org-roam-title-sources=: see the doc-string for the variable for more information.
+=org-roam-title-sources=: see the doc-string for the variable for more
+information. If all methods of title extraction return no results, the file-name
+is used in place of the titles for completions.
 
 ** File Refs
 

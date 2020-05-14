@@ -113,8 +113,8 @@ Each element in the list is either:
 1. a symbol -- this symbol corresponds to a title retrieval
 function, which returns the list of titles for the current buffer
 2. a list of symbols -- symbols in the list are treated as
-with (1). The return value of this list is first symbol in the
-list returning a non-nil value.
+with (1). The return value of this list is the first symbol in
+the list returning a non-nil value.
 
 The return results of the root list are concatenated.
 
@@ -379,16 +379,16 @@ current buffer is used."
 
 (defun org-roam--extract-titles-title ()
   "Return title from \"#+TITLE\" of the current buffer."
-  (let* ((props (org-roam--extract-global-props '("TITLE")))
-         (title (cdr (assoc "TITLE" props))))
+  (let* ((prop (org-roam--extract-global-props '("TITLE")))
+         (title (cdr (assoc "TITLE" prop))))
     (when title
       (list title))))
 
 (defun org-roam--extract-titles-alias ()
   "Return the aliases from the current buffer.
 Reads from the \"ROAM_ALIAS\" property."
-  (let* ((props (org-roam--extract-global-props '("ROAM_ALIAS")))
-         (aliases (cdr (assoc "ROAM_ALIAS" props))))
+  (let* ((prop (org-roam--extract-global-props '("ROAM_ALIAS")))
+         (aliases (cdr (assoc "ROAM_ALIAS" prop))))
     (org-roam--aliases-str-to-list aliases)))
 
 (defun org-roam--extract-titles-headline ()
@@ -408,17 +408,14 @@ If NESTED, return the first successful result from SOURCES."
   (let (coll res)
     (cl-dolist (source (or sources
                            org-roam-title-sources))
-      (cond
-       ((symbolp source)
-        (setq res (funcall (intern (concat "org-roam--extract-titles-" (symbol-name source))))))
-       (t ; list of sources
-        (setq res (org-roam--extract-titles source t))))
+      (setq res (if (symbolp source)
+                    (funcall (intern (concat "org-roam--extract-titles-" (symbol-name source))))
+                  (org-roam--extract-titles source t)))
       (when res
-        (if nested
-            (progn
-              (setq coll res)
-              (cl-return))
-          (setq coll (nconc coll res)))))
+        (if (not nested)
+            (setq coll (nconc coll res))
+          (setq coll res)
+          (cl-return))))
     coll))
 
 (defun org-roam--extract-and-format-titles (&optional file-path)
