@@ -106,6 +106,34 @@ ensure that."
   :type '(repeat string)
   :group 'org-roam)
 
+(defcustom org-roam-title-sources '((title headline) alias)
+  "The list of sources from which to retrieve a note title.
+Each element in the list is either:
+
+1. a symbol -- this symbol corresponds to a title retrieval
+function, which returns the list of titles for the current buffer
+2. a list of symbols -- symbols in the list are treated as
+with (1). The return value of this list is first symbol in the
+list returning a non-nil value.
+
+The return results of the root list are concatenated.
+
+For example the setting: '((title headline) alias) means the following:
+
+1. Return the 'title + 'alias, if the title of current buffer is non-empty;
+2. Or return 'headline + 'alias otherwise.
+
+The currently supported symbols are:
+1. 'title: The \"#+TITLE\" property of org file.
+2. 'alias: The \"#+ROAM_ALIAS\" property of the org file, using
+space-delimited strings.
+3. 'headline: The first headline in the org file."
+  :type '(repeat
+          (choice
+           (repeat symbol)
+           (symbol)))
+  :group 'org-roam)
+
 ;;;; Dynamic variables
 (defvar org-roam-last-window nil
   "Last window `org-roam' was called from.")
@@ -349,25 +377,50 @@ current buffer is used."
                                 ,wrong-type)))))
     title))
 
-(defun org-roam--extract-titles ()
-  "Extract the titles from current buffer.
-Titles are obtained via:
+(defun org-roam--extract-titles-title ()
+  "Return title from the current buffer using the \"TITLE\"
+  property."
+  (let* ((props (org-roam--extract-global-props '("TITLE")))
+         (title (cdr (assoc "TITLE" props))))
+    (when title
+      (list title))))
 
-1. The #+TITLE property or the first headline
-2. The aliases specified via the #+ROAM_ALIAS property."
-  (let* ((props (org-roam--extract-global-props '("TITLE" "ROAM_ALIAS")))
-         (aliases (cdr (assoc "ROAM_ALIAS" props)))
-         (title (or (cdr (assoc "TITLE" props))
-                    (org-element-map
-                        (org-element-parse-buffer)
-                        'headline
-                      (lambda (h)
-                        (org-no-properties (org-element-property :raw-value h)))
-                      :first-match t)))
-         (alias-list (org-roam--aliases-str-to-list aliases)))
-    (if title
-        (cons title alias-list)
-      alias-list)))
+(defun org-roam--extract-titles-alias ()
+  "Return the aliases from the current buffer.
+Reads from the \"ROAM_ALIAS\" property."
+  (let* ((props (org-roam--extract-global-props '("ROAM_ALIAS")))
+         (aliases (cdr (assoc "ROAM_ALIAS" props))))
+    (org-roam--aliases-str-to-list aliases)))
+
+(defun org-roam--extract-titles-headline ()
+  "Return the first headline of the current buffer."
+  (let ((headline (org-element-map
+                      (org-element-parse-buffer)
+                      'headline
+                    (lambda (h)
+                      (org-no-properties (org-element-property :raw-value h)))
+                    :first-match t)))
+    (when headline
+      (list headline))))
+
+(defun org-roam--extract-titles (&optional sources nested)
+  "Extract the titles from current buffer using SOURCES.
+If NESTED, return the first successful result from SOURCES."
+  (let (coll res)
+    (cl-dolist (source (or sources
+                           org-roam-title-sources))
+      (cond
+       ((symbolp source)
+        (setq res (funcall (intern (concat "org-roam--extract-titles-" (symbol-name source))))))
+       (t ; list of sources
+        (setq res (org-roam--extract-titles source t))))
+      (when res
+        (if nested
+            (progn
+              (setq coll res)
+              (cl-return))
+          (setq coll (nconc coll res)))))
+    coll))
 
 (defun org-roam--extract-and-format-titles (&optional file-path)
   "Extract the titles from the current buffer and format them.
