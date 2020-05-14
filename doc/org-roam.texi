@@ -536,7 +536,7 @@ Height of @samp{org-roam-buffer}. Has an effect only if @samp{org-roam-buffer-po
 @samp{'top} or @samp{'bottom}.
 
 @item
-User Option: org-roam-buffer-no-delete-window
+User Option: org-roam-buffer-no-delete-other-windows
 
 The @samp{no-delete-window} parameter for the org-roam buffer. Setting it to @samp{'t} prevents the window from being deleted when calling @samp{delete-other-windows}.
 @end itemize

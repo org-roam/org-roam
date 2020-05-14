@@ -372,7 +372,7 @@ The Org-roam buffer displays backlinks for the currently active Org-roam note.
   Height of =org-roam-buffer=. Has an effect only if =org-roam-buffer-position= is
   ='top= or ='bottom=.
 
-- User Option: org-roam-buffer-no-delete-window
+- User Option: org-roam-buffer-no-delete-other-windows
 
   The =no-delete-window= parameter for the org-roam buffer. Setting it to ='t= prevents the window from being deleted when calling =delete-other-windows=.
 
