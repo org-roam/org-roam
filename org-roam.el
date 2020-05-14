@@ -134,7 +134,7 @@ space-delimited strings.
            (symbol)))
   :group 'org-roam)
 
-(defcustom org-roam-tag-sources '(directories global-prop)
+(defcustom org-roam-tag-sources '(prop)
   "Sources to obtain tags from."
   :type '(repeat symbol))
 
@@ -359,16 +359,24 @@ If NESTED, return the first successful result from SOURCES."
           (cl-return))))
     coll))
 
-(defun org-roam--extract-tags-directories (file)
-  "Extract tags from using the directory path FILE."
+(defun org-roam--extract-tags-all-directories (file)
+  "Extract tags from using the directory path FILE.
+All sub-directories relative to `org-roam-directory' are used as tags."
   (when-let ((dir-relative (file-name-directory
                             (file-relative-name file org-roam-directory))))
     (f-split dir-relative)))
 
-(defun org-roam--extract-tags-global-prop (_file)
+(defun org-roam--extract-tags-last-directory (file)
+  "Extract tags from using the directory path FILE.
+The final directory component is used as a tag."
+  (when-let ((dir-relative (file-name-directory
+                            (file-relative-name file org-roam-directory))))
+    (last (f-split dir-relative))))
+
+(defun org-roam--extract-tags-prop (_file)
   "Extract tags from the current buffer's \"#ROAM_TAGS\" global property."
-  (let* ((props (org-roam--extract-global-props '("ROAM_TAGS"))))
-    (org-roam--str-to-list (cdr (assoc "ROAM_TAGS" props)))))
+  (let* ((prop (org-roam--extract-global-props '("ROAM_TAGS"))))
+    (org-roam--str-to-list (cdr (assoc "ROAM_TAGS" prop)))))
 
 (defun org-roam--extract-tags (&optional file)
   "Extract tags from the current buffer.

@@ -93,7 +93,8 @@ Installation
 
 Anatomy of an Org-roam File
 
-* File Titles::
+* Titles::
+* Tags::
 * File Refs::
 
 The Templating System
@@ -317,12 +318,13 @@ several Org-roam-specific keywords. These functionality are not crucial
 to effective use of Org-roam.
 
 @menu
-* File Titles::
+* Titles::
+* Tags::
 * File Refs::
 @end menu
 
-@node File Titles
-@section File Titles
+@node Titles
+@section Titles
 
 To easily find a note, a title needs to be prescribed to a note. A note can have
 many titles: this allows a note to be referred to by different names, which is
@@ -368,6 +370,37 @@ One can freely control which extraction methods to use by customizing
 @samp{org-roam-title-sources}: see the doc-string for the variable for more
 information. If all methods of title extraction return no results, the file-name
 is used in place of the titles for completions.
+
+@node Tags
+@section Tags
+
+Tags are used as meta-data for files: they facilitate interactions with notes
+where titles are insufficient. For example, tags allow for categorization of
+notes: differentiating between bibliographical and structure notes during interactive commands.
+
+Org-roam calls @samp{org-roam--extract-tags} to extract tags from files. It uses the
+variable @samp{org-roam-tag-sources}, to control how tags are extracted. The tag
+extraction methods supported are:
+
+@enumerate
+@item
+@samp{'prop}: This extracts tags from the @samp{#+ROAM_TAGS} property. Tags are space delimited, and can be multi-word using double quotes.
+@item
+@samp{'all-directories}: All sub-directories relative to @samp{org-roam-directory} are
+extracted as tags. That is, if a file is located at relative path
+@samp{foo/bar/file.org}, the file will have tags @samp{foo} and @samp{bar}.
+@item
+@samp{'last-directory}: Extracts the last directory relative to
+@samp{org-roam-directory} as the tag. That is, if a file is located at relative
+path @samp{foo/bar/file.org}, the file will have tag @samp{bar}.
+@end enumerate
+
+By default, only the @samp{'prop} extraction method is enabled. To enable the other
+extraction methods, you may modify @samp{org-roam-tag-sources}:
+
+@lisp
+(setq org-roam-tag-sources '(prop last-directory))
+@end lisp
 
 @node File Refs
 @section File Refs

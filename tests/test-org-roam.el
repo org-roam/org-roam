@@ -141,6 +141,72 @@
                 :to-equal
                 '("Headline" "roam" "alias" "TITLE PROP"))))))
 
+(describe "Tag extraction"
+  :var (org-roam-tag-sources)
+  (before-all
+    (test-org-roam--init))
+
+  (after-all
+    (test-org-roam--teardown))
+
+  (cl-flet
+      ((test (fn file)
+             (let* ((fname (test-org-roam--abs-path file))
+                    (buf (find-file-noselect fname)))
+               (with-current-buffer buf
+                 (funcall fn fname)))))
+    (it "extracts from prop"
+      (expect (test #'org-roam--extract-tags-prop
+                    "tags/tag.org")
+              :to-equal
+              '("t1" "t2"))
+      (expect (test #'org-roam--extract-tags-prop
+                    "tags/no_tag.org")
+              :to-equal
+              nil))
+
+    (it "extracts from all directories"
+      (expect (test #'org-roam--extract-tags-all-directories
+                    "base.org")
+              :to-equal
+              nil)
+      (expect (test #'org-roam--extract-tags-all-directories
+                    "tags/tag.org")
+              :to-equal
+              '("tags"))
+      (expect (test #'org-roam--extract-tags-all-directories
+                    "nested/deeply/deeply_nested_file.org")
+              :to-equal
+              '("nested" "deeply")))
+
+    (it "extracts from last directory"
+      (expect (test #'org-roam--extract-tags-last-directory
+                    "base.org")
+              :to-equal
+              nil)
+      (expect (test #'org-roam--extract-tags-last-directory
+                    "tags/tag.org")
+              :to-equal
+              '("tags"))
+      (expect (test #'org-roam--extract-tags-last-directory
+                    "nested/deeply/deeply_nested_file.org")
+              :to-equal
+              '("deeply")))
+
+    (describe "uses org-roam-tag-sources correctly"
+      (it "'(prop)"
+        (expect (let ((org-roam-tag-sources '(prop)))
+                  (test #'org-roam--extract-tags
+                        "tags/tag.org"))
+                :to-equal
+                '("t1" "t2")))
+      (it "'(prop all-directories)"
+        (expect (let ((org-roam-tag-sources '(prop all-directories)))
+                  (test #'org-roam--extract-tags
+                        "tags/tag.org"))
+                :to-equal
+                '("t1" "t2" "tags"))))))
+
 ;;; Tests
 (xdescribe "org-roam-db-build-cache"
   (before-each
