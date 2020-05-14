@@ -331,8 +331,11 @@ This uses the templates defined at `org-roam-capture-templates'."
   (when (org-roam-capture--in-process-p)
     (user-error "Nested Org-roam capture processes not supported"))
   (let* ((completions (org-roam--get-title-path-completions))
-         (title (org-roam-completion--completing-read "File: " completions))
-         (file-path (cdr (assoc title completions))))
+         (title-with-keys (org-roam-completion--completing-read "File: "
+                                                                completions))
+         (res (gethash title-with-keys completions))
+         (title (plist-get res :title))
+         (file-path (plist-get res :file-path)))
     (let ((org-roam-capture--info (list (cons 'title title)
                                         (cons 'slug (org-roam--title-to-slug title))
                                         (cons 'file file-path)))
