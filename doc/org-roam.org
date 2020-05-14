@@ -174,16 +174,40 @@ Org-mode. However, to support additional functionality, Org-roam adds
 several Org-roam-specific keywords. These functionality are not crucial
 to effective use of Org-roam.
 
-** File Aliases
+** File Titles
 
-Suppose you want a note to be referred to by different names (e.g.
-"World War 2", "WWII"). You may specify such aliases using the
-=#+ROAM_ALIAS= attribute:
+To easily find a note, a title needs to be prescribed to a note. A note can have
+many titles: this allows a note to be referred to by different names, which is
+especially useful for topics or concepts with acronyms. For example, for a note
+like "World War 2", it may be desirable to also refer to it using the acronym
+"WWII".
+
+Org-roam calls =org-roam--extract-titles= to extract titles. It uses the
+variable =org-roam-title-sources=, to control how the titles are extracted. The
+title extraction methods supported are:
+
+1. ='title=: This extracts the title using the file =#+TITLE= property
+2. ='headline=: This extracts the title from the first headline in the Org file
+3. ='alias=: This extracts a list of titles using the =#ROAM_ALIAS= property.
+   The aliases are space-delimited, and can be multi-worded using quotes
+
+Take for example the following org file:
 
 #+BEGIN_SRC org
   #+TITLE: World War 2
   #+ROAM_ALIAS: "WWII" "World War II"
+
+  * Headline
 #+END_SRC
+
+| Method      | Titles                   |
+|-------------+--------------------------|
+| ='title=    | '("World War 2")         |
+| ='headline= | '("Headline")            |
+| ='alias=    | '("WWII" "World War II") |
+
+One can freely control which extraction methods to use by customizing
+=org-roam-title-sources=: see the doc-string for the variable for more information.
 
 ** File Refs
 
