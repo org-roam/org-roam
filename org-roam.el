@@ -395,6 +395,19 @@ The final directory component is used as a tag."
   (let* ((prop (org-roam--extract-global-props '("ROAM_TAGS"))))
     (org-roam--str-to-list (cdr (assoc "ROAM_TAGS" prop)))))
 
+(defcustom org-roam-tag-sort nil
+  "When non-nil, sort the tags in the completions.
+When t, sort the tags alphabetically, regardless of case.
+`org-roam-tag-sort' can also be a list of arguments to be applied
+to `cl-sort'.  For example, these are the arguments used when
+`org-roam-tag-sort' is set to t:
+    \('string-lessp :key 'downcase)
+Only relevant when `org-roam-tag-sources' is non-nil."
+  :type '(choice
+          (boolean)
+          (list :tag "Arguments to cl-loop"))
+  :group 'org-roam)
+
 (defun org-roam--extract-tags (&optional file)
   "Extract tags from the current buffer.
 If file-path FILE, use it to determine the directory tags.
@@ -403,10 +416,20 @@ Tags are obtained via:
 1. Directory tags: Relative to `org-roam-directory': each folder
    path is considered a tag.
 2. The key #+ROAM_TAGS."
-  (let ((file (or file (buffer-file-name (buffer-base-buffer)))))
-    (mapcan (lambda (source)
-              (funcall (intern (concat "org-roam--extract-tags-" (symbol-name source))) file))
-            org-roam-tag-sources)))
+  (let* ((file (or file (buffer-file-name (buffer-base-buffer))))
+         (tags (mapcan (lambda (source)
+                         (funcall (intern (concat "org-roam--extract-tags-"
+                                                  (symbol-name source)))
+                                  file))
+                       org-roam-tag-sources)))
+    (pcase org-roam-tag-sort
+      ('nil tags)
+      ((pred booleanp) (cl-sort tags 'string-lessp :key 'downcase))
+      (`(,(pred symbolp) . ,_)
+       (apply #'cl-sort (push tags org-roam-tag-sort)))
+      (wrong-type (signal 'wrong-type-argument
+                          `((booleanp (list symbolp …))
+                            ,wrong-type))))))
 
 (defun org-roam--ref-type-p (type)
   "Return t if the ref from current buffer is TYPE."
