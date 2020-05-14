@@ -544,6 +544,12 @@ If DESCRIPTION is provided, use this as the link label.  See
         (org-roam--with-template-error 'org-roam-capture-templates
           (org-roam-capture--capture))))))
 
+(defcustom org-roam-tag-separator ","
+  "String to use to separate tags.
+Only relevant when `org-roam-tag-sources' is non-nil."
+  :type 'string
+  :group 'org-roam)
+
 (defun org-roam--get-title-path-completions ()
   "Return a hash table for completion.
 The key is the displayed title for completion, and the value is a
@@ -558,7 +564,7 @@ plist containing the path to the file, and the original title."
           (dolist (title titles)
             (let ((k (concat
                       (if tags
-                          (concat "(" (s-join "," tags) ") ")
+                          (concat "(" (s-join org-roam-tag-separator tags) ") ")
                         "")
                       title))
                   (v (list :path file-path :title title)))
