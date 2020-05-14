@@ -378,8 +378,7 @@ current buffer is used."
     title))
 
 (defun org-roam--extract-titles-title ()
-  "Return title from the current buffer using the \"TITLE\"
-property."
+  "Return title from \"#+TITLE\" of the current buffer."
   (let* ((props (org-roam--extract-global-props '("TITLE")))
          (title (cdr (assoc "TITLE" props))))
     (when title
