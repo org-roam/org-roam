@@ -113,7 +113,7 @@ Each element in the list is either:
 1. a symbol -- this symbol corresponds to a title retrieval
 function, which returns the list of titles for the current buffer
 2. a list of symbols -- symbols in the list are treated as
-with (1). The return value of this list is the first symbol in
+with (1).  The return value of this list is the first symbol in
 the list returning a non-nil value.
 
 The return results of the root list are concatenated.
@@ -504,7 +504,7 @@ Examples:
 If LOWERCASE, downcase the title before insertion.
 FILTER-FN is the name of a function to apply on the candidates
 which takes as its argument an alist of path-completions.
-If DESCRIPTION is provided, use this as the link label. See
+If DESCRIPTION is provided, use this as the link label.  See
 `org-roam--get-title-path-completions' for details."
   (interactive "P")
   (let* ((region (and (region-active-p)
