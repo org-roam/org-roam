@@ -52,57 +52,97 @@
   (org-roam-mode -1)
   (delete-file (org-roam-db--get))
   (org-roam-db--close))
+
 (describe "Title extraction"
+  :var (org-roam-title-sources)
   (before-all
     (test-org-roam--init))
 
   (after-all
-   (test-org-roam--teardown))
+    (test-org-roam--teardown))
 
-  (it "extracts title from title property"
-    (expect (let ((buf (find-file-noselect
-                        (test-org-roam--abs-path "alias.org"))))
-              (with-current-buffer buf
-                (org-roam--extract-titles-title)))
-            :to-equal
-            '("t1"))
-    (expect (let ((buf (find-file-noselect
-                        (test-org-roam--abs-path "no-title.org"))))
-              (with-current-buffer buf
-                (org-roam--extract-titles-title)))
-            :to-equal
-            nil))
+  (cl-flet
+      ((test (fn file)
+             (let ((buf (find-file-noselect
+                         (test-org-roam--abs-path file))))
+               (with-current-buffer buf
+                 (funcall fn)))))
+    (it "extracts title from title property"
+      (expect (test #'org-roam--extract-titles-title
+                    "titles/title.org")
+              :to-equal
+              '("Title"))
+      (expect (test #'org-roam--extract-titles-title
+                    "titles/aliases.org")
+              :to-equal
+              nil)
+      (expect (test #'org-roam--extract-titles-title
+                    "titles/headline.org")
+              :to-equal
+              nil)
+      (expect (test #'org-roam--extract-titles-title
+                    "titles/combination.org")
+              :to-equal
+              '("TITLE PROP")))
 
-  (it "extracts aliases from alias property"
-    (expect (let ((buf (find-file-noselect
-                        (test-org-roam--abs-path "alias.org"))))
-              (with-current-buffer buf
-                (org-roam--extract-titles-alias)))
-            :to-equal
-            '("a1" "a 2"))
-    (expect (let ((buf (find-file-noselect
-                        (test-org-roam--abs-path "no-title.org"))))
-              (with-current-buffer buf
-                (org-roam--extract-titles-alias)))
-            :to-equal
-            nil))
+    (it "extracts alias"
+      (expect (test #'org-roam--extract-titles-alias
+                    "titles/title.org")
+              :to-equal
+              nil)
+      (expect (test #'org-roam--extract-titles-alias
+                    "titles/aliases.org")
+              :to-equal
+              '("roam" "alias"))
+      (expect (test #'org-roam--extract-titles-alias
+                    "titles/headline.org")
+              :to-equal
+              nil)
+      (expect (test #'org-roam--extract-titles-alias
+                    "titles/combination.org")
+              :to-equal
+              '("roam" "alias")))
 
-  (it "extracts title from first headline"
-    (expect (let ((buf (find-file-noselect
-                        (test-org-roam--abs-path "alias.org"))))
-              (with-current-buffer buf
-                (org-roam--extract-titles-headline)))
-            :to-equal
-            nil)
-    (expect (let ((buf (find-file-noselect
-                        (test-org-roam--abs-path "no-title.org"))))
-              (with-current-buffer buf
-                (org-roam--extract-titles-headline)))
-            :to-equal
-            '("Headline title"))))
+    (it "extracts headlines"
+      (expect (test #'org-roam--extract-titles-alias
+                    "titles/title.org")
+              :to-equal
+              nil)
+      (expect (test #'org-roam--extract-titles-headline
+                    "titles/aliases.org")
+              :to-equal
+              nil)
+      (expect (test #'org-roam--extract-titles-headline
+                    "titles/headline.org")
+              :to-equal
+              '("Headline"))
+      (expect (test #'org-roam--extract-titles-headline
+                    "titles/combination.org")
+              :to-equal
+              '("Headline")))
+
+    (describe "uses org-roam-title-sources correctly"
+      (it "'((title headline) alias)"
+        (expect (let ((org-roam-title-sources '((title headline) alias)))
+                  (test #'org-roam--extract-titles
+                        "titles/combination.org"))
+                :to-equal
+                '("TITLE PROP" "roam" "alias")))
+      (it "'((headline title) alias)"
+        (expect (let ((org-roam-title-sources '((headline title) alias)))
+                  (test #'org-roam--extract-titles
+                        "titles/combination.org"))
+                :to-equal
+                '("Headline" "roam" "alias")))
+      (it "'(headline alias title)"
+        (expect (let ((org-roam-title-sources '(headline alias title)))
+                  (test #'org-roam--extract-titles
+                        "titles/combination.org"))
+                :to-equal
+                '("Headline" "roam" "alias" "TITLE PROP"))))))
 
 ;;; Tests
-(describe "org-roam-db-build-cache"
+(xdescribe "org-roam-db-build-cache"
   (before-each
     (test-org-roam--init))
 
