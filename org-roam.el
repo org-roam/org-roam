@@ -694,23 +694,26 @@ takes three arguments: the type, the ref, and the file of the
 current candidate.  It should return t if that candidate is to be
 included as a candidate."
   (let ((rows (org-roam-db-query [:select [type ref file] :from refs]))
+        (ht (make-hash-table :test 'equal))
         (include-type (and interactive
                            org-roam-include-type-in-ref-path-completions))
         candidates)
-    (dolist (row rows (nreverse candidates))
-      (cl-destructuring-bind (type ref file) row
+    (dolist (row rows)
+      (pcase-let ((`(,type ,ref ,file-path) row))
         (when (pcase filter
                 ('nil t)
                 ((pred stringp) (string= type filter))
-                ((pred functionp) (funcall filter type ref file))
+                ((pred functionp) (funcall filter type ref file-path))
                 (wrong-type (signal 'wrong-type-argument
                                     `((stringp functionp)
                                       ,wrong-type))))
-          (let ((candidate (cons (if include-type
-                                     (format "%s:%s" type ref)
-                                   ref)
-                                 file)))
-            (push candidate candidates)))))))
+          (let ((k (concat
+                    (when include-type
+                      (format "(%s) " type))
+                    ref))
+                (v (list :path file-path :type type :ref ref)))
+            (puthash k v ht)))))
+    ht))
 
 (defun org-roam--find-ref (ref)
   "Find and open and Org-roam file from REF if it exists.
