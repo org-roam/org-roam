@@ -140,19 +140,21 @@ space-delimited strings.
 It should be a list of symbols representing any of the following
 extraction methods:
 
-1. 'prop: This extracts tags from the =#+ROAM_TAGS=
-   property.  Tags are space delimited, and can be multi-word
-   using double quotes.
+  `prop'
+    Extract tags from the #+ROAM_TAGS property.
+    Tags are space delimited.
+    Tags may contain spaces if they are double-quoted.
+    e.g. #+ROAM_TAGS: tag \"tag with spaces\"
 
-2. 'all-directories: All sub-directories relative to
-   =org-roam-directory= are extracted as tags.  That is, if a file
-   is located at relative path =foo/bar/file.org=, the file will
-   have tags =foo= and =bar=.
+  `all-directories'
+    Extract sub-directories relative to `org-roam-directory'.
+    That is, if a file is located at relative path foo/bar/file.org,
+    the file will have tags \"foo\" and \"bar\".
 
-3. 'last-directory: Extracts the last directory relative to
-   =org-roam-directory= as the tag.  That is, if a file is located
-   at relative path =foo/bar/file.org=, the file will have tag
-   =bar=."
+  `last-directory'
+    Extract the last directory relative to `org-roam-directory'.
+    That is, if a file is located at relative path foo/bar/file.org,
+    the file will have tag \"bar\"."
   :type '(repeat symbol))
 
 ;;;; Dynamic variables
