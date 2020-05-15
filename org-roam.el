@@ -526,9 +526,11 @@ Examples:
                        target))
      description)))
 
-(defun org-roam-insert (&optional lowercase filter-fn description)
+(defun org-roam-insert (&optional lowercase completions filter-fn description)
   "Find an Org-roam file, and insert a relative org link to it at point.
 If LOWERCASE, downcase the title before insertion.
+COMPLETIONS is a list of completions to be used instead of
+`org-roam--get-title-path-completions`.
 FILTER-FN is the name of a function to apply on the candidates
 which takes as its argument an alist of path-completions.
 If DESCRIPTION is provided, use this as the link label.  See
@@ -540,7 +542,8 @@ If DESCRIPTION is provided, use this as the link label.  See
          (region-text (when region
                         (buffer-substring-no-properties
                          (car region) (cdr region))))
-         (completions (--> (org-roam--get-title-path-completions)
+         (completions (--> (or completions
+                               (org-roam--get-title-path-completions))
                            (if filter-fn
                                (funcall filter-fn it)
                              it)))
@@ -597,14 +600,17 @@ plist containing the path to the file, and the original title."
               (puthash k v ht))))))
     ht))
 
-(defun org-roam-find-file (&optional initial-prompt filter-fn)
+(defun org-roam-find-file (&optional initial-prompt completions filter-fn)
   "Find and open an Org-roam file.
 INITIAL-PROMPT is the initial title prompt.
+COMPLETIONS is a list of completions to be used instead of
+`org-roam--get-title-path-completions`.
 FILTER-FN is the name of a function to apply on the candidates
 which takes as its argument an alist of path-completions.  See
 `org-roam--get-title-path-completions' for details."
   (interactive)
-  (let* ((completions (--> (org-roam--get-title-path-completions)
+  (let* ((completions (--> (or completions
+                               (org-roam--get-title-path-completions))
                            (if filter-fn
                                (funcall filter-fn it)
                              it)))
