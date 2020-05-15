@@ -72,15 +72,17 @@ ul.no-bullet {list-style: none}
   <li><a name="toc-Introduction-1" href="Introduction.html#Introduction">1 Introduction</a></li>
   <li><a name="toc-Installation-1" href="Installation.html#Installation">2 Installation</a>
   <ul class="no-bullet">
-    <li><a name="toc-Installing-from-MELPA-1" href="Installing-from-MELPA.html#Installing-from-MELPA">2.1 Installing from MELPA</a></li>
-    <li><a name="toc-TODO-Installing-from-the-Git-Repository" href="Installing-from-the-Git-Repository.html#Installing-from-the-Git-Repository">2.2 <strong>TODO</strong> Installing from the Git Repository</a></li>
-    <li><a name="toc-TODO-Post_002dInstallation-Tasks" href="Post_002dInstallation-Tasks.html#Post_002dInstallation-Tasks">2.3 <strong>TODO</strong> Post-Installation Tasks</a></li>
+    <li><a name="toc-_005f-_003aignore_003a" href="_005f.html#g_t_005f">2.1 _ :ignore:</a></li>
+    <li><a name="toc-Installing-from-MELPA-1" href="Installing-from-MELPA.html#Installing-from-MELPA">2.2 Installing from MELPA</a></li>
+    <li><a name="toc-TODO-Installing-from-the-Git-Repository" href="Installing-from-the-Git-Repository.html#Installing-from-the-Git-Repository">2.3 <strong>TODO</strong> Installing from the Git Repository</a></li>
+    <li><a name="toc-TODO-Post_002dInstallation-Tasks" href="Post_002dInstallation-Tasks.html#Post_002dInstallation-Tasks">2.4 <strong>TODO</strong> Post-Installation Tasks</a></li>
   </ul></li>
   <li><a name="toc-Getting-Started-1" href="Getting-Started.html#Getting-Started">3 Getting Started</a></li>
   <li><a name="toc-Anatomy-of-an-Org_002droam-File-1" href="Anatomy-of-an-Org_002droam-File.html#Anatomy-of-an-Org_002droam-File">4 Anatomy of an Org-roam File</a>
   <ul class="no-bullet">
-    <li><a name="toc-File-Aliases-1" href="File-Aliases.html#File-Aliases">4.1 File Aliases</a></li>
-    <li><a name="toc-File-Refs-1" href="File-Refs.html#File-Refs">4.2 File Refs</a></li>
+    <li><a name="toc-Titles-1" href="Titles.html#Titles">4.1 Titles</a></li>
+    <li><a name="toc-Tags-1" href="Tags.html#Tags">4.2 Tags</a></li>
+    <li><a name="toc-File-Refs-1" href="File-Refs.html#File-Refs">4.3 File Refs</a></li>
   </ul></li>
   <li><a name="toc-The-Templating-System-1" href="The-Templating-System.html#The-Templating-System">5 The Templating System</a>
   <ul class="no-bullet">
@@ -107,9 +109,10 @@ ul.no-bullet {list-style: none}
   <li><a name="toc-Org_002droam-Completion-System-1" href="Org_002droam-Completion-System.html#Org_002droam-Completion-System">10 Org-roam Completion System</a></li>
   <li><a name="toc-Roam-Protocol-1" href="Roam-Protocol.html#Roam-Protocol">11 Roam Protocol</a>
   <ul class="no-bullet">
-    <li><a name="toc-Installation-2" href="Installation-_00281_0029.html#Installation-_00281_0029">11.1 Installation</a></li>
-    <li><a name="toc-The-roam_002dfile-protocol-1" href="The-roam_002dfile-protocol.html#The-roam_002dfile-protocol">11.2 The &lsquo;<samp>roam-file</samp>&rsquo; protocol</a></li>
-    <li><a name="toc-The-roam_002dref-Protocol-1" href="The-roam_002dref-Protocol.html#The-roam_002dref-Protocol">11.3 The &lsquo;<samp>roam-ref</samp>&rsquo; Protocol</a></li>
+    <li><a name="toc-_005f-_003aignore_003a-1" href="_005f-_00281_0029.html#g_t_005f-_00281_0029">11.1 _ :ignore:</a></li>
+    <li><a name="toc-Installation-2" href="Installation-_00281_0029.html#Installation-_00281_0029">11.2 Installation</a></li>
+    <li><a name="toc-The-roam_002dfile-protocol-1" href="The-roam_002dfile-protocol.html#The-roam_002dfile-protocol">11.3 The &lsquo;<samp>roam-file</samp>&rsquo; protocol</a></li>
+    <li><a name="toc-The-roam_002dref-Protocol-1" href="The-roam_002dref-Protocol.html#The-roam_002dref-Protocol">11.4 The &lsquo;<samp>roam-ref</samp>&rsquo; Protocol</a></li>
   </ul></li>
   <li><a name="toc-Diagnosing-and-Repairing-Files-1" href="Diagnosing-and-Repairing-Files.html#Diagnosing-and-Repairing-Files">12 Diagnosing and Repairing Files</a></li>
   <li><a name="toc-Appendix-1" href="Appendix.html#Appendix">13 Appendix</a>
@@ -133,6 +136,7 @@ ul.no-bullet {list-style: none}
   <ul class="no-bullet">
     <li><a name="toc-How-do-I-have-more-than-one-Org_002droam-directory_003f-1" href="How-do-I-have-more-than-one-Org_002droam-directory_003f.html#How-do-I-have-more-than-one-Org_002droam-directory_003f">14.1 How do I have more than one Org-roam directory?</a></li>
   </ul></li>
+  <li><a name="toc-_005f-_003aignore_003a-2" href="_005f-_00282_0029.html#g_t_005f-_00282_0029">15 _ :ignore:</a></li>
 </ul>
 </div>
 
@@ -152,10 +156,9 @@ Next: <a href="Introduction.html#Introduction" accesskey="n" rel="next">Introduc
 <blockquote>
 <p>Copyright (C) 2020-2020 Jethro Kuan &lt;jethrokuan95@gmail.com&gt;
 </p>
-<p>You can redistribute this document and/or modify it under the terms
-of the GNU General Public License as published by the Free Software
-Foundation, either version 3 of the License, or (at your option) any
-later version.
+<p>You can redistribute this document and/or modify it under the terms of the GNU
+General Public License as published by the Free Software Foundation, either
+version 3 of the License, or (at your option) any later version.
 </p>
 <p>This document is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -193,13 +196,17 @@ General Public License for more details.
 </td></tr>
 <tr><td align="left" valign="top">&bull; <a href="FAQ.html#FAQ">FAQ</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
+<tr><td align="left" valign="top">&bull; <a href="_005f-_00282_0029.html#g_t_005f-_00282_0029">_</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
 <tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
 
 </pre></th></tr><tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">&mdash; The Detailed Node Listing &mdash;
 
 Installation
 
-</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="Installing-from-MELPA.html#Installing-from-MELPA">Installing from MELPA</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="_005f.html#g_t_005f">_</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Installing-from-MELPA.html#Installing-from-MELPA">Installing from MELPA</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
 <tr><td align="left" valign="top">&bull; <a href="Installing-from-the-Git-Repository.html#Installing-from-the-Git-Repository">Installing from the Git Repository</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
@@ -209,7 +216,9 @@ Installation
 
 Anatomy of an Org-roam File
 
-</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="File-Aliases.html#File-Aliases">File Aliases</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="Titles.html#Titles">Titles</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Tags.html#Tags">Tags</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
 <tr><td align="left" valign="top">&bull; <a href="File-Refs.html#File-Refs">File Refs</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
@@ -251,7 +260,9 @@ Graphing
 
 Roam Protocol
 
-</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="Installation-_00281_0029.html#Installation-_00281_0029">Installation</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="_005f-_00281_0029.html#g_t_005f-_00281_0029">_</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Installation-_00281_0029.html#Installation-_00281_0029">Installation</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
 <tr><td align="left" valign="top">&bull; <a href="The-roam_002dfile-protocol.html#The-roam_002dfile-protocol">The &lsquo;<samp>roam-file</samp>&rsquo; protocol</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>

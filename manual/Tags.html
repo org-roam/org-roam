@@ -1,0 +1,105 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- Copyright (C) 2020-2020 Jethro Kuan <jethrokuan95@gmail.com>
+
+You can redistribute this document and/or modify it under the terms
+of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any
+later version.
+
+This document is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+ -->
+<!-- Created by GNU Texinfo 6.5, http://www.gnu.org/software/texinfo/ -->
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Tags (Org-roam User Manual)</title>
+
+<meta name="description" content="Tags (Org-roam User Manual)">
+<meta name="keywords" content="Tags (Org-roam User Manual)">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<link href="index.html#Top" rel="start" title="Top">
+<link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="Anatomy-of-an-Org_002droam-File.html#Anatomy-of-an-Org_002droam-File" rel="up" title="Anatomy of an Org-roam File">
+<link href="File-Refs.html#File-Refs" rel="next" title="File Refs">
+<link href="Titles.html#Titles" rel="prev" title="Titles">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.indentedblock {margin-right: 0em}
+blockquote.smallindentedblock {margin-right: 0em; font-size: smaller}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smalllisp {margin-left: 3.2em}
+kbd {font-style: oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: inherit; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: inherit; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nolinebreak {white-space: nowrap}
+span.roman {font-family: initial; font-weight: normal}
+span.sansserif {font-family: sans-serif; font-weight: normal}
+ul.no-bullet {list-style: none}
+-->
+</style>
+
+
+</head>
+
+<body lang="en">
+<a name="Tags"></a>
+<div class="header">
+<p>
+Next: <a href="File-Refs.html#File-Refs" accesskey="n" rel="next">File Refs</a>, Previous: <a href="Titles.html#Titles" accesskey="p" rel="prev">Titles</a>, Up: <a href="Anatomy-of-an-Org_002droam-File.html#Anatomy-of-an-Org_002droam-File" accesskey="u" rel="up">Anatomy of an Org-roam File</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<hr>
+<a name="Tags-1"></a>
+<h3 class="section">4.2 Tags</h3>
+
+<p>Tags are used as meta-data for files: they facilitate interactions with notes
+where titles are insufficient. For example, tags allow for categorization of
+notes: differentiating between bibliographical and structure notes during interactive commands.
+</p>
+<p>Org-roam calls &lsquo;<samp>org-roam--extract-tags</samp>&rsquo; to extract tags from files. It uses the
+variable &lsquo;<samp>org-roam-tag-sources</samp>&rsquo;, to control how tags are extracted. The tag
+extraction methods supported are:
+</p>
+<ol>
+<li> &lsquo;<samp>'prop</samp>&rsquo;: This extracts tags from the &lsquo;<samp>#+ROAM_TAGS</samp>&rsquo; property. Tags are space delimited, and can be multi-word using double quotes.
+</li><li> &lsquo;<samp>'all-directories</samp>&rsquo;: All sub-directories relative to &lsquo;<samp>org-roam-directory</samp>&rsquo; are
+extracted as tags. That is, if a file is located at relative path
+&lsquo;<samp>foo/bar/file.org</samp>&rsquo;, the file will have tags &lsquo;<samp>foo</samp>&rsquo; and &lsquo;<samp>bar</samp>&rsquo;.
+</li><li> &lsquo;<samp>'last-directory</samp>&rsquo;: Extracts the last directory relative to
+&lsquo;<samp>org-roam-directory</samp>&rsquo; as the tag. That is, if a file is located at relative
+path &lsquo;<samp>foo/bar/file.org</samp>&rsquo;, the file will have tag &lsquo;<samp>bar</samp>&rsquo;.
+</li></ol>
+
+<p>By default, only the &lsquo;<samp>'prop</samp>&rsquo; extraction method is enabled. To enable the other
+extraction methods, you may modify &lsquo;<samp>org-roam-tag-sources</samp>&rsquo;:
+</p>
+<div class="lisp">
+<pre class="lisp">(setq org-roam-tag-sources '(prop last-directory))
+</pre></div>
+
+<p>If you wish to add your own tag extraction method, you may push a symbol &lsquo;<samp>'foo</samp>&rsquo;
+into &lsquo;<samp>org-roam-tag-sources</samp>&rsquo;, and define a &lsquo;<samp>org-roam--extract-tags-foo</samp>&rsquo; which
+accepts the absolute file path as its argument. See
+&lsquo;<samp>org-roam--extract-tags-prop</samp>&rsquo; for an example.
+</p>
+
+
+
+</body>
+</html>

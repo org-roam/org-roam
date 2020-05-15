@@ -19,10 +19,9 @@ This manual is for Org-roam version 1.1.1.
 #+BEGIN_QUOTE
 Copyright (C) 2020-2020 Jethro Kuan <jethrokuan95@gmail.com>
 
-You can redistribute this document and/or modify it under the terms
-of the GNU General Public License as published by the Free Software
-Foundation, either version 3 of the License, or (at your option) any
-later version.
+You can redistribute this document and/or modify it under the terms of the GNU
+General Public License as published by the Free Software Foundation, either
+version 3 of the License, or (at your option) any later version.
 
 This document is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -174,7 +173,7 @@ Org-mode. However, to support additional functionality, Org-roam adds
 several Org-roam-specific keywords. These functionality are not crucial
 to effective use of Org-roam.
 
-** File Titles
+** Titles
 
 To easily find a note, a title needs to be prescribed to a note. A note can have
 many titles: this allows a note to be referred to by different names, which is
@@ -210,6 +209,41 @@ One can freely control which extraction methods to use by customizing
 =org-roam-title-sources=: see the doc-string for the variable for more
 information. If all methods of title extraction return no results, the file-name
 is used in place of the titles for completions.
+
+If you wish to add your own title extraction method, you may push a symbol
+='foo= into =org-roam-title-sources=, and define a
+=org-roam--extract-titles-foo= which accepts no arguments. See
+=org-roam--extract-titles-title= for an example.
+
+** Tags
+
+Tags are used as meta-data for files: they facilitate interactions with notes
+where titles are insufficient. For example, tags allow for categorization of
+notes: differentiating between bibliographical and structure notes during interactive commands.
+
+Org-roam calls =org-roam--extract-tags= to extract tags from files. It uses the
+variable =org-roam-tag-sources=, to control how tags are extracted. The tag
+extraction methods supported are:
+
+1. ='prop=: This extracts tags from the =#+ROAM_TAGS= property. Tags are space delimited, and can be multi-word using double quotes.
+2. ='all-directories=: All sub-directories relative to =org-roam-directory= are
+   extracted as tags. That is, if a file is located at relative path
+   =foo/bar/file.org=, the file will have tags =foo= and =bar=.
+3. ='last-directory=: Extracts the last directory relative to
+   =org-roam-directory= as the tag. That is, if a file is located at relative
+   path =foo/bar/file.org=, the file will have tag =bar=.
+
+By default, only the ='prop= extraction method is enabled. To enable the other
+extraction methods, you may modify =org-roam-tag-sources=:
+
+#+BEGIN_SRC emacs-lisp
+(setq org-roam-tag-sources '(prop last-directory))
+#+END_SRC
+
+If you wish to add your own tag extraction method, you may push a symbol ='foo=
+into =org-roam-tag-sources=, and define a =org-roam--extract-tags-foo= which
+accepts the absolute file path as its argument. See
+=org-roam--extract-tags-prop= for an example.
 
 ** File Refs
 
@@ -932,6 +966,7 @@ file within that directory, at least once.
 
 * _ :ignore:
 # Local Variables:
+# eval: (refill-mode +1)
 # before-save-hook: org-make-toc
 # after-save-hook: (lambda nil (progn (require 'ox-texinfo nil t) (org-texinfo-export-to-info)))
 # indent-tabs-mode: nil
