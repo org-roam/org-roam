@@ -591,7 +591,7 @@ plist containing the path to the file, and the original title."
           (dolist (title titles)
             (let ((k (concat
                       (when tags
-                        (concat "(" (s-join org-roam-tag-separator tags) ") "))
+                        (format "(%s) " (s-join org-roam-tag-separator tags)))
                       title))
                   (v (list :path file-path :title title)))
               (puthash k v ht))))))
