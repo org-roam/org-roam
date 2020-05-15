@@ -86,7 +86,7 @@ https://github.com/abo-abo/swiper")))
               (user-error "Please install helm from \
 https://github.com/emacs-helm/helm"))
             (let ((source (helm-make-source prompt 'helm-source-sync
-                            :candidates (mapcar #'car choices)
+                            :candidates (hash-table-keys choices)
                             :filtered-candidate-transformer
                             (and (not require-match)
                                  #'org-roam-completion--helm-candidate-transformer)))
