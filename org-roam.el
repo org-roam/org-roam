@@ -552,7 +552,7 @@ FILTER-FN is the name of a function to apply on the candidates
 which takes as its argument an alist of path-completions.
 If DESCRIPTION is provided, use this as the link label. See
 `org-roam--get-title-path-completions' for details.
-If `org-roam-use-roam-links' is non-nil combine standard title
+If `org-roam-link-use-roam-links' is non-nil combine standard title
 completions with in-buffer roam-link titles, and insert roam-link
 instead of standard file-link."
   (interactive "P")
@@ -566,11 +566,11 @@ instead of standard file-link."
                            (if filter-fn
                                (funcall filter-fn it)
                              it)))
-         (in-buffer-completions (--> (org-roam--current-buffer-roam-link-titles)
+         (in-buffer-completions (--> (org-roam-link--current-buffer-roam-link-titles)
                                      (if filter-fn
                                          (funcall filter-fn it)
                                        it)))
-         (title (if org-roam-use-roam-links
+         (title (if org-roam-link-use-roam-links
                     (org-roam-completion--completing-read
                      "Roam note: " (-union (map-keys completions) in-buffer-completions)
                      :initial-input region-text)
@@ -581,7 +581,7 @@ instead of standard file-link."
          (link-description (org-roam--format-link-title (if lowercase
                                                             (downcase description)
                                                           description))))
-    (if org-roam-use-roam-links
+    (if org-roam-link-use-roam-links
         (progn
           (when region ;; Remove previously selected text.
             (delete-region (car region) (cdr region)))
@@ -831,6 +831,22 @@ buffer or a marker."
         (backlink-dest (org-roam--retrieve-link-path)))
     (string= current backlink-dest)))
 
+(defun org-roam--roam-link-face (path)
+  "Conditional face for org file links.
+Applies `org-roam-link-current' if PATH corresponds to the
+currently opened Org-roam file in the backlink buffer, or
+`org-roam-link-face' if PATH corresponds to any other Org-roam
+file."
+  (cond ((not (file-exists-p path))
+         'org-roam-link-invalid)
+        ((and (org-roam--in-buffer-p)
+              (org-roam--backlink-to-current-p))
+         'org-roam-link-current)
+        ((org-roam--org-roam-file-p path)
+         'org-roam-link)
+        (t
+         'org-link)))
+
 ;;;; org-roam-backlinks-mode
 (defvar org-roam-backlinks-mode-map
   (let ((map (make-sparse-keymap)))
@@ -942,20 +958,20 @@ Otherwise, behave as if called interactively."
     (org-link-set-parameters
      "roam"
      :display 'full
-     :face 'org-roam--custom-roam-link-face
-     :activate-func 'org-roam--roam-link-activate
-     :follow 'org-roam--roam-link-find-file
-     :complete 'org-roam--roam-link-completion
+     :face 'org-roam-link--roam-link-face
+     :activate-func 'org-roam-link--activate
+     :follow 'org-roam-link--find-file
+     :complete 'org-roam-link--completion
      :keymap (let ((map (copy-keymap org-mouse-map)))
-               (define-key map (kbd "M-f") 'org-roam-convert-roam-to-file-link)
-               (define-key map (kbd "<tab>") 'org-roam-exit-roam-link)
+               (define-key map (kbd "M-f") 'org-roam-link-convert-roam-to-file-link)
+               (define-key map (kbd "<tab>") 'org-roam-link-exit-link)
                map))
     (org-link-set-parameters
      "file"
      :keymap (let ((map (copy-keymap org-mouse-map)))
-               (define-key map (kbd "M-r") 'org-roam-convert-file-to-roam-link)
+               (define-key map (kbd "M-r") 'org-roam-link-convert-file-to-roam-link)
                map))
-    (org-roam-show-link-messages))
+    (org-roam-link-show-link-messages))
    (t
     (remove-hook 'find-file-hook #'org-roam--find-file-hook-function)
     (remove-hook 'kill-emacs-hook #'org-roam-db--close-all)
@@ -979,7 +995,8 @@ Otherwise, behave as if called interactively."
       (with-current-buffer buf
         (org-link-set-parameters "file" :face 'org-link)
         (remove-hook 'post-command-hook #'org-roam-buffer--update-maybe t)
-        (remove-hook 'after-save-hook #'org-roam-db--update-file t))))))
+        (remove-hook 'after-save-hook #'org-roam-db--update-file t)))
+    (org-roam-link-cancel-link-messages))))
 
 (defun org-roam--find-file-hook-function ()
   "Called by `find-file-hook' when mode symbol `org-roam-mode' is on."
