@@ -1,4 +1,4 @@
-;;; org-roam-doctor.el --- Rudimentary Roam replica with Org-mode -*- coding: utf-8; lexical-binding: t; -*-
+;;; org-roam-doctor.el --- Linter for Org-roam files -*- coding: utf-8; lexical-binding: t; -*-
 ;;
 ;; Copyright © 2020 Jethro Kuan <jethrokuan95@gmail.com>
 
@@ -71,18 +71,22 @@
 (defun org-roam-doctor-broken-links (ast)
   "Checker for detecting broken links.
 AST is the org-element parse tree."
-  (org-element-map ast 'link
-    (lambda (l)
-      (when (equal "file" (org-element-property :type l))
-        (let ((file (org-element-property :path l)))
-          (or (file-exists-p file)
-              (file-remote-p file)
-               `(,(org-element-property :begin l)
-                 ,(format (if (org-element-lineage l '(link))
-                              "Link to non-existent image file \"%s\"\
+  (let (reports)
+    (org-element-map ast 'link
+      (lambda (l)
+        (when (equal "file" (org-element-property :type l))
+          (let ((file (org-element-property :path l)))
+            (or (file-exists-p file)
+                (file-remote-p file)
+                (push
+                 `(,(org-element-property :begin l)
+                   ,(format (if (org-element-lineage l '(link))
+                                "Link to non-existent image file \"%s\"\
  in link description"
-                            "Link to non-existent local file \"%s\"")
-                          file))))))))
+                              "Link to non-existent local file \"%s\"")
+                            file))
+                 reports))))))
+    reports))
 
 (defun org-roam-doctor--check (buffer checkers)
   "Check BUFFER for errors.
@@ -201,7 +205,7 @@ CHECKER is a org-roam-doctor checker instance."
 ;;;###autoload
 (defun org-roam-doctor (&optional checkall)
   "Perform a check on the current buffer to ensure cleanliness.
-If CHECKALL, run the check only for all Org-roam files."
+If CHECKALL, run the check for all Org-roam files."
   (interactive "P")
   (let ((files (if checkall
                   (org-roam--list-all-files)
@@ -216,8 +220,7 @@ If CHECKALL, run the check only for all Org-roam files."
     (let ((existing-buffers (org-roam--get-roam-buffers)))
       (dolist (f files)
         (let ((buf (find-file-noselect f)))
-          (with-current-buffer buf
-            (org-roam-doctor--check buf checkers))
+          (org-roam-doctor--check buf checkers)
           (unless (memq buf existing-buffers)
             (save-buffer buf)
             (kill-buffer buf))))))

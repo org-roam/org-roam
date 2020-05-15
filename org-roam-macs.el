@@ -1,4 +1,4 @@
-;;; org-roam-macs.el --- Roam Research replica with Org-mode -*- coding: utf-8; lexical-binding: t -*-
+;;; org-roam-macs.el --- Macros/utility functions -*- coding: utf-8; lexical-binding: t; -*-
 
 ;; Copyright © 2020 Jethro Kuan <jethrokuan95@gmail.com>
 
@@ -27,7 +27,8 @@
 
 ;;; Commentary:
 ;;
-;; This library implements macros used throughout org-roam
+;; This library implements macros and utility functions used throughout
+;; org-roam.
 ;;
 ;;
 ;;; Code:
@@ -58,11 +59,10 @@ to look.
                         (error-message-string err)
                         ,templates))))
 
-(defmacro org-roam-message (format-string &rest args)
-  "Message MSG with ARGS when `org-roam-verbose' is true."
-  (declare (indent 0) (debug t))
-  `(when org-roam-verbose
-     (message (concat "(org-roam) " ,format-string) ,@args)))
+(defun org-roam-message (format-string &rest args)
+  "Pass FORMAT-STRING and ARGS to `message' when `org-roam-verbose' is t."
+  (when org-roam-verbose
+    (apply #'message `(,(concat "(org-roam) " format-string) ,@args))))
 
 (provide 'org-roam-macs)
 

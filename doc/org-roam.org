@@ -8,16 +8,13 @@
 #+TEXINFO_DIR_CATEGORY: Emacs
 #+TEXINFO_DIR_TITLE: Org-roam: (org-roam).
 #+TEXINFO_DIR_DESC: Rudimentary Roam Replica for Emacs.
-#+SUBTITLE: for version 1.1.0 (v1.1.0-29-g00fc215+1)
+#+SUBTITLE: for version 1.1.1
 
-#+TEXINFO_DEFFN: t
 #+OPTIONS: H:4 num:3 toc:2 creator:t
 #+PROPERTY: header-args :eval never
-#+BIND: ox-texinfo+-before-export-hook ox-texinfo+-update-copyright-years
-#+BIND: ox-texinfo+-before-export-hook ox-texinfo+-update-version-strings
-
 #+TEXINFO: @noindent
-This manual is for Org-roam version 1.1.0 (v1.1.0-29-g00fc215+1).
+
+This manual is for Org-roam version 1.1.1.
 
 #+BEGIN_QUOTE
 Copyright (C) 2020-2020 Jethro Kuan <jethrokuan95@gmail.com>
@@ -177,16 +174,42 @@ Org-mode. However, to support additional functionality, Org-roam adds
 several Org-roam-specific keywords. These functionality are not crucial
 to effective use of Org-roam.
 
-** File Aliases
+** File Titles
 
-Suppose you want a note to be referred to by different names (e.g.
-"World War 2", "WWII"). You may specify such aliases using the
-=#+ROAM_ALIAS= attribute:
+To easily find a note, a title needs to be prescribed to a note. A note can have
+many titles: this allows a note to be referred to by different names, which is
+especially useful for topics or concepts with acronyms. For example, for a note
+like "World War 2", it may be desirable to also refer to it using the acronym
+"WWII".
+
+Org-roam calls =org-roam--extract-titles= to extract titles. It uses the
+variable =org-roam-title-sources=, to control how the titles are extracted. The
+title extraction methods supported are:
+
+1. ='title=: This extracts the title using the file =#+TITLE= property
+2. ='headline=: This extracts the title from the first headline in the Org file
+3. ='alias=: This extracts a list of titles using the =#ROAM_ALIAS= property.
+   The aliases are space-delimited, and can be multi-worded using quotes
+
+Take for example the following org file:
 
 #+BEGIN_SRC org
   #+TITLE: World War 2
   #+ROAM_ALIAS: "WWII" "World War II"
+
+  * Headline
 #+END_SRC
+
+| Method      | Titles                   |
+|-------------+--------------------------|
+| ='title=    | '("World War 2")         |
+| ='headline= | '("Headline")            |
+| ='alias=    | '("WWII" "World War II") |
+
+One can freely control which extraction methods to use by customizing
+=org-roam-title-sources=: see the doc-string for the variable for more
+information. If all methods of title extraction return no results, the file-name
+is used in place of the titles for completions.
 
 ** File Refs
 
@@ -349,7 +372,7 @@ The Org-roam buffer displays backlinks for the currently active Org-roam note.
   Height of =org-roam-buffer=. Has an effect only if =org-roam-buffer-position= is
   ='top= or ='bottom=.
 
-- User Option: org-roam-buffer-no-delete-window
+- User Option: org-roam-buffer-no-delete-other-windows
 
   The =no-delete-window= parameter for the org-roam buffer. Setting it to ='t= prevents the window from being deleted when calling =delete-other-windows=.
 
@@ -695,28 +718,6 @@ checker, to perform autofixes for the errors. For each error detected,
 window displaying the error message, as well as the list of actions that can be
 taken provided in =:actions=.
 
-* Keystroke Index
-:PROPERTIES:
-:APPENDIX:   t
-:INDEX:      ky
-:COOKIE_DATA: recursive
-:END:
-* Command Index
-:PROPERTIES:
-:APPENDIX:   t
-:INDEX:      cp
-:END:
-* Function Index
-:PROPERTIES:
-:APPENDIX:   t
-:INDEX:      fn
-:END:
-* Variable Index
-:PROPERTIES:
-:APPENDIX:   t
-:INDEX:      vr
-:END:
-
 * _ Copying
 :PROPERTIES:
 :COPYING:    t
@@ -931,9 +932,8 @@ file within that directory, at least once.
 
 * _ :ignore:
 # Local Variables:
-# eval: (require 'org-man     nil t)
-# eval: (require 'ox-texinfo+ nil t)
-# eval: (and (require 'ox-extra nil t) (ox-extras-activate '(ignore-headlines)))
+# before-save-hook: org-make-toc
+# after-save-hook: (lambda nil (progn (require 'ox-texinfo nil t) (org-texinfo-export-to-info)))
 # indent-tabs-mode: nil
 # org-src-preserve-indentation: nil
 # End:

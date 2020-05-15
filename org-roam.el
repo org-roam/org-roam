@@ -1,4 +1,4 @@
-;;; org-roam.el --- Roam Research replica with Org-mode -*- coding: utf-8; lexical-binding: t -*-
+;;; org-roam.el --- Roam Research replica with Org-mode -*- coding: utf-8; lexical-binding: t; -*-
 
 ;; Copyright © 2020 Jethro Kuan <jethrokuan95@gmail.com>
 
@@ -65,7 +65,7 @@
   :group 'org
   :prefix "org-roam-"
   :link '(url-link :tag "Github" "https://github.com/org-roam/org-roam")
-  :link '(url-link :tag "Online Manual" "https://org-roam.readthedocs.io/"))
+  :link '(url-link :tag "Online Manual" "https://org-roam.github.io/org-roam/manual/"))
 
 (defgroup org-roam-faces nil
   "Faces used by Org-roam."
@@ -88,7 +88,7 @@ Formatter may be a function that takes title as its only argument."
   :group 'org-roam)
 
 (defcustom org-roam-encrypt-files nil
-  "Whether to encrypt new files.  If true, create files with .org.gpg extension."
+  "Whether to encrypt new files.  If true, create files with .gpg extension."
   :type 'boolean
   :group 'org-roam)
 
@@ -99,6 +99,7 @@ Formatter may be a function that takes title as its only argument."
 
 (defcustom org-roam-file-extensions '("org")
   "Detected file extensions to include in the Org-roam ecosystem.
+The first item in the list is used as the default file extension.
 While the file extensions may be different, the file format needs
 to be an `org-mode' file, and it is the user's responsibility to
 ensure that."
@@ -108,6 +109,33 @@ ensure that."
 (defcustom org-roam-use-roam-links nil
   "When t `org-roam-insert' inserts roam-link instead of org file-link."
   :type 'boolean
+
+(defcustom org-roam-title-sources '((title headline) alias)
+  "The list of sources from which to retrieve a note title.
+Each element in the list is either:
+
+1. a symbol -- this symbol corresponds to a title retrieval
+function, which returns the list of titles for the current buffer
+2. a list of symbols -- symbols in the list are treated as
+with (1). The return value of this list is the first symbol in
+the list returning a non-nil value.
+
+The return results of the root list are concatenated.
+
+For example the setting: '((title headline) alias) means the following:
+
+1. Return the 'title + 'alias, if the title of current buffer is non-empty;
+2. Or return 'headline + 'alias otherwise.
+
+The currently supported symbols are:
+1. 'title: The \"#+TITLE\" property of org file.
+2. 'alias: The \"#+ROAM_ALIAS\" property of the org file, using
+space-delimited strings.
+3. 'headline: The first headline in the org file."
+  :type '(repeat
+          (choice
+           (repeat symbol)
+           (symbol)))
   :group 'org-roam)
 
 ;;;; Dynamic variables
@@ -362,25 +390,46 @@ current buffer is used."
                                 ,wrong-type)))))
     title))
 
-(defun org-roam--extract-titles ()
-  "Extract the titles from current buffer.
-Titles are obtained via:
+(defun org-roam--extract-titles-title ()
+  "Return title from \"#+TITLE\" of the current buffer."
+  (let* ((prop (org-roam--extract-global-props '("TITLE")))
+         (title (cdr (assoc "TITLE" prop))))
+    (when title
+      (list title))))
 
-1. The #+TITLE property or the first headline
-2. The aliases specified via the #+ROAM_ALIAS property."
-  (let* ((props (org-roam--extract-global-props '("TITLE" "ROAM_ALIAS")))
-         (aliases (cdr (assoc "ROAM_ALIAS" props)))
-         (title (or (cdr (assoc "TITLE" props))
-                    (org-element-map
-                        (org-element-parse-buffer)
-                        'headline
-                      (lambda (h)
-                        (org-no-properties (org-element-property :raw-value h)))
-                      :first-match t)))
-         (alias-list (org-roam--aliases-str-to-list aliases)))
-    (if title
-        (cons title alias-list)
-      alias-list)))
+(defun org-roam--extract-titles-alias ()
+  "Return the aliases from the current buffer.
+Reads from the \"ROAM_ALIAS\" property."
+  (let* ((prop (org-roam--extract-global-props '("ROAM_ALIAS")))
+         (aliases (cdr (assoc "ROAM_ALIAS" prop))))
+    (org-roam--aliases-str-to-list aliases)))
+
+(defun org-roam--extract-titles-headline ()
+  "Return the first headline of the current buffer."
+  (let ((headline (org-element-map
+                      (org-element-parse-buffer)
+                      'headline
+                    (lambda (h)
+                      (org-no-properties (org-element-property :raw-value h)))
+                    :first-match t)))
+    (when headline
+      (list headline))))
+
+(defun org-roam--extract-titles (&optional sources nested)
+  "Extract the titles from current buffer using SOURCES.
+If NESTED, return the first successful result from SOURCES."
+  (let (coll res)
+    (cl-dolist (source (or sources
+                           org-roam-title-sources))
+      (setq res (if (symbolp source)
+                    (funcall (intern (concat "org-roam--extract-titles-" (symbol-name source))))
+                  (org-roam--extract-titles source t)))
+      (when res
+        (if (not nested)
+            (setq coll (nconc coll res))
+          (setq coll res)
+          (cl-return))))
+    coll))
 
 (defun org-roam--extract-and-format-titles (&optional file-path)
   "Extract the titles from the current buffer and format them.
@@ -584,7 +633,7 @@ which takes as its argument an alist of path-completions.  See
   (interactive)
   (find-file org-roam-directory))
 
-(defcustom org-roam-index-file nil
+(defcustom org-roam-index-file "index.org"
   "Path to the Org-roam index file.
 The path can be a string or a function.  If it is a string, it
 should be the path (absolute or relative to `org-roam-directory')
@@ -721,11 +770,14 @@ included as a candidate."
 (defun org-roam--file-path-from-id (id)
   "The file path for an Org-roam file, with identifier ID."
   (file-truename
-   (expand-file-name
-    (if org-roam-encrypt-files
-        (concat id ".org.gpg")
-      (concat id ".org"))
-    org-roam-directory)))
+   (let* ((ext (or (car org-roam-file-extensions)
+                  "org"))
+          (file (concat id "." ext)))
+     (expand-file-name
+      (if org-roam-encrypt-files
+          (concat file ".gpg")
+        file)
+      org-roam-directory))))
 
 ;;; The org-roam buffer
 ;;;; org-roam-link-face
