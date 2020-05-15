@@ -696,8 +696,7 @@ included as a candidate."
   (let ((rows (org-roam-db-query [:select [type ref file] :from refs]))
         (ht (make-hash-table :test 'equal))
         (include-type (and interactive
-                           org-roam-include-type-in-ref-path-completions))
-        candidates)
+                           org-roam-include-type-in-ref-path-completions)))
     (dolist (row rows)
       (pcase-let ((`(,type ,ref ,file-path) row))
         (when (pcase filter
