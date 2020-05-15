@@ -51,10 +51,9 @@ This manual is for Org-roam version 1.1.1.
 @quotation
 Copyright (C) 2020-2020 Jethro Kuan <jethrokuan95@@gmail.com>
 
-You can redistribute this document and/or modify it under the terms
-of the GNU General Public License as published by the Free Software
-Foundation, either version 3 of the License, or (at your option) any
-later version.
+You can redistribute this document and/or modify it under the terms of the GNU
+General Public License as published by the Free Software Foundation, either
+version 3 of the License, or (at your option) any later version.
 
 This document is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -371,6 +370,11 @@ One can freely control which extraction methods to use by customizing
 information. If all methods of title extraction return no results, the file-name
 is used in place of the titles for completions.
 
+If you wish to add your own title extraction method, you may push a symbol
+@samp{'foo} into @samp{org-roam-title-sources}, and define a
+@samp{org-roam--extract-titles-foo} which accepts no arguments. See
+@samp{org-roam--extract-titles-title} for an example.
+
 @node Tags
 @section Tags
 
@@ -401,6 +405,11 @@ extraction methods, you may modify @samp{org-roam-tag-sources}:
 @lisp
 (setq org-roam-tag-sources '(prop last-directory))
 @end lisp
+
+If you wish to add your own tag extraction method, you may push a symbol @samp{'foo}
+into @samp{org-roam-tag-sources}, and define a @samp{org-roam--extract-tags-foo} which
+accepts the absolute file path as its argument. See
+@samp{org-roam--extract-tags-prop} for an example.
 
 @node File Refs
 @section File Refs

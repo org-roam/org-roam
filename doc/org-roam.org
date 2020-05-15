@@ -19,10 +19,9 @@ This manual is for Org-roam version 1.1.1.
 #+BEGIN_QUOTE
 Copyright (C) 2020-2020 Jethro Kuan <jethrokuan95@gmail.com>
 
-You can redistribute this document and/or modify it under the terms
-of the GNU General Public License as published by the Free Software
-Foundation, either version 3 of the License, or (at your option) any
-later version.
+You can redistribute this document and/or modify it under the terms of the GNU
+General Public License as published by the Free Software Foundation, either
+version 3 of the License, or (at your option) any later version.
 
 This document is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -211,6 +210,11 @@ One can freely control which extraction methods to use by customizing
 information. If all methods of title extraction return no results, the file-name
 is used in place of the titles for completions.
 
+If you wish to add your own title extraction method, you may push a symbol
+='foo= into =org-roam-title-sources=, and define a
+=org-roam--extract-titles-foo= which accepts no arguments. See
+=org-roam--extract-titles-title= for an example.
+
 ** Tags
 
 Tags are used as meta-data for files: they facilitate interactions with notes
@@ -235,6 +239,11 @@ extraction methods, you may modify =org-roam-tag-sources=:
 #+BEGIN_SRC emacs-lisp
 (setq org-roam-tag-sources '(prop last-directory))
 #+END_SRC
+
+If you wish to add your own tag extraction method, you may push a symbol ='foo=
+into =org-roam-tag-sources=, and define a =org-roam--extract-tags-foo= which
+accepts the absolute file path as its argument. See
+=org-roam--extract-tags-prop= for an example.
 
 ** File Refs
 
@@ -957,6 +966,7 @@ file within that directory, at least once.
 
 * _ :ignore:
 # Local Variables:
+# eval: (refill-mode +1)
 # before-save-hook: org-make-toc
 # after-save-hook: (lambda nil (progn (require 'ox-texinfo nil t) (org-texinfo-export-to-info)))
 # indent-tabs-mode: nil
