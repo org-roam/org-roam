@@ -108,7 +108,7 @@ ensure that."
 
 (defcustom org-roam-use-roam-links nil
   "When t `org-roam-insert' inserts roam-link instead of org file-link."
-  :type 'boolean
+  :type 'boolean)
 
 (defcustom org-roam-title-sources '((title headline) alias)
   "The list of sources from which to retrieve a note title.
