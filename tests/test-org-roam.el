@@ -141,6 +141,72 @@
                 :to-equal
                 '("Headline" "roam" "alias" "TITLE PROP"))))))
 
+(describe "Tag extraction"
+  :var (org-roam-tag-sources)
+  (before-all
+    (test-org-roam--init))
+
+  (after-all
+    (test-org-roam--teardown))
+
+  (cl-flet
+      ((test (fn file)
+             (let* ((fname (test-org-roam--abs-path file))
+                    (buf (find-file-noselect fname)))
+               (with-current-buffer buf
+                 (funcall fn fname)))))
+    (it "extracts from prop"
+      (expect (test #'org-roam--extract-tags-prop
+                    "tags/tag.org")
+              :to-equal
+              '("t1" "t2 with space" "t3"))
+      (expect (test #'org-roam--extract-tags-prop
+                    "tags/no_tag.org")
+              :to-equal
+              nil))
+
+    (it "extracts from all directories"
+      (expect (test #'org-roam--extract-tags-all-directories
+                    "base.org")
+              :to-equal
+              nil)
+      (expect (test #'org-roam--extract-tags-all-directories
+                    "tags/tag.org")
+              :to-equal
+              '("tags"))
+      (expect (test #'org-roam--extract-tags-all-directories
+                    "nested/deeply/deeply_nested_file.org")
+              :to-equal
+              '("nested" "deeply")))
+
+    (it "extracts from last directory"
+      (expect (test #'org-roam--extract-tags-last-directory
+                    "base.org")
+              :to-equal
+              nil)
+      (expect (test #'org-roam--extract-tags-last-directory
+                    "tags/tag.org")
+              :to-equal
+              '("tags"))
+      (expect (test #'org-roam--extract-tags-last-directory
+                    "nested/deeply/deeply_nested_file.org")
+              :to-equal
+              '("deeply")))
+
+    (describe "uses org-roam-tag-sources correctly"
+      (it "'(prop)"
+        (expect (let ((org-roam-tag-sources '(prop)))
+                  (test #'org-roam--extract-tags
+                        "tags/tag.org"))
+                :to-equal
+                '("t1" "t2 with space" "t3")))
+      (it "'(prop all-directories)"
+        (expect (let ((org-roam-tag-sources '(prop all-directories)))
+                  (test #'org-roam--extract-tags
+                        "tags/tag.org"))
+                :to-equal
+                '("t1" "t2 with space" "t3" "tags"))))))
+
 ;;; Tests
 (xdescribe "org-roam-db-build-cache"
   (before-each
@@ -202,7 +268,7 @@
     ;; Expect rebuilds to be really quick (nothing changed)
     (expect (org-roam-db-build-cache)
             :to-equal
-            (list :files 0 :links 0 :titles 0 :refs 0 :deleted 0))))
+            (list :files 0 :links 0 :tags 0 :titles 0 :refs 0 :deleted 0))))
 
 (xdescribe "org-roam-insert"
   (before-each
@@ -216,15 +282,15 @@
       (with-current-buffer buf
         (with-simulated-input
          "Foo RET"
-         (org-roam-insert nil))))
+         (org-roam-insert))))
     (expect (buffer-string) :to-match (regexp-quote "file:foo.org")))
 
   (it "temp2 -> nested/foo"
     (let ((buf (test-org-roam--find-file "temp2.org")))
       (with-current-buffer buf
         (with-simulated-input
-         "Nested SPC Foo RET"
-         (org-roam-insert nil))))
+         "(nested) SPC Nested SPC Foo RET"
+         (org-roam-insert))))
     (expect (buffer-string) :to-match (regexp-quote "file:nested/foo.org")))
 
   (it "nested/temp3 -> foo"
@@ -232,15 +298,15 @@
       (with-current-buffer buf
         (with-simulated-input
          "Foo RET"
-         (org-roam-insert nil))))
+         (org-roam-insert))))
     (expect (buffer-string) :to-match (regexp-quote "file:../foo.org")))
 
   (it "a/b/temp4 -> nested/foo"
     (let ((buf (test-org-roam--find-file "a/b/temp4.org")))
       (with-current-buffer buf
         (with-simulated-input
-         "Nested SPC Foo RET"
-         (org-roam-insert nil))))
+         "(nested) SPC Nested SPC Foo RET"
+         (org-roam-insert))))
     (expect (buffer-string) :to-match (regexp-quote "file:../../nested/foo.org"))))
 
 (xdescribe "rename file updates cache"
