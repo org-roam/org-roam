@@ -742,7 +742,8 @@ included as a candidate."
          (ref (org-roam-completion--completing-read "Ref: "
                                                     completions
                                                     :require-match t))
-         (file (cdr (assoc ref completions))))
+         (file (-> (gethash ref completions)
+                   (plist-get :path))))
     (find-file file)))
 
 (defun org-roam--get-roam-buffers ()
