@@ -155,7 +155,9 @@ extraction methods:
     Extract the last directory relative to `org-roam-directory'.
     That is, if a file is located at relative path foo/bar/file.org,
     the file will have tag \"bar\"."
-  :type '(repeat symbol))
+  :type '(set (const :tag "#+ROAM_TAGS" prop)
+              (const :tag "sub-directories" all-directories)
+              (const :tag "parent directory" last-directory)))
 
 ;;;; Dynamic variables
 (defvar org-roam-last-window nil

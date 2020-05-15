@@ -159,7 +159,7 @@
       (expect (test #'org-roam--extract-tags-prop
                     "tags/tag.org")
               :to-equal
-              '("t1" "t2"))
+              '("t1" "t2 with space" "t3"))
       (expect (test #'org-roam--extract-tags-prop
                     "tags/no_tag.org")
               :to-equal
@@ -199,13 +199,13 @@
                   (test #'org-roam--extract-tags
                         "tags/tag.org"))
                 :to-equal
-                '("t1" "t2")))
+                '("t1" "t2 with space" "t3")))
       (it "'(prop all-directories)"
         (expect (let ((org-roam-tag-sources '(prop all-directories)))
                   (test #'org-roam--extract-tags
                         "tags/tag.org"))
                 :to-equal
-                '("t1" "t2" "tags"))))))
+                '("t1" "t2 with space" "t3" "tags"))))))
 
 ;;; Tests
 (xdescribe "org-roam-db-build-cache"
