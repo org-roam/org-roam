@@ -66,7 +66,7 @@ Return user choice."
     (setq res
           (cond
            ((eq org-roam-completion-system 'ido)
-            (let ((candidates (mapcar #'car choices)))
+            (let ((candidates (hash-table-keys choices)))
               (ido-completing-read prompt candidates nil require-match initial-input)))
            ((eq org-roam-completion-system 'default)
             (completing-read prompt choices nil require-match initial-input))
