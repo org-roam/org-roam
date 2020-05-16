@@ -1,9 +1,9 @@
 ---
 name: Feature Request
 about: Create a feature request to improve Org-roam
-title: ''
-labels: 'enhancement'
-assignees: 'jethrokuan'
+title: ""
+labels: "enhancement"
+assignees: ""
 ---
 
 ### Brief Abstract
@@ -13,4 +13,5 @@ assignees: 'jethrokuan'
 ### Proposed Implementation (if any)
 
 ### Please check the following:
+
 - [ ] No similar feature requests

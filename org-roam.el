@@ -1,9 +1,9 @@
-;;; org-roam.el --- Roam Research replica with Org-mode -*- coding: utf-8; lexical-binding: t -*-
+;;; org-roam.el --- Roam Research replica with Org-mode -*- coding: utf-8; lexical-binding: t; -*-
 
 ;; Copyright © 2020 Jethro Kuan <jethrokuan95@gmail.com>
 
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
-;; URL: https://github.com/jethrokuan/org-roam
+;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
 ;; Version: 1.1.0
 ;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (s "1.12.0") (org "9.3") (emacsql "3.0.0") (emacsql-sqlite "1.0.0"))
@@ -52,6 +52,7 @@
 (require 'org-roam-graph)
 (require 'org-roam-completion)
 (require 'org-roam-dailies)
+(require 'org-roam-doctor)
 
 ;; To detect cite: links
 (require 'org-ref nil t)
@@ -63,8 +64,8 @@
   "Roam Research replica in Org-mode."
   :group 'org
   :prefix "org-roam-"
-  :link '(url-link :tag "Github" "https://github.com/jethrokuan/org-roam")
-  :link '(url-link :tag "Online Manual" "https://org-roam.readthedocs.io/"))
+  :link '(url-link :tag "Github" "https://github.com/org-roam/org-roam")
+  :link '(url-link :tag "Online Manual" "https://org-roam.github.io/org-roam/manual/"))
 
 (defgroup org-roam-faces nil
   "Faces used by Org-roam."
@@ -87,7 +88,7 @@ Formatter may be a function that takes title as its only argument."
   :group 'org-roam)
 
 (defcustom org-roam-encrypt-files nil
-  "Whether to encrypt new files.  If true, create files with .org.gpg extension."
+  "Whether to encrypt new files.  If true, create files with .gpg extension."
   :type 'boolean
   :group 'org-roam)
 
@@ -98,11 +99,65 @@ Formatter may be a function that takes title as its only argument."
 
 (defcustom org-roam-file-extensions '("org")
   "Detected file extensions to include in the Org-roam ecosystem.
+The first item in the list is used as the default file extension.
 While the file extensions may be different, the file format needs
 to be an `org-mode' file, and it is the user's responsibility to
 ensure that."
   :type '(repeat string)
   :group 'org-roam)
+
+(defcustom org-roam-title-sources '((title headline) alias)
+  "The list of sources from which to retrieve a note title.
+Each element in the list is either:
+
+1. a symbol -- this symbol corresponds to a title retrieval
+function, which returns the list of titles for the current buffer
+2. a list of symbols -- symbols in the list are treated as
+with (1).  The return value of this list is the first symbol in
+the list returning a non-nil value.
+
+The return results of the root list are concatenated.
+
+For example the setting: '((title headline) alias) means the following:
+
+1. Return the 'title + 'alias, if the title of current buffer is non-empty;
+2. Or return 'headline + 'alias otherwise.
+
+The currently supported symbols are:
+1. 'title: The \"#+TITLE\" property of org file.
+2. 'alias: The \"#+ROAM_ALIAS\" property of the org file, using
+space-delimited strings.
+3. 'headline: The first headline in the org file."
+  :type '(repeat
+          (choice
+           (repeat symbol)
+           (symbol)))
+  :group 'org-roam)
+
+(defcustom org-roam-tag-sources '(prop)
+  "Sources to obtain tags from.
+
+It should be a list of symbols representing any of the following
+extraction methods:
+
+  `prop'
+    Extract tags from the #+ROAM_TAGS property.
+    Tags are space delimited.
+    Tags may contain spaces if they are double-quoted.
+    e.g. #+ROAM_TAGS: tag \"tag with spaces\"
+
+  `all-directories'
+    Extract sub-directories relative to `org-roam-directory'.
+    That is, if a file is located at relative path foo/bar/file.org,
+    the file will have tags \"foo\" and \"bar\".
+
+  `last-directory'
+    Extract the last directory relative to `org-roam-directory'.
+    That is, if a file is located at relative path foo/bar/file.org,
+    the file will have tag \"bar\"."
+  :type '(set (const :tag "#+ROAM_TAGS" prop)
+              (const :tag "sub-directories" all-directories)
+              (const :tag "parent directory" last-directory)))
 
 ;;;; Dynamic variables
 (defvar org-roam-last-window nil
@@ -119,8 +174,8 @@ ensure that."
         (push (cons prop val) res)))
     res))
 
-(defun org-roam--aliases-str-to-list (str)
-  "Function to transform string STR into list of alias titles.
+(defun org-roam--str-to-list (str)
+  "Function to transform string STR into list of titles.
 
 This snippet is obtained from ox-hugo:
 https://github.com/kaushalmodi/ox-hugo/blob/a80b250987bc770600c424a10b3bca6ff7282e3c/ox-hugo.el#L3131"
@@ -284,96 +339,101 @@ it as FILE-PATH."
                         names)))))))
     links))
 
-(defcustom org-roam-title-include-subdirs nil
-  "When non-nil, include subdirs in title completions.
-The subdirs will be relative to `org-roam-directory'."
-  :type 'boolean
-  :group 'org-roam)
+(defun org-roam--extract-titles-title ()
+  "Return title from \"#+TITLE\" of the current buffer."
+  (let* ((prop (org-roam--extract-global-props '("TITLE")))
+         (title (cdr (assoc "TITLE" prop))))
+    (when title
+      (list title))))
 
-(defcustom org-roam-title-subdir-format 'default
-  "Function to use to format the titles of entries with subdirs.
-Only relevant when `org-roam-title-include-subdirs' is non-nil.
-The value should be a function that takes two arguments: the
-title of the note, and the subdirs as a list.  If set to
-'default, `org-roam--format-title-with-subdirs' is used."
+(defun org-roam--extract-titles-alias ()
+  "Return the aliases from the current buffer.
+Reads from the \"ROAM_ALIAS\" property."
+  (let* ((prop (org-roam--extract-global-props '("ROAM_ALIAS")))
+         (aliases (cdr (assoc "ROAM_ALIAS" prop))))
+    (org-roam--str-to-list aliases)))
+
+(defun org-roam--extract-titles-headline ()
+  "Return the first headline of the current buffer."
+  (let ((headline (org-element-map
+                      (org-element-parse-buffer)
+                      'headline
+                    (lambda (h)
+                      (org-no-properties (org-element-property :raw-value h)))
+                    :first-match t)))
+    (when headline
+      (list headline))))
+
+(defun org-roam--extract-titles (&optional sources nested)
+  "Extract the titles from current buffer using SOURCES.
+If NESTED, return the first successful result from SOURCES."
+  (let (coll res)
+    (cl-dolist (source (or sources
+                           org-roam-title-sources))
+      (setq res (if (symbolp source)
+                    (funcall (intern (concat "org-roam--extract-titles-" (symbol-name source))))
+                  (org-roam--extract-titles source t)))
+      (when res
+        (if (not nested)
+            (setq coll (nconc coll res))
+          (setq coll res)
+          (cl-return))))
+    coll))
+
+(defun org-roam--extract-tags-all-directories (file)
+  "Extract tags from using the directory path FILE.
+All sub-directories relative to `org-roam-directory' are used as tags."
+  (when-let ((dir-relative (file-name-directory
+                            (file-relative-name file org-roam-directory))))
+    (f-split dir-relative)))
+
+(defun org-roam--extract-tags-last-directory (file)
+  "Extract tags from using the directory path FILE.
+The final directory component is used as a tag."
+  (when-let ((dir-relative (file-name-directory
+                            (file-relative-name file org-roam-directory))))
+    (last (f-split dir-relative))))
+
+(defun org-roam--extract-tags-prop (_file)
+  "Extract tags from the current buffer's \"#ROAM_TAGS\" global property."
+  (let* ((prop (org-roam--extract-global-props '("ROAM_TAGS"))))
+    (org-roam--str-to-list (cdr (assoc "ROAM_TAGS" prop)))))
+
+(defcustom org-roam-tag-sort nil
+  "When non-nil, sort the tags in the completions.
+When t, sort the tags alphabetically, regardless of case.
+`org-roam-tag-sort' can also be a list of arguments to be applied
+to `cl-sort'.  For example, these are the arguments used when
+`org-roam-tag-sort' is set to t:
+    \('string-lessp :key 'downcase)
+Only relevant when `org-roam-tag-sources' is non-nil."
   :type '(choice
-          (const :tag "Default" 'default)
-          (function :tag "Custom function"))
+          (boolean)
+          (list :tag "Arguments to cl-loop"))
   :group 'org-roam)
 
-(defcustom org-roam-title-subdir-separator "/"
-  "String to use to separate subdirs.
-Only relevant when `org-roam-title-include-subdirs' is non-nil."
-  :type 'string
-  :group 'org-roam)
+(defun org-roam--extract-tags (&optional file)
+  "Extract tags from the current buffer.
+If file-path FILE, use it to determine the directory tags.
+Tags are obtained via:
 
-(defun org-roam--format-title-with-subdirs (title subdirs)
-  "Format TITLE with SUBDIRS as '\(SUBDIRS) TITLE'."
-  (let* ((separator org-roam-title-subdir-separator)
-         (subdirs (and subdirs
-                       (format "(%s) " (string-join subdirs separator)))))
-    (concat subdirs title)))
-
-(defun org-roam--format-title (title &optional file-path)
-  "Format TITLE with relative subdirs from `org-roam-directory'.
-When `org-roam-title-include-subdirs' is non-nil, FILE-PATH is
-used to compute which subdirs should be included in the title.
-If FILE-PATH is not provided, the file associated with the
-current buffer is used."
-  (if org-roam-title-include-subdirs
-      (let* ((root (expand-file-name org-roam-directory))
-             ;; If file-path is not provided, compute it
-             (path (or file-path
-                       (-> (or (buffer-base-buffer)
-                               (current-buffer))
-                           (buffer-file-name)
-                           (file-truename))))
-             (subdirs (--> path
-                           (file-name-directory it)
-                           (unless (equal root it)
-                             (--> it
-                                  (file-relative-name it root)
-                                  ;; Transform path-string to list of subdirs
-                                  (split-string (substring it nil -1) "/"))))))
-        (pcase org-roam-title-subdir-format
-          ((pred functionp)
-           (funcall org-roam-title-subdir-format title subdirs))
-          ((or 't 'default)
-           (org-roam--format-title-with-subdirs title subdirs))
-          ('nil
-           (error "`org-roam-title-subdir-format' should not be nil"))
-          (wrong-type (signal 'wrong-type-argument
-                              `((functionp symbolp)
-                                ,wrong-type)))))
-    title))
-
-(defun org-roam--extract-titles ()
-  "Extract the titles from current buffer.
-Titles are obtained via:
-
-1. The #+TITLE property or the first headline
-2. The aliases specified via the #+ROAM_ALIAS property."
-  (let* ((props (org-roam--extract-global-props '("TITLE" "ROAM_ALIAS")))
-         (aliases (cdr (assoc "ROAM_ALIAS" props)))
-         (title (or (cdr (assoc "TITLE" props))
-                    (org-element-map
-                        (org-element-parse-buffer)
-                        'headline
-                      (lambda (h)
-                        (org-no-properties (org-element-property :raw-value h)))
-                      :first-match t)))
-         (alias-list (org-roam--aliases-str-to-list aliases)))
-    (if title
-        (cons title alias-list)
-      alias-list)))
-
-(defun org-roam--extract-and-format-titles (&optional file-path)
-  "Extract the titles from the current buffer and format them.
-If FILE-PATH is not provided, the file associated with the
-current buffer is used."
-  (mapcar (lambda (title)
-            (org-roam--format-title title file-path))
-          (org-roam--extract-titles)))
+1. Directory tags: Relative to `org-roam-directory': each folder
+   path is considered a tag.
+2. The key #+ROAM_TAGS."
+  (let* ((file (or file (buffer-file-name (buffer-base-buffer))))
+         (tags (mapcan (lambda (source)
+                         (funcall (intern (concat "org-roam--extract-tags-"
+                                                  (symbol-name source)))
+                                  file))
+                       org-roam-tag-sources)))
+    (pcase org-roam-tag-sort
+      ('nil tags)
+      ((pred booleanp) (cl-sort tags 'string-lessp :key 'downcase))
+      (`(,(pred symbolp) . ,_)
+       (apply #'cl-sort (push tags org-roam-tag-sort)))
+      (wrong-type (signal 'wrong-type-argument
+                          `((booleanp (list symbolp …))
+                            ,wrong-type))))))
 
 (defun org-roam--ref-type-p (type)
   "Return t if the ref from current buffer is TYPE."
@@ -382,13 +442,17 @@ current buffer is used."
 
 (defun org-roam--extract-ref ()
   "Extract the ref from current buffer and return the type and the key of the ref."
-  (if-let ((ref (cdr (assoc "ROAM_KEY" (org-roam--extract-global-props '("ROAM_KEY"))))))
-      (let* ((type (org-roam--ref-type ref))
-             (key (cond ((string= "cite" type)
-                         (s-chop-prefix (org-roam--cite-prefix ref) ref))
-                        (t ref))))
-        (cons type key))
-    nil))
+  (pcase (cdr (assoc "ROAM_KEY"
+                     (org-roam--extract-global-props '("ROAM_KEY"))))
+    ('nil nil)
+    ((pred string-empty-p)
+     (user-error "ROAM_KEY cannot be empty"))
+    (ref
+     (let* ((type (org-roam--ref-type ref))
+            (key (cond ((string= "cite" type)
+                        (s-chop-prefix (org-roam--cite-prefix ref) ref))
+                       (t ref))))
+       (cons type key)))))
 
 (defun org-roam--ref-type (ref)
   "Determine the type of the REF from the prefix."
@@ -439,7 +503,7 @@ Examples:
                     ("^_" . "")  ;; remove starting underscore
                     ("_$" . "")))  ;; remove ending underscore
            (slug (-reduce-from #'cl-replace (strip-nonspacing-marks title) pairs)))
-      (s-downcase slug))))
+      (downcase slug))))
 
 ;;; Interactive Commands
 (defun org-roam--format-link-title (title)
@@ -462,11 +526,14 @@ Examples:
                        target))
      description)))
 
-(defun org-roam-insert (prefix &optional filter-fn)
+(defun org-roam-insert (&optional lowercase completions filter-fn description)
   "Find an Org-roam file, and insert a relative org link to it at point.
-If PREFIX, downcase the title before insertion.
+If LOWERCASE, downcase the title before insertion.
+COMPLETIONS is a list of completions to be used instead of
+`org-roam--get-title-path-completions`.
 FILTER-FN is the name of a function to apply on the candidates
-which takes as its argument an alist of path-completions.  See
+which takes as its argument an alist of path-completions.
+If DESCRIPTION is provided, use this as the link label.  See
 `org-roam--get-title-path-completions' for details."
   (interactive "P")
   (let* ((region (and (region-active-p)
@@ -475,17 +542,20 @@ which takes as its argument an alist of path-completions.  See
          (region-text (when region
                         (buffer-substring-no-properties
                          (car region) (cdr region))))
-         (completions (--> (org-roam--get-title-path-completions)
+         (completions (--> (or completions
+                               (org-roam--get-title-path-completions))
                            (if filter-fn
                                (funcall filter-fn it)
                              it)))
-         (title (org-roam-completion--completing-read "File: " completions
-                                                      :initial-input region-text))
-         (region-or-title (or region-text title))
-         (target-file-path (cdr (assoc title completions)))
-         (link-description (org-roam--format-link-title (if prefix
-                                                            (downcase region-or-title)
-                                                          region-or-title))))
+         (title-with-tags (org-roam-completion--completing-read "File: " completions
+                                                                :initial-input region-text))
+         (res (gethash title-with-tags completions))
+         (title (plist-get res :title))
+         (target-file-path (plist-get res :path))
+         (description (or description region-text title))
+         (link-description (org-roam--format-link-title (if lowercase
+                                                            (downcase description)
+                                                          description))))
     (if (and target-file-path
              (file-exists-p target-file-path))
         (progn
@@ -494,59 +564,77 @@ which takes as its argument an alist of path-completions.  See
           (insert (org-roam--format-link target-file-path link-description)))
       (when (org-roam-capture--in-process-p)
         (user-error "Nested Org-roam capture processes not supported"))
-      (let ((org-roam-capture--info (list (cons 'title title)
-                                          (cons 'slug (org-roam--title-to-slug title))))
+      (let ((org-roam-capture--info `((title . ,title-with-tags)
+                                      (slug . ,(org-roam--title-to-slug title-with-tags))))
             (org-roam-capture--context 'title))
         (add-hook 'org-capture-after-finalize-hook #'org-roam-capture--insert-link-h)
         (setq org-roam-capture-additional-template-props (list :region region
                                                                :link-description link-description
                                                                :capture-fn 'org-roam-insert))
-        (org-roam-capture--capture)))))
+        (org-roam--with-template-error 'org-roam-capture-templates
+          (org-roam-capture--capture))))))
+
+(defcustom org-roam-tag-separator ","
+  "String to use to separate tags.
+Only relevant when `org-roam-tag-sources' is non-nil."
+  :type 'string
+  :group 'org-roam)
 
 (defun org-roam--get-title-path-completions ()
-  "Return a list of cons pairs for titles to absolute path of Org-roam files."
-  (let* ((rows (org-roam-db-query [:select [file titles] :from titles]))
-         res)
+  "Return a hash table for completion.
+The key is the displayed title for completion, and the value is a
+plist containing the path to the file, and the original title."
+  (let* ((rows (org-roam-db-query [:select [titles:file titles:titles tags:tags] :from titles
+                                   :left :join tags
+                                   :on (= titles:file tags:file)]))
+         (ht (make-hash-table :test 'equal)))
     (dolist (row rows)
-      (let ((file-path (car row))
-            (titles (cadr row)))
-        (if titles
-            (dolist (title titles)
-              (push (cons title file-path) res))
-          (push (cons (org-roam--path-to-slug file-path)
-                      file-path) res))))
-    res))
+      (pcase-let ((`(,file-path ,titles ,tags) row))
+        (let ((titles (or titles (list (org-roam--path-to-slug file-path)))))
+          (dolist (title titles)
+            (let ((k (concat
+                      (when tags
+                        (format "(%s) " (s-join org-roam-tag-separator tags)))
+                      title))
+                  (v (list :path file-path :title title)))
+              (puthash k v ht))))))
+    ht))
 
-(defun org-roam-find-file (&optional initial-prompt filter-fn)
+(defun org-roam-find-file (&optional initial-prompt completions filter-fn)
   "Find and open an Org-roam file.
 INITIAL-PROMPT is the initial title prompt.
+COMPLETIONS is a list of completions to be used instead of
+`org-roam--get-title-path-completions`.
 FILTER-FN is the name of a function to apply on the candidates
 which takes as its argument an alist of path-completions.  See
 `org-roam--get-title-path-completions' for details."
   (interactive)
-  (let* ((completions (--> (org-roam--get-title-path-completions)
+  (let* ((completions (--> (or completions
+                               (org-roam--get-title-path-completions))
                            (if filter-fn
                                (funcall filter-fn it)
                              it)))
-         (title (org-roam-completion--completing-read "File: " completions
-                                                      :initial-input initial-prompt))
-         (file-path (cdr (assoc title completions))))
+         (title-with-tags (org-roam-completion--completing-read "File: " completions
+                                                                :initial-input initial-prompt))
+         (res (gethash title-with-tags completions))
+         (file-path (plist-get res :path)))
     (if file-path
         (find-file file-path)
       (if (org-roam-capture--in-process-p)
           (user-error "Org-roam capture in process")
-        (let ((org-roam-capture--info (list (cons 'title title)
-                                            (cons 'slug (org-roam--title-to-slug title))))
+        (let ((org-roam-capture--info `((title . ,title-with-tags)
+                                       (slug . ,(org-roam--title-to-slug title-with-tags))))
               (org-roam-capture--context 'title))
           (add-hook 'org-capture-after-finalize-hook #'org-roam-capture--find-file-h)
-          (org-roam-capture--capture))))))
+          (org-roam--with-template-error 'org-roam-capture-templates
+            (org-roam-capture--capture)))))))
 
 (defun org-roam-find-directory ()
   "Find and open `org-roam-directory'."
   (interactive)
   (find-file org-roam-directory))
 
-(defcustom org-roam-index-file nil
+(defcustom org-roam-index-file "index.org"
   "Path to the Org-roam index file.
 The path can be a string or a function.  If it is a string, it
 should be the path (absolute or relative to `org-roam-directory')
@@ -611,23 +699,25 @@ takes three arguments: the type, the ref, and the file of the
 current candidate.  It should return t if that candidate is to be
 included as a candidate."
   (let ((rows (org-roam-db-query [:select [type ref file] :from refs]))
+        (ht (make-hash-table :test 'equal))
         (include-type (and interactive
-                           org-roam-include-type-in-ref-path-completions))
-        candidates)
-    (dolist (row rows (nreverse candidates))
-      (cl-destructuring-bind (type ref file) row
+                           org-roam-include-type-in-ref-path-completions)))
+    (dolist (row rows)
+      (pcase-let ((`(,type ,ref ,file-path) row))
         (when (pcase filter
                 ('nil t)
                 ((pred stringp) (string= type filter))
-                ((pred functionp) (funcall filter type ref file))
+                ((pred functionp) (funcall filter type ref file-path))
                 (wrong-type (signal 'wrong-type-argument
                                     `((stringp functionp)
                                       ,wrong-type))))
-          (let ((candidate (cons (if include-type
-                                     (format "%s:%s" type ref)
-                                   ref)
-                                 file)))
-            (push candidate candidates)))))))
+          (let ((k (concat
+                    (when include-type
+                      (format "(%s) " type))
+                    ref))
+                (v (list :path file-path :type type :ref ref)))
+            (puthash k v ht)))))
+    ht))
 
 (defun org-roam--find-ref (ref)
   "Find and open and Org-roam file from REF if it exists.
@@ -654,7 +744,8 @@ included as a candidate."
          (ref (org-roam-completion--completing-read "Ref: "
                                                     completions
                                                     :require-match t))
-         (file (cdr (assoc ref completions))))
+         (file (-> (gethash ref completions)
+                   (plist-get :path))))
     (find-file file)))
 
 (defun org-roam--get-roam-buffers ()
@@ -683,11 +774,14 @@ included as a candidate."
 (defun org-roam--file-path-from-id (id)
   "The file path for an Org-roam file, with identifier ID."
   (file-truename
-   (expand-file-name
-    (if org-roam-encrypt-files
-        (concat id ".org.gpg")
-      (concat id ".org"))
-    org-roam-directory)))
+   (let* ((ext (or (car org-roam-file-extensions)
+                  "org"))
+          (file (concat id "." ext)))
+     (expand-file-name
+      (if org-roam-encrypt-files
+          (concat file ".gpg")
+        file)
+      org-roam-directory))))
 
 ;;; The org-roam buffer
 ;;;; org-roam-link-face

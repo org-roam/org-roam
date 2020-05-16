@@ -1,6 +1,5 @@
 [![License GPL 3][badge-license]](http://www.gnu.org/licenses/gpl-3.0.txt)
-[![Documentation Status](https://readthedocs.org/projects/org-roam/badge/?version=latest)](https://org-roam.readthedocs.io/en/latest/?badge=latest)
-[![GitHub Release](https://img.shields.io/github/v/release/jethrokuan/org-roam)](https://img.shields.io/github/v/release/jethrokuan/org-roam)
+[![GitHub Release](https://img.shields.io/github/v/release/org-roam/org-roam)](https://img.shields.io/github/v/release/org-roam/org-roam)
 [![MELPA](https://melpa.org/packages/org-roam-badge.svg)](https://melpa.org/#/org-roam)
 
 ## Synopsis
@@ -22,12 +21,11 @@ describing Org-roam and the concepts behind it:
 
 [![Making Connections in your Notes](http://img.youtube.com/vi/Lg61ocfxk3c/0.jpg)](http://www.youtube.com/watch?v=Lg61ocfxk3c "Making Connections in your Notes")
 
-As of February 2020, it is in a very early stage of development. 
-
 Important links:
 
 - **[Documentation][docs]**
-- **[Org-roam Slack][slack]**
+- **[Discourse][discourse]**
+- **[Slack][slack]**
 
 ## A Preview
 
@@ -52,7 +50,7 @@ Here's a sample configuration with using `use-package`:
 
 ```emacs-lisp
 (use-package org-roam
-      :hook 
+      :hook
       (after-init . org-roam-mode)
       :custom
       (org-roam-directory "/path/to/org-files/")
@@ -64,9 +62,15 @@ Here's a sample configuration with using `use-package`:
               (("C-c n i" . org-roam-insert))))
 ```
 
+`org-roam-graph` by default expects to find the `dot` executable
+from the `graphviz` package in the `exec-path`.
+Ensure `graphviz` is installed and found if you want to use this
+feature or customize your configuration for `org-roam-graph` to use a
+different tool.
+
 For more detailed installation and configuration instructions (including for
 Doom and Spacemacs users), please see [the
-documentation](https://org-roam.readthedocs.io/en/master/installation/).
+documentation][docs].
 
 ## Knowledge Bases using Org-roam
 
@@ -91,5 +95,6 @@ General Public License, Version 3
 [roamresearch]: https://www.roamresearch.com/
 [org]: https://orgmode.org/
 [badge-license]: https://img.shields.io/badge/license-GPL_3-green.svg
-[docs]: https://org-roam.readthedocs.io/
+[docs]: https://org-roam.github.io/org-roam/manual/
+[discourse]: https://org-roam.discourse.group/
 [slack]: https://join.slack.com/t/orgroam/shared_invite/zt-deoqamys-043YQ~s5Tay3iJ5QRI~Lxg
