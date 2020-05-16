@@ -587,7 +587,7 @@ plist containing the path to the file, and the original title."
   (let* ((rows (org-roam-db-query [:select [titles:file titles:titles tags:tags] :from titles
                                    :left :join tags
                                    :on (= titles:file tags:file)]))
-         res)
+         completions)
     (dolist (row rows)
       (pcase-let ((`(,file-path ,titles ,tags) row))
         (let ((titles (or titles (list (org-roam--path-to-slug file-path)))))
@@ -597,8 +597,8 @@ plist containing the path to the file, and the original title."
                         (format "(%s) " (s-join org-roam-tag-separator tags)))
                       title))
                   (v (list :path file-path :title title)))
-              (push (cons k v) res))))))
-    res))
+              (push (cons k v) completions))))))
+    completions))
 
 (defun org-roam-find-file (&optional initial-prompt completions filter-fn)
   "Find and open an Org-roam file.
@@ -701,7 +701,7 @@ included as a candidate."
   (let ((rows (org-roam-db-query [:select [type ref file] :from refs]))
         (include-type (and interactive
                            org-roam-include-type-in-ref-path-completions))
-        res)
+        completions)
     (dolist (row rows)
       (pcase-let ((`(,type ,ref ,file-path) row))
         (when (pcase filter
@@ -716,8 +716,8 @@ included as a candidate."
                       (format "(%s) " type))
                     ref))
                 (v (list :path file-path :type type :ref ref)))
-            (push (cons k v) res)))))
-    res))
+            (push (cons k v) completions)))))
+    completions))
 
 (defun org-roam--find-ref (ref)
   "Find and open and Org-roam file from REF if it exists.
