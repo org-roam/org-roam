@@ -735,7 +735,7 @@ REF should be the value of '#+ROAM_KEY:' without any
 type-information (e.g. 'cite:').
 Return nil if the file does not exist."
   (when-let* ((completions (org-roam--get-ref-path-completions))
-              (file (cdr (assoc ref completions))))
+              (file (plist-get (cdr (assoc ref completions)) :path)))
     (find-file file)))
 
 (defun org-roam-find-ref (arg &optional filter)
