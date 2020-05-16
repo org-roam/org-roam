@@ -206,12 +206,12 @@ This is equivalent to removing the node from the graph."
                          file))))
 
 ;;;;; Insertion
-(defun org-roam-db--insert-meta (file meta)
-  "Insert META for a FILE into the Org-roam cache."
+(defun org-roam-db--insert-meta (file hash meta)
+  "Insert HASH and META for a FILE into the Org-roam cache."
   (org-roam-db-query
-   [:insert :into titles
+   [:insert :into files
     :values $v1]
-   (list (vector file meta))))
+   (list (vector file hash meta))))
 
 (defun org-roam-db--insert-links (links)
   "Insert LINKS into the Org-roam cache."
@@ -318,11 +318,12 @@ connections, nil is returned."
   (let* ((file (file-truename (buffer-file-name)))
          (attr (file-attributes file))
          (atime (file-attribute-access-time attr))
-         (mtime (file-attribute-modification-time attr)))
+         (mtime (file-attribute-modification-time attr))
+         (hash (secure-hash 'sha1 (current-buffer))))
     (org-roam-db-query [:delete :from files
                         :where (= file $s1)]
                        file)
-    (org-roam-db--insert-meta file (list :atime atime :mtime mtime))))
+    (org-roam-db--insert-meta file hash (list :atime atime :mtime mtime))))
 
 (defun org-roam-db--update-titles ()
   "Update the title of the current buffer into the cache."
