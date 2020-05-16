@@ -322,7 +322,7 @@ connections, nil is returned."
     (org-roam-db-query [:delete :from files
                         :where (= file $s1)]
                        file)
-    (org-roam-db--insert-meta file (list :atime atime :mtime 0))))
+    (org-roam-db--insert-meta file (list :atime atime :mtime mtime))))
 
 (defun org-roam-db--update-titles ()
   "Update the title of the current buffer into the cache."
