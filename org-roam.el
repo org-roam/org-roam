@@ -550,7 +550,8 @@ If DESCRIPTION is provided, use this as the link label.  See
          (title-with-tags (org-roam-completion--completing-read "File: " completions
                                                                 :initial-input region-text))
          (res (cdr (assoc title-with-tags completions)))
-         (title (plist-get res :title))
+         (title (or (plist-get res :title)
+                    title-with-tags))
          (target-file-path (plist-get res :path))
          (description (or description region-text title))
          (link-description (org-roam--format-link-title (if lowercase
