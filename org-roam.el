@@ -1026,6 +1026,8 @@ Otherwise, behave as if called interactively."
           (org-roam-db--update-file file-from)))
       (with-current-buffer (or (find-buffer-visiting new-path)
                                (find-file-noselect new-path))
+        (when-let ((buffer (find-buffer-visiting path)))
+          (kill-buffer buffer))
         (let* ((ast (org-element-parse-buffer))
                (links (org-element-map ast 'link
                         (lambda (l)
