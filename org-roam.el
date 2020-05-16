@@ -701,7 +701,7 @@ included as a candidate."
         (include-type (and interactive
                            org-roam-include-type-in-ref-path-completions))
         completions)
-    (dolist (row rows)
+    (dolist (row rows completions)
       (pcase-let ((`(,type ,ref ,file-path) row))
         (when (pcase filter
                 ('nil t)
@@ -715,8 +715,7 @@ included as a candidate."
                       (format "(%s) " type))
                     ref))
                 (v (list :path file-path :type type :ref ref)))
-            (push (cons k v) completions)))))
-    completions))
+            (push (cons k v) completions)))))))
 
 (defun org-roam--find-ref (ref)
   "Find and open and Org-roam file from REF if it exists.
