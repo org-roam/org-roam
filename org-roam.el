@@ -582,8 +582,8 @@ Only relevant when `org-roam-tag-sources' is non-nil."
 
 (defun org-roam--get-title-path-completions ()
   "Return an alist for completion.
-The car is the displayed title for completion, and the cdr is a
-plist containing the path to the file, and the original title."
+The car is the displayed title for completion, and the cdr is the
+to the file."
   (let* ((rows (org-roam-db-query [:select [titles:file titles:titles tags:tags files:meta] :from titles
                                    :left :join tags
                                    :on (= titles:file tags:file)
