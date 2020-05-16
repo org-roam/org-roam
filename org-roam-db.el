@@ -57,7 +57,7 @@ when used with multiple Org-roam instances."
   :type 'string
   :group 'org-roam)
 
-(defconst org-roam-db--version 4)
+(defconst org-roam-db--version 5)
 (defconst org-roam-db--sqlite-available-p
   (with-demoted-errors "Org-roam initialization: %S"
     (emacsql-sqlite-ensure-binary)
