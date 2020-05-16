@@ -1000,7 +1000,8 @@ Otherwise, behave as if called interactively."
            (old-title (org-roam--format-link-title slug))
            (new-slug (or (car (org-roam-db--get-titles path))
                          (org-roam--path-to-slug new-path)))
-           (new-title (org-roam--format-link-title new-slug)))
+           (new-title (org-roam--format-link-title new-slug))
+           buffer-created)
       (org-roam-db--clear-file file)
       (dolist (file-from files-to-rename)
         (let* ((file-from (car file-from))
@@ -1025,7 +1026,8 @@ Otherwise, behave as if called interactively."
               (replace-match (format "[[file:%s][\\1]]" relative-path))))
           (org-roam-db--update-file file-from)))
       (with-current-buffer (or (find-buffer-visiting new-path)
-                               (find-file-noselect new-path))
+                               (prog1 (find-file-noselect new-path)
+                                 (setq buffer-created t)))
         (let* ((ast (org-element-parse-buffer))
                (links (org-element-map ast 'link
                         (lambda (l)
@@ -1050,7 +1052,9 @@ Otherwise, behave as if called interactively."
                                            nil t nil 1))
                           (set-marker marker nil)))
                       links))))
-        (save-buffer))
+        (save-buffer)
+        (when buffer-created
+          (kill-buffer (find-buffer-visiting new-path))))
       (org-roam-db--update-file new-path))))
 
 (provide 'org-roam)
