@@ -584,26 +584,20 @@ Only relevant when `org-roam-tag-sources' is non-nil."
   "Return an alist for completion.
 The car is the displayed title for completion, and the cdr is the
 to the file."
-  (let* ((rows (org-roam-db-query [:select [titles:file titles:titles tags:tags files:meta] :from titles
-                                   :left :join tags
-                                   :on (= titles:file tags:file)
-                                   :left :join files
-                                   :on (= titles:file files:file)]))
-         completions)
-    (seq-sort-by (lambda (x)
-                   (plist-get (nth 3 x) :mtime))
-                 #'time-less-p
-                 rows)
-    (dolist (row rows completions)
-      (pcase-let ((`(,file-path ,titles ,tags) row))
-        (let ((titles (or titles (list (org-roam--path-to-slug file-path)))))
-          (dolist (title titles)
-            (let ((k (concat
-                      (when tags
-                        (format "(%s) " (s-join org-roam-tag-separator tags)))
-                      title))
-                  (v (list :path file-path :title title)))
-              (push (cons k v) completions))))))))
+  (org-roam--get-completions [:select [titles:file titles:titles tags:tags files:meta] :from titles
+                              :left :join tags
+                              :on (= titles:file tags:file)
+                              :left :join files
+                              :on (= titles:file files:file)]
+    (pcase-let ((`(,file-path ,titles ,tags) row))
+      (let ((titles (or titles (list (org-roam--path-to-slug file-path)))))
+        (dolist (title titles)
+          (let ((k (concat
+                    (when tags
+                      (format "(%s) " (s-join org-roam-tag-separator tags)))
+                    title))
+                (v (list :path file-path :title title)))
+            (push (cons k v) completions)))))))
 
 (defun org-roam-find-file (&optional initial-prompt completions filter-fn)
   "Find and open an Org-roam file.
@@ -703,17 +697,11 @@ candidates (e.g. \"cite\" ,\"website\" ,etc.)
 takes three arguments: the type, the ref, and the file of the
 current candidate.  It should return t if that candidate is to be
 included as a candidate."
-  (let ((rows (org-roam-db-query [:select [refs:type refs:ref refs:file ] :from refs
-                                  :left :join files
-                                  :on (= refs:file files:file)]))
-        (include-type (and interactive
-                           org-roam-include-type-in-ref-path-completions))
-        completions)
-    (seq-sort-by (lambda (x)
-                   (plist-get (nth 3 x) :mtime))
-                 #'time-less-p
-                 rows)
-    (dolist (row rows completions)
+  (let ((include-type (and interactive
+                           org-roam-include-type-in-ref-path-completions)))
+    (org-roam--get-completions [:select [refs:type refs:ref refs:file ] :from refs
+                                :left :join files
+                                :on (= refs:file files:file)]
       (pcase-let ((`(,type ,ref ,file-path) row))
         (when (pcase filter
                 ('nil t)

@@ -64,6 +64,21 @@ to look.
   (when org-roam-verbose
     (apply #'message `(,(concat "(org-roam) " format-string) ,@args))))
 
+(defmacro org-roam--get-completions (query &rest processing)
+  "Return an alist for completion from QUERY and PROCESSING.
+QUERY is the string to be passed to `org-roam-db-query'.
+PROCESSING should contain the forms to be applied on every
+element matched by QUERY."
+  (declare (indent 1))
+  `(let* ((rows (org-roam-db-query ,query))
+          completions)
+     (seq-sort-by (lambda (x)
+                    (plist-get (nth 3 x) :mtime))
+                  #'time-less-p
+                  rows)
+     (dolist (row rows completions)
+       ,@processing)))
+
 (provide 'org-roam-macs)
 
 ;;; org-roam-macs.el ends here
