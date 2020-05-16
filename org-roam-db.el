@@ -365,7 +365,7 @@ connections, nil is returned."
   "Update Org-roam cache for FILE-PATH."
   (when (org-roam--org-roam-file-p file-path)
     (let ((buf (or (and file-path
-                        (find-file-noselect file-path))
+                        (find-file-noselect file-path t))
                    (current-buffer))))
       (with-current-buffer buf
         (save-excursion
