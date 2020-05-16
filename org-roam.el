@@ -584,10 +584,16 @@ Only relevant when `org-roam-tag-sources' is non-nil."
   "Return an alist for completion.
 The car is the displayed title for completion, and the cdr is a
 plist containing the path to the file, and the original title."
-  (let* ((rows (org-roam-db-query [:select [titles:file titles:titles tags:tags] :from titles
+  (let* ((rows (org-roam-db-query [:select [titles:file titles:titles tags:tags files:meta] :from titles
                                    :left :join tags
-                                   :on (= titles:file tags:file)]))
+                                   :on (= titles:file tags:file)
+                                   :left :join files
+                                   :on (= titles:file files:file)]))
          completions)
+    (seq-sort-by (lambda (x)
+                   (plist-get (nth 3 x) :mtime))
+                 #'time-less-p
+                 rows)
     (dolist (row rows completions)
       (pcase-let ((`(,file-path ,titles ,tags) row))
         (let ((titles (or titles (list (org-roam--path-to-slug file-path)))))
