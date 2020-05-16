@@ -703,10 +703,16 @@ candidates (e.g. \"cite\" ,\"website\" ,etc.)
 takes three arguments: the type, the ref, and the file of the
 current candidate.  It should return t if that candidate is to be
 included as a candidate."
-  (let ((rows (org-roam-db-query [:select [type ref file] :from refs]))
+  (let ((rows (org-roam-db-query [:select [refs:type refs:ref refs:file ] :from refs
+                                  :left :join files
+                                  :on (= refs:file files:file)]))
         (include-type (and interactive
                            org-roam-include-type-in-ref-path-completions))
         completions)
+    (seq-sort-by (lambda (x)
+                   (plist-get (nth 3 x) :mtime))
+                 #'time-less-p
+                 rows)
     (dolist (row rows completions)
       (pcase-let ((`(,type ,ref ,file-path) row))
         (when (pcase filter
