@@ -588,7 +588,7 @@ plist containing the path to the file, and the original title."
                                    :left :join tags
                                    :on (= titles:file tags:file)]))
          completions)
-    (dolist (row rows)
+    (dolist (row rows completions)
       (pcase-let ((`(,file-path ,titles ,tags) row))
         (let ((titles (or titles (list (org-roam--path-to-slug file-path)))))
           (dolist (title titles)
@@ -597,8 +597,7 @@ plist containing the path to the file, and the original title."
                         (format "(%s) " (s-join org-roam-tag-separator tags)))
                       title))
                   (v (list :path file-path :title title)))
-              (push (cons k v) completions))))))
-    completions))
+              (push (cons k v) completions))))))))
 
 (defun org-roam-find-file (&optional initial-prompt completions filter-fn)
   "Find and open an Org-roam file.
