@@ -211,7 +211,7 @@ This is equivalent to removing the node from the graph."
   (org-roam-db-query
    [:insert :into titles
     :values $v1]
-   (list (vector file hash meta))))
+   (list (vector file meta))))
 
 (defun org-roam-db--insert-links (links)
   "Insert LINKS into the Org-roam cache."
