@@ -549,7 +549,7 @@ If DESCRIPTION is provided, use this as the link label.  See
                              it)))
          (title-with-tags (org-roam-completion--completing-read "File: " completions
                                                                 :initial-input region-text))
-         (res (gethash title-with-tags completions))
+         (res (cdr (assoc title-with-tags completions)))
          (title (plist-get res :title))
          (target-file-path (plist-get res :path))
          (description (or description region-text title))
@@ -581,14 +581,14 @@ Only relevant when `org-roam-tag-sources' is non-nil."
   :group 'org-roam)
 
 (defun org-roam--get-title-path-completions ()
-  "Return a hash table for completion.
-The key is the displayed title for completion, and the value is a
+  "Return an alist for completion.
+The car is the displayed title for completion, and the cdr is a
 plist containing the path to the file, and the original title."
   (let* ((rows (org-roam-db-query [:select [titles:file titles:titles tags:tags] :from titles
                                    :left :join tags
                                    :on (= titles:file tags:file)]))
-         (ht (make-hash-table :test 'equal)))
-    (dolist (row rows)
+         completions)
+    (dolist (row rows completions)
       (pcase-let ((`(,file-path ,titles ,tags) row))
         (let ((titles (or titles (list (org-roam--path-to-slug file-path)))))
           (dolist (title titles)
@@ -597,8 +597,7 @@ plist containing the path to the file, and the original title."
                         (format "(%s) " (s-join org-roam-tag-separator tags)))
                       title))
                   (v (list :path file-path :title title)))
-              (puthash k v ht))))))
-    ht))
+              (push (cons k v) completions))))))))
 
 (defun org-roam-find-file (&optional initial-prompt completions filter-fn)
   "Find and open an Org-roam file.
@@ -616,7 +615,7 @@ which takes as its argument an alist of path-completions.  See
                              it)))
          (title-with-tags (org-roam-completion--completing-read "File: " completions
                                                                 :initial-input initial-prompt))
-         (res (gethash title-with-tags completions))
+         (res (cdr (assoc title-with-tags completions)))
          (file-path (plist-get res :path)))
     (if file-path
         (find-file file-path)
@@ -687,7 +686,7 @@ See `org-roam--get-ref-path-completions' for details."
   :group 'org-roam)
 
 (defun org-roam--get-ref-path-completions (&optional interactive filter)
-  "Return a list of cons pairs for refs to absolute path of Org-roam files.
+  "Return a alist of refs to absolute path of Org-roam files.
 When `org-roam-include-type-in-ref-path-completions' and
 INTERACTIVE are non-nil, format the car of the
 completion-candidates as 'type:ref'.
@@ -699,10 +698,10 @@ takes three arguments: the type, the ref, and the file of the
 current candidate.  It should return t if that candidate is to be
 included as a candidate."
   (let ((rows (org-roam-db-query [:select [type ref file] :from refs]))
-        (ht (make-hash-table :test 'equal))
         (include-type (and interactive
-                           org-roam-include-type-in-ref-path-completions)))
-    (dolist (row rows)
+                           org-roam-include-type-in-ref-path-completions))
+        completions)
+    (dolist (row rows completions)
       (pcase-let ((`(,type ,ref ,file-path) row))
         (when (pcase filter
                 ('nil t)
@@ -716,8 +715,7 @@ included as a candidate."
                       (format "(%s) " type))
                     ref))
                 (v (list :path file-path :type type :ref ref)))
-            (puthash k v ht)))))
-    ht))
+            (push (cons k v) completions)))))))
 
 (defun org-roam--find-ref (ref)
   "Find and open and Org-roam file from REF if it exists.
@@ -744,7 +742,7 @@ included as a candidate."
          (ref (org-roam-completion--completing-read "Ref: "
                                                     completions
                                                     :require-match t))
-         (file (-> (gethash ref completions)
+         (file (-> (cdr (assoc ref completions))
                    (plist-get :path))))
     (find-file file)))
 
