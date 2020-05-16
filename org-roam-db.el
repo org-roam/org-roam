@@ -384,7 +384,6 @@ If FORCE, force a rebuild of the cache from scratch."
   (org-roam-db) ;; To initialize the database, no-op if already initialized
   (let* ((org-roam-files (org-roam--list-all-files))
          (current-files (org-roam-db--get-current-files))
-         (time (current-time))
          all-files all-links all-titles all-refs all-tags)
     (dolist (file org-roam-files)
       (let* ((attr (file-attributes file))
