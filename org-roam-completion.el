@@ -66,7 +66,7 @@ Return user choice."
     (setq res
           (cond
            ((eq org-roam-completion-system 'ido)
-            (let ((candidates (mapcar #'car choices)))
+            (let ((candidates (hash-table-keys choices)))
               (ido-completing-read prompt candidates nil require-match initial-input)))
            ((eq org-roam-completion-system 'default)
             (completing-read prompt choices nil require-match initial-input))
@@ -86,7 +86,7 @@ https://github.com/abo-abo/swiper")))
               (user-error "Please install helm from \
 https://github.com/emacs-helm/helm"))
             (let ((source (helm-make-source prompt 'helm-source-sync
-                            :candidates (mapcar #'car choices)
+                            :candidates (hash-table-keys choices)
                             :filtered-candidate-transformer
                             (and (not require-match)
                                  #'org-roam-completion--helm-candidate-transformer)))
