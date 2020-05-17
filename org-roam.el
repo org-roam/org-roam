@@ -1019,5 +1019,20 @@ Otherwise, behave as if called interactively."
           (org-roam-db--update-file file-from)))
       (org-roam-db--update-file new-path))))
 
+;;;###autoload
+(defun org-roam-version (&optional message)
+  "Return `org-roam' version.
+Interactively, or when MESSAGE is non-nil, show in the echo area."
+  (interactive)
+  (let ((version (with-current-buffer (find-file-noselect (locate-library "org-roam.el"))
+                   (save-match-data
+                     (goto-char (point-min))
+                     (if (re-search-forward "\\(?:;; Version: \\([^z-a]*?$\\)\\)" nil nil)
+                         (substring-no-properties (match-string 1))
+                       "N/A")))))
+    (if (or message (called-interactively-p 'interactive))
+        (message "%s" version)
+      version)))
+
 (provide 'org-roam)
 ;;; org-roam.el ends here
