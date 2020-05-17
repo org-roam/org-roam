@@ -42,6 +42,7 @@
 (require 's)
 (require 'f)
 (require 'cl-lib)
+(require 'seq)
 
 ;;;; org-roam features
 (require 'org-roam-compat)
@@ -812,6 +813,21 @@ included as a candidate."
 This face is used for links without a destination."
   :group 'org-roam-faces)
 
+;;;; org-roam-backlinks-mode
+(define-minor-mode org-roam-backlinks-mode
+  "Minor mode for the `org-roam-buffer'.
+\\{org-roam-backlinks-mode-map}"
+  :lighter " Backlinks"
+  :keymap  (let ((map (make-sparse-keymap)))
+             (define-key map [mouse-1] 'org-open-at-point)
+             (define-key map (kbd "RET") 'org-open-at-point)
+             map)
+  (if org-roam-backlinks-mode
+      (add-hook 'org-open-at-point-functions
+                'org-roam-open-at-point nil 'local)
+    (remove-hook 'org-open-at-point-functions
+                 'org-roam-open-at-point 'local)))
+
 (defun org-roam--in-buffer-p ()
   "Return t if in the Org-roam buffer."
   (and (boundp org-roam-backlinks-mode)
@@ -846,26 +862,6 @@ file."
          'org-roam-link)
         (t
          'org-link)))
-
-;;;; org-roam-backlinks-mode
-(defvar org-roam-backlinks-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [mouse-1] 'org-open-at-point)
-    (define-key map (kbd "RET") 'org-open-at-point)
-    map)
-  "Keymap for symbol `org-roam-backlinks-mode'.")
-
-(define-minor-mode org-roam-backlinks-mode
-  "Minor mode for the `org-roam-buffer'.
-\\{org-roam-backlinks-mode-map}"
-  :lighter " Backlinks"
-  :keymap org-roam-backlinks-mode-map
-
-  (if org-roam-backlinks-mode
-      (add-hook 'org-open-at-point-functions
-                'org-roam-open-at-point nil 'local)
-    (remove-hook 'org-open-at-point-functions
-                 'org-roam-open-at-point 'local)))
 
 (defun org-roam-open-at-point ()
   "Open an Org-roam link or visit the text previewed at point.
@@ -924,9 +920,6 @@ for Org-ref cite links."
 (defalias 'org-roam 'org-roam-buffer-toggle-display)
 
 ;;; The global minor org-roam-mode
-(defvar org-roam-mode-map
-  (make-sparse-keymap)
-  "Keymap for mode symbol `org-roam-mode'.")
 
 ;;;###autoload
 (define-minor-mode org-roam-mode
@@ -944,7 +937,7 @@ When called from Lisp, enable `org-roam-mode' if ARG is omitted,
 nil, or positive. If ARG is `toggle', toggle `org-roam-mode'.
 Otherwise, behave as if called interactively."
   :lighter " Org-roam"
-  :keymap  org-roam-mode-map
+  :keymap  (let ((map (make-sparse-keymap))) map)
   :group 'org-roam
   :require 'org-roam
   :global t
@@ -1057,6 +1050,39 @@ Otherwise, behave as if called interactively."
                         links))))
           (save-buffer)))
       (org-roam-db--update-file new-path))))
+
+;;;; Diagnostics
+;;;###autoload
+(defun org-roam-version (&optional message)
+  "Return `org-roam' version.
+Interactively, or when MESSAGE is non-nil, show in the echo area."
+  (interactive)
+  (let ((version (with-current-buffer (find-file-noselect (locate-library "org-roam.el"))
+                   (save-excursion
+                     (save-match-data
+                       (goto-char (point-min))
+                       (if (re-search-forward "\\(?:;; Version: \\([^z-a]*?$\\)\\)" nil nil)
+                           (substring-no-properties (match-string 1))
+                         "N/A"))))))
+    (if (or message (called-interactively-p 'interactive))
+        (message "%s" version)
+      version)))
+
+;;;###autoload
+(defun org-roam-diagnostics ()
+  "Collect and print info for `org-roam' issues."
+  (interactive)
+  (with-current-buffer (switch-to-buffer-other-window (get-buffer-create "*org-roam diagnostics*"))
+    (erase-buffer)
+    (insert (propertize "Copy info below this line into issue:\n" 'face '(:weight bold)))
+    (insert (format "- Emacs: %s\n" (emacs-version)))
+    (insert (format "- Framework: %s\n"
+                    (condition-case _
+                        (completing-read "I'm using the following Emacs framework:"
+                                         '("Doom" "Spacemacs" "N/A" "I don't know"))
+                      (quit "N/A"))))
+    (insert (format "- Org: %s\n" (org-version nil 'full)))
+    (insert (format "- Org-roam: %s" (org-roam-version)))))
 
 (provide 'org-roam)
 ;;; org-roam.el ends here
