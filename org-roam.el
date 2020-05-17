@@ -813,6 +813,21 @@ included as a candidate."
 This face is used for links without a destination."
   :group 'org-roam-faces)
 
+;;;; org-roam-backlinks-mode
+(define-minor-mode org-roam-backlinks-mode
+  "Minor mode for the `org-roam-buffer'.
+\\{org-roam-backlinks-mode-map}"
+  :lighter " Backlinks"
+  :keymap  (let ((map (make-sparse-keymap)))
+             (define-key map [mouse-1] 'org-open-at-point)
+             (define-key map (kbd "RET") 'org-open-at-point)
+             map)
+  (if org-roam-backlinks-mode
+      (add-hook 'org-open-at-point-functions
+                'org-roam-open-at-point nil 'local)
+    (remove-hook 'org-open-at-point-functions
+                 'org-roam-open-at-point 'local)))
+
 (defun org-roam--in-buffer-p ()
   "Return t if in the Org-roam buffer."
   (and (boundp org-roam-backlinks-mode)
@@ -847,21 +862,6 @@ file."
          'org-roam-link)
         (t
          'org-link)))
-
-;;;; org-roam-backlinks-mode
-(define-minor-mode org-roam-backlinks-mode
-  "Minor mode for the `org-roam-buffer'.
-\\{org-roam-backlinks-mode-map}"
-  :lighter " Backlinks"
-  :keymap  (let ((map (make-sparse-keymap)))
-             (define-key map [mouse-1] 'org-open-at-point)
-             (define-key map (kbd "RET") 'org-open-at-point)
-             map)
-  (if org-roam-backlinks-mode
-      (add-hook 'org-open-at-point-functions
-                'org-roam-open-at-point nil 'local)
-    (remove-hook 'org-open-at-point-functions
-                 'org-roam-open-at-point 'local)))
 
 (defun org-roam-open-at-point ()
   "Open an Org-roam link or visit the text previewed at point.
