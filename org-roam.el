@@ -1025,11 +1025,12 @@ Otherwise, behave as if called interactively."
 Interactively, or when MESSAGE is non-nil, show in the echo area."
   (interactive)
   (let ((version (with-current-buffer (find-file-noselect (locate-library "org-roam.el"))
-                   (save-match-data
-                     (goto-char (point-min))
-                     (if (re-search-forward "\\(?:;; Version: \\([^z-a]*?$\\)\\)" nil nil)
-                         (substring-no-properties (match-string 1))
-                       "N/A")))))
+                   (save-excursion
+                     (save-match-data
+                       (goto-char (point-min))
+                       (if (re-search-forward "\\(?:;; Version: \\([^z-a]*?$\\)\\)" nil nil)
+                           (substring-no-properties (match-string 1))
+                         "N/A"))))))
     (if (or message (called-interactively-p 'interactive))
         (message "%s" version)
       version)))
