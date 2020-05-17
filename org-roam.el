@@ -42,6 +42,7 @@
 (require 's)
 (require 'f)
 (require 'cl-lib)
+(require 'seq)
 
 ;;;; org-roam features
 (require 'org-roam-compat)
