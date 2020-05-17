@@ -976,80 +976,102 @@ Otherwise, behave as if called interactively."
              (org-roam--org-roam-file-p file))
     (org-roam-db--clear-file (file-truename file))))
 
-(defun org-roam--rename-file-advice (file new-file &rest _args)
-  "Rename backlinks of FILE to refer to NEW-FILE."
-  (when (and (not (auto-save-file-name-p file))
-             (not (auto-save-file-name-p new-file))
-             (org-roam--org-roam-file-p new-file))
-    (org-roam-db--ensure-built)
-    (let* ((files-to-rename (org-roam-db-query [:select :distinct [from]
-                                                :from links
-                                                :where (= to $s1)
-                                                :and (= type $s2)]
-                                               file
-                                               "roam"))
-           (path (file-truename file))
-           (new-path (file-truename new-file))
-           (slug (org-roam--get-title-or-slug file))
-           (old-title (org-roam--format-link-title slug))
-           (new-slug (or (car (org-roam-db--get-titles path))
-                         (org-roam--path-to-slug new-path)))
-           (new-title (org-roam--format-link-title new-slug)))
-      (org-roam-db--clear-file file)
-      (dolist (file-from files-to-rename)
-        (let* ((file-from (car file-from))
-               (file-from (if (string-equal (file-truename file-from)
-                                            path)
-                              new-path
-                            file-from))
-               (file-dir (file-name-directory file-from))
-               (relative-path (file-relative-name new-path file-dir))
-               (old-relative-path (file-relative-name path file-dir))
-               (slug-regex (regexp-quote (format "[[file:%s][%s]]" old-relative-path old-title)))
-               (named-regex (concat
-                             (regexp-quote (format "[[file:%s][" old-relative-path))
-                             "\\(.*\\)"
-                             (regexp-quote "]]"))))
-          (with-temp-file file-from
-            (insert-file-contents file-from)
-            (while (re-search-forward slug-regex nil t)
-              (replace-match (format "[[file:%s][%s]]" relative-path new-title)))
-            (goto-char (point-min))
-            (while (re-search-forward named-regex nil t)
-              (replace-match (format "[[file:%s][\\1]]" relative-path))))
-          (org-roam-db--update-file file-from)))
-      (unless (string= (file-name-directory path)
-                       (file-name-directory new-path))
-        (with-current-buffer (or (find-buffer-visiting new-path)
-                                 (find-file-noselect new-path))
-          (when-let ((buffer (find-buffer-visiting path)))
-            (kill-buffer buffer))
-          (let* ((ast (org-element-parse-buffer))
-                 (links (org-element-map ast 'link
-                          (lambda (l)
-                            (let ((type (org-element-property :type l))
-                                  (path (org-element-property :path l)))
-                              (when (and (equal "file" type)
-                                         (f-relative-p path))
-                                (cons (set-marker (make-marker)
-                                                  (org-element-property :begin l))
-                                      path)))))))
-            (save-excursion
-              (save-match-data
-                (seq-do (lambda (link)
-                          (pcase-let ((`(,marker . ,path) link))
-                            (goto-char marker)
-                            (unless (org-in-regexp org-link-bracket-re 1)
-                              (user-error "No link at point"))
-                            (let* ((old-path (concat (file-name-directory file) path))
-                                   (new-dir (file-name-directory new-file))
-                                   (new-path (file-relative-name old-path new-dir)))
-                              (replace-match (concat "file:" new-path)
-                                             nil t nil 1))
-                            (set-marker marker nil)))
-                        links))))
-          (save-buffer)))
-      (org-roam-db--update-file new-path))))
+(defun org-roam--replace-link (file old new &optional old-desc new-desc)
+  "Replace Org-roam file links in FILE from OLD to NEW.
+If OLD-DESC is passed, and is not the same as the link
+description, it is assumed that the user has modified the
+description, and the description will not be updated. Else,
+update with the new description."
+  (with-current-buffer (or (find-buffer-visiting file)
+                           (find-file-noselect file))
+    (save-excursion
+      (let ((link-markers (org-element-map (org-element-parse-buffer) 'link
+                   (lambda (l)
+                     (let ((type (org-element-property :type l))
+                           (path (org-element-property :path l)))
+                       (when (and (equal "file" type)
+                                  (string-equal (file-truename path)
+                                                (file-truename old)))
+                         (set-marker (make-marker) (org-element-property :begin l))))))))
+      (dolist (m link-markers)
+        (goto-char m)
+        (save-match-data
+          (unless (org-in-regexp org-link-bracket-re 1)
+            (user-error "No link at point"))
+          (let* ((label (if (match-end 2)
+                            (match-string-no-properties 2)
+                          (org-link-unescape (match-string-no-properties 1))))
+                 (new-label (if (string-equal label old-desc)
+                                new-desc
+                              label)))
+            (replace-match (org-link-make-string
+                            (concat "file:" (f-relative new (file-name-directory (buffer-file-name))))
+                            new-label)))))))
+    (save-buffer)))
+
+(defun org-roam--rename-file-advice (file new-file-or-dir &rest _args)
+  "Rename backlinks of FILE to refer to NEW-FILE-OR-DIR."
+  ;; When rename-file is passed a directory as an argument, compute the new name
+  (let ((new-file (if (directory-name-p new-file-or-dir)
+                      (expand-file-name (file-name-nondirectory file) new-file-or-dir)
+                    new-file-or-dir)))
+    (when (and (not (auto-save-file-name-p file))
+               (not (auto-save-file-name-p new-file))
+               (org-roam--org-roam-file-p new-file))
+      (org-roam-db--ensure-built)
+      (let* ((files-to-rename (org-roam-db-query [:select :distinct [from]
+                                                  :from links
+                                                  :where (= to $s1)
+                                                  :and (= type $s2)]
+                                                 file
+                                                 "roam"))
+             (path (file-truename file))
+             (new-path (file-truename new-file))
+             (slug (org-roam--get-title-or-slug file))
+             (old-desc (org-roam--format-link-title slug))
+             (new-slug (or (car (org-roam-db--get-titles path))
+                           (org-roam--path-to-slug new-path)))
+             (new-desc (org-roam--format-link-title new-slug)))
+        (mapc (lambda (file)
+                (setq file (if (string-equal (file-truename (car file)) path)
+                               new-path
+                             (car file)))
+                (org-roam--replace-link file path new-path old-desc new-desc)
+                (org-roam-db--update-file file))
+              files-to-rename)
+        (org-roam-db--clear-file file)
+        (unless (string= (file-name-directory path)
+                         (file-name-directory new-path))
+          (with-current-buffer (or (find-buffer-visiting new-path)
+                                   (find-file-noselect new-path))
+            (when-let ((buffer (find-buffer-visiting path)))
+              (kill-buffer buffer))
+            (let* ((ast (org-element-parse-buffer))
+                   (links (org-element-map ast 'link
+                            (lambda (l)
+                              (let ((type (org-element-property :type l))
+                                    (path (org-element-property :path l)))
+                                (when (and (equal "file" type)
+                                           (f-relative-p path))
+                                  (cons (set-marker (make-marker)
+                                                    (org-element-property :begin l))
+                                        path)))))))
+              (save-excursion
+                (save-match-data
+                  (seq-do (lambda (link)
+                            (pcase-let ((`(,marker . ,path) link))
+                              (goto-char marker)
+                              (unless (org-in-regexp org-link-bracket-re 1)
+                                (user-error "No link at point"))
+                              (let* ((old-path (concat (file-name-directory file) path))
+                                     (new-dir (file-name-directory new-file))
+                                     (new-path (file-relative-name old-path new-dir)))
+                                (replace-match (concat "file:" new-path)
+                                               nil t nil 1))
+                              (set-marker marker nil)))
+                          links))))
+            (save-buffer)))
+        (org-roam-db--update-file new-path)))))
 
 ;;;; Diagnostics
 ;;;###autoload
