@@ -38,5 +38,6 @@ Example:
 
 ### Versions
 
-- Emacs (`C-h v emacs-version`): vX.X.X
+- Emacs (Paste `M-x emacs-version` output here) 
+- Org   (Paste `M-x org-version` output here) 
 - Org-roam commit: https://github.com/jethrokuan/org-roam/commit/commithashhere
