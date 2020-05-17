@@ -317,7 +317,8 @@ Suitable for moving point."
 The templates are defined at `org-roam-capture-templates'.  The
 GOTO and KEYS argument have the same functionality as
 `org-capture'."
-  (let ((org-capture-templates (mapcar #'org-roam-capture--convert-template org-roam-capture-templates)))
+  (let ((org-capture-templates (mapcar #'org-roam-capture--convert-template org-roam-capture-templates))
+        org-capture-templates-contexts)
     (when (= (length org-capture-templates) 1)
       (setq keys (caar org-capture-templates)))
     (add-hook 'org-capture-after-finalize-hook #'org-roam-capture--save-file-maybe-h)
