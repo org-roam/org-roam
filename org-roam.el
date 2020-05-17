@@ -1026,13 +1026,14 @@ Otherwise, behave as if called interactively."
   "Return `org-roam' version.
 Interactively, or when MESSAGE is non-nil, show in the echo area."
   (interactive)
-  (let ((version (with-current-buffer (find-file-noselect (locate-library "org-roam.el"))
-                   (save-excursion
-                     (save-match-data
-                       (goto-char (point-min))
-                       (if (re-search-forward "\\(?:;; Version: \\([^z-a]*?$\\)\\)" nil nil)
-                           (substring-no-properties (match-string 1))
-                         "N/A"))))))
+  (let* ((version
+          (with-temp-buffer
+            (insert-file-contents-literally (locate-library "org-roam.el"))
+            (goto-char (point-min))
+            (save-match-data
+              (if (re-search-forward "\\(?:;; Version: \\([^z-a]*?$\\)\\)" nil nil)
+                  (substring-no-properties (match-string 1))
+                "N/A")))))
     (if (or message (called-interactively-p 'interactive))
         (message "%s" version)
       version)))
