@@ -976,12 +976,12 @@ Otherwise, behave as if called interactively."
              (org-roam--org-roam-file-p file))
     (org-roam-db--clear-file (file-truename file))))
 
-(defun org-roam--replace-link (file old new &optional old-desc new-desc)
-  "Replace Org-roam file links in FILE from OLD to NEW.
+(defun org-roam--replace-link (file old-path new-path &optional old-desc new-desc)
+  "Replace Org-roam file links in FILE with path OLD-PATH to path NEW-PATH.
 If OLD-DESC is passed, and is not the same as the link
 description, it is assumed that the user has modified the
 description, and the description will not be updated. Else,
-update with the new description."
+update with NEW-DESC."
   (with-current-buffer (or (find-buffer-visiting file)
                            (find-file-noselect file))
     (save-excursion
@@ -991,7 +991,7 @@ update with the new description."
                            (path (org-element-property :path l)))
                        (when (and (equal "file" type)
                                   (string-equal (file-truename path)
-                                                (file-truename old)))
+                                                (file-truename old-path)))
                          (set-marker (make-marker) (org-element-property :begin l))))))))
       (dolist (m link-markers)
         (goto-char m)
@@ -1005,7 +1005,7 @@ update with the new description."
                                 new-desc
                               label)))
             (replace-match (org-link-make-string
-                            (concat "file:" (f-relative new (file-name-directory (buffer-file-name))))
+                            (concat "file:" (f-relative new-path (file-name-directory (buffer-file-name))))
                             new-label)))))))
     (save-buffer)))
 
