@@ -1019,6 +1019,7 @@ Otherwise, behave as if called interactively."
           (org-roam-db--update-file file-from)))
       (org-roam-db--update-file new-path))))
 
+;;;; Diagnostics
 ;;;###autoload
 (defun org-roam-version (&optional message)
   "Return `org-roam' version.
@@ -1034,6 +1035,22 @@ Interactively, or when MESSAGE is non-nil, show in the echo area."
     (if (or message (called-interactively-p 'interactive))
         (message "%s" version)
       version)))
+
+;;;###autoload
+(defun org-roam-diagnostics ()
+  "Collect and print info for `org-roam' issues."
+  (interactive)
+  (with-current-buffer (switch-to-buffer-other-window (get-buffer-create "*org-roam diagnostics*"))
+    (erase-buffer)
+    (insert (propertize "Copy info below this line into issue:\n" 'face '(:weight bold)))
+    (insert (format "- Emacs: %s\n" (emacs-version)))
+    (insert (format "- Framework: %s\n"
+                    (condition-case _
+                        (completing-read "I'm using the following Emacs framework:"
+                                         '("Doom" "Spacemacs" "N/A" "I don't know"))
+                      (quit "N/A"))))
+    (insert (format "- Org: %s\n" (org-version nil 'full)))
+    (insert (format "- Org-roam: %s" (org-roam-version)))))
 
 (provide 'org-roam)
 ;;; org-roam.el ends here
