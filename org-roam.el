@@ -177,14 +177,51 @@ If FILE is not specified, use the current buffer's file-path."
          (f-descendant-of-p (file-truename path)
                             (file-truename org-roam-directory))))))
 
-(defun org-roam--list-files (dir)
-  "Return all Org-roam files located within DIR, at any nesting level.
-Ignores hidden files and directories."
+(defun org-roam--shell-command-files (cmd)
+  "Run CMD in the shell and return a list of files. If no files are found, an empty list is returned."
+  (seq-filter #'s-present? (split-string (shell-command-to-string cmd) "\n")))
+
+(defun org-roam--list-files-search-globs (exts)
+  "Given EXTS, return a list of search globs.
+E.g. (\".org\") => (\"*.org\" \"*.org.gpg\")"
+  (append
+   (mapcar (lambda (ext) (s-wrap (concat "*." ext) "\"")) exts)
+   (mapcar (lambda (ext) (s-wrap (concat "*." ext ".gpg") "\"")) exts))))
+
+(defun org-roam--list-files-rg (dir)
+  "Return all Org-roam files located recursively within DIR, using ripgrep.
+Note that this function does not first check if ripgrep is available."
+(let* (
+    (globs (org-roam--list-files-search-globs org-roam-file-extensions))
+    (command (s-join " " `("rg" ,dir "--files"
+                            ,@(mapcar (lambda (glob) (concat "-g " glob)) globs)))))
+    (org-roam--shell-command-files command)))
+
+(defun org-roam--list-files-find (dir)
+  "Return all Org-roam files located recursively within DIR, using find.
+Note that this function does not first check if find is available."
+(let* (
+    (globs (org-roam--list-files-search-globs org-roam-file-extensions))
+    (command (s-join " " `("find" ,dir "-type f \\("
+                           ,(s-join " -o " (mapcar (lambda (glob) (concat "-name " glob)) globs)) "\\)"))))
+  (org-roam--shell-command-files command)))
+
+(defun org-roam--list-files-elisp (dir)
+  "Return all Org-roam files located recursively within DIR, using elisp."
   (let ((regex (concat "\\.\\(?:"(mapconcat #'regexp-quote org-roam-file-extensions "\\|" )"\\)\\(?:\\.gpg\\)?\\'"))
         result)
     (dolist (file (directory-files-recursively dir regex) result)
       (when (and (file-readable-p file) (org-roam--org-file-p file))
         (push file result)))))
+
+(defun org-roam--list-files (dir)
+  "Return all Org-roam files located recursively within DIR.
+Ignores hidden files and directories.
+org-roam--list-files will try rg, find, and fall back to the elisp implementation none of the external tools are found."
+(cond
+ ((executable-find "rg") (org-roam--list-files-rg dir))
+ ((executable-find "find") (org-roam--list-files-find dir))
+ (t (org-roam--list-files-elisp dir))))
 
 (defun org-roam--list-all-files ()
   "Return a list of all Org-roam files within `org-roam-directory'."
