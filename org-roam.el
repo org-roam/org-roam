@@ -848,19 +848,14 @@ file."
          'org-link)))
 
 ;;;; org-roam-backlinks-mode
-(defvar org-roam-backlinks-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [mouse-1] 'org-open-at-point)
-    (define-key map (kbd "RET") 'org-open-at-point)
-    map)
-  "Keymap for symbol `org-roam-backlinks-mode'.")
-
 (define-minor-mode org-roam-backlinks-mode
   "Minor mode for the `org-roam-buffer'.
 \\{org-roam-backlinks-mode-map}"
   :lighter " Backlinks"
-  :keymap org-roam-backlinks-mode-map
-
+  :keymap  (let ((map (make-sparse-keymap)))
+             (define-key map [mouse-1] 'org-open-at-point)
+             (define-key map (kbd "RET") 'org-open-at-point)
+             map)
   (if org-roam-backlinks-mode
       (add-hook 'org-open-at-point-functions
                 'org-roam-open-at-point nil 'local)
@@ -924,9 +919,6 @@ for Org-ref cite links."
 (defalias 'org-roam 'org-roam-buffer-toggle-display)
 
 ;;; The global minor org-roam-mode
-(defvar org-roam-mode-map
-  (make-sparse-keymap)
-  "Keymap for mode symbol `org-roam-mode'.")
 
 ;;;###autoload
 (define-minor-mode org-roam-mode
@@ -944,7 +936,7 @@ When called from Lisp, enable `org-roam-mode' if ARG is omitted,
 nil, or positive. If ARG is `toggle', toggle `org-roam-mode'.
 Otherwise, behave as if called interactively."
   :lighter " Org-roam"
-  :keymap  org-roam-mode-map
+  :keymap  (let ((map (make-sparse-keymap))) map)
   :group 'org-roam
   :require 'org-roam
   :global t
