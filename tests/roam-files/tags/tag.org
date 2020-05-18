@@ -1,0 +1,4 @@
+#+ROAM_TAGS: "t1" "t2 with space" t3
+#+TITLE: Tags
+
+This file is used to test functionality for =(org-roam--extract-tags)=

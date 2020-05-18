@@ -51,10 +51,9 @@ This manual is for Org-roam version 1.1.1.
 @quotation
 Copyright (C) 2020-2020 Jethro Kuan <jethrokuan95@@gmail.com>
 
-You can redistribute this document and/or modify it under the terms
-of the GNU General Public License as published by the Free Software
-Foundation, either version 3 of the License, or (at your option) any
-later version.
+You can redistribute this document and/or modify it under the terms of the GNU
+General Public License as published by the Free Software Foundation, either
+version 3 of the License, or (at your option) any later version.
 
 This document is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -79,19 +78,22 @@ General Public License for more details.
 * Diagnosing and Repairing Files::
 * Appendix::
 * FAQ::
+* _: _ (2). 
 
 @detailmenu
 --- The Detailed Node Listing ---
 
 Installation
 
+* _::
 * Installing from MELPA::
 * Installing from the Git Repository::
 * Post-Installation Tasks::
 
 Anatomy of an Org-roam File
 
-* File Aliases::
+* Titles::
+* Tags::
 * File Refs::
 
 The Templating System
@@ -117,6 +119,7 @@ Graphing
 
 Roam Protocol
 
+* _: _ (1). 
 * Installation: Installation (1). 
 * The @samp{roam-file} protocol::
 * The @samp{roam-ref} Protocol::
@@ -176,13 +179,17 @@ Emacs is also a fantastic interface for editing text, and we can inherit many of
 @node Installation
 @chapter Installation
 
-Org-roam can be installed using Emacs' package manager or manually from its development repository.
-
 @menu
+* _::
 * Installing from MELPA::
 * Installing from the Git Repository::
 * Post-Installation Tasks::
 @end menu
+
+@node _
+@section _ :ignore:
+
+Org-roam can be installed using Emacs' package manager or manually from its development repository.
 
 @node Installing from MELPA
 @section Installing from MELPA
@@ -310,21 +317,99 @@ several Org-roam-specific keywords. These functionality are not crucial
 to effective use of Org-roam.
 
 @menu
-* File Aliases::
+* Titles::
+* Tags::
 * File Refs::
 @end menu
 
-@node File Aliases
-@section File Aliases
+@node Titles
+@section Titles
 
-Suppose you want a note to be referred to by different names (e.g.
-``World War 2'', ``WWII''). You may specify such aliases using the
-@samp{#+ROAM_ALIAS} attribute:
+To easily find a note, a title needs to be prescribed to a note. A note can have
+many titles: this allows a note to be referred to by different names, which is
+especially useful for topics or concepts with acronyms. For example, for a note
+like ``World War 2'', it may be desirable to also refer to it using the acronym
+``WWII''.
+
+Org-roam calls @samp{org-roam--extract-titles} to extract titles. It uses the
+variable @samp{org-roam-title-sources}, to control how the titles are extracted. The
+title extraction methods supported are:
+
+@enumerate
+@item
+@samp{'title}: This extracts the title using the file @samp{#+TITLE} property
+@item
+@samp{'headline}: This extracts the title from the first headline in the Org file
+@item
+@samp{'alias}: This extracts a list of titles using the @samp{#ROAM_ALIAS} property.
+The aliases are space-delimited, and can be multi-worded using quotes
+@end enumerate
+
+Take for example the following org file:
 
 @example
 #+TITLE: World War 2
 #+ROAM_ALIAS: "WWII" "World War II"
+
+* Headline
 @end example
+
+@multitable {aaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaa}
+@headitem Method
+@tab Titles
+@item @samp{'title}
+@tab '(``World War 2'')
+@item @samp{'headline}
+@tab '(``Headline'')
+@item @samp{'alias}
+@tab '(``WWII'' ``World War II'')
+@end multitable
+
+One can freely control which extraction methods to use by customizing
+@samp{org-roam-title-sources}: see the doc-string for the variable for more
+information. If all methods of title extraction return no results, the file-name
+is used in place of the titles for completions.
+
+If you wish to add your own title extraction method, you may push a symbol
+@samp{'foo} into @samp{org-roam-title-sources}, and define a
+@samp{org-roam--extract-titles-foo} which accepts no arguments. See
+@samp{org-roam--extract-titles-title} for an example.
+
+@node Tags
+@section Tags
+
+Tags are used as meta-data for files: they facilitate interactions with notes
+where titles are insufficient. For example, tags allow for categorization of
+notes: differentiating between bibliographical and structure notes during interactive commands.
+
+Org-roam calls @samp{org-roam--extract-tags} to extract tags from files. It uses the
+variable @samp{org-roam-tag-sources}, to control how tags are extracted. The tag
+extraction methods supported are:
+
+@enumerate
+@item
+@samp{'prop}: This extracts tags from the @samp{#+ROAM_TAGS} property. Tags are space delimited, and can be multi-word using double quotes.
+@item
+@samp{'all-directories}: All sub-directories relative to @samp{org-roam-directory} are
+extracted as tags. That is, if a file is located at relative path
+@samp{foo/bar/file.org}, the file will have tags @samp{foo} and @samp{bar}.
+@item
+@samp{'last-directory}: Extracts the last directory relative to
+@samp{org-roam-directory} as the tag. That is, if a file is located at relative
+path @samp{foo/bar/file.org}, the file will have tag @samp{bar}.
+@end enumerate
+
+By default, only the @samp{'prop} extraction method is enabled. To enable the other
+extraction methods, you may modify @samp{org-roam-tag-sources}:
+
+@lisp
+(setq org-roam-tag-sources '(prop last-directory))
+@end lisp
+
+If you wish to add your own tag extraction method, you may push a symbol @samp{'foo}
+into @samp{org-roam-tag-sources}, and define a @samp{org-roam--extract-tags-foo} which
+accepts the absolute file path as its argument. See
+@samp{org-roam--extract-tags-prop} for an example.
 
 @node File Refs
 @section File Refs
@@ -536,7 +621,7 @@ Height of @samp{org-roam-buffer}. Has an effect only if @samp{org-roam-buffer-po
 @samp{'top} or @samp{'bottom}.
 
 @item
-User Option: org-roam-buffer-no-delete-window
+User Option: org-roam-buffer-no-delete-other-windows
 
 The @samp{no-delete-window} parameter for the org-roam buffer. Setting it to @samp{'t} prevents the window from being deleted when calling @samp{delete-other-windows}.
 @end itemize
@@ -754,14 +839,18 @@ Other options include @samp{'ido}, and @samp{'ivy}.
 @node Roam Protocol
 @chapter Roam Protocol
 
-Org-roam extending @samp{org-protocol} with 2 protocols: the @samp{roam-file}
-and @samp{roam-ref} protocol.
-
 @menu
+* _: _ (1). 
 * Installation: Installation (1). 
 * The @samp{roam-file} protocol::
 * The @samp{roam-ref} Protocol::
 @end menu
+
+@node _ (1)
+@section _ :ignore:
+
+Org-roam extending @samp{org-protocol} with 2 protocols: the @samp{roam-file}
+and @samp{roam-ref} protocol.
 
 @node Installation (1)
 @section Installation
@@ -1190,6 +1279,9 @@ contain:
 All files within that directory will be treated as their own separate
 set of Org-roam files. Remember to run @samp{org-roam-db-build-cache} from a
 file within that directory, at least once.
+
+@node _ (2)
+@chapter _ :ignore:
 
 Emacs 28.0.50 (Org mode 9.4)
 @bye

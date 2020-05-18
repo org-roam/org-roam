@@ -317,7 +317,8 @@ Suitable for moving point."
 The templates are defined at `org-roam-capture-templates'.  The
 GOTO and KEYS argument have the same functionality as
 `org-capture'."
-  (let ((org-capture-templates (mapcar #'org-roam-capture--convert-template org-roam-capture-templates)))
+  (let ((org-capture-templates (mapcar #'org-roam-capture--convert-template org-roam-capture-templates))
+        org-capture-templates-contexts)
     (when (= (length org-capture-templates) 1)
       (setq keys (caar org-capture-templates)))
     (add-hook 'org-capture-after-finalize-hook #'org-roam-capture--save-file-maybe-h)
@@ -331,8 +332,11 @@ This uses the templates defined at `org-roam-capture-templates'."
   (when (org-roam-capture--in-process-p)
     (user-error "Nested Org-roam capture processes not supported"))
   (let* ((completions (org-roam--get-title-path-completions))
-         (title (org-roam-completion--completing-read "File: " completions))
-         (file-path (cdr (assoc title completions))))
+         (title-with-keys (org-roam-completion--completing-read "File: "
+                                                                completions))
+         (res (cdr (assoc title-with-keys completions)))
+         (title (or (plist-get res :title) title-with-keys))
+         (file-path (plist-get res :file-path)))
     (let ((org-roam-capture--info (list (cons 'title title)
                                         (cons 'slug (org-roam--title-to-slug title))
                                         (cons 'file file-path)))

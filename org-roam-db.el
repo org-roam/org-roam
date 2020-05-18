@@ -40,11 +40,12 @@
 (defvar org-roam-verbose)
 
 (declare-function org-roam--org-roam-file-p                "org-roam")
-(declare-function org-roam--extract-and-format-titles      "org-roam")
+(declare-function org-roam--extract-titles                 "org-roam")
 (declare-function org-roam--extract-ref                    "org-roam")
+(declare-function org-roam--extract-tags                   "org-roam")
 (declare-function org-roam--extract-links                  "org-roam")
 (declare-function org-roam--list-all-files                 "org-roam")
-(declare-function org-roam-buffer--update-maybe           "org-roam-buffer")
+(declare-function org-roam-buffer--update-maybe            "org-roam-buffer")
 
 ;;;; Options
 (defcustom org-roam-db-location nil
@@ -56,7 +57,7 @@ when used with multiple Org-roam instances."
   :type 'string
   :group 'org-roam)
 
-(defconst org-roam-db--version 3)
+(defconst org-roam-db--version 5)
 (defconst org-roam-db--sqlite-available-p
   (with-demoted-errors "Org-roam initialization: %S"
     (emacsql-sqlite-ensure-binary)
@@ -120,13 +121,17 @@ SQL can be either the emacsql vector representation, or a string."
   '((files
      [(file :unique :primary-key)
       (hash :not-null)
-      (last-modified :not-null)])
+      (meta :not-null)])
 
     (links
      [(from :not-null)
       (to :not-null)
       (type :not-null)
       (properties :not-null)])
+
+    (tags
+     [(file :unique :primary-key)
+      (tags)])
 
     (titles
      [(file :not-null)
@@ -201,6 +206,13 @@ This is equivalent to removing the node from the graph."
                          file))))
 
 ;;;;; Insertion
+(defun org-roam-db--insert-meta (file hash meta)
+  "Insert HASH and META for a FILE into the Org-roam cache."
+  (org-roam-db-query
+   [:insert :into files
+    :values $v1]
+   (list (vector file hash meta))))
+
 (defun org-roam-db--insert-links (links)
   "Insert LINKS into the Org-roam cache."
   (org-roam-db-query
@@ -214,6 +226,13 @@ This is equivalent to removing the node from the graph."
    [:insert :into titles
     :values $v1]
    (list (vector file titles))))
+
+(defun org-roam-db--insert-tags (file tags)
+  "Insert TAGS for a FILE into the Org-roam cache."
+  (org-roam-db-query
+   [:insert :into tags
+    :values $v1]
+   (list (vector file tags))))
 
 (defun org-roam-db--insert-ref (file ref)
   "Insert REF for FILE into the Org-roam cache."
@@ -294,14 +313,35 @@ connections, nil is returned."
     files))
 
 ;;;;; Updating
+(defun org-roam-db--update-meta ()
+  "Update the metadata of the current buffer into the cache."
+  (let* ((file (file-truename (buffer-file-name)))
+         (attr (file-attributes file))
+         (atime (file-attribute-access-time attr))
+         (mtime (file-attribute-modification-time attr))
+         (hash (secure-hash 'sha1 (current-buffer))))
+    (org-roam-db-query [:delete :from files
+                        :where (= file $s1)]
+                       file)
+    (org-roam-db--insert-meta file hash (list :atime atime :mtime mtime))))
+
 (defun org-roam-db--update-titles ()
   "Update the title of the current buffer into the cache."
   (let* ((file (file-truename (buffer-file-name)))
-         (title (org-roam--extract-and-format-titles file)))
+         (title (org-roam--extract-titles)))
     (org-roam-db-query [:delete :from titles
                         :where (= file $s1)]
                        file)
     (org-roam-db--insert-titles file title)))
+
+(defun org-roam-db--update-tags ()
+  "Update the tags of the current buffer into the cache."
+  (let* ((file (file-truename (buffer-file-name)))
+         (tags (org-roam--extract-tags)))
+    (org-roam-db-query [:delete :from tags
+                        :where (= file $s1)]
+                       file)
+    (org-roam-db--insert-tags file tags)))
 
 (defun org-roam-db--update-refs ()
   "Update the ref of the current buffer into the cache."
@@ -325,10 +365,12 @@ connections, nil is returned."
   "Update Org-roam cache for FILE-PATH."
   (when (org-roam--org-roam-file-p file-path)
     (let ((buf (or (and file-path
-                        (find-file-noselect file-path))
+                        (find-file-noselect file-path t))
                    (current-buffer))))
       (with-current-buffer buf
         (save-excursion
+          (org-roam-db--update-meta)
+          (org-roam-db--update-tags)
           (org-roam-db--update-titles)
           (org-roam-db--update-refs)
           (org-roam-db--update-cache-links)
@@ -343,26 +385,31 @@ If FORCE, force a rebuild of the cache from scratch."
   (org-roam-db) ;; To initialize the database, no-op if already initialized
   (let* ((org-roam-files (org-roam--list-all-files))
          (current-files (org-roam-db--get-current-files))
-         (time (current-time))
-         all-files all-links all-titles all-refs)
+         all-files all-links all-titles all-refs all-tags)
     (dolist (file org-roam-files)
-      (org-roam--with-temp-buffer
-        (insert-file-contents file)
-        (let ((contents-hash (secure-hash 'sha1 (current-buffer))))
-          (unless (string= (gethash file current-files)
-                           contents-hash)
-            (org-roam-db--clear-file file)
-            (setq all-files
-                  (cons (vector file contents-hash time) all-files))
-            (when-let (links (org-roam--extract-links file))
-              (setq all-links (append links all-links)))
-            (let ((titles (org-roam--extract-and-format-titles file)))
-              (setq all-titles (cons (vector file titles) all-titles)))
-            (when-let* ((ref (org-roam--extract-ref))
-                        (type (car ref))
-                        (key (cdr ref)))
-              (setq all-refs (cons (vector key file type) all-refs))))
-          (remhash file current-files))))
+      (let* ((attr (file-attributes file))
+             (atime (file-attribute-access-time attr))
+             (mtime (file-attribute-modification-time attr)))
+        (org-roam--with-temp-buffer
+          (insert-file-contents file)
+          (let ((contents-hash (secure-hash 'sha1 (current-buffer))))
+            (unless (string= (gethash file current-files)
+                             contents-hash)
+              (org-roam-db--clear-file file)
+              (push (vector file contents-hash (list :atime atime :mtime mtime))
+                    all-files)
+              (when-let (links (org-roam--extract-links file))
+                (push links all-links))
+              (when-let (tags (org-roam--extract-tags file))
+                (push (vector file tags) all-tags))
+              (let ((titles (org-roam--extract-titles)))
+                (push (vector file titles)
+                      all-titles))
+              (when-let* ((ref (org-roam--extract-ref))
+                          (type (car ref))
+                          (key (cdr ref)))
+                (setq all-refs (cons (vector key file type) all-refs))))
+            (remhash file current-files)))))
     (dolist (file (hash-table-keys current-files))
       ;; These files are no longer around, remove from cache...
       (org-roam-db--clear-file file))
@@ -381,6 +428,11 @@ If FORCE, force a rebuild of the cache from scratch."
        [:insert :into titles
         :values $v1]
        all-titles))
+    (when all-tags
+      (org-roam-db-query
+       [:insert :into tags
+        :values $v1]
+       all-tags))
     (when all-refs
       (org-roam-db-query
        [:insert :into refs
@@ -388,12 +440,14 @@ If FORCE, force a rebuild of the cache from scratch."
        all-refs))
     (let ((stats (list :files (length all-files)
                        :links (length all-links)
+                       :tags (length all-tags)
                        :titles (length all-titles)
                        :refs (length all-refs)
                        :deleted (length (hash-table-keys current-files)))))
-      (org-roam-message "files: %s, links: %s, titles: %s, refs: %s, deleted: %s"
+      (org-roam-message "files: %s, links: %s, tags: %s, titles: %s, refs: %s, deleted: %s"
                         (plist-get stats :files)
                         (plist-get stats :links)
+                        (plist-get stats :tags)
                         (plist-get stats :titles)
                         (plist-get stats :refs)
                         (plist-get stats :deleted))
