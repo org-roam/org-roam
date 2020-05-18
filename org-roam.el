@@ -245,8 +245,7 @@ E.g. (\".org\") => (\"*.org\" \"*.org.gpg\")"
 (defun org-roam--list-files-rg (dir)
   "Return all Org-roam files located recursively within DIR, using ripgrep.
 Note that this function does not first check if ripgrep is available."
-(let* (
-    (globs (org-roam--list-files-search-globs org-roam-file-extensions))
+(let* ((globs (org-roam--list-files-search-globs org-roam-file-extensions))
     (command (s-join " " `("rg" ,dir "--files"
                             ,@(mapcar (lambda (glob) (concat "-g " glob)) globs)))))
     (org-roam--shell-command-files command)))
