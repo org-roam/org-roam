@@ -240,7 +240,7 @@ If FILE is not specified, use the current buffer's file-path."
 E.g. (\".org\") => (\"*.org\" \"*.org.gpg\")"
   (append
    (mapcar (lambda (ext) (s-wrap (concat "*." ext) "\"")) exts)
-   (mapcar (lambda (ext) (s-wrap (concat "*." ext ".gpg") "\"")) exts))))
+   (mapcar (lambda (ext) (s-wrap (concat "*." ext ".gpg") "\"")) exts)))
 
 (defun org-roam--list-files-rg (dir)
   "Return all Org-roam files located recursively within DIR, using ripgrep.
