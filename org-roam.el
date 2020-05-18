@@ -271,7 +271,7 @@ Note that this function does not first check if find is available."
 (defun org-roam--list-files (dir)
   "Return all Org-roam files located recursively within DIR.
 Ignores hidden files and directories.
-org-roam--list-files will try rg, find, and fall back to the elisp implementation none of the external tools are found."
+org-roam--list-files will try rg, find, and fall back to the elisp implementation if none of the external tools are found."
 (cond
  ((executable-find "rg") (org-roam--list-files-rg dir))
  ((executable-find "find") (org-roam--list-files-find dir))
