@@ -16,47 +16,17 @@
   </head>
 
   <body>
-    <div class="nav horizontal-align">
-      <div class="nav-item"><a href="#features">Features</a></div>
-      <!-- <div class="nav-item"><a href="#installation">Installation</a></div> -->
-      <div class="nav-item"><a href="#documentation">Documentation</a></div>
-      <div class="nav-item"><a href="#community">Community</a></div>
-    </div>
-
     <section class="hero container center text-center">
       <div>
         <img src="./img/logo.png" alt="Org-roam Logo" height="200" />
         <h3>Org-roam</h3>
-        <!-- <div id="target"></div> -->
-        <h5 id="target"></h5>
-
-        <script type="module">
-          import {
-            type,
-            type as loop,
-          } from "https://unpkg.com/@camwiegert/typical@0.1.1/typical.js";
-
-          const target = document.querySelector("#target");
-
-          type(
-            target,
-            "An Effortless Personal Knowledge Management System",
-            1500,
-            "A Dead-Simple Notetaking Approach",
-            1500,
-            "An organic knowledgebase in Emacs Org-mode",
-            1500,
-            loop
-          );
-        </script>
-
-        <!-- <h5>An Effortless Personal Knowledge Management System</h5> -->
+        <h5>A plain-text personal knowledge management system.</h5>
       </div>
     </section>
 
     <section class="container center">
       <div>
-        <img src="./img/screenshot.png" alt="Org-roam Screenshot" />
+        <img src="./img/screenshot.png" alt="screenshot" />
       </div>
     </section>
 
@@ -67,131 +37,70 @@
           <div class="col">
             <h5 class="left">
               <iconify-icon data-icon="fxemoji:lock"></iconify-icon> &nbsp;
-              Private and Portable
+              Private and Secure
             </h5>
             <p class="content">
-              All notes are stored locally without any analytics whatsoever.
-              <em>Your</em> data is yours, period. Notes are written in the
-              plaintext org markup, and are always <strong>portable</strong>.
+              Edit your personal wiki completely offline, entirely in your
+              control. Encrypt your notes with GPG. Take lasting notes in
+              plain-text.
             </p>
           </div>
           <div class="col">
             <h5 class="left">
               <iconify-icon data-icon="flat-color-icons:link"></iconify-icon>
-              &nbsp; Backlinking
+              &nbsp; Make Connections
             </h5>
             <p class="content">
-              Backlinks are at the core of Org-roam. For any note topic, see all
-              the other notes that refer to it.
-            </p>
-          </div>
-        </div>
-
-        <div class="row">
-          <div class="col">
-            <h5 class="left">
-              <iconify-icon
-                data-icon="emojione-v1:lightning-mood"
-              ></iconify-icon>
-              &nbsp; Effortless
-            </h5>
-            <p class="content">
-              As all your notes are automatically centralized, you don't have to
-              break flow to decide <em>where</em> a note should go.
-            </p>
-          </div>
-
-          <div class="col">
-            <h5 class="left">
-              <iconify-icon data-icon="bx:bxs-network-chart"></iconify-icon>
-              &nbsp; Graph Visualization
-            </h5>
-            <p class="content">
+              Connect notes and thoughts together with ease using backlinks.
               Discover surprising and previously unseen connections in your
-              notes with the built-in Graph Network Visualization.
+              notes with the built-in graph visualization.
             </p>
           </div>
         </div>
 
         <div class="row">
           <div class="col">
-            <!-- <h5 class="left"><iconify-icon data-icon="ic:round-extension"></iconify-icon> &nbsp; Extensibility</h5> -->
             <h5 class="left">
               <iconify-icon data-icon="twemoji:puzzle-piece"></iconify-icon>
-              &nbsp; Extensible
+              &nbsp; Extensible and Powerful
             </h5>
             <p class="content">
-              Org-roam is built on top of Emacs and Org Mode, making their vast
-              ecosystems easily integrable.
+              Leverage Emacs' fantastic text-editing interface, and the mature
+              Emacs and Org-mode ecosystem of packages.
             </p>
           </div>
           <div class="col">
-            <!-- <h5 class="left"><iconify-icon data-icon="mdi:source-branch"></iconify-icon> &nbsp; Free and Open Source</h5> -->
             <h5 class="left">
               <iconify-icon data-icon="logos:git-icon"></iconify-icon> &nbsp;
               Free and Open Source
             </h5>
             <p class="content">
               Org-roam is licensed under the GNU General Public License version
-              3 or later. Join our Github and contribute to the codebase
-              <a href="https://github.com/org-roam/org-roam">here</a>.
+              3 or later. You are free to extend its functionality and
+              contribute back. Find
+              us <a href="https://github.com/org-roam/org-roam">here</a>.
             </p>
           </div>
         </div>
       </div>
     </section>
-
-    <section id="documentation" class="container">
+    
+    <section id="links" class="container">
       <div>
-        <h3 class="header">DOCUMENTATION</h3>
-        <p class="content">
-          Browse through our Docuementation and Getting Started guides at
-          <a href="https://org-roam.github.io/org-roam/manual/index.html"
-            >here</a
-          >.
-        </p>
-      </div>
-    </section>
-
-    <section id="community" class="container">
-      <div>
-        <h3 class="header">COMMUNITY</h3>
-        <p class="content">
-          Org-roam has an inclusive community of users passionate about Personal
-          Knowledge Management.
-        </p>
-
-        <p class="content">
-          Complete newbie to Emacs/ Org-mode and feeling bewildered? Managing
-          <em> your life in plaintext </em> with org-mode for years and want to
-          quickly adapt your workflow to Org-roam? Have an amazing idea for
-          extending Org-roam? Just hop in the forums and kickstart the
-          discussion, or go through the already available community guides for
-          variety of use-cases.
-        </p>
-
+        <h3 class="header">LINKS</h3> New to Emacs and Org-mode, and trying to
+        find your way around? Org-roam has an inclusive community of users
+        passionate about Personal Knowledge Management -- we're happy to help!
+        You can find us on Discourse and Slack.
+        
         <ul>
-          <li class="content">
-            Join our
-            <a href="https://org-roam.discourse.group/">Discourse</a> for
-            categorized and organized discussions.
-          </li>
-          <li class="content">
-            Chat ephemerally about various things at our
-            <a
-              href="https://join.slack.com/t/orgroam/shared_invite/zt-deoqamys-043YQ~s5Tay3iJ5QRI~Lxg"
-              >Slack</a
-            >.
-          </li>
-        </ul>
+            <li>Read our documentation within Emacs, or on the <a href="https://org-roam.github.io/org-roam/manual/">Online Manual</a></li>
+            <li>Participate in our forum discussions on <a href="https://org-roam.discourse.group">Discourse</a></li>
+            <li>Chat with us on <a href="https://join.slack.com/t/orgroam/shared_invite/zt-deoqamys-043YQ~s5Tay3iJ5QRI~Lxg">Slack</a></li>
+          </ul>
       </div>
     </section>
-
-    <br />
-    <hr />
 
     <section id="footer" class="row container">
-      <!-- <iframe src="https://ghbtns.com/github-btn.html?user=org-roam&repo=org-roam&type=star&count=true" frameborder="0" scrolling="0" width="150" height="20" title="Star org-roam on GitHub"></iframe> -->
       <div class="col">
         <div class="row">
           <h5 class="header">Ecosystem</h5>
@@ -229,14 +138,7 @@
           <a
             class="content footer-links"
             href="https://github.com/org-roam/org-roam/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc"
-            >Issues</a
-          >
-        </div>
-        <div class="row">
-          <a
-            class="content footer-links"
-            href="https://github.com/org-roam/org-roam/wiki"
-            >Wiki</a
+            >Open Issues</a
           >
         </div>
         <div class="row">
@@ -267,10 +169,6 @@
             >Discourse</a
           >
         </div>
-
-        <!-- <div class="row">
-                     <iframe src="https://ghbtns.com/github-btn.html?user=org-roam&repo=org-roam&type=star&count=true" frameborder="0" scrolling="0" width="150" height="20" title="Star org-roam on GitHub"></iframe>
-                     </div> -->
       </div>
     </section>
   </body>
