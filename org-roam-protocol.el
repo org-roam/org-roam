@@ -1,10 +1,10 @@
-;;; org-roam-protocol.el --- Protocol handler for roam:// links  -*- coding: utf-8; lexical-binding: t -*-
+;;; org-roam-protocol.el --- Protocol handler for roam:// links  -*- coding: utf-8; lexical-binding: t; -*-
 
 ;; Copyright © 2020 Jethro Kuan <jethrokuan95@gmail.com>
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
-;; URL: https://github.com/jethrokuan/org-roam
+;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
-;; Version: 1.1.0
+;; Version: 1.1.1
 ;; Package-Requires: ((emacs "26.1") (org "9.3"))
 
 ;; This file is NOT part of GNU Emacs.
@@ -62,8 +62,9 @@ It opens or creates a note with the given ref.
            (org-roam-capture--info decoded-alist)
            (template (cdr (assoc 'template decoded-alist))))
       (raise-frame)
-      (org-roam-capture--capture nil template)
-      (message "Item captured.")))
+      (org-roam--with-template-error 'org-roam-capture-ref-templates
+        (org-roam-capture--capture nil template))
+      (org-roam-message "Item captured.")))
   nil)
 
 (defun org-roam-protocol-open-file (info)

@@ -1,11 +1,11 @@
-;;; org-roam-macs.el --- Roam Research replica with Org-mode -*- coding: utf-8; lexical-binding: t -*-
+;;; org-roam-macs.el --- Macros/utility functions -*- coding: utf-8; lexical-binding: t; -*-
 
 ;; Copyright © 2020 Jethro Kuan <jethrokuan95@gmail.com>
 
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
-;; URL: https://github.com/jethrokuan/org-roam
+;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
-;; Version: 1.1.0
+;; Version: 1.1.1
 ;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (s "1.12.0") (org "9.3") (emacsql "3.0.0") (emacsql-sqlite "1.0.0"))
 
 ;; This file is NOT part of GNU Emacs.
@@ -27,11 +27,14 @@
 
 ;;; Commentary:
 ;;
-;; This library implements macros used throughout org-roam
+;; This library implements macros and utility functions used throughout
+;; org-roam.
 ;;
 ;;
 ;;; Code:
 ;;;; Library Requires
+
+(defvar org-roam-verbose)
 
 (defmacro org-roam--with-temp-buffer (&rest body)
   "Execute BODY within a temp buffer.
@@ -42,6 +45,24 @@ Like `with-temp-buffer', but propagates `org-roam-directory'."
        (with-temp-buffer
          (let ((org-roam-directory ,current-org-roam-directory))
            ,@body)))))
+
+(defmacro org-roam--with-template-error (templates &rest body)
+  "Eval BODY, and point to TEMPLATES on error.
+Provides more informative error messages so that users know where
+to look.
+
+\(fn TEMPLATES BODY...)"
+  (declare (debug (form body)) (indent 1))
+  `(condition-case err
+       ,@body
+     (error (user-error "%s.  Please adjust `%s'"
+                        (error-message-string err)
+                        ,templates))))
+
+(defun org-roam-message (format-string &rest args)
+  "Pass FORMAT-STRING and ARGS to `message' when `org-roam-verbose' is t."
+  (when org-roam-verbose
+    (apply #'message `(,(concat "(org-roam) " format-string) ,@args))))
 
 (provide 'org-roam-macs)
 

@@ -1,11 +1,11 @@
-;;; org-roam-graph.el --- Roam Research replica with Org-mode -*- coding: utf-8; lexical-binding: t -*-
+;;; org-roam-graph.el --- Graphing API -*- coding: utf-8; lexical-binding: t; -*-
 
 ;; Copyright © 2020 Jethro Kuan <jethrokuan95@gmail.com>
 
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
-;; URL: https://github.com/jethrokuan/org-roam
+;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
-;; Version: 1.1.0
+;; Version: 1.1.1
 ;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (s "1.12.0") (org "9.3") (emacsql "3.0.0") (emacsql-sqlite "1.0.0"))
 
 ;; This file is NOT part of GNU Emacs.
@@ -53,8 +53,8 @@ It may be one of the following:
           (const    :tag "view-file"))
   :group 'org-roam)
 
-(defcustom org-roam-graph-executable (executable-find "dot")
-  "Path to graphing executable."
+(defcustom org-roam-graph-executable "dot"
+  "Path to graphing executable, or its name."
   :type 'string
   :group 'org-roam)
 
@@ -219,19 +219,22 @@ into a digraph."
 
 (defun org-roam-graph--build (&optional node-query)
   "Generate a graph showing the relations between nodes in NODE-QUERY."
-  (unless org-roam-graph-executable
-    (user-error "Can't find %s executable.  Please check if it is in your path"
-                org-roam-graph-executable))
-  (let* ((node-query (or node-query
-                         `[:select [file titles]
-                           :from titles
-                           ,@(org-roam-graph--expand-matcher 'file t)]))
-         (graph      (org-roam-graph--dot node-query))
-         (temp-dot   (make-temp-file "graph." nil ".dot" graph))
-         (temp-graph (make-temp-file "graph." nil ".svg")))
-    (call-process org-roam-graph-executable nil 0 nil
-                  temp-dot "-Tsvg" "-o" temp-graph)
-    temp-graph))
+  (let ((name org-roam-graph-executable))
+    (unless (stringp name)
+      (user-error "`org-roam-graph-executable' is not a string"))
+    (unless (executable-find org-roam-graph-executable)
+      (user-error (concat "Cannot find executable \"%s\" to generate the graph.  "
+                          "Please adjust `org-roam-graph-executable'")
+                  name))
+    (let* ((node-query (or node-query
+                           `[:select [file titles]
+                             :from titles
+                             ,@(org-roam-graph--expand-matcher 'file t)]))
+           (graph (org-roam-graph--dot node-query))
+           (temp-dot (make-temp-file "graph." nil ".dot" graph))
+           (temp-graph (make-temp-file "graph." nil ".svg")))
+      (call-process name nil 0 nil temp-dot "-Tsvg" "-o" temp-graph)
+      temp-graph)))
 
 (defun org-roam-graph--open (file)
   "Open FILE using `org-roam-graph-viewer' with `view-file' as a fallback."

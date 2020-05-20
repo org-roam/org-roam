@@ -1,7 +1,8 @@
 -include ../config.mk
 include ../default.mk
 
-## ###################################################################
+###################################################################
+MANUAL_HTML_ARGS = --css-ref assets/page.css
 
 .PHONY: texi install clean AUTHORS.md stats
 
@@ -26,10 +27,12 @@ dir: org-roam.info
 	@printf "Generating $@\n"
 	@$(MAKEINFO) --html --no-split $(MANUAL_HTML_ARGS) $<
 
-html-dir: $(TEXIFILES)
+html-dir: 
 	@printf "Generating org-roam/*.html\n"
 	@$(MAKEINFO) --html $(MANUAL_HTML_ARGS) org-roam.texi
-	done
+	mv org-roam manual
+	cp -r assets manual
+	cp -r images manual
 
 %.pdf: %.texi
 	@printf "Generating $@\n"

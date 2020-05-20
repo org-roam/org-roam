@@ -8,24 +8,20 @@
 #+TEXINFO_DIR_CATEGORY: Emacs
 #+TEXINFO_DIR_TITLE: Org-roam: (org-roam).
 #+TEXINFO_DIR_DESC: Rudimentary Roam Replica for Emacs.
-#+SUBTITLE: for version 1.1.0 (v1.1.0-29-g00fc215+1)
+#+SUBTITLE: for version 1.1.1
 
-#+TEXINFO_DEFFN: t
 #+OPTIONS: H:4 num:3 toc:2 creator:t
 #+PROPERTY: header-args :eval never
-#+BIND: ox-texinfo+-before-export-hook ox-texinfo+-update-copyright-years
-#+BIND: ox-texinfo+-before-export-hook ox-texinfo+-update-version-strings
-
 #+TEXINFO: @noindent
-This manual is for Org-roam version 1.1.0 (v1.1.0-29-g00fc215+1).
+
+This manual is for Org-roam version 1.1.1.
 
 #+BEGIN_QUOTE
 Copyright (C) 2020-2020 Jethro Kuan <jethrokuan95@gmail.com>
 
-You can redistribute this document and/or modify it under the terms
-of the GNU General Public License as published by the Free Software
-Foundation, either version 3 of the License, or (at your option) any
-later version.
+You can redistribute this document and/or modify it under the terms of the GNU
+General Public License as published by the Free Software Foundation, either
+version 3 of the License, or (at your option) any later version.
 
 This document is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -177,16 +173,77 @@ Org-mode. However, to support additional functionality, Org-roam adds
 several Org-roam-specific keywords. These functionality are not crucial
 to effective use of Org-roam.
 
-** File Aliases
+** Titles
 
-Suppose you want a note to be referred to by different names (e.g.
-"World War 2", "WWII"). You may specify such aliases using the
-=#+ROAM_ALIAS= attribute:
+To easily find a note, a title needs to be prescribed to a note. A note can have
+many titles: this allows a note to be referred to by different names, which is
+especially useful for topics or concepts with acronyms. For example, for a note
+like "World War 2", it may be desirable to also refer to it using the acronym
+"WWII".
+
+Org-roam calls =org-roam--extract-titles= to extract titles. It uses the
+variable =org-roam-title-sources=, to control how the titles are extracted. The
+title extraction methods supported are:
+
+1. ='title=: This extracts the title using the file =#+TITLE= property
+2. ='headline=: This extracts the title from the first headline in the Org file
+3. ='alias=: This extracts a list of titles using the =#ROAM_ALIAS= property.
+   The aliases are space-delimited, and can be multi-worded using quotes
+
+Take for example the following org file:
 
 #+BEGIN_SRC org
   #+TITLE: World War 2
   #+ROAM_ALIAS: "WWII" "World War II"
+
+  * Headline
 #+END_SRC
+
+| Method      | Titles                   |
+|-------------+--------------------------|
+| ='title=    | '("World War 2")         |
+| ='headline= | '("Headline")            |
+| ='alias=    | '("WWII" "World War II") |
+
+One can freely control which extraction methods to use by customizing
+=org-roam-title-sources=: see the doc-string for the variable for more
+information. If all methods of title extraction return no results, the file-name
+is used in place of the titles for completions.
+
+If you wish to add your own title extraction method, you may push a symbol
+='foo= into =org-roam-title-sources=, and define a
+=org-roam--extract-titles-foo= which accepts no arguments. See
+=org-roam--extract-titles-title= for an example.
+
+** Tags
+
+Tags are used as meta-data for files: they facilitate interactions with notes
+where titles are insufficient. For example, tags allow for categorization of
+notes: differentiating between bibliographical and structure notes during interactive commands.
+
+Org-roam calls =org-roam--extract-tags= to extract tags from files. It uses the
+variable =org-roam-tag-sources=, to control how tags are extracted. The tag
+extraction methods supported are:
+
+1. ='prop=: This extracts tags from the =#+ROAM_TAGS= property. Tags are space delimited, and can be multi-word using double quotes.
+2. ='all-directories=: All sub-directories relative to =org-roam-directory= are
+   extracted as tags. That is, if a file is located at relative path
+   =foo/bar/file.org=, the file will have tags =foo= and =bar=.
+3. ='last-directory=: Extracts the last directory relative to
+   =org-roam-directory= as the tag. That is, if a file is located at relative
+   path =foo/bar/file.org=, the file will have tag =bar=.
+
+By default, only the ='prop= extraction method is enabled. To enable the other
+extraction methods, you may modify =org-roam-tag-sources=:
+
+#+BEGIN_SRC emacs-lisp
+(setq org-roam-tag-sources '(prop last-directory))
+#+END_SRC
+
+If you wish to add your own tag extraction method, you may push a symbol ='foo=
+into =org-roam-tag-sources=, and define a =org-roam--extract-tags-foo= which
+accepts the absolute file path as its argument. See
+=org-roam--extract-tags-prop= for an example.
 
 ** File Refs
 
@@ -228,6 +285,9 @@ powerful one: =org-capture=. However, org-capture was not designed for such use.
 Org-roam abuses =org-capture=, extending its syntax. To first understand how
 org-roam's templating system works, it may be useful to look into basic usage of
 =org-capture=.
+
+Org-roam's templates can be customized by modifying the variable
+=org-roam-capture-templates=.
 
 ** Template Walkthrough
 
@@ -346,7 +406,7 @@ The Org-roam buffer displays backlinks for the currently active Org-roam note.
   Height of =org-roam-buffer=. Has an effect only if =org-roam-buffer-position= is
   ='top= or ='bottom=.
 
-- User Option: org-roam-buffer-no-delete-window
+- User Option: org-roam-buffer-no-delete-other-windows
 
   The =no-delete-window= parameter for the org-roam buffer. Setting it to ='t= prevents the window from being deleted when calling =delete-other-windows=.
 
@@ -660,27 +720,37 @@ where =template= is the template key for a template in
 =org-roam-capture-ref-templates= (see [[*The Templating System][The Templating System]]). These templates
 should contain a =#+ROAM_KEY: ${ref}= in it.
 
-* Keystroke Index
-:PROPERTIES:
-:APPENDIX:   t
-:INDEX:      ky
-:COOKIE_DATA: recursive
-:END:
-* Command Index
-:PROPERTIES:
-:APPENDIX:   t
-:INDEX:      cp
-:END:
-* Function Index
-:PROPERTIES:
-:APPENDIX:   t
-:INDEX:      fn
-:END:
-* Variable Index
-:PROPERTIES:
-:APPENDIX:   t
-:INDEX:      vr
-:END:
+* Diagnosing and Repairing Files
+
+Org-roam provides a utility for diagnosing and repairing problematic files via
+=org-roam-doctor=. By default, =org-roam-doctor= runs the check across all Org-roam
+files, and this can take some time. To run the check only for the current file,
+run =C-u M-x org-roam-doctor=.
+
+- Function: org-roam-doctor &optional this-buffer
+
+  Perform a check on Org-roam files to ensure cleanliness. If THIS-BUFFER, run
+  the check only for the current buffer.
+
+The checks run are defined in =org-roam-doctor--checkers=. Each checker is an instance of =org-roam-doctor-checker=. To define a checker, use =make-org-roam-doctor-checker=. Here is a sample definition:
+
+#+BEGIN_SRC emacs-lisp
+(make-org-roam-doctor-checker
+    :name 'org-roam-doctor-broken-links
+    :description "Fix broken links."
+    :actions '(("d" . ("Unlink" . org-roam-doctor--remove-link))
+               ("r" . ("Replace link" . org-roam-doctor--replace-link))
+               ("R" . ("Replace link (keep label)" . org-roam-doctor--replace-link-keep-label))))
+#+END_SRC
+
+The =:name= property is the name of the function run. The function takes in the
+Org parse tree, and returns a list of =(point error-message)=. =:description= is a
+short description of what the checker does. =:actions= is an alist containing
+elements of the form =(char . (prompt . function))=. These actions are defined per
+checker, to perform autofixes for the errors. For each error detected,
+=org-roam-doctor= will move the point to the current error, and pop-up a help
+window displaying the error message, as well as the list of actions that can be
+taken provided in =:actions=.
 
 * _ Copying
 :PROPERTIES:
@@ -857,7 +927,7 @@ etc.) within Org-mode.
     :CUSTOM_ID: bibliography
     :END:
 
-[[https://github.com/zaeph/org-roam-bibtex][org-roam-bibtex]] offers
+[[https://github.com/org-roam/org-roam-bibtex][org-roam-bibtex]] offers
 tight integration between
 [[https://github.com/jkitchin/org-ref][org-ref]],
 [[https://github.com/tmalsburg/helm-bibtex][helm-bibtex]] and
@@ -896,9 +966,9 @@ file within that directory, at least once.
 
 * _ :ignore:
 # Local Variables:
-# eval: (require 'org-man     nil t)
-# eval: (require 'ox-texinfo+ nil t)
-# eval: (and (require 'ox-extra nil t) (ox-extras-activate '(ignore-headlines)))
+# eval: (refill-mode +1)
+# before-save-hook: org-make-toc
+# after-save-hook: (lambda nil (progn (require 'ox-texinfo nil t) (org-texinfo-export-to-info)))
 # indent-tabs-mode: nil
 # org-src-preserve-indentation: nil
 # End:
