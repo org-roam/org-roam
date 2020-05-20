@@ -160,6 +160,27 @@ extraction methods:
               (const :tag "sub-directories" all-directories)
               (const :tag "parent directory" last-directory)))
 
+(defcustom org-roam-list-files-functions '(find rg)
+  "Commands that will be used to find Org-roam files.
+
+It should be a list of symbols representing any of the following supported file
+search methods.
+
+These commands will used in order, falling back to the next one if an executable
+for a particular method is not found. If none of the methods are available, the
+default Elisp implementation will be used.
+
+  `rg'
+    Use ripgrep as the file search method.
+    Example command: rg /path/to/dir/ --files -g \"*.org\" -g \"*.org.gpg\"
+
+  `find'
+    Use find as the file search method.
+    Example command:
+    find /path/to/dir -type f \( -name \"*.org\" -o -name \"*.org.gpg\" \)"
+  :type '(set (const :tag "find" find)
+              (const :tag "rg" rg)))
+
 ;;;; Dynamic variables
 (defvar org-roam-last-window nil
   "Last window `org-roam' was called from.")
@@ -247,12 +268,11 @@ E.g. (\".org\") => (\"*.org\" \"*.org.gpg\")"
   (let* ((globs (org-roam--list-files-search-globs org-roam-file-extensions))
     (executable (executable-find "rg"))
     (command (s-join " " `(,executable ,dir "--files"
-                                       ,@(mapcar (lambda (glob) (concat "-g " glob)) globs)))))
+                            ,@(mapcar (lambda (glob) (concat "-g " glob)) globs)))))
     (if executable
-        (org-roam--shell-command-files command)
-        (lwarn '(org-roam) :error
-             "Cannot find \"rg\" executable. Make sure it is available, or tweak `org-roam-find-file-functions'"))))
-
+      (org-roam--shell-command-files command)
+      (lwarn '(org-roam) :error
+        "Cannot find \"rg\" executable. Make sure it is available, or tweak `org-roam-find-file-functions'"))))
 
 (defun org-roam--list-files-find (dir)
   "Return all Org-roam files located recursively within DIR, using find."
@@ -260,11 +280,11 @@ E.g. (\".org\") => (\"*.org\" \"*.org.gpg\")"
     (globs (org-roam--list-files-search-globs org-roam-file-extensions))
     (executable (executable-find "find"))
     (command (s-join " " `(,executable ,dir "-type f \\("
-                                       ,(s-join " -o " (mapcar (lambda (glob) (concat "-name " glob)) globs)) "\\)"))))
+                            ,(s-join " -o " (mapcar (lambda (glob) (concat "-name " glob)) globs)) "\\)"))))
   (if executable
-      (org-roam--shell-command-files command)
-      (lwarn '(org-roam) :error
-             "Cannot find \"find\" executable. Make sure it is available, or tweak `org-roam-find-file-functions'"))))
+    (org-roam--shell-command-files command)
+    (lwarn '(org-roam) :error
+      "Cannot find \"find\" executable. Make sure it is available, or tweak `org-roam-find-file-functions'"))))
 
 (defun org-roam--list-files-elisp (dir)
   "Return all Org-roam files located recursively within DIR, using elisp."
@@ -276,12 +296,11 @@ E.g. (\".org\") => (\"*.org\" \"*.org.gpg\")"
 
 (defun org-roam--list-files (dir)
   "Return all Org-roam files located recursively within DIR.
-Ignores hidden files and directories.
-org-roam--list-files will try rg, find, and fall back to the elisp implementation if none of the external tools are found."
-(cond
- ((executable-find "rg") (org-roam--list-files-rg dir))
- ((executable-find "find") (org-roam--list-files-find dir))
- (t (org-roam--list-files-elisp dir))))
+It will use external shell functions if defined in `org-roam-list-files-functions'."
+  (let ((valid-command (seq-find (lambda (s) (executable-find (symbol-name s))) org-roam-list-files-functions)))
+    (if valid-command
+      (funcall (intern (concat "org-roam--list-files-" (symbol-name valid-command))) dir)
+      (org-roam--list-files-elisp dir))))
 
 (defun org-roam--list-all-files ()
   "Return a list of all Org-roam files within `org-roam-directory'."
