@@ -265,8 +265,9 @@ This function is used solely in Org-roam's capture templates: see
                      ('ref
                       (let ((completions (org-roam--get-ref-path-completions))
                             (ref (cdr (assoc 'ref org-roam-capture--info))))
-                        (or (cdr (assoc ref completions))
-                            (org-roam-capture--new-file))))
+                        (if-let ((pl (cdr (assoc ref completions))))
+                            (plist-get pl :path)
+                          (org-roam-capture--new-file))))
                      (_ (error "Invalid org-roam-capture-context")))))
     (org-roam-capture--expand-template)
     (org-roam-capture--put :file-path file-path)
