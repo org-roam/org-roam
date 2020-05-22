@@ -411,12 +411,14 @@ it as FILE-PATH."
     (when title
       (list title))))
 
+(defalias 'org-roam--parse-alias 'org-roam--str-to-list)
+
 (defun org-roam--extract-titles-alias ()
   "Return the aliases from the current buffer.
 Reads from the \"ROAM_ALIAS\" property."
   (let* ((prop (org-roam--extract-global-props '("ROAM_ALIAS")))
          (aliases (cdr (assoc "ROAM_ALIAS" prop))))
-    (org-roam--str-to-list aliases)))
+    (org-roam--parse-alias aliases)))
 
 (defun org-roam--extract-titles-headline ()
   "Return the first headline of the current buffer."
@@ -459,10 +461,12 @@ The final directory component is used as a tag."
                             (file-relative-name file org-roam-directory))))
     (last (f-split dir-relative))))
 
+(defalias 'org-roam--parse-tags 'org-roam--str-to-list)
+
 (defun org-roam--extract-tags-prop (_file)
   "Extract tags from the current buffer's \"#ROAM_TAGS\" global property."
   (let* ((prop (org-roam--extract-global-props '("ROAM_TAGS"))))
-    (org-roam--str-to-list (cdr (assoc "ROAM_TAGS" prop)))))
+    (org-roam--parse-tags (cdr (assoc "ROAM_TAGS" prop)))))
 
 (defcustom org-roam-tag-sort nil
   "When non-nil, sort the tags in the completions.

@@ -51,6 +51,8 @@
 (declare-function org-roam--get-roam-buffers "org-roam")
 (declare-function org-roam--list-all-files "org-roam")
 (declare-function org-roam--org-roam-file-p "org-roam")
+(declare-function org-roam--parse-tags "org-roam")
+(declare-function org-roam--parse-alias "org-roam")
 
 (defvar org-roam-verbose)
 
@@ -66,7 +68,53 @@
     :description "Fix broken links."
     :actions '(("d" . ("Unlink" . org-roam-doctor--remove-link))
                ("r" . ("Replace link" . org-roam-doctor--replace-link))
-               ("R" . ("Replace link (keep label)" . org-roam-doctor--replace-link-keep-label))))))
+               ("R" . ("Replace link (keep label)" . org-roam-doctor--replace-link-keep-label))))
+   (make-org-roam-doctor-checker
+    :name 'org-roam-doctor-check-tags
+    :description "Check #+ROAM_TAGS.")
+   (make-org-roam-doctor-checker
+    :name 'org-roam-doctor-check-alias
+    :description "Check #+ROAM_ALIAS.")))
+
+(defun org-roam-doctor-check-tags (ast)
+  "Checker for detecting invalid #+ROAM_TAGS.
+AST is the org-element parse tree."
+  (let (reports)
+    (org-element-map ast 'keyword
+      (lambda (kw)
+        (when (string= (org-element-property :key kw) "ROAM_TAGS")
+          (let* ((s (org-element-property :value kw))
+                     (tags (org-roam--parse-tags s))
+                     (bad-tags (-remove #'stringp tags)))
+            (when bad-tags
+              (push
+               `(,(org-element-property :begin kw)
+                 ,(concat "Invalid tags: "
+                          (prin1-to-string bad-tags)
+                          (when (s-contains? "," s)
+                            "\nCheck that your tags are not comma-separated.")))
+                 reports))))))
+    reports))
+
+(defun org-roam-doctor-check-alias (ast)
+  "Checker for detecting invalid #+ROAM_ALIAS.
+AST is the org-element parse tree."
+  (let (reports)
+    (org-element-map ast 'keyword
+      (lambda (kw)
+        (when (string= (org-element-property :key kw) "ROAM_ALIAS")
+          (let* ((s (org-element-property :value kw))
+                     (aliases (org-roam--parse-alias s))
+                     (bad-aliases (-remove #'stringp aliases)))
+            (when bad-aliases
+              (push
+               `(,(org-element-property :begin kw)
+                 ,(concat "Invalid aliases: "
+                          (prin1-to-string bad-aliases)
+                          (when (s-contains? "," s)
+                            "\nCheck that your aliases are not comma-separated.")))
+                 reports))))))
+    reports))
 
 (defun org-roam-doctor-broken-links (ast)
   "Checker for detecting broken links.
