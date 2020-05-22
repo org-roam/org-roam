@@ -70,6 +70,10 @@
   "Set by `org-roam-link-show-link-messages' or `org-roam-link-cancel-link-messages'.")
 
 ;;;; Custom org-link, roam:
+(defvar org-roam-link--re
+  "\\(\\[\\[\\)\\(roam:\\).*\\(\\]\\]\\)"
+  "Matches a 'roam:' link in double brackets.")
+
 (defface org-roam-link-brackets
   '((t :inherit org-link))
   "Face for roam: link brackets."
@@ -87,7 +91,7 @@ link has brackets."
     (save-excursion
       (save-match-data
         (goto-char start)
-        (re-search-forward "\\(\\[\\[\\)\\(roam:\\).*\\(\\]\\]\\)" end t)
+        (re-search-forward org-roam-link--re end t)
         ;; Optionally hide starting brackets or change their face
         ;; Can't set invisible with org-roam-link-show-brackets directly
         (add-text-properties
