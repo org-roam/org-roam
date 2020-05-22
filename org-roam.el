@@ -566,10 +566,8 @@ instead of standard file-link."
                            (if filter-fn
                                (funcall filter-fn it)
                              it)))
-         (in-buffer-completions (--> (org-roam-link--current-buffer-roam-link-titles)
-                                     (if filter-fn
-                                         (funcall filter-fn it)
-                                       it)))
+         (in-buffer-completions (funcall (or filter-fn #'identity)
+                                         (org-roam-link--current-buffer-roam-link-titles)))
          (title (if org-roam-link-enabled
                     (org-roam-completion--completing-read
                      "Roam note: " (-union (map-keys completions) in-buffer-completions)
