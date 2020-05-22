@@ -160,6 +160,30 @@ extraction methods:
               (const :tag "sub-directories" all-directories)
               (const :tag "parent directory" last-directory)))
 
+(defcustom org-roam-list-files-commands '(find rg)
+  "Commands that will be used to find Org-roam files.
+
+It should be a list of symbols or cons cells representing any of the following
+ supported file search methods.
+
+The commands will be tried in order until an executable for a command is found.
+The Elisp implementation is used if no command in the list is found.
+
+  `rg'
+    Use ripgrep as the file search method.
+    Example command: rg /path/to/dir/ --files -g \"*.org\" -g \"*.org.gpg\"
+
+  `find'
+    Use find as the file search method.
+    Example command:
+    find /path/to/dir -type f \( -name \"*.org\" -o -name \"*.org.gpg\" \)
+
+By default, `executable-find' will be used to look up the path to the
+executable. If a custom path is required, it can be specified together with the
+method symbol as a cons cell. For example: '(find (rg . \"/path/to/rg\"))."
+  :type '(set (const :tag "find" find)
+              (const :tag "rg" rg)))
+
 ;;;; Dynamic variables
 (defvar org-roam-last-window nil
   "Last window `org-roam' was called from.")
@@ -231,14 +255,61 @@ If FILE is not specified, use the current buffer's file-path."
          (f-descendant-of-p (file-truename path)
                             (file-truename org-roam-directory))))))
 
-(defun org-roam--list-files (dir)
-  "Return all Org-roam files located within DIR, at any nesting level.
-Ignores hidden files and directories."
+(defun org-roam--shell-command-files (cmd)
+  "Run CMD in the shell and return a list of files. If no files are found, an empty list is returned."
+  (seq-filter #'s-present? (split-string (shell-command-to-string cmd) "\n")))
+
+(defun org-roam--list-files-search-globs (exts)
+  "Given EXTS, return a list of search globs.
+E.g. (\".org\") => (\"*.org\" \"*.org.gpg\")"
+  (append
+   (mapcar (lambda (ext) (s-wrap (concat "*." ext) "\"")) exts)
+   (mapcar (lambda (ext) (s-wrap (concat "*." ext ".gpg") "\"")) exts)))
+
+(defun org-roam--list-files-rg (executable dir)
+  "Return all Org-roam files located recursively within DIR, using ripgrep, provided as EXECUTABLE."
+  (let* ((globs (org-roam--list-files-search-globs org-roam-file-extensions))
+         (command (s-join " " `(,executable ,dir "--files"
+                                            ,@(mapcar (lambda (glob) (concat "-g " glob)) globs)))))
+    (org-roam--shell-command-files command)))
+
+(defun org-roam--list-files-find (executable dir)
+  "Return all Org-roam files located recursively within DIR, using find, provided as EXECUTABLE."
+  (let* ((globs (org-roam--list-files-search-globs org-roam-file-extensions))
+         (command (s-join " " `(,executable ,dir "-type f \\("
+                                            ,(s-join " -o " (mapcar (lambda (glob) (concat "-name " glob)) globs)) "\\)"))))
+    (org-roam--shell-command-files command)))
+
+(defun org-roam--list-files-elisp (dir)
+  "Return all Org-roam files located recursively within DIR, using elisp."
   (let ((regex (concat "\\.\\(?:"(mapconcat #'regexp-quote org-roam-file-extensions "\\|" )"\\)\\(?:\\.gpg\\)?\\'"))
         result)
     (dolist (file (directory-files-recursively dir regex) result)
       (when (and (file-readable-p file) (org-roam--org-file-p file))
         (push file result)))))
+
+(defun org-roam--list-files (dir)
+  "Return all Org-roam files located recursively within DIR.
+Use external shell commands if defined in `org-roam-list-files-commands'."
+  (let (path exe)
+    (cl-dolist (cmd org-roam-list-files-commands)
+      (pcase cmd
+        (`(,e . ,path)
+         (setq path (executable-find path)
+               exe  (symbol-name e)))
+        ((pred symbolp)
+         (setq path (executable-find (symbol-name cmd))
+               exe (symbol-name cmd)))
+        (wrong-type
+         (signal 'wrong-type-argument
+                          `((consp symbolp)
+                            ,wrong-type))))
+      (when path (cl-return)))
+    (if path
+        (let ((fn (intern (concat "org-roam--list-files-" exe))))
+          (unless (fboundp fn) (user-error "%s is not an implemented search method" fn))
+          (funcall fn path dir))
+      (org-roam--list-files-elisp dir))))
 
 (defun org-roam--list-all-files ()
   "Return a list of all Org-roam files within `org-roam-directory'."
