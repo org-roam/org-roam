@@ -55,7 +55,7 @@
 (declare-function org-roam--get-title-path-completions "org-roam")
 
 ;;;; Customizable Variables
-(defcustom org-roam-link-use-roam-links nil
+(defcustom org-roam-link-enabled nil
   "When t `org-roam-insert' inserts roam-link instead of org file-link."
   :type 'boolean
   :group 'org-roam)

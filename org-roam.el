@@ -552,7 +552,7 @@ FILTER-FN is the name of a function to apply on the candidates
 which takes as its argument an alist of path-completions.
 If DESCRIPTION is provided, use this as the link label. See
 `org-roam--get-title-path-completions' for details.
-If `org-roam-link-use-roam-links' is non-nil combine standard title
+If `org-roam-link-enabled' is non-nil combine standard title
 completions with in-buffer roam-link titles, and insert roam-link
 instead of standard file-link."
   (interactive "P")
@@ -570,7 +570,7 @@ instead of standard file-link."
                                      (if filter-fn
                                          (funcall filter-fn it)
                                        it)))
-         (title (if org-roam-link-use-roam-links
+         (title (if org-roam-link-enabled
                     (org-roam-completion--completing-read
                      "Roam note: " (-union (map-keys completions) in-buffer-completions)
                      :initial-input region-text)
@@ -581,7 +581,7 @@ instead of standard file-link."
          (link-description (org-roam--format-link-title (if lowercase
                                                             (downcase description)
                                                           description))))
-    (if org-roam-link-use-roam-links
+    (if org-roam-link-enabled
         (progn
           (when region ;; Remove previously selected text.
             (delete-region (car region) (cdr region)))
