@@ -233,6 +233,7 @@ CALLBACK is passed the graph file as its sole argument."
          (graph      (org-roam-graph--dot node-query))
          (temp-dot   (make-temp-file "graph." nil ".dot" graph))
          (temp-graph (make-temp-file "graph." nil ".svg")))
+    (org-roam-message "building graph")
     (make-process
      :name "*org-roam-graph--build-process*"
      :buffer "*org-roam-graph--build-process*"
