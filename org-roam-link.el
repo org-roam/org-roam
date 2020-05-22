@@ -249,10 +249,8 @@ MANUAL is boolean allowing manual selection of capture template(s)."
       (org-roam-capture--capture :keys "a"))))
 
 (defun org-roam-link-auto-create-roam-links-in-buffer (&optional manual)
-  "Create all non-existant roam-link files in current buffer.
-MANUAL is boolean which allows manual selection of `org-roam-capture'
-templates for each file created.
-If called with PREFIX `C-u' then manual is non-nil."
+  "Create all non-existent roam-link files in current buffer.
+If MANUAL is non-nil, prompt for template with `org-roam-capture'."
   (interactive "P")
   (when (org-roam--org-roam-file-p)
     (org-element-map (org-element-parse-buffer) 'link
@@ -276,16 +274,15 @@ If called with PREFIX `C-u' then manual is non-nil."
        (-flatten)
        (-distinct)))
 
-(defun org-roam-link--completion (&optional _arg)
-  "Completion for roam-links in `org-mode'.
-ARG is optional prefix supplied through `org-mode'"
+(defun org-roam-link--completion (&optional _)
+  "Completion for roam-links in `org-mode'."
   (let ((completions (org-roam--get-title-path-completions))
         (in-buffer-completions (org-roam-link--current-buffer-roam-link-titles)))
     (format "roam:%s" (completing-read "Roam note: "
                                        (-union (map-keys completions) in-buffer-completions)))))
 
 (defun org-roam-link--status-message ()
-  "Send roam-link status message to minibuffer."
+  "Print roam-link status message to minibuffer."
   (when (and org-roam-verbose
              (string= major-mode "org-mode"))
     (let ((elem (org-element-context)))
