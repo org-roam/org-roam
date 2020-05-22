@@ -291,18 +291,23 @@ E.g. (\".org\") => (\"*.org\" \"*.org.gpg\")"
 (defun org-roam--list-files (dir)
   "Return all Org-roam files located recursively within DIR.
 Use external shell commands if defined in `org-roam-list-files-commands'."
-  (let* ((found (seq-find (lambda (s)
-                            (cond ((symbolp s) (executable-find (symbol-name s)))
-                                  ((consp s) (executable-find (cdr s))))) org-roam-list-files-commands))
-         (path (cond ((symbolp found) (executable-find (symbol-name found)))
-                     ((consp found) (executable-find (symbol-name (cdr found))))))
-         (fn (intern-soft (concat "org-roam--list-files-"
-                                  (cond ((symbolp found) (symbol-name found))
-                                        ((consp found) (symbol-name (car (found)))))))))
-    (if (not found)
-        (org-roam--list-files-elisp dir)
-      (unless (fboundp fn) (user-error "%s is not an implemented search method" fn))
-      (funcall fn path dir))))
+  (let (path exe)
+    (cl-dolist (cmd org-roam-list-files-commands)
+      (pcase cmd
+        (`(,e . ,path)
+         (setq path (executable-find path)
+               exe  (symbol-name e)))
+        (_
+         (setq path (executable-find (symbol-name cmd))
+               exe (symbol-name cmd))))
+      (when path (cl-return)))
+    (if path
+        (let ((fn (intern (concat "org-roam--list-files-" exe))))
+          (unless (fboundp fn) (user-error "%s is not an implemented search method" fn))
+          (funcall fn path dir))
+      (org-roam--list-files-elisp dir))))
+
+(org-roam--list-files "/home/siawyoung/code/org-roam")
 
 (defun org-roam--list-all-files ()
   "Return a list of all Org-roam files within `org-roam-directory'."
