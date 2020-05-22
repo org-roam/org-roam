@@ -67,7 +67,7 @@
 
 ;;;; Dynamic variables
 (defvar org-roam-link-message-timer nil
-  "Set by `org-roam-link-show-link-messages' or `org-roam-link-cancel-link-messages'.")
+  "Set by `org-roam-link-show-messages' or `org-roam-link-cancel-messages'.")
 
 ;;;; Custom org-link, roam:
 (defvar org-roam-link--re
@@ -301,7 +301,7 @@ If MANUAL is non-nil, prompt for template with `org-roam-capture'."
                 (org-roam-message "file: %s → %s" file-path raw-link)
               (org-roam-message "No file found in db → %s" raw-link))))))))
 
-(defun org-roam-link-show-link-messages ()
+(defun org-roam-link-show-messages ()
   "Enable minibuffer status message for roam-links.
 Follows example of `org-ref' and displays on idle timer."
   (interactive)
@@ -310,7 +310,7 @@ Follows example of `org-ref' and displays on idle timer."
         (setq org-roam-link-message-timer
               (run-with-idle-timer 0.5 t #'org-roam-link--status-message)))))
 
-(defun org-roam-link-cancel-link-messages ()
+(defun org-roam-link-cancel-messages ()
   "Disable minibuffer status message for roam-links."
   (interactive)
   (cancel-timer org-roam-link-message-timer)

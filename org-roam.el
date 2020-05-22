@@ -971,7 +971,7 @@ Otherwise, behave as if called interactively."
      :keymap (let ((map (copy-keymap org-mouse-map)))
                (define-key map (kbd "M-r") 'org-roam-link-convert-file-to-roam-link)
                map))
-    (org-roam-link-show-link-messages))
+    (org-roam-link-show-messages))
    (t
     (remove-hook 'find-file-hook #'org-roam--find-file-hook-function)
     (remove-hook 'kill-emacs-hook #'org-roam-db--close-all)
@@ -989,14 +989,13 @@ Otherwise, behave as if called interactively."
     (org-link-set-parameters
      "file"
      :keymap (copy-keymap org-mouse-map))
-    (org-roam-cancel-link-messages)
     ;; Disable local hooks for all org-roam buffers
     (dolist (buf (org-roam--get-roam-buffers))
       (with-current-buffer buf
         (org-link-set-parameters "file" :face 'org-link)
         (remove-hook 'post-command-hook #'org-roam-buffer--update-maybe t)
         (remove-hook 'after-save-hook #'org-roam-db--update-file t)))
-    (org-roam-link-cancel-link-messages))))
+    (org-roam-link-cancel-messages))))
 
 (defun org-roam--find-file-hook-function ()
   "Called by `find-file-hook' when mode symbol `org-roam-mode' is on."
