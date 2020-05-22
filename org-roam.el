@@ -958,7 +958,7 @@ Otherwise, behave as if called interactively."
     (org-link-set-parameters
      "roam"
      :display 'full
-     :face 'org-roam-link--roam-link-face
+     :face 'org-roam-link--face
      :activate-func 'org-roam-link--activate
      :follow 'org-roam-link--find-file
      :complete 'org-roam-link--completion

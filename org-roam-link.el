@@ -125,7 +125,7 @@ PATH is a potential TITLE/ALIAS of an existing Org-roam note."
         (backlink-dest (org-roam--get-file-from-title path)))
     (string= current backlink-dest)))
 
-(defun org-roam-link--roam-link-face (path)
+(defun org-roam-link--face (path)
   "Conditional face for custom roam-links.
 Applies `org-roam-link-current' if PATH corresponds to the
 currently opened Org-roam file in the backlink buffer,
