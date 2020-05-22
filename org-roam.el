@@ -579,28 +579,26 @@ instead of standard file-link."
          (link-description (org-roam--format-link-title (if lowercase
                                                             (downcase description)
                                                           description))))
-    (if org-roam-link-enabled
-        (progn
-          (when region ;; Remove previously selected text.
-            (delete-region (car region) (cdr region)))
-          (insert (format "[[roam:%s]]" title)))
-      (if (and target-file-path
-               (file-exists-p target-file-path))
-        (progn
-          (when region ;; Remove previously selected text.
-            (delete-region (car region) (cdr region)))
-          (insert (org-roam--format-link target-file-path link-description)))
-      (when (org-roam-capture--in-process-p)
-        (user-error "Nested Org-roam capture processes not supported"))
-      (let ((org-roam-capture--info (list (cons 'title title)
-                                          (cons 'slug (org-roam--title-to-slug title))))
-            (org-roam-capture--context 'title))
-        (add-hook 'org-capture-after-finalize-hook #'org-roam-capture--insert-link-h)
-        (setq org-roam-capture-additional-template-props (list :region region
-                                                               :link-description link-description
-                                                               :capture-fn 'org-roam-insert))
-        (org-roam--with-template-error 'org-roam-capture-templates
-          (org-roam-capture--capture)))))))
+    (cond (org-roam-link-enabled
+           (when region ;; Remove previously selected text.
+             (delete-region (car region) (cdr region)))
+           (insert (format "[[roam:%s]]" title)))
+          ((and target-file-path
+                (file-exists-p target-file-path))
+           (when region ;; Remove previously selected text.
+             (delete-region (car region) (cdr region)))
+           (insert (org-roam--format-link target-file-path link-description)))
+          ((org-roam-capture--in-process-p)
+           (user-error "Nested Org-roam capture processes not supported"))
+          (t (let ((org-roam-capture--info `(('title . ,title)
+                                             ('slug . ,(org-roam--title-to-slug title))))
+                   (org-roam-capture--context 'title))
+               (add-hook 'org-capture-after-finalize-hook #'org-roam-capture--insert-link-h)
+               (setq org-roam-capture-additional-template-props (list :region region
+                                                                      :link-description link-description
+                                                                      :capture-fn 'org-roam-insert))
+               (org-roam--with-template-error 'org-roam-capture-templates
+                 (org-roam-capture--capture)))))))
 
 (defun org-roam--get-title-path-completions ()
   "Return a list of cons pairs for titles to absolute path of Org-roam files."
