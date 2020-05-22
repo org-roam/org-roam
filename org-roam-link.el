@@ -97,15 +97,11 @@ link has brackets."
         (add-text-properties
          (match-beginning 1)
          (match-end 1)
-         (if org-roam-link-show-brackets
-             '(face org-roam-link-brackets invisible nil)
-           '(face org-roam-link-brackets invisible t)))
+         `(face org-roam-link-brackets invisible ,org-roam-link-show-brackets))
         (add-text-properties
          (match-beginning 3)
          (match-end 3)
-         (if org-roam-link-show-brackets
-             '(face org-roam-link-brackets invisible nil)
-           '(face org-roam-link-brackets invisible t)))
+         `(face org-roam-link-brackets invisible ,org-roam-link-show-brackets))
         ;; Check if link is plain or Descriptive
         (if (not (string-match-p "\\]\\[" (buffer-substring start end)))
             ;; If plain, hide roam: prefix
