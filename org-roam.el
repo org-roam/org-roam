@@ -297,17 +297,19 @@ Use external shell commands if defined in `org-roam-list-files-commands'."
         (`(,e . ,path)
          (setq path (executable-find path)
                exe  (symbol-name e)))
-        (_
+        ((pred symbolp)
          (setq path (executable-find (symbol-name cmd))
-               exe (symbol-name cmd))))
+               exe (symbol-name cmd)))
+        (wrong-type
+         (signal 'wrong-type-argument
+                          `((consp (list symbolp …))
+                            ,wrong-type))))
       (when path (cl-return)))
     (if path
         (let ((fn (intern (concat "org-roam--list-files-" exe))))
           (unless (fboundp fn) (user-error "%s is not an implemented search method" fn))
           (funcall fn path dir))
       (org-roam--list-files-elisp dir))))
-
-(org-roam--list-files "/home/siawyoung/code/org-roam")
 
 (defun org-roam--list-all-files ()
   "Return a list of all Org-roam files within `org-roam-directory'."
