@@ -316,17 +316,13 @@ Follows example of `org-ref' and displays on idle timer."
   (cancel-timer org-roam-link-message-timer)
   (setq org-roam-link-message-timer nil))
 
-(defun org-roam-link-insert-link ()
-  "Shortcut to insert roam-link with standard completion prompt."
-  (interactive)
-  (insert "[[" (org-roam-link--completion) "]]"))
-
-(defun org-roam-link-insert-syntax ()
-  "Shortcut to insert roam-link syntax without completion.
-Move point inside brackets, ready for roam title entry."
-  (interactive)
-  (insert "[[roam:]]")
-  (backward-char 2))
+(defun org-roam-link-insert-link (&optional completion)
+  "Insert a roam-link.
+If COMPLETION is non-nil, then a completion prompt is presented for the link's path."
+  (interactive "P")
+  (cond (completion (insert "[[" (org-roam-link--completion) "]]"))
+        (t (insert "[[roam:]]")
+           (backward-char 2))))
 
 (defun org-roam-link-exit-link ()
   "When point is in roam-link, advance point forward out of the link."
