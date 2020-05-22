@@ -242,8 +242,8 @@ indicate the link-type the buffer should convert to."
   "Call `org-roam-capture' with a template using :immediate-finish t.
 TITLE is the title for the file to be created.
 MANUAL is boolean allowing manual selection of capture template(s)."
-  (let ((org-roam-capture--info (list (cons 'title title)
-                                      (cons 'slug (org-roam--title-to-slug title))))
+  (let ((org-roam-capture--info `(('title . ,title)
+                                  ('slug . ,(org-roam--title-to-slug title))))
         (org-roam-capture--context 'title))
     (if manual (org-roam-capture--capture)
       (org-roam-capture--capture :keys "a"))))
