@@ -302,7 +302,7 @@ Use external shell commands if defined in `org-roam-list-files-commands'."
                exe (symbol-name cmd)))
         (wrong-type
          (signal 'wrong-type-argument
-                          `((consp (list symbolp …))
+                          `((consp symbolp)
                             ,wrong-type))))
       (when path (cl-return)))
     (if path
