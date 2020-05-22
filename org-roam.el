@@ -308,7 +308,7 @@ Use external shell commands if defined in `org-roam-list-files-commands'."
     (if path
         (let ((fn (intern (concat "org-roam--list-files-" exe))))
           (unless (fboundp fn) (user-error "%s is not an implemented search method" fn))
-          (funcall fn path dir))
+          (funcall fn path (format "\"%s\"" dir)))
       (org-roam--list-files-elisp dir))))
 
 (defun org-roam--list-all-files ()
