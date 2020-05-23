@@ -1048,25 +1048,21 @@ FILTER-FN is the name of a function to apply on the candidates
 which takes as its argument an alist of path-completions.  See
 `org-roam--get-title-path-completions' for details."
   (interactive)
-  (let* ((completions (--> (or completions
-                               (org-roam--get-title-path-completions))
-                           (if filter-fn
-                               (funcall filter-fn it)
-                             it)))
+  (when (org-roam-capture--in-process-p) (user-error "Org-roam capture in process"))
+  (let* ((completions (funcall (or filter-fn #'identity)
+                               (or completions (org-roam--get-title-path-completions))))
          (title-with-tags (org-roam-completion--completing-read "File: " completions
                                                                 :initial-input initial-prompt))
          (res (cdr (assoc title-with-tags completions)))
          (file-path (plist-get res :path)))
     (if file-path
         (find-file file-path)
-      (if (org-roam-capture--in-process-p)
-          (user-error "Org-roam capture in process")
-        (let ((org-roam-capture--info `((title . ,title-with-tags)
-                                        (slug . ,(org-roam--title-to-slug title-with-tags))))
-              (org-roam-capture--context 'title))
-          (add-hook 'org-capture-after-finalize-hook #'org-roam-capture--find-file-h)
-          (org-roam--with-template-error 'org-roam-capture-templates
-            (org-roam-capture--capture)))))))
+      (let ((org-roam-capture--info `((title . ,title-with-tags)
+                                      (slug  . ,(org-roam--title-to-slug title-with-tags))))
+            (org-roam-capture--context 'title))
+        (add-hook 'org-capture-after-finalize-hook #'org-roam-capture--find-file-h)
+        (org-roam--with-template-error 'org-roam-capture-templates
+          (org-roam-capture--capture))))))
 
 ;;;###autoload
 (defun org-roam-find-directory ()
