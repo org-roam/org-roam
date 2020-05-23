@@ -38,6 +38,7 @@
 (require 'org-element)
 (require 'ob-core) ;for org-babel-parse-header-arguments
 (require 'org-ref nil t) ; To detect cite: links
+(require 'ansi-color) ; org-roam--list-files strip ANSI color codes
 (require 'cl-lib)
 (require 'dash)
 (require 'f)
@@ -353,7 +354,8 @@ Use external shell commands if defined in `org-roam-list-files-commands'."
     (if path
         (let ((fn (intern (concat "org-roam--list-files-" exe))))
           (unless (fboundp fn) (user-error "%s is not an implemented search method" fn))
-          (funcall fn path (format "\"%s\"" dir)))
+          (mapcar #'ansi-color-filter-apply
+                  (funcall fn path (format "\"%s\"" dir))))
       (org-roam--list-files-elisp dir))))
 
 (defun org-roam--list-all-files ()
