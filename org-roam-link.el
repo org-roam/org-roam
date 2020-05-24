@@ -60,8 +60,8 @@
   :type 'boolean
   :group 'org-roam)
 
-(defcustom org-roam-link-show-brackets nil
-  "Whether to show brackets around [[roam:]] links."
+(defcustom org-roam-link-hide-brackets t
+  "Whether to hide brackets around [[roam:]] links."
   :type 'boolean
   :group 'org-roam)
 
@@ -93,15 +93,14 @@ link has brackets."
         (goto-char start)
         (re-search-forward org-roam-link--re end t)
         ;; Optionally hide starting brackets or change their face
-        ;; Can't set invisible with org-roam-link-show-brackets directly
         (add-text-properties
          (match-beginning 1)
          (match-end 1)
-         `(face org-roam-link-brackets invisible ,org-roam-link-show-brackets))
+         `(face org-roam-link-brackets invisible ,org-roam-link-hide-brackets))
         (add-text-properties
          (match-beginning 3)
          (match-end 3)
-         `(face org-roam-link-brackets invisible ,org-roam-link-show-brackets))
+         `(face org-roam-link-brackets invisible ,org-roam-link-hide-brackets))
         ;; Check if link is plain or Descriptive
         (if (not (string-match-p "\\]\\[" (buffer-substring start end)))
             ;; If plain, hide roam: prefix
@@ -110,9 +109,9 @@ link has brackets."
              (match-end 2)
              '(invisible t))
           ;; If descriptive, hide roam: and path. Optionally show single brackets
-          (progn (if org-roam-link-show-brackets
-                     (add-text-properties (+ start 1) (- end 1) '(invisible t))
-                   (add-text-properties start end '(invisible t)))
+          (progn (if org-roam-link-hide-brackets
+                     (add-text-properties start end '(invisible t))
+                   (add-text-properties (+ start 1) (- end 1) '(invisible t)))
                  (save-match-data
                    (goto-char start)
                    (re-search-forward org-link-bracket-re end t)
