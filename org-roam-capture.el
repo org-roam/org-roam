@@ -5,7 +5,7 @@
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
-;; Version: 1.1.0
+;; Version: 1.1.1
 ;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (s "1.12.0") (org "9.3") (emacsql "3.0.0") (emacsql-sqlite "1.0.0"))
 
 ;; This file is NOT part of GNU Emacs.
@@ -271,8 +271,9 @@ This function is used solely in Org-roam's capture templates: see
                      ('ref
                       (let ((completions (org-roam--get-ref-path-completions))
                             (ref (cdr (assoc 'ref org-roam-capture--info))))
-                        (or (cdr (assoc ref completions))
-                            (org-roam-capture--new-file))))
+                        (if-let ((pl (cdr (assoc ref completions))))
+                            (plist-get pl :path)
+                          (org-roam-capture--new-file))))
                      (_ (error "Invalid org-roam-capture-context")))))
     (org-roam-capture--expand-template)
     (org-roam-capture--put :file-path file-path)
@@ -323,7 +324,8 @@ Suitable for moving point."
 The templates are defined at `org-roam-capture-templates'.  The
 GOTO and KEYS argument have the same functionality as
 `org-capture'."
-  (let ((org-capture-templates (mapcar #'org-roam-capture--convert-template org-roam-capture-templates)))
+  (let ((org-capture-templates (mapcar #'org-roam-capture--convert-template org-roam-capture-templates))
+        org-capture-templates-contexts)
     (when (= (length org-capture-templates) 1)
       (setq keys (caar org-capture-templates)))
     (add-hook 'org-capture-after-finalize-hook #'org-roam-capture--save-file-maybe-h)
@@ -337,8 +339,11 @@ This uses the templates defined at `org-roam-capture-templates'."
   (when (org-roam-capture--in-process-p)
     (user-error "Nested Org-roam capture processes not supported"))
   (let* ((completions (org-roam--get-title-path-completions))
-         (title (org-roam-completion--completing-read "File: " completions))
-         (file-path (cdr (assoc title completions))))
+         (title-with-keys (org-roam-completion--completing-read "File: "
+                                                                completions))
+         (res (cdr (assoc title-with-keys completions)))
+         (title (or (plist-get res :title) title-with-keys))
+         (file-path (plist-get res :file-path)))
     (let ((org-roam-capture--info (list (cons 'title title)
                                         (cons 'slug (org-roam--title-to-slug title))
                                         (cons 'file file-path)))

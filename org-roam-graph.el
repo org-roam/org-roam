@@ -5,7 +5,7 @@
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
-;; Version: 1.1.0
+;; Version: 1.1.1
 ;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (s "1.12.0") (org "9.3") (emacsql "3.0.0") (emacsql-sqlite "1.0.0"))
 
 ;; This file is NOT part of GNU Emacs.
@@ -217,24 +217,31 @@ into a digraph."
       (insert "}")
       (buffer-string))))
 
-(defun org-roam-graph--build (&optional node-query)
-  "Generate a graph showing the relations between nodes in NODE-QUERY."
-  (let ((name org-roam-graph-executable))
-    (unless (stringp name)
-      (user-error "`org-roam-graph-executable' is not a string"))
-    (unless (executable-find org-roam-graph-executable)
-      (user-error (concat "Cannot find executable \"%s\" to generate the graph.  "
-                          "Please adjust `org-roam-graph-executable'")
-                  name))
-    (let* ((node-query (or node-query
-                           `[:select [file titles]
-                             :from titles
-                             ,@(org-roam-graph--expand-matcher 'file t)]))
-           (graph (org-roam-graph--dot node-query))
-           (temp-dot (make-temp-file "graph." nil ".dot" graph))
-           (temp-graph (make-temp-file "graph." nil ".svg")))
-      (call-process name nil 0 nil temp-dot "-Tsvg" "-o" temp-graph)
-      temp-graph)))
+(defun org-roam-graph--build (&optional node-query callback)
+  "Generate a graph showing the relations between nodes in NODE-QUERY.
+Execute CALLBACK when process exits successfully.
+CALLBACK is passed the graph file as its sole argument."
+  (unless (stringp org-roam-graph-executable)
+    (user-error "`org-roam-graph-executable' is not a string"))
+  (unless (executable-find org-roam-graph-executable)
+    (user-error (concat "Cannot find executable \"%s\" to generate the graph.  "
+                        "Please adjust `org-roam-graph-executable'")
+                org-roam-graph-executable))
+  (let* ((node-query (or node-query
+                         `[:select [file titles] :from titles
+                           ,@(org-roam-graph--expand-matcher 'file t)]))
+         (graph      (org-roam-graph--dot node-query))
+         (temp-dot   (make-temp-file "graph." nil ".dot" graph))
+         (temp-graph (make-temp-file "graph." nil ".svg")))
+    (org-roam-message "building graph")
+    (make-process
+     :name "*org-roam-graph--build-process*"
+     :buffer "*org-roam-graph--build-process*"
+     :command `(,org-roam-graph-executable ,temp-dot "-Tsvg" "-o" ,temp-graph)
+     :sentinel (when callback
+                 (lambda (process _event)
+                   (when (= 0 (process-exit-status process))
+                     (funcall callback temp-graph)))))))
 
 (defun org-roam-graph--open (file)
   "Open FILE using `org-roam-graph-viewer' with `view-file' as a fallback."
@@ -249,9 +256,10 @@ into a digraph."
     ('nil (view-file file))
     (_ (signal 'wrong-type-argument `((functionp stringp null) ,org-roam-graph-viewer)))))
 
-(defun org-roam-graph--build-connected-component (file &optional max-distance)
+(defun org-roam-graph--build-connected-component (file &optional max-distance callback)
   "Build a graph of nodes connected to FILE.
-If MAX-DISTANCE is non-nil, limit nodes to MAX-DISTANCE steps."
+If MAX-DISTANCE is non-nil, limit nodes to MAX-DISTANCE steps.
+CALLBACK is passed to `org-roam-graph--build'."
   (let* ((file (file-truename file))
          (files (or (if (and max-distance (>= max-distance 0))
                         (org-roam-db--links-with-max-distance file max-distance)
@@ -260,7 +268,7 @@ If MAX-DISTANCE is non-nil, limit nodes to MAX-DISTANCE steps."
          (query `[:select [file titles]
                   :from titles
                   :where (in file [,@files])]))
-    (org-roam-graph--build query)))
+    (org-roam-graph--build query callback)))
 
 ;;;; Commands
 ;;;###autoload
@@ -282,11 +290,9 @@ ARG may be any of the following values:
       (unless (org-roam--org-roam-file-p file)
         (user-error "\"%s\" is not an org-roam file" file)))
     (pcase arg
-      ('nil            (org-roam-graph--open (org-roam-graph--build node-query)))
-      ('(4)            (org-roam-graph--open (org-roam-graph--build-connected-component file)))
-      ((pred integerp) (let ((graph (org-roam-graph--build-connected-component file (abs arg))))
-                         (when (>= arg 0)
-                           (org-roam-graph--open graph))))
+      ('nil            (org-roam-graph--build node-query #'org-roam-graph--open))
+      ('(4)            (org-roam-graph--build-connected-component file nil #'org-roam-graph--open))
+      ((pred integerp) (org-roam-graph--build-connected-component file (abs arg) (when (>= arg 0) #'org-roam-graph--open)))
       ('(16)           (org-roam-graph--build node-query))
       ('-              (org-roam-graph--build-connected-component file))
       (_ (user-error "Unrecognized ARG: %s" arg)))))

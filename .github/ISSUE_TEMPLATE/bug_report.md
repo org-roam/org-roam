@@ -19,6 +19,15 @@ Example:
 ...
 -->
 
+#### Backtrace
+<!--
+   Will help us track and understand issues faster.
+   How to provide a backtrace:
+   1. M-x toggle-debug-on-error
+   2. Trigger error. The debugger buffer should pop up.
+   3. Copy the contents of the debugger buffer and paste here
+-->
+
 #### Expected Results
 
 <!-- Example: File A is there -->
@@ -27,7 +36,8 @@ Example:
 
 <!-- Example: File A is missing -->
 
-### Versions
+### Environment
 
-- Emacs (`C-h v emacs-version`): vX.X.X
+<!-- Please M-x org-roam-diagnostics and paste results here -->
+
 - Org-roam commit: https://github.com/jethrokuan/org-roam/commit/commithashhere
