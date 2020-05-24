@@ -33,6 +33,7 @@
 ;;;; Library Requires
 (eval-when-compile (require 'subr-x))
 (require 'emacsql)
+(require 'emacsql-sqlite3 nil t)
 (require 'emacsql-sqlite)
 (require 'org-roam-macs)
 
@@ -57,11 +58,20 @@ when used with multiple Org-roam instances."
   :type 'string
   :group 'org-roam)
 
+(defcustom org-roam-db-use-sqlite3 nil
+  "Set the value to non-nil if Org-roam is to use sqlite3.
+This is mainly for Windows users, who do not have out-of-the-box
+support for compiling emacs-sqlite."
+  :type 'boolean
+  :group 'org-roam)
+
 (defconst org-roam-db--version 5)
 (defconst org-roam-db--sqlite-available-p
-  (with-demoted-errors "Org-roam initialization: %S"
-    (emacsql-sqlite-ensure-binary)
-    t))
+  (if org-roam-db-use-sqlite3
+      (message "Emacs-sqlite3 is used")
+    (with-demoted-errors "Org-roam initialization: %S"
+      (emacsql-sqlite-ensure-binary)
+      t)))
 
 (defvar org-roam-db--connection (make-hash-table :test #'equal)
   "Database connection to Org-roam database.")
@@ -87,7 +97,8 @@ Performs a database upgrade when required."
     (let* ((db-file (org-roam-db--get))
            (init-db (not (file-exists-p db-file))))
       (make-directory (file-name-directory db-file) t)
-      (let ((conn (emacsql-sqlite db-file)))
+      (let ((conn (if org-roam-db-use-sqlite3 (emacsql-sqlite3 db-file)
+                    (emacsql-sqlite db-file))))
         (set-process-query-on-exit-flag (emacsql-process conn) nil)
         (puthash (file-truename org-roam-directory)
                  conn
