@@ -315,18 +315,13 @@ Follows example of `org-ref' and displays on idle timer."
   (cancel-timer org-roam-link-message-timer)
   (setq org-roam-link-message-timer nil))
 
-(defun org-roam-link-insert-link (&optional completion)
-  "Insert a roam-link.
-If COMPLETION is non-nil, then a completion prompt is presented for the link's path."
-  (interactive "P")
-  (cond (completion (insert "[[" (org-roam-link--completion) "]]"))
-        (t (insert "[[roam:]]")
-           (backward-char 2))))
-
-(defun org-roam-link-exit-link ()
-  "When point is in roam-link, advance point forward out of the link."
+(defun org-roam-link-insert (&optional title)
+  "Insert a roam-link with TITLE.
+If TITLE is nil, prompt for one."
   (interactive)
-  (goto-char (org-element-property :end (org-element-context))))
+  (if title
+      (insert "[[" (concat "roam:" title) "]]")
+    (insert "[[" (org-roam-link--completion) "]]")))
 
 (provide 'org-roam-link)
 

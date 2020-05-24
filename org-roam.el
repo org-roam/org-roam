@@ -960,7 +960,6 @@ Otherwise, behave as if called interactively."
      :complete 'org-roam-link--completion
      :keymap (let ((map (copy-keymap org-mouse-map)))
                (define-key map (kbd "M-f") 'org-roam-link-convert-roam-to-file-link)
-               (define-key map (kbd "<tab>") 'org-roam-link-exit-link)
                map))
     (org-link-set-parameters
      "file"
