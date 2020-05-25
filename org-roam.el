@@ -127,7 +127,10 @@ Formatter may be a function that takes title as its only argument."
           (function :tag "Custom function"))
   :group 'org-roam)
 
-(defcustom org-roam-list-files-commands '(find rg)
+(defcustom org-roam-list-files-commands
+  (if (member system-type '(windows-nt ms-dos cygwin))
+      nil
+    '(find rg))
   "Commands that will be used to find Org-roam files.
 
 It should be a list of symbols or cons cells representing any of the following
