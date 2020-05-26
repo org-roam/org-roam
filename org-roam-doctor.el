@@ -70,11 +70,36 @@
                ("r" . ("Replace link" . org-roam-doctor--replace-link))
                ("R" . ("Replace link (keep label)" . org-roam-doctor--replace-link-keep-label))))
    (make-org-roam-doctor-checker
+    :name 'org-roam-doctor-check-roam-props
+    :description "Check #+ROAM_* properties.")
+   (make-org-roam-doctor-checker
     :name 'org-roam-doctor-check-tags
     :description "Check #+ROAM_TAGS.")
    (make-org-roam-doctor-checker
     :name 'org-roam-doctor-check-alias
     :description "Check #+ROAM_ALIAS.")))
+
+(defconst org-roam-doctor--supported-roam-properties
+  '("ROAM_TAGS" "ROAM_ALIAS")
+  "List of supported Org-roam properties.")
+
+(defun org-roam-doctor-check-roam-props (ast)
+  "Checker for detecting invalid #+ROAM_* properties.
+AST is the org-element parse tree."
+  (let (reports)
+    (org-element-map ast 'keyword
+      (lambda (kw)
+        (let ((key (org-element-property :key kw)))
+          (when (and (string-prefix-p "ROAM" key)
+                     (not (member key org-roam-doctor--supported-roam-properties)))
+            (push
+             `(,(org-element-property :begin kw)
+               ,(concat "Possible mispelled key: "
+                        (prin1-to-string key)
+                        "\nOrg-roam supports the following keys: "
+                        (s-join ", " org-roam-doctor--supported-roam-properties)))
+             reports)))))
+    reports))
 
 (defun org-roam-doctor-check-tags (ast)
   "Checker for detecting invalid #+ROAM_TAGS.
