@@ -318,14 +318,14 @@ E.g. (\".org\") => (\"*.org\" \"*.org.gpg\")"
 (defun org-roam--list-files-rg (executable dir)
   "Return all Org-roam files located recursively within DIR, using ripgrep, provided as EXECUTABLE."
   (let* ((globs (org-roam--list-files-search-globs org-roam-file-extensions))
-         (command (s-join " " `(,executable ,dir "--files"
+         (command (s-join " " `(,executable "-L" ,dir "--files"
                                             ,@(mapcar (lambda (glob) (concat "-g " glob)) globs)))))
     (org-roam--shell-command-files command)))
 
 (defun org-roam--list-files-find (executable dir)
   "Return all Org-roam files located recursively within DIR, using find, provided as EXECUTABLE."
   (let* ((globs (org-roam--list-files-search-globs org-roam-file-extensions))
-         (command (s-join " " `(,executable ,dir "-type f \\("
+         (command (s-join " " `(,executable "-L" ,dir "-type f \\("
                                             ,(s-join " -o " (mapcar (lambda (glob) (concat "-name " glob)) globs)) "\\)"))))
     (org-roam--shell-command-files command)))
 
