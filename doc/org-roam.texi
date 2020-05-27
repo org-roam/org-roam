@@ -78,14 +78,13 @@ General Public License for more details.
 * Diagnosing and Repairing Files::
 * Appendix::
 * FAQ::
-* _: _ (2). 
+* _: _ (1). 
 
 @detailmenu
 --- The Detailed Node Listing ---
 
 Installation
 
-* _::
 * Installing from MELPA::
 * Installing from the Git Repository::
 * Post-Installation Tasks::
@@ -119,7 +118,7 @@ Graphing
 
 Roam Protocol
 
-* _: _ (1). 
+* _::
 * Installation: Installation (1). 
 * The @samp{roam-file} protocol::
 * The @samp{roam-ref} Protocol::
@@ -179,17 +178,14 @@ Emacs is also a fantastic interface for editing text, and we can inherit many of
 @node Installation
 @chapter Installation
 
+Org-roam can be installed using Emacs' package manager or manually from its
+development repository.
+
 @menu
-* _::
 * Installing from MELPA::
 * Installing from the Git Repository::
 * Post-Installation Tasks::
 @end menu
-
-@node _
-@section _ :ignore:
-
-Org-roam can be installed using Emacs' package manager or manually from its development repository.
 
 @node Installing from MELPA
 @section Installing from MELPA
@@ -238,7 +234,15 @@ Now see @ref{Post-Installation Tasks}.
 @section @strong{TODO} Installing from the Git Repository
 
 @node Post-Installation Tasks
-@section @strong{TODO} Post-Installation Tasks
+@section Post-Installation Tasks
+
+Org-roam uses @code{emacsql-sqlite3}, which requires @code{sqlite3} to be located on
+@code{exec-path}. Please ensure that @code{sqlite3} is installed appropriately on your
+operating system. You can verify that this is the case by executing:
+
+@lisp
+(executable-find "sqlite3")
+@end lisp
 
 @node Getting Started
 @chapter Getting Started
@@ -840,13 +844,13 @@ Other options include @samp{'ido}, and @samp{'ivy}.
 @chapter Roam Protocol
 
 @menu
-* _: _ (1). 
+* _::
 * Installation: Installation (1). 
 * The @samp{roam-file} protocol::
 * The @samp{roam-ref} Protocol::
 @end menu
 
-@node _ (1)
+@node _
 @section _ :ignore:
 
 Org-roam extending @samp{org-protocol} with 2 protocols: the @samp{roam-file}
@@ -1238,7 +1242,7 @@ etc.) within Org-mode.
 @node Bibliography
 @unnumberedsubsubsec Bibliography
 
-@uref{https://github.com/zaeph/org-roam-bibtex, org-roam-bibtex} offers
+@uref{https://github.com/org-roam/org-roam-bibtex, org-roam-bibtex} offers
 tight integration between
 @uref{https://github.com/jkitchin/org-ref, org-ref},
 @uref{https://github.com/tmalsburg/helm-bibtex, helm-bibtex} and
@@ -1280,7 +1284,7 @@ All files within that directory will be treated as their own separate
 set of Org-roam files. Remember to run @samp{org-roam-db-build-cache} from a
 file within that directory, at least once.
 
-@node _ (2)
+@node _ (1)
 @chapter _ :ignore:
 
 Emacs 28.0.50 (Org mode 9.4)
