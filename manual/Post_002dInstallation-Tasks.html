@@ -66,8 +66,16 @@ ul.no-bullet {list-style: none}
 Previous: <a href="Installing-from-the-Git-Repository.html#Installing-from-the-Git-Repository" accesskey="p" rel="prev">Installing from the Git Repository</a>, Up: <a href="Installation.html#Installation" accesskey="u" rel="up">Installation</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
 </div>
 <hr>
-<a name="TODO-Post_002dInstallation-Tasks"></a>
-<h3 class="section">2.4 <strong>TODO</strong> Post-Installation Tasks</h3>
+<a name="Post_002dInstallation-Tasks-1"></a>
+<h3 class="section">2.3 Post-Installation Tasks</h3>
+
+<p>Org-roam uses <code>emacsql-sqlite3</code>, which requires <code>sqlite3</code> to be located on
+<code>exec-path</code>. Please ensure that <code>sqlite3</code> is installed appropriately on your
+operating system. You can verify that this is the case by executing:
+</p>
+<div class="lisp">
+<pre class="lisp">(executable-find &quot;sqlite3&quot;)
+</pre></div>
 
 
 
