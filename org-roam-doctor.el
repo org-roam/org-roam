@@ -80,7 +80,7 @@
     :description "Check #+ROAM_ALIAS.")))
 
 (defconst org-roam-doctor--supported-roam-properties
-  '("ROAM_TAGS" "ROAM_ALIAS")
+  '("ROAM_TAGS" "ROAM_ALIAS" "ROAM_KEY")
   "List of supported Org-roam properties.")
 
 (defun org-roam-doctor-check-roam-props (ast)
