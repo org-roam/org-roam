@@ -80,6 +80,9 @@
 (define-obsolete-function-alias 'org-roam-db--maybe-update 'org-roam-db--update-maybe
   "org-roam 1.1.0")
 
+(when (version< (org-version) "9.3")
+  (defalias 'org-link-make-string 'org-make-link-string))
+
 ;;;; Variables
 (define-obsolete-variable-alias 'org-roam-graphviz-extra-options
   'org-roam-graph-extra-config "org-roam 1.0.0")
