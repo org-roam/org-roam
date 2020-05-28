@@ -116,11 +116,11 @@ When non-nil, the window will not be closed when deleting other windows."
 
 (defun org-roam-buffer--insert-citelinks ()
   "Insert citation backlinks for the current buffer."
-  (when (require 'org-ref nil t) ;; Ensure that org-ref is present
-    (if-let* ((ref (with-temp-buffer
-                     (insert-buffer-substring org-roam-buffer--current)
-                     (org-roam--extract-ref)))
-              (key-backlinks (org-roam--get-backlinks (cdr ref)))
+  (when-let ((org-ref-p (require 'org-ref nil t)) ;; Ensure that org-ref is present
+             (ref (cdr (with-temp-buffer
+                        (insert-buffer-substring org-roam-buffer--current)
+                        (org-roam--extract-ref)))))
+    (if-let* ((key-backlinks (org-roam--get-backlinks ref))
               (grouped-backlinks (--group-by (nth 0 it) key-backlinks)))
         (progn
           (insert (let ((l (length key-backlinks)))
