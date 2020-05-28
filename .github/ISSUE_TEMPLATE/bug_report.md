@@ -36,7 +36,8 @@ Example:
 
 <!-- Example: File A is missing -->
 
-### Versions
+### Environment
 
-- Emacs (`C-h v emacs-version`): vX.X.X
+<!-- Please M-x org-roam-diagnostics and paste results here -->
+
 - Org-roam commit: https://github.com/jethrokuan/org-roam/commit/commithashhere

@@ -55,9 +55,11 @@ Org-roam provides several benefits over other tooling:
 - Free and Open Source :: Org-roam is free and open-source, which means that if you feel unhappy with any part of Org-roam, you may choose to extend Org-roam, or open a PR.
 - Leverages the Org-mode ecosystem :: Over the years, Emacs and Org-mode has developed into a mature system for plain-text organization. Building upon Org-mode already puts Org-roam light-years ahead of many other solutions.
 - Built on Emacs :: Emacs is also a fantastic interface for editing text, and we can inherit many of the powerful text-navigation and editing packages available to Emacs.
+
 * Installation
-** _ :ignore:
-Org-roam can be installed using Emacs' package manager or manually from its development repository.
+
+Org-roam can be installed using Emacs' package manager or manually from its
+development repository.
 
 ** Installing from MELPA
 
@@ -97,7 +99,15 @@ Now see [[*Post-Installation Tasks][Post-Installation Tasks]].
 
 ** TODO Installing from the Git Repository
 
-** TODO Post-Installation Tasks
+** Post-Installation Tasks
+
+Org-roam uses ~emacsql-sqlite3~, which requires ~sqlite3~ to be located on
+~exec-path~. Please ensure that ~sqlite3~ is installed appropriately on your
+operating system. You can verify that this is the case by executing:
+
+#+BEGIN_SRC emacs-lisp
+  (executable-find "sqlite3")
+#+END_SRC
 
 * Getting Started
 
@@ -927,7 +937,7 @@ etc.) within Org-mode.
     :CUSTOM_ID: bibliography
     :END:
 
-[[https://github.com/zaeph/org-roam-bibtex][org-roam-bibtex]] offers
+[[https://github.com/org-roam/org-roam-bibtex][org-roam-bibtex]] offers
 tight integration between
 [[https://github.com/jkitchin/org-ref][org-ref]],
 [[https://github.com/tmalsburg/helm-bibtex][helm-bibtex]] and

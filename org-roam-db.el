@@ -5,8 +5,8 @@
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
-;; Version: 1.1.0
-;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (s "1.12.0") (org "9.3") (emacsql "3.0.0") (emacsql-sqlite "1.0.0"))
+;; Version: 1.1.1
+;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (s "1.12.0") (org "9.3") (emacsql "3.0.0") (emacsql-sqlite3 "1.0.0"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -33,7 +33,8 @@
 ;;;; Library Requires
 (eval-when-compile (require 'subr-x))
 (require 'emacsql)
-(require 'emacsql-sqlite)
+(require 'emacsql-sqlite3)
+(require 'seq)
 (require 'org-roam-macs)
 
 (defvar org-roam-directory)
@@ -57,11 +58,7 @@ when used with multiple Org-roam instances."
   :type 'string
   :group 'org-roam)
 
-(defconst org-roam-db--version 4)
-(defconst org-roam-db--sqlite-available-p
-  (with-demoted-errors "Org-roam initialization: %S"
-    (emacsql-sqlite-ensure-binary)
-    t))
+(defconst org-roam-db--version 5)
 
 (defvar org-roam-db--connection (make-hash-table :test #'equal)
   "Database connection to Org-roam database.")
@@ -87,7 +84,7 @@ Performs a database upgrade when required."
     (let* ((db-file (org-roam-db--get))
            (init-db (not (file-exists-p db-file))))
       (make-directory (file-name-directory db-file) t)
-      (let ((conn (emacsql-sqlite db-file)))
+      (let ((conn (emacsql-sqlite3 db-file)))
         (set-process-query-on-exit-flag (emacsql-process conn) nil)
         (puthash (file-truename org-roam-directory)
                  conn
@@ -121,7 +118,7 @@ SQL can be either the emacsql vector representation, or a string."
   '((files
      [(file :unique :primary-key)
       (hash :not-null)
-      (last-modified :not-null)])
+      (meta :not-null)])
 
     (links
      [(from :not-null)
@@ -206,6 +203,13 @@ This is equivalent to removing the node from the graph."
                          file))))
 
 ;;;;; Insertion
+(defun org-roam-db--insert-meta (file hash meta)
+  "Insert HASH and META for a FILE into the Org-roam cache."
+  (org-roam-db-query
+   [:insert :into files
+    :values $v1]
+   (list (vector file hash meta))))
+
 (defun org-roam-db--insert-links (links)
   "Insert LINKS into the Org-roam cache."
   (org-roam-db-query
@@ -306,6 +310,18 @@ connections, nil is returned."
     files))
 
 ;;;;; Updating
+(defun org-roam-db--update-meta ()
+  "Update the metadata of the current buffer into the cache."
+  (let* ((file (file-truename (buffer-file-name)))
+         (attr (file-attributes file))
+         (atime (file-attribute-access-time attr))
+         (mtime (file-attribute-modification-time attr))
+         (hash (secure-hash 'sha1 (current-buffer))))
+    (org-roam-db-query [:delete :from files
+                        :where (= file $s1)]
+                       file)
+    (org-roam-db--insert-meta file hash (list :atime atime :mtime mtime))))
+
 (defun org-roam-db--update-titles ()
   "Update the title of the current buffer into the cache."
   (let* ((file (file-truename (buffer-file-name)))
@@ -346,10 +362,11 @@ connections, nil is returned."
   "Update Org-roam cache for FILE-PATH."
   (when (org-roam--org-roam-file-p file-path)
     (let ((buf (or (and file-path
-                        (find-file-noselect file-path))
+                        (find-file-noselect file-path t))
                    (current-buffer))))
       (with-current-buffer buf
         (save-excursion
+          (org-roam-db--update-meta)
           (org-roam-db--update-tags)
           (org-roam-db--update-titles)
           (org-roam-db--update-refs)
@@ -363,30 +380,33 @@ If FORCE, force a rebuild of the cache from scratch."
   (when force (delete-file (org-roam-db--get)))
   (org-roam-db--close) ;; Force a reconnect
   (org-roam-db) ;; To initialize the database, no-op if already initialized
-  (let* ((org-roam-files (org-roam--list-all-files))
+  (let* ((org-roam-files (seq-filter #'org-roam--org-roam-file-p (org-roam--list-all-files)))
          (current-files (org-roam-db--get-current-files))
-         (time (current-time))
          all-files all-links all-titles all-refs all-tags)
     (dolist (file org-roam-files)
-      (org-roam--with-temp-buffer
-        (insert-file-contents file)
-        (let ((contents-hash (secure-hash 'sha1 (current-buffer))))
-          (unless (string= (gethash file current-files)
-                           contents-hash)
-            (org-roam-db--clear-file file)
-            (push (vector file contents-hash time)
-                  all-files)
-            (when-let (links (org-roam--extract-links file))
-              (push links all-links))
-            (when-let (tags (org-roam--extract-tags file))
-              (push (vector file tags) all-tags))
-            (let ((titles (org-roam--extract-titles)))
-              (push (vector file titles) all-titles))
-            (when-let* ((ref (org-roam--extract-ref))
-                        (type (car ref))
-                        (key (cdr ref)))
-              (setq all-refs (cons (vector key file type) all-refs))))
-          (remhash file current-files))))
+      (let* ((attr (file-attributes file))
+             (atime (file-attribute-access-time attr))
+             (mtime (file-attribute-modification-time attr)))
+        (org-roam--with-temp-buffer
+          (insert-file-contents file)
+          (let ((contents-hash (secure-hash 'sha1 (current-buffer))))
+            (unless (string= (gethash file current-files)
+                             contents-hash)
+              (org-roam-db--clear-file file)
+              (push (vector file contents-hash (list :atime atime :mtime mtime))
+                    all-files)
+              (when-let (links (org-roam--extract-links file))
+                (push links all-links))
+              (when-let (tags (org-roam--extract-tags file))
+                (push (vector file tags) all-tags))
+              (let ((titles (org-roam--extract-titles)))
+                (push (vector file titles)
+                      all-titles))
+              (when-let* ((ref (org-roam--extract-ref))
+                          (type (car ref))
+                          (key (cdr ref)))
+                (setq all-refs (cons (vector key file type) all-refs))))
+            (remhash file current-files)))))
     (dolist (file (hash-table-keys current-files))
       ;; These files are no longer around, remove from cache...
       (org-roam-db--clear-file file))

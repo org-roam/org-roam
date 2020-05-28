@@ -5,8 +5,8 @@
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
-;; Version: 1.1.0
-;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (s "1.12.0") (org "9.3") (emacsql "3.0.0") (emacsql-sqlite "1.0.0"))
+;; Version: 1.1.1
+;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (s "1.12.0") (org "9.3") (emacsql "3.0.0") (emacsql-sqlite3 "1.0.0"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -66,7 +66,7 @@ Return user choice."
     (setq res
           (cond
            ((eq org-roam-completion-system 'ido)
-            (let ((candidates (hash-table-keys choices)))
+            (let ((candidates (mapcar #'car choices)))
               (ido-completing-read prompt candidates nil require-match initial-input)))
            ((eq org-roam-completion-system 'default)
             (completing-read prompt choices nil require-match initial-input))
@@ -86,7 +86,7 @@ https://github.com/abo-abo/swiper")))
               (user-error "Please install helm from \
 https://github.com/emacs-helm/helm"))
             (let ((source (helm-make-source prompt 'helm-source-sync
-                            :candidates (hash-table-keys choices)
+                            :candidates (mapcar #'car choices)
                             :filtered-candidate-transformer
                             (and (not require-match)
                                  #'org-roam-completion--helm-candidate-transformer)))
