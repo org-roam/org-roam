@@ -272,11 +272,6 @@ https://github.com/kaushalmodi/ox-hugo/blob/a80b250987bc770600c424a10b3bca6ff728
       ret)))
 
 ;;;; File functions and predicates
-(defun org-roam--touch-file (path)
-  "Touches an empty file at PATH."
-  (make-directory (file-name-directory path) t)
-  (f-touch path))
-
 (defun org-roam--file-name-extension (filename)
   "Return file name extension for FILENAME.
 Like `file-name-extension', but does not strip version number."
