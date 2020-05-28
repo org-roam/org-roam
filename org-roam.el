@@ -269,6 +269,8 @@ https://github.com/kaushalmodi/ox-hugo/blob/a80b250987bc770600c424a10b3bca6ff728
                                       elem)))
                                   lst)))
           (setq ret (append ret str-list2))))
+      (unless (-all-p #'stringp ret)
+        (user-error "Could not parse string to list: %s. Note that items are space-separated, not comma-separated" str))
       ret)))
 
 ;;;; File functions and predicates
