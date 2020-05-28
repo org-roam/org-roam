@@ -41,12 +41,14 @@
 (defvar org-roam-backlinks-mode)
 (defvar org-roam-last-window)
 (defvar org-ref-cite-types) ;; in org-ref-core.el
+(defvar org-roam-mode)
 
 (declare-function org-roam-db--ensure-built   "org-roam-db")
 (declare-function org-roam--extract-ref       "org-roam")
 (declare-function org-roam--get-title-or-slug "org-roam")
 (declare-function org-roam--get-backlinks     "org-roam")
 (declare-function org-roam-backlinks-mode     "org-roam")
+(declare-function org-roam-mode               "org-roam")
 
 (defcustom org-roam-buffer-position 'right
   "Position of `org-roam' buffer.
@@ -266,6 +268,7 @@ Valid states are 'visible, 'exists and 'none."
 (defun org-roam-buffer-toggle-display ()
   "Toggle display of the `org-roam-buffer'."
   (interactive)
+  (unless org-roam-mode (org-roam-mode))
   (setq org-roam-last-window (get-buffer-window))
   (pcase (org-roam-buffer--visibility)
     ('visible (delete-window (get-buffer-window org-roam-buffer)))
