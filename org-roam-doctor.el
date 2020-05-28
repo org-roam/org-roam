@@ -53,8 +53,10 @@
 (declare-function org-roam--org-roam-file-p "org-roam")
 (declare-function org-roam--parse-tags "org-roam")
 (declare-function org-roam--parse-alias "org-roam")
+(declare-function org-roam-mode "org-roam")
 
 (defvar org-roam-verbose)
+(defvar org-roam-mode)
 
 (cl-defstruct (org-roam-doctor-checker (:copier nil))
   (name 'missing-checker-name)
@@ -280,6 +282,7 @@ CHECKER is a org-roam-doctor checker instance."
   "Perform a check on the current buffer to ensure cleanliness.
 If CHECKALL, run the check for all Org-roam files."
   (interactive "P")
+  (unless org-roam-mode (org-roam-mode))
   (let ((files (if checkall
                   (org-roam--list-all-files)
                 (unless (org-roam--org-roam-file-p)

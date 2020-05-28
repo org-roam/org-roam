@@ -1051,6 +1051,7 @@ FILTER-FN is the name of a function to apply on the candidates
 which takes as its argument an alist of path-completions.  See
 `org-roam--get-title-path-completions' for details."
   (interactive)
+  (unless org-roam-mode (org-roam-mode))
   (when (org-roam-capture--in-process-p) (user-error "Org-roam capture in process"))
   (let* ((completions (funcall (or filter-fn #'identity)
                                (or completions (org-roam--get-title-path-completions))))
@@ -1086,6 +1087,7 @@ takes three arguments: the type, the ref, and the file of the
 current candidate.  It should return t if that candidate is to be
 included as a candidate."
   (interactive "p")
+  (unless org-roam-mode (org-roam-mode))
   (let* ((completions (org-roam--get-ref-path-completions arg filter))
          (ref (org-roam-completion--completing-read "Ref: "
                                                     completions
@@ -1105,6 +1107,7 @@ which takes as its argument an alist of path-completions.
 If DESCRIPTION is provided, use this as the link label.  See
 `org-roam--get-title-path-completions' for details."
   (interactive "P")
+  (unless org-roam-mode (org-roam-mode))
   (let* ((region (and (region-active-p)
                       ;; following may lose active region, so save it
                       (cons (region-beginning) (region-end))))
@@ -1151,6 +1154,7 @@ Otherwise, the function will look in your `org-roam-directory'
 for a note whose title is 'Index'.  If it does not exist, the
 command will offer you to create one."
   (interactive)
+  (unless org-roam-mode (org-roam-mode))
   (let ((index (org-roam--get-index-path)))
     (if (and index
              (file-exists-p index))

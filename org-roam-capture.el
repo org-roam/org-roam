@@ -38,11 +38,13 @@
 ;; Declarations
 (defvar org-roam-encrypt-files)
 (defvar org-roam-directory)
+(defvar org-roam-mode)
 (declare-function  org-roam--get-title-path-completions "org-roam")
 (declare-function  org-roam--get-ref-path-completions   "org-roam")
 (declare-function  org-roam--file-path-from-id          "org-roam")
 (declare-function  org-roam--format-link                "org-roam")
 (declare-function  org-roam--title-to-slug              "org-roam")
+(declare-function  org-roam-mode                        "org-roam")
 (declare-function  org-roam-completion--completing-read "org-roam-completion")
 
 (defvar org-roam-capture--file-name-default "%<%Y%m%d%H%M%S>"
@@ -330,6 +332,7 @@ GOTO and KEYS argument have the same functionality as
   "Launches an `org-capture' process for a new or existing note.
 This uses the templates defined at `org-roam-capture-templates'."
   (interactive)
+  (unless org-roam-mode (org-roam-mode))
   (when (org-roam-capture--in-process-p)
     (user-error "Nested Org-roam capture processes not supported"))
   (let* ((completions (org-roam--get-title-path-completions))
