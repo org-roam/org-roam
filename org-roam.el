@@ -540,7 +540,7 @@ Tags are obtained via:
       (`(,(pred symbolp) . ,_)
        (apply #'cl-sort (push tags org-roam-tag-sort)))
       (wrong-type (signal 'wrong-type-argument
-                          `((booleanp (list symbolp …))
+                          `((booleanp (list symbolp))
                             ,wrong-type))))))
 
 (defun org-roam--cite-prefix (ref)
@@ -677,7 +677,7 @@ whose title is 'Index'."
 
 ;;;; org-roam-find-ref
 (defun org-roam--get-ref-path-completions (&optional interactive filter)
-  "Return a alist of refs to absolute path of Org-roam files.
+  "Return an alist of refs to absolute path of Org-roam files.
 When `org-roam-include-type-in-ref-path-completions' and
 INTERACTIVE are non-nil, format the car of the
 completion-candidates as 'type:ref'.
@@ -731,7 +731,7 @@ Return nil if the file does not exist."
             (buffer-list)))
 
 (defun org-roam--file-path-from-id (id)
-  "The file path for an Org-roam file, with identifier ID."
+  "Return path for Org-roam file with ID."
   (file-truename
    (let* ((ext (or (car org-roam-file-extensions)
                    "org"))
