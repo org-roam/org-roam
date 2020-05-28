@@ -44,8 +44,10 @@
 ;; Library Requires
 (require 'cl-lib)
 (require 'org)
-(require 'org-roam-macs)
 (require 'org-element)
+(require 's)
+(require 'dash)
+(require 'org-roam-macs)
 
 (declare-function org-roam-insert "org-roam")
 (declare-function org-roam--get-roam-buffers "org-roam")
