@@ -349,12 +349,15 @@ Use external shell commands if defined in `org-roam-list-files-commands'."
                  `((consp symbolp)
                    ,wrong-type))))
       (when path (cl-return)))
-    (if path
-        (let ((fn (intern (concat "org-roam--list-files-" exe))))
-          (unless (fboundp fn) (user-error "%s is not an implemented search method" fn))
-          (mapcar #'ansi-color-filter-apply
-                  (funcall fn path (format "\"%s\"" dir))))
-      (org-roam--list-files-elisp dir))))
+    (let* ((files (if path
+                      (let ((fn (intern (concat "org-roam--list-files-" exe))))
+                        (unless (fboundp fn) (user-error "%s is not an implemented search method" fn))
+                        (funcall fn path (format "\"%s\"" dir)))
+                    (org-roam--list-files-elisp dir)))
+           (files (mapcar #'ansi-color-filter-apply files)) ; strip ansi codes
+           (files (seq-filter #'org-roam--org-roam-file-p files))
+           (files (mapcar #'expand-file-name files))) ; canonicalize names
+      files)))
 
 (defun org-roam--list-all-files ()
   "Return a list of all Org-roam files within `org-roam-directory'."
