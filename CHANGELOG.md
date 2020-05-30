@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.2 (TBD)
+
+### Breaking Changes
+
+- [#701](https://github.com/org-roam/org-roam/pull/701) Use `emacsql-sqlite3` instead of `emacsql-sqlite` for better Windows compatibility. This requires the presence of the standard `sqlite3` binary on your machine.
+
 ## 1.1.1 (18-05-2020)
 
 In this release, we added two new features:

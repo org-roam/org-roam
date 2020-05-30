@@ -6,7 +6,7 @@
 ;; URL: https://github.com/jethrokuan/org-roam
 ;; Keywords: org-mode, roam, convenience
 ;; Version: 1.1.1
-;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (s "1.12.0") (org "9.3") (emacsql "3.0.0") (emacsql-sqlite "1.0.0"))
+;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (s "1.12.0") (org "9.3") (emacsql "3.0.0") (emacsql-sqlite3 "1.0.0"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -44,8 +44,10 @@
 ;; Library Requires
 (require 'cl-lib)
 (require 'org)
-(require 'org-roam-macs)
 (require 'org-element)
+(require 's)
+(require 'dash)
+(require 'org-roam-macs)
 
 (declare-function org-roam-insert "org-roam")
 (declare-function org-roam--get-roam-buffers "org-roam")
@@ -53,8 +55,10 @@
 (declare-function org-roam--org-roam-file-p "org-roam")
 (declare-function org-roam--parse-tags "org-roam")
 (declare-function org-roam--parse-alias "org-roam")
+(declare-function org-roam-mode "org-roam")
 
 (defvar org-roam-verbose)
+(defvar org-roam-mode)
 
 (cl-defstruct (org-roam-doctor-checker (:copier nil))
   (name 'missing-checker-name)
@@ -70,11 +74,36 @@
                ("r" . ("Replace link" . org-roam-doctor--replace-link))
                ("R" . ("Replace link (keep label)" . org-roam-doctor--replace-link-keep-label))))
    (make-org-roam-doctor-checker
+    :name 'org-roam-doctor-check-roam-props
+    :description "Check #+ROAM_* properties.")
+   (make-org-roam-doctor-checker
     :name 'org-roam-doctor-check-tags
     :description "Check #+ROAM_TAGS.")
    (make-org-roam-doctor-checker
     :name 'org-roam-doctor-check-alias
     :description "Check #+ROAM_ALIAS.")))
+
+(defconst org-roam-doctor--supported-roam-properties
+  '("ROAM_TAGS" "ROAM_ALIAS" "ROAM_KEY")
+  "List of supported Org-roam properties.")
+
+(defun org-roam-doctor-check-roam-props (ast)
+  "Checker for detecting invalid #+ROAM_* properties.
+AST is the org-element parse tree."
+  (let (reports)
+    (org-element-map ast 'keyword
+      (lambda (kw)
+        (let ((key (org-element-property :key kw)))
+          (when (and (string-prefix-p "ROAM_" key)
+                     (not (member key org-roam-doctor--supported-roam-properties)))
+            (push
+             `(,(org-element-property :begin kw)
+               ,(concat "Possible mispelled key: "
+                        (prin1-to-string key)
+                        "\nOrg-roam supports the following keys: "
+                        (s-join ", " org-roam-doctor--supported-roam-properties)))
+             reports)))))
+    reports))
 
 (defun org-roam-doctor-check-tags (ast)
   "Checker for detecting invalid #+ROAM_TAGS.
@@ -255,6 +284,7 @@ CHECKER is a org-roam-doctor checker instance."
   "Perform a check on the current buffer to ensure cleanliness.
 If CHECKALL, run the check for all Org-roam files."
   (interactive "P")
+  (unless org-roam-mode (org-roam-mode))
   (let ((files (if checkall
                   (org-roam--list-all-files)
                 (unless (org-roam--org-roam-file-p)

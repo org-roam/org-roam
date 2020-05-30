@@ -6,7 +6,7 @@
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
 ;; Version: 1.1.1
-;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (s "1.12.0") (org "9.3") (emacsql "3.0.0") (emacsql-sqlite "1.0.0"))
+;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (s "1.12.0") (org "9.3") (emacsql "3.0.0") (emacsql-sqlite3 "1.0.0"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -37,8 +37,10 @@
 
 ;;;; Declarations
 (defvar org-roam-directory)
+(defvar org-roam-mode)
 (declare-function org-roam--org-roam-file-p  "org-roam")
 (declare-function org-roam--path-to-slug     "org-roam")
+(declare-function org-roam-mode              "org-roam")
 
 ;;;; Options
 (defcustom org-roam-graph-viewer (executable-find "firefox")
@@ -283,6 +285,7 @@ ARG may be any of the following values:
   - `\\[universal-argument]' -   build the graph for FILE.
   - `\\[universal-argument]' -N  build the graph for FILE limiting nodes to N steps."
   (interactive "P")
+  (unless org-roam-mode (org-roam-mode))
   (let ((file (or file (buffer-file-name (buffer-base-buffer)))))
     (unless (or (not arg) (equal arg '(16)))
       (unless file

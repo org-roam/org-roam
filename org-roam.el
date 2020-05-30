@@ -6,7 +6,7 @@
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
 ;; Version: 1.1.1
-;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (s "1.12.0") (org "9.3") (emacsql "3.0.0") (emacsql-sqlite "1.0.0"))
+;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (s "1.12.0") (org "9.3") (emacsql "3.0.0") (emacsql-sqlite3 "1.0.0"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -273,11 +273,6 @@ https://github.com/kaushalmodi/ox-hugo/blob/a80b250987bc770600c424a10b3bca6ff728
       ret)))
 
 ;;;; File functions and predicates
-(defun org-roam--touch-file (path)
-  "Touches an empty file at PATH."
-  (make-directory (file-name-directory path) t)
-  (f-touch path))
-
 (defun org-roam--file-name-extension (filename)
   "Return file name extension for FILENAME.
 Like `file-name-extension', but does not strip version number."
@@ -319,22 +314,82 @@ E.g. (\".org\") => (\"*.org\" \"*.org.gpg\")"
 (defun org-roam--list-files-rg (executable dir)
   "Return all Org-roam files located recursively within DIR, using ripgrep, provided as EXECUTABLE."
   (let* ((globs (org-roam--list-files-search-globs org-roam-file-extensions))
-         (command (s-join " " `(,executable ,dir "--files"
+         (command (s-join " " `(,executable "-L" ,dir "--files"
                                             ,@(mapcar (lambda (glob) (concat "-g " glob)) globs)))))
     (org-roam--shell-command-files command)))
 
 (defun org-roam--list-files-find (executable dir)
   "Return all Org-roam files located recursively within DIR, using find, provided as EXECUTABLE."
   (let* ((globs (org-roam--list-files-search-globs org-roam-file-extensions))
-         (command (s-join " " `(,executable ,dir "-type f \\("
+         (command (s-join " " `(,executable "-L" ,dir "-type f \\("
                                             ,(s-join " -o " (mapcar (lambda (glob) (concat "-name " glob)) globs)) "\\)"))))
     (org-roam--shell-command-files command)))
+
+;; Emacs 26 does not have FOLLOW-SYMLINKS in `directory-files-recursively'
+(defun org-roam--directory-files-recursively (dir regexp
+                                                  &optional include-directories predicate
+                                                  follow-symlinks)
+  "Return list of all files under directory DIR whose names match REGEXP.
+This function works recursively.  Files are returned in \"depth
+first\" order, and files from each directory are sorted in
+alphabetical order.  Each file name appears in the returned list
+in its absolute form.
+
+By default, the returned list excludes directories, but if
+optional argument INCLUDE-DIRECTORIES is non-nil, they are
+included.
+
+PREDICATE can be either nil (which means that all subdirectories
+of DIR are descended into), t (which means that subdirectories that
+can't be read are ignored), or a function (which is called with
+the name of each subdirectory, and should return non-nil if the
+subdirectory is to be descended into).
+
+If FOLLOW-SYMLINKS is non-nil, symbolic links that point to
+directories are followed.  Note that this can lead to infinite
+recursion."
+  (let* ((result nil)
+         (files nil)
+         (dir (directory-file-name dir))
+         ;; When DIR is "/", remote file names like "/method:" could
+         ;; also be offered.  We shall suppress them.
+         (tramp-mode (and tramp-mode (file-remote-p (expand-file-name dir)))))
+    (dolist (file (sort (file-name-all-completions "" dir)
+                        'string<))
+      (unless (member file '("./" "../"))
+        (if (directory-name-p file)
+            (let* ((leaf (substring file 0 (1- (length file))))
+                   (full-file (concat dir "/" leaf)))
+              ;; Don't follow symlinks to other directories.
+              (when (and (or (not (file-symlink-p full-file))
+                             (and (file-symlink-p full-file)
+                                  follow-symlinks))
+                         ;; Allow filtering subdirectories.
+                         (or (eq predicate nil)
+                             (eq predicate t)
+                             (funcall predicate full-file)))
+                (let ((sub-files
+                       (if (eq predicate t)
+                           (ignore-error file-error
+                             (org-roam--directory-files-recursively
+                              full-file regexp include-directories
+                              predicate follow-symlinks))
+                         (org-roam--directory-files-recursively
+                          full-file regexp include-directories
+                          predicate follow-symlinks))))
+                  (setq result (nconc result sub-files))))
+              (when (and include-directories
+                         (string-match regexp leaf))
+                (setq result (nconc result (list full-file)))))
+          (when (string-match regexp file)
+            (push (concat dir "/" file) files)))))
+    (nconc result (nreverse files))))
 
 (defun org-roam--list-files-elisp (dir)
   "Return all Org-roam files located recursively within DIR, using elisp."
   (let ((regex (concat "\\.\\(?:"(mapconcat #'regexp-quote org-roam-file-extensions "\\|" )"\\)\\(?:\\.gpg\\)?\\'"))
         result)
-    (dolist (file (directory-files-recursively dir regex) result)
+    (dolist (file (org-roam--directory-files-recursively dir regex nil nil t) result)
       (when (and (file-readable-p file) (org-roam--org-file-p file))
         (push file result)))))
 
@@ -355,12 +410,15 @@ Use external shell commands if defined in `org-roam-list-files-commands'."
                  `((consp symbolp)
                    ,wrong-type))))
       (when path (cl-return)))
-    (if path
-        (let ((fn (intern (concat "org-roam--list-files-" exe))))
-          (unless (fboundp fn) (user-error "%s is not an implemented search method" fn))
-          (mapcar #'ansi-color-filter-apply
-                  (funcall fn path (format "\"%s\"" dir))))
-      (org-roam--list-files-elisp dir))))
+    (let* ((files (if path
+                      (let ((fn (intern (concat "org-roam--list-files-" exe))))
+                        (unless (fboundp fn) (user-error "%s is not an implemented search method" fn))
+                        (funcall fn path (format "\"%s\"" dir)))
+                    (org-roam--list-files-elisp dir)))
+           (files (mapcar #'ansi-color-filter-apply files)) ; strip ansi codes
+           (files (seq-filter #'org-roam--org-roam-file-p files))
+           (files (mapcar #'expand-file-name files))) ; canonicalize names
+      files)))
 
 (defun org-roam--list-all-files ()
   "Return a list of all Org-roam files within `org-roam-directory'."
@@ -547,7 +605,7 @@ Tags are obtained via:
       (`(,(pred symbolp) . ,_)
        (apply #'cl-sort (push tags org-roam-tag-sort)))
       (wrong-type (signal 'wrong-type-argument
-                          `((booleanp (list symbolp …))
+                          `((booleanp (list symbolp))
                             ,wrong-type))))))
 
 (defun org-roam--cite-prefix (ref)
@@ -705,7 +763,7 @@ whose title is 'Index'."
 
 ;;;; org-roam-find-ref
 (defun org-roam--get-ref-path-completions (&optional interactive filter)
-  "Return a alist of refs to absolute path of Org-roam files.
+  "Return an alist of refs to absolute path of Org-roam files.
 When `org-roam-include-type-in-ref-path-completions' and
 INTERACTIVE are non-nil, format the car of the
 completion-candidates as 'type:ref'.
@@ -759,7 +817,7 @@ Return nil if the file does not exist."
             (buffer-list)))
 
 (defun org-roam--file-path-from-id (id)
-  "The file path for an Org-roam file, with identifier ID."
+  "Return path for Org-roam file with ID."
   (file-truename
    (let* ((ext (or (car org-roam-file-extensions)
                    "org"))
@@ -1107,6 +1165,7 @@ FILTER-FN is the name of a function to apply on the candidates
 which takes as its argument an alist of path-completions.  See
 `org-roam--get-title-path-completions' for details."
   (interactive)
+  (unless org-roam-mode (org-roam-mode))
   (when (org-roam-capture--in-process-p) (user-error "Org-roam capture in process"))
   (let* ((completions (funcall (or filter-fn #'identity)
                                (or completions (org-roam--get-title-path-completions))))
@@ -1142,6 +1201,7 @@ takes three arguments: the type, the ref, and the file of the
 current candidate.  It should return t if that candidate is to be
 included as a candidate."
   (interactive "p")
+  (unless org-roam-mode (org-roam-mode))
   (let* ((completions (org-roam--get-ref-path-completions arg filter))
          (ref (org-roam-completion--completing-read "Ref: "
                                                     completions
@@ -1168,6 +1228,7 @@ If `org-roam-link-enabled' is non-nil combine standard title
 completions with in-buffer roam-link titles, and insert roam-link
 instead of standard file-link."
   (interactive "P")
+  (unless org-roam-mode (org-roam-mode))
   (let* ((region (and (region-active-p)
                       ;; following may lose active region, so save it
                       (cons (region-beginning) (region-end))))
@@ -1223,6 +1284,7 @@ Otherwise, the function will look in your `org-roam-directory'
 for a note whose title is 'Index'.  If it does not exist, the
 command will offer you to create one."
   (interactive)
+  (unless org-roam-mode (org-roam-mode))
   (let ((index (org-roam--get-index-path)))
     (if (and index
              (file-exists-p index))

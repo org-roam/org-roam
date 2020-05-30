@@ -55,13 +55,18 @@ Org-roam provides several benefits over other tooling:
 - Free and Open Source :: Org-roam is free and open-source, which means that if you feel unhappy with any part of Org-roam, you may choose to extend Org-roam, or open a PR.
 - Leverages the Org-mode ecosystem :: Over the years, Emacs and Org-mode has developed into a mature system for plain-text organization. Building upon Org-mode already puts Org-roam light-years ahead of many other solutions.
 - Built on Emacs :: Emacs is also a fantastic interface for editing text, and we can inherit many of the powerful text-navigation and editing packages available to Emacs.
+
 * Installation
-** _ :ignore:
-Org-roam can be installed using Emacs' package manager or manually from its development repository.
+
+Org-roam can be installed using Emacs' package manager or manually from its
+development repository.
 
 ** Installing from MELPA
 
-Org-roam is available from Melpa and Melpa-Stable. If you haven't used Emacs' package manager before, you may familiarize yourself with it by reading the documentation in the Emacs manual, see info:emacs#Packages. Then, add one of the archives to =package-archives=:
+Org-roam is available from Melpa and Melpa-Stable. If you haven't used Emacs'
+package manager before, you may familiarize yourself with it by reading the
+documentation in the Emacs manual, see info:emacs#Packages. Then, add one of the
+archives to =package-archives=:
 
 - To use Melpa:
 
@@ -77,6 +82,13 @@ Org-roam is available from Melpa and Melpa-Stable. If you haven't used Emacs' pa
   (require 'package)
   (add-to-list 'package-archives
                '("melpa-stable" . "http://stable.melpa.org/packages/") t)
+#+END_SRC
+
+Org-roam also depends on a recent version of Org, which can be obtained in Org's
+package repository (see info:org#Installation). To use Org's ELPA archive:
+
+#+BEGIN_SRC emacs-lisp
+(add-to-list 'package-archives '("org" . "https://orgmode.org/elpa/") t)
 #+END_SRC
 
 Once you have added your preferred archive, you need to update the
@@ -97,7 +109,15 @@ Now see [[*Post-Installation Tasks][Post-Installation Tasks]].
 
 ** TODO Installing from the Git Repository
 
-** TODO Post-Installation Tasks
+** Post-Installation Tasks
+
+Org-roam uses ~emacsql-sqlite3~, which requires ~sqlite3~ to be located on
+~exec-path~. Please ensure that ~sqlite3~ is installed appropriately on your
+operating system. You can verify that this is the case by executing:
+
+#+BEGIN_SRC emacs-lisp
+  (executable-find "sqlite3")
+#+END_SRC
 
 * Getting Started
 
@@ -964,9 +984,8 @@ All files within that directory will be treated as their own separate
 set of Org-roam files. Remember to run =org-roam-db-build-cache= from a
 file within that directory, at least once.
 
-* _ :ignore:
 # Local Variables:
-# eval: (refill-mode +1)
+# eval: (require 'ol-info)
 # before-save-hook: org-make-toc
 # after-save-hook: (lambda nil (progn (require 'ox-texinfo nil t) (org-texinfo-export-to-info)))
 # indent-tabs-mode: nil
