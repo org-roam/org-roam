@@ -63,7 +63,10 @@ development repository.
 
 ** Installing from MELPA
 
-Org-roam is available from Melpa and Melpa-Stable. If you haven't used Emacs' package manager before, you may familiarize yourself with it by reading the documentation in the Emacs manual, see info:emacs#Packages. Then, add one of the archives to =package-archives=:
+Org-roam is available from Melpa and Melpa-Stable. If you haven't used Emacs'
+package manager before, you may familiarize yourself with it by reading the
+documentation in the Emacs manual, see info:emacs#Packages. Then, add one of the
+archives to =package-archives=:
 
 - To use Melpa:
 
@@ -79,6 +82,13 @@ Org-roam is available from Melpa and Melpa-Stable. If you haven't used Emacs' pa
   (require 'package)
   (add-to-list 'package-archives
                '("melpa-stable" . "http://stable.melpa.org/packages/") t)
+#+END_SRC
+
+Org-roam also depends on a recent version of Org, which can be obtained in Org's
+package repository (see info:org#Installation). To use Org's ELPA archive:
+
+#+BEGIN_SRC emacs-lisp
+(add-to-list 'package-archives '("org" . "https://orgmode.org/elpa/") t)
 #+END_SRC
 
 Once you have added your preferred archive, you need to update the
@@ -974,9 +984,8 @@ All files within that directory will be treated as their own separate
 set of Org-roam files. Remember to run =org-roam-db-build-cache= from a
 file within that directory, at least once.
 
-* _ :ignore:
 # Local Variables:
-# eval: (refill-mode +1)
+# eval: (require 'ol-info)
 # before-save-hook: org-make-toc
 # after-save-hook: (lambda nil (progn (require 'ox-texinfo nil t) (org-texinfo-export-to-info)))
 # indent-tabs-mode: nil
