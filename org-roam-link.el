@@ -237,7 +237,7 @@ indicate the link-type the buffer should convert to."
             (org-roam-link--convert-roam-to-file-link elem)))
         (org-next-link)))))
 
-(defun org-roam-link--auto-create-roam-link-file (title &optional manual)
+(defun org-roam-link--auto-create-file (title &optional manual)
   "Call `org-roam-capture' with a template using :immediate-finish t.
 TITLE is the title for the file to be created.
 MANUAL is boolean allowing manual selection of capture template(s)."
@@ -247,7 +247,7 @@ MANUAL is boolean allowing manual selection of capture template(s)."
     (if manual (org-roam-capture--capture)
       (org-roam-capture--capture :keys "a"))))
 
-(defun org-roam-link-auto-create-roam-links-in-buffer (&optional manual)
+(defun org-roam-link-auto-create-links-in-buffer (&optional manual)
   "Create all non-existent roam-link files in current buffer.
 If MANUAL is non-nil, prompt for template with `org-roam-capture'."
   (interactive "P")
@@ -259,7 +259,7 @@ If MANUAL is non-nil, prompt for template with `org-roam-capture'."
                (is-title (if (string= type "roam") t nil))
                (roam-file (if is-title (org-roam--get-file-from-title path) t)))
           (unless roam-file
-            (org-roam-link--auto-create-roam-link-file path manual)))))))
+            (org-roam-link--auto-create-file path manual)))))))
 
 (defun org-roam-link--current-buffer-roam-link-titles ()
   "Return a list of unique roam-link titles in the current buffer."
