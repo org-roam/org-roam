@@ -1266,8 +1266,8 @@ instead of standard file-link."
            (insert (org-roam--format-link target-file-path link-description)))
           ((org-roam-capture--in-process-p)
            (user-error "Nested Org-roam capture processes not supported"))
-          (t (let ((org-roam-capture--info `(('title . ,title)
-                                             ('slug . ,(org-roam--title-to-slug title))))
+          (t (let ((org-roam-capture--info `((title . ,title)
+                                             (slug . ,(org-roam--title-to-slug title))))
                    (org-roam-capture--context 'title))
                (add-hook 'org-capture-after-finalize-hook #'org-roam-capture--insert-link-h)
                (setq org-roam-capture-additional-template-props (list :region region

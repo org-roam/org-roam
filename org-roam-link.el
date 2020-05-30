@@ -148,7 +148,7 @@ note creation using `org-roam-capture--capture'"
     (if file-path
         (find-file file-path)
       (if (org-roam-capture--in-process-p)
-          (user-error "Org-roam capture in process")
+          (user-error "Nested Org-roam capture processes not supported")
         (let ((org-roam-capture--info `((title . ,title)
                                         (slug  . ,(org-roam--title-to-slug title))))
               (org-roam-capture--context 'title))
