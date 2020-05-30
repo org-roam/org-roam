@@ -78,7 +78,6 @@ General Public License for more details.
 * Diagnosing and Repairing Files::
 * Appendix::
 * FAQ::
-* _: _ (1). 
 
 @detailmenu
 --- The Detailed Node Listing ---
@@ -190,7 +189,7 @@ development repository.
 @node Installing from MELPA
 @section Installing from MELPA
 
-Org-roam is available from Melpa and Melpa-Stable. If you haven't used Emacs' package manager before, you may familiarize yourself with it by reading the documentation in the Emacs manual, see info:emacs#Packages. Then, add one of the archives to @samp{package-archives}:
+Org-roam is available from Melpa and Melpa-Stable. If you haven't used Emacs' package manager before, you may familiarize yourself with it by reading the documentation in the Emacs manual, see @ref{Packages,,,emacs,}. Then, add one of the archives to @samp{package-archives}:
 
 @itemize
 @item
@@ -1283,9 +1282,6 @@ contain:
 All files within that directory will be treated as their own separate
 set of Org-roam files. Remember to run @samp{org-roam-db-build-cache} from a
 file within that directory, at least once.
-
-@node _ (1)
-@chapter _ :ignore:
 
 Emacs 28.0.50 (Org mode 9.4)
 @bye
