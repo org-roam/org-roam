@@ -328,7 +328,7 @@ E.g. (\".org\") => (\"*.org\" \"*.org.gpg\")"
   "Return all Org-roam files located recursively within DIR, using elisp."
   (let ((regex (concat "\\.\\(?:"(mapconcat #'regexp-quote org-roam-file-extensions "\\|" )"\\)\\(?:\\.gpg\\)?\\'"))
         result)
-    (dolist (file (directory-files-recursively dir regex) result)
+    (dolist (file (directory-files-recursively dir regex nil nil t) result)
       (when (and (file-readable-p file) (org-roam--org-file-p file))
         (push file result)))))
 
