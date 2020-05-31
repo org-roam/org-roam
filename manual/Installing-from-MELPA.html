@@ -67,9 +67,12 @@ Next: <a href="Installing-from-the-Git-Repository.html#Installing-from-the-Git-R
 </div>
 <hr>
 <a name="Installing-from-MELPA-1"></a>
-<h3 class="section">2.1 Installing from MELPA</h3>
+<h3 class="section">3.1 Installing from MELPA</h3>
 
-<p>Org-roam is available from Melpa and Melpa-Stable. If you haven&rsquo;t used Emacs&rsquo; package manager before, you may familiarize yourself with it by reading the documentation in the Emacs manual, see <a href="https://www.gnu.org/software/emacs/manual/html_node/emacs/Packages.html#Packages">(emacs)Packages</a>. Then, add one of the archives to &lsquo;<samp>package-archives</samp>&rsquo;:
+<p>Org-roam is available from Melpa and Melpa-Stable. If you haven&rsquo;t used Emacs&rsquo;
+package manager before, you may familiarize yourself with it by reading the
+documentation in the Emacs manual, see <a href="https://www.gnu.org/software/emacs/manual/html_node/emacs/Packages.html#Packages">(emacs)Packages</a>. Then, add one of the
+archives to &lsquo;<samp>package-archives</samp>&rsquo;:
 </p>
 <ul>
 <li> To use Melpa:
@@ -89,6 +92,13 @@ Next: <a href="Installing-from-the-Git-Repository.html#Installing-from-the-Git-R
 <pre class="lisp">(require 'package)
 (add-to-list 'package-archives
              '(&quot;melpa-stable&quot; . &quot;http://stable.melpa.org/packages/&quot;) t)
+</pre></div>
+
+<p>Org-roam also depends on a recent version of Org, which can be obtained in Org&rsquo;s
+package repository (see <a href="http://www.gnu.org/software/emacs/manual/html_node/org/Installation.html#Installation">(org)Installation</a>). To use Org&rsquo;s ELPA archive:
+</p>
+<div class="lisp">
+<pre class="lisp">(add-to-list 'package-archives '(&quot;org&quot; . &quot;https://orgmode.org/elpa/&quot;) t)
 </pre></div>
 
 <p>Once you have added your preferred archive, you need to update the
