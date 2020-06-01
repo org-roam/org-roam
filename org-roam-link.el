@@ -274,13 +274,22 @@ Templates MUST use :immediate-finish t, or only the first non-immediate capture
 will be saved correctly."
   (interactive "P")
   (when (org-roam--org-roam-file-p)
-    (org-element-map (org-element-parse-buffer) 'link
-      (lambda (link)
-        (let* ((type (org-element-property :type link))
-               (path (org-element-property :path link))
-               (roam-file (if (string= type "roam") (org-roam--get-file-from-title path) t)))
-          (unless roam-file
-            (org-roam-link--auto-create-file path manual)))))))
+    (save-excursion
+      (org-element-map (org-element-parse-buffer) 'link
+        (lambda (link)
+          (let* ((type (org-element-property :type link))
+                 (path (org-element-property :path link))
+                 (roam-file (if (string= type "roam") (org-roam--get-file-from-title path) t)))
+            (unless roam-file
+              (let* ((start (org-element-property :begin link))
+                     (end (org-element-property :end link))
+                     (ov (make-overlay start end)))
+                (progn
+                  (goto-char end)
+                  (recenter)
+                  (overlay-put ov 'face 'highlight)
+                  (org-roam-link--auto-create-file path manual)
+                  (delete-overlay ov))))))))))
 
 (defun org-roam-link--current-buffer-roam-link-titles ()
   "Return a list of unique roam-link titles in the current buffer."
