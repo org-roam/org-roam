@@ -70,6 +70,20 @@
   "Set by `org-roam-link-show-messages' or `org-roam-link-cancel-messages'.")
 
 ;;;; Custom org-link, roam:
+(defvar org-roam-link-auto-template-key nil
+  "Template key for `org-roam-capture-templates' to use for auto file creation.
+Template MUST use :immediate-finish t or only first capture will be saved.")
+
+(defvar org-roam-link-auto-template
+'(("a" "Automatic" plain (function org-roam--capture-get-point)
+     ""
+     :file-name "%<%Y%m%d%H%M%S>-${slug}"
+     :head "#+TITLE: ${title}\n#+AUTOMATICALLY_CREATED: %<%Y%m%d%H%M%S>\n"
+     :unnarrowed t
+     :immediate-finish t))
+  "Default auto-template for use with `org-roam-link--auto-create-file'.
+Used if `org-roam-link-auto-template-key' is nil.")
+
 (defvar org-roam-link--re
   "\\(\\[\\[\\)\\(roam:\\).*\\(\\]\\]\\)"
   "Matches a 'roam:' link in double brackets.")
@@ -238,26 +252,33 @@ indicate the link-type the buffer should convert to."
         (org-next-link)))))
 
 (defun org-roam-link--auto-create-file (title &optional manual)
-  "Call `org-roam-capture' with a template using :immediate-finish t.
+  "Call `org-roam-capture--capture' with `org-roam-link-auto-template'.
+If `org-roam-link-auto-template-key' is non-nil, use custom template key with
+`org-roam-capture-templates' instead.
 TITLE is the title for the file to be created.
-MANUAL is boolean allowing manual selection of capture template(s)."
+If MANUAL is non-nil, allow manual selection of capture template."
   (let ((org-roam-capture--info `((title . ,title)
                                   (slug  . ,(org-roam--title-to-slug title))))
         (org-roam-capture--context 'title))
-    (if manual (org-roam-capture--capture)
-      (org-roam-capture--capture :keys "a"))))
+    (cond (manual (org-roam-capture--capture))
+          (org-roam-link-auto-template-key
+           (org-roam-capture--capture :keys org-roam-link-auto-template-key))
+          (t
+           (let ((org-roam-capture-templates org-roam-link-auto-template))
+             (org-roam-capture--capture :keys (caar org-roam-link-auto-template)))))))
 
 (defun org-roam-link-auto-create-links-in-buffer (&optional manual)
   "Create all non-existent roam-link files in current buffer.
-If MANUAL is non-nil, prompt for template with `org-roam-capture'."
+If MANUAL is non-nil, prompt for template with `org-roam-capture--capture'.
+Templates MUST use :immediate-finish t, or only the first non-immediate capture
+will be saved correctly."
   (interactive "P")
   (when (org-roam--org-roam-file-p)
     (org-element-map (org-element-parse-buffer) 'link
       (lambda (link)
         (let* ((type (org-element-property :type link))
                (path (org-element-property :path link))
-               (is-title (if (string= type "roam") t nil))
-               (roam-file (if is-title (org-roam--get-file-from-title path) t)))
+               (roam-file (if (string= type "roam") (org-roam--get-file-from-title path) t)))
           (unless roam-file
             (org-roam-link--auto-create-file path manual)))))))
 
