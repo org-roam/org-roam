@@ -633,11 +633,6 @@ Examples:
                      (t "roam"))))
     type))
 
-(defun org-roam--ref-type-p (type)
-  "Return t if the ref from current buffer is TYPE."
-  (let ((current (car (org-roam--extract-ref))))
-    (eq current type)))
-
 (defun org-roam--extract-ref ()
   "Extract the ref from current buffer and return the type and the key of the ref."
   (if-let ((ref (cdr (assoc "ROAM_KEY" (org-roam--extract-global-props '("ROAM_KEY"))))))
