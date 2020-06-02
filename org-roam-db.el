@@ -397,7 +397,7 @@ If FORCE, force a rebuild of the cache from scratch."
                     all-files)
               (when-let (links (org-roam--extract-links file))
                 (push links all-links))
-              (when-let (tags (org-roam--extract-tags file))
+              (let (tags (org-roam--extract-tags file))
                 (push (vector file tags) all-tags))
               (let ((titles (org-roam--extract-titles)))
                 (push (vector file titles)
