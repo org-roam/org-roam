@@ -6,7 +6,7 @@
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
 ;; Version: 1.1.1
-;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (s "1.12.0") (org "9.3") (emacsql "3.0.0") (emacsql-sqlite "1.0.0"))
+;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (s "1.12.0") (org "9.3") (emacsql "3.0.0") (emacsql-sqlite3 "1.0.0"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -33,7 +33,8 @@
 ;;;; Library Requires
 (eval-when-compile (require 'subr-x))
 (require 'emacsql)
-(require 'emacsql-sqlite)
+(require 'emacsql-sqlite3)
+(require 'seq)
 (require 'org-roam-macs)
 
 (defvar org-roam-directory)
@@ -58,10 +59,6 @@ when used with multiple Org-roam instances."
   :group 'org-roam)
 
 (defconst org-roam-db--version 5)
-(defconst org-roam-db--sqlite-available-p
-  (with-demoted-errors "Org-roam initialization: %S"
-    (emacsql-sqlite-ensure-binary)
-    t))
 
 (defvar org-roam-db--connection (make-hash-table :test #'equal)
   "Database connection to Org-roam database.")
@@ -87,7 +84,7 @@ Performs a database upgrade when required."
     (let* ((db-file (org-roam-db--get))
            (init-db (not (file-exists-p db-file))))
       (make-directory (file-name-directory db-file) t)
-      (let ((conn (emacsql-sqlite db-file)))
+      (let ((conn (emacsql-sqlite3 db-file)))
         (set-process-query-on-exit-flag (emacsql-process conn) nil)
         (puthash (file-truename org-roam-directory)
                  conn

@@ -6,7 +6,7 @@
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
 ;; Version: 1.1.1
-;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (s "1.12.0") (org "9.3") (emacsql "3.0.0") (emacsql-sqlite "1.0.0"))
+;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (s "1.12.0") (org "9.3") (emacsql "3.0.0") (emacsql-sqlite3 "1.0.0"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -45,7 +45,9 @@
   "Capture templates for daily notes in Org-roam.")
 
 ;; Declarations
+(defvar org-roam-mode)
 (declare-function org-roam--file-path-from-id "org-roam")
+(declare-function org-roam-mode               "org-roam")
 
 (defun org-roam-dailies--file-for-time (time)
   "Create and find file for TIME."
@@ -59,18 +61,21 @@
 (defun org-roam-dailies-today ()
   "Create and find the daily note for today."
   (interactive)
+  (unless org-roam-mode (org-roam-mode))
   (org-roam-dailies--file-for-time (current-time)))
 
 (defun org-roam-dailies-tomorrow (n)
   "Create and find the daily note for tomorrow.
 With numeric argument N, use N days in the future."
   (interactive "p")
+  (unless org-roam-mode (org-roam-mode))
   (org-roam-dailies--file-for-time (time-add (* n 86400) (current-time))))
 
 (defun org-roam-dailies-yesterday (n)
   "Create and find the file for yesterday.
 With numeric argument N, use N days in the past."
   (interactive "p")
+  (unless org-roam-mode (org-roam-mode))
   (org-roam-dailies-tomorrow (- n)))
 
 (defun org-roam-dailies-date ()

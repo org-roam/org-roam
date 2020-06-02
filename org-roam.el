@@ -6,7 +6,7 @@
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
 ;; Version: 1.1.1
-;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (s "1.12.0") (org "9.3") (emacsql "3.0.0") (emacsql-sqlite "1.0.0"))
+;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (s "1.12.0") (org "9.3") (emacsql "3.0.0") (emacsql-sqlite3 "1.0.0"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -33,34 +33,39 @@
 ;;
 ;;
 ;;; Code:
-;;;; Library Requires
+;;;; Dependencies
 (require 'org)
 (require 'org-element)
-(require 'ob-core)  ;for org-babel-parse-header-arguments
-(eval-when-compile (require 'subr-x))
-(require 'dash)
-(require 's)
-(require 'f)
+(require 'ob-core) ;for org-babel-parse-header-arguments
+(require 'org-ref nil t) ; To detect cite: links
+(require 'ansi-color) ; org-roam--list-files strip ANSI color codes
 (require 'cl-lib)
+(require 'dash)
+(require 'f)
+(require 's)
 (require 'seq)
+(eval-when-compile (require 'subr-x))
 
-;;;; org-roam features
+;;;; Features
 (require 'org-roam-compat)
 (require 'org-roam-macs)
-(require 'org-roam-db)
+;; These features should be able to be loaded order independently.
+;; @TODO: implement something akin to `org-modules' that allows
+;; selectively loading different sets of features.
+;; ~NV [2020-05-22 Fri]
 (require 'org-roam-buffer)
-(require 'org-roam-capture)
-(require 'org-roam-graph)
 (require 'org-roam-completion)
+(require 'org-roam-capture)
 (require 'org-roam-dailies)
+(require 'org-roam-db)
 (require 'org-roam-doctor)
+(require 'org-roam-graph)
 
-;; To detect cite: links
-(require 'org-ref nil t)
+;;;; Declarations
 (defvar org-ref-cite-types) ;; from org-ref-core.el
 (declare-function org-ref-split-and-strip-string "ext:org-ref-utils" (string))
 
-;;;; Customizable Variables
+;;;; Customizable variables
 (defgroup org-roam nil
   "Roam Research replica in Org-mode."
   :group 'org
@@ -75,26 +80,12 @@
 
 (defcustom org-roam-directory (expand-file-name "~/org-roam/")
   "Default path to Org-roam files.
-
 All Org files, at any level of nesting, are considered part of the Org-roam."
   :type 'directory
   :group 'org-roam)
 
-(defcustom org-roam-link-title-format "%s"
-  "The formatter used when inserting Org-roam links that use their title.
-Formatter may be a function that takes title as its only argument."
-  :type '(choice
-          (string :tag "String Format" "%s")
-          (function :tag "Custom function"))
-  :group 'org-roam)
-
 (defcustom org-roam-encrypt-files nil
   "Whether to encrypt new files.  If true, create files with .gpg extension."
-  :type 'boolean
-  :group 'org-roam)
-
-(defcustom org-roam-verbose t
-  "Echo messages that are not errors."
   :type 'boolean
   :group 'org-roam)
 
@@ -106,6 +97,104 @@ to be an `org-mode' file, and it is the user's responsibility to
 ensure that."
   :type '(repeat string)
   :group 'org-roam)
+
+(defcustom org-roam-include-type-in-ref-path-completions nil
+  "When t, include the type in ref-path completions.
+Note that this only affects interactive calls.
+See `org-roam--get-ref-path-completions' for details."
+  :type 'boolean
+  :group 'org-roam)
+
+(defcustom org-roam-index-file "index.org"
+  "Path to the Org-roam index file.
+The path can be a string or a function.  If it is a string, it
+should be the path (absolute or relative to `org-roam-directory')
+to the index file.  If it is is a function, the function should
+return the path to the index file.  Otherwise, the index is
+assumed to be a note in `org-roam-directory' whose title is
+'Index'."
+  :type '(choice
+          (string :tag "Path to index" "%s")
+          (function :tag "Function to generate the path"))
+  :group 'org-roam)
+
+(defcustom org-roam-link-title-format "%s"
+  "The formatter used when inserting Org-roam links that use their title.
+Formatter may be a function that takes title as its only argument."
+  :type '(choice
+          (string :tag "String Format" "%s")
+          (function :tag "Custom function"))
+  :group 'org-roam)
+
+(defcustom org-roam-list-files-commands
+  (if (member system-type '(windows-nt ms-dos cygwin))
+      nil
+    '(find rg))
+  "Commands that will be used to find Org-roam files.
+
+It should be a list of symbols or cons cells representing any of the following
+ supported file search methods.
+
+The commands will be tried in order until an executable for a command is found.
+The Elisp implementation is used if no command in the list is found.
+
+  `rg'
+    Use ripgrep as the file search method.
+    Example command: rg /path/to/dir/ --files -g \"*.org\" -g \"*.org.gpg\"
+
+  `find'
+    Use find as the file search method.
+    Example command:
+    find /path/to/dir -type f \( -name \"*.org\" -o -name \"*.org.gpg\" \)
+
+By default, `executable-find' will be used to look up the path to the
+executable. If a custom path is required, it can be specified together with the
+method symbol as a cons cell. For example: '(find (rg . \"/path/to/rg\"))."
+  :type '(set (const :tag "find" find)
+              (const :tag "rg" rg)))
+
+(defcustom org-roam-tag-separator ","
+  "String to use to separate tags when `org-roam-tag-sources' is non-nil."
+  :type 'string
+  :group 'org-roam)
+
+(defcustom org-roam-tag-sort nil
+  "When non-nil, sort the tags in the completions.
+When t, sort the tags alphabetically, regardless of case.
+`org-roam-tag-sort' can also be a list of arguments to be applied
+to `cl-sort'.  For example, these are the arguments used when
+`org-roam-tag-sort' is set to t:
+    \('string-lessp :key 'downcase)
+Only relevant when `org-roam-tag-sources' is non-nil."
+  :type '(choice
+          (boolean)
+          (list :tag "Arguments to cl-loop"))
+  :group 'org-roam)
+
+(defcustom org-roam-tag-sources '(prop)
+  "Sources to obtain tags from.
+
+It should be a list of symbols representing any of the following
+extraction methods:
+
+  `prop'
+    Extract tags from the #+ROAM_TAGS property.
+    Tags are space delimited.
+    Tags may contain spaces if they are double-quoted.
+    e.g. #+ROAM_TAGS: tag \"tag with spaces\"
+
+  `all-directories'
+    Extract sub-directories relative to `org-roam-directory'.
+    That is, if a file is located at relative path foo/bar/file.org,
+    the file will have tags \"foo\" and \"bar\".
+
+  `last-directory'
+    Extract the last directory relative to `org-roam-directory'.
+    That is, if a file is located at relative path foo/bar/file.org,
+    the file will have tag \"bar\"."
+  :type '(set (const :tag "#+ROAM_TAGS" prop)
+              (const :tag "sub-directories" all-directories)
+              (const :tag "parent directory" last-directory)))
 
 (defcustom org-roam-title-sources '((title headline) alias)
   "The list of sources from which to retrieve a note title.
@@ -135,37 +224,21 @@ space-delimited strings.
            (symbol)))
   :group 'org-roam)
 
-(defcustom org-roam-tag-sources '(prop)
-  "Sources to obtain tags from.
-
-It should be a list of symbols representing any of the following
-extraction methods:
-
-  `prop'
-    Extract tags from the #+ROAM_TAGS property.
-    Tags are space delimited.
-    Tags may contain spaces if they are double-quoted.
-    e.g. #+ROAM_TAGS: tag \"tag with spaces\"
-
-  `all-directories'
-    Extract sub-directories relative to `org-roam-directory'.
-    That is, if a file is located at relative path foo/bar/file.org,
-    the file will have tags \"foo\" and \"bar\".
-
-  `last-directory'
-    Extract the last directory relative to `org-roam-directory'.
-    That is, if a file is located at relative path foo/bar/file.org,
-    the file will have tag \"bar\"."
-  :type '(set (const :tag "#+ROAM_TAGS" prop)
-              (const :tag "sub-directories" all-directories)
-              (const :tag "parent directory" last-directory)))
+(defcustom org-roam-verbose t
+  "Echo messages that are not errors."
+  :type 'boolean
+  :group 'org-roam)
 
 ;;;; Dynamic variables
 (defvar org-roam-last-window nil
   "Last window `org-roam' was called from.")
 
-;;; Utilities
-;;;; General Utilities
+(defvar org-roam--org-link-file-bracket-re
+  "\\[\\[file:\\(\\(?:[^][\\]\\|\\\\\\(?:\\\\\\\\\\)*[][]\\|\\\\+[^][]\\)+\\)]\\(?:\\[\\(\\(?:.\\|
+\\)+?\\)]\\)?]"
+  "Matches a 'file:' link in double brackets.")
+
+;;;; Utilities
 (defun org-roam--plist-to-alist (plist)
   "Return an alist of the property-value pairs in PLIST."
   (let (res)
@@ -199,11 +272,6 @@ https://github.com/kaushalmodi/ox-hugo/blob/a80b250987bc770600c424a10b3bca6ff728
       ret)))
 
 ;;;; File functions and predicates
-(defun org-roam--touch-file (path)
-  "Touches an empty file at PATH."
-  (make-directory (file-name-directory path) t)
-  (f-touch path))
-
 (defun org-roam--file-name-extension (filename)
   "Return file name extension for FILENAME.
 Like `file-name-extension', but does not strip version number."
@@ -224,21 +292,132 @@ Like `file-name-extension', but does not strip version number."
   "Return t if FILE is part of Org-roam system, nil otherwise.
 If FILE is not specified, use the current buffer's file-path."
   (if-let ((path (or file
-                  (buffer-file-name))))
+                     (buffer-file-name))))
       (save-match-data
         (and
          (org-roam--org-file-p path)
          (f-descendant-of-p (file-truename path)
                             (file-truename org-roam-directory))))))
 
-(defun org-roam--list-files (dir)
-  "Return all Org-roam files located within DIR, at any nesting level.
-Ignores hidden files and directories."
+(defun org-roam--shell-command-files (cmd)
+  "Run CMD in the shell and return a list of files. If no files are found, an empty list is returned."
+  (seq-filter #'s-present? (split-string (shell-command-to-string cmd) "\n")))
+
+(defun org-roam--list-files-search-globs (exts)
+  "Given EXTS, return a list of search globs.
+E.g. (\".org\") => (\"*.org\" \"*.org.gpg\")"
+  (append
+   (mapcar (lambda (ext) (s-wrap (concat "*." ext) "\"")) exts)
+   (mapcar (lambda (ext) (s-wrap (concat "*." ext ".gpg") "\"")) exts)))
+
+(defun org-roam--list-files-rg (executable dir)
+  "Return all Org-roam files located recursively within DIR, using ripgrep, provided as EXECUTABLE."
+  (let* ((globs (org-roam--list-files-search-globs org-roam-file-extensions))
+         (command (s-join " " `(,executable "-L" ,dir "--files"
+                                            ,@(mapcar (lambda (glob) (concat "-g " glob)) globs)))))
+    (org-roam--shell-command-files command)))
+
+(defun org-roam--list-files-find (executable dir)
+  "Return all Org-roam files located recursively within DIR, using find, provided as EXECUTABLE."
+  (let* ((globs (org-roam--list-files-search-globs org-roam-file-extensions))
+         (command (s-join " " `(,executable "-L" ,dir "-type f \\("
+                                            ,(s-join " -o " (mapcar (lambda (glob) (concat "-name " glob)) globs)) "\\)"))))
+    (org-roam--shell-command-files command)))
+
+;; Emacs 26 does not have FOLLOW-SYMLINKS in `directory-files-recursively'
+(defun org-roam--directory-files-recursively (dir regexp
+                                                  &optional include-directories predicate
+                                                  follow-symlinks)
+  "Return list of all files under directory DIR whose names match REGEXP.
+This function works recursively.  Files are returned in \"depth
+first\" order, and files from each directory are sorted in
+alphabetical order.  Each file name appears in the returned list
+in its absolute form.
+
+By default, the returned list excludes directories, but if
+optional argument INCLUDE-DIRECTORIES is non-nil, they are
+included.
+
+PREDICATE can be either nil (which means that all subdirectories
+of DIR are descended into), t (which means that subdirectories that
+can't be read are ignored), or a function (which is called with
+the name of each subdirectory, and should return non-nil if the
+subdirectory is to be descended into).
+
+If FOLLOW-SYMLINKS is non-nil, symbolic links that point to
+directories are followed.  Note that this can lead to infinite
+recursion."
+  (let* ((result nil)
+         (files nil)
+         (dir (directory-file-name dir))
+         ;; When DIR is "/", remote file names like "/method:" could
+         ;; also be offered.  We shall suppress them.
+         (tramp-mode (and tramp-mode (file-remote-p (expand-file-name dir)))))
+    (dolist (file (sort (file-name-all-completions "" dir)
+                        'string<))
+      (unless (member file '("./" "../"))
+        (if (directory-name-p file)
+            (let* ((leaf (substring file 0 (1- (length file))))
+                   (full-file (concat dir "/" leaf)))
+              ;; Don't follow symlinks to other directories.
+              (when (and (or (not (file-symlink-p full-file))
+                             (and (file-symlink-p full-file)
+                                  follow-symlinks))
+                         ;; Allow filtering subdirectories.
+                         (or (eq predicate nil)
+                             (eq predicate t)
+                             (funcall predicate full-file)))
+                (let ((sub-files
+                       (if (eq predicate t)
+                           (ignore-error file-error
+                             (org-roam--directory-files-recursively
+                              full-file regexp include-directories
+                              predicate follow-symlinks))
+                         (org-roam--directory-files-recursively
+                          full-file regexp include-directories
+                          predicate follow-symlinks))))
+                  (setq result (nconc result sub-files))))
+              (when (and include-directories
+                         (string-match regexp leaf))
+                (setq result (nconc result (list full-file)))))
+          (when (string-match regexp file)
+            (push (concat dir "/" file) files)))))
+    (nconc result (nreverse files))))
+
+(defun org-roam--list-files-elisp (dir)
+  "Return all Org-roam files located recursively within DIR, using elisp."
   (let ((regex (concat "\\.\\(?:"(mapconcat #'regexp-quote org-roam-file-extensions "\\|" )"\\)\\(?:\\.gpg\\)?\\'"))
         result)
-    (dolist (file (directory-files-recursively dir regex) result)
+    (dolist (file (org-roam--directory-files-recursively dir regex nil nil t) result)
       (when (and (file-readable-p file) (org-roam--org-file-p file))
         (push file result)))))
+
+(defun org-roam--list-files (dir)
+  "Return all Org-roam files located recursively within DIR.
+Use external shell commands if defined in `org-roam-list-files-commands'."
+  (let (path exe)
+    (cl-dolist (cmd org-roam-list-files-commands)
+      (pcase cmd
+        (`(,e . ,path)
+         (setq path (executable-find path)
+               exe  (symbol-name e)))
+        ((pred symbolp)
+         (setq path (executable-find (symbol-name cmd))
+               exe (symbol-name cmd)))
+        (wrong-type
+         (signal 'wrong-type-argument
+                 `((consp symbolp)
+                   ,wrong-type))))
+      (when path (cl-return)))
+    (let* ((files (if path
+                      (let ((fn (intern (concat "org-roam--list-files-" exe))))
+                        (unless (fboundp fn) (user-error "%s is not an implemented search method" fn))
+                        (funcall fn path (format "\"%s\"" dir)))
+                    (org-roam--list-files-elisp dir)))
+           (files (mapcar #'ansi-color-filter-apply files)) ; strip ansi codes
+           (files (seq-filter #'org-roam--org-roam-file-p files))
+           (files (mapcar #'expand-file-name files))) ; canonicalize names
+      files)))
 
 (defun org-roam--list-all-files ()
   "Return a list of all Org-roam files within `org-roam-directory'."
@@ -258,11 +437,6 @@ The search terminates when the first property is encountered."
                  :first-match t)))
         (push (cons prop p) res)))
     res))
-
-(defvar org-roam--org-link-file-bracket-re
-  "\\[\\[file:\\(\\(?:[^][\\]\\|\\\\\\(?:\\\\\\\\\\)*[][]\\|\\\\+[^][]\\)+\\)]\\(?:\\[\\(\\(?:.\\|
-\\)+?\\)]\\)?]"
-  "Matches a 'file:' link in double brackets.")
 
 (defun org-roam--expand-links (content path)
   "Crawl CONTENT for relative links and expand them.
@@ -347,12 +521,14 @@ it as FILE-PATH."
     (when title
       (list title))))
 
+(defalias 'org-roam--parse-alias 'org-roam--str-to-list)
+
 (defun org-roam--extract-titles-alias ()
   "Return the aliases from the current buffer.
 Reads from the \"ROAM_ALIAS\" property."
   (let* ((prop (org-roam--extract-global-props '("ROAM_ALIAS")))
          (aliases (cdr (assoc "ROAM_ALIAS" prop))))
-    (org-roam--str-to-list aliases)))
+    (org-roam--parse-alias aliases)))
 
 (defun org-roam--extract-titles-headline ()
   "Return the first headline of the current buffer."
@@ -395,23 +571,12 @@ The final directory component is used as a tag."
                             (file-relative-name file org-roam-directory))))
     (last (f-split dir-relative))))
 
+(defalias 'org-roam--parse-tags 'org-roam--str-to-list)
+
 (defun org-roam--extract-tags-prop (_file)
   "Extract tags from the current buffer's \"#ROAM_TAGS\" global property."
   (let* ((prop (org-roam--extract-global-props '("ROAM_TAGS"))))
-    (org-roam--str-to-list (cdr (assoc "ROAM_TAGS" prop)))))
-
-(defcustom org-roam-tag-sort nil
-  "When non-nil, sort the tags in the completions.
-When t, sort the tags alphabetically, regardless of case.
-`org-roam-tag-sort' can also be a list of arguments to be applied
-to `cl-sort'.  For example, these are the arguments used when
-`org-roam-tag-sort' is set to t:
-    \('string-lessp :key 'downcase)
-Only relevant when `org-roam-tag-sources' is non-nil."
-  :type '(choice
-          (boolean)
-          (list :tag "Arguments to cl-loop"))
-  :group 'org-roam)
+    (org-roam--parse-tags (cdr (assoc "ROAM_TAGS" prop)))))
 
 (defun org-roam--extract-tags (&optional file)
   "Extract tags from the current buffer.
@@ -433,13 +598,31 @@ Tags are obtained via:
       (`(,(pred symbolp) . ,_)
        (apply #'cl-sort (push tags org-roam-tag-sort)))
       (wrong-type (signal 'wrong-type-argument
-                          `((booleanp (list symbolp …))
+                          `((booleanp (list symbolp))
                             ,wrong-type))))))
 
-(defun org-roam--ref-type-p (type)
-  "Return t if the ref from current buffer is TYPE."
-  (let ((current (car (org-roam--extract-ref))))
-    (eq current type)))
+(defun org-roam--cite-prefix (ref)
+  "Return the citation prefix of REF, or nil otherwise.
+The prefixes are defined in `org-ref-cite-types`.
+Examples:
+   (org-roam--cite-prefix \"cite:foo\") -> \"cite:\"
+   (org-roam--cite-prefix \"https://google.com\") -> nil"
+  (when (require 'org-ref nil t)
+    (seq-find
+     (lambda (prefix) (s-prefix? prefix ref))
+     (-map (lambda (type) (concat type ":"))
+           org-ref-cite-types))))
+
+(defun org-roam--ref-type (ref)
+  "Determine the type of the REF from the prefix."
+  (let* ((cite-prefix (org-roam--cite-prefix ref))
+         (is-website (seq-some
+                      (lambda (prefix) (s-prefix? prefix ref))
+                      '("http" "https")))
+         (type (cond (cite-prefix "cite")
+                     (is-website "website")
+                     (t "roam"))))
+    type))
 
 (defun org-roam--ref-type-p (type)
   "Return t if the ref from current buffer is TYPE."
@@ -460,28 +643,10 @@ Tags are obtained via:
                        (t ref))))
        (cons type key)))))
 
-(defun org-roam--ref-type (ref)
-  "Determine the type of the REF from the prefix."
-  (let* ((cite-prefix (org-roam--cite-prefix ref))
-         (is-website (seq-some
-                      (lambda (prefix) (s-prefix? prefix ref))
-                      '("http" "https")))
-         (type (cond (cite-prefix "cite")
-                     (is-website "website")
-                     (t "roam"))))
-    type))
-
-(defun org-roam--cite-prefix (ref)
-  "Return the citation prefix of REF, or nil otherwise.
-The prefixes are defined in `org-ref-cite-types`.
-Examples:
-   (org-roam--cite-prefix \"cite:foo\") -> \"cite:\"
-   (org-roam--cite-prefix \"https://google.com\") -> nil"
-  (when (require 'org-ref nil t)
-   (seq-find
-    (lambda (prefix) (s-prefix? prefix ref))
-    (-map (lambda (type) (concat type ":"))
-          org-ref-cite-types))))
+(defun org-roam--ref-type-p (type)
+  "Return t if the ref from current buffer is TYPE."
+  (let ((current (car (org-roam--extract-ref))))
+    (eq current type)))
 
 ;;;; Title/Path/Slug conversion
 (defun org-roam--path-to-slug (path)
@@ -511,7 +676,6 @@ Examples:
            (slug (-reduce-from #'cl-replace (strip-nonspacing-marks title) pairs)))
       (downcase slug))))
 
-;;; Interactive Commands
 (defun org-roam--format-link-title (title)
   "Return the link title, given the file TITLE."
   (if (functionp org-roam-link-title-format)
@@ -531,61 +695,6 @@ Examples:
                          (file-relative-name target here)
                        target))
      description)))
-
-(defun org-roam-insert (&optional lowercase completions filter-fn description)
-  "Find an Org-roam file, and insert a relative org link to it at point.
-If LOWERCASE, downcase the title before insertion.
-COMPLETIONS is a list of completions to be used instead of
-`org-roam--get-title-path-completions`.
-FILTER-FN is the name of a function to apply on the candidates
-which takes as its argument an alist of path-completions.
-If DESCRIPTION is provided, use this as the link label.  See
-`org-roam--get-title-path-completions' for details."
-  (interactive "P")
-  (let* ((region (and (region-active-p)
-                      ;; following may lose active region, so save it
-                      (cons (region-beginning) (region-end))))
-         (region-text (when region
-                        (buffer-substring-no-properties
-                         (car region) (cdr region))))
-         (completions (--> (or completions
-                               (org-roam--get-title-path-completions))
-                           (if filter-fn
-                               (funcall filter-fn it)
-                             it)))
-         (title-with-tags (org-roam-completion--completing-read "File: " completions
-                                                                :initial-input region-text))
-         (res (cdr (assoc title-with-tags completions)))
-         (title (or (plist-get res :title)
-                    title-with-tags))
-         (target-file-path (plist-get res :path))
-         (description (or description region-text title))
-         (link-description (org-roam--format-link-title (if lowercase
-                                                            (downcase description)
-                                                          description))))
-    (if (and target-file-path
-             (file-exists-p target-file-path))
-        (progn
-          (when region ;; Remove previously selected text.
-            (delete-region (car region) (cdr region)))
-          (insert (org-roam--format-link target-file-path link-description)))
-      (when (org-roam-capture--in-process-p)
-        (user-error "Nested Org-roam capture processes not supported"))
-      (let ((org-roam-capture--info `((title . ,title-with-tags)
-                                      (slug . ,(org-roam--title-to-slug title-with-tags))))
-            (org-roam-capture--context 'title))
-        (add-hook 'org-capture-after-finalize-hook #'org-roam-capture--insert-link-h)
-        (setq org-roam-capture-additional-template-props (list :region region
-                                                               :link-description link-description
-                                                               :capture-fn 'org-roam-insert))
-        (org-roam--with-template-error 'org-roam-capture-templates
-          (org-roam-capture--capture))))))
-
-(defcustom org-roam-tag-separator ","
-  "String to use to separate tags.
-Only relevant when `org-roam-tag-sources' is non-nil."
-  :type 'string
-  :group 'org-roam)
 
 (defun org-roam--get-title-path-completions ()
   "Return an alist for completion.
@@ -612,53 +721,6 @@ to the file."
                   (v (list :path file-path :title title)))
               (push (cons k v) completions))))))))
 
-(defun org-roam-find-file (&optional initial-prompt completions filter-fn)
-  "Find and open an Org-roam file.
-INITIAL-PROMPT is the initial title prompt.
-COMPLETIONS is a list of completions to be used instead of
-`org-roam--get-title-path-completions`.
-FILTER-FN is the name of a function to apply on the candidates
-which takes as its argument an alist of path-completions.  See
-`org-roam--get-title-path-completions' for details."
-  (interactive)
-  (let* ((completions (--> (or completions
-                               (org-roam--get-title-path-completions))
-                           (if filter-fn
-                               (funcall filter-fn it)
-                             it)))
-         (title-with-tags (org-roam-completion--completing-read "File: " completions
-                                                                :initial-input initial-prompt))
-         (res (cdr (assoc title-with-tags completions)))
-         (file-path (plist-get res :path)))
-    (if file-path
-        (find-file file-path)
-      (if (org-roam-capture--in-process-p)
-          (user-error "Org-roam capture in process")
-        (let ((org-roam-capture--info `((title . ,title-with-tags)
-                                       (slug . ,(org-roam--title-to-slug title-with-tags))))
-              (org-roam-capture--context 'title))
-          (add-hook 'org-capture-after-finalize-hook #'org-roam-capture--find-file-h)
-          (org-roam--with-template-error 'org-roam-capture-templates
-            (org-roam-capture--capture)))))))
-
-(defun org-roam-find-directory ()
-  "Find and open `org-roam-directory'."
-  (interactive)
-  (find-file org-roam-directory))
-
-(defcustom org-roam-index-file "index.org"
-  "Path to the Org-roam index file.
-The path can be a string or a function.  If it is a string, it
-should be the path (absolute or relative to `org-roam-directory')
-to the index file.  If it is is a function, the function should
-return the path to the index file.  Otherwise, the index is
-assumed to be a note in `org-roam-directory' whose title is
-'Index'."
-  :type '(choice
-          (string :tag "Path to index" "%s")
-          (function :tag "Function to generate the path"))
-  :group 'org-roam)
-
 (defun org-roam--get-index-path ()
   "Return the path to the index in `org-roam-directory'.
 The path to the index can be defined in `org-roam-index-file'.
@@ -676,30 +738,9 @@ whose title is 'Index'."
         (concat (file-truename org-roam-directory) path)
       index)))
 
-(defun org-roam-jump-to-index ()
-  "Find the index file in `org-roam-directory'.
-The path to the index can be defined in `org-roam-index-file'.
-Otherwise, the function will look in your `org-roam-directory'
-for a note whose title is 'Index'.  If it does not exist, the
-command will offer you to create one."
-  (interactive)
-  (let ((index (org-roam--get-index-path)))
-    (if (and index
-             (file-exists-p index))
-        (find-file index)
-      (when (y-or-n-p "Index file does not exist.  Would you like to create it? ")
-        (org-roam-find-file "Index")))))
-
 ;;;; org-roam-find-ref
-(defcustom org-roam-include-type-in-ref-path-completions nil
-  "When t, include the type in ref-path completions.
-Note that this only affects interactive calls.
-See `org-roam--get-ref-path-completions' for details."
-  :type 'boolean
-  :group 'org-roam)
-
 (defun org-roam--get-ref-path-completions (&optional interactive filter)
-  "Return a alist of refs to absolute path of Org-roam files.
+  "Return an alist of refs to absolute path of Org-roam files.
 When `org-roam-include-type-in-ref-path-completions' and
 INTERACTIVE are non-nil, format the car of the
 completion-candidates as 'type:ref'.
@@ -745,26 +786,6 @@ Return nil if the file does not exist."
               (file (plist-get (cdr (assoc ref completions)) :path)))
     (find-file file)))
 
-(defun org-roam-find-ref (arg &optional filter)
-  "Find and open an Org-roam file from a ref.
-ARG is used to forward interactive calls to
-`org-roam--get-ref-path-completions'
-FILTER can either be a string or a function:
-- If it is a string, it should be the type of refs to include as
-candidates (e.g. \"cite\" ,\"website\" ,etc.)
-- If it is a function, it should be the name of a function that
-takes three arguments: the type, the ref, and the file of the
-current candidate.  It should return t if that candidate is to be
-included as a candidate."
-  (interactive "p")
-  (let* ((completions (org-roam--get-ref-path-completions arg filter))
-         (ref (org-roam-completion--completing-read "Ref: "
-                                                    completions
-                                                    :require-match t))
-         (file (-> (cdr (assoc ref completions))
-                   (plist-get :path))))
-    (find-file file)))
-
 (defun org-roam--get-roam-buffers ()
   "Return a list of buffers that are Org-roam files."
   (--filter (and (with-current-buffer it (derived-mode-p 'org-mode))
@@ -772,27 +793,11 @@ included as a candidate."
                  (org-roam--org-roam-file-p (buffer-file-name it)))
             (buffer-list)))
 
-(defun org-roam-switch-to-buffer ()
-  "Switch to an existing Org-roam buffer."
-  (interactive)
-  (let* ((roam-buffers (org-roam--get-roam-buffers))
-         (names-and-buffers (mapcar (lambda (buffer)
-                                      (cons (or (org-roam--get-title-or-slug
-                                                 (buffer-file-name buffer))
-                                                (buffer-name buffer))
-                                            buffer))
-                                    roam-buffers)))
-    (unless roam-buffers
-      (user-error "No roam buffers"))
-    (when-let ((name (org-roam-completion--completing-read "Buffer: " names-and-buffers
-                                                           :require-match t)))
-      (switch-to-buffer (cdr (assoc name names-and-buffers))))))
-
 (defun org-roam--file-path-from-id (id)
-  "The file path for an Org-roam file, with identifier ID."
+  "Return path for Org-roam file with ID."
   (file-truename
    (let* ((ext (or (car org-roam-file-extensions)
-                  "org"))
+                   "org"))
           (file (concat id "." ext)))
      (expand-file-name
       (if org-roam-encrypt-files
@@ -921,51 +926,7 @@ for Org-ref cite links."
        :link        (format "file:%s" (abbreviate-file-name buffer-file-name))
        :description title))))
 
-;;;###autoload
-(defalias 'org-roam 'org-roam-buffer-toggle-display)
-
 ;;; The global minor org-roam-mode
-
-;;;###autoload
-(define-minor-mode org-roam-mode
-  "Minor mode for Org-roam.
-
-This mode sets up several hooks, to ensure that the cache is updated on file
-changes, renames and deletes. It is also in charge of graceful termination of
-the database connection.
-
-When called interactively, toggle `org-roam-mode'. with prefix
-ARG, enable `org-roam-mode' if ARG is positive, otherwise disable
-it.
-
-When called from Lisp, enable `org-roam-mode' if ARG is omitted,
-nil, or positive. If ARG is `toggle', toggle `org-roam-mode'.
-Otherwise, behave as if called interactively."
-  :lighter " Org-roam"
-  :keymap  (let ((map (make-sparse-keymap))) map)
-  :group 'org-roam
-  :require 'org-roam
-  :global t
-  (cond
-   (org-roam-mode
-    (add-hook 'find-file-hook #'org-roam--find-file-hook-function)
-    (add-hook 'kill-emacs-hook #'org-roam-db--close-all)
-    (advice-add 'rename-file :after #'org-roam--rename-file-advice)
-    (advice-add 'delete-file :before #'org-roam--delete-file-advice)
-    (org-roam-db-build-cache))
-   (t
-    (remove-hook 'find-file-hook #'org-roam--find-file-hook-function)
-    (remove-hook 'kill-emacs-hook #'org-roam-db--close-all)
-    (advice-remove 'rename-file #'org-roam--rename-file-advice)
-    (advice-remove 'delete-file #'org-roam--delete-file-advice)
-    (org-roam-db--close-all)
-    ;; Disable local hooks for all org-roam buffers
-    (dolist (buf (org-roam--get-roam-buffers))
-      (with-current-buffer buf
-        (org-link-set-parameters "file" :face 'org-link)
-        (remove-hook 'post-command-hook #'org-roam-buffer--update-maybe t)
-        (remove-hook 'after-save-hook #'org-roam-db--update-file t))))))
-
 (defun org-roam--find-file-hook-function ()
   "Called by `find-file-hook' when mode symbol `org-roam-mode' is on."
   (when (org-roam--org-roam-file-p)
@@ -991,27 +952,27 @@ update with NEW-DESC."
                            (find-file-noselect file))
     (save-excursion
       (let ((link-markers (org-element-map (org-element-parse-buffer) 'link
-                   (lambda (l)
-                     (let ((type (org-element-property :type l))
-                           (path (org-element-property :path l)))
-                       (when (and (equal "file" type)
-                                  (string-equal (file-truename path)
-                                                old-path))
-                         (set-marker (make-marker) (org-element-property :begin l))))))))
-      (dolist (m link-markers)
-        (goto-char m)
-        (save-match-data
-          (unless (org-in-regexp org-link-bracket-re 1)
-            (user-error "No link at point"))
-          (let* ((label (if (match-end 2)
-                            (match-string-no-properties 2)
-                          (org-link-unescape (match-string-no-properties 1))))
-                 (new-label (if (string-equal label old-desc)
-                                new-desc
-                              label)))
-            (replace-match (org-link-make-string
-                            (concat "file:" (file-relative-name new-path (file-name-directory (buffer-file-name))))
-                            new-label)))))))
+                            (lambda (l)
+                              (let ((type (org-element-property :type l))
+                                    (path (org-element-property :path l)))
+                                (when (and (equal "file" type)
+                                           (string-equal (file-truename path)
+                                                         old-path))
+                                  (set-marker (make-marker) (org-element-property :begin l))))))))
+        (dolist (m link-markers)
+          (goto-char m)
+          (save-match-data
+            (unless (org-in-regexp org-link-bracket-re 1)
+              (user-error "No link at point"))
+            (let* ((label (if (match-end 2)
+                              (match-string-no-properties 2)
+                            (org-link-unescape (match-string-no-properties 1))))
+                   (new-label (if (string-equal label old-desc)
+                                  new-desc
+                                label)))
+              (replace-match (org-link-make-string
+                              (concat "file:" (file-relative-name new-path (file-name-directory (buffer-file-name))))
+                              new-label)))))))
     (save-buffer)))
 
 (defun org-roam--fix-relative-links (old-path)
@@ -1083,23 +1044,49 @@ replaced links are made relative to the current buffer."
             (save-buffer)))
         (org-roam-db--update-file new-path)))))
 
-;;;; Diagnostics
 ;;;###autoload
-(defun org-roam-version (&optional message)
-  "Return `org-roam' version.
-Interactively, or when MESSAGE is non-nil, show in the echo area."
-  (interactive)
-  (let* ((version
-          (with-temp-buffer
-            (insert-file-contents-literally (locate-library "org-roam.el"))
-            (goto-char (point-min))
-            (save-match-data
-              (if (re-search-forward "\\(?:;; Version: \\([^z-a]*?$\\)\\)" nil nil)
-                  (substring-no-properties (match-string 1))
-                "N/A")))))
-    (if (or message (called-interactively-p 'interactive))
-        (message "%s" version)
-      version)))
+(define-minor-mode org-roam-mode
+  "Minor mode for Org-roam.
+
+This mode sets up several hooks, to ensure that the cache is updated on file
+changes, renames and deletes. It is also in charge of graceful termination of
+the database connection.
+
+When called interactively, toggle `org-roam-mode'. with prefix
+ARG, enable `org-roam-mode' if ARG is positive, otherwise disable
+it.
+
+When called from Lisp, enable `org-roam-mode' if ARG is omitted,
+nil, or positive. If ARG is `toggle', toggle `org-roam-mode'.
+Otherwise, behave as if called interactively."
+  :lighter " Org-roam"
+  :keymap  (let ((map (make-sparse-keymap))) map)
+  :group 'org-roam
+  :require 'org-roam
+  :global t
+  (cond
+   (org-roam-mode
+    (add-hook 'find-file-hook #'org-roam--find-file-hook-function)
+    (add-hook 'kill-emacs-hook #'org-roam-db--close-all)
+    (advice-add 'rename-file :after #'org-roam--rename-file-advice)
+    (advice-add 'delete-file :before #'org-roam--delete-file-advice)
+    (org-roam-db-build-cache))
+   (t
+    (remove-hook 'find-file-hook #'org-roam--find-file-hook-function)
+    (remove-hook 'kill-emacs-hook #'org-roam-db--close-all)
+    (advice-remove 'rename-file #'org-roam--rename-file-advice)
+    (advice-remove 'delete-file #'org-roam--delete-file-advice)
+    (org-roam-db--close-all)
+    ;; Disable local hooks for all org-roam buffers
+    (dolist (buf (org-roam--get-roam-buffers))
+      (with-current-buffer buf
+        (org-link-set-parameters "file" :face 'org-link)
+        (remove-hook 'post-command-hook #'org-roam-buffer--update-maybe t)
+        (remove-hook 'after-save-hook #'org-roam-db--update-file t))))))
+
+;;; Interactive Commands
+;;;###autoload
+(defalias 'org-roam 'org-roam-buffer-toggle-display)
 
 ;;;###autoload
 (defun org-roam-diagnostics ()
@@ -1116,6 +1103,161 @@ Interactively, or when MESSAGE is non-nil, show in the echo area."
                       (quit "N/A"))))
     (insert (format "- Org: %s\n" (org-version nil 'full)))
     (insert (format "- Org-roam: %s" (org-roam-version)))))
+
+;;;###autoload
+(defun org-roam-find-file (&optional initial-prompt completions filter-fn)
+  "Find and open an Org-roam file.
+INITIAL-PROMPT is the initial title prompt.
+COMPLETIONS is a list of completions to be used instead of
+`org-roam--get-title-path-completions`.
+FILTER-FN is the name of a function to apply on the candidates
+which takes as its argument an alist of path-completions.  See
+`org-roam--get-title-path-completions' for details."
+  (interactive)
+  (unless org-roam-mode (org-roam-mode))
+  (when (org-roam-capture--in-process-p) (user-error "Org-roam capture in process"))
+  (let* ((completions (funcall (or filter-fn #'identity)
+                               (or completions (org-roam--get-title-path-completions))))
+         (title-with-tags (org-roam-completion--completing-read "File: " completions
+                                                                :initial-input initial-prompt))
+         (res (cdr (assoc title-with-tags completions)))
+         (file-path (plist-get res :path)))
+    (if file-path
+        (find-file file-path)
+      (let ((org-roam-capture--info `((title . ,title-with-tags)
+                                      (slug  . ,(org-roam--title-to-slug title-with-tags))))
+            (org-roam-capture--context 'title))
+        (add-hook 'org-capture-after-finalize-hook #'org-roam-capture--find-file-h)
+        (org-roam--with-template-error 'org-roam-capture-templates
+          (org-roam-capture--capture))))))
+
+;;;###autoload
+(defun org-roam-find-directory ()
+  "Find and open `org-roam-directory'."
+  (interactive)
+  (find-file org-roam-directory))
+
+;;;###autoload
+(defun org-roam-find-ref (arg &optional filter)
+  "Find and open an Org-roam file from a ref.
+ARG is used to forward interactive calls to
+`org-roam--get-ref-path-completions'
+FILTER can either be a string or a function:
+- If it is a string, it should be the type of refs to include as
+candidates (e.g. \"cite\" ,\"website\" ,etc.)
+- If it is a function, it should be the name of a function that
+takes three arguments: the type, the ref, and the file of the
+current candidate.  It should return t if that candidate is to be
+included as a candidate."
+  (interactive "p")
+  (unless org-roam-mode (org-roam-mode))
+  (let* ((completions (org-roam--get-ref-path-completions arg filter))
+         (ref (org-roam-completion--completing-read "Ref: "
+                                                    completions
+                                                    :require-match t))
+         (file (-> (cdr (assoc ref completions))
+                   (plist-get :path))))
+    (find-file file)))
+
+;;;###autoload
+(defun org-roam-insert (&optional lowercase completions filter-fn description)
+  "Find an Org-roam file, and insert a relative org link to it at point.
+If LOWERCASE, downcase the title before insertion.
+COMPLETIONS is a list of completions to be used instead of
+`org-roam--get-title-path-completions`.
+FILTER-FN is the name of a function to apply on the candidates
+which takes as its argument an alist of path-completions.
+If DESCRIPTION is provided, use this as the link label.  See
+`org-roam--get-title-path-completions' for details."
+  (interactive "P")
+  (unless org-roam-mode (org-roam-mode))
+  (let* ((region (and (region-active-p)
+                      ;; following may lose active region, so save it
+                      (cons (region-beginning) (region-end))))
+         (region-text (when region
+                        (buffer-substring-no-properties (car region) (cdr region))))
+         (completions (--> (or completions
+                               (org-roam--get-title-path-completions))
+                           (if filter-fn
+                               (funcall filter-fn it)
+                             it)))
+         (title-with-tags (org-roam-completion--completing-read "File: " completions
+                                                                :initial-input region-text))
+         (res (cdr (assoc title-with-tags completions)))
+         (title (or (plist-get res :title)
+                    title-with-tags))
+         (target-file-path (plist-get res :path))
+         (description (or description region-text title))
+         (link-description (org-roam--format-link-title (if lowercase
+                                                            (downcase description)
+                                                          description))))
+    (if (and target-file-path
+             (file-exists-p target-file-path))
+        (progn
+          (when region ;; Remove previously selected text.
+            (delete-region (car region) (cdr region)))
+          (insert (org-roam--format-link target-file-path link-description)))
+      (when (org-roam-capture--in-process-p)
+        (user-error "Nested Org-roam capture processes not supported"))
+      (let ((org-roam-capture--info `((title . ,title-with-tags)
+                                      (slug . ,(org-roam--title-to-slug title-with-tags))))
+            (org-roam-capture--context 'title))
+        (add-hook 'org-capture-after-finalize-hook #'org-roam-capture--insert-link-h)
+        (setq org-roam-capture-additional-template-props (list :region region
+                                                               :link-description link-description
+                                                               :capture-fn 'org-roam-insert))
+        (org-roam--with-template-error 'org-roam-capture-templates
+          (org-roam-capture--capture))))))
+
+;;;###autoload
+(defun org-roam-jump-to-index ()
+  "Find the index file in `org-roam-directory'.
+The path to the index can be defined in `org-roam-index-file'.
+Otherwise, the function will look in your `org-roam-directory'
+for a note whose title is 'Index'.  If it does not exist, the
+command will offer you to create one."
+  (interactive)
+  (unless org-roam-mode (org-roam-mode))
+  (let ((index (org-roam--get-index-path)))
+    (if (and index
+             (file-exists-p index))
+        (find-file index)
+      (when (y-or-n-p "Index file does not exist.  Would you like to create it? ")
+        (org-roam-find-file "Index")))))
+
+;;;###autoload
+(defun org-roam-switch-to-buffer ()
+  "Switch to an existing Org-roam buffer."
+  (interactive)
+  (let* ((roam-buffers (org-roam--get-roam-buffers))
+         (names-and-buffers (mapcar (lambda (buffer)
+                                      (cons (or (org-roam--get-title-or-slug
+                                                 (buffer-file-name buffer))
+                                                (buffer-name buffer))
+                                            buffer))
+                                    roam-buffers)))
+    (unless roam-buffers
+      (user-error "No roam buffers"))
+    (when-let ((name (org-roam-completion--completing-read "Buffer: " names-and-buffers
+                                                           :require-match t)))
+      (switch-to-buffer (cdr (assoc name names-and-buffers))))))
+
+;;;###autoload
+(defun org-roam-version (&optional message)
+  "Return `org-roam' version.
+Interactively, or when MESSAGE is non-nil, show in the echo area."
+  (interactive)
+  (let* ((version
+          (with-temp-buffer
+            (insert-file-contents-literally (locate-library "org-roam.el"))
+            (goto-char (point-min))
+            (save-match-data
+              (if (re-search-forward "\\(?:;; Version: \\([^z-a]*?$\\)\\)" nil nil)
+                  (substring-no-properties (match-string 1))
+                "N/A")))))
+    (if (or message (called-interactively-p 'interactive))
+        (message "%s" version)
+      version)))
 
 (provide 'org-roam)
 ;;; org-roam.el ends here
