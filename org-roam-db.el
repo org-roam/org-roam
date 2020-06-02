@@ -56,11 +56,7 @@ when used with multiple Org-roam instances."
   :type 'string
   :group 'org-roam)
 
-(defconst org-roam-db--version 3)
-(defconst org-roam-db--sqlite-available-p
-  (with-demoted-errors "Org-roam initialization: %S"
-    (emacsql-sqlite-ensure-binary)
-    t))
+(defconst org-roam-db--version 6)
 
 (defvar org-roam-db--connection (make-hash-table :test #'equal)
   "Database connection to Org-roam database.")
