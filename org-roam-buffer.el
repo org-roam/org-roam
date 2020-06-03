@@ -88,10 +88,10 @@ Has an effect if and only if `org-roam-buffer-position' is `top' or `bottom'."
   :type 'hook
   :group 'org-roam)
 
-(defcustom org-roam-buffer-no-delete-other-windows nil
-  "The `no-delete-other-windows' parameter of the `org-roam-buffer' window.
-When non-nil, the window will not be closed when deleting other windows."
-  :type 'boolean
+(defcustom org-roam-buffer-window-parameters nil
+  "Additional window parameters for the `org-roam-buffer' side window.
+For example: (setq org-roam-buffer-window-parameters '((no-other-window . t)))"
+  :type '(alist)
   :group 'org-roam)
 
 (defvar org-roam-buffer--current nil
@@ -251,17 +251,12 @@ Valid states are 'visible, 'exists and 'none."
              (lwarn '(org-roam) :error
                     "Invalid org-roam-buffer-position: %s. Defaulting to \\='right"
                     org-roam-buffer-position))
-           'right))
-        (params
-         (list
-          (cons 'no-other-window org-roam-buffer-no-delete-other-windows)
-          (cons 'no-delete-other-windows org-roam-buffer-no-delete-other-windows))))
+           'right)))
     (save-selected-window
       (-> (get-buffer-create org-roam-buffer)
           (display-buffer-in-side-window
-           (list
-            (cons 'side position)
-            (cons 'window-parameters params)))
+           `((side . ,position)
+             (window-parameters . org-roam-buffer-window-parameters)))
           (select-window))
       (pcase position
         ((or 'right 'left)
