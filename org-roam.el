@@ -234,8 +234,17 @@ space-delimited strings.
   "Last window `org-roam' was called from.")
 
 (defvar org-roam--org-link-file-bracket-re
-  "\\[\\[file:\\(\\(?:[^][\\]\\|\\\\\\(?:\\\\\\\\\\)*[][]\\|\\\\+[^][]\\)+\\)]\\(?:\\[\\(\\(?:.\\|
-\\)+?\\)]\\)?]"
+  (rx "[[file:" (seq (group (one-or-more (or (not (any "]" "[" "\\"))
+                                             (seq "\\"
+                                                  (zero-or-more "\\\\")
+                                                  (any "[" "]"))
+                                             (seq (one-or-more "\\")
+                                                  (not (any "]" "["))))))
+                     "]"
+                     (zero-or-one (seq "["
+                                       (group (+? anything))
+                                       "]"))
+                     "]"))
   "Matches a 'file:' link in double brackets.")
 
 ;;;; Utilities
