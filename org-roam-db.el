@@ -58,7 +58,7 @@ when used with multiple Org-roam instances."
   :type 'string
   :group 'org-roam)
 
-(defconst org-roam-db--version 6)
+(defconst org-roam-db--version 5)
 
 (defvar org-roam-db--connection (make-hash-table :test #'equal)
   "Database connection to Org-roam database.")
@@ -333,10 +333,10 @@ connections, nil is returned."
 
 (defun org-roam-db--update-tags ()
   "Update the tags of the current buffer into the cache."
-  (let* ((file (file-truename (buffer-file-name)))
-         (tags (org-roam--extract-tags)))
+  (when-let ((file (file-truename (buffer-file-name)))
+             (tags (org-roam--extract-tags)))
     (org-roam-db-query [:delete :from tags
-                        :where (= file $s1)]
+                                :where (= file $s1)]
                        file)
     (org-roam-db--insert-tags file tags)))
 
@@ -397,7 +397,7 @@ If FORCE, force a rebuild of the cache from scratch."
                     all-files)
               (when-let (links (org-roam--extract-links file))
                 (push links all-links))
-              (let ((tags (org-roam--extract-tags file)))
+              (when-let (tags (org-roam--extract-tags file))
                 (push (vector file tags) all-tags))
               (let ((titles (org-roam--extract-titles)))
                 (push (vector file titles)
