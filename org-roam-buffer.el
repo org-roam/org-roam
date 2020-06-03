@@ -244,26 +244,32 @@ Valid states are 'visible, 'exists and 'none."
 
 (defun org-roam-buffer--get-create ()
   "Set up the `org-roam' buffer at `org-roam-buffer-position'."
-  (let ((window (get-buffer-window))
-        (position
+  (let ((position
          (if (member org-roam-buffer-position '(right left top bottom))
              org-roam-buffer-position
            (let ((text-quoting-style 'grave))
              (lwarn '(org-roam) :error
                     "Invalid org-roam-buffer-position: %s. Defaulting to \\='right"
                     org-roam-buffer-position))
-           'right)))
-    (-> (get-buffer-create org-roam-buffer)
-        (display-buffer-in-side-window
-         `((side . ,position)
-           (window-parameters . ((no-delete-other-windows . ,org-roam-buffer-no-delete-other-windows)))))
-        (select-window))
-    (pcase position
-      ((or 'right 'left)
-       (org-roam-buffer--set-width  (round (* (frame-width)  org-roam-buffer-width))))
-      ((or 'top  'bottom)
-       (org-roam-buffer--set-height (round (* (frame-height) org-roam-buffer-height)))))
-    (select-window window)))
+           'right))
+        (params
+         (list
+          (cons 'no-other-window org-roam-buffer-no-delete-other-windows)
+          (cons 'no-delete-other-windows org-roam-buffer-no-delete-other-windows))))
+    (save-selected-window
+      (-> (get-buffer-create org-roam-buffer)
+          (display-buffer-in-side-window
+           (list
+            (cons 'side position)
+            (cons 'window-parameters params)))
+          (select-window))
+      (pcase position
+        ((or 'right 'left)
+         (org-roam-buffer--set-width
+          (round (* (frame-width)  org-roam-buffer-width))))
+        ((or 'top  'bottom)
+         (org-roam-buffer--set-height
+          (round (* (frame-height) org-roam-buffer-height))))))))
 
 (defun org-roam-buffer-toggle-display ()
   "Toggle display of the `org-roam-buffer'."
