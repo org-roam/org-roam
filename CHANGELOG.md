@@ -5,6 +5,7 @@
 ### Breaking Changes
 
 - [#701](https://github.com/org-roam/org-roam/pull/701) Use `emacsql-sqlite3` instead of `emacsql-sqlite` for better Windows compatibility. This requires the presence of the standard `sqlite3` binary on your machine.
+- [#750](https://github.com/org-roam/org-roam/pull/750) Deprecate `org-roam-buffer-no-delete-other-windows` in favour of `org-roam-buffer-window-parameters`.
 
 ## 1.1.1 (18-05-2020)
 
