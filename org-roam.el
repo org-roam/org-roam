@@ -234,8 +234,17 @@ space-delimited strings.
   "Last window `org-roam' was called from.")
 
 (defvar org-roam--org-link-file-bracket-re
-  "\\[\\[file:\\(\\(?:[^][\\]\\|\\\\\\(?:\\\\\\\\\\)*[][]\\|\\\\+[^][]\\)+\\)]\\(?:\\[\\(\\(?:.\\|
-\\)+?\\)]\\)?]"
+  (rx "[[file:" (seq (group (one-or-more (or (not (any "]" "[" "\\"))
+                                             (seq "\\"
+                                                  (zero-or-more "\\\\")
+                                                  (any "[" "]"))
+                                             (seq (one-or-more "\\")
+                                                  (not (any "]" "["))))))
+                     "]"
+                     (zero-or-one (seq "["
+                                       (group (+? anything))
+                                       "]"))
+                     "]"))
   "Matches a 'file:' link in double brackets.")
 
 ;;;; Utilities
@@ -324,11 +333,71 @@ E.g. (\".org\") => (\"*.org\" \"*.org.gpg\")"
                                             ,(s-join " -o " (mapcar (lambda (glob) (concat "-name " glob)) globs)) "\\)"))))
     (org-roam--shell-command-files command)))
 
+;; Emacs 26 does not have FOLLOW-SYMLINKS in `directory-files-recursively'
+(defun org-roam--directory-files-recursively (dir regexp
+                                                  &optional include-directories predicate
+                                                  follow-symlinks)
+  "Return list of all files under directory DIR whose names match REGEXP.
+This function works recursively.  Files are returned in \"depth
+first\" order, and files from each directory are sorted in
+alphabetical order.  Each file name appears in the returned list
+in its absolute form.
+
+By default, the returned list excludes directories, but if
+optional argument INCLUDE-DIRECTORIES is non-nil, they are
+included.
+
+PREDICATE can be either nil (which means that all subdirectories
+of DIR are descended into), t (which means that subdirectories that
+can't be read are ignored), or a function (which is called with
+the name of each subdirectory, and should return non-nil if the
+subdirectory is to be descended into).
+
+If FOLLOW-SYMLINKS is non-nil, symbolic links that point to
+directories are followed.  Note that this can lead to infinite
+recursion."
+  (let* ((result nil)
+         (files nil)
+         (dir (directory-file-name dir))
+         ;; When DIR is "/", remote file names like "/method:" could
+         ;; also be offered.  We shall suppress them.
+         (tramp-mode (and tramp-mode (file-remote-p (expand-file-name dir)))))
+    (dolist (file (sort (file-name-all-completions "" dir)
+                        'string<))
+      (unless (member file '("./" "../"))
+        (if (directory-name-p file)
+            (let* ((leaf (substring file 0 (1- (length file))))
+                   (full-file (concat dir "/" leaf)))
+              ;; Don't follow symlinks to other directories.
+              (when (and (or (not (file-symlink-p full-file))
+                             (and (file-symlink-p full-file)
+                                  follow-symlinks))
+                         ;; Allow filtering subdirectories.
+                         (or (eq predicate nil)
+                             (eq predicate t)
+                             (funcall predicate full-file)))
+                (let ((sub-files
+                       (if (eq predicate t)
+                           (ignore-error file-error
+                             (org-roam--directory-files-recursively
+                              full-file regexp include-directories
+                              predicate follow-symlinks))
+                         (org-roam--directory-files-recursively
+                          full-file regexp include-directories
+                          predicate follow-symlinks))))
+                  (setq result (nconc result sub-files))))
+              (when (and include-directories
+                         (string-match regexp leaf))
+                (setq result (nconc result (list full-file)))))
+          (when (string-match regexp file)
+            (push (concat dir "/" file) files)))))
+    (nconc result (nreverse files))))
+
 (defun org-roam--list-files-elisp (dir)
   "Return all Org-roam files located recursively within DIR, using elisp."
   (let ((regex (concat "\\.\\(?:"(mapconcat #'regexp-quote org-roam-file-extensions "\\|" )"\\)\\(?:\\.gpg\\)?\\'"))
         result)
-    (dolist (file (directory-files-recursively dir regex) result)
+    (dolist (file (org-roam--directory-files-recursively dir regex nil nil t) result)
       (when (and (file-readable-p file) (org-roam--org-file-p file))
         (push file result)))))
 
@@ -349,12 +418,15 @@ Use external shell commands if defined in `org-roam-list-files-commands'."
                  `((consp symbolp)
                    ,wrong-type))))
       (when path (cl-return)))
-    (if path
-        (let ((fn (intern (concat "org-roam--list-files-" exe))))
-          (unless (fboundp fn) (user-error "%s is not an implemented search method" fn))
-          (mapcar #'ansi-color-filter-apply
-                  (funcall fn path (format "\"%s\"" dir))))
-      (org-roam--list-files-elisp dir))))
+    (let* ((files (if path
+                      (let ((fn (intern (concat "org-roam--list-files-" exe))))
+                        (unless (fboundp fn) (user-error "%s is not an implemented search method" fn))
+                        (funcall fn path (format "\"%s\"" dir)))
+                    (org-roam--list-files-elisp dir)))
+           (files (mapcar #'ansi-color-filter-apply files)) ; strip ansi codes
+           (files (seq-filter #'org-roam--org-roam-file-p files))
+           (files (mapcar #'expand-file-name files))) ; canonicalize names
+      files)))
 
 (defun org-roam--list-all-files ()
   "Return a list of all Org-roam files within `org-roam-directory'."

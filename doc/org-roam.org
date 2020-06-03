@@ -56,6 +56,51 @@ Org-roam provides several benefits over other tooling:
 - Leverages the Org-mode ecosystem :: Over the years, Emacs and Org-mode has developed into a mature system for plain-text organization. Building upon Org-mode already puts Org-roam light-years ahead of many other solutions.
 - Built on Emacs :: Emacs is also a fantastic interface for editing text, and we can inherit many of the powerful text-navigation and editing packages available to Emacs.
 
+* A Brief Introduction to the Zettelkasten Method
+
+Org-roam provides utilities for maintaining a digital slip-box. This section
+aims to provide a brief introduction to the "slip-box", or "Zettelkasten"
+method. By providing some background on the method, we hope that the design
+decisions of Org-roam will become clear, and that will aid in using Org-roam
+appropriately. In this section we will also introduce terms commonly used within
+the Zettelkasten community, which will also commonly appear in the Org-roam
+forums and channels of discussion.
+
+The Zettelkasten method of note-taking is designed to increase research
+productivity: in particular, it acts as a research partner, where conversations
+with it may produce new and surprising lines of thought. This method is
+attributed to German sociologist Niklas Luhmann, who using the method had
+produced volumes of written works.
+
+In its paper form, the slip-box is simply a box of cards. These cards are small
+-- often only large enough to fit a single concept. The size limitation
+encourages ideas to be broken down into individual concepts. These ideas are
+explicitly linked together. The breakdown of ideas encourages tangential
+exploration of ideas, increasing the surface for thought. Making linking
+explicit between notes also encourages one to think about the connections
+between concepts.
+
+Org-roam is the slip-box, digitalized in Org-mode. Every zettel (card) is a
+plain-text, Org-mode file. These files are often placed in the same directory.
+In the same way one would maintain a paper slip-box, Org-roam makes it easy to
+create new zettels, pre-filling boilerplate content using a powerful templating
+system. Org-roam also facilitates the linking of zettels using Org-mode ~file:~
+links.
+
+A slip-box requires a method of quickly capturing ideas. These are called
+*fleeting notes*: they are simple reminders of information or ideas that will
+need to be processed later on, or trashed. This is typically accomplished using
+~org-capture~ (see info:org#capture), or using Org-roam's daily notes
+functionality (see [[*Daily Notes][Daily Notes]]). This provides a central inbox for collecting
+thoughts, to be processed later into permanent notes.
+
+Permanent notes are further split into two categories: *literature notes* and
+*concept notes*. Literature notes can be brief annotations on a particular
+source (e.g. book, website or paper), that you'd like to access later on.
+Concept notes require much more care in authoring: they need to be
+self-explanatory and detailed. Org-roam's templating system supports the
+addition of different templates to facilitate the creation of these notes.
+
 * Installation
 
 Org-roam can be installed using Emacs' package manager or manually from its
@@ -63,7 +108,10 @@ development repository.
 
 ** Installing from MELPA
 
-Org-roam is available from Melpa and Melpa-Stable. If you haven't used Emacs' package manager before, you may familiarize yourself with it by reading the documentation in the Emacs manual, see info:emacs#Packages. Then, add one of the archives to =package-archives=:
+Org-roam is available from Melpa and Melpa-Stable. If you haven't used Emacs'
+package manager before, you may familiarize yourself with it by reading the
+documentation in the Emacs manual, see info:emacs#Packages. Then, add one of the
+archives to =package-archives=:
 
 - To use Melpa:
 
@@ -79,6 +127,13 @@ Org-roam is available from Melpa and Melpa-Stable. If you haven't used Emacs' pa
   (require 'package)
   (add-to-list 'package-archives
                '("melpa-stable" . "http://stable.melpa.org/packages/") t)
+#+END_SRC
+
+Org-roam also depends on a recent version of Org, which can be obtained in Org's
+package repository (see info:org#Installation). To use Org's ELPA archive:
+
+#+BEGIN_SRC emacs-lisp
+(add-to-list 'package-archives '("org" . "https://orgmode.org/elpa/") t)
 #+END_SRC
 
 Once you have added your preferred archive, you need to update the
@@ -476,7 +531,6 @@ number of password prompts, you may wish to cache the password.
 - Variable: org-roam-encrypt-files
 
   Whether to encrypt new files.  If true, create files with .org.gpg extension.
-
 * Graphing
 
 Org-roam provides graphing capabilities to explore interconnections between
@@ -730,6 +784,8 @@ where =template= is the template key for a template in
 =org-roam-capture-ref-templates= (see [[*The Templating System][The Templating System]]). These templates
 should contain a =#+ROAM_KEY: ${ref}= in it.
 
+* TODO Daily Notes
+
 * Diagnosing and Repairing Files
 
 Org-roam provides a utility for diagnosing and repairing problematic files via
@@ -761,7 +817,6 @@ checker, to perform autofixes for the errors. For each error detected,
 =org-roam-doctor= will move the point to the current error, and pop-up a help
 window displaying the error message, as well as the list of actions that can be
 taken provided in =:actions=.
-
 * _ Copying
 :PROPERTIES:
 :COPYING:    t
@@ -886,8 +941,7 @@ These are some plugins that make note-taking in Org-mode more enjoyable.
     :CUSTOM_ID: org-download
     :END:
 
-[[https://github.com/abo-abo/org-download][Org-download]] lets you
-screenshot and yank images from the web into your notes:
+[[https://github.com/abo-abo/org-download][Org-download]] lets you screenshot and yank images from the web into your notes:
 
 #+CAPTION: org-download
 [[file:images/org-download.gif]]
@@ -906,9 +960,7 @@ screenshot and yank images from the web into your notes:
     :CUSTOM_ID: mathpix.el
     :END:
 
-[[https://github.com/jethrokuan/mathpix.el][mathpix.el]] uses
-[[https://mathpix.com/][Mathpix's]] API to convert clips into latex
-equations:
+[[https://github.com/jethrokuan/mathpix.el][mathpix.el]] uses [[https://mathpix.com/][Mathpix's]] API to convert clips into latex equations:
 
 #+CAPTION: mathpix
 [[file:images/mathpix.gif]]
@@ -949,11 +1001,8 @@ tight integration between
     :CUSTOM_ID: spaced-repetition
     :END:
 
-[[https://github.com/l3kn/org-fc/][Org-fc]] is a spaced repetition
-system that scales well with a large number of files. Other alternatives
-include
-[[https://orgmode.org/worg/org-contrib/org-drill.html][org-drill]], and
-[[https://github.com/abo-abo/pamparam][pamparam]].
+[[https://github.com/l3kn/org-fc/][Org-fc]] is a spaced repetition system that scales well with a large number of
+files. Other alternatives include [[https://orgmode.org/worg/org-contrib/org-drill.html][org-drill]], and [[https://github.com/abo-abo/pamparam][pamparam]].
 
 * FAQ
 ** How do I have more than one Org-roam directory?
@@ -974,9 +1023,8 @@ All files within that directory will be treated as their own separate
 set of Org-roam files. Remember to run =org-roam-db-build-cache= from a
 file within that directory, at least once.
 
-* _ :ignore:
 # Local Variables:
-# eval: (refill-mode +1)
+# eval: (require 'ol-info)
 # before-save-hook: org-make-toc
 # after-save-hook: (lambda nil (progn (require 'ox-texinfo nil t) (org-texinfo-export-to-info)))
 # indent-tabs-mode: nil

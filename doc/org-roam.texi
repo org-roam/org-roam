@@ -65,6 +65,7 @@ General Public License for more details.
 
 @menu
 * Introduction::
+* A Brief Introduction to the Zettelkasten Method::
 * Installation::
 * Getting Started::
 * Anatomy of an Org-roam File::
@@ -78,7 +79,6 @@ General Public License for more details.
 * Diagnosing and Repairing Files::
 * Appendix::
 * FAQ::
-* _: _ (1). 
 
 @detailmenu
 --- The Detailed Node Listing ---
@@ -175,6 +175,38 @@ Over the years, Emacs and Org-mode has developed into a mature system for plain-
 Emacs is also a fantastic interface for editing text, and we can inherit many of the powerful text-navigation and editing packages available to Emacs.
 @end table
 
+@node A Brief Introduction to the Zettelkasten Method
+@chapter A Brief Introduction to the Zettelkasten Method
+
+Org-roam provides utilities for maintaining a digital slip-box. This section
+aims to provide a brief introduction to the ``slip-box'', or ``Zettelkasten''
+method. By providing some background on the method, we hope that the design
+decisions of Org-roam will become clear, and that will aid in using Org-roam
+appropriately. In this section we will also introduce terms commonly used within
+the Zettelkasten community, which will also commonly appear in the Org-roam
+forums and channels of discussion.
+
+The Zettelkasten method of note-taking is designed to increase research
+productivity: in particular, it acts as a research partner, where conversations
+with it may produce new and surprising lines of thought. This method is
+attributed to German sociologist Niklas Luhmann, who using the method had
+produced volumes of written works.
+
+In its paper form, the slip-box is simply a box of cards. These cards are small,
+and often only large enough to fit a single concept. The size limitation
+encourages ideas to be broken down into individual concepts. These ideas are
+explicitly linked together, using an indexing system. Enforcing the breakdown of
+ideas encourages tangential exploration of ideas, increasing the surface for
+thought. Making linking explicit between notes also encourages one to think
+about the connections between concepts, which forms a large part of research.
+
+Org-roam is the slip-box, digitalized in Org-mode. Every zettel (card) is a
+plain-text, Org-mode file. These files are often placed in the same directory.
+In the same way one would maintain a paper slip-box, Org-roam makes it easy to
+create new zettels, pre-filling boilerplate content using a powerful templating
+system. Org-roam also facilitates the linking of zettels using Org-mode @code{file:}
+links.
+
 @node Installation
 @chapter Installation
 
@@ -190,7 +222,10 @@ development repository.
 @node Installing from MELPA
 @section Installing from MELPA
 
-Org-roam is available from Melpa and Melpa-Stable. If you haven't used Emacs' package manager before, you may familiarize yourself with it by reading the documentation in the Emacs manual, see info:emacs#Packages. Then, add one of the archives to @samp{package-archives}:
+Org-roam is available from Melpa and Melpa-Stable. If you haven't used Emacs'
+package manager before, you may familiarize yourself with it by reading the
+documentation in the Emacs manual, see @ref{Packages,,,emacs,}. Then, add one of the
+archives to @samp{package-archives}:
 
 @itemize
 @item
@@ -212,6 +247,13 @@ To use Melpa-Stable:
 (require 'package)
 (add-to-list 'package-archives
              '("melpa-stable" . "http://stable.melpa.org/packages/") t)
+@end lisp
+
+Org-roam also depends on a recent version of Org, which can be obtained in Org's
+package repository (see @ref{Installation,,,org,}). To use Org's ELPA archive:
+
+@lisp
+(add-to-list 'package-archives '("org" . "https://orgmode.org/elpa/") t)
 @end lisp
 
 Once you have added your preferred archive, you need to update the
@@ -1283,9 +1325,6 @@ contain:
 All files within that directory will be treated as their own separate
 set of Org-roam files. Remember to run @samp{org-roam-db-build-cache} from a
 file within that directory, at least once.
-
-@node _ (1)
-@chapter _ :ignore:
 
 Emacs 28.0.50 (Org mode 9.4)
 @bye
