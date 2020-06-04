@@ -441,7 +441,7 @@ The search terminates when the first property is encountered."
     (dolist (prop props)
       (let ((p (org-element-map buf 'keyword
                  (lambda (kw)
-                   (when (string= (org-element-property :key kw) prop)
+                   (when (string-collate-equalp (org-element-property :key kw) prop nil t)
                      (org-element-property :value kw)))
                  :first-match t)))
         (push (cons prop p) res)))
