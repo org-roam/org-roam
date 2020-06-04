@@ -111,7 +111,7 @@ AST is the org-element parse tree."
   (let (reports)
     (org-element-map ast 'keyword
       (lambda (kw)
-        (when (string= (org-element-property :key kw) "ROAM_TAGS")
+        (when (string-collate-equalp (org-element-property :key kw) "ROAM_TAGS" nil t)
           (let* ((s (org-element-property :value kw))
                      (tags (org-roam--parse-tags s))
                      (bad-tags (-remove #'stringp tags)))
@@ -131,7 +131,7 @@ AST is the org-element parse tree."
   (let (reports)
     (org-element-map ast 'keyword
       (lambda (kw)
-        (when (string= (org-element-property :key kw) "ROAM_ALIAS")
+        (when (string-collate-equalp (org-element-property :key kw) "ROAM_ALIAS" nil t)
           (let* ((s (org-element-property :value kw))
                      (aliases (org-roam--parse-alias s))
                      (bad-aliases (-remove #'stringp aliases)))
