@@ -336,7 +336,7 @@ connections, nil is returned."
   (when-let ((file (file-truename (buffer-file-name)))
              (tags (org-roam--extract-tags)))
     (org-roam-db-query [:delete :from tags
-                                :where (= file $s1)]
+                        :where (= file $s1)]
                        file)
     (org-roam-db--insert-tags file tags)))
 
