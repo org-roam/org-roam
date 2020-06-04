@@ -256,7 +256,7 @@ Valid states are 'visible, 'exists and 'none."
       (-> (get-buffer-create org-roam-buffer)
           (display-buffer-in-side-window
            `((side . ,position)
-             (window-parameters . org-roam-buffer-window-parameters)))
+             (window-parameters . ,org-roam-buffer-window-parameters)))
           (select-window))
       (pcase position
         ((or 'right 'left)
