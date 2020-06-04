@@ -66,8 +66,7 @@ when used with multiple Org-roam instances."
 ;;;; Core Functions
 (defun org-roam-db--get ()
   "Return the sqlite db file."
-  (interactive "P")
-  (or org-roam-db-location
+    (or org-roam-db-location
       (expand-file-name "org-roam.db" org-roam-directory)))
 
 (defun org-roam-db--get-connection ()
