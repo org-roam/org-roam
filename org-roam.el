@@ -258,27 +258,22 @@ space-delimited strings.
     res))
 
 (defun org-roam--str-to-list (str)
-  "Function to transform string STR into list of titles.
-
-This snippet is obtained from ox-hugo:
-https://github.com/kaushalmodi/ox-hugo/blob/a80b250987bc770600c424a10b3bca6ff7282e3c/ox-hugo.el#L3131"
-  (when (stringp str)
+  "Transform string STR into a list of strings.
+If str is nil, return nil."
+  (when str
+    (unless (stringp str)
+      (signal 'wrong-type-argument `(stringp ,str)))
     (let* ((str (org-trim str))
-           (str-list (split-string str "\n"))
-           ret)
-      (dolist (str-elem str-list)
-        (let* ((format-str ":dummy '(%s)") ;The :dummy key is discarded in the `lst' var below.
-               (alist (org-babel-parse-header-arguments (format format-str str-elem)))
-               (lst (cdr (car alist)))
-               (str-list2 (mapcar (lambda (elem)
-                                    (cond
-                                     ((symbolp elem)
-                                      (symbol-name elem))
-                                     (t
-                                      elem)))
-                                  lst)))
-          (setq ret (append ret str-list2))))
-      ret)))
+           (format-str ":dummy '(%s)") ;The :dummy key is discarded in the `lst' var below.
+           (items (cdar (org-babel-parse-header-arguments (format format-str str)))))
+      (mapcar (lambda (item)
+                (cond
+                 ((symbolp item)
+                  (symbol-name item))
+                 ((numberp item)
+                  (number-to-string item))
+                 (t
+                  item))) items))))
 
 ;;;; File functions and predicates
 (defun org-roam--file-name-extension (filename)
