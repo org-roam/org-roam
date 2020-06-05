@@ -332,12 +332,13 @@ connections, nil is returned."
 
 (defun org-roam-db--update-tags ()
   "Update the tags of the current buffer into the cache."
-  (when-let ((file (file-truename (buffer-file-name)))
-             (tags (org-roam--extract-tags)))
+  (let ((file (file-truename (buffer-file-name)))
+        (tags (org-roam--extract-tags)))
     (org-roam-db-query [:delete :from tags
                         :where (= file $s1)]
                        file)
-    (org-roam-db--insert-tags file tags)))
+    (when tags
+      (org-roam-db--insert-tags file tags))))
 
 (defun org-roam-db--update-refs ()
   "Update the ref of the current buffer into the cache."
