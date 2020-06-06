@@ -36,14 +36,18 @@
 
 (defvar org-roam-verbose)
 
-(defmacro org-roam--with-temp-buffer (&rest body)
+(defmacro org-roam--with-temp-buffer (file &rest body)
   "Execute BODY within a temp buffer.
-Like `with-temp-buffer', but propagates `org-roam-directory'."
-  (declare (indent 0) (debug t))
+Like `with-temp-buffer', but propagates `org-roam-directory'.
+If FILE, set `org-roam-temp-file-name' to file and insert its contents."
+  (declare (indent 1) (debug t))
   (let ((current-org-roam-directory (make-symbol "current-org-roam-directory")))
     `(let ((,current-org-roam-directory org-roam-directory))
        (with-temp-buffer
          (let ((org-roam-directory ,current-org-roam-directory))
+           (when ,file
+             (insert-file-contents ,file)
+             (setq-local org-roam-file-name ,file))
            ,@body)))))
 
 (defmacro org-roam--with-template-error (templates &rest body)

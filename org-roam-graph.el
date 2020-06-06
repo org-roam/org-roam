@@ -165,7 +165,7 @@ The Org-roam database titles table is read, to obtain the list of titles.
 The links table is then read to obtain all directed links, and formatted
 into a digraph."
   (org-roam-db--ensure-built)
-  (org-roam--with-temp-buffer
+  (org-roam--with-temp-buffer nil
     (let* ((nodes (org-roam-db-query node-query))
            (edges-query
             `[:with selected :as [:select [file] :from ,node-query]

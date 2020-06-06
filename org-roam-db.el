@@ -39,6 +39,7 @@
 
 (defvar org-roam-directory)
 (defvar org-roam-verbose)
+(defvar org-roam-file-name)
 
 (declare-function org-roam--org-roam-file-p                "org-roam")
 (declare-function org-roam--extract-titles                 "org-roam")
@@ -387,8 +388,7 @@ If FORCE, force a rebuild of the cache from scratch."
       (let* ((attr (file-attributes file))
              (atime (file-attribute-access-time attr))
              (mtime (file-attribute-modification-time attr)))
-        (org-roam--with-temp-buffer
-          (insert-file-contents file)
+        (org-roam--with-temp-buffer file
           (let ((contents-hash (secure-hash 'sha1 (current-buffer))))
             (unless (string= (gethash file current-files)
                              contents-hash)
