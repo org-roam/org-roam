@@ -316,7 +316,11 @@ If FILE is not specified, use the current buffer's file-path."
 
 (defun org-roam--shell-command-files (cmd)
   "Run CMD in the shell and return a list of files. If no files are found, an empty list is returned."
-  (seq-filter #'s-present? (split-string (shell-command-to-string cmd) "\n")))
+  (--> cmd
+       (shell-command-to-string it)
+       (ansi-color-filter-apply it)
+       (split-string it "\n")
+       (seq-filter #'s-present? it)))
 
 (defun org-roam--list-files-search-globs (exts)
   "Given EXTS, return a list of search globs.
@@ -424,15 +428,14 @@ Use external shell commands if defined in `org-roam-list-files-commands'."
                  `((consp symbolp)
                    ,wrong-type))))
       (when path (cl-return)))
-    (let* ((files (if path
-                      (let ((fn (intern (concat "org-roam--list-files-" exe))))
-                        (unless (fboundp fn) (user-error "%s is not an implemented search method" fn))
-                        (funcall fn path (format "\"%s\"" dir)))
-                    (org-roam--list-files-elisp dir)))
-           (files (mapcar #'ansi-color-filter-apply files)) ; strip ansi codes
-           (files (seq-filter #'org-roam--org-roam-file-p files))
-           (files (mapcar #'expand-file-name files))) ; canonicalize names
-      files)))
+    (if-let* ((files (when path
+                       (let ((fn (intern (concat "org-roam--list-files-" exe))))
+                         (unless (fboundp fn) (user-error "%s is not an implemented search method" fn))
+                         (funcall fn path (format "\"%s\"" dir)))))
+              (files (seq-filter #'org-roam--org-roam-file-p files))
+              (files (mapcar #'expand-file-name files))) ; canonicalize names
+        files
+      (org-roam--list-files-elisp dir))))
 
 (defun org-roam--list-all-files ()
   "Return a list of all Org-roam files within `org-roam-directory'."
