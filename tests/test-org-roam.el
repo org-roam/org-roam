@@ -22,7 +22,6 @@
 ;;; Code:
 
 (require 'buttercup)
-(require 'with-simulated-input)
 (require 'org-roam)
 (require 'dash)
 
@@ -52,6 +51,25 @@
   (org-roam-mode -1)
   (delete-file (org-roam-db--get))
   (org-roam-db--close))
+
+(describe "org-roam--str-to-list"
+  (it "nil"
+    (expect (org-roam--str-to-list nil)
+            :to-be
+            nil))
+  (it "\"multi word\" prop 123"
+    (expect (org-roam--str-to-list "\"multi word\" prop 123")
+            :to-equal
+            '("multi word" "prop" "123")))
+  (it "prop \"multi word\" 123"
+    (expect (org-roam--str-to-list "\"multi word\" prop 123")
+            :to-equal
+            '("multi word" "prop" "123")))
+  (it "errors on bad input"
+    (expect (org-roam--str-to-list 1)
+            :to-throw)
+    (expect (org-roam--str-to-list "\"hello")
+            :to-throw)))
 
 (describe "Title extraction"
   :var (org-roam-title-sources)
@@ -269,199 +287,6 @@
     (expect (org-roam-db-build-cache)
             :to-equal
             (list :files 0 :links 0 :tags 0 :titles 0 :refs 0 :deleted 0))))
-
-(xdescribe "org-roam-insert"
-  (before-each
-    (test-org-roam--init))
-
-  (after-each
-    (test-org-roam--teardown))
-
-  (it "temp1 -> foo"
-    (let ((buf (test-org-roam--find-file "temp1.org")))
-      (with-current-buffer buf
-        (with-simulated-input
-         "Foo RET"
-         (org-roam-insert))))
-    (expect (buffer-string) :to-match (regexp-quote "file:foo.org")))
-
-  (it "temp2 -> nested/foo"
-    (let ((buf (test-org-roam--find-file "temp2.org")))
-      (with-current-buffer buf
-        (with-simulated-input
-         "(nested) SPC Nested SPC Foo RET"
-         (org-roam-insert))))
-    (expect (buffer-string) :to-match (regexp-quote "file:nested/foo.org")))
-
-  (it "nested/temp3 -> foo"
-    (let ((buf (test-org-roam--find-file "nested/temp3.org")))
-      (with-current-buffer buf
-        (with-simulated-input
-         "Foo RET"
-         (org-roam-insert))))
-    (expect (buffer-string) :to-match (regexp-quote "file:../foo.org")))
-
-  (it "a/b/temp4 -> nested/foo"
-    (let ((buf (test-org-roam--find-file "a/b/temp4.org")))
-      (with-current-buffer buf
-        (with-simulated-input
-         "(nested) SPC Nested SPC Foo RET"
-         (org-roam-insert))))
-    (expect (buffer-string) :to-match (regexp-quote "file:../../nested/foo.org"))))
-
-(xdescribe "rename file updates cache"
-  (before-each
-    (test-org-roam--init))
-
-  (after-each
-    (test-org-roam--teardown))
-
-  (it "foo -> new_foo"
-    (rename-file (test-org-roam--abs-path "foo.org")
-                 (test-org-roam--abs-path "new_foo.org"))
-    ;; Cache should be cleared of old file
-    (expect (caar (org-roam-db-query [:select (funcall count)
-                                      :from titles
-                                      :where (= file $s1)]
-                                     (test-org-roam--abs-path "foo.org"))) :to-be 0)
-    (expect (caar (org-roam-db-query [:select (funcall count)
-                                      :from refs
-                                      :where (= file $s1)]
-                                     (test-org-roam--abs-path "foo.org"))) :to-be 0)
-    (expect (caar (org-roam-db-query [:select (funcall count)
-                                      :from links
-                                      :where (= from $s1)]
-                                     (test-org-roam--abs-path "foo.org"))) :to-be 0)
-
-    ;; Cache should be updated
-    (expect (org-roam-db-query [:select [to]
-                                :from links
-                                :where (= from $s1)]
-                               (test-org-roam--abs-path "new_foo.org"))
-            :to-have-same-items-as
-            (list (list (test-org-roam--abs-path "bar.org"))))
-    (expect (org-roam-db-query [:select [from]
-                                :from links
-                                :where (= to $s1)]
-                               (test-org-roam--abs-path "new_foo.org"))
-            :to-have-same-items-as
-            (list (list (test-org-roam--abs-path "nested/bar.org"))))
-
-    ;; Links are updated
-    (expect (with-temp-buffer
-              (insert-file-contents (test-org-roam--abs-path "nested/bar.org"))
-              (buffer-string))
-            :to-match
-            (regexp-quote "[[file:../new_foo.org][Foo]]")))
-
-  (it "foo -> foo with spaces"
-    (rename-file (test-org-roam--abs-path "foo.org")
-                 (test-org-roam--abs-path "foo with spaces.org"))
-    ;; Cache should be cleared of old file
-    (expect (caar (org-roam-db-query [:select (funcall count)
-                                      :from titles
-                                      :where (= file $s1)]
-                                     (test-org-roam--abs-path "foo.org"))) :to-be 0)
-    (expect (caar (org-roam-db-query [:select (funcall count)
-                                      :from refs
-                                      :where (= file $s1)]
-                                     (test-org-roam--abs-path "foo.org"))) :to-be 0)
-    (expect (caar (org-roam-db-query [:select (funcall count)
-                                      :from links
-                                      :where (= from $s1)]
-                                     (test-org-roam--abs-path "foo.org"))) :to-be 0)
-
-    ;; Cache should be updated
-    (expect (org-roam-db-query [:select [to]
-                                :from links
-                                :where (= from $s1)]
-                               (test-org-roam--abs-path "foo with spaces.org"))
-            :to-have-same-items-as
-            (list (list (test-org-roam--abs-path "bar.org"))))
-    (expect (org-roam-db-query [:select [from]
-                                :from links
-                                :where (= to $s1)]
-                               (test-org-roam--abs-path "foo with spaces.org"))
-            :to-have-same-items-as
-            (list (list (test-org-roam--abs-path "nested/bar.org"))))
-
-    ;; Links are updated
-    (expect (with-temp-buffer
-              (insert-file-contents (test-org-roam--abs-path "nested/bar.org"))
-              (buffer-string))
-            :to-match
-            (regexp-quote "[[file:../foo with spaces.org][Foo]]")))
-
-  (it "no-title -> meaningful-title"
-    (rename-file (test-org-roam--abs-path "no-title.org")
-                 (test-org-roam--abs-path "meaningful-title.org"))
-    ;; File has no forward links
-    (expect (caar (org-roam-db-query [:select (funcall count)
-                                      :from links
-                                      :where (= from $s1)]
-                                     (test-org-roam--abs-path "no-title.org"))) :to-be 0)
-    (expect (caar (org-roam-db-query [:select (funcall count)
-                                      :from links
-                                      :where (= from $s1)]
-                                     (test-org-roam--abs-path "meaningful-title.org"))) :to-be 1)
-
-    ;; Links are updated with the appropriate name
-    (expect (with-temp-buffer
-              (insert-file-contents (test-org-roam--abs-path "meaningful-title.org"))
-              (buffer-string))
-            :to-match
-            (regexp-quote "[[file:meaningful-title.org][meaningful-title]]")))
-
-  (it "web_ref -> hello"
-    (expect (org-roam-db-query
-             [:select [file] :from refs
-              :where (= ref $s1)]
-             "https://google.com/")
-            :to-equal
-            (list (list (test-org-roam--abs-path "web_ref.org"))))
-    (rename-file (test-org-roam--abs-path "web_ref.org")
-                 (test-org-roam--abs-path "hello.org"))
-    (expect (org-roam-db-query
-             [:select [file] :from refs
-              :where (= ref $s1)]
-             "https://google.com/")
-            :to-equal (list (list (test-org-roam--abs-path "hello.org"))))
-    (expect (caar (org-roam-db-query
-                   [:select [ref] :from refs
-                    :where (= file $s1)]
-                   (test-org-roam--abs-path "web_ref.org")))
-            :to-equal nil)))
-
-(xdescribe "delete file updates cache"
-  (before-each
-    (test-org-roam--init))
-
-  (after-each
-    (test-org-roam--teardown))
-
-  (it "delete foo"
-    (delete-file (test-org-roam--abs-path "foo.org"))
-    (expect (caar (org-roam-db-query [:select (funcall count)
-                                      :from titles
-                                      :where (= file $s1)]
-                                     (test-org-roam--abs-path "foo.org"))) :to-be 0)
-    (expect (caar (org-roam-db-query [:select (funcall count)
-                                      :from refs
-                                      :where (= file $s1)]
-                                     (test-org-roam--abs-path "foo.org"))) :to-be 0)
-    (expect (caar (org-roam-db-query [:select (funcall count)
-                                      :from links
-                                      :where (= from $s1)]
-                                     (test-org-roam--abs-path "foo.org"))) :to-be 0))
-
-  (it "delete web_ref"
-    (expect (org-roam-db-query [:select * :from refs])
-            :to-have-same-items-as
-            (list (list "https://google.com/" (test-org-roam--abs-path "web_ref.org") "website")))
-    (delete-file (test-org-roam--abs-path "web_ref.org"))
-    (expect (org-roam-db-query [:select * :from refs])
-            :to-have-same-items-as
-            (list))))
 
 (provide 'test-org-roam)
 

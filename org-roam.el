@@ -233,6 +233,11 @@ space-delimited strings.
 (defvar org-roam-last-window nil
   "Last window `org-roam' was called from.")
 
+(defvar-local org-roam-file-name nil
+  "The corresponding file for a temp buffer.
+This is set by `org-roam--with-temp-buffer', to allow throwing of
+descriptive warnings when certain operations fail (e.g. parsing).")
+
 (defvar org-roam--org-link-file-bracket-re
   (rx "[[file:" (seq (group (one-or-more (or (not (any "]" "[" "\\"))
                                              (seq "\\"
@@ -259,7 +264,11 @@ space-delimited strings.
 
 (defun org-roam--str-to-list (str)
   "Transform string STR into a list of strings.
-If str is nil, return nil."
+If STR is nil, return nil.
+
+This function can throw an error if STR is not a string, or if
+str is malformed (e.g. missing a closing quote). Callers of this
+function are expected to catch the error."
   (when str
     (unless (stringp str)
       (signal 'wrong-type-argument `(stringp ,str)))
@@ -268,12 +277,14 @@ If str is nil, return nil."
            (items (cdar (org-babel-parse-header-arguments (format format-str str)))))
       (mapcar (lambda (item)
                 (cond
+                 ((stringp item)
+                  item)
                  ((symbolp item)
                   (symbol-name item))
                  ((numberp item)
                   (number-to-string item))
                  (t
-                  item))) items))))
+                  (signal 'wrong-type-argument `((stringp numberp symbolp) ,item))))) items))))
 
 ;;;; File functions and predicates
 (defun org-roam--file-name-extension (filename)
@@ -525,14 +536,20 @@ it as FILE-PATH."
     (when title
       (list title))))
 
-(defalias 'org-roam--parse-alias 'org-roam--str-to-list)
-
 (defun org-roam--extract-titles-alias ()
   "Return the aliases from the current buffer.
 Reads from the \"ROAM_ALIAS\" property."
   (let* ((prop (org-roam--extract-global-props '("ROAM_ALIAS")))
          (aliases (cdr (assoc "ROAM_ALIAS" prop))))
-    (org-roam--parse-alias aliases)))
+    (condition-case nil
+        (org-roam--str-to-list aliases)
+      (error
+       (progn
+         (lwarn '(org-roam) :error
+                "Failed to parse aliases for buffer: %s. Skipping"
+                (or org-roam-file-name
+                    (buffer-file-name)))
+         nil)))))
 
 (defun org-roam--extract-titles-headline ()
   "Return the first headline of the current buffer."
@@ -575,12 +592,18 @@ The final directory component is used as a tag."
                             (file-relative-name file org-roam-directory))))
     (last (f-split dir-relative))))
 
-(defalias 'org-roam--parse-tags 'org-roam--str-to-list)
-
 (defun org-roam--extract-tags-prop (_file)
   "Extract tags from the current buffer's \"#ROAM_TAGS\" global property."
-  (let* ((prop (org-roam--extract-global-props '("ROAM_TAGS"))))
-    (org-roam--parse-tags (cdr (assoc "ROAM_TAGS" prop)))))
+  (let* ((prop (cdr (assoc "ROAM_TAGS" (org-roam--extract-global-props '("ROAM_TAGS"))))))
+    (condition-case nil
+        (org-roam--str-to-list prop)
+      (error
+       (progn
+         (lwarn '(org-roam) :error
+                "Failed to parse tags for buffer: %s. Skipping"
+                (or org-roam-file-name
+                    (buffer-file-name)))
+         nil)))))
 
 (defun org-roam--extract-tags (&optional file)
   "Extract tags from the current buffer.
