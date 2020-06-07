@@ -42,6 +42,7 @@
 (require 'cl-lib)
 (require 'dash)
 (require 'f)
+(require 'files) ; file-chase-links
 (require 's)
 (require 'seq)
 (eval-when-compile (require 'subr-x))
@@ -1114,6 +1115,23 @@ Otherwise, behave as if called interactively."
 (defalias 'org-roam 'org-roam-buffer-toggle-display)
 
 ;;;###autoload
+(defun org-roam-commit (&optional message)
+  "Return the current commit of `org-roam' repository, nil if not found.
+Interactively, or when MESSAGE is non-nil, show in the echo area."
+  (interactive)
+  (when-let ((git (executable-find "git"))
+             (library (ignore-errors (file-chase-links (locate-library "org-roam.el")))))
+    (let* ((libdir (file-name-directory library))
+           (gitdir (expand-file-name ".git" (file-name-directory libdir))))
+      (when (and (file-exists-p gitdir)
+                 (file-exists-p (expand-file-name "../org-roam.el" gitdir)))
+        (when-let ((default-directory libdir)
+                   (commit (string-trim (shell-command-to-string "git rev-parse HEAD"))))
+          (if (or message (called-interactively-p 'interactive))
+              (message "%s" commit)
+            commit))))))
+
+;;;###autoload
 (defun org-roam-diagnostics ()
   "Collect and print info for `org-roam' issues."
   (interactive)
@@ -1127,7 +1145,9 @@ Otherwise, behave as if called interactively."
                                          '("Doom" "Spacemacs" "N/A" "I don't know"))
                       (quit "N/A"))))
     (insert (format "- Org: %s\n" (org-version nil 'full)))
-    (insert (format "- Org-roam: %s" (org-roam-version)))))
+    (insert (format "- Org-roam: %s" (org-roam-version)))
+    (when-let ((commit (org-roam-commit)))
+      (insert (format " %s" commit)))))
 
 ;;;###autoload
 (defun org-roam-find-file (&optional initial-prompt completions filter-fn)
