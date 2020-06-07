@@ -39,6 +39,7 @@
 
 (defvar org-roam-directory)
 (defvar org-roam-verbose)
+(defvar org-roam-file-name)
 
 (declare-function org-roam--org-roam-file-p                "org-roam")
 (declare-function org-roam--extract-titles                 "org-roam")
@@ -66,8 +67,7 @@ when used with multiple Org-roam instances."
 ;;;; Core Functions
 (defun org-roam-db--get ()
   "Return the sqlite db file."
-  (interactive "P")
-  (or org-roam-db-location
+    (or org-roam-db-location
       (expand-file-name "org-roam.db" org-roam-directory)))
 
 (defun org-roam-db--get-connection ()
@@ -335,12 +335,13 @@ connections, nil is returned."
 
 (defun org-roam-db--update-tags ()
   "Update the tags of the current buffer into the cache."
-  (let* ((file (file-truename (buffer-file-name)))
-         (tags (org-roam--extract-tags)))
+  (let ((file (file-truename (buffer-file-name)))
+        (tags (org-roam--extract-tags)))
     (org-roam-db-query [:delete :from tags
                         :where (= file $s1)]
                        file)
-    (org-roam-db--insert-tags file tags)))
+    (when tags
+      (org-roam-db--insert-tags file tags))))
 
 (defun org-roam-db--update-refs ()
   "Update the ref of the current buffer into the cache."
@@ -389,8 +390,7 @@ If FORCE, force a rebuild of the cache from scratch."
       (let* ((attr (file-attributes file))
              (atime (file-attribute-access-time attr))
              (mtime (file-attribute-modification-time attr)))
-        (org-roam--with-temp-buffer
-          (insert-file-contents file)
+        (org-roam--with-temp-buffer file
           (let ((contents-hash (secure-hash 'sha1 (current-buffer))))
             (unless (string= (gethash file current-files)
                              contents-hash)

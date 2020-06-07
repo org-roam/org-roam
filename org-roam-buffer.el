@@ -88,10 +88,10 @@ Has an effect if and only if `org-roam-buffer-position' is `top' or `bottom'."
   :type 'hook
   :group 'org-roam)
 
-(defcustom org-roam-buffer-no-delete-other-windows nil
-  "The `no-delete-other-windows' parameter of the `org-roam-buffer' window.
-When non-nil, the window will not be closed when deleting other windows."
-  :type 'boolean
+(defcustom org-roam-buffer-window-parameters nil
+  "Additional window parameters for the `org-roam-buffer' side window.
+For example: (setq org-roam-buffer-window-parameters '((no-other-window . t)))"
+  :type '(alist)
   :group 'org-roam)
 
 (defvar org-roam-buffer--current nil
@@ -244,8 +244,7 @@ Valid states are 'visible, 'exists and 'none."
 
 (defun org-roam-buffer--get-create ()
   "Set up the `org-roam' buffer at `org-roam-buffer-position'."
-  (let ((window (get-buffer-window))
-        (position
+  (let ((position
          (if (member org-roam-buffer-position '(right left top bottom))
              org-roam-buffer-position
            (let ((text-quoting-style 'grave))
@@ -253,17 +252,19 @@ Valid states are 'visible, 'exists and 'none."
                     "Invalid org-roam-buffer-position: %s. Defaulting to \\='right"
                     org-roam-buffer-position))
            'right)))
-    (-> (get-buffer-create org-roam-buffer)
-        (display-buffer-in-side-window
-         `((side . ,position)
-           (window-parameters . ((no-delete-other-windows . ,org-roam-buffer-no-delete-other-windows)))))
-        (select-window))
-    (pcase position
-      ((or 'right 'left)
-       (org-roam-buffer--set-width  (round (* (frame-width)  org-roam-buffer-width))))
-      ((or 'top  'bottom)
-       (org-roam-buffer--set-height (round (* (frame-height) org-roam-buffer-height)))))
-    (select-window window)))
+    (save-selected-window
+      (-> (get-buffer-create org-roam-buffer)
+          (display-buffer-in-side-window
+           `((side . ,position)
+             (window-parameters . ,org-roam-buffer-window-parameters)))
+          (select-window))
+      (pcase position
+        ((or 'right 'left)
+         (org-roam-buffer--set-width
+          (round (* (frame-width)  org-roam-buffer-width))))
+        ((or 'top  'bottom)
+         (org-roam-buffer--set-height
+          (round (* (frame-height) org-roam-buffer-height))))))))
 
 (defun org-roam-buffer-toggle-display ()
   "Toggle display of the `org-roam-buffer'."

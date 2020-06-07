@@ -179,10 +179,10 @@ It should be a list of symbols representing any of the following
 extraction methods:
 
   `prop'
-    Extract tags from the #+ROAM_TAGS property.
+    Extract tags from the #+roam_tags property.
     Tags are space delimited.
     Tags may contain spaces if they are double-quoted.
-    e.g. #+ROAM_TAGS: tag \"tag with spaces\"
+    e.g. #+roam_tags: TAG \"tag with spaces\"
 
   `all-directories'
     Extract sub-directories relative to `org-roam-directory'.
@@ -193,7 +193,7 @@ extraction methods:
     Extract the last directory relative to `org-roam-directory'.
     That is, if a file is located at relative path foo/bar/file.org,
     the file will have tag \"bar\"."
-  :type '(set (const :tag "#+ROAM_TAGS" prop)
+  :type '(set (const :tag "#+roam_tags" PROP)
               (const :tag "sub-directories" all-directories)
               (const :tag "parent directory" last-directory)))
 
@@ -215,8 +215,8 @@ For example the setting: '((title headline) alias) means the following:
 2. Or return 'headline + 'alias otherwise.
 
 The currently supported symbols are:
-1. 'title: The \"#+TITLE\" property of org file.
-2. 'alias: The \"#+ROAM_ALIAS\" property of the org file, using
+1. 'title: The \"#+title\" property of org file.
+2. 'alias: The \"#+roam_alias\" property of the org file, using
 space-delimited strings.
 3. 'headline: The first headline in the org file."
   :type '(repeat
@@ -234,9 +234,23 @@ space-delimited strings.
 (defvar org-roam-last-window nil
   "Last window `org-roam' was called from.")
 
+(defvar-local org-roam-file-name nil
+  "The corresponding file for a temp buffer.
+This is set by `org-roam--with-temp-buffer', to allow throwing of
+descriptive warnings when certain operations fail (e.g. parsing).")
+
 (defvar org-roam--org-link-file-bracket-re
-  "\\[\\[file:\\(\\(?:[^][\\]\\|\\\\\\(?:\\\\\\\\\\)*[][]\\|\\\\+[^][]\\)+\\)]\\(?:\\[\\(\\(?:.\\|
-\\)+?\\)]\\)?]"
+  (rx "[[file:" (seq (group (one-or-more (or (not (any "]" "[" "\\"))
+                                             (seq "\\"
+                                                  (zero-or-more "\\\\")
+                                                  (any "[" "]"))
+                                             (seq (one-or-more "\\")
+                                                  (not (any "]" "["))))))
+                     "]"
+                     (zero-or-one (seq "["
+                                       (group (+? anything))
+                                       "]"))
+                     "]"))
   "Matches a 'file:' link in double brackets.")
 
 ;;;; Utilities
@@ -250,27 +264,28 @@ space-delimited strings.
     res))
 
 (defun org-roam--str-to-list (str)
-  "Function to transform string STR into list of titles.
+  "Transform string STR into a list of strings.
+If STR is nil, return nil.
 
-This snippet is obtained from ox-hugo:
-https://github.com/kaushalmodi/ox-hugo/blob/a80b250987bc770600c424a10b3bca6ff7282e3c/ox-hugo.el#L3131"
-  (when (stringp str)
+This function can throw an error if STR is not a string, or if
+str is malformed (e.g. missing a closing quote). Callers of this
+function are expected to catch the error."
+  (when str
+    (unless (stringp str)
+      (signal 'wrong-type-argument `(stringp ,str)))
     (let* ((str (org-trim str))
-           (str-list (split-string str "\n"))
-           ret)
-      (dolist (str-elem str-list)
-        (let* ((format-str ":dummy '(%s)") ;The :dummy key is discarded in the `lst' var below.
-               (alist (org-babel-parse-header-arguments (format format-str str-elem)))
-               (lst (cdr (car alist)))
-               (str-list2 (mapcar (lambda (elem)
-                                    (cond
-                                     ((symbolp elem)
-                                      (symbol-name elem))
-                                     (t
-                                      elem)))
-                                  lst)))
-          (setq ret (append ret str-list2))))
-      ret)))
+           (format-str ":dummy '(%s)") ;The :dummy key is discarded in the `lst' var below.
+           (items (cdar (org-babel-parse-header-arguments (format format-str str)))))
+      (mapcar (lambda (item)
+                (cond
+                 ((stringp item)
+                  item)
+                 ((symbolp item)
+                  (symbol-name item))
+                 ((numberp item)
+                  (number-to-string item))
+                 (t
+                  (signal 'wrong-type-argument `((stringp numberp symbolp) ,item))))) items))))
 
 ;;;; File functions and predicates
 (defun org-roam--file-name-extension (filename)
@@ -302,7 +317,11 @@ If FILE is not specified, use the current buffer's file-path."
 
 (defun org-roam--shell-command-files (cmd)
   "Run CMD in the shell and return a list of files. If no files are found, an empty list is returned."
-  (seq-filter #'s-present? (split-string (shell-command-to-string cmd) "\n")))
+  (--> cmd
+       (shell-command-to-string it)
+       (ansi-color-filter-apply it)
+       (split-string it "\n")
+       (seq-filter #'s-present? it)))
 
 (defun org-roam--list-files-search-globs (exts)
   "Given EXTS, return a list of search globs.
@@ -410,15 +429,14 @@ Use external shell commands if defined in `org-roam-list-files-commands'."
                  `((consp symbolp)
                    ,wrong-type))))
       (when path (cl-return)))
-    (let* ((files (if path
-                      (let ((fn (intern (concat "org-roam--list-files-" exe))))
-                        (unless (fboundp fn) (user-error "%s is not an implemented search method" fn))
-                        (funcall fn path (format "\"%s\"" dir)))
-                    (org-roam--list-files-elisp dir)))
-           (files (mapcar #'ansi-color-filter-apply files)) ; strip ansi codes
-           (files (seq-filter #'org-roam--org-roam-file-p files))
-           (files (mapcar #'expand-file-name files))) ; canonicalize names
-      files)))
+    (if-let* ((files (when path
+                       (let ((fn (intern (concat "org-roam--list-files-" exe))))
+                         (unless (fboundp fn) (user-error "%s is not an implemented search method" fn))
+                         (funcall fn path (format "\"%s\"" dir)))))
+              (files (seq-filter #'org-roam--org-roam-file-p files))
+              (files (mapcar #'expand-file-name files))) ; canonicalize names
+        files
+      (org-roam--list-files-elisp dir))))
 
 (defun org-roam--list-all-files ()
   "Return a list of all Org-roam files within `org-roam-directory'."
@@ -433,7 +451,7 @@ The search terminates when the first property is encountered."
     (dolist (prop props)
       (let ((p (org-element-map buf 'keyword
                  (lambda (kw)
-                   (when (string= (org-element-property :key kw) prop)
+                   (when (string-equal (org-element-property :key kw) prop)
                      (org-element-property :value kw)))
                  :first-match t)))
         (push (cons prop p) res)))
@@ -522,20 +540,26 @@ it as FILE-PATH."
     links))
 
 (defun org-roam--extract-titles-title ()
-  "Return title from \"#+TITLE\" of the current buffer."
+  "Return title from \"#+title\" of the current buffer."
   (let* ((prop (org-roam--extract-global-props '("TITLE")))
          (title (cdr (assoc "TITLE" prop))))
     (when title
       (list title))))
 
-(defalias 'org-roam--parse-alias 'org-roam--str-to-list)
-
 (defun org-roam--extract-titles-alias ()
   "Return the aliases from the current buffer.
-Reads from the \"ROAM_ALIAS\" property."
+Reads from the \"roam_alias\" property."
   (let* ((prop (org-roam--extract-global-props '("ROAM_ALIAS")))
          (aliases (cdr (assoc "ROAM_ALIAS" prop))))
-    (org-roam--parse-alias aliases)))
+    (condition-case nil
+        (org-roam--str-to-list aliases)
+      (error
+       (progn
+         (lwarn '(org-roam) :error
+                "Failed to parse aliases for buffer: %s. Skipping"
+                (or org-roam-file-name
+                    (buffer-file-name)))
+         nil)))))
 
 (defun org-roam--extract-titles-headline ()
   "Return the first headline of the current buffer."
@@ -578,12 +602,18 @@ The final directory component is used as a tag."
                             (file-relative-name file org-roam-directory))))
     (last (f-split dir-relative))))
 
-(defalias 'org-roam--parse-tags 'org-roam--str-to-list)
-
 (defun org-roam--extract-tags-prop (_file)
-  "Extract tags from the current buffer's \"#ROAM_TAGS\" global property."
-  (let* ((prop (org-roam--extract-global-props '("ROAM_TAGS"))))
-    (org-roam--parse-tags (cdr (assoc "ROAM_TAGS" prop)))))
+  "Extract tags from the current buffer's \"#roam_tags\" global property."
+  (let* ((prop (cdr (assoc "ROAM_TAGS" (org-roam--extract-global-props '("ROAM_TAGS"))))))
+    (condition-case nil
+        (org-roam--str-to-list prop)
+      (error
+       (progn
+         (lwarn '(org-roam) :error
+                "Failed to parse tags for buffer: %s. Skipping"
+                (or org-roam-file-name
+                    (buffer-file-name)))
+         nil)))))
 
 (defun org-roam--extract-tags (&optional file)
   "Extract tags from the current buffer.
@@ -592,7 +622,7 @@ Tags are obtained via:
 
 1. Directory tags: Relative to `org-roam-directory': each folder
    path is considered a tag.
-2. The key #+ROAM_TAGS."
+2. The key #+roam_tags."
   (let* ((file (or file (buffer-file-name (buffer-base-buffer))))
          (tags (mapcan (lambda (source)
                          (funcall (intern (concat "org-roam--extract-tags-"
@@ -637,7 +667,7 @@ Examples:
                      (org-roam--extract-global-props '("ROAM_KEY"))))
     ('nil nil)
     ((pred string-empty-p)
-     (user-error "ROAM_KEY cannot be empty"))
+     (user-error "Org property #+roam_key cannot be empty"))
     (ref
      (let* ((type (org-roam--ref-type ref))
             (key (cond ((string= "cite" type)
@@ -802,7 +832,7 @@ included as a candidate."
 
 (defun org-roam--find-ref (ref)
   "Find and open and Org-roam file from REF if it exists.
-REF should be the value of '#+ROAM_KEY:' without any
+REF should be the value of '#+roam_key:' without any
 type-information (e.g. 'cite:').
 Return nil if the file does not exist."
   (when-let* ((completions (org-roam--get-ref-path-completions))

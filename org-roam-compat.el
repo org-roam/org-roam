@@ -98,6 +98,8 @@
   'org-roam-dailies-capture-templates "org-roam 1.0.0")
 (define-obsolete-variable-alias 'org-roam-date-filename-format
   'org-roam-dailies-capture-templates "org-roam 1.0.0")
+(make-obsolete-variable 'org-roam-buffer-no-delete-other-windows
+  'org-roam-buffer-window-parameters "org-roam 1.1.1")
 
 (provide 'org-roam-compat)
 

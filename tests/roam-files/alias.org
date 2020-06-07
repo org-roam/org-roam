@@ -1,2 +1,2 @@
-#+ROAM_ALIAS: "a1" "a 2"
-#+TITLE: t1
+#+roam_alias: "a1" "a 2"
+#+title: t1

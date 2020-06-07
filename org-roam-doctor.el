@@ -53,8 +53,7 @@
 (declare-function org-roam--get-roam-buffers "org-roam")
 (declare-function org-roam--list-all-files "org-roam")
 (declare-function org-roam--org-roam-file-p "org-roam")
-(declare-function org-roam--parse-tags "org-roam")
-(declare-function org-roam--parse-alias "org-roam")
+(declare-function org-roam--str-to-list "org-roam")
 (declare-function org-roam-mode "org-roam")
 
 (defvar org-roam-verbose)
@@ -75,26 +74,26 @@
                ("R" . ("Replace link (keep label)" . org-roam-doctor--replace-link-keep-label))))
    (make-org-roam-doctor-checker
     :name 'org-roam-doctor-check-roam-props
-    :description "Check #+ROAM_* properties.")
+    :description "Check #+roam_* properties.")
    (make-org-roam-doctor-checker
     :name 'org-roam-doctor-check-tags
-    :description "Check #+ROAM_TAGS.")
+    :description "Check #+roam_tags.")
    (make-org-roam-doctor-checker
     :name 'org-roam-doctor-check-alias
-    :description "Check #+ROAM_ALIAS.")))
+    :description "Check #+roam_alias.")))
 
 (defconst org-roam-doctor--supported-roam-properties
-  '("ROAM_TAGS" "ROAM_ALIAS" "ROAM_KEY")
+  '("roam_tags" "roam_alias" "roam_key")
   "List of supported Org-roam properties.")
 
 (defun org-roam-doctor-check-roam-props (ast)
-  "Checker for detecting invalid #+ROAM_* properties.
+  "Checker for detecting invalid #+roam_* properties.
 AST is the org-element parse tree."
   (let (reports)
     (org-element-map ast 'keyword
       (lambda (kw)
         (let ((key (org-element-property :key kw)))
-          (when (and (string-prefix-p "ROAM_" key)
+          (when (and (string-prefix-p "ROAM_" key t)
                      (not (member key org-roam-doctor--supported-roam-properties)))
             (push
              `(,(org-element-property :begin kw)
@@ -106,43 +105,43 @@ AST is the org-element parse tree."
     reports))
 
 (defun org-roam-doctor-check-tags (ast)
-  "Checker for detecting invalid #+ROAM_TAGS.
+  "Checker for detecting invalid #+roam_tags.
 AST is the org-element parse tree."
   (let (reports)
     (org-element-map ast 'keyword
       (lambda (kw)
-        (when (string= (org-element-property :key kw) "ROAM_TAGS")
-          (let* ((s (org-element-property :value kw))
-                     (tags (org-roam--parse-tags s))
-                     (bad-tags (-remove #'stringp tags)))
-            (when bad-tags
-              (push
-               `(,(org-element-property :begin kw)
-                 ,(concat "Invalid tags: "
-                          (prin1-to-string bad-tags)
-                          (when (s-contains? "," s)
-                            "\nCheck that your tags are not comma-separated.")))
-                 reports))))))
+        (when (string-collate-equalp (org-element-property :key kw) "roam_tags" nil t)
+          (let ((tags (org-element-property :value kw)))
+            (condition-case nil
+                (org-roam--str-to-list tags)
+              (error
+               (push
+                `(,(org-element-property :begin kw)
+                  ,(concat "Unable to parse tags: "
+                           tags
+                           (when (s-contains? "," tags)
+                             "\nCheck that your tags are not comma-separated.")))
+                reports)))))))
     reports))
 
 (defun org-roam-doctor-check-alias (ast)
-  "Checker for detecting invalid #+ROAM_ALIAS.
+  "Checker for detecting invalid #+roam_alias.
 AST is the org-element parse tree."
   (let (reports)
     (org-element-map ast 'keyword
       (lambda (kw)
-        (when (string= (org-element-property :key kw) "ROAM_ALIAS")
-          (let* ((s (org-element-property :value kw))
-                     (aliases (org-roam--parse-alias s))
-                     (bad-aliases (-remove #'stringp aliases)))
-            (when bad-aliases
-              (push
-               `(,(org-element-property :begin kw)
-                 ,(concat "Invalid aliases: "
-                          (prin1-to-string bad-aliases)
-                          (when (s-contains? "," s)
-                            "\nCheck that your aliases are not comma-separated.")))
-                 reports))))))
+        (when (string-collate-equalp (org-element-property :key kw) "roam_alias" nil t)
+          (let ((aliases (org-element-property :value kw)))
+            (condition-case nil
+              (org-roam--str-to-list aliases)
+              (error
+               (push
+                `(,(org-element-property :begin kw)
+                  ,(concat "Unable to parse aliases: "
+                           aliases
+                           (when (s-contains? "," aliases)
+                             "\nCheck that your aliases are not comma-separated.")))
+                reports)))))))
     reports))
 
 (defun org-roam-doctor-broken-links (ast)

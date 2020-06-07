@@ -41,7 +41,7 @@
      ""
      :immediate-finish t
      :file-name "%<%Y-%m-%d>"
-     :head "#+TITLE: %<%Y-%m-%d>"))
+     :head "#+title: %<%Y-%m-%d>"))
   "Capture templates for daily notes in Org-roam.")
 
 ;; Declarations

@@ -50,7 +50,7 @@
 (defvar org-roam-capture--file-name-default "%<%Y%m%d%H%M%S>"
   "The default file name format for Org-roam templates.")
 
-(defvar org-roam-capture--header-default "#+TITLE: ${title}\n"
+(defvar org-roam-capture--header-default "#+title: ${title}\n"
   "The default capture header for Org-roam templates.")
 
 (defvar org-roam-capture--file-path nil
@@ -85,7 +85,7 @@ note with the given `ref'.")
   '(("d" "default" plain (function org-roam-capture--get-point)
      "%?"
      :file-name "%<%Y%m%d%H%M%S>-${slug}"
-     :head "#+TITLE: ${title}\n"
+     :head "#+title: ${title}\n"
      :unnarrowed t))
   "Capture templates for Org-roam.
 The capture templates are an extension of
@@ -110,8 +110,8 @@ applies.
   '(("r" "ref" plain (function org-roam-capture--get-point)
      ""
      :file-name "${slug}"
-     :head "#+TITLE: ${title}
-#+ROAM_KEY: ${ref}\n"
+     :head "#+title: ${title}
+#+roam_key: ${ref}\n"
      :unnarrowed t))
   "The Org-roam templates used during a capture from the roam-ref protocol.
 Details on how to specify for the template is given in `org-roam-capture-templates'.")
@@ -340,7 +340,7 @@ This uses the templates defined at `org-roam-capture-templates'."
                                                                 completions))
          (res (cdr (assoc title-with-keys completions)))
          (title (or (plist-get res :title) title-with-keys))
-         (file-path (plist-get res :file-path)))
+         (file-path (plist-get res :path)))
     (let ((org-roam-capture--info (list (cons 'title title)
                                         (cons 'slug (org-roam--title-to-slug title))
                                         (cons 'file file-path)))

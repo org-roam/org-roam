@@ -5,13 +5,18 @@
 ### Breaking Changes
 
 - [#701](https://github.com/org-roam/org-roam/pull/701) Use `emacsql-sqlite3` instead of `emacsql-sqlite` for better Windows compatibility. This requires the presence of the standard `sqlite3` binary on your machine.
+- [#750](https://github.com/org-roam/org-roam/pull/750) Deprecate `org-roam-buffer-no-delete-other-windows` in favour of `org-roam-buffer-window-parameters`.
+
+### Features
+
+- [#757](https://github.com/org-roam/org-roam/pull/757) Roam global properties are now case-insensitive
 
 ## 1.1.1 (18-05-2020)
 
 In this release, we added two new features:
 
 1. `org-roam-doctor`: a linting system that helps you discover possible problems with your Org-roam files. This is in the spirit of keeping notes in top quality.
-2. A tagging system: one can now use sub-directories, and the `#+ROAM_TAG` key add additional meta data to notes. For more information, see [here](https://org-roam.github.io/org-roam/manual/Tags.html#Tags).
+2. A tagging system: one can now use sub-directories, and the `#+roam_tags` key add additional meta data to notes. For more information, see [here](https://org-roam.github.io/org-roam/manual/Tags.html#Tags).
 
 As usual, this release comes with a multitude of bug-fixes and refactorings.
 
