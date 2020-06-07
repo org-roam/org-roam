@@ -450,7 +450,7 @@ The search terminates when the first property is encountered."
     (dolist (prop props)
       (let ((p (org-element-map buf 'keyword
                  (lambda (kw)
-                   (when (string-collate-equalp (org-element-property :key kw) prop nil t)
+                   (when (string-equal (org-element-property :key kw) prop)
                      (org-element-property :value kw)))
                  :first-match t)))
         (push (cons prop p) res)))
@@ -534,16 +534,16 @@ it as FILE-PATH."
 
 (defun org-roam--extract-titles-title ()
   "Return title from \"#+title\" of the current buffer."
-  (let* ((prop (org-roam--extract-global-props '("title")))
-         (title (cdr (assoc "title" prop))))
+  (let* ((prop (org-roam--extract-global-props '("TITLE")))
+         (title (cdr (assoc "TITLE" prop))))
     (when title
       (list title))))
 
 (defun org-roam--extract-titles-alias ()
   "Return the aliases from the current buffer.
 Reads from the \"roam_alias\" property."
-  (let* ((prop (org-roam--extract-global-props '("roam_alias")))
-         (aliases (cdr (assoc "roam_alias" prop))))
+  (let* ((prop (org-roam--extract-global-props '("ROAM_ALIAS")))
+         (aliases (cdr (assoc "ROAM_ALIAS" prop))))
     (condition-case nil
         (org-roam--str-to-list aliases)
       (error
@@ -597,7 +597,7 @@ The final directory component is used as a tag."
 
 (defun org-roam--extract-tags-prop (_file)
   "Extract tags from the current buffer's \"#roam_tags\" global property."
-  (let* ((prop (cdr (assoc "roam_tags" (org-roam--extract-global-props '("roam_tags"))))))
+  (let* ((prop (cdr (assoc "ROAM_TAGS" (org-roam--extract-global-props '("ROAM_TAGS"))))))
     (condition-case nil
         (org-roam--str-to-list prop)
       (error
@@ -656,8 +656,8 @@ Examples:
 
 (defun org-roam--extract-ref ()
   "Extract the ref from current buffer and return the type and the key of the ref."
-  (pcase (cdr (assoc "roam_key"
-                     (org-roam--extract-global-props '("roam_key"))))
+  (pcase (cdr (assoc "ROAM_KEY"
+                     (org-roam--extract-global-props '("ROAM_KEY"))))
     ('nil nil)
     ((pred string-empty-p)
      (user-error "Org property #+roam_key cannot be empty"))
@@ -945,7 +945,7 @@ for Org-ref cite links."
 (defun org-roam-store-link ()
   "Store a link to an `org-roam' file."
   (when (org-before-first-heading-p)
-    (when-let ((title (cdr (assoc "title" (org-roam--extract-global-props '("title"))))))
+    (when-let ((title (cdr (assoc "TITLE" (org-roam--extract-global-props '("TITLE"))))))
       (org-link-store-props
        :type        "file"
        :link        (format "file:%s" (abbreviate-file-name buffer-file-name))
