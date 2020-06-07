@@ -1,1 +1,1 @@
-#+ROAM_ALIAS: "roam" "alias"
+#+roam_alias: "roam" "alias"

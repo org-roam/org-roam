@@ -1,4 +1,4 @@
-#+TITLE: Foo
+#+title: Foo
 
 This is the foo file. It contains a link to [[file:bar.org][Bar]].
 
