@@ -340,7 +340,7 @@ This uses the templates defined at `org-roam-capture-templates'."
                                                                 completions))
          (res (cdr (assoc title-with-keys completions)))
          (title (or (plist-get res :title) title-with-keys))
-         (file-path (plist-get res :file-path)))
+         (file-path (plist-get res :path)))
     (let ((org-roam-capture--info (list (cons 'title title)
                                         (cons 'slug (org-roam--title-to-slug title))
                                         (cons 'file file-path)))
