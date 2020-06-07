@@ -83,7 +83,7 @@
     :description "Check #+roam_alias.")))
 
 (defconst org-roam-doctor--supported-roam-properties
-  '("ROAM_TAGS" "ROAM_ALIAS" "ROAM_KEY")
+  '("roam_tags" "roam_alias" "roam_key")
   "List of supported Org-roam properties.")
 
 (defun org-roam-doctor-check-roam-props (ast)
@@ -93,7 +93,7 @@ AST is the org-element parse tree."
     (org-element-map ast 'keyword
       (lambda (kw)
         (let ((key (org-element-property :key kw)))
-          (when (and (string-prefix-p "ROAM_" key t)
+          (when (and (string-prefix-p "roam_" key t)
                      (not (member key org-roam-doctor--supported-roam-properties)))
             (push
              `(,(org-element-property :begin kw)
@@ -110,7 +110,7 @@ AST is the org-element parse tree."
   (let (reports)
     (org-element-map ast 'keyword
       (lambda (kw)
-        (when (string-collate-equalp (org-element-property :key kw) "ROAM_TAGS" nil t)
+        (when (string-collate-equalp (org-element-property :key kw) "roam_tags" nil t)
           (let ((tags (org-element-property :value kw)))
             (condition-case nil
                 (org-roam--str-to-list tags)
@@ -130,7 +130,7 @@ AST is the org-element parse tree."
   (let (reports)
     (org-element-map ast 'keyword
       (lambda (kw)
-        (when (string-collate-equalp (org-element-property :key kw) "ROAM_ALIAS" nil t)
+        (when (string-collate-equalp (org-element-property :key kw) "roam_alias" nil t)
           (let ((aliases (org-element-property :value kw)))
             (condition-case nil
               (org-roam--str-to-list aliases)

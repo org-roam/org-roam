@@ -1,18 +1,18 @@
-#+TITLE: Org-roam User Manual
+#+title: Org-roam User Manual
 :PREAMBLE:
-#+AUTHOR: Jethro Kuan
-#+EMAIL: jethrokuan95@gmail.com
-#+DATE: 2020-2020
-#+LANGUAGE: en
+#+author: Jethro Kuan
+#+email: jethrokuan95@gmail.com
+#+date: 2020-2020
+#+language: en
 
-#+TEXINFO_DIR_CATEGORY: Emacs
-#+TEXINFO_DIR_TITLE: Org-roam: (org-roam).
-#+TEXINFO_DIR_DESC: Rudimentary Roam Replica for Emacs.
-#+SUBTITLE: for version 1.1.1
+#+texinfo_dir_category: Emacs
+#+texinfo_dir_title: Org-roam: (org-roam).
+#+texinfo_dir_desc: Rudimentary Roam Replica for Emacs.
+#+subtitle: for version 1.1.1
 
-#+OPTIONS: H:4 num:3 toc:2 creator:t
-#+PROPERTY: header-args :eval never
-#+TEXINFO: @noindent
+#+options: H:4 num:3 toc:2 creator:t
+#+property: header-args :eval never
+#+texinfo: @noindent
 
 This manual is for Org-roam version 1.1.1.
 
@@ -756,7 +756,7 @@ in the generated graph.
 
 ** The =roam-ref= Protocol
 
-This protocol finds or creates a new note with a given =ROAM_KEY= (see [[*Anatomy of an Org-roam File][Anatomy of an Org-roam File]]):
+This protocol finds or creates a new note with a given ~roam_key~ (see [[*Anatomy of an Org-roam File][Anatomy of an Org-roam File]]):
 
 [[file:images/roam-ref.gif]]
 
@@ -770,7 +770,7 @@ javascript:location.href =
 + encodeURIComponent(document.title)
 #+END_SRC
 
-or as a keybinding in =qutebrowser=, adding the following to the =autoconfig.yml= file:
+or as a keybinding in ~qutebrowser~, adding the following to the ~autoconfig.yml~ file:
 
 #+BEGIN_SRC yaml
 settings:
@@ -780,18 +780,18 @@ settings:
         gc: open javascript:void(location.href='org-protocol://roam-ref?template=r&ref='+encodeURIComponent(location.href)+'&title='+encodeURIComponent(document.title))
 #+END_SRC
 
-where =template= is the template key for a template in
-=org-roam-capture-ref-templates= (see [[*The Templating System][The Templating System]]). These templates
-should contain a =#+roam_key: ${ref}= in it.
+where ~template~ is the template key for a template in
+~org-roam-capture-ref-templates~ (see [[*The Templating System][The Templating System]]). These templates
+should contain a ~#+roam_key: ${ref}~ in it.
 
 * TODO Daily Notes
 
 * Diagnosing and Repairing Files
 
 Org-roam provides a utility for diagnosing and repairing problematic files via
-=org-roam-doctor=. By default, =org-roam-doctor= runs the check across all Org-roam
-files, and this can take some time. To run the check only for the current file,
-run =C-u M-x org-roam-doctor=.
+~org-roam-doctor~. By default, ~org-roam-doctor~ runs the check on the current
+Org-roam file. To run the check only for the current file, run =C-u M-x
+org-roam-doctor=, but note that this may take some time.
 
 - Function: org-roam-doctor &optional this-buffer
 
