@@ -23,7 +23,7 @@ General Public License for more details.
 @end quotation
 @end copying
 
-@dircategory Emacs
+@dircategory emacs
 @direntry
 * Org-roam: (org-roam). Rudimentary Roam Replica for Emacs.
 @end direntry
@@ -76,6 +76,7 @@ General Public License for more details.
 * Graphing::
 * Org-roam Completion System::
 * Roam Protocol::
+* Daily Notes::
 * Diagnosing and Repairing Files::
 * Appendix::
 * FAQ::
@@ -192,13 +193,13 @@ with it may produce new and surprising lines of thought. This method is
 attributed to German sociologist Niklas Luhmann, who using the method had
 produced volumes of written works.
 
-In its paper form, the slip-box is simply a box of cards. These cards are small,
-and often only large enough to fit a single concept. The size limitation
+In its paper form, the slip-box is simply a box of cards. These cards are small
+-- often only large enough to fit a single concept. The size limitation
 encourages ideas to be broken down into individual concepts. These ideas are
-explicitly linked together, using an indexing system. Enforcing the breakdown of
-ideas encourages tangential exploration of ideas, increasing the surface for
-thought. Making linking explicit between notes also encourages one to think
-about the connections between concepts, which forms a large part of research.
+explicitly linked together. The breakdown of ideas encourages tangential
+exploration of ideas, increasing the surface for thought. Making linking
+explicit between notes also encourages one to think about the connections
+between concepts.
 
 Org-roam is the slip-box, digitalized in Org-mode. Every zettel (card) is a
 plain-text, Org-mode file. These files are often placed in the same directory.
@@ -206,6 +207,20 @@ In the same way one would maintain a paper slip-box, Org-roam makes it easy to
 create new zettels, pre-filling boilerplate content using a powerful templating
 system. Org-roam also facilitates the linking of zettels using Org-mode @code{file:}
 links.
+
+A slip-box requires a method of quickly capturing ideas. These are called
+@strong{fleeting notes}: they are simple reminders of information or ideas that will
+need to be processed later on, or trashed. This is typically accomplished using
+@code{org-capture} (see @ref{capture,,,org,}), or using Org-roam's daily notes
+functionality (see @ref{Daily Notes}). This provides a central inbox for collecting
+thoughts, to be processed later into permanent notes.
+
+Permanent notes are further split into two categories: @strong{literature notes} and
+@strong{concept notes}. Literature notes can be brief annotations on a particular
+source (e.g. book, website or paper), that you'd like to access later on.
+Concept notes require much more care in authoring: they need to be
+self-explanatory and detailed. Org-roam's templating system supports the
+addition of different templates to facilitate the creation of these notes.
 
 @node Installation
 @chapter Installation
@@ -383,19 +398,19 @@ title extraction methods supported are:
 
 @enumerate
 @item
-@samp{'title}: This extracts the title using the file @samp{#+TITLE} property
+@samp{'title}: This extracts the title using the file @samp{#+title} property
 @item
 @samp{'headline}: This extracts the title from the first headline in the Org file
 @item
-@samp{'alias}: This extracts a list of titles using the @samp{#ROAM_ALIAS} property.
+@samp{'alias}: This extracts a list of titles using the @samp{#+roam_alias} property.
 The aliases are space-delimited, and can be multi-worded using quotes
 @end enumerate
 
 Take for example the following org file:
 
 @example
-#+TITLE: World War 2
-#+ROAM_ALIAS: "WWII" "World War II"
+#+title: World War 2
+#+roam_alias: "WWII" "World War II"
 
 * Headline
 @end example
@@ -434,7 +449,7 @@ extraction methods supported are:
 
 @enumerate
 @item
-@samp{'prop}: This extracts tags from the @samp{#+ROAM_TAGS} property. Tags are space delimited, and can be multi-word using double quotes.
+@samp{'prop}: This extracts tags from the @samp{#+roam_tags} property. Tags are space delimited, and can be multi-word using double quotes.
 @item
 @samp{'all-directories}: All sub-directories relative to @samp{org-roam-directory} are
 extracted as tags. That is, if a file is located at relative path
@@ -464,8 +479,8 @@ Refs are unique identifiers for files. Each note can only have 1 ref.
 For example, a note for a website may contain a ref:
 
 @example
-#+TITLE: Google
-#+ROAM_KEY: https://www.google.com/
+#+title: Google
+#+roam_key: https://www.google.com/
 @end example
 
 These keys come in useful for when taking website notes, using the
@@ -475,8 +490,8 @@ Alternatively, add a ref for notes for a specific paper, using its
 @uref{https://github.com/jkitchin/org-ref, org-ref} citation key:
 
 @example
-#+TITLE: Neural Ordinary Differential Equations
-#+ROAM_KEY: cite:chen18_neural_ordin_differ_equat
+#+title: Neural Ordinary Differential Equations
+#+roam_key: cite:chen18_neural_ordin_differ_equat
 @end example
 
 The backlinks buffer will show any cites of this key: e.g.
@@ -527,7 +542,7 @@ the default template, reproduced below.
 ("d" "default" plain (function org-roam--capture-get-point)
      "%?"
      :file-name "%<%Y%m%d%H%M%S>-$@{slug@}"
-     :head "#+TITLE: $@{title@}\n"
+     :head "#+title: $@{title@}\n"
      :unnarrowed t)
 @end lisp
 
@@ -594,7 +609,7 @@ directly to provide its third argument to specify UTC@.
 ("d" "default" plain (function org-roam--capture-get-point)
      "%?"
      :file-name "%(format-time-string \"%Y-%m-%d--%H-%M-%SZ--$@{slug@}\" (current-time) t)"
-     :head "#+TITLE: $@{title@}\n"
+     :head "#+title: $@{title@}\n"
      :unnarrowed t)
 @end lisp
 
@@ -1030,7 +1045,7 @@ in the generated graph.
 @node The @samp{roam-ref} Protocol
 @section The @samp{roam-ref} Protocol
 
-This protocol finds or creates a new note with a given @samp{ROAM_KEY} (see @ref{Anatomy of an Org-roam File}):
+This protocol finds or creates a new note with a given @code{roam_key} (see @ref{Anatomy of an Org-roam File}):
 
 @image{images/roam-ref,,,,gif}
 
@@ -1044,7 +1059,7 @@ javascript:location.href =
 + encodeURIComponent(document.title)
 @end example
 
-or as a keybinding in @samp{qutebrowser}, adding the following to the @samp{autoconfig.yml} file:
+or as a keybinding in @code{qutebrowser}, adding the following to the @code{autoconfig.yml} file:
 
 @example
 settings:
@@ -1054,17 +1069,20 @@ settings:
         gc: open javascript:void(location.href='org-protocol://roam-ref?template=r&ref='+encodeURIComponent(location.href)+'&title='+encodeURIComponent(document.title))
 @end example
 
-where @samp{template} is the template key for a template in
-@samp{org-roam-capture-ref-templates} (see @ref{The Templating System}). These templates
-should contain a @samp{#+ROAM_KEY: $@{ref@}} in it.
+where @code{template} is the template key for a template in
+@code{org-roam-capture-ref-templates} (see @ref{The Templating System}). These templates
+should contain a @code{#+roam_key: $@{ref@}} in it.
+
+@node Daily Notes
+@chapter @strong{TODO} Daily Notes
 
 @node Diagnosing and Repairing Files
 @chapter Diagnosing and Repairing Files
 
 Org-roam provides a utility for diagnosing and repairing problematic files via
-@samp{org-roam-doctor}. By default, @samp{org-roam-doctor} runs the check across all Org-roam
-files, and this can take some time. To run the check only for the current file,
-run @samp{C-u M-x org-roam-doctor}.
+@code{org-roam-doctor}. By default, @code{org-roam-doctor} runs the check on the current
+Org-roam file. To run the check only for the current file, run @samp{C-u M-x
+org-roam-doctor}, but note that this may take some time.
 
 @itemize
 @item
@@ -1213,7 +1231,7 @@ to see all dated entries.
   :bind
   ("C-c n j" . org-journal-new-entry)
   :custom
-  (org-journal-date-prefix "#+TITLE: ")
+  (org-journal-date-prefix "#+title: ")
   (org-journal-file-format "%Y-%m-%d.org")
   (org-journal-dir "/path/to/org-roam-files/")
   (org-journal-date-format "%A, %d %B %Y"))
@@ -1235,8 +1253,7 @@ These are some plugins that make note-taking in Org-mode more enjoyable.
 @node Org-download
 @unnumberedsubsubsec Org-download
 
-@uref{https://github.com/abo-abo/org-download, Org-download} lets you
-screenshot and yank images from the web into your notes:
+@uref{https://github.com/abo-abo/org-download, Org-download} lets you screenshot and yank images from the web into your notes:
 
 @float Figure
 @image{images/org-download,,,,gif}
@@ -1255,9 +1272,7 @@ screenshot and yank images from the web into your notes:
 @node mathpixel
 @unnumberedsubsubsec mathpix.el
 
-@uref{https://github.com/jethrokuan/mathpix.el, mathpix.el} uses
-@uref{https://mathpix.com/, Mathpix's} API to convert clips into latex
-equations:
+@uref{https://github.com/jethrokuan/mathpix.el, mathpix.el} uses @uref{https://mathpix.com/, Mathpix's} API to convert clips into latex equations:
 
 @float Figure
 @image{images/mathpix,,,,gif}
@@ -1294,11 +1309,8 @@ tight integration between
 @node Spaced Repetition
 @unnumberedsubsubsec Spaced Repetition
 
-@uref{https://github.com/l3kn/org-fc/, Org-fc} is a spaced repetition
-system that scales well with a large number of files. Other alternatives
-include
-@uref{https://orgmode.org/worg/org-contrib/org-drill.html, org-drill}, and
-@uref{https://github.com/abo-abo/pamparam, pamparam}.
+@uref{https://github.com/l3kn/org-fc/, Org-fc} is a spaced repetition system that scales well with a large number of
+files. Other alternatives include @uref{https://orgmode.org/worg/org-contrib/org-drill.html, org-drill}, and @uref{https://github.com/abo-abo/pamparam, pamparam}.
 
 @node FAQ
 @chapter FAQ

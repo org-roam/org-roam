@@ -83,13 +83,13 @@ with it may produce new and surprising lines of thought. This method is
 attributed to German sociologist Niklas Luhmann, who using the method had
 produced volumes of written works.
 </p>
-<p>In its paper form, the slip-box is simply a box of cards. These cards are small,
-and often only large enough to fit a single concept. The size limitation
+<p>In its paper form, the slip-box is simply a box of cards. These cards are small
+&ndash; often only large enough to fit a single concept. The size limitation
 encourages ideas to be broken down into individual concepts. These ideas are
-explicitly linked together, using an indexing system. Enforcing the breakdown of
-ideas encourages tangential exploration of ideas, increasing the surface for
-thought. Making linking explicit between notes also encourages one to think
-about the connections between concepts, which forms a large part of research.
+explicitly linked together. The breakdown of ideas encourages tangential
+exploration of ideas, increasing the surface for thought. Making linking
+explicit between notes also encourages one to think about the connections
+between concepts.
 </p>
 <p>Org-roam is the slip-box, digitalized in Org-mode. Every zettel (card) is a
 plain-text, Org-mode file. These files are often placed in the same directory.
@@ -97,6 +97,20 @@ In the same way one would maintain a paper slip-box, Org-roam makes it easy to
 create new zettels, pre-filling boilerplate content using a powerful templating
 system. Org-roam also facilitates the linking of zettels using Org-mode <code>file:</code>
 links.
+</p>
+<p>A slip-box requires a method of quickly capturing ideas. These are called
+<strong>fleeting notes</strong>: they are simple reminders of information or ideas that will
+need to be processed later on, or trashed. This is typically accomplished using
+<code>org-capture</code> (see <a href="http://www.gnu.org/software/emacs/manual/html_node/org/capture.html#capture">(org)capture</a>), or using Org-roam&rsquo;s daily notes
+functionality (see <a href="Daily-Notes.html#Daily-Notes">Daily Notes</a>). This provides a central inbox for collecting
+thoughts, to be processed later into permanent notes.
+</p>
+<p>Permanent notes are further split into two categories: <strong>literature notes</strong> and
+<strong>concept notes</strong>. Literature notes can be brief annotations on a particular
+source (e.g. book, website or paper), that you&rsquo;d like to access later on.
+Concept notes require much more care in authoring: they need to be
+self-explanatory and detailed. Org-roam&rsquo;s templating system supports the
+addition of different templates to facilitate the creation of these notes.
 </p>
 <hr>
 <div class="header">

@@ -25,7 +25,7 @@ General Public License for more details.
 <link href="index.html#Top" rel="start" title="Top">
 <link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
 <link href="Roam-Protocol.html#Roam-Protocol" rel="up" title="Roam Protocol">
-<link href="Diagnosing-and-Repairing-Files.html#Diagnosing-and-Repairing-Files" rel="next" title="Diagnosing and Repairing Files">
+<link href="Daily-Notes.html#Daily-Notes" rel="next" title="Daily Notes">
 <link href="The-roam_002dfile-protocol.html#The-roam_002dfile-protocol" rel="prev" title="The roam-file protocol">
 <style type="text/css">
 <!--
@@ -69,7 +69,7 @@ Previous: <a href="The-roam_002dfile-protocol.html#The-roam_002dfile-protocol" a
 <a name="The-roam_002dref-Protocol-1"></a>
 <h3 class="section">12.4 The &lsquo;<samp>roam-ref</samp>&rsquo; Protocol</h3>
 
-<p>This protocol finds or creates a new note with a given &lsquo;<samp>ROAM_KEY</samp>&rsquo; (see <a href="Anatomy-of-an-Org_002droam-File.html#Anatomy-of-an-Org_002droam-File">Anatomy of an Org-roam File</a>):
+<p>This protocol finds or creates a new note with a given <code>roam_key</code> (see <a href="Anatomy-of-an-Org_002droam-File.html#Anatomy-of-an-Org_002droam-File">Anatomy of an Org-roam File</a>):
 </p>
 <img src="images/roam-ref.gif" alt="images/roam-ref">
 
@@ -83,7 +83,7 @@ Previous: <a href="The-roam_002dfile-protocol.html#The-roam_002dfile-protocol" a
 + encodeURIComponent(document.title)
 </pre></div>
 
-<p>or as a keybinding in &lsquo;<samp>qutebrowser</samp>&rsquo;, adding the following to the &lsquo;<samp>autoconfig.yml</samp>&rsquo; file:
+<p>or as a keybinding in <code>qutebrowser</code>, adding the following to the <code>autoconfig.yml</code> file:
 </p>
 <div class="example">
 <pre class="example">settings:
@@ -93,9 +93,9 @@ Previous: <a href="The-roam_002dfile-protocol.html#The-roam_002dfile-protocol" a
         gc: open javascript:void(location.href='org-protocol://roam-ref?template=r&amp;ref='+encodeURIComponent(location.href)+'&amp;title='+encodeURIComponent(document.title))
 </pre></div>
 
-<p>where &lsquo;<samp>template</samp>&rsquo; is the template key for a template in
-&lsquo;<samp>org-roam-capture-ref-templates</samp>&rsquo; (see <a href="The-Templating-System.html#The-Templating-System">The Templating System</a>). These templates
-should contain a &lsquo;<samp>#+ROAM_KEY: ${ref}</samp>&rsquo; in it.
+<p>where <code>template</code> is the template key for a template in
+<code>org-roam-capture-ref-templates</code> (see <a href="The-Templating-System.html#The-Templating-System">The Templating System</a>). These templates
+should contain a <code>#+roam_key: ${ref}</code> in it.
 </p>
 
 

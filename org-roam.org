@@ -1,18 +1,18 @@
-#+TITLE: Org-roam User Manual
+#+title: Org-roam User Manual
 :PREAMBLE:
-#+AUTHOR: Jethro Kuan
-#+EMAIL: jethrokuan95@gmail.com
-#+DATE: 2020-2020
-#+LANGUAGE: en
+#+author: Jethro Kuan
+#+email: jethrokuan95@gmail.com
+#+date: 2020-2020
+#+language: en
 
-#+TEXINFO_DIR_CATEGORY: Emacs
-#+TEXINFO_DIR_TITLE: Org-roam: (org-roam).
-#+TEXINFO_DIR_DESC: Rudimentary Roam Replica for Emacs.
-#+SUBTITLE: for version 1.1.1
+#+texinfo_dir_category: Emacs
+#+texinfo_dir_title: Org-roam: (org-roam).
+#+texinfo_dir_desc: Rudimentary Roam Replica for Emacs.
+#+subtitle: for version 1.1.1
 
-#+OPTIONS: H:4 num:3 toc:2 creator:t
-#+PROPERTY: header-args :eval never
-#+TEXINFO: @noindent
+#+options: H:4 num:3 toc:2 creator:t
+#+property: header-args :eval never
+#+texinfo: @noindent
 
 This manual is for Org-roam version 1.1.1.
 
@@ -250,16 +250,16 @@ Org-roam calls =org-roam--extract-titles= to extract titles. It uses the
 variable =org-roam-title-sources=, to control how the titles are extracted. The
 title extraction methods supported are:
 
-1. ='title=: This extracts the title using the file =#+TITLE= property
+1. ='title=: This extracts the title using the file =#+title= property
 2. ='headline=: This extracts the title from the first headline in the Org file
-3. ='alias=: This extracts a list of titles using the =#ROAM_ALIAS= property.
+3. ='alias=: This extracts a list of titles using the =#+roam_alias= property.
    The aliases are space-delimited, and can be multi-worded using quotes
 
 Take for example the following org file:
 
 #+BEGIN_SRC org
-  #+TITLE: World War 2
-  #+ROAM_ALIAS: "WWII" "World War II"
+  #+title: World War 2
+  #+roam_alias: "WWII" "World War II"
 
   * Headline
 #+END_SRC
@@ -290,7 +290,7 @@ Org-roam calls =org-roam--extract-tags= to extract tags from files. It uses the
 variable =org-roam-tag-sources=, to control how tags are extracted. The tag
 extraction methods supported are:
 
-1. ='prop=: This extracts tags from the =#+ROAM_TAGS= property. Tags are space delimited, and can be multi-word using double quotes.
+1. ='prop=: This extracts tags from the =#+roam_tags= property. Tags are space delimited, and can be multi-word using double quotes.
 2. ='all-directories=: All sub-directories relative to =org-roam-directory= are
    extracted as tags. That is, if a file is located at relative path
    =foo/bar/file.org=, the file will have tags =foo= and =bar=.
@@ -316,8 +316,8 @@ Refs are unique identifiers for files. Each note can only have 1 ref.
 For example, a note for a website may contain a ref:
 
 #+BEGIN_SRC org
-  #+TITLE: Google
-  #+ROAM_KEY: https://www.google.com/
+  #+title: Google
+  #+roam_key: https://www.google.com/
 #+END_SRC
 
 These keys come in useful for when taking website notes, using the
@@ -327,8 +327,8 @@ Alternatively, add a ref for notes for a specific paper, using its
 [[https://github.com/jkitchin/org-ref][org-ref]] citation key:
 
 #+BEGIN_SRC org
-  #+TITLE: Neural Ordinary Differential Equations
-  #+ROAM_KEY: cite:chen18_neural_ordin_differ_equat
+  #+title: Neural Ordinary Differential Equations
+  #+roam_key: cite:chen18_neural_ordin_differ_equat
 #+END_SRC
 
 The backlinks buffer will show any cites of this key: e.g.
@@ -363,7 +363,7 @@ the default template, reproduced below.
   ("d" "default" plain (function org-roam--capture-get-point)
        "%?"
        :file-name "%<%Y%m%d%H%M%S>-${slug}"
-       :head "#+TITLE: ${title}\n"
+       :head "#+title: ${title}\n"
        :unnarrowed t)
 #+END_SRC
 
@@ -419,7 +419,7 @@ directly to provide its third argument to specify UTC.
   ("d" "default" plain (function org-roam--capture-get-point)
        "%?"
        :file-name "%(format-time-string \"%Y-%m-%d--%H-%M-%SZ--${slug}\" (current-time) t)"
-       :head "#+TITLE: ${title}\n"
+       :head "#+title: ${title}\n"
        :unnarrowed t)
 #+END_SRC
 
@@ -756,7 +756,7 @@ in the generated graph.
 
 ** The =roam-ref= Protocol
 
-This protocol finds or creates a new note with a given =ROAM_KEY= (see [[*Anatomy of an Org-roam File][Anatomy of an Org-roam File]]):
+This protocol finds or creates a new note with a given ~roam_key~ (see [[*Anatomy of an Org-roam File][Anatomy of an Org-roam File]]):
 
 [[file:images/roam-ref.gif]]
 
@@ -770,7 +770,7 @@ javascript:location.href =
 + encodeURIComponent(document.title)
 #+END_SRC
 
-or as a keybinding in =qutebrowser=, adding the following to the =autoconfig.yml= file:
+or as a keybinding in ~qutebrowser~, adding the following to the ~autoconfig.yml~ file:
 
 #+BEGIN_SRC yaml
 settings:
@@ -780,18 +780,18 @@ settings:
         gc: open javascript:void(location.href='org-protocol://roam-ref?template=r&ref='+encodeURIComponent(location.href)+'&title='+encodeURIComponent(document.title))
 #+END_SRC
 
-where =template= is the template key for a template in
-=org-roam-capture-ref-templates= (see [[*The Templating System][The Templating System]]). These templates
-should contain a =#+ROAM_KEY: ${ref}= in it.
+where ~template~ is the template key for a template in
+~org-roam-capture-ref-templates~ (see [[*The Templating System][The Templating System]]). These templates
+should contain a ~#+roam_key: ${ref}~ in it.
 
 * TODO Daily Notes
 
 * Diagnosing and Repairing Files
 
 Org-roam provides a utility for diagnosing and repairing problematic files via
-=org-roam-doctor=. By default, =org-roam-doctor= runs the check across all Org-roam
-files, and this can take some time. To run the check only for the current file,
-run =C-u M-x org-roam-doctor=.
+~org-roam-doctor~. By default, ~org-roam-doctor~ runs the check on the current
+Org-roam file. To run the check only for the current file, run =C-u M-x
+org-roam-doctor=, but note that this may take some time.
 
 - Function: org-roam-doctor &optional this-buffer
 
@@ -923,7 +923,7 @@ to see all dated entries.
     :bind
     ("C-c n j" . org-journal-new-entry)
     :custom
-    (org-journal-date-prefix "#+TITLE: ")
+    (org-journal-date-prefix "#+title: ")
     (org-journal-file-format "%Y-%m-%d.org")
     (org-journal-dir "/path/to/org-roam-files/")
     (org-journal-date-format "%A, %d %B %Y"))

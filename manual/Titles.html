@@ -80,17 +80,17 @@ variable &lsquo;<samp>org-roam-title-sources</samp>&rsquo;, to control how the t
 title extraction methods supported are:
 </p>
 <ol>
-<li> &lsquo;<samp>'title</samp>&rsquo;: This extracts the title using the file &lsquo;<samp>#+TITLE</samp>&rsquo; property
+<li> &lsquo;<samp>'title</samp>&rsquo;: This extracts the title using the file &lsquo;<samp>#+title</samp>&rsquo; property
 </li><li> &lsquo;<samp>'headline</samp>&rsquo;: This extracts the title from the first headline in the Org file
-</li><li> &lsquo;<samp>'alias</samp>&rsquo;: This extracts a list of titles using the &lsquo;<samp>#ROAM_ALIAS</samp>&rsquo; property.
+</li><li> &lsquo;<samp>'alias</samp>&rsquo;: This extracts a list of titles using the &lsquo;<samp>#+roam_alias</samp>&rsquo; property.
 The aliases are space-delimited, and can be multi-worded using quotes
 </li></ol>
 
 <p>Take for example the following org file:
 </p>
 <div class="example">
-<pre class="example">#+TITLE: World War 2
-#+ROAM_ALIAS: &quot;WWII&quot; &quot;World War II&quot;
+<pre class="example">#+title: World War 2
+#+roam_alias: &quot;WWII&quot; &quot;World War II&quot;
 
 * Headline
 </pre></div>
