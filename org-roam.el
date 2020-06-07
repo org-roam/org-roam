@@ -178,10 +178,10 @@ It should be a list of symbols representing any of the following
 extraction methods:
 
   `prop'
-    Extract tags from the #+ROAM_TAGS property.
+    Extract tags from the #+roam_tags property.
     Tags are space delimited.
     Tags may contain spaces if they are double-quoted.
-    e.g. #+ROAM_TAGS: tag \"tag with spaces\"
+    e.g. #+roam_tags: TAG \"tag with spaces\"
 
   `all-directories'
     Extract sub-directories relative to `org-roam-directory'.
@@ -192,7 +192,7 @@ extraction methods:
     Extract the last directory relative to `org-roam-directory'.
     That is, if a file is located at relative path foo/bar/file.org,
     the file will have tag \"bar\"."
-  :type '(set (const :tag "#+ROAM_TAGS" prop)
+  :type '(set (const :tag "#+roam_tags" PROP)
               (const :tag "sub-directories" all-directories)
               (const :tag "parent directory" last-directory)))
 
@@ -214,8 +214,8 @@ For example the setting: '((title headline) alias) means the following:
 2. Or return 'headline + 'alias otherwise.
 
 The currently supported symbols are:
-1. 'title: The \"#+TITLE\" property of org file.
-2. 'alias: The \"#+ROAM_ALIAS\" property of the org file, using
+1. 'title: The \"#+title\" property of org file.
+2. 'alias: The \"#+roam_alias\" property of the org file, using
 space-delimited strings.
 3. 'headline: The first headline in the org file."
   :type '(repeat
@@ -533,7 +533,7 @@ it as FILE-PATH."
     links))
 
 (defun org-roam--extract-titles-title ()
-  "Return title from \"#+TITLE\" of the current buffer."
+  "Return title from \"#+title\" of the current buffer."
   (let* ((prop (org-roam--extract-global-props '("TITLE")))
          (title (cdr (assoc "TITLE" prop))))
     (when title
@@ -596,7 +596,7 @@ The final directory component is used as a tag."
     (last (f-split dir-relative))))
 
 (defun org-roam--extract-tags-prop (_file)
-  "Extract tags from the current buffer's \"#ROAM_TAGS\" global property."
+  "Extract tags from the current buffer's \"#roam_tags\" global property."
   (let* ((prop (cdr (assoc "ROAM_TAGS" (org-roam--extract-global-props '("ROAM_TAGS"))))))
     (condition-case nil
         (org-roam--str-to-list prop)
@@ -615,7 +615,7 @@ Tags are obtained via:
 
 1. Directory tags: Relative to `org-roam-directory': each folder
    path is considered a tag.
-2. The key #+ROAM_TAGS."
+2. The key #+roam_tags."
   (let* ((file (or file (buffer-file-name (buffer-base-buffer))))
          (tags (mapcan (lambda (source)
                          (funcall (intern (concat "org-roam--extract-tags-"
@@ -804,7 +804,7 @@ included as a candidate."
 
 (defun org-roam--find-ref (ref)
   "Find and open and Org-roam file from REF if it exists.
-REF should be the value of '#+ROAM_KEY:' without any
+REF should be the value of '#+roam_key:' without any
 type-information (e.g. 'cite:').
 Return nil if the file does not exist."
   (when-let* ((completions (org-roam--get-ref-path-completions))
