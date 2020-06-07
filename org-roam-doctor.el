@@ -74,20 +74,20 @@
                ("R" . ("Replace link (keep label)" . org-roam-doctor--replace-link-keep-label))))
    (make-org-roam-doctor-checker
     :name 'org-roam-doctor-check-roam-props
-    :description "Check #+ROAM_* properties.")
+    :description "Check #+roam_* properties.")
    (make-org-roam-doctor-checker
     :name 'org-roam-doctor-check-tags
-    :description "Check #+ROAM_TAGS.")
+    :description "Check #+roam_tags.")
    (make-org-roam-doctor-checker
     :name 'org-roam-doctor-check-alias
-    :description "Check #+ROAM_ALIAS.")))
+    :description "Check #+roam_alias.")))
 
 (defconst org-roam-doctor--supported-roam-properties
   '("ROAM_TAGS" "ROAM_ALIAS" "ROAM_KEY")
   "List of supported Org-roam properties.")
 
 (defun org-roam-doctor-check-roam-props (ast)
-  "Checker for detecting invalid #+ROAM_* properties.
+  "Checker for detecting invalid #+roam_* properties.
 AST is the org-element parse tree."
   (let (reports)
     (org-element-map ast 'keyword
@@ -105,7 +105,7 @@ AST is the org-element parse tree."
     reports))
 
 (defun org-roam-doctor-check-tags (ast)
-  "Checker for detecting invalid #+ROAM_TAGS.
+  "Checker for detecting invalid #+roam_tags.
 AST is the org-element parse tree."
   (let (reports)
     (org-element-map ast 'keyword
@@ -125,7 +125,7 @@ AST is the org-element parse tree."
     reports))
 
 (defun org-roam-doctor-check-alias (ast)
-  "Checker for detecting invalid #+ROAM_ALIAS.
+  "Checker for detecting invalid #+roam_alias.
 AST is the org-element parse tree."
   (let (reports)
     (org-element-map ast 'keyword
