@@ -953,12 +953,17 @@ for Org-ref cite links."
 ;;; The global minor org-roam-mode
 (defun org-roam--find-file-hook-function ()
   "Called by `find-file-hook' when mode symbol `org-roam-mode' is on."
-  (when (org-roam--org-roam-file-p)
-    (setq org-roam-last-window (get-buffer-window))
-    (add-hook 'post-command-hook #'org-roam-buffer--update-maybe nil t)
-    (add-hook 'after-save-hook #'org-roam-db--update-file nil t)
-    (org-link-set-parameters "file" :face 'org-roam--roam-link-face :store #'org-roam-store-link)
-    (org-roam-buffer--update-maybe :redisplay t)))
+  (let ((org-id-loc (concat (file-name-as-directory org-roam-directory)
+                            ".org-id-locations")))
+    (when (org-roam--org-roam-file-p)
+      (setq org-roam-last-window (get-buffer-window))
+      (setq-local org-id-link-to-org-use-id t
+                  org-id-track-globally t
+                  org-id-locations-file org-id-loc)
+      (add-hook 'post-command-hook #'org-roam-buffer--update-maybe nil t)
+      (add-hook 'after-save-hook #'org-roam-db--update-file nil t)
+      (org-link-set-parameters "file" :face 'org-roam--roam-link-face :store #'org-roam-store-link)
+      (org-roam-buffer--update-maybe :redisplay t))))
 
 (defun org-roam--delete-file-advice (file &optional _trash)
   "Advice for maintaining cache consistency when FILE is deleted."
