@@ -322,19 +322,21 @@ connections, nil is returned."
                        file)
     (org-roam-db--insert-meta file hash (list :atime atime :mtime mtime))))
 
-(defun org-roam-db--update-titles ()
+(defun org-roam-db--update-titles (ast)
   "Update the title of the current buffer into the cache."
   (let* ((file (file-truename (buffer-file-name)))
-         (title (org-roam--extract-titles)))
+         (title (org-roam--extract-titles ast)))
     (org-roam-db-query [:delete :from titles
                         :where (= file $s1)]
                        file)
     (org-roam-db--insert-titles file title)))
 
-(defun org-roam-db--update-tags ()
-  "Update the tags of the current buffer into the cache."
+(defun org-roam-db--update-tags (&optional ast)
+  "Update the tags of the current buffer into the cache.
+If AST is not nil, it is assumed to be the Org ast of the current buffer."
   (let ((file (file-truename (buffer-file-name)))
-        (tags (org-roam--extract-tags)))
+        (ast  (or ast (org-element-parse-buffer)))
+        (tags (org-roam--extract-tags ast file)))
     (org-roam-db-query [:delete :from tags
                         :where (= file $s1)]
                        file)
@@ -366,13 +368,14 @@ connections, nil is returned."
                         (find-file-noselect file-path t))
                    (current-buffer))))
       (with-current-buffer buf
-        (save-excursion
-          (org-roam-db--update-meta)
-          (org-roam-db--update-tags)
-          (org-roam-db--update-titles)
-          (org-roam-db--update-refs)
-          (org-roam-db--update-cache-links)
-          (org-roam-buffer--update-maybe :redisplay t))))))
+        (let (ast (org-element-parse-buffer))
+          (save-excursion
+            (org-roam-db--update-meta)
+            (org-roam-db--update-tags ast)
+            (org-roam-db--update-titles ast)
+            (org-roam-db--update-refs)
+            (org-roam-db--update-cache-links)
+            (org-roam-buffer--update-maybe :redisplay t)))))))
 
 (defun org-roam-db-build-cache (&optional force)
   "Build the cache for `org-roam-directory'.

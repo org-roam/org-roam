@@ -442,13 +442,13 @@ Use external shell commands if defined in `org-roam-list-files-commands'."
   (org-roam--list-files (file-truename org-roam-directory)))
 
 ;;;; Org extraction functions
-(defun org-roam--extract-global-props (props)
-  "Extract PROPS from the current org buffer.
+(defun org-roam--extract-global-props (props &optional ast)
+  "Extract PROPS from the current org buffer, or provided AST.
 The search terminates when the first property is encountered."
-  (let ((buf (org-element-parse-buffer))
+  (let ((ast (or ast (org-element-parse-buffer)))
         res)
     (dolist (prop props)
-      (let ((p (org-element-map buf 'keyword
+      (let ((p (org-element-map ast 'keyword
                  (lambda (kw)
                    (when (string-equal (org-element-property :key kw) prop)
                      (org-element-property :value kw)))
@@ -532,17 +532,17 @@ it as FILE-PATH."
                         names)))))))
     links))
 
-(defun org-roam--extract-titles-title ()
-  "Return title from \"#+title\" of the current buffer."
-  (let* ((prop (org-roam--extract-global-props '("TITLE")))
+(defun org-roam--extract-titles-title (ast)
+  "Return title from \"#+title\" given the AST of the current buffer."
+  (let* ((prop (org-roam--extract-global-props '("TITLE")) ast)
          (title (cdr (assoc "TITLE" prop))))
     (when title
       (list title))))
 
-(defun org-roam--extract-titles-alias ()
-  "Return the aliases from the current buffer.
+(defun org-roam--extract-titles-alias (ast)
+  "Return the aliases given the AST of the current buffer.
 Reads from the \"roam_alias\" property."
-  (let* ((prop (org-roam--extract-global-props '("ROAM_ALIAS")))
+  (let* ((prop (org-roam--extract-global-props '("ROAM_ALIAS")) ast)
          (aliases (cdr (assoc "ROAM_ALIAS" prop))))
     (condition-case nil
         (org-roam--str-to-list aliases)
@@ -554,10 +554,10 @@ Reads from the \"roam_alias\" property."
                     (buffer-file-name)))
          nil)))))
 
-(defun org-roam--extract-titles-headline ()
-  "Return the first headline of the current buffer."
+(defun org-roam--extract-titles-headline (ast)
+  "Return the first headline given the AST of the current buffer."
   (let ((headline (org-element-map
-                      (org-element-parse-buffer)
+                      ast
                       'headline
                     (lambda (h)
                       (org-no-properties (org-element-property :raw-value h)))
@@ -565,15 +565,15 @@ Reads from the \"roam_alias\" property."
     (when headline
       (list headline))))
 
-(defun org-roam--extract-titles (&optional sources nested)
+(defun org-roam--extract-titles (ast &optional sources nested)
   "Extract the titles from current buffer using SOURCES.
 If NESTED, return the first successful result from SOURCES."
   (let (coll res)
     (cl-dolist (source (or sources
                            org-roam-title-sources))
       (setq res (if (symbolp source)
-                    (funcall (intern (concat "org-roam--extract-titles-" (symbol-name source))))
-                  (org-roam--extract-titles source t)))
+                    (funcall (intern (concat "org-roam--extract-titles-" (symbol-name source))) ast)
+                  (org-roam--extract-titles ast source t)))
       (when res
         (if (not nested)
             (setq coll (nconc coll res))
@@ -581,23 +581,23 @@ If NESTED, return the first successful result from SOURCES."
           (cl-return))))
     coll))
 
-(defun org-roam--extract-tags-all-directories (file)
+(defun org-roam--extract-tags-all-directories (file _ast)
   "Extract tags from using the directory path FILE.
 All sub-directories relative to `org-roam-directory' are used as tags."
   (when-let ((dir-relative (file-name-directory
                             (file-relative-name file org-roam-directory))))
     (f-split dir-relative)))
 
-(defun org-roam--extract-tags-last-directory (file)
+(defun org-roam--extract-tags-last-directory (file _ast)
   "Extract tags from using the directory path FILE.
 The final directory component is used as a tag."
   (when-let ((dir-relative (file-name-directory
                             (file-relative-name file org-roam-directory))))
     (last (f-split dir-relative))))
 
-(defun org-roam--extract-tags-prop (_file)
+(defun org-roam--extract-tags-prop (_file ast)
   "Extract tags from the current buffer's \"#roam_tags\" global property."
-  (let* ((prop (cdr (assoc "ROAM_TAGS" (org-roam--extract-global-props '("ROAM_TAGS"))))))
+  (let* ((prop (cdr (assoc "ROAM_TAGS" (org-roam--extract-global-props '("ROAM_TAGS") ast)))))
     (condition-case nil
         (org-roam--str-to-list prop)
       (error
@@ -608,7 +608,7 @@ The final directory component is used as a tag."
                     (buffer-file-name)))
          nil)))))
 
-(defun org-roam--extract-tags (&optional file)
+(defun org-roam--extract-tags (ast &optional file)
   "Extract tags from the current buffer.
 If file-path FILE, use it to determine the directory tags.
 Tags are obtained via:
@@ -620,7 +620,7 @@ Tags are obtained via:
          (tags (mapcan (lambda (source)
                          (funcall (intern (concat "org-roam--extract-tags-"
                                                   (symbol-name source)))
-                                  file))
+                                  file ast))
                        org-roam-tag-sources)))
     (pcase org-roam-tag-sort
       ('nil tags)

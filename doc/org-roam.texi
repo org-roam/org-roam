@@ -23,7 +23,7 @@ General Public License for more details.
 @end quotation
 @end copying
 
-@dircategory emacs
+@dircategory Emacs
 @direntry
 * Org-roam: (org-roam). Rudimentary Roam Replica for Emacs.
 @end direntry
@@ -433,8 +433,8 @@ is used in place of the titles for completions.
 
 If you wish to add your own title extraction method, you may push a symbol
 @samp{'foo} into @samp{org-roam-title-sources}, and define a
-@samp{org-roam--extract-titles-foo} which accepts no arguments. See
-@samp{org-roam--extract-titles-title} for an example.
+@samp{org-roam--extract-titles-foo} which accepts the AST of the current buffer as
+argument. See @samp{org-roam--extract-titles-title} for an example.
 
 @node Tags
 @section Tags
@@ -469,8 +469,8 @@ extraction methods, you may modify @samp{org-roam-tag-sources}:
 
 If you wish to add your own tag extraction method, you may push a symbol @samp{'foo}
 into @samp{org-roam-tag-sources}, and define a @samp{org-roam--extract-tags-foo} which
-accepts the absolute file path as its argument. See
-@samp{org-roam--extract-tags-prop} for an example.
+accepts the absolute file path, and the AST of the current buffer as its
+argument. See @samp{org-roam--extract-tags-prop} for an example.
 
 @node File Refs
 @section File Refs
