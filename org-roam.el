@@ -952,8 +952,11 @@ for Org-ref cite links."
 
 (defun org-roam-store-link (arg)
   (interactive "p")
-  (let ((org-id-link-to-org-use-id t)
-        (org-id-track-globally t))
+  (cl-letf* (((symbol-function 'org-id-add-location)
+              (lambda (&rest args)
+                (message "Successfully nuked")))
+             (org-id-link-to-org-use-id t)
+             (org-id-track-globally t))
     (org-store-link arg)))
 
 ;;; The global minor org-roam-mode
