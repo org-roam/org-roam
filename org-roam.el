@@ -941,7 +941,7 @@ for Org-ref cite links."
                       :order-by (asc from)]
                      target))
 
-(defun org-roam-store-link ()
+(defun org-roam-store-file-link ()
   "Store a link to an `org-roam' file."
   (when (org-before-first-heading-p)
     (when-let ((title (cdr (assoc "TITLE" (org-roam--extract-global-props '("TITLE"))))))
@@ -950,20 +950,22 @@ for Org-ref cite links."
        :link        (format "file:%s" (abbreviate-file-name buffer-file-name))
        :description title))))
 
+(defun org-roam-store-link (arg)
+  (interactive "p")
+  (let ((org-id-link-to-org-use-id t)
+        (org-id-track-globally t))
+    (org-store-link arg)))
+
 ;;; The global minor org-roam-mode
 (defun org-roam--find-file-hook-function ()
   "Called by `find-file-hook' when mode symbol `org-roam-mode' is on."
-  (let ((org-id-loc (concat (file-name-as-directory org-roam-directory)
-                            ".org-id-locations")))
-    (when (org-roam--org-roam-file-p)
-      (setq org-roam-last-window (get-buffer-window))
-      (setq-local org-id-link-to-org-use-id t
-                  org-id-track-globally t
-                  org-id-locations-file org-id-loc)
-      (add-hook 'post-command-hook #'org-roam-buffer--update-maybe nil t)
-      (add-hook 'after-save-hook #'org-roam-db--update-file nil t)
-      (org-link-set-parameters "file" :face 'org-roam--roam-link-face :store #'org-roam-store-link)
-      (org-roam-buffer--update-maybe :redisplay t))))
+  (when (org-roam--org-roam-file-p)
+    (setq org-roam-last-window (get-buffer-window))
+    (define-key (current-local-map) [remap org-store-link] 'org-roam-store-link)
+    (add-hook 'post-command-hook #'org-roam-buffer--update-maybe nil t)
+    (add-hook 'after-save-hook #'org-roam-db--update-file nil t)
+    (org-link-set-parameters "file" :face 'org-roam--roam-link-face :store #'org-roam-store-file-link)
+    (org-roam-buffer--update-maybe :redisplay t)))
 
 (defun org-roam--delete-file-advice (file &optional _trash)
   "Advice for maintaining cache consistency when FILE is deleted."
