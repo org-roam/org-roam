@@ -120,6 +120,10 @@ SQL can be either the emacsql vector representation, or a string."
       (hash :not-null)
       (meta :not-null)])
 
+    (headlines
+     [(id :unique :primary-key)
+      (file :not-null)])
+
     (links
      [(from :not-null)
       (to :not-null)
@@ -223,6 +227,13 @@ This is equivalent to removing the node from the graph."
    [:insert :into titles
     :values $v1]
    (list (vector file titles))))
+
+(defun org-roam-db--insert-headlines (headlines)
+  "Insert TITLES for a FILE into the Org-roam cache."
+  (org-roam-db-query
+   [:insert :into headlines
+    :values $v1]
+   headlines))
 
 (defun org-roam-db--insert-tags (file tags)
   "Insert TAGS for a FILE into the Org-roam cache."
@@ -359,6 +370,16 @@ connections, nil is returned."
     (when-let ((links (org-roam--extract-links)))
       (org-roam-db--insert-links links))))
 
+(defun org-roam-db--update-cache-headlines ()
+  "Update the file headlines of the current buffer into the cache."
+  (let* ((file (file-truename (buffer-file-name)))
+         (headlines (org-roam--extract-headlines)))
+    (org-roam-db-query [:delete :from headlines
+                        :where (= file $s1)]
+                       file)
+    (when-let ((headlines (org-roam--extract-headlines)))
+        (org-roam-db--insert-headlines headlines))))
+
 (defun org-roam-db--update-file (&optional file-path)
   "Update Org-roam cache for FILE-PATH."
   (when (org-roam--org-roam-file-p file-path)
@@ -372,6 +393,7 @@ connections, nil is returned."
           (org-roam-db--update-titles)
           (org-roam-db--update-refs)
           (org-roam-db--update-cache-links)
+          (org-roam-db--update-cache-headlines)
           (org-roam-buffer--update-maybe :redisplay t))))))
 
 (defun org-roam-db-build-cache (&optional force)
@@ -383,7 +405,7 @@ If FORCE, force a rebuild of the cache from scratch."
   (org-roam-db) ;; To initialize the database, no-op if already initialized
   (let* ((org-roam-files (org-roam--list-all-files))
          (current-files (org-roam-db--get-current-files))
-         all-files all-links all-titles all-refs all-tags)
+         all-files all-headlines all-links all-titles all-refs all-tags)
     (dolist (file org-roam-files)
       (let* ((attr (file-attributes file))
              (atime (file-attribute-access-time attr))
@@ -395,6 +417,8 @@ If FORCE, force a rebuild of the cache from scratch."
               (org-roam-db--clear-file file)
               (push (vector file contents-hash (list :atime atime :mtime mtime))
                     all-files)
+              (when-let (headlines (org-roam--extract-headlines file))
+                (push headlines all-headlines))
               (when-let (links (org-roam--extract-links file))
                 (push links all-links))
               (when-let (tags (org-roam--extract-tags file))
@@ -415,6 +439,11 @@ If FORCE, force a rebuild of the cache from scratch."
        [:insert :into files
         :values $v1]
        all-files))
+    (when all-headlines
+      (org-roam-db-query
+       [:insert :into headlines
+        :values $v1]
+       all-headlines))
     (when all-links
       (org-roam-db-query
        [:insert :into links

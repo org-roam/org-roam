@@ -531,6 +531,21 @@ it as FILE-PATH."
                         names)))))))
     links))
 
+(defun org-roam--extract-headlines (&optional file-path)
+  "Extract all headlines with IDs within the current-buffer."
+  (let ((file-path (or file-path
+                       (file-truename (buffer-file-name)))))
+    (org-element-map (org-element-parse-buffer) 'node-property
+      (lambda (node-property)
+        (let ((key (org-element-property :key node-property))
+              (value (org-element-property :value node-property)))
+          (when (string= key "ID")
+            (let* ((id value)
+                   (mtime (current-time))
+                   (data (vector id
+                                 file-path)))
+              data)))))))
+
 (defun org-roam--extract-titles-title ()
   "Return title from \"#+title\" of the current buffer."
   (let* ((prop (org-roam--extract-global-props '("TITLE")))
@@ -952,8 +967,20 @@ for Org-ref cite links."
 
 (defun org-roam-store-link (arg)
   (interactive "p")
-  (let ((org-id-link-to-org-use-id t))
-    (org-store-link arg)))
+  (let ((org-id-link-to-org-use-id t)
+        (file (buffer-file-name (buffer-base-buffer)))
+        (id (org-id-get)))
+    (org-store-link arg)
+    (unless id
+      (let* ((id (org-id-get))
+             (data (vector id
+                           file)))
+        ;; (org-roam-db-query [:delete :from headlines
+        ;;                     :where (= id $s1)]
+        ;;                    id)
+        (org-roam-db-query [:insert :into headlines
+                            :values $v1]
+                           data)))))
 
 ;;; The global minor org-roam-mode
 (defun org-roam--find-file-hook-function ()
