@@ -975,9 +975,6 @@ for Org-ref cite links."
       (let* ((id (org-id-get))
              (data (vector id
                            file)))
-        ;; (org-roam-db-query [:delete :from headlines
-        ;;                     :where (= id $s1)]
-        ;;                    id)
         (org-roam-db-query [:insert :into headlines
                             :values $v1]
                            data)))))
