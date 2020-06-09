@@ -1023,6 +1023,10 @@ All files within that directory will be treated as their own separate
 set of Org-roam files. Remember to run =org-roam-db-build-cache= from a
 file within that directory, at least once.
 
+** How do I migrate from Roam Research?
+
+Fabio has produced a command-line tool that converts markdown files exported from Roam Research into Org-roam compatible markdown. More instructions are provided [[https://github.com/fabioberger/roam-migration][in the repository]].
+
 # Local Variables:
 # eval: (require 'ol-info)
 # before-save-hook: org-make-toc
