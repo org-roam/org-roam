@@ -83,14 +83,11 @@ Previous: <a href="The-roam_002dfile-protocol.html#The-roam_002dfile-protocol" a
 + encodeURIComponent(document.title)
 </pre></div>
 
-<p>or as a keybinding in <code>qutebrowser</code>, adding the following to the <code>autoconfig.yml</code> file:
+<p>or as a keybinding in <code>qutebrowser</code> in , using the <code>config.py</code> file (see
+<a href="https://github.com/qutebrowser/qutebrowser/blob/master/doc/help/configuring.asciidoc">Configuring qutebrowser</a>):
 </p>
 <div class="example">
-<pre class="example">settings:
-  bindings.commands:
-    global:
-      normal:
-        gc: open javascript:void(location.href='org-protocol://roam-ref?template=r&amp;ref='+encodeURIComponent(location.href)+'&amp;title='+encodeURIComponent(document.title))
+<pre class="example">config.bind(&quot;&lt;Ctrl-r&gt;&quot;, &quot;spawn bash -c 'emacsclient \&quot;org-protocol://roam-ref?template=r&amp;ref={url:pretty}&amp;title={title}\&quot; '&quot;)
 </pre></div>
 
 <p>where <code>template</code> is the template key for a template in

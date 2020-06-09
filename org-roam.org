@@ -770,14 +770,11 @@ javascript:location.href =
 + encodeURIComponent(document.title)
 #+END_SRC
 
-or as a keybinding in ~qutebrowser~, adding the following to the ~autoconfig.yml~ file:
+or as a keybinding in ~qutebrowser~ in , using the ~config.py~ file (see
+[[https://github.com/qutebrowser/qutebrowser/blob/master/doc/help/configuring.asciidoc][Configuring qutebrowser]]):
 
-#+BEGIN_SRC yaml
-settings:
-  bindings.commands:
-    global:
-      normal:
-        gc: open javascript:void(location.href='org-protocol://roam-ref?template=r&ref='+encodeURIComponent(location.href)+'&title='+encodeURIComponent(document.title))
+#+BEGIN_SRC python
+config.bind("<Ctrl-r>", "spawn bash -c 'emacsclient \"org-protocol://roam-ref?template=r&ref={url:pretty}&title={title}\" '")
 #+END_SRC
 
 where ~template~ is the template key for a template in
