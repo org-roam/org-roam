@@ -1274,14 +1274,16 @@ M-x info for more information at Org-roam > Installation > Post-Installation Tas
     (insert (format "- Org-roam: %s" (org-roam-version)))))
 
 ;;;###autoload
-(defun org-roam-find-file (&optional initial-prompt completions filter-fn)
+(defun org-roam-find-file (&optional initial-prompt completions filter-fn other-window)
   "Find and open an Org-roam file.
 INITIAL-PROMPT is the initial title prompt.
 COMPLETIONS is a list of completions to be used instead of
 `org-roam--get-title-path-completions`.
 FILTER-FN is the name of a function to apply on the candidates
 which takes as its argument an alist of path-completions.  See
-`org-roam--get-title-path-completions' for details."
+`org-roam--get-title-path-completions' for details.
+If OTHER-WINDOW is non-nil, open the buffer in another window similarly to
+`find-file-other-window`"
   (interactive)
   (unless org-roam-mode (org-roam-mode))
   (when (org-roam-capture--in-process-p) (user-error "Org-roam capture in process"))
@@ -1292,7 +1294,9 @@ which takes as its argument an alist of path-completions.  See
          (res (cdr (assoc title-with-tags completions)))
          (file-path (plist-get res :path)))
     (if file-path
-        (find-file file-path)
+        (if other-window
+            (find-file-other-window file-path)
+          (find-file file-path))
       (let ((org-roam-capture--info `((title . ,title-with-tags)
                                       (slug  . ,(org-roam--title-to-slug title-with-tags))))
             (org-roam-capture--context 'title))
