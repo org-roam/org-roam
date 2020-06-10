@@ -974,7 +974,7 @@ automatic creation of :ID: properties."
         (file (buffer-file-name (buffer-base-buffer)))
         (id (org-id-get)))
     (org-store-link arg)
-    (unless id
+    (when id
       (let* ((id (org-id-get))
              (data (vector id
                            file)))
