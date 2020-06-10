@@ -980,13 +980,17 @@ for Org-ref cite links."
 This commands is a wrapper for `org-store-link' which forces the
 automatic creation of :ID: properties."
   (interactive "P\np")
-  (let ((org-id-link-to-org-use-id t)
-        (file (buffer-file-name (buffer-base-buffer)))
-        (id (org-id-get)))
-    (org-store-link arg interactive?)
-    ;; If :ID: was created, update the cache
-    (unless id
-      (org-roam-db--update-cache-headlines))))
+  (let ((fun (lambda ()
+               (org-store-link arg interactive?))))
+    (if (org-roam--org-roam-file-p)
+        (let ((org-id-link-to-org-use-id t)
+              (file (buffer-file-name (buffer-base-buffer)))
+              (id (org-id-get)))
+          (funcall fun)
+          ;; If :ID: was created, update the cache
+          (unless id
+            (org-roam-db--update-cache-headlines)))
+      (funcall fun))))
 
 (defun org-roam-id-find (id &optional markerp)
   "Find ID in Org-roam's database.
@@ -1032,8 +1036,6 @@ behaviour to work with Org-roam."
   "Called by `find-file-hook' when mode symbol `org-roam-mode' is on."
   (when (org-roam--org-roam-file-p)
     (setq org-roam-last-window (get-buffer-window))
-    (define-key (current-local-map) [remap org-store-link] 'org-roam-store-link)
-    (define-key (current-local-map) [remap org-open-at-point] 'org-roam-open-at-point)
     (add-hook 'post-command-hook #'org-roam-buffer--update-maybe nil t)
     (add-hook 'after-save-hook #'org-roam-db--update-file nil t)
     (org-link-set-parameters "file" :face 'org-roam--roam-link-face :store #'org-roam-store-file-link)
@@ -1177,12 +1179,16 @@ M-x info for more information at Org-roam > Installation > Post-Installation Tas
     (add-hook 'kill-emacs-hook #'org-roam-db--close-all)
     (advice-add 'rename-file :after #'org-roam--rename-file-advice)
     (advice-add 'delete-file :before #'org-roam--delete-file-advice)
+    (define-key org-roam-mode-map [remap org-store-link] 'org-roam-store-link)
+    (define-key org-roam-mode-map [remap org-open-at-point] 'org-roam-open-at-point)
     (org-roam-db-build-cache))
    (t
     (remove-hook 'find-file-hook #'org-roam--find-file-hook-function)
     (remove-hook 'kill-emacs-hook #'org-roam-db--close-all)
     (advice-remove 'rename-file #'org-roam--rename-file-advice)
     (advice-remove 'delete-file #'org-roam--delete-file-advice)
+    (define-key org-roam-mode-map [remap org-store-link] 'org-roam-store-link)
+    (define-key org-roam-mode-map [remap org-open-at-point] 'org-roam-open-at-point)
     (org-roam-db--close-all)
     ;; Disable local hooks for all org-roam buffers
     (dolist (buf (org-roam--get-roam-buffers))
