@@ -991,22 +991,25 @@ for Org-ref cite links."
        :link        (format "file:%s" (abbreviate-file-name buffer-file-name))
        :description title))))
 
+(defun org-roam--store-link (arg &optional interactive?)
+  "Store a link to the current location within Org-roam.
+See `org-roam-store-link' for details."
+  (let ((org-id-link-to-org-use-id t)
+        (file (buffer-file-name (buffer-base-buffer)))
+        (id (org-id-get)))
+    (org-store-link arg interactive?)
+    ;; If :ID: was created, update the cache
+    (unless id
+      (org-roam-db--update-cache-headlines))))
+
 (defun org-roam-store-link (arg &optional interactive?)
   "Store a link to the current location.
 This commands is a wrapper for `org-store-link' which forces the
 automatic creation of :ID: properties."
   (interactive "P\np")
-  (let ((fun (lambda ()
-               (org-store-link arg interactive?))))
-    (if (org-roam--org-roam-file-p)
-        (let ((org-id-link-to-org-use-id t)
-              (file (buffer-file-name (buffer-base-buffer)))
-              (id (org-id-get)))
-          (funcall fun)
-          ;; If :ID: was created, update the cache
-          (unless id
-            (org-roam-db--update-cache-headlines)))
-      (funcall fun))))
+  (if (org-roam--org-roam-file-p)
+      (org-roam--store-link arg interactive?)
+    (org-store-link arg interactive?)))
 
 (defun org-roam-id-find (id &optional markerp)
   "Find ID in Org-roam's database.
