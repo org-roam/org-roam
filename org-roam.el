@@ -1049,7 +1049,7 @@ behaviour to work with Org-roam."
                 (unless (and (org-roam-id-open id)
                              org-id-track-globally)
                   (when (y-or-n-p (concat "ID was not found in `org-roam-directory' nor in `org-id-locations'.\n"
-                                          "Search externally with `org-id-goto'? "))
+                                          "Search in `org-id-files'? "))
                     (funcall orig-fun id))))))
     (org-open-at-point arg)))
 
