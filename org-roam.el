@@ -979,12 +979,50 @@ automatic creation of :ID: properties."
     (unless id
       (org-roam-db--update-cache-headlines))))
 
+(defun org-roam-id-find (id &optional markerp)
+  "Find ID in Org-roam's database.
+When MARKERP is non-nil, return a marker pointing to the
+headline. Otherwise, return a cons formatted as \(file . pos)."
+  (let ((file (caar (org-roam-db-query [:select [file]
+                                        :from headlines
+                                        :where (= id $s1)]
+                                       id))))
+    (org-id-find-id-in-file id file (when markerp t))))
+
+(defun org-roam-id-open (id-or-marker)
+  "Go to the entry with ID-OR-MARKER.
+Wrapper for `org-id-open' which tries to find the ID in the
+Org-roam's database.
+ID-OR-MARKER can either be the ID of the entry or the marker
+pointing to it if it has already been computed by
+`org-roam-id-find'. If the ID-OR-MARKER is not found, it reverts
+to the default behaviour of `org-id-open'."
+  (when-let ((marker (if (markerp id-or-marker)
+                         id-or-marker
+                       (org-roam-id-find id t))))
+    (org-goto-marker-or-bmk marker)
+    (set-marker marker nil)))
+
+(defun org-roam-open-at-point (&optional arg)
+  "Open link, timestamp, footnote or tags at point.
+Wrapper for `org-open-at-point' which modifies some of its nested
+behaviour to work with Org-roam."
+  (interactive "P")
+  (cl-letf* ((orig-fun (symbol-function 'org-id-open))
+             ((symbol-function 'org-id-open)
+              (lambda (id)
+                (if-let ((marker (org-roam-id-find id t)))
+                    (org-roam-id-open marker)
+                  (org-id-find id)))))
+    (org-open-at-point arg)))
+
 ;;; The global minor org-roam-mode
 (defun org-roam--find-file-hook-function ()
   "Called by `find-file-hook' when mode symbol `org-roam-mode' is on."
   (when (org-roam--org-roam-file-p)
     (setq org-roam-last-window (get-buffer-window))
     (define-key (current-local-map) [remap org-store-link] 'org-roam-store-link)
+    (define-key (current-local-map) [remap org-open-at-point] 'org-roam-open-at-point)
     (add-hook 'post-command-hook #'org-roam-buffer--update-maybe nil t)
     (add-hook 'after-save-hook #'org-roam-db--update-file nil t)
     (org-link-set-parameters "file" :face 'org-roam--roam-link-face :store #'org-roam-store-file-link)
