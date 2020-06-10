@@ -58,6 +58,7 @@ Here's a sample configuration with using `use-package`:
       :bind (:map org-roam-mode-map
               (("C-c n l" . org-roam)
                ("C-c n f" . org-roam-find-file)
+               ("C-x 4 C-c n f" . org-roam-find-file-other-window)
                ("C-c n g" . org-roam-show-graph))
               :map org-mode-map
               (("C-c n i" . org-roam-insert))))
