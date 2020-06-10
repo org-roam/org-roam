@@ -1420,8 +1420,10 @@ See `org-roam-jump-to-index`"
   (org-roam-jump-to-index t))
 
 ;;;###autoload
-(defun org-roam-switch-to-buffer ()
-  "Switch to an existing Org-roam buffer."
+(defun org-roam-switch-to-buffer (&optional other-window)
+  "Switch to an existing Org-roam buffer.
+If OTHER-WINDOW is non-nil, open it in another window similarly to
+`find-file-other-window`"
   (interactive)
   (let* ((roam-buffers (org-roam--get-roam-buffers))
          (names-and-buffers (mapcar (lambda (buffer)
@@ -1434,7 +1436,10 @@ See `org-roam-jump-to-index`"
       (user-error "No roam buffers"))
     (when-let ((name (org-roam-completion--completing-read "Buffer: " names-and-buffers
                                                            :require-match t)))
-      (switch-to-buffer (cdr (assoc name names-and-buffers))))))
+      (let  ((buffer (cdr (assoc name names-and-buffers))))
+        (if other-window
+            (switch-to-buffer-other-window buffer)
+          (switch-to-buffer buffer))))))
 
 (defun org-roam--execute-file-row-col (s)
   "Move to row:col if S match the row:col syntax. To be used with `org-execute-file-search-functions'."
