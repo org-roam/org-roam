@@ -465,13 +465,15 @@ If FORCE, force a rebuild of the cache from scratch."
         :values $v1]
        all-refs))
     (let ((stats (list :files (length all-files)
+                       :headlines (length all-headlines)
                        :links (length all-links)
                        :tags (length all-tags)
                        :titles (length all-titles)
                        :refs (length all-refs)
                        :deleted (length (hash-table-keys current-files)))))
-      (org-roam-message "files: %s, links: %s, tags: %s, titles: %s, refs: %s, deleted: %s"
+      (org-roam-message "files: %s, headlines: %s, links: %s, tags: %s, titles: %s, refs: %s, deleted: %s"
                         (plist-get stats :files)
+                        (plist-get stats :headlines)
                         (plist-get stats :links)
                         (plist-get stats :tags)
                         (plist-get stats :titles)
