@@ -982,7 +982,7 @@ for Org-ref cite links."
                       :order-by (asc from)]
                      target))
 
-(defun org-roam-store-file-link ()
+(defun org-roam-store-link-file ()
   "Store a link to an `org-roam' file."
   (when (org-before-first-heading-p)
     (when-let ((title (cdr (assoc "TITLE" (org-roam--extract-global-props '("TITLE"))))))
@@ -1054,7 +1054,7 @@ behaviour to work with Org-roam."
     (setq org-roam-last-window (get-buffer-window))
     (add-hook 'post-command-hook #'org-roam-buffer--update-maybe nil t)
     (add-hook 'after-save-hook #'org-roam-db--update-file nil t)
-    (org-link-set-parameters "file" :face 'org-roam--roam-link-face-file :store #'org-roam-store-file-link)
+    (org-link-set-parameters "file" :face 'org-roam--roam-link-face-file :store #'org-roam-store-link-file)
     (org-link-set-parameters "id" :face 'org-roam--roam-link-face-id)
     (org-roam-buffer--update-maybe :redisplay t)))
 
