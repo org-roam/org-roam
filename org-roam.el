@@ -532,7 +532,8 @@ it as FILE-PATH."
     links))
 
 (defun org-roam--extract-headlines (&optional file-path)
-  "Extract all headlines with IDs within the current-buffer."
+  "Extract all headlines with IDs within the current-buffer.
+If FILE-PATH is nil, use the current file."
   (let ((file-path (or file-path
                        (file-truename (buffer-file-name)))))
     (org-element-map (org-element-parse-buffer) 'node-property
