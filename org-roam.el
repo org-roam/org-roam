@@ -966,6 +966,9 @@ for Org-ref cite links."
        :description title))))
 
 (defun org-roam-store-link (arg)
+  "Store a link to the current location.
+This commands is a wrapper for `org-store-link' which forces the
+automatic creation of :ID: properties."
   (interactive "p")
   (let ((org-id-link-to-org-use-id t)
         (file (buffer-file-name (buffer-base-buffer)))
