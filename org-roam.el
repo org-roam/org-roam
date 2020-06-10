@@ -313,6 +313,15 @@ If FILE is not specified, use the current buffer's file-path."
          (f-descendant-of-p (file-truename path)
                             (file-truename org-roam-directory))))))
 
+(defun org-roam--org-roam-headline-p (&optional id)
+  "Return t if ID is part of Org-rroam system, nil otherwise.
+If ID is not specified, use the ID of the entry at point."
+  (if-let ((id (or id
+                   (org-id-get))))
+      (org-roam-db-query [:select [file] :from headlines
+                          :where (= id $s1)]
+                         id)))
+
 (defun org-roam--shell-command-files (cmd)
   "Run CMD in the shell and return a list of files. If no files are found, an empty list is returned."
   (--> cmd
