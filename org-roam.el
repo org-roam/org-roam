@@ -504,9 +504,13 @@ it as FILE-PATH."
         (let* ((type (org-element-property :type link))
                (path (org-element-property :path link))
                (start (org-element-property :begin link))
+               (id-data (org-roam-id-find path))
                (link-type (cond ((and (string= type "file")
                                       (org-roam--org-file-p path))
                                  "roam")
+                                ((and (string= type "id")
+                                      id-data)
+                                 "roam-id")
                                 ((and
                                   (require 'org-ref nil t)
                                   (-contains? org-ref-cite-types type))
@@ -529,6 +533,8 @@ it as FILE-PATH."
                     (names (pcase link-type
                              ("roam"
                               (list (file-truename (expand-file-name path (file-name-directory file-path)))))
+                             ("roam-id"
+                              (list (car id-data)))
                              ("cite"
                               (org-ref-split-and-strip-string path)))))
                 (seq-do (lambda (name)
