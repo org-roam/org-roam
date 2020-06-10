@@ -975,6 +975,7 @@ automatic creation of :ID: properties."
         (file (buffer-file-name (buffer-base-buffer)))
         (id (org-id-get)))
     (org-store-link arg interactive?)
+    ;; If :ID: was created, update the cache
     (unless id
       (org-roam-db--update-cache-headlines))))
 
