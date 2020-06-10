@@ -1395,20 +1395,22 @@ If DESCRIPTION is provided, use this as the link label.  See
           (org-roam-capture--capture))))))
 
 ;;;###autoload
-(defun org-roam-jump-to-index ()
+(defun org-roam-jump-to-index (&optional other-window)
   "Find the index file in `org-roam-directory'.
 The path to the index can be defined in `org-roam-index-file'.
 Otherwise, the function will look in your `org-roam-directory'
 for a note whose title is 'Index'.  If it does not exist, the
-command will offer you to create one."
+command will offer you to create one.
+If OTHER-WINDOW is non-nil, open the buffer in another window similarly to
+`find-file-other-window`"
   (interactive)
   (unless org-roam-mode (org-roam-mode))
   (let ((index (org-roam--get-index-path)))
     (if (and index
              (file-exists-p index))
-        (find-file index)
+        (if other-window (find-file-other-window index) (find-file index))
       (when (y-or-n-p "Index file does not exist.  Would you like to create it? ")
-        (org-roam-find-file "Index")))))
+        (org-roam-find-file "Index" nil nil other-window)))))
 
 ;;;###autoload
 (defun org-roam-switch-to-buffer ()
