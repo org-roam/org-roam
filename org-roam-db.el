@@ -229,7 +229,7 @@ This is equivalent to removing the node from the graph."
    (list (vector file titles))))
 
 (defun org-roam-db--insert-headlines (headlines)
-  "Insert TITLES for a FILE into the Org-roam cache."
+  "Insert HEADLINES for a FILE into the Org-roam cache."
   (org-roam-db-query
    [:insert :into headlines
     :values $v1]
