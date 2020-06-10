@@ -94,7 +94,7 @@ AST is the org-element parse tree."
       (lambda (kw)
         (let ((key (org-element-property :key kw)))
           (when (and (string-prefix-p "ROAM_" key t)
-                     (not (member key org-roam-doctor--supported-roam-properties)))
+                     (not (member (downcase key) org-roam-doctor--supported-roam-properties)))
             (push
              `(,(org-element-property :begin kw)
                ,(concat "Possible mispelled key: "
