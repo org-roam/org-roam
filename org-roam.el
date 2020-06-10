@@ -1046,10 +1046,10 @@ behaviour to work with Org-roam."
   (cl-letf* ((orig-fun (symbol-function 'org-id-open))
              ((symbol-function 'org-id-open)
               (lambda (id)
-                (unless (and (org-roam-id-open id)
-                             org-id-track-globally)
-                  (when (y-or-n-p (concat "ID was not found in `org-roam-directory' nor in `org-id-locations'.\n"
-                                          "Search in `org-id-files'? "))
+                (unless (org-roam-id-open id)
+                  (when (and org-id-track-globally
+                             (y-or-n-p (concat "ID was not found in `org-roam-directory' nor in `org-id-locations'.\n"
+                                               "Search in `org-id-files'? ")))
                     (funcall orig-fun id))))))
     (org-open-at-point arg)))
 
