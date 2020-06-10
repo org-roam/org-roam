@@ -979,9 +979,7 @@ automatic creation of :ID: properties."
       (let* ((id (org-id-get))
              (data (vector id
                            file)))
-        (org-roam-db-query [:insert :into headlines
-                            :values $v1]
-                           data)))))
+        (org-roam-db--insert-headlines data)))))
 
 ;;; The global minor org-roam-mode
 (defun org-roam--find-file-hook-function ()
