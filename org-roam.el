@@ -1305,6 +1305,18 @@ If OTHER-WINDOW is non-nil, open the buffer in another window similarly to
           (org-roam-capture--capture))))))
 
 ;;;###autoload
+(defun org-roam-find-file-other-window (&optional initial-prompt completions filter-fn)
+  "Find and open an Org-roam file in another window.
+INITIAL-PROMPT is the initial title prompt.
+COMPLETIONS is a list of completions to be used instead of
+`org-roam--get-title-path-completions`.
+FILTER-FN is the name of a function to apply on the candidates
+which takes as its argument an alist of path-completions.  See
+`org-roam--get-title-path-completions' for details."
+  (interactive)
+  (org-roam-find-file initial-prompt completions filter-fn t))
+
+;;;###autoload
 (defun org-roam-find-directory ()
   "Find and open `org-roam-directory'."
   (interactive)
