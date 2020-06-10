@@ -1524,6 +1524,12 @@ linked, lest the network graph get too crowded."
 
 
 ;;;###autoload
+(defun org-roam-switch-to-buffer-other-window ()
+  "Switch to an existing Org-roam buffer in another window."
+  (interactive)
+  (org-roam-switch-to-buffer t))
+
+;;;###autoload
 (defun org-roam-version (&optional message)
   "Return `org-roam' version.
 Interactively, or when MESSAGE is non-nil, show in the echo area."
