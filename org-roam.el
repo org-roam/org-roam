@@ -932,8 +932,7 @@ file."
     (cond ((org-roam--org-roam-headline-p id)
            'org-roam-link)
           ((and org-id-track-globally
-                table
-                (not (gethash id table)))
+                (not (org-roam-id-find id)))
            'org-roam-link-invalid)
           (t
            'org-link))))
@@ -1011,17 +1010,21 @@ automatic creation of :ID: properties."
       (org-roam--store-link arg interactive?)
     (org-store-link arg interactive?)))
 
-(defun org-roam-id-find (id &optional markerp)
-  "Find ID in Org-roam's database.
-When MARKERP is non-nil, return a marker pointing to the
-headline. Otherwise, return a cons formatted as \(file . pos)."
-  (let ((file (caar (org-roam-db-query [:select [file]
-                                        :from headlines
-                                        :where (= id $s1)]
-                                       id))))
-    (org-id-find-id-in-file id file (when markerp t))))
+(defun org-roam-id-find (id &optional markerp strict)
+  "Return the location of the entry with the id ID.
+When MARKERP is non-nil, return a marker pointing to theheadline.
+Otherwise, return a cons formatted as \(file . pos).
+When STRICT is non-nil, only consider Org-roam’s database."
+  (let ((file (or (caar (org-roam-db-query [:select [file]
+                                            :from headlines
+                                            :where (= id $s1)]
+                                           id))
+                  (unless strict
+                    (org-id-find-id-file id)))))
+    (when file
+      (org-id-find-id-in-file id file markerp))))
 
-(defun org-roam-id-open (id-or-marker)
+(defun org-roam-id-open (id-or-marker &optional strict)
   "Go to the entry with ID-OR-MARKER.
 Wrapper for `org-id-open' which tries to find the ID in the
 Org-roam's database.
@@ -1031,7 +1034,7 @@ pointing to it if it has already been computed by
 to the default behaviour of `org-id-open'."
   (when-let ((marker (if (markerp id-or-marker)
                          id-or-marker
-                       (org-roam-id-find id-or-marker t))))
+                       (org-roam-id-find id-or-marker t strict))))
     (org-goto-marker-or-bmk marker)
     (set-marker marker nil)))
 
@@ -1043,11 +1046,11 @@ behaviour to work with Org-roam."
   (cl-letf* ((orig-fun (symbol-function 'org-id-open))
              ((symbol-function 'org-id-open)
               (lambda (id)
-                (if-let ((marker (org-roam-id-find id t)))
-                    (org-roam-id-open marker)
-                  (when (y-or-n-p (concat "ID was not found in `org-roam-directory'.\n"
+                (unless (and (org-roam-id-open id)
+                             org-id-track-globally)
+                  (when (y-or-n-p (concat "ID was not found in `org-roam-directory' nor in `org-id-locations'.\n"
                                           "Search externally with `org-id-goto'? "))
-                      (org-id-find id))))))
+                    (funcall orig-fun id))))))
     (org-open-at-point arg)))
 
 ;;; The global minor org-roam-mode
