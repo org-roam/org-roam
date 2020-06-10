@@ -999,7 +999,7 @@ pointing to it if it has already been computed by
 to the default behaviour of `org-id-open'."
   (when-let ((marker (if (markerp id-or-marker)
                          id-or-marker
-                       (org-roam-id-find id t))))
+                       (org-roam-id-find id-or-marker t))))
     (org-goto-marker-or-bmk marker)
     (set-marker marker nil)))
 
