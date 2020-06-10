@@ -976,10 +976,7 @@ automatic creation of :ID: properties."
         (id (org-id-get)))
     (org-store-link arg interactive?)
     (unless id
-      (let* ((id (org-id-get))
-             (data (vector id
-                           file)))
-        (org-roam-db--insert-headlines data)))))
+      (org-roam-db--update-cache-headlines))))
 
 ;;; The global minor org-roam-mode
 (defun org-roam--find-file-hook-function ()
