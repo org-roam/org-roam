@@ -1210,8 +1210,8 @@ M-x info for more information at Org-roam > Installation > Post-Installation Tas
     (remove-hook 'kill-emacs-hook #'org-roam-db--close-all)
     (advice-remove 'rename-file #'org-roam--rename-file-advice)
     (advice-remove 'delete-file #'org-roam--delete-file-advice)
-    (define-key org-roam-mode-map [remap org-store-link] 'org-roam-store-link)
-    (define-key org-roam-mode-map [remap org-open-at-point] 'org-roam-open-at-point)
+    (define-key org-roam-mode-map [remap org-store-link] nil)
+    (define-key org-roam-mode-map [remap org-open-at-point] nil)
     (org-roam-db--close-all)
     ;; Disable local hooks for all org-roam buffers
     (dolist (buf (org-roam--get-roam-buffers))
