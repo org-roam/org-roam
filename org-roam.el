@@ -906,7 +906,7 @@ buffer or a marker."
         (backlink-dest (org-roam--retrieve-link-path)))
     (string= current backlink-dest)))
 
-(defun org-roam--roam-link-face (path)
+(defun org-roam--roam-link-face-file (path)
   "Conditional face for org file links.
 Applies `org-roam-link-current' if PATH corresponds to the
 currently opened Org-roam file in the backlink buffer, or
@@ -921,6 +921,22 @@ file."
          'org-roam-link)
         (t
          'org-link)))
+
+(defun org-roam--roam-link-face-id (id)
+  "Conditional face for org file links.
+Applies `org-roam-link-current' if PATH corresponds to the
+currently opened Org-roam file in the backlink buffer, or
+`org-roam-link-face' if PATH corresponds to any other Org-roam
+file."
+  (let ((table org-id-locations))
+    (cond ((org-roam--org-roam-headline-p id)
+           'org-roam-link)
+          ((and org-id-track-globally
+                table
+                (not (gethash id table)))
+           'org-roam-link-invalid)
+          (t
+           'org-link))))
 
 (defun org-roam-open-at-point ()
   "Open an Org-roam link or visit the text previewed at point.
@@ -1038,7 +1054,8 @@ behaviour to work with Org-roam."
     (setq org-roam-last-window (get-buffer-window))
     (add-hook 'post-command-hook #'org-roam-buffer--update-maybe nil t)
     (add-hook 'after-save-hook #'org-roam-db--update-file nil t)
-    (org-link-set-parameters "file" :face 'org-roam--roam-link-face :store #'org-roam-store-file-link)
+    (org-link-set-parameters "file" :face 'org-roam--roam-link-face-file :store #'org-roam-store-file-link)
+    (org-link-set-parameters "id" :face 'org-roam--roam-link-face-id)
     (org-roam-buffer--update-maybe :redisplay t)))
 
 (defun org-roam--delete-file-advice (file &optional _trash)
