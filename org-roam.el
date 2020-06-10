@@ -1413,6 +1413,13 @@ If OTHER-WINDOW is non-nil, open the buffer in another window similarly to
         (org-roam-find-file "Index" nil nil other-window)))))
 
 ;;;###autoload
+(defun org-roam-jump-to-index-other-window ()
+  "Find the index file in `org-roam-directory' and open it in another window.
+See `org-roam-jump-to-index`"
+  (interactive)
+  (org-roam-jump-to-index t))
+
+;;;###autoload
 (defun org-roam-switch-to-buffer ()
   "Switch to an existing Org-roam buffer."
   (interactive)
