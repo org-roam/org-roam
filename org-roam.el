@@ -1013,7 +1013,9 @@ behaviour to work with Org-roam."
               (lambda (id)
                 (if-let ((marker (org-roam-id-find id t)))
                     (org-roam-id-open marker)
-                  (org-id-find id)))))
+                  (when (y-or-n-p (concat "ID was not found in `org-roam-directory'.\n"
+                                          "Search externally with `org-id-goto'? "))
+                      (org-id-find id))))))
     (org-open-at-point arg)))
 
 ;;; The global minor org-roam-mode
