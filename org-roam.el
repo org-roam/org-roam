@@ -37,7 +37,6 @@
 (require 'org)
 (require 'org-element)
 (require 'ob-core) ;for org-babel-parse-header-arguments
-(require 'org-ref nil t) ; To detect cite: links
 (require 'ansi-color) ; org-roam--list-files strip ANSI color codes
 (require 'cl-lib)
 (require 'dash)
