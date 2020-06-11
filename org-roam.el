@@ -1214,7 +1214,9 @@ When called from Lisp, enable `org-roam-mode' if ARG is omitted,
 nil, or positive. If ARG is `toggle', toggle `org-roam-mode'.
 Otherwise, behave as if called interactively."
   :lighter " Org-roam"
-  :keymap  (let ((map (make-sparse-keymap))) map)
+  :keymap  (let ((map (make-sparse-keymap)))
+             (define-key map [remap org-store-link] 'org-roam-store-link)
+             map)
   :group 'org-roam
   :require 'org-roam
   :global t
@@ -1229,7 +1231,6 @@ M-x info for more information at Org-roam > Installation > Post-Installation Tas
     (add-hook 'org-open-at-point-functions #'org-roam-open-id-at-point)
     (advice-add 'rename-file :after #'org-roam--rename-file-advice)
     (advice-add 'delete-file :before #'org-roam--delete-file-advice)
-    (define-key org-roam-mode-map [remap org-store-link] 'org-roam-store-link)
     (org-roam-db-build-cache))
    (t
     (remove-hook 'find-file-hook #'org-roam--find-file-hook-function)
@@ -1237,7 +1238,6 @@ M-x info for more information at Org-roam > Installation > Post-Installation Tas
     (remove-hook 'org-open-at-point-functions #'org-roam-open-id-at-point)
     (advice-remove 'rename-file #'org-roam--rename-file-advice)
     (advice-remove 'delete-file #'org-roam--delete-file-advice)
-    (define-key org-roam-mode-map [remap org-store-link] nil)
     (org-roam-db--close-all)
     ;; Disable local hooks for all org-roam buffers
     (dolist (buf (org-roam--get-roam-buffers))
