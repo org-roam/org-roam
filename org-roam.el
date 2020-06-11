@@ -547,7 +547,7 @@ it as FILE-PATH."
     links))
 
 (defun org-roam--extract-headlines (&optional file-path)
-  "Extract all headlines with IDs within the current-buffer.
+  "Extract all headlines with IDs within the current buffer.
 If FILE-PATH is nil, use the current file."
   (let ((file-path (or file-path
                        (file-truename (buffer-file-name)))))
@@ -1004,7 +1004,7 @@ for Org-ref cite links."
 
 (defun org-roam--store-link (arg &optional interactive?)
   "Store a link to the current location within Org-roam.
-See `org-roam-store-link' for details."
+See `org-roam-store-link' for details on ARG and INTERACTIVE?."
   (let ((org-id-link-to-org-use-id t)
         (file (buffer-file-name (buffer-base-buffer)))
         (id (org-id-get)))
@@ -1016,7 +1016,8 @@ See `org-roam-store-link' for details."
 (defun org-roam-store-link (arg &optional interactive?)
   "Store a link to the current location.
 This commands is a wrapper for `org-store-link' which forces the
-automatic creation of :ID: properties."
+automatic creation of :ID: properties.
+See `org-roam-store-link' for details on ARG and INTERACTIVE?."
   (interactive "P\np")
   (if (org-roam--org-roam-file-p)
       (org-roam--store-link arg interactive?)
@@ -1043,7 +1044,8 @@ Org-roam's database.
 ID-OR-MARKER can either be the ID of the entry or the marker
 pointing to it if it has already been computed by
 `org-roam-id-find'. If the ID-OR-MARKER is not found, it reverts
-to the default behaviour of `org-id-open'."
+to the default behaviour of `org-id-open'.
+When STRICT is non-nil, only consider Org-roam’s database."
   (when-let ((marker (if (markerp id-or-marker)
                          id-or-marker
                        (org-roam-id-find id-or-marker t strict))))
