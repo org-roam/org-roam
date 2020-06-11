@@ -1172,12 +1172,17 @@ replaced links are made relative to the current buffer."
              (new-slug (or (car (org-roam-db--get-titles old-path))
                            (org-roam--path-to-slug new-path)))
              (new-desc (org-roam--format-link-title new-slug))
+             (new-buffer (or (find-buffer-visiting new-path)
+                             (find-file-noselect new-path)))
              (files-to-rename (org-roam-db-query [:select :distinct [from]
                                                   :from links
                                                   :where (= to $s1)
                                                   :and (= type $s2)]
                                                  old-path
                                                  "roam")))
+        ;; Update headlines in new-file.org after removing the previous IDs
+        (with-current-buffer new-buffer
+          (org-roam-db--update-cache-headlines old-file))
         ;; Replace links from old-file.org -> new-file.org in all Org-roam files with these links
         (mapc (lambda (file)
                 (setq file (if (string-equal (file-truename (car file)) old-path)
@@ -1192,8 +1197,7 @@ replaced links are made relative to the current buffer."
         ;; will break. Fix all file-relative links:
         (unless (string= (file-name-directory old-path)
                          (file-name-directory new-path))
-          (with-current-buffer (or (find-buffer-visiting new-path)
-                                   (find-file-noselect new-path))
+          (with-current-buffer new-buffer
             (org-roam--fix-relative-links old-path)
             (save-buffer)))
         (org-roam-db--update-file new-path)))))
