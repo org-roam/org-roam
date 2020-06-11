@@ -45,6 +45,7 @@
 (declare-function org-roam--extract-titles                 "org-roam")
 (declare-function org-roam--extract-ref                    "org-roam")
 (declare-function org-roam--extract-tags                   "org-roam")
+(declare-function org-roam--extract-headlines              "org-roam")
 (declare-function org-roam--extract-links                  "org-roam")
 (declare-function org-roam--list-all-files                 "org-roam")
 (declare-function org-roam-buffer--update-maybe            "org-roam-buffer")
