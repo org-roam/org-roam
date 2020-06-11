@@ -392,8 +392,8 @@ connections, nil is returned."
           (org-roam-db--update-tags)
           (org-roam-db--update-titles)
           (org-roam-db--update-refs)
-          (org-roam-db--update-cache-links)
           (org-roam-db--update-cache-headlines)
+          (org-roam-db--update-cache-links)
           (org-roam-buffer--update-maybe :redisplay t))))))
 
 (defun org-roam-db-build-cache (&optional force)
