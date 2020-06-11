@@ -1044,20 +1044,28 @@ to the default behaviour of `org-id-open'."
     (org-goto-marker-or-bmk marker)
     (set-marker marker nil)))
 
-(defun org-roam-open-at-point (&optional arg)
+(defun org-roam-open-id-at-point ()
   "Open link, timestamp, footnote or tags at point.
-Wrapper for `org-open-at-point' which modifies some of its nested
-behaviour to work with Org-roam."
-  (interactive "P")
-  (cl-letf* ((orig-fun (symbol-function 'org-id-open))
-             ((symbol-function 'org-id-open)
-              (lambda (id)
-                (unless (org-roam-id-open id)
-                  (when (and org-id-track-globally
-                             (y-or-n-p (concat "ID was not found in `org-roam-directory' nor in `org-id-locations'.\n"
-                                               "Search in `org-id-files'? ")))
-                    (funcall orig-fun id))))))
-    (org-open-at-point arg)))
+The function tries to open ID-links with Org-roam’s database
+before falling back to the default behaviour of
+`org-open-at-point'. It also asks the user whether to parse
+`org-id-files' when an ID is not found because it might be a slow
+process.
+This function hooks into `org-open-at-point' via
+`org-open-at-point-functions'."
+  (let* ((context (org-element-context))
+         (type (org-element-property :type context))
+         (id (org-element-property :path context)))
+    (when (string= type "id")
+      (cond ((org-roam-id-open id)
+             t)
+            ;; Ask whether to parse `org-id-files'
+            ((not (y-or-n-p (concat "ID was not found in `org-roam-directory' nor in `org-id-locations'.\n"
+                                    "Search in `org-id-files'? ")))
+             t)
+            ;; Conditionally fall back to default behaviour
+            (t
+             nil)))))
 
 ;;; The global minor org-roam-mode
 (defun org-roam--find-file-hook-function ()
@@ -1206,18 +1214,18 @@ Ensure it is installed and can be found within `exec-path'. \
 M-x info for more information at Org-roam > Installation > Post-Installation Tasks."))
     (add-hook 'find-file-hook #'org-roam--find-file-hook-function)
     (add-hook 'kill-emacs-hook #'org-roam-db--close-all)
+    (add-hook 'org-open-at-point-functions #'org-roam-open-id-at-point)
     (advice-add 'rename-file :after #'org-roam--rename-file-advice)
     (advice-add 'delete-file :before #'org-roam--delete-file-advice)
     (define-key org-roam-mode-map [remap org-store-link] 'org-roam-store-link)
-    (define-key org-roam-mode-map [remap org-open-at-point] 'org-roam-open-at-point)
     (org-roam-db-build-cache))
    (t
     (remove-hook 'find-file-hook #'org-roam--find-file-hook-function)
     (remove-hook 'kill-emacs-hook #'org-roam-db--close-all)
+    (remove-hook 'org-open-at-point-functions #'org-roam-open-id-at-point)
     (advice-remove 'rename-file #'org-roam--rename-file-advice)
     (advice-remove 'delete-file #'org-roam--delete-file-advice)
     (define-key org-roam-mode-map [remap org-store-link] nil)
-    (define-key org-roam-mode-map [remap org-open-at-point] nil)
     (org-roam-db--close-all)
     ;; Disable local hooks for all org-roam buffers
     (dolist (buf (org-roam--get-roam-buffers))
