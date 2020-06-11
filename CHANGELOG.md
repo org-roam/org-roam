@@ -2,7 +2,9 @@
 
 ## 1.2 (TBD)
 
-In this release, we improved the linking process by making links to headline much more robust.  Before, we used the `file:foo::*bar` format to link to the headline `bar` in file `foo`, but this was prone to breakage upon renaming the file or modifying the headline.  Now, we use `org-id` to create IDs for those headlines, which are then stored in our database to compute the relationships and jump around.  Note that this will work even if you’re not using `org-id` in your global configuration for Org-mode.
+In this release, we improved the linking process by achieving feature parity between links to files and links to headlines.  Before, we used the `file:foo::*bar` format to link to the headline `bar` in file `foo`, but this was prone to breakage upon renaming the file or modifying the headline.  This is not the case anymore.  Now, we use `org-id` to create IDs for those headlines, which are then stored in our database to compute the relationships and jump around.  Note that this will work even if you’re not using `org-id` in your global configuration for Org-mode.
+
+This is a major step forward.  Supporting the in-file structure of Org-mode files means that we can interface with many of its core-features like TODOs, properties, priorities, etc.  UX will have to be figured out, but this release ushers in a new age in terms of functionalities.
 
 ### Breaking Changes
 
