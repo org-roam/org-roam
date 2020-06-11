@@ -36,6 +36,7 @@
 ;;;; Dependencies
 (require 'org)
 (require 'org-element)
+(require 'org-id)
 (require 'ob-core) ;for org-babel-parse-header-arguments
 (require 'ansi-color) ; org-roam--list-files strip ANSI color codes
 (require 'cl-lib)
