@@ -372,8 +372,7 @@ connections, nil is returned."
 
 (defun org-roam-db--update-cache-headlines ()
   "Update the file headlines of the current buffer into the cache."
-  (let* ((file (file-truename (buffer-file-name)))
-         (headlines (org-roam--extract-headlines)))
+  (let* ((file (file-truename (buffer-file-name))))
     (org-roam-db-query [:delete :from headlines
                         :where (= file $s1)]
                        file)
