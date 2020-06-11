@@ -898,21 +898,26 @@ This face is used for links without a destination."
   (and (boundp org-roam-backlinks-mode)
        org-roam-backlinks-mode))
 
-(defun org-roam--retrieve-link-path (&optional pom)
-  "Retrieve the path of the link at POM.
+(defun org-roam--retrieve-link-destination (&optional pom)
+  "Retrieve the destination of the link at POM.
 The point-or-marker POM can either be a position in the current
 buffer or a marker."
   (let ((pom (or pom (point))))
     (org-with-point-at pom
-      (plist-get (cadr (org-element-context)) :path))))
+      (let* ((context (org-element-context))
+             (type (org-element-property :type context))
+             (dest (org-element-property :path context)))
+        (pcase type
+          ("file" dest)
+          ("id" (car (org-roam-id-find dest))))))))
 
 (defun org-roam--backlink-to-current-p ()
   "Return t if backlink is to the current Org-roam file."
   (let ((current (buffer-file-name org-roam-buffer--current))
-        (backlink-dest (org-roam--retrieve-link-path)))
+        (backlink-dest (org-roam--retrieve-link-destination)))
     (string= current backlink-dest)))
 
-(defun org-roam--roam-link-face-file (path)
+(defun org-roam--roam-file-link-face (path)
   "Conditional face for org file links.
 Applies `org-roam-link-current' if PATH corresponds to the
 currently opened Org-roam file in the backlink buffer, or
@@ -928,20 +933,21 @@ file."
         (t
          'org-link)))
 
-(defun org-roam--roam-link-face-id (id)
-  "Conditional face for org file links.
-Applies `org-roam-link-current' if PATH corresponds to the
+(defun org-roam--roam-id-link-face (id)
+  "Conditional face for org ID links.
+Applies `org-roam-link-current' if ID corresponds to the
 currently opened Org-roam file in the backlink buffer, or
-`org-roam-link-face' if PATH corresponds to any other Org-roam
+`org-roam-link-face' if ID corresponds to any other Org-roam
 file."
-  (let ((table org-id-locations))
-    (cond ((org-roam--org-roam-headline-p id)
-           'org-roam-link)
-          ((and org-id-track-globally
-                (not (org-roam-id-find id)))
-           'org-roam-link-invalid)
-          (t
-           'org-link))))
+  (cond ((not (org-roam-id-find id))
+         'org-roam-link-invalid)
+        ((and (org-roam--in-buffer-p)
+              (org-roam--backlink-to-current-p))
+         'org-roam-link-current)
+        ((org-roam-id-find id t)
+         'org-roam-link)
+        (t
+         'org-link)))
 
 (defun org-roam-open-at-point ()
   "Open an Org-roam link or visit the text previewed at point.
@@ -1074,8 +1080,8 @@ This function hooks into `org-open-at-point' via
     (setq org-roam-last-window (get-buffer-window))
     (add-hook 'post-command-hook #'org-roam-buffer--update-maybe nil t)
     (add-hook 'after-save-hook #'org-roam-db--update-file nil t)
-    (org-link-set-parameters "file" :face 'org-roam--roam-link-face-file :store #'org-roam-store-link-file)
-    (org-link-set-parameters "id" :face 'org-roam--roam-link-face-id)
+    (org-link-set-parameters "file" :face 'org-roam--roam-file-link-face :store #'org-roam-store-link-file)
+    (org-link-set-parameters "id" :face 'org-roam--roam-id-link-face)
     (org-roam-buffer--update-maybe :redisplay t)))
 
 (defun org-roam--delete-file-advice (file &optional _trash)
