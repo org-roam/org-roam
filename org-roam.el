@@ -557,7 +557,6 @@ If FILE-PATH is nil, use the current file."
               (value (org-element-property :value node-property)))
           (when (string= key "ID")
             (let* ((id value)
-                   (mtime (current-time))
                    (data (vector id
                                  file-path)))
               data)))))))
@@ -1006,7 +1005,6 @@ for Org-ref cite links."
   "Store a link to the current location within Org-roam.
 See `org-roam-store-link' for details on ARG and INTERACTIVE?."
   (let ((org-id-link-to-org-use-id t)
-        (file (buffer-file-name (buffer-base-buffer)))
         (id (org-id-get)))
     (org-store-link arg interactive?)
     ;; If :ID: was created, update the cache
