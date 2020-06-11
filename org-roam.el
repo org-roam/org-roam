@@ -858,9 +858,9 @@ This face is used for links without a destination."
              map)
   (if org-roam-backlinks-mode
       (add-hook 'org-open-at-point-functions
-                'org-roam-open-at-point nil 'local)
+                #'org-roam-open-at-point nil 'local)
     (remove-hook 'org-open-at-point-functions
-                 'org-roam-open-at-point 'local)))
+                 #'org-roam-open-at-point 'local)))
 
 (defun org-roam--in-buffer-p ()
   "Return t if in the Org-roam buffer."
