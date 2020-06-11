@@ -314,7 +314,7 @@ If FILE is not specified, use the current buffer's file-path."
                             (file-truename org-roam-directory))))))
 
 (defun org-roam--org-roam-headline-p (&optional id)
-  "Return t if ID is part of Org-rroam system, nil otherwise.
+  "Return t if ID is part of Org-roam system, nil otherwise.
 If ID is not specified, use the ID of the entry at point."
   (if-let ((id (or id
                    (org-id-get))))
