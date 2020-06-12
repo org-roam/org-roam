@@ -1090,6 +1090,10 @@ Otherwise, behave as if called interactively."
   :global t
   (cond
    (org-roam-mode
+    (unless (executable-find "sqlite3")
+      (lwarn '(org-roam) :error "Cannot find executable 'sqlite3'. \
+Ensure it is installed and can be found within `exec-path'. \
+M-x info for more information at Org-roam > Installation > Post-Installation Tasks."))
     (add-hook 'find-file-hook #'org-roam--find-file-hook-function)
     (add-hook 'kill-emacs-hook #'org-roam-db--close-all)
     (advice-add 'rename-file :after #'org-roam--rename-file-advice)

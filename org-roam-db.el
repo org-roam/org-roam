@@ -79,10 +79,6 @@ when used with multiple Org-roam instances."
   "Entrypoint to the Org-roam sqlite database.
 Initializes and stores the database, and the database connection.
 Performs a database upgrade when required."
-  (unless (executable-find "sqlite3")
-    (user-error "Cannot find executable “sqlite3”. \
-Ensure it is installed and the path is set. \
-Refer to https://org-roam.github.io/org-roam/manual/Installation.html"))
   (unless (and (org-roam-db--get-connection)
                (emacsql-live-p (org-roam-db--get-connection)))
     (let* ((db-file (org-roam-db--get))
