@@ -3,4 +3,4 @@
 
 ((emacs-lisp-mode
   (eval . (require 'org-roam-dev))
-  (sentence-end-double-space . nil)))
+  (eval . (org-roam-dev-mode))))
