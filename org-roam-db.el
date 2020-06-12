@@ -371,15 +371,13 @@ connections, nil is returned."
     (when-let ((links (org-roam--extract-links)))
       (org-roam-db--insert-links links))))
 
-(defun org-roam-db--update-headlines (&optional alt-file)
-  "Update the file headlines of the current buffer into the cache.
-ALT-FILE can be used to specify a different file to be used for
-wiping the previous row, such as when the file has been renamed."
-  (let* ((file (buffer-file-name)))
+(defun org-roam-db--update-headlines (&optional file)
+  "Update the file headlines of FILE into the cache.
+If FILE is nil, use the file for the current buffer."
+  (let* ((file (or file (buffer-file-name))))
     (org-roam-db-query [:delete :from headlines
                         :where (= file $s1)]
-                       (file-truename (or alt-file
-                                          file)))
+                       (file-truename file))
     (when-let ((headlines (org-roam--extract-headlines)))
       (org-roam-db--insert-headlines headlines))))
 
