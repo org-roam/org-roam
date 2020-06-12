@@ -290,7 +290,7 @@ If the file does not have any connections, nil is returned."
 
 (defun org-roam-db--links-with-max-distance (file max-distance)
   "Return all files connected to FILE in at most MAX-DISTANCE steps.
-This includes the file itself.  If the file does not have any
+This includes the file itself. If the file does not have any
 connections, nil is returned."
   (let* ((query "WITH RECURSIVE
                    links_of(file, link) AS
