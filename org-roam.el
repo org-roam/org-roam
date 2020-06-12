@@ -42,6 +42,7 @@
 (require 'cl-lib)
 (require 'dash)
 (require 'f)
+(require 'rx)
 (require 's)
 (require 'seq)
 (eval-when-compile (require 'subr-x))
@@ -1230,6 +1231,7 @@ Otherwise, behave as if called interactively."
       (lwarn '(org-roam) :error "Cannot find executable 'sqlite3'. \
 Ensure it is installed and can be found within `exec-path'. \
 M-x info for more information at Org-roam > Installation > Post-Installation Tasks."))
+    (add-to-list 'org-execute-file-search-functions 'org-roam--execute-file-row-col)
     (add-hook 'find-file-hook #'org-roam--find-file-hook-function)
     (add-hook 'kill-emacs-hook #'org-roam-db--close-all)
     (add-hook 'org-open-at-point-functions #'org-roam-open-id-at-point)
@@ -1237,6 +1239,7 @@ M-x info for more information at Org-roam > Installation > Post-Installation Tas
     (advice-add 'delete-file :before #'org-roam--delete-file-advice)
     (org-roam-db-build-cache))
    (t
+    (setq org-execute-file-search-functions (delete 'org-roam--execute-file-row-col org-execute-file-search-functions))
     (remove-hook 'find-file-hook #'org-roam--find-file-hook-function)
     (remove-hook 'kill-emacs-hook #'org-roam-db--close-all)
     (remove-hook 'org-open-at-point-functions #'org-roam-open-id-at-point)
@@ -1407,6 +1410,88 @@ command will offer you to create one."
     (when-let ((name (org-roam-completion--completing-read "Buffer: " names-and-buffers
                                                            :require-match t)))
       (switch-to-buffer (cdr (assoc name names-and-buffers))))))
+
+(defun org-roam--execute-file-row-col (s)
+  "Move to row:col if S match the row:col syntax. To be used with `org-execute-file-search-functions'."
+  (when (string-match (rx (group (1+ digit))
+                          ":"
+                          (group (1+ digit))) s)
+    (let ((row (string-to-number (match-string 1 s)))
+          (col (string-to-number (match-string 2 s))))
+      (org-goto-line row)
+      (move-to-column (- col 1))
+      t)))
+
+;;###autoload
+(defun org-roam-unlinked-references ()
+  "Check for unlinked references in the current buffer.
+
+The check here is naive: it uses a regex that detects for
+strict (case-insensitive) occurrences of possible titles (see
+`org-roam--extract-titles'), and shows them in a buffer. This
+means that the results can be noisy, and may not truly indicate
+an unlinked reference.
+
+Users are encouraged to think hard about whether items should be
+linked, lest the network graph get too crowded."
+  (interactive)
+  (unless (org-roam--org-roam-file-p)
+    (user-error "Not in org-roam file"))
+  (if (not (executable-find "rg"))
+      (user-error "Cannot find the \"rg\" executable, aborting")
+    (let* ((titles (org-roam--extract-titles))
+           (rg-command (concat "rg -o --vimgrep -P -i "
+                               (string-join (mapcar (lambda (glob) (concat "-g " glob))
+                                                    (org-roam--list-files-search-globs org-roam-file-extensions)) " ")
+                               (format " '\\[([^[]]++|(?R))*\\]%s' "
+                                       (mapconcat (lambda (title)
+                                                    (format "|(\\b%s\\b)" (shell-quote-argument title)))
+                                                  titles ""))
+                               org-roam-directory))
+           (file-loc (buffer-file-name))
+           (buf (get-buffer-create "*org-roam unlinked references*"))
+           (results (split-string (shell-command-to-string rg-command) "\n"))
+           (result-regex (rx (group (one-or-more anychar))
+                             ":"
+                             (group (one-or-more digit))
+                             ":"
+                             (group (one-or-more digit))
+                             ":"
+                             (group (zero-or-more anything)))))
+      (pop-to-buffer buf)
+      (let ((inhibit-read-only t))
+        (erase-buffer)
+        (org-mode)
+        (insert (propertize (car titles) 'font-lock-face 'org-document-title) "\n\n"
+                "* Unlinked References\n")
+        (dolist (line results)
+          (save-match-data
+            (when (string-match result-regex line)
+              (let ((file (match-string 1 line))
+                    (row (match-string 2 line))
+                    (col (match-string 3 line))
+                    (match (match-string 4 line)))
+                (when (and match
+                           (member (downcase match) (mapcar #'downcase titles))
+                           (not (f-equal-p (expand-file-name file org-roam-directory)
+                                           file-loc)))
+                  (let ((rowcol (concat row ":" col)))
+                    (insert "- "
+                            (org-link-make-string (concat "file:" file "::" rowcol)
+                                                  (format "[%s] %s" rowcol (org-roam--get-title-or-slug file))))
+                    (when (executable-find "sed") ; insert line contents when sed is available
+                      (insert " :: "
+                              (shell-command-to-string
+                               (concat "sed -n "
+                                       row
+                                       "p "
+                                       file))))
+                    (insert "\n")))))))
+        (read-only-mode +1)
+        (dolist (title titles)
+          (highlight-phrase (downcase title) 'bold-italic))
+        (goto-char (point-min))))))
+
 
 ;;;###autoload
 (defun org-roam-version (&optional message)
