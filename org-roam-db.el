@@ -272,12 +272,12 @@ This is equivalent to removing the node from the graph."
 If the file does not have any connections, nil is returned."
   (let* ((query "WITH RECURSIVE
                    links_of(file, link) AS
-                     (WITH roamlinks AS (SELECT * FROM links WHERE \"type\" = '\"roam\"'),
+                     (WITH filelinks AS (SELECT * FROM links WHERE \"type\" = '\"file\"'),
                            citelinks AS (SELECT * FROM links
                                                   JOIN refs ON links.\"to\" = refs.\"ref\"
                                                             AND links.\"type\" = '\"cite\"')
-                      SELECT \"from\", \"to\" FROM roamlinks UNION
-                      SELECT \"to\", \"from\" FROM roamlinks UNION
+                      SELECT \"from\", \"to\" FROM filelinks UNION
+                      SELECT \"to\", \"from\" FROM filelinks UNION
                       SELECT \"file\", \"from\" FROM citelinks UNION
                       SELECT \"from\", \"file\" FROM citelinks),
                    connected_component(file) AS
@@ -294,12 +294,12 @@ This includes the file itself.  If the file does not have any
 connections, nil is returned."
   (let* ((query "WITH RECURSIVE
                    links_of(file, link) AS
-                     (WITH roamlinks AS (SELECT * FROM links WHERE \"type\" = '\"roam\"'),
+                     (WITH filelinks AS (SELECT * FROM links WHERE \"type\" = '\"file\"'),
                            citelinks AS (SELECT * FROM links
                                                   JOIN refs ON links.\"to\" = refs.\"ref\"
                                                             AND links.\"type\" = '\"cite\"')
-                      SELECT \"from\", \"to\" FROM roamlinks UNION
-                      SELECT \"to\", \"from\" FROM roamlinks UNION
+                      SELECT \"from\", \"to\" FROM filelinks UNION
+                      SELECT \"to\", \"from\" FROM filelinks UNION
                       SELECT \"file\", \"from\" FROM citelinks UNION
                       SELECT \"from\", \"file\" FROM citelinks),
                    -- Links are traversed in a breadth-first search.  In order to calculate the
