@@ -119,7 +119,6 @@ Graphing
 
 Roam Protocol
 
-* _::
 * Installation: Installation (1). 
 * The @samp{roam-file} protocol::
 * The @samp{roam-ref} Protocol::
@@ -181,7 +180,7 @@ Emacs is also a fantastic interface for editing text, and we can inherit many of
 @chapter A Brief Introduction to the Zettelkasten Method
 
 Org-roam provides utilities for maintaining a digital slip-box. This section
-aims to provide a brief introduction to the ``slip-box'', or ``Zettelkasten''
+aims to provide a brief introduction to the "slip-box", or "Zettelkasten"
 method. By providing some background on the method, we hope that the design
 decisions of Org-roam will become clear, and that will aid in using Org-roam
 appropriately. In this section we will also introduce terms commonly used within
@@ -390,8 +389,8 @@ to effective use of Org-roam.
 To easily find a note, a title needs to be prescribed to a note. A note can have
 many titles: this allows a note to be referred to by different names, which is
 especially useful for topics or concepts with acronyms. For example, for a note
-like ``World War 2'', it may be desirable to also refer to it using the acronym
-``WWII''.
+like "World War 2", it may be desirable to also refer to it using the acronym
+"WWII".
 
 Org-roam calls @samp{org-roam--extract-titles} to extract titles. It uses the
 variable @samp{org-roam-title-sources}, to control how the titles are extracted. The
@@ -420,11 +419,11 @@ Take for example the following org file:
 @headitem Method
 @tab Titles
 @item @samp{'title}
-@tab '(``World War 2'')
+@tab '("World War 2")
 @item @samp{'headline}
-@tab '(``Headline'')
+@tab '("Headline")
 @item @samp{'alias}
-@tab '(``WWII'' ``World War II'')
+@tab '("WWII" "World War II")
 @end multitable
 
 One can freely control which extraction methods to use by customizing
@@ -565,11 +564,11 @@ The template is given a description of @samp{"default"}.
 This template means don't insert any content, but place the cursor
 here.
 @item
-@samp{:file-name} is the file-name template for a new note, if it doesn't
-yet exist. This creates a file at path that looks like
-@samp{/path/to/org-roam-directory/20200213032037-foo.org}. This template also allows
-you to specify if you want the note to go into a subdirectory. e.g. the template
-@samp{private/$@{slug@}} will create notes in
+@samp{:file-name} is the file-name template for a new note, if it doesn't yet
+exist. This creates a file at path that looks like
+@samp{/path/to/org-roam-directory/20200213032037-foo.org}. This template also
+allows you to specify if you want the note to go into a
+subdirectory. e.g. the template @samp{private/$@{slug@}} will create notes in
 @samp{/path/to/org-roam-directory/private}
 @item
 @samp{:head} contains the initial template to be inserted (once only), at
@@ -838,19 +837,19 @@ Graphviz provides many options for customizing the graph output, and Org-roam su
 @item
 User Option: org-roam-graph-extra-config
 
-Extra options passed to graphviz for the digraph (The ``G'' attributes).
+Extra options passed to graphviz for the digraph (The "G" attributes).
 Example: @samp{'=(("rankdir" . "LR"))}
 
 @item
 User Option: org-roam-graph-node-extra-config
 
-Extra options for nodes in the graphviz output (The ``N'' attributes).
+Extra options for nodes in the graphviz output (The "N" attributes).
 Example: @samp{'(("color" . "skyblue"))}
 
 @item
 User Option: org-roam-graph-edge-extra-config
 
-Extra options for edges in the graphviz output (The ``E'' attributes).
+Extra options for edges in the graphviz output (The "E" attributes).
 Example: @samp{'(("dir" . "back"))}
 
 @item
@@ -882,7 +881,7 @@ are excluded.
 (setq org-roam-graph-exclude-matcher '("private" "dailies"))
 @end example
 
-This setting excludes all files whose path contain ``private'' or ``dailies''.
+This setting excludes all files whose path contain "private" or "dailies".
 
 @node Org-roam Completion System
 @chapter Org-roam Completion System
@@ -906,18 +905,14 @@ Other options include @samp{'ido}, and @samp{'ivy}.
 @node Roam Protocol
 @chapter Roam Protocol
 
+Org-roam extending @samp{org-protocol} with 2 protocols: the @samp{roam-file}
+and @samp{roam-ref} protocol.
+
 @menu
-* _::
 * Installation: Installation (1). 
 * The @samp{roam-file} protocol::
 * The @samp{roam-ref} Protocol::
 @end menu
-
-@node _
-@section _ :ignore:
-
-Org-roam extending @samp{org-protocol} with 2 protocols: the @samp{roam-file}
-and @samp{roam-ref} protocol.
 
 @node Installation (1)
 @section Installation
@@ -952,7 +947,7 @@ running in your shell:
 xdg-mime default org-protocol.desktop x-scheme-handler/org-protocol
 @end example
 
-To disable the ``confirm'' prompt in Chrome, you can also make Chrome
+To disable the "confirm" prompt in Chrome, you can also make Chrome
 show a checkbox to tick, so that the @samp{Org-Protocol Client} app will be used
 without confirmation. To do this, run in a shell:
 
@@ -1021,7 +1016,7 @@ Inside @samp{Settings}:
 | Protocol                       | "org-protocol" |
 @end example
 
-To disable the ``confirm'' prompt in Chrome, you can also make Chrome
+To disable the "confirm" prompt in Chrome, you can also make Chrome
 show a checkbox to tick, so that the @samp{OrgProtocol} app will be used
 without confirmation. To do this, run in a shell:
 
@@ -1347,5 +1342,5 @@ file within that directory, at least once.
 
 Fabio has produced a command-line tool that converts markdown files exported from Roam Research into Org-roam compatible markdown. More instructions are provided @uref{https://github.com/fabioberger/roam-migration, in the repository}.
 
-Emacs 28.0.50 (Org mode 9.4)
+Emacs 28.0.50 (Org mode 9.3.7)
 @bye
