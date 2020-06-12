@@ -409,6 +409,8 @@ If FORCE, force a rebuild of the cache from scratch."
   (let* ((org-roam-files (org-roam--list-all-files))
          (current-files (org-roam-db--get-current-files))
          all-files all-headlines all-links all-titles all-refs all-tags)
+    ;; Two-step building
+    ;; First step: Rebuild files and headlines
     (dolist (file org-roam-files)
       (let* ((attr (file-attributes file))
              (atime (file-attribute-access-time attr))
@@ -421,22 +423,7 @@ If FORCE, force a rebuild of the cache from scratch."
               (push (vector file contents-hash (list :atime atime :mtime mtime))
                     all-files)
               (when-let (headlines (org-roam--extract-headlines file))
-                (push headlines all-headlines))
-              (when-let (links (org-roam--extract-links file))
-                (push links all-links))
-              (when-let (tags (org-roam--extract-tags file))
-                (push (vector file tags) all-tags))
-              (let ((titles (org-roam--extract-titles)))
-                (push (vector file titles)
-                      all-titles))
-              (when-let* ((ref (org-roam--extract-ref))
-                          (type (car ref))
-                          (key (cdr ref)))
-                (setq all-refs (cons (vector key file type) all-refs))))
-            (remhash file current-files)))))
-    (dolist (file (hash-table-keys current-files))
-      ;; These files are no longer around, remove from cache...
-      (org-roam-db--clear-file file))
+                (push headlines all-headlines)))))))
     (when all-files
       (org-roam-db-query
        [:insert :into files
@@ -447,6 +434,27 @@ If FORCE, force a rebuild of the cache from scratch."
        [:insert :into headlines
         :values $v1]
        all-headlines))
+    ;; Second step: Rebuild the rest
+    (dolist (file org-roam-files)
+      (org-roam--with-temp-buffer file
+        (let ((contents-hash (secure-hash 'sha1 (current-buffer))))
+          (unless (string= (gethash file current-files)
+                           contents-hash)
+            (when-let (links (org-roam--extract-links file))
+              (push links all-links))
+            (when-let (tags (org-roam--extract-tags file))
+              (push (vector file tags) all-tags))
+            (let ((titles (org-roam--extract-titles)))
+              (push (vector file titles)
+                    all-titles))
+            (when-let* ((ref (org-roam--extract-ref))
+                        (type (car ref))
+                        (key (cdr ref)))
+              (setq all-refs (cons (vector key file type) all-refs))))
+          (remhash file current-files))))
+    (dolist (file (hash-table-keys current-files))
+      ;; These files are no longer around, remove from cache...
+      (org-roam-db--clear-file file))
     (when all-links
       (org-roam-db-query
        [:insert :into links
