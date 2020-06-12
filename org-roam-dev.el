@@ -34,7 +34,6 @@
 ;;; Code:
 (require 'emacsql)
 (emacsql-fix-vector-indentation)
-(setq-local sentence-end-double-space nil)
 (provide 'org-roam-dev)
 
 ;;; org-roam-dev.el ends here
