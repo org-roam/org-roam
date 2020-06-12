@@ -513,10 +513,10 @@ it as FILE-PATH."
                (id-data (org-roam-id-find path))
                (link-type (cond ((and (string= type "file")
                                       (org-roam--org-file-p path))
-                                 "roam")
+                                 "file")
                                 ((and (string= type "id")
                                       id-data)
-                                 "roam-id")
+                                 "id")
                                 ((and
                                   (require 'org-ref nil t)
                                   (-contains? org-ref-cite-types type))
@@ -537,9 +537,9 @@ it as FILE-PATH."
                    (content (org-roam--expand-links content file-path)))
               (let ((context (list :content content :point begin))
                     (names (pcase link-type
-                             ("roam"
+                             ("file"
                               (list (file-truename (expand-file-name path (file-name-directory file-path)))))
-                             ("roam-id"
+                             ("id"
                               (list (car id-data)))
                              ("cite"
                               (org-ref-split-and-strip-string path)))))
@@ -686,7 +686,7 @@ Examples:
                       '("http" "https")))
          (type (cond (cite-prefix "cite")
                      (is-website "website")
-                     (t "roam"))))
+                     (t "file"))))
     type))
 
 (defun org-roam--extract-ref ()
@@ -1179,7 +1179,7 @@ replaced links are made relative to the current buffer."
                                                   :where (= to $s1)
                                                   :and (= type $s2)]
                                                  old-path
-                                                 "roam")))
+                                                 "file")))
         ;; Update headlines in new-file.org after removing the previous IDs
         (with-current-buffer new-buffer
           (org-roam-db--update-cache-headlines old-file))
