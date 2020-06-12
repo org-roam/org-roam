@@ -45,6 +45,7 @@
 (declare-function org-roam--extract-titles                 "org-roam")
 (declare-function org-roam--extract-ref                    "org-roam")
 (declare-function org-roam--extract-tags                   "org-roam")
+(declare-function org-roam--extract-headlines              "org-roam")
 (declare-function org-roam--extract-links                  "org-roam")
 (declare-function org-roam--list-all-files                 "org-roam")
 (declare-function org-roam-buffer--update-maybe            "org-roam-buffer")
@@ -59,7 +60,7 @@ when used with multiple Org-roam instances."
   :type 'string
   :group 'org-roam)
 
-(defconst org-roam-db--version 5)
+(defconst org-roam-db--version 6)
 
 (defvar org-roam-db--connection (make-hash-table :test #'equal)
   "Database connection to Org-roam database.")
@@ -119,6 +120,10 @@ SQL can be either the emacsql vector representation, or a string."
      [(file :unique :primary-key)
       (hash :not-null)
       (meta :not-null)])
+
+    (headlines
+     [(id :unique :primary-key)
+      (file :not-null)])
 
     (links
      [(from :not-null)
@@ -224,6 +229,13 @@ This is equivalent to removing the node from the graph."
     :values $v1]
    (list (vector file titles))))
 
+(defun org-roam-db--insert-headlines (headlines)
+  "Insert HEADLINES into the Org-roam cache."
+  (org-roam-db-query
+   [:insert :into headlines
+    :values $v1]
+   headlines))
+
 (defun org-roam-db--insert-tags (file tags)
   "Insert TAGS for a FILE into the Org-roam cache."
   (org-roam-db-query
@@ -260,12 +272,12 @@ This is equivalent to removing the node from the graph."
 If the file does not have any connections, nil is returned."
   (let* ((query "WITH RECURSIVE
                    links_of(file, link) AS
-                     (WITH roamlinks AS (SELECT * FROM links WHERE \"type\" = '\"roam\"'),
+                     (WITH filelinks AS (SELECT * FROM links WHERE \"type\" = '\"file\"'),
                            citelinks AS (SELECT * FROM links
                                                   JOIN refs ON links.\"to\" = refs.\"ref\"
                                                             AND links.\"type\" = '\"cite\"')
-                      SELECT \"from\", \"to\" FROM roamlinks UNION
-                      SELECT \"to\", \"from\" FROM roamlinks UNION
+                      SELECT \"from\", \"to\" FROM filelinks UNION
+                      SELECT \"to\", \"from\" FROM filelinks UNION
                       SELECT \"file\", \"from\" FROM citelinks UNION
                       SELECT \"from\", \"file\" FROM citelinks),
                    connected_component(file) AS
@@ -278,16 +290,16 @@ If the file does not have any connections, nil is returned."
 
 (defun org-roam-db--links-with-max-distance (file max-distance)
   "Return all files connected to FILE in at most MAX-DISTANCE steps.
-This includes the file itself. If the file does not have any
+This includes the file itself.  If the file does not have any
 connections, nil is returned."
   (let* ((query "WITH RECURSIVE
                    links_of(file, link) AS
-                     (WITH roamlinks AS (SELECT * FROM links WHERE \"type\" = '\"roam\"'),
+                     (WITH filelinks AS (SELECT * FROM links WHERE \"type\" = '\"file\"'),
                            citelinks AS (SELECT * FROM links
                                                   JOIN refs ON links.\"to\" = refs.\"ref\"
                                                             AND links.\"type\" = '\"cite\"')
-                      SELECT \"from\", \"to\" FROM roamlinks UNION
-                      SELECT \"to\", \"from\" FROM roamlinks UNION
+                      SELECT \"from\", \"to\" FROM filelinks UNION
+                      SELECT \"to\", \"from\" FROM filelinks UNION
                       SELECT \"file\", \"from\" FROM citelinks UNION
                       SELECT \"from\", \"file\" FROM citelinks),
                    -- Links are traversed in a breadth-first search.  In order to calculate the
@@ -350,7 +362,7 @@ connections, nil is returned."
     (when-let ((ref (org-roam--extract-ref)))
       (org-roam-db--insert-ref file ref))))
 
-(defun org-roam-db--update-cache-links ()
+(defun org-roam-db--update-links ()
   "Update the file links of the current buffer in the cache."
   (let ((file (file-truename (buffer-file-name))))
     (org-roam-db-query [:delete :from links
@@ -358,6 +370,15 @@ connections, nil is returned."
                        file)
     (when-let ((links (org-roam--extract-links)))
       (org-roam-db--insert-links links))))
+
+(defun org-roam-db--update-headlines ()
+  "Update the file headlines of the current buffer into the cache."
+  (let* ((file (file-truename (buffer-file-name))))
+    (org-roam-db-query [:delete :from headlines
+                        :where (= file $s1)]
+                       file)
+    (when-let ((headlines (org-roam--extract-headlines)))
+      (org-roam-db--insert-headlines headlines))))
 
 (defun org-roam-db--update-file (&optional file-path)
   "Update Org-roam cache for FILE-PATH."
@@ -371,7 +392,8 @@ connections, nil is returned."
           (org-roam-db--update-tags)
           (org-roam-db--update-titles)
           (org-roam-db--update-refs)
-          (org-roam-db--update-cache-links)
+          (org-roam-db--update-headlines)
+          (org-roam-db--update-links)
           (org-roam-buffer--update-maybe :redisplay t))))))
 
 (defun org-roam-db-build-cache (&optional force)
@@ -383,7 +405,9 @@ If FORCE, force a rebuild of the cache from scratch."
   (org-roam-db) ;; To initialize the database, no-op if already initialized
   (let* ((org-roam-files (org-roam--list-all-files))
          (current-files (org-roam-db--get-current-files))
-         all-files all-links all-titles all-refs all-tags)
+         all-files all-headlines all-links all-titles all-refs all-tags)
+    ;; Two-step building
+    ;; First step: Rebuild files and headlines
     (dolist (file org-roam-files)
       (let* ((attr (file-attributes file))
              (atime (file-attribute-access-time attr))
@@ -395,26 +419,39 @@ If FORCE, force a rebuild of the cache from scratch."
               (org-roam-db--clear-file file)
               (push (vector file contents-hash (list :atime atime :mtime mtime))
                     all-files)
-              (when-let (links (org-roam--extract-links file))
-                (push links all-links))
-              (when-let (tags (org-roam--extract-tags file))
-                (push (vector file tags) all-tags))
-              (let ((titles (org-roam--extract-titles)))
-                (push (vector file titles)
-                      all-titles))
-              (when-let* ((ref (org-roam--extract-ref))
-                          (type (car ref))
-                          (key (cdr ref)))
-                (setq all-refs (cons (vector key file type) all-refs))))
-            (remhash file current-files)))))
-    (dolist (file (hash-table-keys current-files))
-      ;; These files are no longer around, remove from cache...
-      (org-roam-db--clear-file file))
+              (when-let (headlines (org-roam--extract-headlines file))
+                (push headlines all-headlines)))))))
     (when all-files
       (org-roam-db-query
        [:insert :into files
         :values $v1]
        all-files))
+    (when all-headlines
+      (org-roam-db-query
+       [:insert :into headlines
+        :values $v1]
+       all-headlines))
+    ;; Second step: Rebuild the rest
+    (dolist (file org-roam-files)
+      (org-roam--with-temp-buffer file
+        (let ((contents-hash (secure-hash 'sha1 (current-buffer))))
+          (unless (string= (gethash file current-files)
+                           contents-hash)
+            (when-let (links (org-roam--extract-links file))
+              (push links all-links))
+            (when-let (tags (org-roam--extract-tags file))
+              (push (vector file tags) all-tags))
+            (let ((titles (org-roam--extract-titles)))
+              (push (vector file titles)
+                    all-titles))
+            (when-let* ((ref (org-roam--extract-ref))
+                        (type (car ref))
+                        (key (cdr ref)))
+              (setq all-refs (cons (vector key file type) all-refs))))
+          (remhash file current-files))))
+    (dolist (file (hash-table-keys current-files))
+      ;; These files are no longer around, remove from cache...
+      (org-roam-db--clear-file file))
     (when all-links
       (org-roam-db-query
        [:insert :into links
@@ -436,13 +473,15 @@ If FORCE, force a rebuild of the cache from scratch."
         :values $v1]
        all-refs))
     (let ((stats (list :files (length all-files)
+                       :headlines (length all-headlines)
                        :links (length all-links)
                        :tags (length all-tags)
                        :titles (length all-titles)
                        :refs (length all-refs)
                        :deleted (length (hash-table-keys current-files)))))
-      (org-roam-message "files: %s, links: %s, tags: %s, titles: %s, refs: %s, deleted: %s"
+      (org-roam-message "files: %s, headlines: %s, links: %s, tags: %s, titles: %s, refs: %s, deleted: %s"
                         (plist-get stats :files)
+                        (plist-get stats :headlines)
                         (plist-get stats :links)
                         (plist-get stats :tags)
                         (plist-get stats :titles)

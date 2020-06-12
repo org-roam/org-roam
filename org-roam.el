@@ -36,6 +36,7 @@
 ;;;; Dependencies
 (require 'org)
 (require 'org-element)
+(require 'org-id)
 (require 'ob-core) ;for org-babel-parse-header-arguments
 (require 'ansi-color) ; org-roam--list-files strip ANSI color codes
 (require 'cl-lib)
@@ -61,8 +62,13 @@
 (require 'org-roam-graph)
 
 ;;;; Declarations
-(defvar org-ref-cite-types) ;; from org-ref-core.el
+;; From org-ref-core.el
+(defvar org-ref-cite-types)
 (declare-function org-ref-split-and-strip-string "ext:org-ref-utils" (string))
+;; From org-id.el
+(defvar org-id-link-to-org-use-id)
+(declare-function org-id-find-id-in-file "ext:org-id" (id file &optional markerp))
+
 
 ;;;; Customizable variables
 (defgroup org-roam nil
@@ -313,6 +319,15 @@ If FILE is not specified, use the current buffer's file-path."
          (f-descendant-of-p (file-truename path)
                             (file-truename org-roam-directory))))))
 
+(defun org-roam--org-roam-headline-p (&optional id)
+  "Return t if ID is part of Org-roam system, nil otherwise.
+If ID is not specified, use the ID of the entry at point."
+  (if-let ((id (or id
+                   (org-id-get))))
+      (org-roam-db-query [:select [file] :from headlines
+                          :where (= id $s1)]
+                         id)))
+
 (defun org-roam--shell-command-files (cmd)
   "Run CMD in the shell and return a list of files. If no files are found, an empty list is returned."
   (--> cmd
@@ -495,9 +510,13 @@ it as FILE-PATH."
         (let* ((type (org-element-property :type link))
                (path (org-element-property :path link))
                (start (org-element-property :begin link))
+               (id-data (org-roam-id-find path))
                (link-type (cond ((and (string= type "file")
                                       (org-roam--org-file-p path))
-                                 "roam")
+                                 "file")
+                                ((and (string= type "id")
+                                      id-data)
+                                 "id")
                                 ((and
                                   (require 'org-ref nil t)
                                   (-contains? org-ref-cite-types type))
@@ -518,8 +537,10 @@ it as FILE-PATH."
                    (content (org-roam--expand-links content file-path)))
               (let ((context (list :content content :point begin))
                     (names (pcase link-type
-                             ("roam"
+                             ("file"
                               (list (file-truename (expand-file-name path (file-name-directory file-path)))))
+                             ("id"
+                              (list (car id-data)))
                              ("cite"
                               (org-ref-split-and-strip-string path)))))
                 (seq-do (lambda (name)
@@ -530,6 +551,21 @@ it as FILE-PATH."
                                 links))
                         names)))))))
     links))
+
+(defun org-roam--extract-headlines (&optional file-path)
+  "Extract all headlines with IDs within the current buffer.
+If FILE-PATH is nil, use the current file."
+  (let ((file-path (or file-path
+                       (file-truename (buffer-file-name)))))
+    (org-element-map (org-element-parse-buffer) 'node-property
+      (lambda (node-property)
+        (let ((key (org-element-property :key node-property))
+              (value (org-element-property :value node-property)))
+          (when (string= key "ID")
+            (let* ((id value)
+                   (data (vector id
+                                 file-path)))
+              data)))))))
 
 (defun org-roam--extract-titles-title ()
   "Return title from \"#+title\" of the current buffer."
@@ -650,7 +686,7 @@ Examples:
                       '("http" "https")))
          (type (cond (cite-prefix "cite")
                      (is-website "website")
-                     (t "roam"))))
+                     (t "file"))))
     type))
 
 (defun org-roam--extract-ref ()
@@ -867,21 +903,26 @@ This face is used for links without a destination."
   (and (boundp org-roam-backlinks-mode)
        org-roam-backlinks-mode))
 
-(defun org-roam--retrieve-link-path (&optional pom)
-  "Retrieve the path of the link at POM.
+(defun org-roam--retrieve-link-destination (&optional pom)
+  "Retrieve the destination of the link at POM.
 The point-or-marker POM can either be a position in the current
 buffer or a marker."
   (let ((pom (or pom (point))))
     (org-with-point-at pom
-      (plist-get (cadr (org-element-context)) :path))))
+      (let* ((context (org-element-context))
+             (type (org-element-property :type context))
+             (dest (org-element-property :path context)))
+        (pcase type
+          ("file" dest)
+          ("id" (car (org-roam-id-find dest))))))))
 
 (defun org-roam--backlink-to-current-p ()
   "Return t if backlink is to the current Org-roam file."
   (let ((current (buffer-file-name org-roam-buffer--current))
-        (backlink-dest (org-roam--retrieve-link-path)))
+        (backlink-dest (org-roam--retrieve-link-destination)))
     (string= current backlink-dest)))
 
-(defun org-roam--roam-link-face (path)
+(defun org-roam--roam-file-link-face (path)
   "Conditional face for org file links.
 Applies `org-roam-link-current' if PATH corresponds to the
 currently opened Org-roam file in the backlink buffer, or
@@ -893,6 +934,22 @@ file."
               (org-roam--backlink-to-current-p))
          'org-roam-link-current)
         ((org-roam--org-roam-file-p path)
+         'org-roam-link)
+        (t
+         'org-link)))
+
+(defun org-roam--roam-id-link-face (id)
+  "Conditional face for org ID links.
+Applies `org-roam-link-current' if ID corresponds to the
+currently opened Org-roam file in the backlink buffer, or
+`org-roam-link-face' if ID corresponds to any other Org-roam
+file."
+  (cond ((not (org-roam-id-find id))
+         'org-roam-link-invalid)
+        ((and (org-roam--in-buffer-p)
+              (org-roam--backlink-to-current-p))
+         'org-roam-link-current)
+        ((org-roam-id-find id t)
          'org-roam-link)
         (t
          'org-link)))
@@ -941,7 +998,7 @@ for Org-ref cite links."
                       :order-by (asc from)]
                      target))
 
-(defun org-roam-store-link ()
+(defun org-roam-store-link-file ()
   "Store a link to an `org-roam' file."
   (when (org-before-first-heading-p)
     (when-let ((title (cdr (assoc "TITLE" (org-roam--extract-global-props '("TITLE"))))))
@@ -950,6 +1007,78 @@ for Org-ref cite links."
        :link        (format "file:%s" (abbreviate-file-name buffer-file-name))
        :description title))))
 
+(defun org-roam--store-link (arg &optional interactive?)
+  "Store a link to the current location within Org-roam.
+See `org-roam-store-link' for details on ARG and INTERACTIVE?."
+  (let ((org-id-link-to-org-use-id t)
+        (id (org-id-get)))
+    (org-store-link arg interactive?)
+    ;; If :ID: was created, update the cache
+    (unless id
+      (org-roam-db--update-headlines))))
+
+(defun org-roam-store-link (arg &optional interactive?)
+  "Store a link to the current location.
+This commands is a wrapper for `org-store-link' which forces the
+automatic creation of :ID: properties.
+See `org-roam-store-link' for details on ARG and INTERACTIVE?."
+  (interactive "P\np")
+  (if (org-roam--org-roam-file-p)
+      (org-roam--store-link arg interactive?)
+    (org-store-link arg interactive?)))
+
+(defun org-roam-id-find (id &optional markerp strict)
+  "Return the location of the entry with the id ID.
+When MARKERP is non-nil, return a marker pointing to theheadline.
+Otherwise, return a cons formatted as \(file . pos).
+When STRICT is non-nil, only consider Org-roam’s database."
+  (let ((file (or (caar (org-roam-db-query [:select [file]
+                                            :from headlines
+                                            :where (= id $s1)]
+                                           id))
+                  (unless strict
+                    (org-id-find-id-file id)))))
+    (when file
+      (org-id-find-id-in-file id file markerp))))
+
+(defun org-roam-id-open (id-or-marker &optional strict)
+  "Go to the entry with ID-OR-MARKER.
+Wrapper for `org-id-open' which tries to find the ID in the
+Org-roam's database.
+ID-OR-MARKER can either be the ID of the entry or the marker
+pointing to it if it has already been computed by
+`org-roam-id-find'. If the ID-OR-MARKER is not found, it reverts
+to the default behaviour of `org-id-open'.
+When STRICT is non-nil, only consider Org-roam’s database."
+  (when-let ((marker (if (markerp id-or-marker)
+                         id-or-marker
+                       (org-roam-id-find id-or-marker t strict))))
+    (org-goto-marker-or-bmk marker)
+    (set-marker marker nil)))
+
+(defun org-roam-open-id-at-point ()
+  "Open link, timestamp, footnote or tags at point.
+The function tries to open ID-links with Org-roam’s database
+before falling back to the default behaviour of
+`org-open-at-point'. It also asks the user whether to parse
+`org-id-files' when an ID is not found because it might be a slow
+process.
+This function hooks into `org-open-at-point' via
+`org-open-at-point-functions'."
+  (let* ((context (org-element-context))
+         (type (org-element-property :type context))
+         (id (org-element-property :path context)))
+    (when (string= type "id")
+      (cond ((org-roam-id-open id)
+             t)
+            ;; Ask whether to parse `org-id-files'
+            ((not (y-or-n-p (concat "ID was not found in `org-roam-directory' nor in `org-id-locations'.\n"
+                                    "Search in `org-id-files'? ")))
+             t)
+            ;; Conditionally fall back to default behaviour
+            (t
+             nil)))))
+
 ;;; The global minor org-roam-mode
 (defun org-roam--find-file-hook-function ()
   "Called by `find-file-hook' when mode symbol `org-roam-mode' is on."
@@ -957,7 +1086,8 @@ for Org-ref cite links."
     (setq org-roam-last-window (get-buffer-window))
     (add-hook 'post-command-hook #'org-roam-buffer--update-maybe nil t)
     (add-hook 'after-save-hook #'org-roam-db--update-file nil t)
-    (org-link-set-parameters "file" :face 'org-roam--roam-link-face :store #'org-roam-store-link)
+    (org-link-set-parameters "file" :face 'org-roam--roam-file-link-face :store #'org-roam-store-link-file)
+    (org-link-set-parameters "id" :face 'org-roam--roam-id-link-face)
     (org-roam-buffer--update-maybe :redisplay t)))
 
 (defun org-roam--delete-file-advice (file &optional _trash)
@@ -1042,12 +1172,19 @@ replaced links are made relative to the current buffer."
              (new-slug (or (car (org-roam-db--get-titles old-path))
                            (org-roam--path-to-slug new-path)))
              (new-desc (org-roam--format-link-title new-slug))
+             (new-buffer (or (find-buffer-visiting new-path)
+                             (find-file-noselect new-path)))
              (files-to-rename (org-roam-db-query [:select :distinct [from]
                                                   :from links
                                                   :where (= to $s1)
                                                   :and (= type $s2)]
                                                  old-path
-                                                 "roam")))
+                                                 "file")))
+        ;; Remove database entries for old-file.org
+        (org-roam-db--clear-file old-file)
+        ;; Insert new headlines locations in new-file.org after removing the previous IDs
+        (with-current-buffer new-buffer
+          (org-roam-db--update-headlines))
         ;; Replace links from old-file.org -> new-file.org in all Org-roam files with these links
         (mapc (lambda (file)
                 (setq file (if (string-equal (file-truename (car file)) old-path)
@@ -1056,14 +1193,11 @@ replaced links are made relative to the current buffer."
                 (org-roam--replace-link file old-path new-path old-desc new-desc)
                 (org-roam-db--update-file file))
               files-to-rename)
-        ;; Remove database entries for old-file.org
-        (org-roam-db--clear-file old-file)
         ;; If the new path is in a different directory, relative links
         ;; will break. Fix all file-relative links:
         (unless (string= (file-name-directory old-path)
                          (file-name-directory new-path))
-          (with-current-buffer (or (find-buffer-visiting new-path)
-                                   (find-file-noselect new-path))
+          (with-current-buffer new-buffer
             (org-roam--fix-relative-links old-path)
             (save-buffer)))
         (org-roam-db--update-file new-path)))))
@@ -1084,7 +1218,9 @@ When called from Lisp, enable `org-roam-mode' if ARG is omitted,
 nil, or positive. If ARG is `toggle', toggle `org-roam-mode'.
 Otherwise, behave as if called interactively."
   :lighter " Org-roam"
-  :keymap  (let ((map (make-sparse-keymap))) map)
+  :keymap  (let ((map (make-sparse-keymap)))
+             (define-key map [remap org-store-link] 'org-roam-store-link)
+             map)
   :group 'org-roam
   :require 'org-roam
   :global t
@@ -1096,12 +1232,14 @@ Ensure it is installed and can be found within `exec-path'. \
 M-x info for more information at Org-roam > Installation > Post-Installation Tasks."))
     (add-hook 'find-file-hook #'org-roam--find-file-hook-function)
     (add-hook 'kill-emacs-hook #'org-roam-db--close-all)
+    (add-hook 'org-open-at-point-functions #'org-roam-open-id-at-point)
     (advice-add 'rename-file :after #'org-roam--rename-file-advice)
     (advice-add 'delete-file :before #'org-roam--delete-file-advice)
     (org-roam-db-build-cache))
    (t
     (remove-hook 'find-file-hook #'org-roam--find-file-hook-function)
     (remove-hook 'kill-emacs-hook #'org-roam-db--close-all)
+    (remove-hook 'org-open-at-point-functions #'org-roam-open-id-at-point)
     (advice-remove 'rename-file #'org-roam--rename-file-advice)
     (advice-remove 'delete-file #'org-roam--delete-file-advice)
     (org-roam-db--close-all)
