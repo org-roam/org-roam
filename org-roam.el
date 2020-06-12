@@ -42,6 +42,7 @@
 (require 'cl-lib)
 (require 'dash)
 (require 'f)
+(require 'rx)
 (require 's)
 (require 'seq)
 (eval-when-compile (require 'subr-x))
