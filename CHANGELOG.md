@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.2 (TBD)
+## 1.2.0 (12-06-2020)
 
 In this release, we improved the linking process by achieving feature parity between links to files and links to headlines. Before, we used the `file:foo::*bar` format to link to the headline `bar` in file `foo`, but this was prone to breakage upon renaming the file or modifying the headline. This is not the case anymore. Now, we use `org-id` to create IDs for those headlines, which are then stored in our database to compute the relationships and jump around. Note that this will work even if you’re not using `org-id` in your global configuration for Org-mode.
 

@@ -8,13 +8,13 @@
 #+texinfo_dir_category: Emacs
 #+texinfo_dir_title: Org-roam: (org-roam).
 #+texinfo_dir_desc: Rudimentary Roam Replica for Emacs.
-#+subtitle: for version 1.1.1
+#+subtitle: for version 1.2.0
 
 #+options: H:4 num:3 toc:2 creator:t
 #+property: header-args :eval never
 #+texinfo: @noindent
 
-This manual is for Org-roam version 1.1.1.
+This manual is for Org-roam version 1.2.0.
 
 #+BEGIN_QUOTE
 Copyright (C) 2020-2020 Jethro Kuan <jethrokuan95@gmail.com>
