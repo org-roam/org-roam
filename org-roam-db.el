@@ -51,7 +51,7 @@
 
 ;;;; Options
 (defcustom org-roam-db-location nil
-  "Location of the Org-roam database.
+  "The full path to file where the Org-roam database is stored.
 If this is non-nil, the Org-roam sqlite database is saved here.
 
 It is the user's responsibility to set this correctly, especially
