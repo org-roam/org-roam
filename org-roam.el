@@ -1449,7 +1449,14 @@ linked, lest the network graph get too crowded."
                                org-roam-directory))
            (file-loc (buffer-file-name))
            (buf (get-buffer-create "*org-roam unlinked references*"))
-           (results (split-string (shell-command-to-string rg-command) "\n")))
+           (results (split-string (shell-command-to-string rg-command) "\n"))
+           (result-regex (rx (group (one-or-more anychar))
+                             ":"
+                             (group (one-or-more digit))
+                             ":"
+                             (group (one-or-more digit))
+                             ":"
+                             (group (zero-or-more anything)))))
       (pop-to-buffer buf)
       (let ((inhibit-read-only t))
         (erase-buffer)
@@ -1457,24 +1464,28 @@ linked, lest the network graph get too crowded."
         (insert (propertize (car titles) 'font-lock-face 'org-document-title) "\n\n"
                 "* Unlinked References\n")
         (dolist (line results)
-          (let ((line (split-string line ":")))
-            (when (and (nth 3 line)
-                       (member (downcase (nth 3 line)) (mapcar #'downcase titles))
-                       (not (f-equal-p (expand-file-name (nth 0 line) org-roam-directory)
-                                       file-loc)))
-              (let ((rowcol (concat (nth 1 line) ":" (nth 2 line)))
-                    (file (nth 0 line)))
-                (insert "- "
-                        (org-link-make-string (concat "file:" file "::" rowcol)
-                                              (format "[%s] %s" rowcol (org-roam--get-title-or-slug file))))
-                (when (executable-find "sed") ; insert line contents when sed is available
-                  (insert " :: "
-                          (shell-command-to-string
-                           (concat "sed -n "
-                                   (nth 1 line)
-                                   "p "
-                                   (nth 0 line)))))
-                (insert "\n")))))
+          (save-match-data
+            (when (string-match result-regex line)
+              (let ((file (match-string 1 line))
+                    (row (match-string 2 line))
+                    (col (match-string 3 line))
+                    (match (match-string 4 line)))
+                (when (and match
+                           (member (downcase match) (mapcar #'downcase titles))
+                           (not (f-equal-p (expand-file-name file org-roam-directory)
+                                           file-loc)))
+                  (let ((rowcol (concat row ":" col)))
+                    (insert "- "
+                            (org-link-make-string (concat "file:" file "::" rowcol)
+                                                  (format "[%s] %s" rowcol (org-roam--get-title-or-slug file))))
+                    (when (executable-find "sed") ; insert line contents when sed is available
+                      (insert " :: "
+                              (shell-command-to-string
+                               (concat "sed -n "
+                                       row
+                                       "p "
+                                       file))))
+                    (insert "\n")))))))
         (read-only-mode +1)
         (dolist (title titles)
           (highlight-phrase (downcase title) 'bold-italic))
