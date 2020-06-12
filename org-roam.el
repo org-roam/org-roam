@@ -1015,7 +1015,7 @@ See `org-roam-store-link' for details on ARG and INTERACTIVE?."
     (org-store-link arg interactive?)
     ;; If :ID: was created, update the cache
     (unless id
-      (org-roam-db--update-cache-headlines))))
+      (org-roam-db--update-headlines))))
 
 (defun org-roam-store-link (arg &optional interactive?)
   "Store a link to the current location.
@@ -1182,7 +1182,7 @@ replaced links are made relative to the current buffer."
                                                  "file")))
         ;; Update headlines in new-file.org after removing the previous IDs
         (with-current-buffer new-buffer
-          (org-roam-db--update-cache-headlines old-file))
+          (org-roam-db--update-headlines old-file))
         ;; Replace links from old-file.org -> new-file.org in all Org-roam files with these links
         (mapc (lambda (file)
                 (setq file (if (string-equal (file-truename (car file)) old-path)

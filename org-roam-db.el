@@ -362,7 +362,7 @@ connections, nil is returned."
     (when-let ((ref (org-roam--extract-ref)))
       (org-roam-db--insert-ref file ref))))
 
-(defun org-roam-db--update-cache-links ()
+(defun org-roam-db--update-links ()
   "Update the file links of the current buffer in the cache."
   (let ((file (file-truename (buffer-file-name))))
     (org-roam-db-query [:delete :from links
@@ -371,7 +371,7 @@ connections, nil is returned."
     (when-let ((links (org-roam--extract-links)))
       (org-roam-db--insert-links links))))
 
-(defun org-roam-db--update-cache-headlines (&optional alt-file)
+(defun org-roam-db--update-headlines (&optional alt-file)
   "Update the file headlines of the current buffer into the cache.
 ALT-FILE can be used to specify a different file to be used for
 wiping the previous row, such as when the file has been rename."
@@ -395,8 +395,8 @@ wiping the previous row, such as when the file has been rename."
           (org-roam-db--update-tags)
           (org-roam-db--update-titles)
           (org-roam-db--update-refs)
-          (org-roam-db--update-cache-headlines)
-          (org-roam-db--update-cache-links)
+          (org-roam-db--update-headlines)
+          (org-roam-db--update-links)
           (org-roam-buffer--update-maybe :redisplay t))))))
 
 (defun org-roam-db-build-cache (&optional force)
