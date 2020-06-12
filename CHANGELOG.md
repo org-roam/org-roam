@@ -10,6 +10,14 @@
 ### Features
 
 - [#757](https://github.com/org-roam/org-roam/pull/757) Roam global properties are now case-insensitive
+- [#680](https://github.com/org-roam/org-roam/pull/680) , [#703](https://github.com/org-roam/org-roam/pull/703), [#708](https://github.com/org-roam/org-roam/pull/708) Add `org-roam-doctor` checkers for `ROAM_*` properties
+- [#664](https://github.com/org-roam/org-roam/pull/664) Add support for shelling out to `rg` and `find` in `org-roam--list-files`
+- [#679](https://github.com/org-roam/org-roam/pull/679), [#683](https://github.com/org-roam/org-roam/pull/683) Building of the graph now happens in a separate process
+
+### Bugfixes
+- [#714](https://github.com/org-roam/org-roam/pull/714) No longer print citelinks in backlinks buffer if there is no `ROAM_KEY` property or `org-ref` is not installed
+- [#759](https://github.com/org-roam/org-roam/pull/759), [#760](https://github.com/org-roam/org-roam/pull/760) Tags are only added to the tags table if there are actually tags present
+- [#700](https://github.com/org-roam/org-roam/pull/700), [#733](https://github.com/org-roam/org-roam/pull/733) Allow symlinks within the `org-roam` directory
 
 ## 1.1.1 (18-05-2020)
 
