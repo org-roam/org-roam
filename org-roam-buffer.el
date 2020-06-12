@@ -49,6 +49,7 @@
 (declare-function org-roam--get-backlinks     "org-roam")
 (declare-function org-roam-backlinks-mode     "org-roam")
 (declare-function org-roam-mode               "org-roam")
+(declare-function org-roam--find-file         "org-roam")
 
 (defcustom org-roam-buffer-position 'right
   "Position of `org-roam' buffer.
@@ -96,6 +97,14 @@ For example: (setq org-roam-buffer-window-parameters '((no-other-window . t)))"
 
 (defvar org-roam-buffer--current nil
   "Currently displayed file in `org-roam' buffer.")
+
+(defun org-roam-buffer--find-file (file)
+  "Open FILE in the window `org-roam' was called from."
+  (if (and org-roam-last-window (window-valid-p org-roam-last-window))
+      (progn (with-selected-window org-roam-last-window
+               (org-roam--find-file file))
+             (select-window org-roam-last-window))
+    (org-roam--find-file file)))
 
 (defun org-roam-buffer--insert-title ()
   "Insert the org-roam-buffer title."
