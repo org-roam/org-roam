@@ -36,4 +36,11 @@
 (emacsql-fix-vector-indentation)
 (provide 'org-roam-dev)
 
+(define-minor-mode org-roam-dev-mode
+  "Minor mode for setting the development environment."
+  :lighter " ORD"
+  (when org-roam-dev-mode
+    (require 'org-roam-dev)
+    (setq-local sentence-end-double-space nil)))
+
 ;;; org-roam-dev.el ends here
