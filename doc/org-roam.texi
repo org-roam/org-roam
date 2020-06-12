@@ -526,7 +526,9 @@ org-roam's templating system works, it may be useful to look into basic usage of
 @samp{org-capture}.
 
 Org-roam's templates can be customized by modifying the variable
-@samp{org-roam-capture-templates}.
+@samp{org-roam-capture-templates}. Just like the base @samp{org-capture} this
+variable can contain multiple templates, in which case you will be prompted on which
+one to use when capturing a new note.
 
 @menu
 * Template Walkthrough::
