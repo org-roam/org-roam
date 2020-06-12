@@ -567,7 +567,10 @@ here.
 @item
 @samp{:file-name} is the file-name template for a new note, if it doesn't
 yet exist. This creates a file at path that looks like
-@samp{/path/to/org-roam-directory/20200213032037-foo.org}.
+@samp{/path/to/org-roam-directory/20200213032037-foo.org}. This template also allows
+you to specify if you want the note to go into a subdirectory. e.g. the template
+@samp{private/$@{slug@}} will create notes in
+@samp{/path/to/org-roam-directory/private}
 @item
 @samp{:head} contains the initial template to be inserted (once only), at
 the beginning of the file. Here, the title global attribute is
