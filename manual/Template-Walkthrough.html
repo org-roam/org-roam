@@ -90,9 +90,12 @@ org-roam automatically chooses this template for you.
 </li><li> &lsquo;<samp>&quot;%?&quot;</samp>&rsquo; is the template inserted on each call to &lsquo;<samp>org-roam-capture--capture</samp>&rsquo;.
 This template means don&rsquo;t insert any content, but place the cursor
 here.
-</li><li> &lsquo;<samp>:file-name</samp>&rsquo; is the file-name template for a new note, if it doesn&rsquo;t
-yet exist. This creates a file at path that looks like
-&lsquo;<samp>/path/to/org-roam-directory/20200213032037-foo.org</samp>&rsquo;.
+</li><li> &lsquo;<samp>:file-name</samp>&rsquo; is the file-name template for a new note, if it doesn&rsquo;t yet
+exist. This creates a file at path that looks like
+&lsquo;<samp>/path/to/org-roam-directory/20200213032037-foo.org</samp>&rsquo;. This template also
+allows you to specify if you want the note to go into a subdirectory. For
+example, the template &lsquo;<samp>private/${slug}</samp>&rsquo; will create notes in
+&lsquo;<samp>/path/to/org-roam-directory/private</samp>&rsquo;.
 </li><li> &lsquo;<samp>:head</samp>&rsquo; contains the initial template to be inserted (once only), at
 the beginning of the file. Here, the title global attribute is
 inserted.
