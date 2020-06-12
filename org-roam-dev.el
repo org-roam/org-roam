@@ -37,7 +37,7 @@
 (provide 'org-roam-dev)
 
 (define-minor-mode org-roam-dev-mode
-  "Minor mode for setting the development environment."
+  "Minor mode for setting the dev environment of Org-roam."
   :lighter " ORD"
   (when org-roam-dev-mode
     (require 'org-roam-dev)
