@@ -6,6 +6,8 @@ In this release, we improved the linking process by achieving feature parity bet
 
 This is a major step forward. Supporting the in-file structure of Org-mode files means that we can interface with many of its core-features like TODOs, properties, priorities, etc. UX will have to be figured out, but this release ushers in a new age in terms of functionalities.
 
+We also add `org-roam-unlinked-references`, which naively finds text that could be references to the current Org-roam file.
+
 ### Breaking Changes
 
 - [#701](https://github.com/org-roam/org-roam/pull/701) Use `emacsql-sqlite3` instead of `emacsql-sqlite` for better Windows compatibility. This requires the presence of the standard `sqlite3` binary on your machine.
@@ -13,6 +15,7 @@ This is a major step forward. Supporting the in-file structure of Org-mode files
 
 ### Features
 
+- [#787](https://github.com/org-roam/org-roam/pull/787) Add `org-roam-unlinked-references`
 - [#783](https://github.com/org-roam/org-roam/pull/783) Add support for headlines
 - [#757](https://github.com/org-roam/org-roam/pull/757) Roam global properties are now case-insensitive
 - [#680](https://github.com/org-roam/org-roam/pull/680) , [#703](https://github.com/org-roam/org-roam/pull/703), [#708](https://github.com/org-roam/org-roam/pull/708) Add `org-roam-doctor` checkers for `ROAM_*` properties
