@@ -1180,9 +1180,11 @@ replaced links are made relative to the current buffer."
                                                   :and (= type $s2)]
                                                  old-path
                                                  "file")))
-        ;; Update headlines in new-file.org after removing the previous IDs
+        ;; Remove database entries for old-file.org
+        (org-roam-db--clear-file old-file)
+        ;; Insert new headlines locations in new-file.org after removing the previous IDs
         (with-current-buffer new-buffer
-          (org-roam-db--update-headlines old-file))
+          (org-roam-db--update-headlines))
         ;; Replace links from old-file.org -> new-file.org in all Org-roam files with these links
         (mapc (lambda (file)
                 (setq file (if (string-equal (file-truename (car file)) old-path)
@@ -1191,8 +1193,6 @@ replaced links are made relative to the current buffer."
                 (org-roam--replace-link file old-path new-path old-desc new-desc)
                 (org-roam-db--update-file file))
               files-to-rename)
-        ;; Remove database entries for old-file.org
-        (org-roam-db--clear-file old-file)
         ;; If the new path is in a different directory, relative links
         ;; will break. Fix all file-relative links:
         (unless (string= (file-name-directory old-path)
