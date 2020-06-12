@@ -164,6 +164,15 @@ operating system. You can verify that this is the case by executing:
   (executable-find "sqlite3")
 #+END_SRC
 
+If you have ~sqlite3~ installed, and ~executable-find~ still reports ~nil~, then
+it is likely that the path to the executable is not a member of the Emacs
+variable ~exec-path~. You may rectify this by manually adding the path within
+your Emacs configuration:
+
+#+BEGIN_SRC emacs-lisp
+  (add-to-list 'exec-path "path/to/sqlite3")
+#+END_SRC
+
 * Getting Started
 
 This short tutorial describes the essential commands used in Org-roam, to help
