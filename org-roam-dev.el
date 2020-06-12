@@ -33,14 +33,14 @@
 ;;
 ;;; Code:
 (require 'emacsql)
-(emacsql-fix-vector-indentation)
-(provide 'org-roam-dev)
 
+;;;###autoload
 (define-minor-mode org-roam-dev-mode
   "Minor mode for setting the dev environment of Org-roam."
   :lighter " ORD"
   (when org-roam-dev-mode
-    (require 'org-roam-dev)
+    (emacsql-fix-vector-indentation)
     (setq-local sentence-end-double-space nil)))
 
+(provide 'org-roam-dev)
 ;;; org-roam-dev.el ends here
