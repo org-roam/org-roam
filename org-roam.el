@@ -1438,7 +1438,7 @@ linked, lest the network graph get too crowded."
   (unless (org-roam--org-roam-file-p)
     (user-error "Not in org-roam file"))
   (if (not (executable-find "rg"))
-      (user-error "Cannot find the \"rg\" executable, aborting")
+      (error "Cannot find the ripgrep executable \"rg\". Check that it is installed and available on `exec-path'")
     (let* ((titles (org-roam--extract-titles))
            (rg-command (concat "rg -o --vimgrep -P -i "
                                (string-join (mapcar (lambda (glob) (concat "-g " glob))
