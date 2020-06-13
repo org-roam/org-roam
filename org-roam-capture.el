@@ -106,6 +106,12 @@ applies.
    inserted on initial creation (added only once).  This is where
    insertion of any note metadata should go.")
 
+(defvar org-roam-capture-immediate-template
+  (append (car org-roam-capture-templates) '(:immediate-finish t))
+  "Capture template to use for immediate captures in Org-roam.
+This is a single template, so do not enclose it into a list.
+See `org-roam-capture-templates' for details on templates.")
+
 (defvar org-roam-capture-ref-templates
   '(("r" "ref" plain (function org-roam-capture--get-point)
      ""
