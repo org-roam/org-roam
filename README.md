@@ -59,7 +59,8 @@ Here's a sample configuration with using `use-package`:
                ("C-c n f" . org-roam-find-file)
                ("C-c n g" . org-roam-show-graph))
               :map org-mode-map
-              (("C-c n i" . org-roam-insert))))
+              (("C-c n i" . org-roam-insert))
+              (("C-c n I" . org-roam-insert-immediate))))
 ```
 
 `org-roam-graph` by default expects to find the `dot` executable
