@@ -1451,7 +1451,7 @@ linked, lest the network graph get too crowded."
            (file-loc (buffer-file-name))
            (buf (get-buffer-create "*org-roam unlinked references*"))
            (results (split-string (shell-command-to-string rg-command) "\n"))
-           (result-regex (rx (group (one-or-more anychar))
+           (result-regex (rx (group (one-or-more anything))
                              ":"
                              (group (one-or-more digit))
                              ":"
