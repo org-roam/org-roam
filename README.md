@@ -50,6 +50,7 @@ Here's a sample configuration with using `use-package`:
 
 ```emacs-lisp
 (use-package org-roam
+      :ensure t
       :hook
       (after-init . org-roam-mode)
       :custom

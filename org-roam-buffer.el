@@ -266,14 +266,25 @@ Valid states are 'visible, 'exists and 'none."
          (org-roam-buffer--set-height
           (round (* (frame-height) org-roam-buffer-height))))))))
 
-(defun org-roam-buffer-toggle-display ()
-  "Toggle display of the `org-roam-buffer'."
+(defun org-roam-buffer-activate ()
+  "Activate display of the `org-roam-buffer'."
   (interactive)
   (unless org-roam-mode (org-roam-mode))
   (setq org-roam-last-window (get-buffer-window))
+  (org-roam-buffer--get-create))
+
+(defun org-roam-buffer-deactivate ()
+  "Deactivate display of the `org-roam-buffer'."
+  (interactive)
+  (setq org-roam-last-window (get-buffer-window))
+  (delete-window (get-buffer-window org-roam-buffer)))
+
+(defun org-roam-buffer-toggle-display ()
+  "Toggle display of the `org-roam-buffer'."
+  (interactive)
   (pcase (org-roam-buffer--visibility)
-    ('visible (delete-window (get-buffer-window org-roam-buffer)))
-    ((or 'exists 'none) (org-roam-buffer--get-create))))
+    ('visible (org-roam-buffer-deactivate))
+    ((or 'exists 'none) (org-roam-buffer-activate))))
 
 (provide 'org-roam-buffer)
 
