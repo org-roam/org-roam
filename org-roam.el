@@ -1379,6 +1379,18 @@ If DESCRIPTION is provided, use this as the link label.  See
           (org-roam-capture--capture))))))
 
 ;;;###autoload
+(defun org-roam-insert-immediate (arg &rest args)
+  "Find an Org-roam file, and insert a relative org link to it at point.
+This variant of `org-roam-insert' inserts the link immediately by
+using the template in `org-roam-capture-immediate-template'. The
+interactive ARG and ARGS are forward to `org-roam-insert'.
+See `org-roam-insert' for details."
+  (interactive "P")
+  (let ((args (push arg args))
+        (org-roam-capture-templates (list org-roam-capture-immediate-template)))
+    (apply #'org-roam-insert args)))
+
+;;;###autoload
 (defun org-roam-jump-to-index ()
   "Find the index file in `org-roam-directory'.
 The path to the index can be defined in `org-roam-index-file'.
