@@ -92,7 +92,7 @@ Performs a database upgrade when required."
                  org-roam-db--connection)
         (when init-db
           (org-roam-db--init conn))
-        (let* ((version (caar (emacsql conn "PRAGMA user_version")))
+        (let* ((version (caadr (emacsql conn "PRAGMA user_version")))
                (version (org-roam-db--update-maybe conn version)))
           (cond
            ((> version org-roam-db--version)
