@@ -42,6 +42,7 @@
 (declare-function  org-roam--get-title-path-completions "org-roam")
 (declare-function  org-roam--get-ref-path-completions   "org-roam")
 (declare-function  org-roam--file-path-from-id          "org-roam")
+(declare-function  org-roam--find-file                  "org-roam")
 (declare-function  org-roam--format-link                "org-roam")
 (declare-function  org-roam--title-to-slug              "org-roam")
 (declare-function  org-roam-mode                        "org-roam")
@@ -311,7 +312,7 @@ This is added as a hook to `org-capture-after-finalize-hook'.
 Run the hooks defined in `org-roam-capture-after-find-file-hook'."
   (unless org-note-abort
     (when-let ((file-path (org-roam-capture--get :file-path)))
-      (find-file file-path))
+      (org-roam--find-file file-path))
     (run-hooks 'org-roam-capture-after-find-file-hook))
   (remove-hook 'org-capture-after-finalize-hook #'org-roam-capture--find-file-h))
 

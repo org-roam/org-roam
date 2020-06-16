@@ -104,6 +104,12 @@ ensure that."
   :type '(repeat string)
   :group 'org-roam)
 
+(defcustom org-roam-find-file-function nil
+  "Function called when visiting files in Org-roam commands.
+If nil, `find-file' is used."
+  :type 'function
+  :group 'org-roam)
+
 (defcustom org-roam-include-type-in-ref-path-completions nil
   "When t, include the type in ref-path completions.
 Note that this only affects interactive calls.
@@ -838,6 +844,10 @@ included as a candidate."
                 (v (list :path file-path :type type :ref ref)))
             (push (cons k v) completions)))))))
 
+(defun org-roam--find-file (file)
+  "Open FILE using `org-roam-find-file-function' or `find-file'."
+  (funcall (or org-roam-find-file-function #'find-file) file))
+
 (defun org-roam--find-ref (ref)
   "Find and open and Org-roam file from REF if it exists.
 REF should be the value of '#+roam_key:' without any
@@ -845,7 +855,7 @@ type-information (e.g. 'cite:').
 Return nil if the file does not exist."
   (when-let* ((completions (org-roam--get-ref-path-completions))
               (file (plist-get (cdr (assoc ref completions)) :path)))
-    (find-file file)))
+    (org-roam--find-file file)))
 
 (defun org-roam--get-roam-buffers ()
   "Return a list of buffers that are Org-roam files."
@@ -969,26 +979,18 @@ This function hooks into `org-open-at-point' via `org-open-at-point-functions'."
       (when (and (eq (org-element-type context) 'link)
                  (string= "file" type)
                  (org-roam--org-roam-file-p (file-truename path)))
-        (org-roam--find-file path)
+        (org-roam-buffer--find-file path)
         (org-show-context)
         t)))
    ;; Org-roam preview text
    ((when-let ((file-from (get-text-property (point) 'file-from))
                (p (get-text-property (point) 'file-from-point)))
-      (org-roam--find-file file-from)
+      (org-roam-buffer--find-file file-from)
       (goto-char p)
       (org-show-context)
       t))
    ;; If called via `org-open-at-point', fall back to default behavior.
    (t nil)))
-
-(defun org-roam--find-file (file)
-  "Open FILE in the window `org-roam' was called from."
-  (if (and org-roam-last-window (window-valid-p org-roam-last-window))
-      (progn (with-selected-window org-roam-last-window
-               (find-file file))
-             (select-window org-roam-last-window))
-    (find-file file)))
 
 (defun org-roam--get-backlinks (target)
   "Return the backlinks for TARGET.
@@ -1292,7 +1294,7 @@ which takes as its argument an alist of path-completions.  See
          (res (cdr (assoc title-with-tags completions)))
          (file-path (plist-get res :path)))
     (if file-path
-        (find-file file-path)
+        (org-roam--find-file file-path)
       (let ((org-roam-capture--info `((title . ,title-with-tags)
                                       (slug  . ,(org-roam--title-to-slug title-with-tags))))
             (org-roam-capture--context 'title))
@@ -1304,7 +1306,7 @@ which takes as its argument an alist of path-completions.  See
 (defun org-roam-find-directory ()
   "Find and open `org-roam-directory'."
   (interactive)
-  (find-file org-roam-directory))
+  (org-roam--find-file org-roam-directory))
 
 ;;;###autoload
 (defun org-roam-find-ref (arg &optional filter)
@@ -1326,7 +1328,7 @@ included as a candidate."
                                                     :require-match t))
          (file (-> (cdr (assoc ref completions))
                    (plist-get :path))))
-    (find-file file)))
+    (org-roam--find-file file)))
 
 ;;;###autoload
 (defun org-roam-insert (&optional lowercase completions filter-fn description)
@@ -1402,7 +1404,7 @@ command will offer you to create one."
   (let ((index (org-roam--get-index-path)))
     (if (and index
              (file-exists-p index))
-        (find-file index)
+        (org-roam--find-file index)
       (when (y-or-n-p "Index file does not exist.  Would you like to create it? ")
         (org-roam-find-file "Index")))))
 

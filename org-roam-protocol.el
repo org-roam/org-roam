@@ -78,7 +78,7 @@ It should contain the FILE key, pointing to the path of the file to open.
 org-protocol://roam-file?file=/path/to/file.org"
   (when-let ((file (plist-get info :file)))
     (raise-frame)
-    (find-file file))
+    (org-roam--find-file file))
   nil)
 
 (push '("org-roam-ref"  :protocol "roam-ref"   :function org-roam-protocol-open-ref)
