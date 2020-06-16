@@ -70,7 +70,6 @@
 (defvar org-id-link-to-org-use-id)
 (declare-function org-id-find-id-in-file "ext:org-id" (id file &optional markerp))
 
-
 ;;;; Customizable variables
 (defgroup org-roam nil
   "Roam Research replica in Org-mode."
@@ -208,7 +207,7 @@ extraction methods:
               (const :tag "sub-directories" all-directories)
               (const :tag "parent directory" last-directory)))
 
-(defcustom org-roam-title-to-slug-fn #'org-roam--title-to-slug
+(defcustom org-roam-title-to-slug-function #'org-roam--title-to-slug
   "Function to be used in converting a title to the filename slug.
 Function should return a filename string based on title.
 Otherwise, function will remain as default of
@@ -1304,7 +1303,7 @@ which takes as its argument an alist of path-completions.  See
     (if file-path
         (org-roam--find-file file-path)
       (let ((org-roam-capture--info `((title . ,title-with-tags)
-                                      (slug  . ,(funcall org-roam-title-to-slug-fn title-with-tags))))
+                                      (slug  . ,(funcall org-roam-title-to-slug-function title-with-tags))))
             (org-roam-capture--context 'title))
         (add-hook 'org-capture-after-finalize-hook #'org-roam-capture--find-file-h)
         (org-roam--with-template-error 'org-roam-capture-templates
@@ -1379,7 +1378,7 @@ If DESCRIPTION is provided, use this as the link label.  See
       (when (org-roam-capture--in-process-p)
         (user-error "Nested Org-roam capture processes not supported"))
       (let ((org-roam-capture--info `((title . ,title-with-tags)
-                                      (slug . ,(funcall org-roam-title-to-slug-fn title-with-tags))))
+                                      (slug . ,(funcall org-roam-title-to-slug-function title-with-tags))))
             (org-roam-capture--context 'title))
         (add-hook 'org-capture-after-finalize-hook #'org-roam-capture--insert-link-h)
         (setq org-roam-capture-additional-template-props (list :region region
