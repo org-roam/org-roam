@@ -44,7 +44,7 @@
 (declare-function  org-roam--file-path-from-id          "org-roam")
 (declare-function  org-roam--find-file                  "org-roam")
 (declare-function  org-roam--format-link                "org-roam")
-(declare-function  org-roam--title-to-slug              "org-roam")
+(declare-function  org-roam-title-to-slug-fn            "org-roam")
 (declare-function  org-roam-mode                        "org-roam")
 (declare-function  org-roam-completion--completing-read "org-roam-completion")
 
@@ -349,7 +349,7 @@ This uses the templates defined at `org-roam-capture-templates'."
          (title (or (plist-get res :title) title-with-keys))
          (file-path (plist-get res :path)))
     (let ((org-roam-capture--info (list (cons 'title title)
-                                        (cons 'slug (org-roam--title-to-slug title))
+                                        (cons 'slug (org-roam-title-to-slug-fn title))
                                         (cons 'file file-path)))
           (org-roam-capture--context 'capture))
       (setq org-roam-capture-additional-template-props (list :capture-fn 'org-roam-capture))
