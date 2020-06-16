@@ -1304,7 +1304,7 @@ which takes as its argument an alist of path-completions.  See
     (if file-path
         (org-roam--find-file file-path)
       (let ((org-roam-capture--info `((title . ,title-with-tags)
-                                      (slug  . ,(org-roam-title-to-slug-fn title-with-tags))))
+                                      (slug  . ,(funcall org-roam-title-to-slug-fn title-with-tags))))
             (org-roam-capture--context 'title))
         (add-hook 'org-capture-after-finalize-hook #'org-roam-capture--find-file-h)
         (org-roam--with-template-error 'org-roam-capture-templates
@@ -1379,7 +1379,7 @@ If DESCRIPTION is provided, use this as the link label.  See
       (when (org-roam-capture--in-process-p)
         (user-error "Nested Org-roam capture processes not supported"))
       (let ((org-roam-capture--info `((title . ,title-with-tags)
-                                      (slug . ,(org-roam-title-to-slug-fn title-with-tags))))
+                                      (slug . ,(funcall org-roam-title-to-slug-fn title-with-tags))))
             (org-roam-capture--context 'title))
         (add-hook 'org-capture-after-finalize-hook #'org-roam-capture--insert-link-h)
         (setq org-roam-capture-additional-template-props (list :region region

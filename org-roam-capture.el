@@ -349,7 +349,7 @@ This uses the templates defined at `org-roam-capture-templates'."
          (title (or (plist-get res :title) title-with-keys))
          (file-path (plist-get res :path)))
     (let ((org-roam-capture--info (list (cons 'title title)
-                                        (cons 'slug (org-roam-title-to-slug-fn title))
+                                        (cons 'slug (funcall org-roam-title-to-slug-fn title))
                                         (cons 'file file-path)))
           (org-roam-capture--context 'capture))
       (setq org-roam-capture-additional-template-props (list :capture-fn 'org-roam-capture))
