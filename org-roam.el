@@ -209,9 +209,7 @@ extraction methods:
 
 (defcustom org-roam-title-to-slug-function #'org-roam--title-to-slug
   "Function to be used in converting a title to the filename slug.
-Function should return a filename string based on title.
-Otherwise, function will remain as default of
-`org-roam--title-to-slug'."
+Function should return a filename string based on title."
   :type 'function
   :group 'org-roam)
 
