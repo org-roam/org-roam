@@ -56,7 +56,7 @@ It opens or creates a note with the given ref.
     (unless (assoc 'ref decoded-alist)
       (error "No ref key provided"))
     (when-let ((title (cdr (assoc 'title decoded-alist))))
-      (push (cons 'slug (org-roam--title-to-slug title)) decoded-alist))
+      (push (cons 'slug (funcall org-roam-title-to-slug-function title)) decoded-alist))
     (let* ((org-roam-capture-templates org-roam-capture-ref-templates)
            (org-roam-capture--context 'ref)
            (org-roam-capture--info decoded-alist)
