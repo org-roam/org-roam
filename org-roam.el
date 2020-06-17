@@ -1339,6 +1339,7 @@ included as a candidate."
 ;;;###autoload
 (defun org-roam-insert (&optional lowercase completions filter-fn description)
   "Find an Org-roam file, and insert a relative org link to it at point.
+Return selected file if it exists.
 If LOWERCASE, downcase the title before insertion.
 COMPLETIONS is a list of completions to be used instead of
 `org-roam--get-title-path-completions`.
@@ -1384,7 +1385,8 @@ If DESCRIPTION is provided, use this as the link label.  See
                                                                :link-description link-description
                                                                :capture-fn 'org-roam-insert))
         (org-roam--with-template-error 'org-roam-capture-templates
-          (org-roam-capture--capture))))))
+          (org-roam-capture--capture))))
+    res))
 
 ;;;###autoload
 (defun org-roam-insert-immediate (arg &rest args)
