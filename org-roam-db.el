@@ -61,8 +61,12 @@ when used with multiple Org-roam instances."
   :group 'org-roam)
 
 (defcustom org-roam-db-gc-threshold most-positive-fixnum
-  "The value to set the `gc-cons-threshold' threshold to, during
-large, heavy operations like `org-roam-db-build-cache'."
+  "The value to temporarily set the `gc-cons-threshold' threshold to.
+During large, heavy operations like `org-roam-db-build-cache',
+many GC operations happen because of the large number of
+temporary structures generated (e.g. parsed ASTs). Temporarily
+increasing `gc-cons-threshold' will help reduce the number of GC
+operations, at the cost of temporary memory usage."
   :type 'int
   :group 'org-roam)
 
