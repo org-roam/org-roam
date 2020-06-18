@@ -202,10 +202,16 @@ extraction methods:
   `last-directory'
     Extract the last directory relative to `org-roam-directory'.
     That is, if a file is located at relative path foo/bar/file.org,
-    the file will have tag \"bar\"."
+    the file will have tag \"bar\".
+
+  `first-directory'
+    Extract the first directory relative to `org-roam-directory'.
+    That is, if a file is located at relative path foo/bar/file.org,
+    the file will have tag \"foo\"."
   :type '(set (const :tag "#+roam_tags" prop)
               (const :tag "sub-directories" all-directories)
-              (const :tag "parent directory" last-directory)))
+              (const :tag "parent directory" last-directory)
+              (const :tag "first sub-directory" first-directory)))
 
 (defcustom org-roam-title-to-slug-function #'org-roam--title-to-slug
   "Function to be used in converting a title to the filename slug.
@@ -641,6 +647,14 @@ The final directory component is used as a tag."
   (when-let ((dir-relative (file-name-directory
                             (file-relative-name file org-roam-directory))))
     (last (f-split dir-relative))))
+
+(defun org-roam--extract-tags-first-directory (file)
+  "Extract tags from path FILE.
+The first directory component after `org-roam-directory' is used as a
+tag."
+  (when-let ((dir-relative (file-name-directory
+                            (file-relative-name file org-roam-directory))))
+    (list (car (f-split dir-relative)))))
 
 (defun org-roam--extract-tags-prop (_file)
   "Extract tags from the current buffer's \"#roam_tags\" global property."
