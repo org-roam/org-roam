@@ -62,7 +62,9 @@ when used with multiple Org-roam instances."
 
 (defcustom org-roam-db-gc-threshold most-positive-fixnum
   "The value to set the `gc-cons-threshold' threshold to, during
-  large, heavy operations like `org-roam-db-build-cache'.")
+large, heavy operations like `org-roam-db-build-cache'."
+  :type 'int
+  :group 'org-roam)
 
 (defconst org-roam-db--version 6)
 
