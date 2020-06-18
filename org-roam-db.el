@@ -411,7 +411,12 @@ If FORCE, force a rebuild of the cache from scratch."
          (tag-count 0)
          (title-count 0)
          (ref-count 0)
-         (deleted-count 0))
+         (deleted-count 0)
+         (temp-buffer (generate-new-buffer " *temp*"))
+         (current-org-roam-directory (make-symbol "current-org-roam-directory"))
+         (current-org-roam-directory org-roam-directory))
+    (with-current-buffer temp-buffer
+      (setq org-roam-directory current-org-roam-directory))
     (emacsql-with-transaction (org-roam-db--get-connection)
       ;; Two-step building
       ;; First step: Rebuild files and headlines
@@ -419,7 +424,10 @@ If FORCE, force a rebuild of the cache from scratch."
         (let* ((attr (file-attributes file))
                (atime (file-attribute-access-time attr))
                (mtime (file-attribute-modification-time attr)))
-          (org-roam--with-temp-buffer file
+          (with-current-buffer temp-buffer
+            (setq-local org-roam-file-name file)
+            (erase-buffer)
+            (insert-file-contents file)
             (let ((contents-hash (secure-hash 'sha1 (current-buffer))))
               (unless (string= (gethash file current-files)
                                contents-hash)
@@ -437,7 +445,10 @@ If FORCE, force a rebuild of the cache from scratch."
                   (setq headline-count (1+ headline-count))))))))
       ;; Second step: Rebuild the rest
       (dolist (file org-roam-files)
-        (org-roam--with-temp-buffer file
+        (with-current-buffer temp-buffer
+          (setq-local org-roam-file-name file)
+          (erase-buffer)
+          (insert-file-contents file)
           (let ((contents-hash (secure-hash 'sha1 (current-buffer))))
             (unless (string= (gethash file current-files)
                              contents-hash)
