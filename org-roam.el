@@ -76,7 +76,7 @@
   :group 'org
   :prefix "org-roam-"
   :link '(url-link :tag "Github" "https://github.com/org-roam/org-roam")
-  :link '(url-link :tag "Online Manual" "https://org-roam.github.io/org-roam/manual/"))
+  :link '(url-link :tag "Online Manual" "https://www.orgroam.com/manual/"))
 
 (defgroup org-roam-faces nil
   "Faces used by Org-roam."
