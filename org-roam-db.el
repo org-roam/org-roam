@@ -68,7 +68,7 @@ when used with multiple Org-roam instances."
 ;;;; Core Functions
 (defun org-roam-db--get ()
   "Return the sqlite db file."
-    (or org-roam-db-location
+  (or org-roam-db-location
       (expand-file-name "org-roam.db" org-roam-directory)))
 
 (defun org-roam-db--get-connection ()
@@ -412,75 +412,74 @@ If FORCE, force a rebuild of the cache from scratch."
          (title-count 0)
          (ref-count 0)
          (deleted-count 0))
-    (org-roam-db-query "BEGIN TRANSACTION")
-    ;; Two-step building
-    ;; First step: Rebuild files and headlines
-    (dolist (file org-roam-files)
-      (let* ((attr (file-attributes file))
-             (atime (file-attribute-access-time attr))
-             (mtime (file-attribute-modification-time attr)))
+    (emacsql-with-transaction (org-roam-db--get-connection)
+      ;; Two-step building
+      ;; First step: Rebuild files and headlines
+      (dolist (file org-roam-files)
+        (let* ((attr (file-attributes file))
+               (atime (file-attribute-access-time attr))
+               (mtime (file-attribute-modification-time attr)))
+          (org-roam--with-temp-buffer file
+            (let ((contents-hash (secure-hash 'sha1 (current-buffer))))
+              (unless (string= (gethash file current-files)
+                               contents-hash)
+                (org-roam-db--clear-file file)
+                (org-roam-db-query
+                 [:insert :into files
+                  :values $v1]
+                 (vector file contents-hash (list :atime atime :mtime mtime)))
+                (setq file-count (1+ file-count))
+                (when-let (headlines (org-roam--extract-headlines file))
+                  (org-roam-db-query
+                   [:insert :into headlines
+                    :values $v1]
+                   headlines)
+                  (setq headline-count (1+ headline-count))))))))
+      ;; Second step: Rebuild the rest
+      (dolist (file org-roam-files)
         (org-roam--with-temp-buffer file
           (let ((contents-hash (secure-hash 'sha1 (current-buffer))))
             (unless (string= (gethash file current-files)
                              contents-hash)
-              (org-roam-db--clear-file file)
-              (org-roam-db-query
-               [:insert :into files
-                :values $v1]
-               (vector file contents-hash (list :atime atime :mtime mtime)))
-              (setq file-count (1+ file-count))
-              (when-let (headlines (org-roam--extract-headlines file))
+              (when-let (links (org-roam--extract-links file))
                 (org-roam-db-query
-                 [:insert :into headlines
+                 [:insert :into links
                   :values $v1]
-                 headlines)
-                (setq headline-count (1+ headline-count))))))))
-    ;; Second step: Rebuild the rest
-    (dolist (file org-roam-files)
-      (org-roam--with-temp-buffer file
-        (let ((contents-hash (secure-hash 'sha1 (current-buffer))))
-          (unless (string= (gethash file current-files)
-                           contents-hash)
-            (when-let (links (org-roam--extract-links file))
-              (org-roam-db-query
-               [:insert :into links
-                :values $v1]
-               links)
-              (setq link-count (1+ link-count)))
-            (when-let (tags (org-roam--extract-tags file))
-              (org-roam-db-query
-               [:insert :into tags
-                :values $v1]
-               (vector file tags))
-              (setq tag-count (1+ tag-count)))
-            (let ((titles (org-roam--extract-titles)))
-              (org-roam-db-query
-               [:insert :into titles
-                :values $v1]
-               (vector file titles))
-              (setq title-count (1+ title-count)))
-            (when-let* ((ref (org-roam--extract-ref))
-                        (type (car ref))
-                        (key (cdr ref)))
-              (org-roam-db-query
-               [:insert :into refs
-                :values $v1]
-               (vector key file type))
-              (setq ref-count (1+ ref-count))))
-          (remhash file current-files))))
-    (dolist (file (hash-table-keys current-files))
-      ;; These files are no longer around, remove from cache...
-      (org-roam-db--clear-file file)
-      (setq deleted-count (1+ deleted-count)))
-    (org-roam-db-query "COMMIT")
+                 links)
+                (setq link-count (1+ link-count)))
+              (when-let (tags (org-roam--extract-tags file))
+                (org-roam-db-query
+                 [:insert :into tags
+                  :values $v1]
+                 (vector file tags))
+                (setq tag-count (1+ tag-count)))
+              (let ((titles (org-roam--extract-titles)))
+                (org-roam-db-query
+                 [:insert :into titles
+                  :values $v1]
+                 (vector file titles))
+                (setq title-count (1+ title-count)))
+              (when-let* ((ref (org-roam--extract-ref))
+                          (type (car ref))
+                          (key (cdr ref)))
+                (org-roam-db-query
+                 [:insert :into refs
+                  :values $v1]
+                 (vector key file type))
+                (setq ref-count (1+ ref-count))))
+            (remhash file current-files))))
+      (dolist (file (hash-table-keys current-files))
+        ;; These files are no longer around, remove from cache...
+        (org-roam-db--clear-file file)
+        (setq deleted-count (1+ deleted-count))))
     (org-roam-message "files: %s, headlines: %s, links: %s, tags: %s, titles: %s, refs: %s, deleted: %s"
-                        file-count
-                        headline-count
-                        link-count
-                        tag-count
-                        title-count
-                        ref-count
-                        deleted-count)))
+                      file-count
+                      headline-count
+                      link-count
+                      tag-count
+                      title-count
+                      ref-count
+                      deleted-count)))
 
 (provide 'org-roam-db)
 
