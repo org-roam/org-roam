@@ -70,7 +70,6 @@
 (defvar org-id-link-to-org-use-id)
 (declare-function org-id-find-id-in-file "ext:org-id" (id file &optional markerp))
 
-
 ;;;; Customizable variables
 (defgroup org-roam nil
   "Roam Research replica in Org-mode."
@@ -207,6 +206,12 @@ extraction methods:
   :type '(set (const :tag "#+roam_tags" PROP)
               (const :tag "sub-directories" all-directories)
               (const :tag "parent directory" last-directory)))
+
+(defcustom org-roam-title-to-slug-function #'org-roam--title-to-slug
+  "Function to be used in converting a title to the filename slug.
+Function should return a filename string based on title."
+  :type 'function
+  :group 'org-roam)
 
 (defcustom org-roam-title-sources '((title headline) alias)
   "The list of sources from which to retrieve a note title.
@@ -1229,7 +1234,9 @@ Otherwise, behave as if called interactively."
   :global t
   (cond
    (org-roam-mode
-    (unless (executable-find "sqlite3")
+    (unless (or (and (fboundp 'emacsql-sqlite3-executable)
+                     (file-executable-p emacsql-sqlite3-executable))
+                (executable-find "sqlite3"))
       (lwarn '(org-roam) :error "Cannot find executable 'sqlite3'. \
 Ensure it is installed and can be found within `exec-path'. \
 M-x info for more information at Org-roam > Installation > Post-Installation Tasks."))
@@ -1296,7 +1303,7 @@ which takes as its argument an alist of path-completions.  See
     (if file-path
         (org-roam--find-file file-path)
       (let ((org-roam-capture--info `((title . ,title-with-tags)
-                                      (slug  . ,(org-roam--title-to-slug title-with-tags))))
+                                      (slug  . ,(funcall org-roam-title-to-slug-function title-with-tags))))
             (org-roam-capture--context 'title))
         (add-hook 'org-capture-after-finalize-hook #'org-roam-capture--find-file-h)
         (org-roam--with-template-error 'org-roam-capture-templates
@@ -1333,6 +1340,7 @@ included as a candidate."
 ;;;###autoload
 (defun org-roam-insert (&optional lowercase completions filter-fn description)
   "Find an Org-roam file, and insert a relative org link to it at point.
+Return selected file if it exists.
 If LOWERCASE, downcase the title before insertion.
 COMPLETIONS is a list of completions to be used instead of
 `org-roam--get-title-path-completions`.
@@ -1371,14 +1379,15 @@ If DESCRIPTION is provided, use this as the link label.  See
       (when (org-roam-capture--in-process-p)
         (user-error "Nested Org-roam capture processes not supported"))
       (let ((org-roam-capture--info `((title . ,title-with-tags)
-                                      (slug . ,(org-roam--title-to-slug title-with-tags))))
+                                      (slug . ,(funcall org-roam-title-to-slug-function title-with-tags))))
             (org-roam-capture--context 'title))
         (add-hook 'org-capture-after-finalize-hook #'org-roam-capture--insert-link-h)
         (setq org-roam-capture-additional-template-props (list :region region
                                                                :link-description link-description
                                                                :capture-fn 'org-roam-insert))
         (org-roam--with-template-error 'org-roam-capture-templates
-          (org-roam-capture--capture))))))
+          (org-roam-capture--capture))))
+    res))
 
 ;;;###autoload
 (defun org-roam-insert-immediate (arg &rest args)

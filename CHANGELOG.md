@@ -6,6 +6,8 @@
 
 ### Features
 - [#814] Implement `org-roam-insert-immediate`
+- [#833](https://github.com/org-roam/org-roam/pull/833) Add customization of file titles with `org-roam-title-to-slug-function`. 
+- [#839](https://github.com/org-roam/org-roam/pull/839) Return selected file from `org-roam-insert`
 
 ### Bugfixes
 

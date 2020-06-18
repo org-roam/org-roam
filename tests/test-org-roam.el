@@ -3,7 +3,7 @@
 ;; Copyright (C) 2020 Jethro Kuan
 
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
-;; Package-Requires: ((buttercup) (with-simulated-input))
+;; Package-Requires: ((buttercup))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -224,6 +224,26 @@
                         "tags/tag.org"))
                 :to-equal
                 '("t1" "t2 with space" "t3" "tags"))))))
+
+(describe "Headline extraction"
+  (before-all
+    (test-org-roam--init))
+
+  (after-all
+    (test-org-roam--teardown))
+
+  (cl-flet
+      ((test (fn file)
+             (let* ((fname (test-org-roam--abs-path file))
+                    (buf (find-file-noselect fname)))
+               (with-current-buffer buf
+                 (funcall fn fname)))))
+    (it "extracts headlines"
+      (expect (test #'org-roam--extract-headlines
+                    "headlines/headline.org")
+              :to-equal
+              `(["e84d0630-efad-4017-9059-5ef917908823" ,(test-org-roam--abs-path "headlines/headline.org")]
+                ["801b58eb-97e2-435f-a33e-ff59a2f0c213" ,(test-org-roam--abs-path "headlines/headline.org")])))))
 
 ;;; Tests
 (xdescribe "org-roam-db-build-cache"
