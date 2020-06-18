@@ -60,6 +60,10 @@ when used with multiple Org-roam instances."
   :type 'string
   :group 'org-roam)
 
+(defcustom org-roam-db-gc-threshold most-positive-fixnum
+  "The value to set the `gc-cons-threshold' threshold to, during
+  large, heavy operations like `org-roam-db-build-cache'.")
+
 (defconst org-roam-db--version 6)
 
 (defvar org-roam-db--connection (make-hash-table :test #'equal)
@@ -403,7 +407,8 @@ If FORCE, force a rebuild of the cache from scratch."
   (when force (delete-file (org-roam-db--get)))
   (org-roam-db--close) ;; Force a reconnect
   (org-roam-db) ;; To initialize the database, no-op if already initialized
-  (let* ((org-roam-files (org-roam--list-all-files))
+  (let* ((gc-cons-threshold org-roam-db-gc-threshold)
+         (org-roam-files (org-roam--list-all-files))
          (current-files (org-roam-db--get-current-files))
          (file-count 0)
          (headline-count 0)
