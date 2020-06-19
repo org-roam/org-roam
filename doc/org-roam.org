@@ -306,6 +306,9 @@ extraction methods supported are:
 3. ='last-directory=: Extracts the last directory relative to
    =org-roam-directory= as the tag. That is, if a file is located at relative
    path =foo/bar/file.org=, the file will have tag =bar=.
+4. ='first-directory=: Extracts the first directory relative to
+   =org-roam-directory= as the tag. That is, if a file is located at relative
+   path =foo/bar/file.org=, the file will have tag =foo=.
 
 By default, only the ='prop= extraction method is enabled. To enable the other
 extraction methods, you may modify =org-roam-tag-sources=:

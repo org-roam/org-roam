@@ -211,6 +211,20 @@
               :to-equal
               '("deeply")))
 
+    (it "extracts from first directory"
+      (expect (test #'org-roam--extract-tags-first-directory
+                    "base.org")
+              :to-equal
+              nil)
+      (expect (test #'org-roam--extract-tags-first-directory
+                    "tags/tag.org")
+              :to-equal
+              '("tags"))
+      (expect (test #'org-roam--extract-tags-first-directory
+                    "nested/deeply/deeply_nested_file.org")
+              :to-equal
+              '("nested")))
+
     (describe "uses org-roam-tag-sources correctly"
       (it "'(prop)"
         (expect (let ((org-roam-tag-sources '(prop)))

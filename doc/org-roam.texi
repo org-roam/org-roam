@@ -468,6 +468,10 @@ extracted as tags. That is, if a file is located at relative path
 @samp{'last-directory}: Extracts the last directory relative to
 @samp{org-roam-directory} as the tag. That is, if a file is located at relative
 path @samp{foo/bar/file.org}, the file will have tag @samp{bar}.
+@item
+@samp{'first-directory}: Extracts the first directory relative to
+@samp{org-roam-directory} as the tag. That is, if a file is located at relative
+path @samp{foo/bar/file.org}, the file will have tag @samp{foo}.
 @end enumerate
 
 By default, only the @samp{'prop} extraction method is enabled. To enable the other
