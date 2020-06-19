@@ -10,6 +10,7 @@
 - [#839](https://github.com/org-roam/org-roam/pull/839) Return selected file from `org-roam-insert`
 - [#847](https://github.com/org-roam/org-roam/pull/847) Add GC threshold `org-roam-db-gc-threshold` to temporarily change the threshold on expensive operations.
 - [#847](https://github.com/org-roam/org-roam/pull/847) Use sqlite3 transactions instead of storing the values to be inserted.
+- [#851](https://github.com/org-roam/org-roam/pull/851) Add `'first-directory'` option for `org-roam-tag-sources`
 
 ### Bugfixes
 
