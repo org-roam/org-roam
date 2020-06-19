@@ -60,6 +60,16 @@ when used with multiple Org-roam instances."
   :type 'string
   :group 'org-roam)
 
+(defcustom org-roam-db-gc-threshold most-positive-fixnum
+  "The value to temporarily set the `gc-cons-threshold' threshold to.
+During large, heavy operations like `org-roam-db-build-cache',
+many GC operations happen because of the large number of
+temporary structures generated (e.g. parsed ASTs). Temporarily
+increasing `gc-cons-threshold' will help reduce the number of GC
+operations, at the cost of temporary memory usage."
+  :type 'int
+  :group 'org-roam)
+
 (defconst org-roam-db--version 6)
 
 (defvar org-roam-db--connection (make-hash-table :test #'equal)
@@ -68,7 +78,7 @@ when used with multiple Org-roam instances."
 ;;;; Core Functions
 (defun org-roam-db--get ()
   "Return the sqlite db file."
-    (or org-roam-db-location
+  (or org-roam-db-location
       (expand-file-name "org-roam.db" org-roam-directory)))
 
 (defun org-roam-db--get-connection ()
@@ -403,91 +413,84 @@ If FORCE, force a rebuild of the cache from scratch."
   (when force (delete-file (org-roam-db--get)))
   (org-roam-db--close) ;; Force a reconnect
   (org-roam-db) ;; To initialize the database, no-op if already initialized
-  (let* ((org-roam-files (org-roam--list-all-files))
+  (let* ((gc-cons-threshold org-roam-db-gc-threshold)
+         (org-roam-files (org-roam--list-all-files))
          (current-files (org-roam-db--get-current-files))
-         all-files all-headlines all-links all-titles all-refs all-tags)
-    ;; Two-step building
-    ;; First step: Rebuild files and headlines
-    (dolist (file org-roam-files)
-      (let* ((attr (file-attributes file))
-             (atime (file-attribute-access-time attr))
-             (mtime (file-attribute-modification-time attr)))
+         (file-count 0)
+         (headline-count 0)
+         (link-count 0)
+         (tag-count 0)
+         (title-count 0)
+         (ref-count 0)
+         (deleted-count 0))
+    (emacsql-with-transaction (org-roam-db--get-connection)
+      ;; Two-step building
+      ;; First step: Rebuild files and headlines
+      (dolist (file org-roam-files)
+        (let* ((attr (file-attributes file))
+               (atime (file-attribute-access-time attr))
+               (mtime (file-attribute-modification-time attr)))
+          (org-roam--with-temp-buffer file
+            (let ((contents-hash (secure-hash 'sha1 (current-buffer))))
+              (unless (string= (gethash file current-files)
+                               contents-hash)
+                (org-roam-db--clear-file file)
+                (org-roam-db-query
+                 [:insert :into files
+                  :values $v1]
+                 (vector file contents-hash (list :atime atime :mtime mtime)))
+                (setq file-count (1+ file-count))
+                (when-let (headlines (org-roam--extract-headlines file))
+                  (org-roam-db-query
+                   [:insert :into headlines
+                    :values $v1]
+                   headlines)
+                  (setq headline-count (1+ headline-count))))))))
+      ;; Second step: Rebuild the rest
+      (dolist (file org-roam-files)
         (org-roam--with-temp-buffer file
           (let ((contents-hash (secure-hash 'sha1 (current-buffer))))
             (unless (string= (gethash file current-files)
                              contents-hash)
-              (org-roam-db--clear-file file)
-              (push (vector file contents-hash (list :atime atime :mtime mtime))
-                    all-files)
-              (when-let (headlines (org-roam--extract-headlines file))
-                (push headlines all-headlines)))))))
-    (when all-files
-      (org-roam-db-query
-       [:insert :into files
-        :values $v1]
-       all-files))
-    (when all-headlines
-      (org-roam-db-query
-       [:insert :into headlines
-        :values $v1]
-       all-headlines))
-    ;; Second step: Rebuild the rest
-    (dolist (file org-roam-files)
-      (org-roam--with-temp-buffer file
-        (let ((contents-hash (secure-hash 'sha1 (current-buffer))))
-          (unless (string= (gethash file current-files)
-                           contents-hash)
-            (when-let (links (org-roam--extract-links file))
-              (push links all-links))
-            (when-let (tags (org-roam--extract-tags file))
-              (push (vector file tags) all-tags))
-            (let ((titles (org-roam--extract-titles)))
-              (push (vector file titles)
-                    all-titles))
-            (when-let* ((ref (org-roam--extract-ref))
-                        (type (car ref))
-                        (key (cdr ref)))
-              (setq all-refs (cons (vector key file type) all-refs))))
-          (remhash file current-files))))
-    (dolist (file (hash-table-keys current-files))
-      ;; These files are no longer around, remove from cache...
-      (org-roam-db--clear-file file))
-    (when all-links
-      (org-roam-db-query
-       [:insert :into links
-        :values $v1]
-       all-links))
-    (when all-titles
-      (org-roam-db-query
-       [:insert :into titles
-        :values $v1]
-       all-titles))
-    (when all-tags
-      (org-roam-db-query
-       [:insert :into tags
-        :values $v1]
-       all-tags))
-    (when all-refs
-      (org-roam-db-query
-       [:insert :into refs
-        :values $v1]
-       all-refs))
-    (let ((stats (list :files (length all-files)
-                       :headlines (length all-headlines)
-                       :links (length all-links)
-                       :tags (length all-tags)
-                       :titles (length all-titles)
-                       :refs (length all-refs)
-                       :deleted (length (hash-table-keys current-files)))))
-      (org-roam-message "files: %s, headlines: %s, links: %s, tags: %s, titles: %s, refs: %s, deleted: %s"
-                        (plist-get stats :files)
-                        (plist-get stats :headlines)
-                        (plist-get stats :links)
-                        (plist-get stats :tags)
-                        (plist-get stats :titles)
-                        (plist-get stats :refs)
-                        (plist-get stats :deleted))
-      stats)))
+              (when-let (links (org-roam--extract-links file))
+                (org-roam-db-query
+                 [:insert :into links
+                  :values $v1]
+                 links)
+                (setq link-count (1+ link-count)))
+              (when-let (tags (org-roam--extract-tags file))
+                (org-roam-db-query
+                 [:insert :into tags
+                  :values $v1]
+                 (vector file tags))
+                (setq tag-count (1+ tag-count)))
+              (let ((titles (org-roam--extract-titles)))
+                (org-roam-db-query
+                 [:insert :into titles
+                  :values $v1]
+                 (vector file titles))
+                (setq title-count (1+ title-count)))
+              (when-let* ((ref (org-roam--extract-ref))
+                          (type (car ref))
+                          (key (cdr ref)))
+                (org-roam-db-query
+                 [:insert :into refs
+                  :values $v1]
+                 (vector key file type))
+                (setq ref-count (1+ ref-count))))
+            (remhash file current-files))))
+      (dolist (file (hash-table-keys current-files))
+        ;; These files are no longer around, remove from cache...
+        (org-roam-db--clear-file file)
+        (setq deleted-count (1+ deleted-count))))
+    (org-roam-message "files: %s, headlines: %s, links: %s, tags: %s, titles: %s, refs: %s, deleted: %s"
+                      file-count
+                      headline-count
+                      link-count
+                      tag-count
+                      title-count
+                      ref-count
+                      deleted-count)))
 
 (provide 'org-roam-db)
 
