@@ -203,7 +203,7 @@ extraction methods:
     Extract the last directory relative to `org-roam-directory'.
     That is, if a file is located at relative path foo/bar/file.org,
     the file will have tag \"bar\"."
-  :type '(set (const :tag "#+roam_tags" PROP)
+  :type '(set (const :tag "#+roam_tags" prop)
               (const :tag "sub-directories" all-directories)
               (const :tag "parent directory" last-directory)))
 
