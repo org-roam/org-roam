@@ -241,10 +241,20 @@ This is equivalent to removing the node from the graph."
 
 (defun org-roam-db--insert-headlines (headlines)
   "Insert HEADLINES into the Org-roam cache."
-  (org-roam-db-query
-   [:insert :into headlines
-    :values $v1]
-   headlines))
+  (condition-case err
+      (progn
+        (org-roam-db-query
+           [:insert :into headlines
+            :values $v1]
+           headline)
+        t)
+    (error
+     (lwarn '(org-roam) :error
+            (format "Duplicate IDs in %s, one of %s, skipping..."
+                    (aref (car headlines) 1)
+                    (string-join (-> headlines
+                                     (aref 0)) ", ")))
+     nil)))
 
 (defun org-roam-db--insert-tags (file tags)
   "Insert TAGS for a FILE into the Org-roam cache."
@@ -440,11 +450,8 @@ If FORCE, force a rebuild of the cache from scratch."
                   :values $v1]
                  (vector file contents-hash (list :atime atime :mtime mtime)))
                 (setq file-count (1+ file-count))
-                (when-let (headlines (org-roam--extract-headlines file))
-                  (org-roam-db-query
-                   [:insert :into headlines
-                    :values $v1]
-                   headlines)
+                (when-let* ((headlines (org-roam--extract-headlines file))
+                            (org-roam-db--insert-headlines headlines))
                   (setq headline-count (1+ headline-count))))))))
       ;; Second step: Rebuild the rest
       (dolist (file org-roam-files)
