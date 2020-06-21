@@ -15,6 +15,7 @@
 ### Bugfixes
 
 - [#854](https://github.com/org-roam/org-roam/pull/854) Warn instead of fail when duplicate refs and IDs exist.
+- [#857](https://github.com/org-roam/org-roam/pull/857) Fix tag extraction for symlinked directories.
 
 ## 1.2.0 (12-06-2020)
 

@@ -638,14 +638,14 @@ If NESTED, return the first successful result from SOURCES."
   "Extract tags from using the directory path FILE.
 All sub-directories relative to `org-roam-directory' are used as tags."
   (when-let ((dir-relative (file-name-directory
-                            (file-relative-name file org-roam-directory))))
+                            (file-relative-name file (file-truename org-roam-directory)))))
     (f-split dir-relative)))
 
 (defun org-roam--extract-tags-last-directory (file)
   "Extract tags from using the directory path FILE.
 The final directory component is used as a tag."
   (when-let ((dir-relative (file-name-directory
-                            (file-relative-name file org-roam-directory))))
+                            (file-relative-name file (file-truename org-roam-directory)))))
     (last (f-split dir-relative))))
 
 (defun org-roam--extract-tags-first-directory (file)
@@ -653,7 +653,7 @@ The final directory component is used as a tag."
 The first directory component after `org-roam-directory' is used as a
 tag."
   (when-let ((dir-relative (file-name-directory
-                            (file-relative-name file org-roam-directory))))
+                            (file-relative-name file (file-truename org-roam-directory)))))
     (list (car (f-split dir-relative)))))
 
 (defun org-roam--extract-tags-prop (_file)
