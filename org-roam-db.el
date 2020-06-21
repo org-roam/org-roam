@@ -240,8 +240,10 @@ This is equivalent to removing the node from the graph."
    (list (vector file titles))))
 
 (defun org-roam-db--insert-headlines (headlines)
-  "Insert HEADLINES into the Org-roam cache."
-  (condition-case err
+  "Insert HEADLINES into the Org-roam cache.
+Returns t if the insertion was successful, nil otherwise.
+Insertions can fail when there is an ID conflict."
+  (condition-case nil
       (progn
         (org-roam-db-query
            [:insert :into headlines
@@ -252,10 +254,10 @@ This is equivalent to removing the node from the graph."
      (unless (listp headlines)
        (setq headlines (list headlines)))
      (lwarn '(org-roam) :error
-            (format "Duplicate IDs in %s, one of %s, skipping..."
+            (format "Duplicate IDs in %s, one of:\n\n%s\n\nskipping..."
                     (aref (car headlines) 1)
                     (string-join (mapcar (lambda (hl)
-                                           (aref hl 0)) headlines) ", ")))
+                                           (aref hl 0)) headlines) "\n")))
      nil)))
 
 (defun org-roam-db--insert-tags (file tags)
@@ -266,12 +268,27 @@ This is equivalent to removing the node from the graph."
    (list (vector file tags))))
 
 (defun org-roam-db--insert-ref (file ref)
-  "Insert REF for FILE into the Org-roam cache."
+  "Insert REF for FILE into the Org-roam cache.
+Returns t if successful, and nil otherwise.
+Insertions can fail if the key is already in the database."
   (let ((key (cdr ref))
         (type (car ref)))
-    (org-roam-db-query
-     [:insert :into refs :values $v1]
-     (list (vector key file type)))))
+    (condition-case nil
+        (progn
+         (org-roam-db-query
+          [:insert :into refs :values $v1]
+          (list (vector key file type)))
+         t)
+      (error
+       (lwarn '(org-roam) :error
+              (format "Duplicate ref %s in:\n\nA: %s\nB: %s\n\nskipping..."
+                      key
+                      file
+                      (caar (org-roam-db-query
+                             [:select file :from refs
+                              :where (= ref $v1)]
+                             (vector key)))))
+       nil))))
 
 ;;;;; Fetching
 (defun org-roam-db--get-current-files ()
@@ -479,14 +496,9 @@ If FORCE, force a rebuild of the cache from scratch."
                   :values $v1]
                  (vector file titles))
                 (setq title-count (1+ title-count)))
-              (when-let* ((ref (org-roam--extract-ref))
-                          (type (car ref))
-                          (key (cdr ref)))
-                (org-roam-db-query
-                 [:insert :into refs
-                  :values $v1]
-                 (vector key file type))
-                (setq ref-count (1+ ref-count))))
+              (when-let* ((ref (org-roam--extract-ref)))
+                (when (org-roam-db--insert-ref file ref)
+                  (setq ref-count (1+ ref-count)))))
             (remhash file current-files))))
       (dolist (file (hash-table-keys current-files))
         ;; These files are no longer around, remove from cache...
