@@ -1408,12 +1408,24 @@ If DESCRIPTION is provided, use this as the link label.  See
   "Find an Org-roam file, and insert a relative org link to it at point.
 This variant of `org-roam-insert' inserts the link immediately by
 using the template in `org-roam-capture-immediate-template'. The
-interactive ARG and ARGS are forward to `org-roam-insert'.
+interactive ARG and ARGS are passed to `org-roam-insert'.
 See `org-roam-insert' for details."
   (interactive "P")
   (let ((args (push arg args))
         (org-roam-capture-templates (list org-roam-capture-immediate-template)))
     (apply #'org-roam-insert args)))
+
+;;;###autoload
+(defun org-roam-find-file-immediate (arg &rest args)
+  "Find and open an Org-roam file.
+This variant of `org-roam-find-file' uses the template in
+`org-roam-capture-immediate-template', avoiding the capture
+process. The interactive ARG and ARGS are passed to
+`org-roam-find-file'. See `org-roam-find-file' for details."
+  (interactive "P")
+  (let ((args (push arg args))
+        (org-roam-capture-templates (list org-roam-capture-immediate-template)))
+    (apply #'org-roam-find-file args)))
 
 ;;;###autoload
 (defun org-roam-jump-to-index ()
