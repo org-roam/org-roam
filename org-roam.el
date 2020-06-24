@@ -510,6 +510,42 @@ PATH should be the root from which to compute the relativity."
                    (concat dir link)))))
       (buffer-string))))
 
+(defun org-roam--get-outline-path ()
+  "Return the outline path to the current entry.
+
+An outline path is a list of ancestors for current headline, as a
+list of strings. Statistics cookies are removed and links are
+kept.
+
+When optional argument WITH-SELF is non-nil, the path also
+includes the current headline."
+  (org-with-wide-buffer
+   (and (or (condition-case nil
+                (org-back-to-heading t)
+              (error nil))
+            (org-up-heading-safe))
+        (reverse (org-roam--get-outline-path-1)))))
+
+(defun org-roam--get-outline-path-1 ()
+  "Return outline path to current headline.
+
+Outline path is a list of strings, in reverse order.  See
+`org-roam--get-outline-path' for details.
+
+Assume buffer is widened and point is on a headline."
+  (when org-complex-heading-regexp
+    (let ((heading (let ((case-fold-search nil))
+                     (looking-at org-complex-heading-regexp)
+                     (if (not (match-end 4)) ""
+                       ;; Remove statistics cookies.
+                       (org-trim
+                        (replace-regexp-in-string
+                         "\\[[0-9]+%\\]\\|\\[[0-9]+/[0-9]+\\]" ""
+                         (match-string-no-properties 4)))))))
+      (if (org-up-heading-safe)
+          (cons heading (org-roam--get-outline-path-1))
+        (list heading)))))
+
 (defun org-roam--extract-links (&optional file-path)
   "Extracts all link items within the current buffer.
 Link items are of the form:
@@ -553,7 +589,9 @@ it as FILE-PATH."
                    (content (string-trim content))
                    ;; Expand all relative links to absolute links
                    (content (org-roam--expand-links content file-path)))
-              (let ((context (list :content content :point begin))
+              (let ((properties (list :outline (org-roam--get-outline-path)
+                                      :content content
+                                      :point begin))
                     (names (pcase link-type
                              ("file"
                               (list (file-truename (expand-file-name path (file-name-directory file-path)))))
@@ -565,7 +603,7 @@ it as FILE-PATH."
                           (push (vector file-path
                                         name
                                         link-type
-                                        context)
+                                        properties)
                                 links))
                         names)))))))
     links))

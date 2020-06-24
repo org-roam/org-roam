@@ -169,13 +169,18 @@ For example: (setq org-roam-buffer-window-parameters '((no-other-window . t)))"
                             (org-roam--get-title-or-slug file-from)))
             (dolist (backlink bls)
               (pcase-let ((`(,file-from _ ,props) backlink))
-                (insert (propertize
+                (insert "*** "
+                        (if-let ((outline (plist-get props :outline)))
+                            (string-join outline " > ")
+                          "Top")
+                        "\n"
+                        (propertize
                          (s-trim (s-replace "\n" " "
                                             (plist-get props :content)))
                          'help-echo "mouse-1: visit backlinked note"
                          'file-from file-from
-                         'file-from-point (plist-get props :point)))
-                (insert "\n\n"))))))
+                         'file-from-point (plist-get props :point))
+                        "\n\n"))))))
     (insert "\n\n* No backlinks!")))
 
 (defun org-roam-buffer-update ()
