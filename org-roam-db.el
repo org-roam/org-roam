@@ -427,12 +427,13 @@ connections, nil is returned."
                    (current-buffer))))
       (with-current-buffer buf
         (save-excursion
-          (org-roam-db--update-meta)
-          (org-roam-db--update-tags)
-          (org-roam-db--update-titles)
-          (org-roam-db--update-refs)
-          (org-roam-db--update-headlines)
-          (org-roam-db--update-links)
+          (emacsql-with-transaction (org-roam-db--get-connection)
+            (org-roam-db--update-meta)
+            (org-roam-db--update-tags)
+            (org-roam-db--update-titles)
+            (org-roam-db--update-refs)
+            (org-roam-db--update-headlines)
+            (org-roam-db--update-links))
           (org-roam-buffer--update-maybe :redisplay t))))))
 
 (defun org-roam-db-build-cache (&optional force)
