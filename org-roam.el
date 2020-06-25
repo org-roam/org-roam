@@ -589,7 +589,9 @@ it as FILE-PATH."
                    (content (string-trim content))
                    ;; Expand all relative links to absolute links
                    (content (org-roam--expand-links content file-path)))
-              (let ((properties (list :outline (org-roam--get-outline-path)
+              (let ((properties (list :outline (mapcar (lambda (path)
+                                                         (org-roam--expand-links path file-path))
+                                                       (org-roam--get-outline-path))
                                       :content content
                                       :point begin))
                     (names (pcase link-type
