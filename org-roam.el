@@ -506,8 +506,7 @@ PATH should be the root from which to compute the relativity."
         (when (f-relative-p link)
           (delete-region (match-beginning 1)
                          (match-end 1))
-          (insert (expand-file-name
-                   (concat dir link)))))
+          (insert (expand-file-name link dir))))
       (buffer-string))))
 
 (defun org-roam--get-outline-path ()
