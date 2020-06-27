@@ -519,11 +519,12 @@ kept.
 When optional argument WITH-SELF is non-nil, the path also
 includes the current headline."
   (org-with-wide-buffer
-   (and (or (condition-case nil
-                (org-back-to-heading t)
-              (error nil))
-            (org-up-heading-safe))
-        (reverse (org-roam--get-outline-path-1)))))
+   (save-match-data
+     (and (or (condition-case nil
+                  (org-back-to-heading t)
+                (error nil))
+              (org-up-heading-safe))
+          (reverse (org-roam--get-outline-path-1))))))
 
 (defun org-roam--get-outline-path-1 ()
   "Return outline path to current headline.
