@@ -15,18 +15,18 @@ General Public License for more details.
 <!-- Created by GNU Texinfo 6.5, http://www.gnu.org/software/texinfo/ -->
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<title>Org-journal (Org-roam User Manual)</title>
+<title>Performance Optimization (Org-roam User Manual)</title>
 
-<meta name="description" content="Org-journal (Org-roam User Manual)">
-<meta name="keywords" content="Org-journal (Org-roam User Manual)">
+<meta name="description" content="Performance Optimization (Org-roam User Manual)">
+<meta name="keywords" content="Performance Optimization (Org-roam User Manual)">
 <meta name="resource-type" content="document">
 <meta name="distribution" content="global">
 <meta name="Generator" content="makeinfo">
 <link href="index.html#Top" rel="start" title="Top">
 <link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
-<link href="Ecosystem.html#Ecosystem" rel="up" title="Ecosystem">
-<link href="Note_002dtaking-Add_002dons.html#Note_002dtaking-Add_002dons" rel="next" title="Note-taking Add-ons">
-<link href="Deft.html#Deft" rel="prev" title="Deft">
+<link href="index.html#Top" rel="up" title="Top">
+<link href="Profiling-Key-Operations.html#Profiling-Key-Operations" rel="next" title="Profiling Key Operations">
+<link href="Diagnosing-and-Repairing-Files.html#Diagnosing-and-Repairing-Files" rel="prev" title="Diagnosing and Repairing Files">
 <style type="text/css">
 <!--
 a.summary-letter {text-decoration: none}
@@ -60,30 +60,21 @@ ul.no-bullet {list-style: none}
 </head>
 
 <body lang="en">
-<a name="Org_002djournal"></a>
+<a name="Performance-Optimization"></a>
 <div class="header">
 <p>
-Next: <a href="Note_002dtaking-Add_002dons.html#Note_002dtaking-Add_002dons" accesskey="n" rel="next">Note-taking Add-ons</a>, Previous: <a href="Deft.html#Deft" accesskey="p" rel="prev">Deft</a>, Up: <a href="Ecosystem.html#Ecosystem" accesskey="u" rel="up">Ecosystem</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+Next: <a href="Appendix.html#Appendix" accesskey="n" rel="next">Appendix</a>, Previous: <a href="Diagnosing-and-Repairing-Files.html#Diagnosing-and-Repairing-Files" accesskey="p" rel="prev">Diagnosing and Repairing Files</a>, Up: <a href="index.html#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
 </div>
 <hr>
-<a name="Org_002djournal-1"></a>
-<h4 class="subsection">16.2.2 Org-journal</h4>
+<a name="Performance-Optimization-1"></a>
+<h2 class="chapter">15 Performance Optimization</h2>
 
-<p><a href="https://github.com/bastibe/org-journal">Org-journal</a> is a more
-powerful alternative to the simple function &lsquo;<samp>org-roam-dailies-today</samp>&rsquo;. It
-provides better journaling capabilities, and a nice calendar interface
-to see all dated entries.
-</p>
-<div class="lisp">
-<pre class="lisp">(use-package org-journal
-  :bind
-  (&quot;C-c n j&quot; . org-journal-new-entry)
-  :custom
-  (org-journal-date-prefix &quot;#+title: &quot;)
-  (org-journal-file-format &quot;%Y-%m-%d.org&quot;)
-  (org-journal-dir &quot;/path/to/org-roam-files/&quot;)
-  (org-journal-date-format &quot;%A, %d %B %Y&quot;))
-</pre></div>
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="Profiling-Key-Operations.html#Profiling-Key-Operations" accesskey="1">Profiling Key Operations</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="Garbage-Collection.html#Garbage-Collection" accesskey="2">Garbage Collection</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
 
 
 

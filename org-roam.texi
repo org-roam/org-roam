@@ -78,6 +78,7 @@ General Public License for more details.
 * Roam Protocol::
 * Daily Notes::
 * Diagnosing and Repairing Files::
+* Performance Optimization::
 * Appendix::
 * FAQ::
 
@@ -123,6 +124,11 @@ Roam Protocol
 * Installation: Installation (1). 
 * The @samp{roam-file} protocol::
 * The @samp{roam-ref} Protocol::
+
+Performance Optimization
+
+* Profiling Key Operations::
+* Garbage Collection::
 
 Appendix
 
@@ -1127,6 +1133,32 @@ checker, to perform autofixes for the errors. For each error detected,
 @samp{org-roam-doctor} will move the point to the current error, and pop-up a help
 window displaying the error message, as well as the list of actions that can be
 taken provided in @samp{:actions}.
+
+@node Performance Optimization
+@chapter Performance Optimization
+
+@menu
+* Profiling Key Operations::
+* Garbage Collection::
+@end menu
+
+@node Profiling Key Operations
+@section @strong{TODO} Profiling Key Operations
+
+@node Garbage Collection
+@section Garbage Collection
+
+During the cache-build process, Org-roam generates a lot of in-memory
+data-structures (such as the Org file's AST), which are discarded after use. These structures are garbage collected at regular intervals (see @ref{Garbage Collection,info:elisp#Garbage Collection,,elisp,}).
+
+Org-roam provides the option @code{org-roam-db-gc-threshold} to temporarily change
+the threshold value for GC to be triggered during these memory-intensive
+operations. To reduce the number of garbage collection processes, one may set
+@code{org-roam-db-gc-threshold} to a high value (such as @code{most-positive-fixnum}):
+
+@lisp
+(setq org-roam-db-gc-threshold most-positive-fixnum)
+@end lisp
 
 @node Appendix
 @chapter Appendix
