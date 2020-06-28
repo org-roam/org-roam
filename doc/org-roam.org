@@ -831,6 +831,22 @@ checker, to perform autofixes for the errors. For each error detected,
 =org-roam-doctor= will move the point to the current error, and pop-up a help
 window displaying the error message, as well as the list of actions that can be
 taken provided in =:actions=.
+* Performance Optimization
+** TODO Profiling Key Operations
+** Garbage Collection
+
+During the cache-build process, Org-roam generates a lot of in-memory
+data-structures (such as the Org file's AST), which are discarded after use. These structures are garbage collected at regular intervals (see [[info:elisp#Garbage Collection][info:elisp#Garbage Collection]]).
+
+Org-roam provides the option ~org-roam-db-gc-threshold~ to temporarily change
+the threshold value for GC to be triggered during these memory-intensive
+operations. To reduce the number of garbage collection processes, one may set
+~org-roam-db-gc-threshold~ to a high value (such as ~most-positive-fixnum~):
+
+#+BEGIN_SRC emacs-lisp
+  (setq org-roam-db-gc-threshold most-positive-fixnum)
+#+END_SRC
+
 * _ Copying
 :PROPERTIES:
 :COPYING:    t
