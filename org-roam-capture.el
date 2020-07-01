@@ -322,17 +322,26 @@ Suitable for moving point."
   :group 'org-roam
   :type 'hook)
 
+(defcustom org-roam-capture-function #'org-capture
+  "Function that is invoked to start the `org-capture' process."
+  :group 'org-roam
+  :type 'function)
+
 (defun org-roam-capture--capture (&optional goto keys)
   "Create a new file, and return the path to the edited file.
 The templates are defined at `org-roam-capture-templates'.  The
 GOTO and KEYS argument have the same functionality as
 `org-capture'."
-  (let ((org-capture-templates (mapcar #'org-roam-capture--convert-template org-roam-capture-templates))
-        org-capture-templates-contexts)
-    (when (= (length org-capture-templates) 1)
+  (let* ((org-capture-templates (mapcar #'org-roam-capture--convert-template org-roam-capture-templates))
+         (one-template-p (= (length org-capture-templates) 1))
+         org-capture-templates-contexts)
+    (when one-template-p
       (setq keys (caar org-capture-templates)))
     (add-hook 'org-capture-after-finalize-hook #'org-roam-capture--save-file-maybe-h)
-    (org-capture goto keys)))
+    (if (or one-template-p
+            (eq org-roam-capture-function 'org-capture))
+        (org-capture goto keys)
+      (funcall-interactively org-roam-capture-function))))
 
 ;;;###autoload
 (defun org-roam-capture ()
