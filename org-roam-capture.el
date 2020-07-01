@@ -323,7 +323,7 @@ Suitable for moving point."
   :type 'hook)
 
 (defcustom org-roam-capture-function #'org-capture
-  "Function that is invoked to start the org-capture process."
+  "Function that is invoked to start the `org-capture' process."
   :group 'org-roam
   :type 'function)
 
