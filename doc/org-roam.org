@@ -584,6 +584,15 @@ The entry point to graph creation is =org-roam-graph=.
   2. a function accepting a single argument: the graph file path.
 
   =nil= uses =view-file= to view the graph.
+  
+  If you are using WSL2 and would like to open the graph in Windows, you can use the second option to set the browser and network file path:
+  
+  #+BEGIN_SRC emacs-lisp
+  (setq org-roam-graph-viewer
+      (lambda (file)
+        (let ((org-roam-graph-viewer "/mnt/c/Program Files/Mozilla Firefox/firefox.exe"))
+          (org-roam-graph--open (concat "file://///wsl$/Ubuntu" file)))))
+  #+END_SRC
 
 ** Graph Options
 
@@ -764,6 +773,27 @@ defaults write com.apple.LaunchServices/com.apple.launchservices.secure LSHandle
 
 Then restart your computer.
 
+For Windows, create a temporary =org-protocol.reg= file:
+
+#+BEGIN_SRC
+REGEDIT4
+
+[HKEY_CLASSES_ROOT\org-protocol]
+@="URL:Org Protocol"
+"URL Protocol"=""
+[HKEY_CLASSES_ROOT\org-protocol\shell]
+[HKEY_CLASSES_ROOT\org-protocol\shell\open]
+[HKEY_CLASSES_ROOT\org-protocol\shell\open\command]
+@="\"C:\\Windows\\System32\\wsl.exe\" emacsclient \"%1\""
+#+END_SRC
+
+The above will forward the protocol to WSL. If you run Emacs natively on Windows, replace the last line with:
+
+#+BEGIN_SRC
+@="\"c:\\path\\to\\emacs\\bin\\emacsclientw.exe\"  \"%1\""
+#+END_SRC
+
+After executing the .reg file, the protocol is registered and you can delete the file.
 
 ** The =roam-file= protocol
 
