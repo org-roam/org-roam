@@ -998,8 +998,8 @@ Applies `org-roam-link-current' if PATH corresponds to the
 currently opened Org-roam file in the backlink buffer, or
 `org-roam-link-face' if PATH corresponds to any other Org-roam
 file."
-  (cond ((or (file-remote-p path) ;; Prevent lockups opening Tramp links
-             (not (file-exists-p path)))
+  (cond ((and (not (file-remote-p path)) ;; Prevent lockups opening Tramp links
+              (not (file-exists-p path)))
          'org-roam-link-invalid)
         ((and (org-roam--in-buffer-p)
               (org-roam--backlink-to-current-p))
