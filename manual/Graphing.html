@@ -108,7 +108,16 @@ compact graph layout.
 </li></ol>
 
 <p>&lsquo;<samp>nil</samp>&rsquo; uses &lsquo;<samp>view-file</samp>&rsquo; to view the graph.
-</p></li></ul>
+</p>
+<p>If you are using WSL2 and would like to open the graph in Windows, you can use the second option to set the browser and network file path:
+</p>
+<div class="lisp">
+<pre class="lisp">(setq org-roam-graph-viewer
+    (lambda (file)
+      (let ((org-roam-graph-viewer &quot;/mnt/c/Program Files/Mozilla Firefox/firefox.exe&quot;))
+        (org-roam-graph--open (concat &quot;file://///wsl$/Ubuntu&quot; file)))))
+</pre></div>
+</li></ul>
 
 <table class="menu" border="0" cellspacing="0">
 <tr><td align="left" valign="top">&bull; <a href="Graph-Options.html#Graph-Options" accesskey="1">Graph Options</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">

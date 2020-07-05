@@ -185,6 +185,28 @@ the default handler instead, run:
 
 <p>Then restart your computer.
 </p>
+<p>For Windows, create a temporary &lsquo;<samp>org-protocol.reg</samp>&rsquo; file:
+</p>
+<div class="example">
+<pre class="example">REGEDIT4
+
+[HKEY_CLASSES_ROOT\org-protocol]
+@=&quot;URL:Org Protocol&quot;
+&quot;URL Protocol&quot;=&quot;&quot;
+[HKEY_CLASSES_ROOT\org-protocol\shell]
+[HKEY_CLASSES_ROOT\org-protocol\shell\open]
+[HKEY_CLASSES_ROOT\org-protocol\shell\open\command]
+@=&quot;\&quot;C:\\Windows\\System32\\wsl.exe\&quot; emacsclient \&quot;%1\&quot;&quot;
+</pre></div>
+
+<p>The above will forward the protocol to WSL. If you run Emacs natively on Windows, replace the last line with:
+</p>
+<div class="example">
+<pre class="example">@=&quot;\&quot;c:\\path\\to\\emacs\\bin\\emacsclientw.exe\&quot;  \&quot;%1\&quot;&quot;
+</pre></div>
+
+<p>After executing the .reg file, the protocol is registered and you can delete the file.
+</p>
 <hr>
 <div class="header">
 <p>

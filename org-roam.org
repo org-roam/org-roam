@@ -775,7 +775,7 @@ Then restart your computer.
 
 For Windows, create a temporary =org-protocol.reg= file:
 
-#+BEGIN_SRC
+#+BEGIN_SRC text
 REGEDIT4
 
 [HKEY_CLASSES_ROOT\org-protocol]
@@ -789,7 +789,7 @@ REGEDIT4
 
 The above will forward the protocol to WSL. If you run Emacs natively on Windows, replace the last line with:
 
-#+BEGIN_SRC
+#+BEGIN_SRC text
 @="\"c:\\path\\to\\emacs\\bin\\emacsclientw.exe\"  \"%1\""
 #+END_SRC
 
@@ -913,6 +913,18 @@ General Public License for more details.
 ** Ecosystem
 A number of packages work well combined with Org-Roam:
 
+*** Browsing History with winner-mode
+
+~winner-mode~ is a global minor mode that allows one to undo and redo changes in the window configuration. It is included with GNU Emacs since version 20.
+
+~winner-mode~ can be used as a simple version of browser history for Org-roam. Each click through org-roam links (from both Org files and the backlinks buffer) causes changes in window configuration, which can be undone and redone using ~winner-mode~. To use ~winner-mode~, simply enable it, and bind the appropriate interactive functions:
+
+#+BEGIN_SRC emacs-lisp
+  (winner-mode +1)
+  (define-key winner-mode-map (kbd "<M-left>") #'winner-undo)
+  (define-key winner-mode-map (kbd "<M-right>") #'winner-redo)
+
+#+END_SRC
 *** Deft
    :PROPERTIES:
    :CUSTOM_ID: deft

@@ -15,18 +15,18 @@ General Public License for more details.
 <!-- Created by GNU Texinfo 6.5, http://www.gnu.org/software/texinfo/ -->
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<title>Note-taking Add-ons (Org-roam User Manual)</title>
+<title>Browsing History with winner-mode (Org-roam User Manual)</title>
 
-<meta name="description" content="Note-taking Add-ons (Org-roam User Manual)">
-<meta name="keywords" content="Note-taking Add-ons (Org-roam User Manual)">
+<meta name="description" content="Browsing History with winner-mode (Org-roam User Manual)">
+<meta name="keywords" content="Browsing History with winner-mode (Org-roam User Manual)">
 <meta name="resource-type" content="document">
 <meta name="distribution" content="global">
 <meta name="Generator" content="makeinfo">
 <link href="index.html#Top" rel="start" title="Top">
 <link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
 <link href="Ecosystem.html#Ecosystem" rel="up" title="Ecosystem">
-<link href="Org_002ddownload.html#Org_002ddownload" rel="next" title="Org-download">
-<link href="Org_002djournal.html#Org_002djournal" rel="prev" title="Org-journal">
+<link href="Deft.html#Deft" rel="next" title="Deft">
+<link href="Ecosystem.html#Ecosystem" rel="prev" title="Ecosystem">
 <style type="text/css">
 <!--
 a.summary-letter {text-decoration: none}
@@ -60,29 +60,25 @@ ul.no-bullet {list-style: none}
 </head>
 
 <body lang="en">
-<a name="Note_002dtaking-Add_002dons"></a>
+<a name="Browsing-History-with-winner_002dmode"></a>
 <div class="header">
 <p>
-Previous: <a href="Org_002djournal.html#Org_002djournal" accesskey="p" rel="prev">Org-journal</a>, Up: <a href="Ecosystem.html#Ecosystem" accesskey="u" rel="up">Ecosystem</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+Next: <a href="Deft.html#Deft" accesskey="n" rel="next">Deft</a>, Up: <a href="Ecosystem.html#Ecosystem" accesskey="u" rel="up">Ecosystem</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
 </div>
 <hr>
-<a name="Note_002dtaking-Add_002dons-1"></a>
-<h4 class="subsection">16.2.4 Note-taking Add-ons</h4>
+<a name="Browsing-History-with-winner_002dmode-1"></a>
+<h4 class="subsection">16.2.1 Browsing History with winner-mode</h4>
 
-<p>These are some plugins that make note-taking in Org-mode more enjoyable.
+<p><code>winner-mode</code> is a global minor mode that allows one to undo and redo changes in the window configuration. It is included with GNU Emacs since version 20.
 </p>
-<table class="menu" border="0" cellspacing="0">
-<tr><td align="left" valign="top">&bull; <a href="Org_002ddownload.html#Org_002ddownload" accesskey="1">Org-download</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top">&bull; <a href="mathpixel.html#mathpixel" accesskey="2">mathpix.el</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top">&bull; <a href="Org_002dnoter-_002f-Interleave.html#Org_002dnoter-_002f-Interleave" accesskey="3">Org-noter / Interleave</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top">&bull; <a href="Bibliography.html#Bibliography" accesskey="4">Bibliography</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top">&bull; <a href="Spaced-Repetition.html#Spaced-Repetition" accesskey="5">Spaced Repetition</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-</table>
+<p><code>winner-mode</code> can be used as a simple version of browser history for Org-roam. Each click through org-roam links (from both Org files and the backlinks buffer) causes changes in window configuration, which can be undone and redone using <code>winner-mode</code>. To use <code>winner-mode</code>, simply enable it, and bind the appropriate interactive functions:
+</p>
+<div class="lisp">
+<pre class="lisp">(winner-mode +1)
+(define-key winner-mode-map (kbd &quot;&lt;M-left&gt;&quot;) #'winner-undo)
+(define-key winner-mode-map (kbd &quot;&lt;M-right&gt;&quot;) #'winner-redo)
+
+</pre></div>
 
 
 
