@@ -137,6 +137,7 @@ Appendix
 
 Ecosystem
 
+* Browsing History with winner-mode::
 * Deft::
 * Org-journal::
 * Note-taking Add-ons::
@@ -841,6 +842,15 @@ a function accepting a single argument: the graph file path.
 @end enumerate
 
 @samp{nil} uses @samp{view-file} to view the graph.
+
+If you are using WSL2 and would like to open the graph in Windows, you can use the second option to set the browser and network file path:
+
+@lisp
+(setq org-roam-graph-viewer
+    (lambda (file)
+      (let ((org-roam-graph-viewer "/mnt/c/Program Files/Mozilla Firefox/firefox.exe"))
+        (org-roam-graph--open (concat "file://///wsl$/Ubuntu" file)))))
+@end lisp
 @end itemize
 
 @menu
@@ -1060,6 +1070,28 @@ defaults write com.apple.LaunchServices/com.apple.launchservices.secure LSHandle
 
 Then restart your computer.
 
+For Windows, create a temporary @samp{org-protocol.reg} file:
+
+@example
+REGEDIT4
+
+[HKEY_CLASSES_ROOT\org-protocol]
+@@="URL:Org Protocol"
+"URL Protocol"=""
+[HKEY_CLASSES_ROOT\org-protocol\shell]
+[HKEY_CLASSES_ROOT\org-protocol\shell\open]
+[HKEY_CLASSES_ROOT\org-protocol\shell\open\command]
+@@="\"C:\\Windows\\System32\\wsl.exe\" emacsclient \"%1\""
+@end example
+
+The above will forward the protocol to WSL@. If you run Emacs natively on Windows, replace the last line with:
+
+@example
+@@="\"c:\\path\\to\\emacs\\bin\\emacsclientw.exe\"  \"%1\""
+@end example
+
+After executing the .reg file, the protocol is registered and you can delete the file.
+
 @node The @samp{roam-file} protocol
 @section The @samp{roam-file} protocol
 
@@ -1208,10 +1240,25 @@ operations. To reduce the number of garbage collection processes, one may set
 A number of packages work well combined with Org-Roam:
 
 @menu
+* Browsing History with winner-mode::
 * Deft::
 * Org-journal::
 * Note-taking Add-ons::
 @end menu
+
+@node Browsing History with winner-mode
+@subsection Browsing History with winner-mode
+
+@code{winner-mode} is a global minor mode that allows one to undo and redo changes in the window configuration. It is included with GNU Emacs since version 20.
+
+@code{winner-mode} can be used as a simple version of browser history for Org-roam. Each click through org-roam links (from both Org files and the backlinks buffer) causes changes in window configuration, which can be undone and redone using @code{winner-mode}. To use @code{winner-mode}, simply enable it, and bind the appropriate interactive functions:
+
+@lisp
+(winner-mode +1)
+(define-key winner-mode-map (kbd "<M-left>") #'winner-undo)
+(define-key winner-mode-map (kbd "<M-right>") #'winner-redo)
+
+@end lisp
 
 @node Deft
 @subsection Deft
