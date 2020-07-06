@@ -1120,7 +1120,7 @@ or as a keybinding in @code{qutebrowser} in , using the @code{config.py} file (s
 @uref{https://github.com/qutebrowser/qutebrowser/blob/master/doc/help/configuring.asciidoc, Configuring qutebrowser}):
 
 @example
-config.bind("<Ctrl-r>", "spawn bash -c 'emacsclient \"org-protocol://roam-ref?template=r&ref=@{url:pretty@}&title=@{title@}\" '")
+config.bind("<Ctrl-r>", "open javascript:location.href='org-protocol://roam-ref?template=r&ref='+encodeURIComponent(location.href)+'&title='+encodeURIComponent(document.title)")
 @end example
 
 where @code{template} is the template key for a template in
