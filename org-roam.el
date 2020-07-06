@@ -1226,7 +1226,7 @@ replaced links are made relative to the current buffer."
                     new-file-or-dir)))
     (when (and (not (auto-save-file-name-p old-file))
                (not (auto-save-file-name-p new-file))
-               (org-roam--org-roam-file-p new-file))
+               (org-roam--org-roam-file-p old-file))
       (org-roam-db--ensure-built)
       (let* ((old-path (file-truename old-file))
              (new-path (file-truename new-file))
@@ -1263,7 +1263,8 @@ replaced links are made relative to the current buffer."
           (with-current-buffer new-buffer
             (org-roam--fix-relative-links old-path)
             (save-buffer)))
-        (org-roam-db--update-file new-path)))))
+        (when (org-roam--org-roam-file-p new-file)
+          (org-roam-db--update-file new-path))))))
 
 ;;;###autoload
 (define-minor-mode org-roam-mode
