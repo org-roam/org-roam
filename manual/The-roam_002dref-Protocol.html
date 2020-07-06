@@ -87,7 +87,7 @@ Previous: <a href="The-roam_002dfile-protocol.html#The-roam_002dfile-protocol" a
 <a href="https://github.com/qutebrowser/qutebrowser/blob/master/doc/help/configuring.asciidoc">Configuring qutebrowser</a>):
 </p>
 <div class="example">
-<pre class="example">config.bind(&quot;&lt;Ctrl-r&gt;&quot;, &quot;spawn bash -c 'emacsclient \&quot;org-protocol://roam-ref?template=r&amp;ref={url:pretty}&amp;title={title}\&quot; '&quot;)
+<pre class="example">config.bind(&quot;&lt;Ctrl-r&gt;&quot;, &quot;open javascript:location.href='org-protocol://roam-ref?template=r&amp;ref='+encodeURIComponent(location.href)+'&amp;title='+encodeURIComponent(document.title)&quot;)
 </pre></div>
 
 <p>where <code>template</code> is the template key for a template in
