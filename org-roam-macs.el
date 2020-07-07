@@ -33,6 +33,7 @@
 ;;
 ;;; Code:
 ;;;; Library Requires
+(require 'dash)
 
 (defvar org-roam-verbose)
 
@@ -67,6 +68,12 @@ to look.
   "Pass FORMAT-STRING and ARGS to `message' when `org-roam-verbose' is t."
   (when org-roam-verbose
     (apply #'message `(,(concat "(org-roam) " format-string) ,@args))))
+
+(defun org-roam-string-quote (str)
+  "Quote STR."
+  (->> str
+       (s-replace "\\" "\\\\")
+       (s-replace "\"" "\\\"")))
 
 (provide 'org-roam-macs)
 

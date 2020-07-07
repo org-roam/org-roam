@@ -198,8 +198,10 @@ into a digraph."
                                   (`truncate (s-truncate org-roam-graph-max-title-length title))
                                   (`wrap (s-word-wrap org-roam-graph-max-title-length title))
                                   (_ title)))
+               (shortened-title (org-roam-string-quote shortened-title))
+               (title (org-roam-string-quote title))
                (node-properties
-                `(("label"   . ,(s-replace "\"" "\\\"" shortened-title))
+                `(("label"   . ,shortened-title)
                   ("URL"     . ,(concat "org-protocol://roam-file?file=" (url-hexify-string file)))
                   ("tooltip" . ,(xml-escape-string title)))))
           (insert
