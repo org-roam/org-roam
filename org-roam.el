@@ -1394,6 +1394,12 @@ included as a candidate."
     (org-roam--find-file file)))
 
 ;;;###autoload
+(defun org-roam-random-note ()
+  "Find a random Org-roam file."
+  (interactive)
+  (find-file (seq-random-elt (org-roam--list-all-files))))
+
+;;;###autoload
 (defun org-roam-insert (&optional lowercase completions filter-fn description)
   "Find an Org-roam file, and insert a relative org link to it at point.
 Return selected file if it exists.
