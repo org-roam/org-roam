@@ -11,7 +11,8 @@
 - [#847](https://github.com/org-roam/org-roam/pull/847) Add GC threshold `org-roam-db-gc-threshold` to temporarily change the threshold on expensive operations.
 - [#847](https://github.com/org-roam/org-roam/pull/847) Use sqlite3 transactions instead of storing the values to be inserted.
 - [#851](https://github.com/org-roam/org-roam/pull/851) Add `'first-directory'` option for `org-roam-tag-sources`
-- [#863](https://github.com/org-roam/org-roam/pull/863) Display outline hierarchy in backlinks buffer 
+- [#863](https://github.com/org-roam/org-roam/pull/863) Display outline hierarchy in backlinks buffer
+- [#898](https://github.com/org-roam/org-roam/pull/898) Add `org-roam-random-note` to browse a random note.
 
 ### Bugfixes
 
