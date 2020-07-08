@@ -556,6 +556,7 @@ This is the format that emacsql expects when inserting into the database.
 FILE-FROM is typically the buffer file path, but this may not exist, for example
 in temp buffers.  In cases where this occurs, we do know the file path, and pass
 it as FILE-PATH."
+  (require 'org-ref nil t)
   (let ((file-path (or file-path
                        (file-truename (buffer-file-name))))
         links)
@@ -563,22 +564,9 @@ it as FILE-PATH."
       (lambda (link)
         (let* ((type (org-element-property :type link))
                (path (org-element-property :path link))
-               (start (org-element-property :begin link))
-               (id-data (org-roam-id-find path))
-               (link-type (cond ((and (string= type "file")
-                                      (org-roam--org-file-p path))
-                                 "file")
-                                ((and (string= type "id")
-                                      id-data)
-                                 "id")
-                                ((and
-                                  (require 'org-ref nil t)
-                                  (-contains? org-ref-cite-types type))
-                                 "cite")
-                                (t nil))))
-          (when link-type
-            (goto-char start)
-            (let* ((element (org-element-at-point))
+               (start (org-element-property :begin link)))
+          (goto-char start)
+          (let* ((element (org-element-at-point))
                    (begin (or (org-element-property :content-begin element)
                               (org-element-property :begin element)))
                    (content (or (org-element-property :raw-value element)
@@ -594,20 +582,24 @@ it as FILE-PATH."
                                                        (org-roam--get-outline-path))
                                       :content content
                                       :point begin))
-                    (names (pcase link-type
+                    (names (pcase type
                              ("file"
                               (list (file-truename (expand-file-name path (file-name-directory file-path)))))
                              ("id"
-                              (list (car id-data)))
-                             ("cite"
-                              (org-ref-split-and-strip-string path)))))
+                              (list (car (org-roam-id-find path))))
+                             ((pred (lambda (typ)
+                                      (and (boundp 'org-ref-cite-types)
+                                           (-contains? org-ref-cite-types typ))))
+                              (setq type "cite")
+                              (org-ref-split-and-strip-string path))
+                             (_ (list (org-element-property :raw-link link))))))
                 (seq-do (lambda (name)
                           (push (vector file-path
                                         name
-                                        link-type
+                                        type
                                         properties)
                                 links))
-                        names)))))))
+                        names))))))
     links))
 
 (defun org-roam--extract-headlines (&optional file-path)
