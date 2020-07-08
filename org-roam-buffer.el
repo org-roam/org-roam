@@ -84,7 +84,7 @@ Has an effect if and only if `org-roam-buffer-position' is `top' or `bottom'."
 
 (defcustom org-roam-buffer-prepare-hook '(org-roam-buffer--insert-title
                                           org-roam-buffer--insert-backlinks
-                                          org-roam-buffer--insert-citelinks)
+                                          org-roam-buffer--insert-ref-links)
   "Hook run in the `org-roam-buffer' before it is displayed."
   :type 'hook
   :group 'org-roam)
@@ -123,10 +123,9 @@ For example: (setq org-roam-buffer-window-parameters '((no-other-window . t)))"
                                    ,wrong-type))))))
     (concat string (when (> l 1) "s"))))
 
-(defun org-roam-buffer--insert-citelinks ()
-  "Insert citation backlinks for the current buffer."
-  (when-let ((org-ref-p (require 'org-ref nil t)) ;; Ensure that org-ref is present
-             (ref (cdr (with-temp-buffer
+(defun org-roam-buffer--insert-ref-links ()
+  "Insert ref backlinks for the current buffer."
+  (when-let ((ref (cdr (with-temp-buffer
                         (insert-buffer-substring org-roam-buffer--current)
                         (org-roam--extract-ref)))))
     (if-let* ((key-backlinks (org-roam--get-backlinks ref))
@@ -134,7 +133,7 @@ For example: (setq org-roam-buffer-window-parameters '((no-other-window . t)))"
         (progn
           (insert (let ((l (length key-backlinks)))
                     (format "\n\n* %d %s\n"
-                            l (org-roam-buffer--pluralize "Cite backlink" l))))
+                            l (org-roam-buffer--pluralize "Ref Backlink" l))))
           (dolist (group grouped-backlinks)
             (let ((file-from (car group))
                   (bls (cdr group)))
@@ -150,7 +149,7 @@ For example: (setq org-roam-buffer-window-parameters '((no-other-window . t)))"
                            'file-from file-from
                            'file-from-point (plist-get props :point)))
                   (insert "\n\n"))))))
-      (insert "\n\n* No cite backlinks!"))))
+      (insert "\n\n* No ref backlinks!"))))
 
 (defun org-roam-buffer--insert-backlinks ()
   "Insert the org-roam-buffer backlinks string for the current buffer."

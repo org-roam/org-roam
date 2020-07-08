@@ -13,6 +13,7 @@
 - [#851](https://github.com/org-roam/org-roam/pull/851) Add `'first-directory'` option for `org-roam-tag-sources`
 - [#863](https://github.com/org-roam/org-roam/pull/863) Display outline hierarchy in backlinks buffer
 - [#898](https://github.com/org-roam/org-roam/pull/898) Add `org-roam-random-note` to browse a random note.
+- [#900](https://github.com/org-roam/org-roam/pull/900) Support and index all valid org links
 
 ### Bugfixes
 
