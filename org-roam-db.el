@@ -194,7 +194,7 @@ the current `org-roam-directory'."
 ;;;; Database API
 ;;;;; Initialization
 (defun org-roam-db--initialized-p ()
-  "Whether the cache has been initialized."
+  "Whether the Org-roam cache has been initialized."
   (and (file-exists-p (org-roam-db--get))
        (> (caar (org-roam-db-query [:select (funcall count) :from titles]))
           0)))
@@ -205,8 +205,8 @@ the current `org-roam-directory'."
     (error "[Org-roam] your cache isn't built yet! Please run org-roam-db-build-cache")))
 
 ;;;;; Clearing
-(defun org-roam-db--clear ()
-  "Clears all entries in the caches."
+(defun org-roam-db-clear ()
+  "Clears all entries in the Org-roam cache."
   (interactive)
   (when (file-exists-p (org-roam-db--get))
     (dolist (table (mapcar #'car org-roam-db--table-schemata))

@@ -79,6 +79,8 @@
   "org-roam 1.1.0")
 (define-obsolete-function-alias 'org-roam-db--maybe-update 'org-roam-db--update-maybe
   "org-roam 1.1.0")
+(define-obsolete-function-alias 'org-roam-db--clear 'org-roam-db-clear
+  "org-roam 1.2.0")
 
 (when (version< (org-version) "9.3")
   (defalias 'org-link-make-string 'org-make-link-string))
