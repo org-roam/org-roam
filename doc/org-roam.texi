@@ -525,8 +525,9 @@ The backlinks buffer will show any cites of this key: e.g.
 @node The Templating System
 @chapter The Templating System
 
-Rather than creating blank files on @samp{org-roam-insert} and @samp{org-roam-find-file}, it
-may be desirable to prefill the file with templated content. This may include:
+Rather than creating blank files on @code{org-roam-insert} and @code{org-roam-find-file},
+it may be desirable to prefill the file with templated content. This may
+include:
 
 @itemize
 @item
@@ -540,15 +541,17 @@ Any other data you may want to input manually
 @end itemize
 
 This requires a complex template insertion system. Fortunately, Org ships with a
-powerful one: @samp{org-capture}. However, org-capture was not designed for such use.
-Org-roam abuses @samp{org-capture}, extending its syntax. To first understand how
-org-roam's templating system works, it may be useful to look into basic usage of
-@samp{org-capture}.
+powerful one: @code{org-capture} (see @ref{capture,,,org,}). However, org-capture was not
+designed for such use. Org-roam abuses @code{org-capture}, extending its syntax and
+capabilities. To first understand how org-roam's templating system works, it may
+be useful to look into basic usage of @code{org-capture}.
 
-Org-roam's templates can be customized by modifying the variable
-@samp{org-roam-capture-templates}. Just like the base @samp{org-capture} this variable can
-contain multiple templates, in which case you will be prompted on which one to
-use when capturing a new note.
+For these reasons, Org-roam capture templates are not compatible with regular
+@code{org-capture}. Hence, Org-roam's templates can be customized by instead
+modifying the variable @code{org-roam-capture-templates}. Just like
+@code{org-capture-templates}, @code{org-roam-capture-templates} can contain multiple
+templates. If @code{org-roam-capture-templates} only contains one template, there
+will be no prompt for template selection.
 
 @menu
 * Template Walkthrough::
