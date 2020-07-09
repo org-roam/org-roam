@@ -895,10 +895,10 @@ included as a candidate."
               (let ((k (if interactive
                            (concat
                             (when org-roam-include-type-in-ref-path-completions
-                              (format "[%s] " type))
+                              (format "{%s} " type))
                             (when tags
                               (format "(%s) " (s-join org-roam-tag-separator tags)))
-                            (format "%s {%s}" title ref))
+                            (format "%s (%s)" title ref))
                          ref))
                     (v (list :path file-path :type type :ref ref)))
                 (push (cons k v) completions)))))))))
