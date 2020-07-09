@@ -69,8 +69,9 @@ Next: <a href="Concepts-and-Configuration.html#Concepts-and-Configuration" acces
 <a name="The-Templating-System-1"></a>
 <h2 class="chapter">6 The Templating System</h2>
 
-<p>Rather than creating blank files on &lsquo;<samp>org-roam-insert</samp>&rsquo; and &lsquo;<samp>org-roam-find-file</samp>&rsquo;, it
-may be desirable to prefill the file with templated content. This may include:
+<p>Rather than creating blank files on <code>org-roam-insert</code> and <code>org-roam-find-file</code>,
+it may be desirable to prefill the file with templated content. This may
+include:
 </p>
 <ul>
 <li> Time of creation
@@ -80,15 +81,17 @@ may be desirable to prefill the file with templated content. This may include:
 </li></ul>
 
 <p>This requires a complex template insertion system. Fortunately, Org ships with a
-powerful one: &lsquo;<samp>org-capture</samp>&rsquo;. However, org-capture was not designed for such use.
-Org-roam abuses &lsquo;<samp>org-capture</samp>&rsquo;, extending its syntax. To first understand how
-org-roam&rsquo;s templating system works, it may be useful to look into basic usage of
-&lsquo;<samp>org-capture</samp>&rsquo;.
+powerful one: <code>org-capture</code> (see <a href="http://www.gnu.org/software/emacs/manual/html_node/org/capture.html#capture">(org)capture</a>). However, org-capture was not
+designed for such use. Org-roam abuses <code>org-capture</code>, extending its syntax and
+capabilities. To first understand how org-roam&rsquo;s templating system works, it may
+be useful to look into basic usage of <code>org-capture</code>.
 </p>
-<p>Org-roam&rsquo;s templates can be customized by modifying the variable
-&lsquo;<samp>org-roam-capture-templates</samp>&rsquo;. Just like the base &lsquo;<samp>org-capture</samp>&rsquo; this variable can
-contain multiple templates, in which case you will be prompted on which one to
-use when capturing a new note.
+<p>For these reasons, Org-roam capture templates are not compatible with regular
+<code>org-capture</code>. Hence, Org-roam&rsquo;s templates can be customized by instead
+modifying the variable <code>org-roam-capture-templates</code>. Just like
+<code>org-capture-templates</code>, <code>org-roam-capture-templates</code> can contain multiple
+templates. If <code>org-roam-capture-templates</code> only contains one template, there
+will be no prompt for template selection.
 </p>
 <table class="menu" border="0" cellspacing="0">
 <tr><td align="left" valign="top">&bull; <a href="Template-Walkthrough.html#Template-Walkthrough" accesskey="1">Template Walkthrough</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
