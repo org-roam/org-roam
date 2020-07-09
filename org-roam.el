@@ -859,16 +859,16 @@ whose title is 'Index'."
 ;;;; org-roam-find-ref
 (defun org-roam--get-ref-path-completions (&optional interactive filter)
   "Return an alist of refs to absolute path of Org-roam files.
-When `org-roam-include-type-in-ref-path-completions' and
-INTERACTIVE are non-nil, format the car of the
-completion-candidates as 'type:ref'.
-FILTER can either be a string or a function:
-- If it is a string, it should be the type of refs to include as
-candidates (e.g. \"cite\" ,\"website\" ,etc.)
-- If it is a function, it should be the name of a function that
-takes three arguments: the type, the ref, and the file of the
-current candidate.  It should return t if that candidate is to be
-included as a candidate."
+When called interactively (i.e. when INTERACTIVE is non-nil),
+format the car of the completion-candidates with extra
+information: title, tags, and type if
+`org-roam-include-type-in-ref-path-completions' is non-nil.
+FILTER can either be a string or a function: - If it is a string,
+it should be the type of refs to include as candidates (e.g.
+\"cite\" ,\"website\" ,etc.) - If it is a function, it should be
+the name of a function that takes three arguments: the type, the
+ref, and the file of the current candidate. It should return t if
+that candidate is to be included as a candidate."
   (let ((rows (org-roam-db-query
                [:select [refs:type refs:ref refs:file titles:titles tags:tags]
                 :from titles
