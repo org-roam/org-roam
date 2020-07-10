@@ -818,7 +818,7 @@ Examples:
   "Return an alist for completion.
 The car is the displayed title for completion, and the cdr is the
 to the file."
-  (let* ((rows (org-roam-db-query [:select [titles:file titles:titles tags:tags files:meta] :from titles
+  (let* ((rows (org-roam-db-query [:select [files:file titles:title tags:tags files:meta] :from titles
                                    :left :join tags
                                    :on (= titles:file tags:file)
                                    :left :join files
@@ -829,15 +829,13 @@ to the file."
                  #'time-less-p
                  rows)
     (dolist (row rows completions)
-      (pcase-let ((`(,file-path ,titles ,tags) row))
-        (let ((titles (or titles (list (org-roam--path-to-slug file-path)))))
-          (dolist (title titles)
-            (let ((k (concat
+      (pcase-let ((`(,file-path ,title ,tags) row))
+        (let ((k (concat
                       (when tags
                         (format "(%s) " (s-join org-roam-tag-separator tags)))
                       title))
                   (v (list :path file-path :title title)))
-              (push (cons k v) completions))))))))
+              (push (cons k v) completions))))))
 
 (defun org-roam--get-index-path ()
   "Return the path to the index in `org-roam-directory'.
@@ -1040,6 +1038,7 @@ When point is on the Org-roam preview text, open the link in the Org-roam
 window, and navigate to the point.
 This function hooks into `org-open-at-point' via `org-open-at-point-functions'."
   (cond
+   ;;
    ;; Org-roam link
    ((let* ((context (org-element-context))
            (type (org-element-property :type context))
