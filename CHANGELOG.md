@@ -3,6 +3,7 @@
 ## 1.2.1 (TBD)
 
 ### Breaking Changes
+- [#908](https://github.com/org-roam/org-roam/pull/908) Normalized titles in database. May break external packages that rely on unnormalized titles.
 
 ### Features
 - [#814](https://github.com/org-roam/org-roam/pull/814) Implement `org-roam-insert-immediate`
