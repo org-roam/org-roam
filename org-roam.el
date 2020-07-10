@@ -857,18 +857,26 @@ whose title is 'Index'."
       index)))
 
 ;;;; org-roam-find-ref
-(defun org-roam--get-ref-path-completions (&optional interactive filter)
+(defun org-roam--get-ref-path-completions (&optional arg filter)
   "Return an alist of refs to absolute path of Org-roam files.
-When called interactively (i.e. when INTERACTIVE is non-nil),
-format the car of the completion-candidates with extra
-information: title, tags, and type if
-`org-roam-include-type-in-ref-path-completions' is non-nil.
-FILTER can either be a string or a function: - If it is a string,
-it should be the type of refs to include as candidates (e.g.
-\"cite\" ,\"website\" ,etc.) - If it is a function, it should be
-the name of a function that takes three arguments: the type, the
-ref, and the file of the current candidate. It should return t if
-that candidate is to be included as a candidate."
+
+When called interactively (i.e. when ARG is 1), formats the car
+of the completion-candidates with extra information: title, tags,
+and type \(when `org-roam-include-type-in-ref-path-completions'
+is non-nil).
+
+When called with a `C-u' prefix (i.e. when ARG is 4), forces the
+default format without the formatting.
+
+FILTER can either be a string or a function:
+
+- If it is a string, it should be the type of refs to include as
+  candidates \(e.g. \"cite\", \"website\", etc.)
+
+- If it is a function, it should be the name of a function that
+  takes three arguments: the type, the ref, and the file of the
+  current candidate. It should return t if that candidate is to
+  be included as a candidate."
   (let ((rows (org-roam-db-query
                [:select [refs:type refs:ref refs:file titles:titles tags:tags]
                 :from titles
@@ -892,7 +900,7 @@ that candidate is to be included as a candidate."
                                       `((stringp functionp)
                                         ,wrong-type))))
             (dolist (title titles)
-              (let ((k (if interactive
+              (let ((k (if (eq arg 1)
                            (concat
                             (when org-roam-include-type-in-ref-path-completions
                               (format "{%s} " type))
