@@ -1236,7 +1236,7 @@ replaced links are made relative to the current buffer."
              (new-path (file-truename new-file))
              (old-slug (org-roam--get-title-or-slug old-file))
              (old-desc (org-roam--format-link-title old-slug))
-             (new-slug (or (car (org-roam-db--get-titles old-path))
+             (new-slug (or (org-roam-db--get-titles old-path)
                            (org-roam--path-to-slug new-path)))
              (new-desc (org-roam--format-link-title new-slug))
              (new-buffer (or (find-buffer-visiting new-path)
