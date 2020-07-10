@@ -1230,6 +1230,8 @@ replaced links are made relative to the current buffer."
                     new-file-or-dir)))
     (when (and (not (auto-save-file-name-p old-file))
                (not (auto-save-file-name-p new-file))
+               (not (backup-file-name-p old-file))
+               (not (backup-file-name-p new-file))
                (org-roam--org-roam-file-p old-file))
       (org-roam-db--ensure-built)
       (let* ((old-path (file-truename old-file))
