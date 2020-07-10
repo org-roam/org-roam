@@ -232,7 +232,7 @@ CALLBACK is passed the graph file as its sole argument."
                         "Please adjust `org-roam-graph-executable'")
                 org-roam-graph-executable))
   (let* ((node-query (or node-query
-                         `[:select [file titles] :from titles
+                         `[:select [file title] :from titles
                            ,@(org-roam-graph--expand-matcher 'file t)]))
          (graph      (org-roam-graph--dot node-query))
          (temp-dot   (make-temp-file "graph." nil ".dot" graph))
@@ -269,7 +269,7 @@ CALLBACK is passed to `org-roam-graph--build'."
                         (org-roam-db--links-with-max-distance file max-distance)
                       (org-roam-db--connected-component file))
                     (list file)))
-         (query `[:select [file titles]
+         (query `[:select [file title]
                   :from titles
                   :where (in file [,@files])]))
     (org-roam-graph--build query callback)))
