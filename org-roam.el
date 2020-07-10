@@ -1082,6 +1082,204 @@ This function hooks into `org-open-at-point' via
             (t
              nil)))))
 
+;;; Completion at point
+(defconst org-roam-open-bracket-regexp
+  "\\[\\[\\([^\]]*\\)")
+
+(defconst org-roam-title-headline-split-regexp
+  "\\([^\*]*\\)\\(\*?\\)\\([^\]]*\\)")
+
+(defun org-roam-complete-at-point ()
+  "Do appropriate completion for the thing at point."
+  (let ((end (point))
+        start
+        collection
+        delete-suffix)
+    (cond (;; In an open bracket
+           (looking-back (concat "^.*" org-roam-open-bracket-regexp) (line-beginning-position))
+           (setq start (match-beginning 1)
+                 end (match-end 1))
+           (save-match-data
+             (save-excursion
+               (goto-char start)
+               (when (looking-at org-roam-title-headline-split-regexp)
+                 (let ((title (match-string-no-properties 1))
+                       (has-headline-p (not (string-empty-p (match-string-no-properties 2))))
+                       (headline-start (match-beginning 3)))
+                   (cond (;; title and headline present
+                          (and (not (string-empty-p title))
+                               has-headline-p)
+                          (when-let ((file (org-roam--get-file-from-title title t)))
+                            (setq collection (apply-partially #'org-roam--get-headlines file))
+                            (setq start headline-start)))
+                         (;; Only title
+                          (not has-headline-p)
+                          (setq collection #'org-roam--get-titles))
+                         (;; Only headline
+                          (string-empty-p title)
+                          has-headline-p
+                          (setq collection #'org-roam--get-headlines)
+                          (setq start headline-start)))))))))
+    (when collection
+      (let ((prefix (buffer-substring-no-properties start end)))
+        (list start end
+              (if (functionp collection)
+                  (completion-table-dynamic
+                   (lambda (_)
+                     (cl-remove-if (apply-partially 'string= prefix) (funcall collection))))
+                collection)
+              :exit-function (lambda (&rest _)
+                               (when delete-suffix
+                                 (delete-char delete-suffix)))
+              'ignore)))))
+
+;;; Fuzzy Links
+;;TODO: Fully implement fuzzy link replacement (on navigation, and on save)
+(defcustom org-roam-auto-replace-fuzzy-links nil
+  "Whether to replace Org-roam's fuzzy links with true file or id links.
+Doesn't currently work fully, please don't turn it on.")
+
+(defun org-roam--split-fuzzy-link (link)
+  "Splits LINK into title and headline.
+Return a list of the form (title has-headline-p headline), nil otherwise."
+  (save-match-data
+    (when (string-match org-roam-title-headline-split-regexp link)
+      (list (match-string-no-properties 1 link)
+            (not (string-empty-p (match-string-no-properties 2 link)))
+            (match-string-no-properties 3 link)))))
+
+(defun org-roam--get-titles ()
+  "Return all titles within Org-roam."
+  (mapcar #'car (org-roam-db-query [:select [titles:title] :from titles])))
+
+(defun org-roam--get-headlines (&optional file with-marker use-stack)
+  "Return all outline headings for the current buffer.
+If FILE, return outline headings for passed FILE instead.
+If WITH-MARKER, return a cons cell of (headline . marker).
+If USE-STACK, include the parent paths as well."
+  (let* ((buf (or (and file
+                       (or (find-buffer-visiting file)
+                           (find-file-noselect file)))
+                  (current-buffer)))
+         (bol-regex (concat "^\\(?:" outline-regexp "\\)"))
+         (outline-title-fn (lambda () (buffer-substring-no-properties (point) (line-end-position))))
+         (outline-level-fn outline-level)
+         (path-separator "/")
+         (stack-level 0)
+         stack cands name level marker)
+    (with-current-buffer buf
+      (save-excursion
+        (goto-char (point-min))
+        (while (re-search-forward bol-regex nil t)
+          (save-excursion
+            (setq name (or (save-match-data
+                             (funcall outline-title-fn))
+                           ""))
+            (setq marker (point-marker))
+            (when use-stack
+              (goto-char (match-beginning 0))
+              (setq level (funcall outline-level-fn))
+              ;; Update stack.  The empty entry guards against incorrect
+              ;; headline hierarchies, e.g. a level 3 headline
+              ;; immediately following a level 1 entry.
+              (while (<= level stack-level)
+                (pop stack)
+                (cl-decf stack-level))
+              (while (> level stack-level)
+                (push name stack)
+                (cl-incf stack-level))
+              (setq name (mapconcat #'identity
+                                    (reverse stack)
+                                    path-separator)))
+            (push (if with-marker
+                      (cons name marker)
+                    name) cands)))))
+    (nreverse cands)))
+
+(defun org-roam--get-file-from-title (title &optional no-interactive)
+  "Return the file path corresponding to TITLE.
+When NO-INTERACTIVE, return nil if there are multiple options."
+  (let ((files (mapcar #'car (org-roam-db-query [:select [titles:file] :from titles
+                                                   :where (= titles:title $v1)]
+                                                  (vector title)))))
+    (pcase files
+      ('nil nil)
+      (`(,file) file)
+      (_
+       (unless no-interactive
+         (completing-read "Select file: " files))))))
+
+(defun org-roam--get-id-from-headline (headline &optional file)
+  "Return the file path correspondng to HEADLINE.
+If FILE, get headline from FILE instead."
+  (save-excursion
+    (with-current-buffer (or (and file
+                                  (or (find-buffer-visiting file)
+                                      (find-file-noselect file)))
+                             (current-buffer))
+      (let ((headlines (org-roam--get-headlines file 'with-markers)))
+        (when-let ((marker (cdr (assoc-string headline headlines))))
+          (goto-char marker)
+          (org-id-get-create))))))
+
+(defun org-roam--open-fuzzy-link (link)
+  "Open a Org fuzzy LINK.
+To be added to `org-open-link-functions'. This function always
+resolves, completely replacing Org's original fuzzy link opening behaviour.
+
+Three types of fuzzy links are supported:
+
+  [[Title]]
+    Opens a file with the corresponding title.
+
+  [[*Headline]]
+    Creates or gets an ID for the corresponding headline from current file.
+
+  [[Title*Headline]]
+    Creates or gets an ID for the corresponding headline from file with corresponding title."
+  (when (and (bound-and-true-p org-roam-mode)
+             (org-roam--org-roam-file-p))
+    (let ((splits (org-roam--split-fuzzy-link link))
+          loc loc-type desc)
+      (when splits
+          (pcase-let ((`(,title ,has-headline-p ,headline) splits))
+            (cond (;; title and headline present
+                   (and (not (string-empty-p title))
+                        has-headline-p)
+                   (let ((file (org-roam--get-file-from-title title)))
+                     (if (not file)
+                         (org-roam-message "Cannot find matching file")
+                       (setq loc (org-roam--get-id-from-headline headline file)
+                             loc-type "id"
+                             desc headline)
+                       (unless loc
+                         (org-roam-message "cannot find matching id")))))
+                  (;; Only title
+                   (not has-headline-p)
+                   (setq loc (org-roam--get-file-from-title title)
+                         loc-type "file")
+                   (when loc (setq loc (file-relative-name loc))))
+                  (;; Only headline
+                   (and (string-empty-p title)
+                        has-headline-p)
+                   (setq loc (org-roam--get-id-from-headline headline)
+                         desc headline
+                         loc-type "id")
+                   (unless loc
+                     (org-roam-message "Cannot find matching headline"))))
+            (cond ((and (not loc)
+                        (string-equal loc-type "file"))
+                   (org-roam-find-file title nil nil t)))
+            (when loc
+              (when org-roam-auto-replace-fuzzy-links
+                (org-roam-replace-fuzzy-link (concat loc-type ":" loc) desc))
+              (pcase loc-type
+                ("file"
+                 (org-roam--find-file loc))
+                (_
+                 (org-roam-id-open loc))))))
+      t)))
+
 ;;; Org-roam-mode
 ;;;; Function Faces
 ;; These faces are used by `org-link-set-parameters', which take one argument,
@@ -1155,6 +1353,7 @@ file."
     (setq org-roam-last-window (get-buffer-window))
     (add-hook 'post-command-hook #'org-roam-buffer--update-maybe nil t)
     (add-hook 'after-save-hook #'org-roam-db--update-file nil t)
+    (add-hook 'completion-at-point-functions #'org-roam-complete-at-point nil t)
     (org-roam-buffer--update-maybe :redisplay t)))
 
 (defun org-roam--delete-file-advice (file &optional _trash)
@@ -1305,6 +1504,7 @@ M-x info for more information at Org-roam > Installation > Post-Installation Tas
     (add-hook 'find-file-hook #'org-roam--find-file-hook-function)
     (add-hook 'kill-emacs-hook #'org-roam-db--close-all)
     (add-hook 'org-open-at-point-functions #'org-roam-open-id-at-point)
+    (add-hook 'org-open-link-functions #'org-roam--open-fuzzy-link)
     (advice-add 'rename-file :after #'org-roam--rename-file-advice)
     (advice-add 'delete-file :before #'org-roam--delete-file-advice)
     (when (fboundp 'org-link-set-parameters)
@@ -1316,6 +1516,7 @@ M-x info for more information at Org-roam > Installation > Post-Installation Tas
     (remove-hook 'find-file-hook #'org-roam--find-file-hook-function)
     (remove-hook 'kill-emacs-hook #'org-roam-db--close-all)
     (remove-hook 'org-open-at-point-functions #'org-roam-open-id-at-point)
+    (remove-hook 'org-open-link-functions #'org-roam--open-fuzzy-link)
     (advice-remove 'rename-file #'org-roam--rename-file-advice)
     (advice-remove 'delete-file #'org-roam--delete-file-advice)
     (when (fboundp 'org-link-set-parameters)
@@ -1349,20 +1550,23 @@ M-x info for more information at Org-roam > Installation > Post-Installation Tas
     (insert (format "- Org-roam: %s" (org-roam-version)))))
 
 ;;;###autoload
-(defun org-roam-find-file (&optional initial-prompt completions filter-fn)
+(defun org-roam-find-file (&optional initial-prompt completions filter-fn no-confirm)
   "Find and open an Org-roam file.
 INITIAL-PROMPT is the initial title prompt.
 COMPLETIONS is a list of completions to be used instead of
 `org-roam--get-title-path-completions`.
 FILTER-FN is the name of a function to apply on the candidates
 which takes as its argument an alist of path-completions.  See
-`org-roam--get-title-path-completions' for details."
+`org-roam--get-title-path-completions' for details.
+If NO-CONFIRM, assume that the user does not want to modify the initial prompt."
   (interactive)
   (unless org-roam-mode (org-roam-mode))
   (let* ((completions (funcall (or filter-fn #'identity)
                                (or completions (org-roam--get-title-path-completions))))
-         (title-with-tags (org-roam-completion--completing-read "File: " completions
-                                                                :initial-input initial-prompt))
+         (title-with-tags (if no-confirm
+                              initial-prompt
+                            (org-roam-completion--completing-read "File: " completions
+                                                                  :initial-input initial-prompt)))
          (res (cdr (assoc title-with-tags completions)))
          (file-path (plist-get res :path)))
     (if file-path
