@@ -876,7 +876,7 @@ FILTER can either be a string or a function:
   current candidate. It should return t if that candidate is to
   be included as a candidate."
   (let ((rows (org-roam-db-query
-               [:select [refs:type refs:ref refs:file titles:titles tags:tags]
+               [:select [refs:type refs:ref refs:file titles:title tags:tags]
                 :from titles
                 :left :join tags
                 :on (= titles:file tags:file)
@@ -888,26 +888,24 @@ FILTER can either be a string or a function:
                  #'time-less-p
                  rows)
     (dolist (row rows completions)
-      (pcase-let ((`(,type ,ref ,file-path ,titles ,tags) row))
-        (let ((titles (or titles (list (org-roam--path-to-slug file-path)))))
-          (when (pcase filter
+      (pcase-let ((`(,type ,ref ,file-path ,title ,tags) row))
+        (when (pcase filter
                   ('nil t)
                   ((pred stringp) (string= type filter))
                   ((pred functionp) (funcall filter type ref file-path))
                   (wrong-type (signal 'wrong-type-argument
                                       `((stringp functionp)
                                         ,wrong-type))))
-            (dolist (title titles)
-              (let ((k (if (eq arg 1)
-                           (concat
-                            (when org-roam-include-type-in-ref-path-completions
-                              (format "{%s} " type))
-                            (when tags
-                              (format "(%s) " (s-join org-roam-tag-separator tags)))
-                            (format "%s (%s)" title ref))
-                         ref))
-                    (v (list :path file-path :type type :ref ref)))
-                (push (cons k v) completions)))))))))
+            (let ((k (if (eq arg 1)
+                         (concat
+                          (when org-roam-include-type-in-ref-path-completions
+                            (format "{%s} " type))
+                          (when tags
+                            (format "(%s) " (s-join org-roam-tag-separator tags)))
+                          (format "%s (%s)" title ref))
+                       ref))
+                  (v (list :path file-path :type type :ref ref)))
+              (push (cons k v) completions)))))))
 
 (defun org-roam--find-file (file)
   "Open FILE using `org-roam-find-file-function' or `find-file'."
