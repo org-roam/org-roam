@@ -1038,7 +1038,6 @@ When point is on the Org-roam preview text, open the link in the Org-roam
 window, and navigate to the point.
 This function hooks into `org-open-at-point' via `org-open-at-point-functions'."
   (cond
-   ;;
    ;; Org-roam link
    ((let* ((context (org-element-context))
            (type (org-element-property :type context))
