@@ -859,41 +859,49 @@ whose title is 'Index'."
 ;;;; org-roam-find-ref
 (defun org-roam--get-ref-path-completions (&optional interactive filter)
   "Return an alist of refs to absolute path of Org-roam files.
-When `org-roam-include-type-in-ref-path-completions' and
-INTERACTIVE are non-nil, format the car of the
-completion-candidates as 'type:ref'.
-FILTER can either be a string or a function:
-- If it is a string, it should be the type of refs to include as
-candidates (e.g. \"cite\" ,\"website\" ,etc.)
-- If it is a function, it should be the name of a function that
-takes three arguments: the type, the ref, and the file of the
-current candidate.  It should return t if that candidate is to be
-included as a candidate."
-  (let ((rows (org-roam-db-query [:select [refs:type refs:ref refs:file ] :from refs
-                                  :left :join files
-                                  :on (= refs:file files:file)]))
-        (include-type (and interactive
-                           org-roam-include-type-in-ref-path-completions))
+When called interactively (i.e. when INTERACTIVE is non-nil),
+format the car of the completion-candidates with extra
+information: title, tags, and type if
+`org-roam-include-type-in-ref-path-completions' is non-nil.
+FILTER can either be a string or a function: - If it is a string,
+it should be the type of refs to include as candidates (e.g.
+\"cite\" ,\"website\" ,etc.) - If it is a function, it should be
+the name of a function that takes three arguments: the type, the
+ref, and the file of the current candidate. It should return t if
+that candidate is to be included as a candidate."
+  (let ((rows (org-roam-db-query
+               [:select [refs:type refs:ref refs:file titles:titles tags:tags]
+                :from titles
+                :left :join tags
+                :on (= titles:file tags:file)
+                :left :join refs :on (= titles:file refs:file)
+                :where refs:file :is :not :null]))
         completions)
     (seq-sort-by (lambda (x)
                    (plist-get (nth 3 x) :mtime))
                  #'time-less-p
                  rows)
     (dolist (row rows completions)
-      (pcase-let ((`(,type ,ref ,file-path) row))
-        (when (pcase filter
-                ('nil t)
-                ((pred stringp) (string= type filter))
-                ((pred functionp) (funcall filter type ref file-path))
-                (wrong-type (signal 'wrong-type-argument
-                                    `((stringp functionp)
-                                      ,wrong-type))))
-          (let ((k (concat
-                    (when include-type
-                      (format "(%s) " type))
-                    ref))
-                (v (list :path file-path :type type :ref ref)))
-            (push (cons k v) completions)))))))
+      (pcase-let ((`(,type ,ref ,file-path ,titles ,tags) row))
+        (let ((titles (or titles (list (org-roam--path-to-slug file-path)))))
+          (when (pcase filter
+                  ('nil t)
+                  ((pred stringp) (string= type filter))
+                  ((pred functionp) (funcall filter type ref file-path))
+                  (wrong-type (signal 'wrong-type-argument
+                                      `((stringp functionp)
+                                        ,wrong-type))))
+            (dolist (title titles)
+              (let ((k (if interactive
+                           (concat
+                            (when org-roam-include-type-in-ref-path-completions
+                              (format "{%s} " type))
+                            (when tags
+                              (format "(%s) " (s-join org-roam-tag-separator tags)))
+                            (format "%s (%s)" title ref))
+                         ref))
+                    (v (list :path file-path :type type :ref ref)))
+                (push (cons k v) completions)))))))))
 
 (defun org-roam--find-file (file)
   "Open FILE using `org-roam-find-file-function' or `find-file'."
