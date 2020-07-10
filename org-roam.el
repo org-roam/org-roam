@@ -775,7 +775,7 @@ Examples:
 
 (defun org-roam--get-title-or-slug (path)
   "Convert `PATH' to the file title, if it exists.  Else, return the path."
-  (or (car (org-roam-db--get-titles path))
+  (or (org-roam-db--get-titles path)
       (org-roam--path-to-slug path)))
 
 (defun org-roam--title-to-slug (title)
