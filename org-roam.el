@@ -563,7 +563,6 @@ it as FILE-PATH."
     (org-element-map (org-element-parse-buffer) 'link
       (lambda (link)
         (let* ((type (org-element-property :type link))
-               (format (org-element-property :format link))
                (path (org-element-property :path link))
                (start (org-element-property :begin link)))
           (goto-char start)
