@@ -82,30 +82,93 @@ note with the given `ref'.")
 (defconst org-roam-capture--template-keywords '(:file-name :head)
   "Keywords used in `org-roam-capture-templates' specific to Org-roam.")
 
-(defvar org-roam-capture-templates
+(defcustom org-roam-capture-templates
   '(("d" "default" plain (function org-roam-capture--get-point)
      "%?"
      :file-name "%<%Y%m%d%H%M%S>-${slug}"
      :head "#+title: ${title}\n"
      :unnarrowed t))
   "Capture templates for Org-roam.
-The capture templates are an extension of
-`org-capture-templates', and the documentation there also
-applies.
+The Org-roam capture-templates  builds on the default behaviours of
+`org-capture-templates' by expanding them in 3 areas:
 
-`org-capture-templates' are extended in 3 ways:
+1. Template-expansion capabilities are extended with additional
+   custom syntax. See `org-roam-capture--fill-template' for more
+   details.
 
-1. Template expansion capabilities are extended with additional custom syntax.
-   See `org-roam-capture--fill-template' for more details.
-
-2. The `:file-name' key is added, which expands to the file-name
-   of the note if it creates a new file.  This file-name is
-   relative to `org-roam-directory', and is without the
-   file-extension.
+2. The `:file-name' key is added, which defines the naming format
+   to use when creating new notes. This file-name is relative to
+   `org-roam-directory', and is without the file-extension.
 
 3. The `:head' key is added, which contains the template that is
-   inserted on initial creation (added only once).  This is where
-   insertion of any note metadata should go.")
+   inserted upon the creation of a new file. This is where you
+   should add your note metadata should go.
+
+Each template should have the following structure:
+
+\(KEY DESCRIPTION `plain' `(function org-roam-capture--get-point)'
+  TEMPLATE
+  `:file-name' FILENAME-FORMAT
+  `:head' HEADER-FORMAT
+  `:unnarrowed t'
+  OPTIONS-PLIST)
+
+The elements of a template-entry and their placement are the same
+as in `org-capture-templates', except that the entry type must
+always be the symbol `plain', and that the target must always be
+the list `(function org-roam-capture--get-point)'.
+
+Org-roam requires the plist elements `:file-name' and `:head' to
+be present, and it’s recommended that `:unnarrowed' be set to t."
+  :group 'org-roam
+  ;; Adapted from `org-capture-templates'
+  :type
+  '(repeat
+    (choice :value ("d" "default" plain (function org-roam-capture--get-point)
+                    "%?"
+                    :file-name "%<%Y%m%d%H%M%S>-${slug}"
+                    :head "#+title: ${title}\n"
+                    :unnarrowed t)
+            (list :tag "Multikey description"
+                  (string :tag "Keys       ")
+                  (string :tag "Description"))
+            (list :tag "Template entry"
+                  (string :tag "Keys              ")
+                  (string :tag "Description       ")
+                  (const :format "" plain)
+                  (const :format "" (function org-roam-capture--get-point))
+                  (choice :tag "Template          "
+                          (string :tag "String"
+                                  :format "String:\n            \
+Template string   :\n%v")
+                          (list :tag "File"
+                                (const :format "" file)
+                                (file :tag "Template file     "))
+                          (list :tag "Function"
+                                (const :format "" function)
+                                (function :tag "Template function ")))
+                  (const :format "File name format  :" :file-name)
+                  (string :format " %v" :value "#+title: ${title}\n")
+                  (const :format "Header format     :" :head)
+                  (string :format "\n%v" :value "%<%Y%m%d%H%M%S>-${slug}")
+                  (const :format "" :unnarrowed) (const :format "" t)
+                  (plist :inline t
+                         :tag "Options"
+                         ;; Give the most common options as checkboxes
+                         :options
+                         (((const :format "%v " :prepend) (const t))
+                          ((const :format "%v " :immediate-finish) (const t))
+                          ((const :format "%v " :jump-to-captured) (const t))
+                          ((const :format "%v " :empty-lines) (const 1))
+                          ((const :format "%v " :empty-lines-before) (const 1))
+                          ((const :format "%v " :empty-lines-after) (const 1))
+                          ((const :format "%v " :clock-in) (const t))
+                          ((const :format "%v " :clock-keep) (const t))
+                          ((const :format "%v " :clock-resume) (const t))
+                          ((const :format "%v " :time-prompt) (const t))
+                          ((const :format "%v " :tree-type) (const week))
+                          ((const :format "%v " :table-line-pos) (string))
+                          ((const :format "%v " :kill-buffer) (const t))))))))
 
 (defvar org-roam-capture-immediate-template
   (append (car org-roam-capture-templates) '(:immediate-finish t))
