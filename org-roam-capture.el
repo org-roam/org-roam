@@ -82,7 +82,7 @@ note with the given `ref'.")
 (defconst org-roam-capture--template-keywords '(:file-name :head)
   "Keywords used in `org-roam-capture-templates' specific to Org-roam.")
 
-(defvar org-roam-capture-templates
+(defcustom org-roam-capture-templates
   '(("d" "default" plain (function org-roam-capture--get-point)
      "%?"
      :file-name "%<%Y%m%d%H%M%S>-${slug}"
@@ -105,7 +105,75 @@ applies.
 
 3. The `:head' key is added, which contains the template that is
    inserted on initial creation (added only once).  This is where
-   insertion of any note metadata should go.")
+   insertion of any note metadata should go.
+
+When setting this variable from Lisp, ensure the following list
+structure of a template entry:
+
+\(KEY DESCRIPTION `plain' `(function org-roam-capture--get-point)'
+  TEMPLATE
+  `:file-name' FILENAME-FORMAT
+  `:head' HEADER-FORMAT
+  `:unnarrowed t'
+  OPTIONS-PLIST)
+
+The elements of a template entry and their placement are the same
+as in `org-capture-templates' except that the entry type must
+always be the symbol `plain' and the target must always be the list
+`(function org-roam-capture--get-point)'.
+
+Org-roam also requires additional plist elements `:file-name' and
+`:head' be present, while `:unnarrowed' option is recommended to
+be set to t."
+  :group 'org-roam
+  ;; adopted from `org-capture-templates'
+  :type
+  '(repeat
+    (choice :value ("d" "default" plain (function org-roam-capture--get-point)
+                    "%?"
+                    :file-name "%<%Y%m%d%H%M%S>-${slug}"
+                    :head "#+title: ${title}\n"
+                    :unnarrowed t)
+            (list :tag "Multikey description"
+                  (string :tag "Keys       ")
+                  (string :tag "Description"))
+            (list :tag "Template entry"
+                  (string :tag "Keys              ")
+                  (string :tag "Description       ")
+                  (const :format "" plain)
+                  (const :format "" (function org-roam-capture--get-point))
+                  (choice :tag "Template          "
+                          (string :tag "String"
+                                  :format "String:\n            \
+Template string   :\n%v")
+                          (list :tag "File"
+                                (const :format "" file)
+                                (file :tag "Template file     "))
+                          (list :tag "Function"
+                                (const :format "" function)
+                                (function :tag "Template function ")))
+                  (const :format "File name format  :" :file-name)
+                  (string :format " %v" :value "#+title: ${title}\n")
+                  (const :format "Header format     :" :head)
+                  (string :format "\n%v" :value "%<%Y%m%d%H%M%S>-${slug}")
+                  (const :format "" :unnarrowed) (const :format "" t)
+                  (plist :inline t
+                         :tag "Options"
+                         ;; Give the most common options as checkboxes
+                         :options
+                         (((const :format "%v " :prepend) (const t))
+                          ((const :format "%v " :immediate-finish) (const t))
+                          ((const :format "%v " :jump-to-captured) (const t))
+                          ((const :format "%v " :empty-lines) (const 1))
+                          ((const :format "%v " :empty-lines-before) (const 1))
+                          ((const :format "%v " :empty-lines-after) (const 1))
+                          ((const :format "%v " :clock-in) (const t))
+                          ((const :format "%v " :clock-keep) (const t))
+                          ((const :format "%v " :clock-resume) (const t))
+                          ((const :format "%v " :time-prompt) (const t))
+                          ((const :format "%v " :tree-type) (const week))
+                          ((const :format "%v " :table-line-pos) (string))
+                          ((const :format "%v " :kill-buffer) (const t))))))))
 
 (defvar org-roam-capture-immediate-template
   (append (car org-roam-capture-templates) '(:immediate-finish t))
