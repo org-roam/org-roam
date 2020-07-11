@@ -89,26 +89,22 @@ note with the given `ref'.")
      :head "#+title: ${title}\n"
      :unnarrowed t))
   "Capture templates for Org-roam.
-The capture templates are an extension of
-`org-capture-templates', and the documentation there also
-applies.
+The Org-roam capture-templates  builds on the default behaviours of
+`org-capture-templates' by expanding them in 3 areas:
 
-`org-capture-templates' are extended in 3 ways:
+1. Template-expansion capabilities are extended with additional
+   custom syntax. See `org-roam-capture--fill-template' for more
+   details.
 
-1. Template expansion capabilities are extended with additional custom syntax.
-   See `org-roam-capture--fill-template' for more details.
-
-2. The `:file-name' key is added, which expands to the file-name
-   of the note if it creates a new file.  This file-name is
-   relative to `org-roam-directory', and is without the
-   file-extension.
+2. The `:file-name' key is added, which defines the naming format
+   to use when creating new notes. This file-name is relative to
+   `org-roam-directory', and is without the file-extension.
 
 3. The `:head' key is added, which contains the template that is
-   inserted on initial creation (added only once).  This is where
-   insertion of any note metadata should go.
+   inserted upon the creation of a new file. This is where you
+   should add your note metadata should go.
 
-When setting this variable from Lisp, ensure the following list
-structure of a template entry:
+Each template should have the following structure:
 
 \(KEY DESCRIPTION `plain' `(function org-roam-capture--get-point)'
   TEMPLATE
@@ -117,16 +113,15 @@ structure of a template entry:
   `:unnarrowed t'
   OPTIONS-PLIST)
 
-The elements of a template entry and their placement are the same
-as in `org-capture-templates' except that the entry type must
-always be the symbol `plain' and the target must always be the list
-`(function org-roam-capture--get-point)'.
+The elements of a template-entry and their placement are the same
+as in `org-capture-templates', except that the entry type must
+always be the symbol `plain', and that the target must always be
+the list `(function org-roam-capture--get-point)'.
 
-Org-roam also requires additional plist elements `:file-name' and
-`:head' be present, while `:unnarrowed' option is recommended to
-be set to t."
+Org-roam requires the plist elements `:file-name' and `:head' to
+be present, and it’s recommended that `:unnarrowed' be set to t."
   :group 'org-roam
-  ;; adopted from `org-capture-templates'
+  ;; Adapted from `org-capture-templates'
   :type
   '(repeat
     (choice :value ("d" "default" plain (function org-roam-capture--get-point)
