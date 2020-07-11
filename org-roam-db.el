@@ -511,7 +511,7 @@ If FORCE, force a rebuild of the cache from scratch."
         ;; These files are no longer around, remove from cache...
         (org-roam-db--clear-file file)
         (setq deleted-count (1+ deleted-count))))
-    (org-roam-message "files: 𝚫%s, headlines: 𝚫%s, links: 𝚫%s, tags: 𝚫%s, titles: 𝚫%s, refs: 𝚫%s, deleted: 𝚫%s"
+    (org-roam-message "files: Δ%s, headlines: Δ%s, links: Δ%s, tags: Δ%s, titles: Δ%s, refs: Δ%s, deleted: Δ%s"
                       file-count
                       headline-count
                       link-count
