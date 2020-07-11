@@ -567,39 +567,40 @@ it as FILE-PATH."
                (start (org-element-property :begin link)))
           (goto-char start)
           (let* ((element (org-element-at-point))
-                   (begin (or (org-element-property :content-begin element)
-                              (org-element-property :begin element)))
-                   (content (or (org-element-property :raw-value element)
-                                (buffer-substring-no-properties
-                                 begin
-                                 (or (org-element-property :content-end element)
-                                     (org-element-property :end element)))))
-                   (content (string-trim content))
-                   ;; Expand all relative links to absolute links
-                   (content (org-roam--expand-links content file-path)))
-              (let ((properties (list :outline (mapcar (lambda (path)
-                                                         (org-roam--expand-links path file-path))
-                                                       (org-roam--get-outline-path))
-                                      :content content
-                                      :point begin))
-                    (names (pcase type
-                             ("file"
-                              (list (file-truename (expand-file-name path (file-name-directory file-path)))))
-                             ("id"
-                              (list (car (org-roam-id-find path))))
-                             ((pred (lambda (typ)
-                                      (and (boundp 'org-ref-cite-types)
-                                           (-contains? org-ref-cite-types typ))))
-                              (setq type "cite")
-                              (org-ref-split-and-strip-string path))
-                             (_ (list (org-element-property :raw-link link))))))
-                (seq-do (lambda (name)
+                 (begin (or (org-element-property :content-begin element)
+                            (org-element-property :begin element)))
+                 (content (or (org-element-property :raw-value element)
+                              (buffer-substring-no-properties
+                               begin
+                               (or (org-element-property :content-end element)
+                                   (org-element-property :end element)))))
+                 (content (string-trim content))
+                 ;; Expand all relative links to absolute links
+                 (content (org-roam--expand-links content file-path)))
+            (let ((properties (list :outline (mapcar (lambda (path)
+                                                       (org-roam--expand-links path file-path))
+                                                     (org-roam--get-outline-path))
+                                    :content content
+                                    :point begin))
+                  (names (pcase type
+                           ("file"
+                            (list (file-truename (expand-file-name path (file-name-directory file-path)))))
+                           ("id"
+                            (list (car (org-roam-id-find path))))
+                           ((pred (lambda (typ)
+                                    (and (boundp 'org-ref-cite-types)
+                                         (-contains? org-ref-cite-types typ))))
+                            (setq type "cite")
+                            (org-ref-split-and-strip-string path))
+                           (_ (list (org-element-property :raw-link link))))))
+              (seq-do (lambda (name)
+                        (when name
                           (push (vector file-path
                                         name
                                         type
                                         properties)
-                                links))
-                        names))))))
+                                links)))
+                      names))))))
     links))
 
 (defun org-roam--extract-headlines (&optional file-path)
