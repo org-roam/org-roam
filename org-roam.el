@@ -594,11 +594,12 @@ it as FILE-PATH."
                               (org-ref-split-and-strip-string path))
                              (_ (list (org-element-property :raw-link link))))))
                 (seq-do (lambda (name)
-                          (push (vector file-path
-                                        name
-                                        type
-                                        properties)
-                                links))
+                          (when name
+                            (push (vector file-path
+                                          name
+                                          type
+                                          properties)
+                                  links)))
                         names))))))
     links))
 
