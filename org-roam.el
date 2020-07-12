@@ -471,7 +471,7 @@ Use external shell commands if defined in `org-roam-list-files-commands'."
 
 (defun org-roam--list-all-files ()
   "Return a list of all Org-roam files within `org-roam-directory'."
-  (org-roam--list-files (file-truename org-roam-directory)))
+  (org-roam--list-files org-roam-directory))
 
 ;;;; Org extraction functions
 (defun org-roam--extract-global-props (props)
