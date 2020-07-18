@@ -73,7 +73,7 @@ Next: <a href="Org_002droam-Completion-System.html#Org_002droam-Completion-Syste
 notes. This is done by performing SQL queries and generating images using
 <a href="https://graphviz.org/">Graphviz</a>. The graph can also be navigated: see <a href="Roam-Protocol.html#Roam-Protocol">Roam Protocol</a>.
 </p>
-<p>The entry point to graph creation is &lsquo;<samp>org-roam-graph</samp>&rsquo;.
+<p>The entry point to graph creation is <code>org-roam-graph</code>.
 </p>
 <ul>
 <li> Function: org-roam-graph &amp; optional arg file node-query
@@ -83,19 +83,19 @@ If FILE is nil, default to current buffer’s file name.
 ARG may be any of the following values:
 </p>
 <ul>
-<li> &lsquo;<samp>nil</samp>&rsquo;       show the graph.
-</li><li> &lsquo;<samp>C-u</samp>&rsquo;       show the graph for FILE.
-</li><li> &lsquo;<samp>C-u N</samp>&rsquo;     show the graph for FILE limiting nodes to N steps.
-</li><li> &lsquo;<samp>C-u C-u</samp>&rsquo;   build the graph.
-</li><li> &lsquo;<samp>C-u -</samp>&rsquo;     build the graph for FILE.
-</li><li> &lsquo;<samp>C-u -N</samp>&rsquo;    build the graph for FILE limiting nodes to N steps.
+<li> <code>nil</code>       show the graph.
+</li><li> <code>C-u</code>       show the graph for FILE.
+</li><li> <code>C-u N</code>     show the graph for FILE limiting nodes to N steps.
+</li><li> <code>C-u C-u</code>   build the graph.
+</li><li> <code>C-u -</code>     build the graph for FILE.
+</li><li> <code>C-u -N</code>    build the graph for FILE limiting nodes to N steps.
 </li></ul>
 
 </li><li> User Option: org-roam-graph-executable
 
 <p>Path to the graphing executable (in this case, Graphviz). Set this if Org-roam is unable to find the Graphviz executable on your system.
 </p>
-<p>You may also choose to use &lsquo;<samp>neato</samp>&rsquo; in place of &lsquo;<samp>dot</samp>&rsquo;, which generates a more
+<p>You may also choose to use <code>neato</code> in place of <code>dot</code>, which generates a more
 compact graph layout.
 </p>
 </li><li> User Option: org-roam-graph-viewer
@@ -107,7 +107,7 @@ compact graph layout.
 </li><li> a function accepting a single argument: the graph file path.
 </li></ol>
 
-<p>&lsquo;<samp>nil</samp>&rsquo; uses &lsquo;<samp>view-file</samp>&rsquo; to view the graph.
+<p><code>nil</code> uses <code>view-file</code> to view the graph.
 </p>
 <p>If you are using WSL2 and would like to open the graph in Windows, you can use the second option to set the browser and network file path:
 </p>

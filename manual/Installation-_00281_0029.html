@@ -63,7 +63,7 @@ ul.no-bullet {list-style: none}
 <a name="Installation-_00281_0029"></a>
 <div class="header">
 <p>
-Next: <a href="The-roam_002dfile-protocol.html#The-roam_002dfile-protocol" accesskey="n" rel="next">The &lsquo;<samp>roam-file</samp>&rsquo; protocol</a>, Previous: <a href="_005f.html#g_t_005f" accesskey="p" rel="prev">_</a>, Up: <a href="Roam-Protocol.html#Roam-Protocol" accesskey="u" rel="up">Roam Protocol</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+Next: <a href="The-roam_002dfile-protocol.html#The-roam_002dfile-protocol" accesskey="n" rel="next">The roam-file protocol</a>, Previous: <a href="_005f.html#g_t_005f" accesskey="p" rel="prev">_</a>, Up: <a href="Roam-Protocol.html#Roam-Protocol" accesskey="u" rel="up">Roam Protocol</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
 </div>
 <hr>
 <a name="Installation-2"></a>
@@ -75,12 +75,12 @@ Next: <a href="The-roam_002dfile-protocol.html#The-roam_002dfile-protocol" acces
 <pre class="lisp">(require 'org-roam-protocol)
 </pre></div>
 
-<p>The instructions for setting up &lsquo;<samp>org-protocol=</samp>&rsquo; are reproduced below.
+<p>The instructions for setting up <code>org-protocol</code> are reproduced below.
 </p>
-<p>We will also need to create a desktop application for &lsquo;<samp>emacsclient</samp>&rsquo;. The
+<p>We will also need to create a desktop application for <code>emacsclient</code>. The
 instructions for various platforms are shown below.
 </p>
-<p>For Linux users, create a desktop application in &lsquo;<samp>~/.local/share/applications/org-protocol.desktop</samp>&rsquo;:
+<p>For Linux users, create a desktop application in <code>~/.local/share/applications/org-protocol.desktop</code>:
 </p>
 <div class="example">
 <pre class="example">[Desktop Entry]
@@ -92,7 +92,7 @@ Terminal=false
 MimeType=x-scheme-handler/org-protocol
 </pre></div>
 
-<p>Associate &lsquo;<samp>org-protocol://</samp>&rsquo; links with the desktop application by
+<p>Associate <code>org-protocol://</code> links with the desktop application by
 running in your shell:
 </p>
 <div class="example">
@@ -100,7 +100,7 @@ running in your shell:
 </pre></div>
 
 <p>To disable the &ldquo;confirm&rdquo; prompt in Chrome, you can also make Chrome
-show a checkbox to tick, so that the &lsquo;<samp>Org-Protocol Client</samp>&rsquo; app will be used
+show a checkbox to tick, so that the <code>Org-Protocol Client</code> app will be used
 without confirmation. To do this, run in a shell:
 </p>
 <div class="example">
@@ -116,8 +116,8 @@ sudo chmod 644 /etc/opt/chrome/policies/managed/external_protocol_dialog.json
 <p>and then restart Chrome (for example, by navigating to &lt;chrome://restart&gt;) to
 make the new policy take effect.
 </p>
-<p>See <a href="https://www.chromium.org/administrators/linux-quick-start">here</a> for more info on the &lsquo;<samp>/etc/opt/chrome/policies/managed</samp>&rsquo; directory and
-<a href="https://cloud.google.com/docs/chrome-enterprise/policies/?policy=ExternalProtocolDialogShowAlwaysOpenCheckbox">here</a> for information on the &lsquo;<samp>ExternalProtocolDialogShowAlwaysOpenCheckbox</samp>&rsquo; policy.
+<p>See <a href="https://www.chromium.org/administrators/linux-quick-start">here</a> for more info on the <code>/etc/opt/chrome/policies/managed</code> directory and
+<a href="https://cloud.google.com/docs/chrome-enterprise/policies/?policy=ExternalProtocolDialogShowAlwaysOpenCheckbox">here</a> for information on the <code>ExternalProtocolDialogShowAlwaysOpenCheckbox</code> policy.
 </p>
 <p>For MacOS, one solution is to use <a href="https://github.com/sveinbjornt/Platypus">Platypus</a>. Here are the instructions for
 setting up with Platypus and Chrome:
@@ -131,7 +131,7 @@ setting up with Platypus and Chrome:
 </pre></div>
 
 <ol>
-<li> Create a script &lsquo;<samp>launch_emacs.sh</samp>&rsquo;:
+<li> Create a script <code>launch_emacs.sh</code>:
 </li></ol>
 
 <div class="example">
@@ -155,7 +155,7 @@ setting up with Platypus and Chrome:
 </pre></div>
 
 
-<p>Inside &lsquo;<samp>Settings</samp>&rsquo;:
+<p>Inside <code>Settings</code>:
 </p>
 <div class="example">
 <pre class="example">| Setting                        | Value          |
@@ -166,7 +166,7 @@ setting up with Platypus and Chrome:
 </pre></div>
 
 <p>To disable the &ldquo;confirm&rdquo; prompt in Chrome, you can also make Chrome
-show a checkbox to tick, so that the &lsquo;<samp>OrgProtocol</samp>&rsquo; app will be used
+show a checkbox to tick, so that the <code>OrgProtocol</code> app will be used
 without confirmation. To do this, run in a shell:
 </p>
 <div class="example">
@@ -175,7 +175,7 @@ without confirmation. To do this, run in a shell:
 
 
 <p>If you&rsquo;re using <a href="https://github.com/railwaycat/homebrew-emacsmacport">Emacs Mac Port</a>, it registered its &lsquo;Emacs.app&lsquo; as the default
-handler for the URL scheme &lsquo;org-protocol&lsquo;. To make &lsquo;<samp>OrgProtocol.app</samp>&rsquo;
+handler for the URL scheme &lsquo;org-protocol&lsquo;. To make <code>OrgProtocol.app</code>
 the default handler instead, run:
 </p>
 <div class="example">
@@ -185,7 +185,7 @@ the default handler instead, run:
 
 <p>Then restart your computer.
 </p>
-<p>For Windows, create a temporary &lsquo;<samp>org-protocol.reg</samp>&rsquo; file:
+<p>For Windows, create a temporary <code>org-protocol.reg</code> file:
 </p>
 <div class="example">
 <pre class="example">REGEDIT4
@@ -210,7 +210,7 @@ the default handler instead, run:
 <hr>
 <div class="header">
 <p>
-Next: <a href="The-roam_002dfile-protocol.html#The-roam_002dfile-protocol" accesskey="n" rel="next">The &lsquo;<samp>roam-file</samp>&rsquo; protocol</a>, Previous: <a href="_005f.html#g_t_005f" accesskey="p" rel="prev">_</a>, Up: <a href="Roam-Protocol.html#Roam-Protocol" accesskey="u" rel="up">Roam Protocol</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+Next: <a href="The-roam_002dfile-protocol.html#The-roam_002dfile-protocol" accesskey="n" rel="next">The roam-file protocol</a>, Previous: <a href="_005f.html#g_t_005f" accesskey="p" rel="prev">_</a>, Up: <a href="Roam-Protocol.html#Roam-Protocol" accesskey="u" rel="up">Roam Protocol</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
 </div>
 
 

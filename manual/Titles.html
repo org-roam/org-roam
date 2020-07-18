@@ -75,14 +75,14 @@ especially useful for topics or concepts with acronyms. For example, for a note
 like &ldquo;World War 2&rdquo;, it may be desirable to also refer to it using the acronym
 &ldquo;WWII&rdquo;.
 </p>
-<p>Org-roam calls &lsquo;<samp>org-roam--extract-titles</samp>&rsquo; to extract titles. It uses the
-variable &lsquo;<samp>org-roam-title-sources</samp>&rsquo;, to control how the titles are extracted. The
+<p>Org-roam calls <code>org-roam--extract-titles</code> to extract titles. It uses the
+variable <code>org-roam-title-sources</code>, to control how the titles are extracted. The
 title extraction methods supported are:
 </p>
 <ol>
-<li> &lsquo;<samp>'title</samp>&rsquo;: This extracts the title using the file &lsquo;<samp>#+title</samp>&rsquo; property
-</li><li> &lsquo;<samp>'headline</samp>&rsquo;: This extracts the title from the first headline in the Org file
-</li><li> &lsquo;<samp>'alias</samp>&rsquo;: This extracts a list of titles using the &lsquo;<samp>#+roam_alias</samp>&rsquo; property.
+<li> <code>'title</code>: This extracts the title using the file <code>#+title</code> property
+</li><li> <code>'headline</code>: This extracts the title from the first headline in the Org file
+</li><li> <code>'alias</code>: This extracts a list of titles using the <code>#+roam_alias</code> property.
 The aliases are space-delimited, and can be multi-worded using quotes
 </li></ol>
 
@@ -97,20 +97,20 @@ The aliases are space-delimited, and can be multi-worded using quotes
 
 <table>
 <thead><tr><th>Method</th><th>Titles</th></tr></thead>
-<tr><td>&lsquo;<samp>'title</samp>&rsquo;</td><td>&rsquo;(&ldquo;World War 2&rdquo;)</td></tr>
-<tr><td>&lsquo;<samp>'headline</samp>&rsquo;</td><td>&rsquo;(&ldquo;Headline&rdquo;)</td></tr>
-<tr><td>&lsquo;<samp>'alias</samp>&rsquo;</td><td>&rsquo;(&ldquo;WWII&rdquo; &ldquo;World War II&rdquo;)</td></tr>
+<tr><td><code>'title</code></td><td>&rsquo;(&ldquo;World War 2&rdquo;)</td></tr>
+<tr><td><code>'headline</code></td><td>&rsquo;(&ldquo;Headline&rdquo;)</td></tr>
+<tr><td><code>'alias</code></td><td>&rsquo;(&ldquo;WWII&rdquo; &ldquo;World War II&rdquo;)</td></tr>
 </table>
 
 <p>One can freely control which extraction methods to use by customizing
-&lsquo;<samp>org-roam-title-sources</samp>&rsquo;: see the doc-string for the variable for more
+<code>org-roam-title-sources</code>: see the doc-string for the variable for more
 information. If all methods of title extraction return no results, the file-name
 is used in place of the titles for completions.
 </p>
 <p>If you wish to add your own title extraction method, you may push a symbol
-&lsquo;<samp>'foo</samp>&rsquo; into &lsquo;<samp>org-roam-title-sources</samp>&rsquo;, and define a
-&lsquo;<samp>org-roam--extract-titles-foo</samp>&rsquo; which accepts no arguments. See
-&lsquo;<samp>org-roam--extract-titles-title</samp>&rsquo; for an example.
+<code>'foo</code> into <code>org-roam-title-sources</code>, and define a
+<code>org-roam--extract-titles-foo</code> which accepts no arguments. See
+<code>org-roam--extract-titles-title</code> for an example.
 </p>
 
 

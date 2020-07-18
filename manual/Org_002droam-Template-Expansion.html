@@ -73,26 +73,26 @@ Previous: <a href="Template-Walkthrough.html#Template-Walkthrough" accesskey="p"
 allow prefilling of strings. We have seen a glimpse of this in <a href="Template-Walkthrough.html#Template-Walkthrough">Template
 Walkthrough</a>.
 </p>
-<p>In org-roam templates, the &lsquo;<samp>${var}</samp>&rsquo; syntax allows for the expansion of
-variables, stored in &lsquo;<samp>org-roam-capture--info</samp>&rsquo;. For example, during
-&lsquo;<samp>org-roam-insert</samp>&rsquo;, the user is prompted for a title. Upon entering a
-non-existent title, the &lsquo;<samp>title</samp>&rsquo; key in &lsquo;<samp>org-roam-capture--info</samp>&rsquo; is set to the
-provided title. &lsquo;<samp>${title}</samp>&rsquo; is then expanded into the provided title during the
+<p>In org-roam templates, the <code>${var}</code> syntax allows for the expansion of
+variables, stored in <code>org-roam-capture--info</code>. For example, during
+<code>org-roam-insert</code>, the user is prompted for a title. Upon entering a
+non-existent title, the <code>title</code> key in <code>org-roam-capture--info</code> is set to the
+provided title. <code>${title}</code> is then expanded into the provided title during the
 org-capture process. Any variables that do not contain strings, are prompted for
-values using &lsquo;<samp>completing-read</samp>&rsquo;.
+values using <code>completing-read</code>.
 </p>
 <p>After doing this expansion, the org-capture&rsquo;s template expansion system
 is used to fill up the rest of the template. You may read up more on
 this on <a href="https://orgmode.org/manual/Template-expansion.html#Template-expansion">org-capture&rsquo;s documentation page</a>.
 </p>
 <p>To illustrate this dual expansion process, take for example the template string:
-&lsquo;<samp>&quot;%&lt;%Y%m%d%H%M%S&gt;-${title}&quot;</samp>&rsquo;, with the title &lsquo;<samp>&quot;Foo&quot;</samp>&rsquo;. The template is first
-expanded into &lsquo;<samp>%&lt;%Y%m%d%H%M%S&gt;-Foo</samp>&rsquo;. Then org-capture expands &lsquo;<samp>%&lt;%Y%m%d%H%M%S&gt;</samp>&rsquo;
-with timestamp: e.g. &lsquo;<samp>20200213032037-Foo</samp>&rsquo;.
+<code>&quot;%&lt;%Y%m%d%H%M%S&gt;-${title}&quot;</code>, with the title <code>&quot;Foo&quot;</code>. The template is first
+expanded into <code>%&lt;%Y%m%d%H%M%S&gt;-Foo</code>. Then org-capture expands <code>%&lt;%Y%m%d%H%M%S&gt;</code>
+with timestamp: e.g. <code>20200213032037-Foo</code>.
 </p>
 <p>All of the flexibility afforded by Emacs and Org-mode are available. For
 example, if you want to encode a UTC timestamp in the filename, you can take
-advantage of org-mode&rsquo;s &lsquo;<samp>%(EXP)</samp>&rsquo; template expansion to call &lsquo;<samp>format-time-string</samp>&rsquo;
+advantage of org-mode&rsquo;s <code>%(EXP)</code> template expansion to call <code>format-time-string</code>
 directly to provide its third argument to specify UTC.
 </p>
 <div class="lisp">

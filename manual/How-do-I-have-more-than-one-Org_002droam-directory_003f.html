@@ -70,11 +70,11 @@ Next: <a href="How-do-I-migrate-from-Roam-Research_003f.html#How-do-I-migrate-fr
 <h3 class="section">17.1 How do I have more than one Org-roam directory?</h3>
 
 <p>Emacs supports directory-local variables, allowing the value of
-&lsquo;<samp>org-roam-directory</samp>&rsquo; to be different in different directories. It does this by
-checking for a file named &lsquo;<samp>.dir-locals.el</samp>&rsquo;.
+<code>org-roam-directory</code> to be different in different directories. It does this by
+checking for a file named <code>.dir-locals.el</code>.
 </p>
-<p>To add support for multiple directories, override the &lsquo;<samp>org-roam-directory</samp>&rsquo;
-variable using directory-local variables. This is what &lsquo;<samp>.dir-locals.el</samp>&rsquo; may
+<p>To add support for multiple directories, override the <code>org-roam-directory</code>
+variable using directory-local variables. This is what <code>.dir-locals.el</code> may
 contain:
 </p>
 <div class="lisp">
@@ -82,7 +82,7 @@ contain:
 </pre></div>
 
 <p>All files within that directory will be treated as their own separate
-set of Org-roam files. Remember to run &lsquo;<samp>org-roam-db-build-cache</samp>&rsquo; from a
+set of Org-roam files. Remember to run <code>org-roam-db-build-cache</code> from a
 file within that directory, at least once.
 </p>
 

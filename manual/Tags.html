@@ -73,34 +73,34 @@ Next: <a href="File-Refs.html#File-Refs" accesskey="n" rel="next">File Refs</a>,
 where titles are insufficient. For example, tags allow for categorization of
 notes: differentiating between bibliographical and structure notes during interactive commands.
 </p>
-<p>Org-roam calls &lsquo;<samp>org-roam--extract-tags</samp>&rsquo; to extract tags from files. It uses the
-variable &lsquo;<samp>org-roam-tag-sources</samp>&rsquo;, to control how tags are extracted. The tag
+<p>Org-roam calls <code>org-roam--extract-tags</code> to extract tags from files. It uses the
+variable <code>org-roam-tag-sources</code>, to control how tags are extracted. The tag
 extraction methods supported are:
 </p>
 <ol>
-<li> &lsquo;<samp>'prop</samp>&rsquo;: This extracts tags from the &lsquo;<samp>#+roam_tags</samp>&rsquo; property. Tags are space delimited, and can be multi-word using double quotes.
-</li><li> &lsquo;<samp>'all-directories</samp>&rsquo;: All sub-directories relative to &lsquo;<samp>org-roam-directory</samp>&rsquo; are
+<li> <code>'prop</code>: This extracts tags from the <code>#+roam_tags</code> property. Tags are space delimited, and can be multi-word using double quotes.
+</li><li> <code>'all-directories</code>: All sub-directories relative to <code>org-roam-directory</code> are
 extracted as tags. That is, if a file is located at relative path
-&lsquo;<samp>foo/bar/file.org</samp>&rsquo;, the file will have tags &lsquo;<samp>foo</samp>&rsquo; and &lsquo;<samp>bar</samp>&rsquo;.
-</li><li> &lsquo;<samp>'last-directory</samp>&rsquo;: Extracts the last directory relative to
-&lsquo;<samp>org-roam-directory</samp>&rsquo; as the tag. That is, if a file is located at relative
-path &lsquo;<samp>foo/bar/file.org</samp>&rsquo;, the file will have tag &lsquo;<samp>bar</samp>&rsquo;.
-</li><li> &lsquo;<samp>'first-directory</samp>&rsquo;: Extracts the first directory relative to
-&lsquo;<samp>org-roam-directory</samp>&rsquo; as the tag. That is, if a file is located at relative
-path &lsquo;<samp>foo/bar/file.org</samp>&rsquo;, the file will have tag &lsquo;<samp>foo</samp>&rsquo;.
+<code>foo/bar/file.org</code>, the file will have tags <code>foo</code> and <code>bar</code>.
+</li><li> <code>'last-directory</code>: Extracts the last directory relative to
+<code>org-roam-directory</code> as the tag. That is, if a file is located at relative
+path <code>foo/bar/file.org</code>, the file will have tag <code>bar</code>.
+</li><li> <code>'first-directory</code>: Extracts the first directory relative to
+<code>org-roam-directory</code> as the tag. That is, if a file is located at relative
+path <code>foo/bar/file.org</code>, the file will have tag <code>foo</code>.
 </li></ol>
 
-<p>By default, only the &lsquo;<samp>'prop</samp>&rsquo; extraction method is enabled. To enable the other
-extraction methods, you may modify &lsquo;<samp>org-roam-tag-sources</samp>&rsquo;:
+<p>By default, only the <code>'prop</code> extraction method is enabled. To enable the other
+extraction methods, you may modify <code>org-roam-tag-sources</code>:
 </p>
 <div class="lisp">
 <pre class="lisp">(setq org-roam-tag-sources '(prop last-directory))
 </pre></div>
 
-<p>If you wish to add your own tag extraction method, you may push a symbol &lsquo;<samp>'foo</samp>&rsquo;
-into &lsquo;<samp>org-roam-tag-sources</samp>&rsquo;, and define a &lsquo;<samp>org-roam--extract-tags-foo</samp>&rsquo; which
+<p>If you wish to add your own tag extraction method, you may push a symbol <code>'foo</code>
+into <code>org-roam-tag-sources</code>, and define a <code>org-roam--extract-tags-foo</code> which
 accepts the absolute file path as its argument. See
-&lsquo;<samp>org-roam--extract-tags-prop</samp>&rsquo; for an example.
+<code>org-roam--extract-tags-prop</code> for an example.
 </p>
 
 

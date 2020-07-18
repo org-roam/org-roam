@@ -71,8 +71,8 @@ Next: <a href="Performance-Optimization.html#Performance-Optimization" accesskey
 
 <p>Org-roam provides a utility for diagnosing and repairing problematic files via
 <code>org-roam-doctor</code>. By default, <code>org-roam-doctor</code> runs the check on the current
-Org-roam file. To run the check only for the current file, run &lsquo;<samp>C-u M-x
-org-roam-doctor</samp>&rsquo;, but note that this may take some time.
+Org-roam file. To run the check only for the current file, run <code>C-u M-x
+org-roam-doctor</code>, but note that this may take some time.
 </p>
 <ul>
 <li> Function: org-roam-doctor &amp;optional this-buffer
@@ -81,7 +81,7 @@ org-roam-doctor</samp>&rsquo;, but note that this may take some time.
 the check only for the current buffer.
 </p></li></ul>
 
-<p>The checks run are defined in &lsquo;<samp>org-roam-doctor--checkers</samp>&rsquo;. Each checker is an instance of &lsquo;<samp>org-roam-doctor-checker</samp>&rsquo;. To define a checker, use &lsquo;<samp>make-org-roam-doctor-checker</samp>&rsquo;. Here is a sample definition:
+<p>The checks run are defined in <code>org-roam-doctor--checkers</code>. Each checker is an instance of <code>org-roam-doctor-checker</code>. To define a checker, use <code>make-org-roam-doctor-checker</code>. Here is a sample definition:
 </p>
 <div class="lisp">
 <pre class="lisp">(make-org-roam-doctor-checker
@@ -92,14 +92,14 @@ the check only for the current buffer.
                (&quot;R&quot; . (&quot;Replace link (keep label)&quot; . org-roam-doctor--replace-link-keep-label))))
 </pre></div>
 
-<p>The &lsquo;<samp>:name</samp>&rsquo; property is the name of the function run. The function takes in the
-Org parse tree, and returns a list of &lsquo;<samp>(point error-message)</samp>&rsquo;. &lsquo;<samp>:description</samp>&rsquo; is a
-short description of what the checker does. &lsquo;<samp>:actions</samp>&rsquo; is an alist containing
-elements of the form &lsquo;<samp>(char . (prompt . function))</samp>&rsquo;. These actions are defined per
+<p>The <code>:name</code> property is the name of the function run. The function takes in the
+Org parse tree, and returns a list of <code>(point error-message)</code>. <code>:description</code> is a
+short description of what the checker does. <code>:actions</code> is an alist containing
+elements of the form <code>(char . (prompt . function))</code>. These actions are defined per
 checker, to perform autofixes for the errors. For each error detected,
-&lsquo;<samp>org-roam-doctor</samp>&rsquo; will move the point to the current error, and pop-up a help
+<code>org-roam-doctor</code> will move the point to the current error, and pop-up a help
 window displaying the error message, as well as the list of actions that can be
-taken provided in &lsquo;<samp>:actions</samp>&rsquo;.
+taken provided in <code>:actions</code>.
 </p>
 
 
