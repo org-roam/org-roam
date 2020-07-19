@@ -69,15 +69,19 @@ Next: <a href="Roam-Protocol.html#Roam-Protocol" accesskey="n" rel="next">Roam P
 <a name="Org_002droam-Completion-System-1"></a>
 <h2 class="chapter">11 Org-roam Completion System</h2>
 
-<p>Org-roam offers completion when choosing note titles etc. The completion
-system is configurable. The default setting,
+<p>Org-roam allows customization of which minibuffer completion system to use for
+its interactive commands. The default setting uses Emacs&rsquo; standard
+<code>completing-read</code> mechanism.
 </p>
 <div class="lisp">
 <pre class="lisp">(setq org-roam-completion-system 'default)
 </pre></div>
 
-<p>uses Emacs&rsquo; standard <code>completing-read</code>. If you prefer
-<a href="https://emacs-helm.github.io/helm/">Helm</a>, use
+<p>If you have installed Helm or Ivy, and have their modes enabled, under the
+<code>'default</code> setting they will be used.
+</p>
+<p>In the rare scenario where you use Ivy globally, but prefer <a href="https://emacs-helm.github.io/helm/">Helm</a> for org-roam
+commands, set:
 </p>
 <div class="lisp">
 <pre class="lisp">(setq org-roam-completion-system 'helm)

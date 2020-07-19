@@ -921,15 +921,19 @@ This setting excludes all files whose path contain ``private'' or ``dailies''.
 @node Org-roam Completion System
 @chapter Org-roam Completion System
 
-Org-roam offers completion when choosing note titles etc. The completion
-system is configurable. The default setting,
+Org-roam allows customization of which minibuffer completion system to use for
+its interactive commands. The default setting uses Emacs' standard
+@code{completing-read} mechanism.
 
 @lisp
 (setq org-roam-completion-system 'default)
 @end lisp
 
-uses Emacs' standard @code{completing-read}. If you prefer
-@uref{https://emacs-helm.github.io/helm/, Helm}, use
+If you have installed Helm or Ivy, and have their modes enabled, under the
+@code{'default} setting they will be used.
+
+In the rare scenario where you use Ivy globally, but prefer @uref{https://emacs-helm.github.io/helm/, Helm} for org-roam
+commands, set:
 
 @lisp
 (setq org-roam-completion-system 'helm)
