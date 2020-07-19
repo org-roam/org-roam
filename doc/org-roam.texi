@@ -138,7 +138,8 @@ Appendix
 Ecosystem
 
 * Browsing History with winner-mode::
-* Deft::
+* Versioning Notes::
+* Full-text search interface with Deft::
 * Org-journal::
 * Note-taking Add-ons::
 
@@ -1155,7 +1156,9 @@ Perform a check on Org-roam files to ensure cleanliness. If THIS-BUFFER, run
 the check only for the current buffer.
 @end itemize
 
-The checks run are defined in @code{org-roam-doctor--checkers}. Each checker is an instance of @code{org-roam-doctor-checker}. To define a checker, use @code{make-org-roam-doctor-checker}. Here is a sample definition:
+The checks run are defined in @code{org-roam-doctor--checkers}. Each checker is an
+instance of @code{org-roam-doctor-checker}. To define a checker, use
+@code{make-org-roam-doctor-checker}. Here is a sample definition:
 
 @lisp
 (make-org-roam-doctor-checker
@@ -1246,11 +1249,10 @@ operations. To reduce the number of garbage collection processes, one may set
 @node Ecosystem
 @section Ecosystem
 
-A number of packages work well combined with Org-Roam:
-
 @menu
 * Browsing History with winner-mode::
-* Deft::
+* Versioning Notes::
+* Full-text search interface with Deft::
 * Org-journal::
 * Note-taking Add-ons::
 @end menu
@@ -1269,11 +1271,22 @@ A number of packages work well combined with Org-Roam:
 
 @end lisp
 
-@node Deft
-@subsection Deft
+@node Versioning Notes
+@subsection Versioning Notes
 
-@uref{https://jblevins.org/projects/deft/, Deft} provides a nice interface
-for browsing and filtering org-roam notes.
+Since Org-roam notes are just plain text, it is trivial to track changes in your
+notes database using version control systems such as @uref{https://git-scm.com/, Git}. Simply initialize
+@code{org-roam-directory} as a Git repository, and commit your files at regular or
+appropriate intervals. @uref{https://magit.vc/, Magit} is a great interface to Git within Emacs.
+
+In addition, it may be useful to observe how a particular note has evolved, by
+looking at the file history. @uref{https://gitlab.com/pidu/git-timemachine, Git-timemachine} allows you to visit historic
+versions of a tracked Org-roam note.
+
+@node Full-text search interface with Deft
+@subsection Full-text search interface with Deft
+
+@uref{https://jblevins.org/projects/deft/, Deft} provides a nice interface for browsing and filtering org-roam notes.
 
 @lisp
 (use-package deft
