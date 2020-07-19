@@ -851,7 +851,9 @@ org-roam-doctor~, but note that this may take some time.
   Perform a check on Org-roam files to ensure cleanliness. If THIS-BUFFER, run
   the check only for the current buffer.
 
-The checks run are defined in ~org-roam-doctor--checkers~. Each checker is an instance of ~org-roam-doctor-checker~. To define a checker, use ~make-org-roam-doctor-checker~. Here is a sample definition:
+The checks run are defined in ~org-roam-doctor--checkers~. Each checker is an
+instance of ~org-roam-doctor-checker~. To define a checker, use
+~make-org-roam-doctor-checker~. Here is a sample definition:
 
 #+BEGIN_SRC emacs-lisp
 (make-org-roam-doctor-checker
@@ -920,7 +922,6 @@ General Public License for more details.
 - Videos ::
   - [[https://www.youtube.com/watch?v=RvWic15iXjk][How to Use Roam to Outline a New Article in Under 20 Minutes]]
 ** Ecosystem
-A number of packages work well combined with Org-Roam:
 
 *** Browsing History with winner-mode
 
@@ -934,13 +935,23 @@ A number of packages work well combined with Org-Roam:
   (define-key winner-mode-map (kbd "<M-right>") #'winner-redo)
 
 #+END_SRC
-*** Deft
+*** Versioning Notes
+
+Since Org-roam notes are just plain text, it is trivial to track changes in your
+notes database using version control systems such as [[https://git-scm.com/][Git]]. Simply initialize
+~org-roam-directory~ as a Git repository, and commit your files at regular or
+appropriate intervals. [[https://magit.vc/][Magit]] is a great interface to Git within Emacs.
+
+In addition, it may be useful to observe how a particular note has evolved, by
+looking at the file history. [[https://gitlab.com/pidu/git-timemachine][Git-timemachine]] allows you to visit historic
+versions of a tracked Org-roam note.
+
+*** Full-text search interface with Deft
    :PROPERTIES:
    :CUSTOM_ID: deft
    :END:
 
-[[https://jblevins.org/projects/deft/][Deft]] provides a nice interface
-for browsing and filtering org-roam notes.
+[[https://jblevins.org/projects/deft/][Deft]] provides a nice interface for browsing and filtering org-roam notes.
 
 #+BEGIN_SRC emacs-lisp
   (use-package deft
