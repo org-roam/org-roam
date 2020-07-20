@@ -208,11 +208,11 @@ Details on how to specify for the template is given in `org-roam-capture-templat
                              :org-roam)))
            (buffer-list)))
 
-(defun org-roam-capture--fill-template (str &optional info)
+(defun org-roam-capture--fill-template (str)
   "Expands the template STR, returning the string.
 This is an extension of org-capture's template expansion.
 
-First, it expands ${var} occurrences in STR, using the INFO alist.
+First, it expands ${var} occurrences in STR, using `org-roam-capture--info'.
 If there is a ${var} with no matching var in the alist, the value
 of var is prompted for via `completing-read'.
 
@@ -220,8 +220,10 @@ Next, it expands the remaining template string using
 `org-capture-fill-template'."
   (-> str
       (s-format (lambda (key)
-                  (or (s--aget info key)
-                      (completing-read (format "%s: " key ) nil))) nil)
+                  (or (s--aget org-roam-capture--info key)
+                      (when-let ((val (completing-read (format "%s: " key) nil)))
+                        (push (cons key val) org-roam-capture--info)
+                        val))) nil)
       (org-capture-fill-template)))
 
 (defun org-roam-capture--insert-link-h ()
@@ -277,8 +279,7 @@ the file if the original value of :no-save is not t and
   (let* ((name-templ (or (org-roam-capture--get :file-name)
                          org-roam-capture--file-name-default))
          (new-id (s-trim (org-roam-capture--fill-template
-                          name-templ
-                          org-roam-capture--info)))
+                          name-templ)))
          (file-path (org-roam--file-path-from-id new-id))
          (roam-head (or (org-roam-capture--get :head)
                         org-roam-capture--header-default))
@@ -298,16 +299,6 @@ the file if the original value of :no-save is not t and
                        :type 'plain
                        :no-save t))
     file-path))
-
-(defun org-roam-capture--expand-template ()
-  "Expand capture template with information from `org-roam-capture--info'."
-  (org-capture-put :template
-                   (s-format (org-capture-get :template)
-                             (lambda (key)
-                               (or (s--aget org-roam-capture--info key)
-                                   (when-let ((v (completing-read (format "%s: " key ) nil)))
-                                     (push (cons key v) org-roam-capture--info)
-                                     v))) nil)))
 
 (defun org-roam-capture--get-point ()
   "Return exact point to file for org-capture-template.
@@ -341,7 +332,8 @@ This function is used solely in Org-roam's capture templates: see
                             (plist-get pl :path)
                           (org-roam-capture--new-file))))
                      (_ (error "Invalid org-roam-capture-context")))))
-    (org-roam-capture--expand-template)
+    (org-capture-put :template
+                     (org-roam-capture--fill-template (org-capture-get :template)))
     (org-roam-capture--put :file-path file-path)
     (while org-roam-capture-additional-template-props
       (let ((prop (pop org-roam-capture-additional-template-props))

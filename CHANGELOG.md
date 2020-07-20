@@ -21,6 +21,7 @@
 - [#854](https://github.com/org-roam/org-roam/pull/854) Warn instead of fail when duplicate refs and IDs exist.
 - [#857](https://github.com/org-roam/org-roam/pull/857) Fix tag extraction for symlinked directories.
 - [#894](https://github.com/org-roam/org-roam/pull/894) Perform link fixes on all Org-roam files
+- [#952](https://github.com/org-roam/org-roam/pull/952) Cache `${foo}` template variables so they do not need to be re-entered twice
 
 ## 1.2.0 (12-06-2020)
 
