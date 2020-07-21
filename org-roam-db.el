@@ -367,6 +367,35 @@ connections, nil is returned."
          (files (mapcar 'car-safe (emacsql (org-roam-db) query file max-distance))))
     files))
 
+(defun org-roam-db--file-hash (&optional file-path)
+  "Compute the hash of the file (or current buffer) as it would
+be encoded on disk.  In any case there must be a filename associated
+(which might e.g. indicate encryption).
+
+For encrypted files the on-disk representation (i.e. the encoded bytes)
+will be used.  This means, we cannot create a hash for a buffer which
+is about to be encoded.
+
+For non-encrypted files we compute the hash over the buffer representation,
+as usual."
+  (let* ((file-p (and file-path))
+         (file-path (or file-path
+                        (buffer-file-name (current-buffer))))
+         (orig-buffer (current-buffer))
+         (encrypted-p (and file-path
+                           (string= (org-roam--file-name-extension file-path)
+                                    "gpg"))))
+    (if (and encrypted-p file-p)
+        (with-temp-buffer
+          (set-buffer-multibyte nil)
+          (insert-file-contents-literally file-path)
+          (secure-hash 'sha1 (current-buffer)))
+      (with-temp-buffer
+        (if file-p
+            (insert-file-contents file-path)
+          (insert-buffer orig-buffer))
+        (secure-hash 'sha1 (current-buffer))))))
+
 ;;;;; Updating
 (defun org-roam-db--update-meta ()
   "Update the metadata of the current buffer into the cache."
@@ -374,7 +403,7 @@ connections, nil is returned."
          (attr (file-attributes file))
          (atime (file-attribute-access-time attr))
          (mtime (file-attribute-modification-time attr))
-         (hash (secure-hash 'sha1 (current-buffer))))
+         (hash (org-roam-db--file-hash)))
     (org-roam-db-query [:delete :from files
                         :where (= file $s1)]
                        file)
@@ -468,45 +497,45 @@ If FORCE, force a rebuild of the cache from scratch."
         (let* ((attr (file-attributes file))
                (atime (file-attribute-access-time attr))
                (mtime (file-attribute-modification-time attr)))
-          (org-roam--with-temp-buffer file
-            (let ((contents-hash (secure-hash 'sha1 (current-buffer))))
-              (unless (string= (gethash file current-files)
-                               contents-hash)
-                (org-roam-db--clear-file file)
-                (org-roam-db-query
-                 [:insert :into files
-                  :values $v1]
-                 (vector file contents-hash (list :atime atime :mtime mtime)))
-                (setq file-count (1+ file-count))
-                (when-let ((headlines (org-roam--extract-headlines file)))
-                  (when (org-roam-db--insert-headlines headlines)
-                    (setq headline-count (1+ headline-count)))))))))
-      ;; Second step: Rebuild the rest
-      (dolist (file org-roam-files)
-        (org-roam--with-temp-buffer file
-          (let ((contents-hash (secure-hash 'sha1 (current-buffer))))
+          (let ((contents-hash (org-roam-db--file-hash file)))
             (unless (string= (gethash file current-files)
                              contents-hash)
-              (when-let (links (org-roam--extract-links file))
-                (org-roam-db-query
-                 [:insert :into links
-                  :values $v1]
-                 links)
-                (setq link-count (1+ link-count)))
-              (when-let (tags (org-roam--extract-tags file))
-                (org-roam-db-query
-                 [:insert :into tags
-                  :values $v1]
-                 (vector file tags))
-                (setq tag-count (1+ tag-count)))
-              (let ((titles (or (org-roam--extract-titles)
-                                (list (org-roam--path-to-slug file)))))
-                (org-roam-db--insert-titles file titles)
-                (setq title-count (+ title-count (length titles))))
-              (when-let* ((ref (org-roam--extract-ref)))
-                (when (org-roam-db--insert-ref file ref)
-                  (setq ref-count (1+ ref-count)))))
-            (remhash file current-files))))
+              (org-roam--with-temp-buffer file
+               (org-roam-db--clear-file file)
+               (org-roam-db-query
+                [:insert :into files
+                 :values $v1]
+                (vector file contents-hash (list :atime atime :mtime mtime)))
+               (setq file-count (1+ file-count))
+               (when-let ((headlines (org-roam--extract-headlines file)))
+                 (when (org-roam-db--insert-headlines headlines)
+                   (setq headline-count (1+ headline-count)))))))))
+      ;; Second step: Rebuild the rest
+      (dolist (file org-roam-files)
+        (let ((contents-hash (org-roam-db--file-hash file)))
+          (unless (string= (gethash file current-files)
+                           contents-hash)
+            (org-roam--with-temp-buffer file
+             (when-let (links (org-roam--extract-links file))
+               (org-roam-db-query
+                [:insert :into links
+                 :values $v1]
+                links)
+               (setq link-count (1+ link-count)))
+             (when-let (tags (org-roam--extract-tags file))
+               (org-roam-db-query
+                [:insert :into tags
+                 :values $v1]
+                (vector file tags))
+               (setq tag-count (1+ tag-count)))
+             (let ((titles (or (org-roam--extract-titles)
+                               (list (org-roam--path-to-slug file)))))
+               (org-roam-db--insert-titles file titles)
+               (setq title-count (+ title-count (length titles))))
+             (when-let* ((ref (org-roam--extract-ref)))
+               (when (org-roam-db--insert-ref file ref)
+                 (setq ref-count (1+ ref-count))))))
+          (remhash file current-files)))
       (dolist (file (hash-table-keys current-files))
         ;; These files are no longer around, remove from cache...
         (org-roam-db--clear-file file)
