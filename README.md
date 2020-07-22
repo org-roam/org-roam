@@ -78,7 +78,7 @@ documentation][docs].
 
 Q: How do I create a note whose title already matches one of the candidates (e.g. creating `bar` when `barricade` already exists)?
 
-A: With `ivy`, you need to press `C-M-j` to use your input instead of the nearest candidate. (Source: [`ivy`’s
+A: With `ivy`, you need to press `C-M-j` to use the current input instead of the nearest candidate. (Source: [`ivy`’s
   FAQ](https://github.com/abo-abo/swiper#frequently-asked-questions))
 
 ## Knowledge Bases using Org-roam
