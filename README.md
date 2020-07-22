@@ -91,7 +91,7 @@ that it has not already been addressed on
 - If you are new to Emacs and have problem setting up Org-roam, please ask your question on [Slack, channel #how-do-i][slack].
 - For quick questions, please ask them on [Slack, channel #troubleshooting][slack].
 - If something is not working as it should, or if you would like to suggest a new feature, please [create a new issue][issues].
-- If you have questions about your workflow with the slip-box method, please create a topic on [Discourse][discourse].
+- If you have questions about your workflow with the slip-box method, please find a relevant topic on [Discourse][discourse], or create a new one.
 
 ## Knowledge Bases using Org-roam
 
