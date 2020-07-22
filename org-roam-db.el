@@ -369,8 +369,7 @@ connections, nil is returned."
     files))
 
 (defun org-roam-db--file-hash (&optional file-path)
-  "Compute the hash of the file (or current buffer) as it would
-be encoded on disk.
+  "Compute the hash of the file (or current buffer).
 
 For encrypted files the on-disk representation (i.e. the encoded bytes)
 will be used.  This means, we cannot create a hash for a buffer which
