@@ -369,7 +369,7 @@ connections, nil is returned."
     files))
 
 (defun org-roam-db--file-hash (&optional file-path)
-  "Compute the hash of the file or current buffer."
+  "Compute the hash of FILE-PATH, a file or current buffer."
   (let* ((file-p (and file-path))
          (file-path (or file-path
                         (buffer-file-name (current-buffer))))
