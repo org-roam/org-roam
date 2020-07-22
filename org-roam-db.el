@@ -369,8 +369,7 @@ connections, nil is returned."
 
 (defun org-roam-db--file-hash (&optional file-path)
   "Compute the hash of the file (or current buffer) as it would
-be encoded on disk.  In any case there must be a filename associated
-(which might e.g. indicate encryption).
+be encoded on disk.
 
 For encrypted files the on-disk representation (i.e. the encoded bytes)
 will be used.  This means, we cannot create a hash for a buffer which
@@ -393,7 +392,7 @@ as usual."
       (with-temp-buffer
         (if file-p
             (insert-file-contents file-path)
-          (insert-buffer orig-buffer))
+          (insert-buffer-substring orig-buffer))
         (secure-hash 'sha1 (current-buffer))))))
 
 ;;;;; Updating
