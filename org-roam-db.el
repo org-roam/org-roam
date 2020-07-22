@@ -435,7 +435,7 @@ connections, nil is returned."
                    (current-buffer))))
       (with-current-buffer buf
         (save-excursion
-          (emacsql-with-transaction (org-roam-db--get-connection)
+          (emacsql-with-transaction (org-roam-db)
             (org-roam-db--update-meta)
             (org-roam-db--update-tags)
             (org-roam-db--update-titles)
@@ -461,7 +461,7 @@ If FORCE, force a rebuild of the cache from scratch."
          (title-count 0)
          (ref-count 0)
          (deleted-count 0))
-    (emacsql-with-transaction (org-roam-db--get-connection)
+    (emacsql-with-transaction (org-roam-db)
       ;; Two-step building
       ;; First step: Rebuild files and headlines
       (dolist (file org-roam-files)
