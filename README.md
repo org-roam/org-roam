@@ -74,6 +74,13 @@ For more detailed installation and configuration instructions (including for
 Doom and Spacemacs users), please see [the
 documentation][docs].
 
+## Frequently-asked Questions
+
+Q: How do I create a note whose title already matches one of the candidates (e.g. creating `bar` when `barricade` already exists)?
+
+A: With `ivy`, you need to press `C-M-j` to use the current input instead of the nearest candidate. (Source: [`ivy`’s
+  FAQ](https://github.com/abo-abo/swiper#frequently-asked-questions))
+
 ## Knowledge Bases using Org-roam
 
 - [Jethro Kuan](https://braindump.jethro.dev/)
