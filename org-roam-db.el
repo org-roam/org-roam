@@ -373,20 +373,20 @@ connections, nil is returned."
   (let* ((file-p (and file-path))
          (file-path (or file-path
                         (buffer-file-name (current-buffer))))
-         (orig-buffer (current-buffer))
          (encrypted-p (and file-path
                            (string= (org-roam--file-name-extension file-path)
                                     "gpg"))))
-    (if (and encrypted-p file-p)
-        (with-temp-buffer
-          (set-buffer-multibyte nil)
-          (insert-file-contents-literally file-path)
-          (secure-hash 'sha1 (current-buffer)))
-      (with-temp-buffer
-        (if file-p
-            (insert-file-contents file-path)
-          (insert-buffer-substring orig-buffer))
-        (secure-hash 'sha1 (current-buffer))))))
+    (cond ((and encrypted-p file-p)
+           (with-temp-buffer
+             (set-buffer-multibyte nil)
+             (insert-file-contents-literally file-path)
+             (secure-hash 'sha1 (current-buffer))))
+          (file-p
+           (with-temp-buffer
+             (insert-file-contents file-path)
+             (secure-hash 'sha1 (current-buffer))))
+          (t
+           (secure-hash 'sha1 (current-buffer))))))
 
 ;;;;; Updating
 (defun org-roam-db--update-meta ()
