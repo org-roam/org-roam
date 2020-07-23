@@ -88,6 +88,7 @@ General Public License for more details.
 Installation
 
 * Installing from MELPA::
+* Installing from Apt::
 * Installing from the Git Repository::
 * Post-Installation Tasks::
 
@@ -239,6 +240,7 @@ development repository.
 
 @menu
 * Installing from MELPA::
+* Installing from Apt::
 * Installing from the Git Repository::
 * Post-Installation Tasks::
 @end menu
@@ -295,6 +297,18 @@ M-x package-install RET org-roam RET
 @end example
 
 Now see @ref{Post-Installation Tasks}.
+
+@node Installing from Apt
+@section Installing from Apt
+
+Users of Debian 11 or later or Ubuntu 20.10 or later can simply install Org-roam
+using Apt:
+
+@example
+apt-get install elpa-org-roam
+@end example
+
+Org-roam will then be autoloaded into Emacs.
 
 @node Installing from the Git Repository
 @section @strong{TODO} Installing from the Git Repository
