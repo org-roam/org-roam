@@ -152,6 +152,17 @@ using:
 
 Now see [[*Post-Installation Tasks][Post-Installation Tasks]].
 
+** Installing from Apt
+
+Users of Debian 11 or later or Ubuntu 20.10 or later can simply install Org-roam
+using Apt:
+
+#+BEGIN_SRC bash
+  apt-get install elpa-org-roam
+#+END_SRC
+
+Org-roam will then be autoloaded into Emacs.
+
 ** TODO Installing from the Git Repository
 
 ** Post-Installation Tasks
