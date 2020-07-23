@@ -81,6 +81,18 @@ Q: How do I create a note whose title already matches one of the candidates (e.g
 A: With `ivy`, you need to press `C-M-j` to use the current input instead of the nearest candidate. (Source: [`ivy`’s
   FAQ](https://github.com/abo-abo/swiper#frequently-asked-questions))
 
+## Getting Help
+
+Before creating a new topic/issue, please be mindful of our time and ensure
+that it has not already been addressed on
+[GitHub][issues] or on
+[Discourse][discourse].
+
+- If you are new to Emacs and have problem setting up Org-roam, please ask your question on [Slack, channel #how-do-i][slack].
+- For quick questions, please ask them on [Slack, channel #troubleshooting][slack].
+- If something is not working as it should, or if you would like to suggest a new feature, please [create a new issue][issues].
+- If you have questions about your workflow with the slip-box method, please find a relevant topic on [Discourse][discourse], or create a new one.
+
 ## Knowledge Bases using Org-roam
 
 - [Jethro Kuan](https://braindump.jethro.dev/)
@@ -107,3 +119,4 @@ General Public License, Version 3
 [docs]: https://www.orgroam.com/manual/
 [discourse]: https://org-roam.discourse.group/
 [slack]: https://join.slack.com/t/orgroam/shared_invite/zt-deoqamys-043YQ~s5Tay3iJ5QRI~Lxg
+[issues]: https://github.com/org-roam/org-roam/issues
