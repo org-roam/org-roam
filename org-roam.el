@@ -584,7 +584,9 @@ it as FILE-PATH."
                                     :point begin))
                   (names (pcase type
                            ("file"
-                            (list (file-truename (expand-file-name path (file-name-directory file-path)))))
+                            (if (file-remote-p path)
+                                (list path)
+                              (list (file-truename (expand-file-name path (file-name-directory file-path))))))
                            ("id"
                             (list (car (org-roam-id-find path))))
                            ((pred (lambda (typ)
