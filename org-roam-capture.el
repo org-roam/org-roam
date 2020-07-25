@@ -170,11 +170,60 @@ Template string   :\n%v")
                           ((const :format "%v " :table-line-pos) (string))
                           ((const :format "%v " :kill-buffer) (const t))))))))
 
-(defvar org-roam-capture-immediate-template
+(defcustom org-roam-capture-immediate-template
   (append (car org-roam-capture-templates) '(:immediate-finish t))
   "Capture template to use for immediate captures in Org-roam.
 This is a single template, so do not enclose it into a list.
-See `org-roam-capture-templates' for details on templates.")
+See `org-roam-capture-templates' for details on templates."
+  :group 'org-roam
+  ;; Adapted from `org-capture-templates'
+  :type
+  '(choice :value ("d" "default" plain (function org-roam-capture--get-point)
+                   "%?"
+                   :file-name "%<%Y%m%d%H%M%S>-${slug}"
+                   :head "#+title: ${title}\n"
+                   :unnarrowed t
+                   :immediate-finish t)
+           (list :tag "Multikey description"
+                 (string :tag "Keys       ")
+                 (string :tag "Description"))
+           (list :tag "Template entry"
+                 (string :tag "Keys              ")
+                 (string :tag "Description       ")
+                 (const :format "" plain)
+                 (const :format "" (function org-roam-capture--get-point))
+                 (choice :tag "Template          "
+                         (string :tag "String"
+                                 :format "String:\n            \
+Template string   :\n%v")
+                         (list :tag "File"
+                               (const :format "" file)
+                               (file :tag "Template file     "))
+                         (list :tag "Function"
+                               (const :format "" function)
+                               (function :tag "Template function ")))
+                 (const :format "File name format  :" :file-name)
+                 (string :format " %v" :value "#+title: ${title}\n")
+                 (const :format "Header format     :" :head)
+                 (string :format "\n%v" :value "%<%Y%m%d%H%M%S>-${slug}")
+                 (const :format "" :unnarrowed) (const :format "" t)
+                 (const :format "" :immediate-finish) (const :format "" t)
+                 (plist :inline t
+                        :tag "Options"
+                        ;; Give the most common options as checkboxes
+                        :options
+                        (((const :format "%v " :prepend) (const t))
+                         ((const :format "%v " :jump-to-captured) (const t))
+                         ((const :format "%v " :empty-lines) (const 1))
+                         ((const :format "%v " :empty-lines-before) (const 1))
+                         ((const :format "%v " :empty-lines-after) (const 1))
+                         ((const :format "%v " :clock-in) (const t))
+                         ((const :format "%v " :clock-keep) (const t))
+                         ((const :format "%v " :clock-resume) (const t))
+                         ((const :format "%v " :time-prompt) (const t))
+                         ((const :format "%v " :tree-type) (const week))
+                         ((const :format "%v " :table-line-pos) (string))
+                         ((const :format "%v " :kill-buffer) (const t)))))))
 
 (defcustom org-roam-capture-ref-templates
   '(("r" "ref" plain (function org-roam-capture--get-point)
