@@ -1358,7 +1358,6 @@ which takes as its argument an alist of path-completions.  See
 `org-roam--get-title-path-completions' for details."
   (interactive)
   (unless org-roam-mode (org-roam-mode))
-  (when (org-roam-capture--in-process-p) (user-error "Org-roam capture in process"))
   (let* ((completions (funcall (or filter-fn #'identity)
                                (or completions (org-roam--get-title-path-completions))))
          (title-with-tags (org-roam-completion--completing-read "File: " completions
@@ -1370,7 +1369,7 @@ which takes as its argument an alist of path-completions.  See
       (let ((org-roam-capture--info `((title . ,title-with-tags)
                                       (slug  . ,(funcall org-roam-title-to-slug-function title-with-tags))))
             (org-roam-capture--context 'title))
-        (add-hook 'org-capture-after-finalize-hook #'org-roam-capture--find-file-h)
+        (setq org-roam-capture-additional-template-props (list :finalize 'find-file))
         (org-roam--with-template-error 'org-roam-capture-templates
           (org-roam-capture--capture))))))
 
@@ -1447,15 +1446,13 @@ If DESCRIPTION is provided, use this as the link label.  See
           (when region ;; Remove previously selected text.
             (delete-region (car region) (cdr region)))
           (insert (org-roam--format-link target-file-path link-description)))
-      (when (org-roam-capture--in-process-p)
-        (user-error "Nested Org-roam capture processes not supported"))
       (let ((org-roam-capture--info `((title . ,title-with-tags)
                                       (slug . ,(funcall org-roam-title-to-slug-function title-with-tags))))
             (org-roam-capture--context 'title))
-        (add-hook 'org-capture-after-finalize-hook #'org-roam-capture--insert-link-h)
         (setq org-roam-capture-additional-template-props (list :region region
+                                                               :insert-at (point-marker)
                                                                :link-description link-description
-                                                               :capture-fn 'org-roam-insert))
+                                                               :finalize 'insert-link))
         (org-roam--with-template-error 'org-roam-capture-templates
           (org-roam-capture--capture))))
     res))
