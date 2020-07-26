@@ -1426,9 +1426,8 @@ If DESCRIPTION is provided, use this as the link label.  See
       (atomic-change-group
         (let* (region-text
                (region (when (region-active-p)
-                         (let* ((beg (set-marker (make-marker) (region-beginning)))
-                                (end (set-marker (make-marker) (region-end)))
-                                (str (buffer-substring-no-properties beg end)))
+                         (let ((beg (set-marker (make-marker) (region-beginning)))
+                               (end (set-marker (make-marker) (region-end))))
                            (setq region-text (buffer-substring-no-properties beg end))
                            (save-excursion
                              (goto-char beg)
