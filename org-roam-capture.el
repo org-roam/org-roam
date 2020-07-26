@@ -332,8 +332,8 @@ the capture)."
          (with-current-buffer buf
            (org-roam--with-region-data (org-roam-capture--get :region) t
              (let ((inhibit-read-only t))
-               (remove-text-properties min max '(read-only t)))
-             (delete-region min max))
+               (remove-text-properties _min _max '(read-only t)))
+             (delete-region _min _max))
            (let ((path (org-roam-capture--get :file-path))
                  (desc (org-roam-capture--get :link-description)))
              (if (eq (point) (marker-position mkr))
@@ -344,9 +344,9 @@ the capture)."
              (eq (org-roam-capture--get :finalize) 'insert-link))
     (org-roam--with-region-data (org-roam-capture--get :region) t
       (let ((inhibit-read-only t))
-        (remove-text-properties min max '(read-only t)))
-      (delete-region min (+ min 2))
-      (delete-region max (- max 2))))
+        (remove-text-properties _min _max '(read-only t)))
+      (delete-region _min (+ _min 2))
+      (delete-region _max (- _max 2))))
   (org-roam-capture--save-file-maybe)
   (remove-hook 'org-capture-after-finalize-hook #'org-roam-capture--finalize))
 
