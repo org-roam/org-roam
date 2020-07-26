@@ -1420,56 +1420,57 @@ If DESCRIPTION is provided, use this as the link label.  See
 `org-roam--get-title-path-completions' for details."
   (interactive "P")
   (unless org-roam-mode (org-roam-mode))
-  (let* (region-text
-         (region (when (region-active-p)
-                   (let* ((beg (set-marker (make-marker) (region-beginning)))
-                          (end (set-marker (make-marker) (region-end)))
-                          (str (buffer-substring-no-properties beg end)))
-                     (setq region-text (buffer-substring-no-properties beg end))
-                     (save-excursion
-                       (goto-char beg)
-                       (insert "[[")
-                       (goto-char end)
-                       (insert "]]"))
-                     ;; following may lose active region, so save it
-                     (cons (set-marker (make-marker) beg)
-                           (set-marker (make-marker) (+ end 2))))))
-         (completions (--> (or completions
-                               (org-roam--get-title-path-completions))
-                           (if filter-fn
-                               (funcall filter-fn it)
-                             it)))
-         (title-with-tags (org-roam-completion--completing-read "File: " completions
-                                                                :initial-input region-text))
-         (res (cdr (assoc title-with-tags completions)))
-         (title (or (plist-get res :title)
-                    title-with-tags))
-         (target-file-path (plist-get res :path))
-         (description (or description region-text title))
-         (link-description (org-roam--format-link-title (if lowercase
-                                                            (downcase description)
-                                                          description))))
-    (cond ((and target-file-path
-                (file-exists-p target-file-path))
-           (when region ;; Remove previously selected text.
+  (atomic-change-group
+    (let* (region-text
+           (region (when (region-active-p)
+                     (let* ((beg (set-marker (make-marker) (region-beginning)))
+                            (end (set-marker (make-marker) (region-end)))
+                            (str (buffer-substring-no-properties beg end)))
+                       (setq region-text (buffer-substring-no-properties beg end))
+                       (save-excursion
+                         (goto-char beg)
+                         (insert "[[")
+                         (goto-char end)
+                         (insert "]]"))
+                       ;; following may lose active region, so save it
+                       (cons (set-marker (make-marker) beg)
+                             (set-marker (make-marker) (+ end 2))))))
+           (completions (--> (or completions
+                                 (org-roam--get-title-path-completions))
+                             (if filter-fn
+                                 (funcall filter-fn it)
+                               it)))
+           (title-with-tags (org-roam-completion--completing-read "File: " completions
+                                                                  :initial-input region-text))
+           (res (cdr (assoc title-with-tags completions)))
+           (title (or (plist-get res :title)
+                      title-with-tags))
+           (target-file-path (plist-get res :path))
+           (description (or description region-text title))
+           (link-description (org-roam--format-link-title (if lowercase
+                                                              (downcase description)
+                                                            description))))
+      (cond ((and target-file-path
+                  (file-exists-p target-file-path))
+             (when region ;; Remove previously selected text.
+               (pcase-let ((`(,min . ,max) region))
+                 (delete-region min max)
+                 (set-marker min nil)
+                 (set-marker max nil)))
+             (insert (org-roam--format-link target-file-path link-description)))
+            (t
              (pcase-let ((`(,min . ,max) region))
-               (delete-region min max)
-               (set-marker min nil)
-               (set-marker max nil)))
-           (insert (org-roam--format-link target-file-path link-description)))
-          (t
-           (pcase-let ((`(,min . ,max) region))
-             (add-text-properties min max '(read-only t)))
-           (let ((org-roam-capture--info `((title . ,title-with-tags)
-                                           (slug . ,(funcall org-roam-title-to-slug-function title-with-tags))))
-                 (org-roam-capture--context 'title))
-             (setq org-roam-capture-additional-template-props (list :region region
-                                                                    :insert-at (point-marker)
-                                                                    :link-description link-description
-                                                                    :finalize 'insert-link))
-             (org-roam--with-template-error 'org-roam-capture-templates
-               (org-roam-capture--capture)))))
-    res))
+               (add-text-properties min max '(read-only t)))
+             (let ((org-roam-capture--info `((title . ,title-with-tags)
+                                             (slug . ,(funcall org-roam-title-to-slug-function title-with-tags))))
+                   (org-roam-capture--context 'title))
+               (setq org-roam-capture-additional-template-props (list :region region
+                                                                      :insert-at (point-marker)
+                                                                      :link-description link-description
+                                                                      :finalize 'insert-link))
+               (org-roam--with-template-error 'org-roam-capture-templates
+                 (org-roam-capture--capture)))))
+      res)))
 
 ;;;###autoload
 (defun org-roam-insert-immediate (arg &rest args)
