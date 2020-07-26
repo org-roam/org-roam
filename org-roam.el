@@ -1473,8 +1473,9 @@ If DESCRIPTION is provided, use this as the link label.  See
                    (delete-region min max))
                  (insert (org-roam--format-link target-file-path link-description)))
                 (t
-                 (pcase-let ((`(,min . ,max) region))
-                   (add-text-properties min max '(read-only t)))
+                 (when region
+                   (pcase-let ((`(,min . ,max) region))
+                     (add-text-properties min max '(read-only t))))
                  (let ((org-roam-capture--info `((title . ,title-with-tags)
                                                  (slug . ,(funcall org-roam-title-to-slug-function title-with-tags))))
                        (org-roam-capture--context 'title))
