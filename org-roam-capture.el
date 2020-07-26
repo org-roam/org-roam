@@ -47,6 +47,7 @@
 (declare-function  org-roam--format-link                "org-roam")
 (declare-function  org-roam-mode                        "org-roam")
 (declare-function  org-roam-completion--completing-read "org-roam-completion")
+(declare-function  org-roam-insert--delete-region       "org-roam")
 
 (defvar org-roam-capture--file-name-default "%<%Y%m%d%H%M%S>"
   "The default file name format for Org-roam templates.")
