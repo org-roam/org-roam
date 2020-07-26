@@ -1407,6 +1407,31 @@ included as a candidate."
   (interactive)
   (find-file (seq-random-elt (org-roam--list-all-files))))
 
+(defun org-roam-insert--delete-region (region &optional unshield reinsert)
+  "Delete REGION in `org-roam-insert' caller.
+
+When UNSHIELD is non-nil, removes the read-only property.
+
+When REINSERT is non-nil, reinsert the original text."
+  (when region
+    (pcase-let ((`(,min . ,max) region))
+      (when unshield
+        (let ((inhibit-read-only t))
+          (remove-text-properties min max '(read-only t))))
+      (delete-region min max)
+      (when reinsert
+        (save-excursion
+          (goto-char min)
+          (insert (org-roam-capture--get :link-description))))
+      (set-marker min nil)
+      (set-marker max nil))))
+
+(defun org-roam-insert--shield-region (region)
+  "Shield REGION against modifications in `org-roam-insert' caller."
+  (when region
+    (pcase-let ((`(,min . ,max) region))
+      (add-text-properties min max '(read-only t)))))
+
 ;;;###autoload
 (defun org-roam-insert (&optional lowercase completions filter-fn description)
   "Find an Org-roam file, and insert a relative org link to it at point.
@@ -1454,12 +1479,10 @@ If DESCRIPTION is provided, use this as the link label.  See
                                                                 description))))
           (cond ((and target-file-path
                       (file-exists-p target-file-path))
-                 (org-roam--with-region-data region t
-                   (delete-region min max))
+                 (org-roam-insert--delete-region region)
                  (insert (org-roam--format-link target-file-path link-description)))
                 (t
-                 (org-roam--with-region-data region nil
-                   (add-text-properties min max '(read-only t)))
+                 (org-roam-insert--shield-region region)
                  (let ((org-roam-capture--info `((title . ,title-with-tags)
                                                  (slug . ,(funcall org-roam-title-to-slug-function title-with-tags))))
                        (org-roam-capture--context 'title))
