@@ -330,13 +330,10 @@ the capture)."
        (when-let* ((mkr (org-roam-capture--get :insert-at))
                    (buf (marker-buffer mkr)))
          (with-current-buffer buf
-           (when-let ((region (org-roam-capture--get :region))) ;; Remove previously selected text.
-             (pcase-let ((`(,min . ,max) region)
-                         (inhibit-read-only t))
-               (remove-text-properties min max '(read-only t))
-               (delete-region min max)
-               (set-marker min nil)
-               (set-marker max nil)))
+           (org-roam--with-region-data (org-roam-capture--get :region) t
+             (let ((inhibit-read-only t))
+               (remove-text-properties min max '(read-only t)))
+             (delete-region min max))
            (let ((path (org-roam-capture--get :file-path))
                  (desc (org-roam-capture--get :link-description)))
              (if (eq (point) (marker-position mkr))
@@ -345,14 +342,11 @@ the capture)."
                  (insert (org-roam--format-link path desc))))))))))
   (when (and org-note-abort
              (eq (org-roam-capture--get :finalize) 'insert-link))
-    (when-let ((region (org-roam-capture--get :region))) ;; Remove previously selected text.
-             (pcase-let ((`(,min . ,max) region)
-                         (inhibit-read-only t))
-               (remove-text-properties min max '(read-only t))
-               (delete-region min (+ min 2))
-               (delete-region max (- max 2))
-               (set-marker min nil)
-               (set-marker max nil))))
+    (org-roam--with-region-data (org-roam-capture--get :region) t
+      (let ((inhibit-read-only t))
+        (remove-text-properties min max '(read-only t)))
+      (delete-region min (+ min 2))
+      (delete-region max (- max 2))))
   (org-roam-capture--save-file-maybe)
   (remove-hook 'org-capture-after-finalize-hook #'org-roam-capture--finalize))
 
