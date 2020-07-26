@@ -342,24 +342,11 @@ the capture)."
   (remove-hook 'org-capture-after-finalize-hook #'org-roam-capture--finalize))
 
 (defun org-roam-capture--install-finalize ()
-  "Install `org-roam-capture--finalize'.
+  "Install `org-roam-capture--finalize' if the capture is an Org-roam capture."
+  (when (org-roam-capture-p)
+    (add-hook 'org-capture-after-finalize-hook #'org-roam-capture--finalize)))
 
-This function is meant to be run with
-`org-capture-prepare-finalize'."
-  (add-hook 'org-capture-after-finalize-hook
-            #'org-roam-capture--finalize))
-
-(define-minor-mode org-roam-capture-mode
-  "Minor mode for the `org-roam-capture'.
-
-This minor mode is responsible for setting up additional hooks."
-  :lighter " orc"
-  (when (and org-roam-capture-mode
-             (org-roam-capture-p))
-    (add-hook 'org-capture-prepare-finalize-hook
-              #'org-roam-capture--install-finalize)))
-
-(add-hook 'org-capture-mode-hook #'org-roam-capture-mode)
+(add-hook 'org-capture-prepare-finalize-hook #'org-roam-capture--install-finalize)
 
 (defun org-roam-capture--fill-template (str)
   "Expand the template STR, returning the string.
