@@ -1,6 +1,13 @@
 # Changelog
 
-## 1.2.1 (TBD)
+## 1.2.1 (27-07-2020)
+
+This release consisted of a big deal of refactoring and bug fixes. Notably, we fixed several catastrophic failures on db builds with bad setups (#854), and modularized tag and title extractions.
+
+We also added some new features that had been a long time coming:
+
+1. We made the backlinks more outline-friendly by also showing the outline hierarchy for a backlink (#863)
+2. We now support nested captures, which is crucial for `org-roam-protocol` (#966)
 
 ### Breaking Changes
 - [#908](https://github.com/org-roam/org-roam/pull/908) Normalized titles in database. May break external packages that rely on unnormalized titles.
