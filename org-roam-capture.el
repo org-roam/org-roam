@@ -321,28 +321,29 @@ the capture)."
 
 (defun org-roam-capture--finalize ()
   "Finalize the `org-roam-capture' process."
-  (unless org-note-abort
-    (pcase (org-roam-capture--get :finalize)
-      ('find-file
-       (when-let ((file-path (org-roam-capture--get :file-path)))
-         (org-roam--find-file file-path)
-         (run-hooks 'org-roam-capture-after-find-file-hook)))
-      ('insert-link
-       (when-let* ((mkr (org-roam-capture--get :insert-at))
-                   (buf (marker-buffer mkr)))
-         (with-current-buffer buf
-           (org-roam-insert--delete-region (org-roam-capture--get :region) t)
-           (let ((path (org-roam-capture--get :file-path))
-                 (desc (org-roam-capture--get :link-description)))
-             (if (eq (point) (marker-position mkr))
-                 (insert (org-roam--format-link path desc))
-               (org-with-point-at mkr
-                 (insert (org-roam--format-link path desc))))))))))
-  (when (and org-note-abort
-             (eq (org-roam-capture--get :finalize) 'insert-link))
-    (org-roam-insert--delete-region (org-roam-capture--get :region) t t))
-  (org-roam-capture--save-file-maybe)
-  (remove-hook 'org-capture-after-finalize-hook #'org-roam-capture--finalize))
+  (let ((finalize (org-roam-capture--get :finalize)))
+    (unless org-note-abort
+      (pcase finalize
+        ('find-file
+         (when-let ((file-path (org-roam-capture--get :file-path)))
+           (org-roam--find-file file-path)
+           (run-hooks 'org-roam-capture-after-find-file-hook)))
+        ('insert-link
+         (when-let* ((mkr (org-roam-capture--get :insert-at))
+                     (buf (marker-buffer mkr)))
+           (with-current-buffer buf
+             (org-roam-insert--delete-region (org-roam-capture--get :region) t)
+             (let ((path (org-roam-capture--get :file-path))
+                   (desc (org-roam-capture--get :link-description)))
+               (if (eq (point) (marker-position mkr))
+                   (insert (org-roam--format-link path desc))
+                 (org-with-point-at mkr
+                   (insert (org-roam--format-link path desc))))))))))
+    (when (and org-note-abort
+               (eq finalize 'insert-link))
+      (org-roam-insert--delete-region (org-roam-capture--get :region) t t))
+    (org-roam-capture--save-file-maybe)
+    (remove-hook 'org-capture-after-finalize-hook #'org-roam-capture--finalize)))
 
 (defun org-roam-capture--install-finalize ()
   "Install `org-roam-capture--finalize' if the capture is an Org-roam capture."
