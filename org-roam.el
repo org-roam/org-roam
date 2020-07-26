@@ -1416,11 +1416,11 @@ a region as markers.
 When CLEANUP is non-nil, unset the markers after execution."
   (declare (debug (form body)) (indent 2))
   `(when ,region
-     (pcase-let ((`(,_min . ,_max) ,region))
+     (pcase-let ((`(,min . ,max) ,region))
        ,@body
        ,@(when cleanup
-           `((set-marker _min nil)
-             (set-marker _max nil))))))
+           `((set-marker min nil)
+             (set-marker max nil))))))
 
 ;;;###autoload
 (defun org-roam-insert (&optional lowercase completions filter-fn description)
@@ -1470,11 +1470,11 @@ If DESCRIPTION is provided, use this as the link label.  See
           (cond ((and target-file-path
                       (file-exists-p target-file-path))
                  (org-roam--with-region-data region t
-                   (delete-region _min _max))
+                   (delete-region min max))
                  (insert (org-roam--format-link target-file-path link-description)))
                 (t
                  (org-roam--with-region-data region nil
-                   (add-text-properties _min _max '(read-only t)))
+                   (add-text-properties min max '(read-only t)))
                  (let ((org-roam-capture--info `((title . ,title-with-tags)
                                                  (slug . ,(funcall org-roam-title-to-slug-function title-with-tags))))
                        (org-roam-capture--context 'title))
