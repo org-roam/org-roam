@@ -1420,12 +1420,20 @@ If DESCRIPTION is provided, use this as the link label.  See
 `org-roam--get-title-path-completions' for details."
   (interactive "P")
   (unless org-roam-mode (org-roam-mode))
-  (let* ((region (and (region-active-p)
-                      ;; following may lose active region, so save it
-                      (cons (set-marker (make-marker) (region-beginning))
-                            (set-marker (make-marker) (region-end)))))
-         (region-text (when region
-                        (buffer-substring-no-properties (car region) (cdr region))))
+  (let* (region-text
+         (region (when (region-active-p)
+                   (let* ((beg (set-marker (make-marker) (region-beginning)))
+                          (end (set-marker (make-marker) (region-end)))
+                          (str (buffer-substring-no-properties beg end)))
+                     (setq region-text (buffer-substring-no-properties beg end))
+                     (save-excursion
+                       (goto-char beg)
+                       (insert "[[")
+                       (goto-char end)
+                       (insert "]]"))
+                     ;; following may lose active region, so save it
+                     (cons (set-marker (make-marker) beg)
+                           (set-marker (make-marker) (+ end 2))))))
          (completions (--> (or completions
                                (org-roam--get-title-path-completions))
                            (if filter-fn
