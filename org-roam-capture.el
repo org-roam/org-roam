@@ -345,8 +345,9 @@ the capture)."
     (org-roam--with-region-data (org-roam-capture--get :region) t
       (let ((inhibit-read-only t))
         (remove-text-properties min max '(read-only t)))
-      (delete-region min (+ min 2))
-      (delete-region max (- max 2))))
+      (delete-region min max)
+      (save-excursion
+        (insert (org-roam-capture--get :link-description)))))
   (org-roam-capture--save-file-maybe)
   (remove-hook 'org-capture-after-finalize-hook #'org-roam-capture--finalize))
 
