@@ -1407,21 +1407,6 @@ included as a candidate."
   (interactive)
   (find-file (seq-random-elt (org-roam--list-all-files))))
 
-(defmacro org-roam--with-region-data (region cleanup &rest body)
-  "Run BODY on REGION.
-
-REGION should be a cons-cell containing the boundaries of
-a region as markers.
-
-When CLEANUP is non-nil, unset the markers after execution."
-  (declare (debug (form body)) (indent 2))
-  `(when ,region
-     (pcase-let ((`(,min . ,max) ,region))
-       ,@body
-       ,@(when cleanup
-           `((set-marker min nil)
-             (set-marker max nil))))))
-
 ;;;###autoload
 (defun org-roam-insert (&optional lowercase completions filter-fn description)
   "Find an Org-roam file, and insert a relative org link to it at point.

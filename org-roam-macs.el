@@ -77,6 +77,21 @@ to look.
        (s-replace "\\" "\\\\")
        (s-replace "\"" "\\\"")))
 
+(defmacro org-roam--with-region-data (region cleanup &rest body)
+  "Run BODY on REGION.
+
+REGION should be a cons-cell containing the boundaries of
+a region as markers.
+
+When CLEANUP is non-nil, unset the markers after execution."
+  (declare (debug (form body)) (indent 2))
+  `(when ,region
+     (pcase-let ((`(,min . ,max) ,region))
+       ,@body
+       ,@(when cleanup
+           `((set-marker min nil)
+             (set-marker max nil))))))
+
 (provide 'org-roam-macs)
 
 ;;; org-roam-macs.el ends here
