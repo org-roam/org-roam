@@ -1420,7 +1420,9 @@ If DESCRIPTION is provided, use this as the link label.  See
 `org-roam--get-title-path-completions' for details."
   (interactive "P")
   (unless org-roam-mode (org-roam-mode))
+  ;; Deactivate the mark on quit since `atomic-change-group' prevents it
   (unwind-protect
+      ;; Group functions together to avoid inconsistent state on quit
       (atomic-change-group
         (let* (region-text
                (region (when (region-active-p)
