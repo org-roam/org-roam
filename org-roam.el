@@ -1422,7 +1422,8 @@ If DESCRIPTION is provided, use this as the link label.  See
   (unless org-roam-mode (org-roam-mode))
   (let* ((region (and (region-active-p)
                       ;; following may lose active region, so save it
-                      (cons (region-beginning) (region-end))))
+                      (cons (set-marker (make-marker) (region-beginning))
+                            (set-marker (make-marker) (region-end)))))
          (region-text (when region
                         (buffer-substring-no-properties (car region) (cdr region))))
          (completions (--> (or completions
@@ -1444,7 +1445,10 @@ If DESCRIPTION is provided, use this as the link label.  See
              (file-exists-p target-file-path))
         (progn
           (when region ;; Remove previously selected text.
-            (delete-region (car region) (cdr region)))
+            (pcase-let ((`(,min . ,max) region))
+              (delete-region min max)
+              (set-marker min nil)
+              (set-marker max nil)))
           (insert (org-roam--format-link target-file-path link-description)))
       (let ((org-roam-capture--info `((title . ,title-with-tags)
                                       (slug . ,(funcall org-roam-title-to-slug-function title-with-tags))))
