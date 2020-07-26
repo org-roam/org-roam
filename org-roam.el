@@ -1441,24 +1441,24 @@ If DESCRIPTION is provided, use this as the link label.  See
          (link-description (org-roam--format-link-title (if lowercase
                                                             (downcase description)
                                                           description))))
-    (if (and target-file-path
-             (file-exists-p target-file-path))
-        (progn
-          (when region ;; Remove previously selected text.
-            (pcase-let ((`(,min . ,max) region))
-              (delete-region min max)
-              (set-marker min nil)
-              (set-marker max nil)))
-          (insert (org-roam--format-link target-file-path link-description)))
-      (let ((org-roam-capture--info `((title . ,title-with-tags)
-                                      (slug . ,(funcall org-roam-title-to-slug-function title-with-tags))))
-            (org-roam-capture--context 'title))
-        (setq org-roam-capture-additional-template-props (list :region region
-                                                               :insert-at (point-marker)
-                                                               :link-description link-description
-                                                               :finalize 'insert-link))
-        (org-roam--with-template-error 'org-roam-capture-templates
-          (org-roam-capture--capture))))
+    (cond ((and target-file-path
+                (file-exists-p target-file-path))
+           (when region ;; Remove previously selected text.
+             (pcase-let ((`(,min . ,max) region))
+               (delete-region min max)
+               (set-marker min nil)
+               (set-marker max nil)))
+           (insert (org-roam--format-link target-file-path link-description)))
+          (t
+           (let ((org-roam-capture--info `((title . ,title-with-tags)
+                                           (slug . ,(funcall org-roam-title-to-slug-function title-with-tags))))
+                 (org-roam-capture--context 'title))
+             (setq org-roam-capture-additional-template-props (list :region region
+                                                                    :insert-at (point-marker)
+                                                                    :link-description link-description
+                                                                    :finalize 'insert-link))
+             (org-roam--with-template-error 'org-roam-capture-templates
+               (org-roam-capture--capture)))))
     res))
 
 ;;;###autoload
