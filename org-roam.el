@@ -1454,12 +1454,12 @@ If DESCRIPTION is provided, use this as the link label.  See
                            (setq region-text (buffer-substring-no-properties beg end))
                            (save-excursion
                              (goto-char beg)
-                             (insert "[[")
+                             (insert "+")
                              (goto-char end)
-                             (insert "]]"))
+                             (insert "+"))
                            ;; following may lose active region, so save it
                            (cons (set-marker (make-marker) beg)
-                                 (set-marker (make-marker) (+ end 2))))))
+                                 (set-marker (make-marker) (+ end 1))))))
                (completions (--> (or completions
                                      (org-roam--get-title-path-completions))
                                  (if filter-fn
