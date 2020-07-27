@@ -1407,22 +1407,6 @@ included as a candidate."
   (interactive)
   (find-file (seq-random-elt (org-roam--list-all-files))))
 
-(defun org-roam-insert--delete-region (region)
-  "Delete REGION in `org-roam-insert' caller."
-  (when region
-    (pcase-let ((`(,min . ,max) region))
-      ;; If it is shielded, unshield the region
-      (when (get-text-property min 'read-only)
-        (org-roam-insert--unshield-region region))
-      (delete-region min max)
-      ;; Reinsert description if `org-roam-capture' was aborted
-      (when org-note-abort
-        (save-excursion
-          (goto-char min)
-          (insert (org-roam-capture--get :link-description))))
-      (set-marker min nil)
-      (set-marker max nil))))
-
 (defun org-roam-insert--shield-region (region)
   "Shield REGION against modifications in `org-roam-insert' caller.
 
@@ -1444,6 +1428,22 @@ Return the new region with the padding characters."
     (pcase-let ((`(,min . ,max) region))
       (let ((inhibit-read-only t))
         (remove-text-properties min max '(read-only t))))))
+
+(defun org-roam-insert--delete-region (region)
+  "Delete REGION in `org-roam-insert' caller."
+  (when region
+    (pcase-let ((`(,min . ,max) region))
+      ;; If it is shielded, unshield the region
+      (when (get-text-property min 'read-only)
+        (org-roam-insert--unshield-region region))
+      (delete-region min max)
+      ;; Reinsert description if `org-roam-capture' was aborted
+      (when org-note-abort
+        (save-excursion
+          (goto-char min)
+          (insert (org-roam-capture--get :link-description))))
+      (set-marker min nil)
+      (set-marker max nil))))
 
 ;;;###autoload
 (defun org-roam-insert (&optional lowercase completions filter-fn description)
