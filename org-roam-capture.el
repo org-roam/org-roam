@@ -342,9 +342,7 @@ the capture)."
                    (insert (org-roam--format-link path desc))
                  (org-with-point-at mkr
                    (insert (org-roam--format-link path desc))))))))))
-    (when region
-      (set-marker (car region) nil)
-      (set-marker (cdr region) nil))
+    (org-roam-unset-region-markers region)
     (org-roam-capture--save-file-maybe)
     (remove-hook 'org-capture-after-finalize-hook #'org-roam-capture--finalize)))
 

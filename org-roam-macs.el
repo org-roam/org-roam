@@ -124,6 +124,12 @@ This function assumes that REGION was shielded by `org-roam-shield-region'."
             (delete-char (- (length s-end))))
           (cons min max))))))
 
+(defun org-roam-unset-region-markers (region)
+  "Unset the REGION markers."
+  (pcase-let ((`(,min . ,max) region))
+    (set-marker min nil)
+    (set-marker max nil)))
+
 (provide 'org-roam-macs)
 
 ;;; org-roam-macs.el ends here
