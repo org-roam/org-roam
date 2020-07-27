@@ -1458,8 +1458,11 @@ If DESCRIPTION is provided, use this as the link label.  See
                              (goto-char end)
                              (insert "+"))
                            ;; following may lose active region, so save it
-                           (cons (set-marker (make-marker) beg)
-                                 (set-marker (make-marker) (+ end 1))))))
+                           (prog1 (cons (set-marker (make-marker) beg)
+                                        (set-marker (make-marker) (+ end 1)))
+                             ;; Unset building markers
+                             (set-marker beg nil)
+                             (set-marker end nil)))))
                (completions (--> (or completions
                                      (org-roam--get-title-path-completions))
                                  (if filter-fn
