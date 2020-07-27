@@ -111,7 +111,7 @@ This function assumes that REGION was shielded by `org-roam-shield-region'."
     (pcase-let ((`(,min . ,max) region)
                 (`(,s-start . ,s-end) org-roam-shield-strings))
       (with-current-buffer (marker-buffer min)
-        (let ((shielded-text (buffer-substring min max))
+        (let ((shielded-text (buffer-substring-no-properties min max))
               (inhibit-read-only t))
           (unless (and (string-prefix-p s-start shielded-text)
                        (string-suffix-p s-end shielded-text))
