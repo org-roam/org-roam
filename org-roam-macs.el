@@ -78,44 +78,31 @@ to look.
        (s-replace "\"" "\\\"")))
 
 ;;; Shielding regions
-(defun org-roam-shield-region (region)
+(defun org-roam-shield-region (beg end)
   "Shield REGION against modifications.
 REGION must be a cons-cell containing the marker to the region
 beginning and maximum values."
-  (when region
-    (pcase-let* ((`(,min . ,max) region)
-                 (string (buffer-substring-no-properties min max)))
-      (org-with-point-at min
-        (delete-region min max)
+  (when (and beg end)
+    (let ((string (buffer-substring-no-properties beg end)))
+      (org-with-point-at beg
+        (delete-region beg end)
         (insert (propertize string
                             'font-lock-face '(:inherit org-roam-link-shielded)
                             'read-only t))
-        (set-marker max (point))
-        (cons min max)))))
+        (set-marker end (point))
+        (cons beg end)))))
 
-(defun org-roam-unshield-region (region)
+(defun org-roam-unshield-region (beg end)
   "Unshield the shielded REGION and returns the unshielded region.
 This function assumes that REGION was shielded by `org-roam-shield-region'."
-  (when region
-    (pcase-let ((`(,min . ,max) region))
-      (org-with-point-at min
-        (let ((inhibit-read-only t))
-          (remove-text-properties min max '(read-only t))
-          (delete-region min max)
-          (insert (org-roam-capture--get :link-description))
-          (set-marker max (point))
-          (cons min max))))))
-
-(defun org-roam-delete-region (region)
-  "Delete the REGION."
-  (pcase-let ((`(,min . ,max) region))
-    (delete-region min max)))
-
-(defun org-roam-unset-region-markers (region)
-  "Unset the REGION markers."
-  (pcase-let ((`(,min . ,max) region))
-    (set-marker min nil)
-    (set-marker max nil)))
+  (when (and beg end)
+    (org-with-point-at beg
+      (let ((inhibit-read-only t))
+        (remove-text-properties beg end '(read-only t))
+        (delete-region beg end)
+        (insert (org-roam-capture--get :link-description))
+        (set-marker end (point))
+        (cons beg end)))))
 
 (provide 'org-roam-macs)
 

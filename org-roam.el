@@ -1432,9 +1432,10 @@ If DESCRIPTION is provided, use this as the link label.  See
       ;; Group functions together to avoid inconsistent state on quit
       (atomic-change-group
         (let* (region-text
+               beg end
                (region (when (region-active-p)
-                         (let ((beg (set-marker (make-marker) (region-beginning)))
-                               (end (set-marker (make-marker) (region-end))))
+                         (let ((beg (setq beg (set-marker (make-marker) (region-beginning))))
+                               (end (setq end (set-marker (make-marker) (region-end)))))
                            (setq region-text (buffer-substring-no-properties beg end))
                            ;; following may lose active region, so save it
                            (cons beg end))))
@@ -1455,11 +1456,12 @@ If DESCRIPTION is provided, use this as the link label.  See
                                                                 description))))
           (cond ((and target-file-path
                       (file-exists-p target-file-path))
-                 (org-roam-delete-region region)
-                 (org-roam-unset-region-markers region)
+                 (delete-region beg end)
+                 (set-marker beg nil)
+                 (set-marker end nil)
                  (insert (org-roam--format-link target-file-path link-description)))
                 (t
-                 (setq region (org-roam-shield-region region))
+                 (setq region (org-roam-shield-region beg end))
                  (let ((org-roam-capture--info `((title . ,title-with-tags)
                                                  (slug . ,(funcall org-roam-title-to-slug-function title-with-tags))))
                        (org-roam-capture--context 'title))
