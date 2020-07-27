@@ -1439,9 +1439,7 @@ Return the new region with the padding characters."
       (cons min max))))
 
 (defun org-roam-insert--unshield-region (region)
-  "Unshield REGION against modifications in `org-roam-insert' caller.
-
-Return the new region with the padding characters."
+  "Unshield REGION against modifications in `org-roam-insert' caller."
   (when region
     (pcase-let ((`(,min . ,max) region))
       (let ((inhibit-read-only t))
