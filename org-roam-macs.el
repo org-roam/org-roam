@@ -92,10 +92,11 @@ beginning and maximum values."
 (defun org-roam-unshield-region (beg end)
   "Unshield the shielded REGION."
   (when (and beg end)
-    (remove-text-properties beg end
-                           '(font-lock-face org-roam-link-shielded
-                                            read-only t)
-                           (marker-buffer beg))
+    (let ((inhibit-read-only t))
+      (remove-text-properties beg end
+                              '(font-lock-face org-roam-link-shielded
+                                               read-only t)
+                              (marker-buffer beg)))
     (cons beg end)))
 
 (provide 'org-roam-macs)
