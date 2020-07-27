@@ -1407,43 +1407,6 @@ included as a candidate."
   (interactive)
   (find-file (seq-random-elt (org-roam--list-all-files))))
 
-(defun org-roam-insert--shield-region (region)
-  "Shield REGION against modifications in `org-roam-insert' caller.
-
-Return the new region with the padding characters."
-  (when region
-    (pcase-let ((`(,min . ,max) region))
-      (save-excursion
-        (goto-char min)
-        (insert "[[")
-        (goto-char max)
-        (insert "]]"))
-      (set-marker max (+ max 2))
-      (add-text-properties min max '(read-only t))
-      (cons min max))))
-
-(defun org-roam-insert--unshield-region (region)
-  "Unshield REGION against modifications in `org-roam-insert' caller."
-  (when region
-    (pcase-let ((`(,min . ,max) region))
-      (when (get-text-property min 'read-only)
-        (let ((inhibit-read-only t))
-          (remove-text-properties min max '(read-only t)))))))
-
-(defun org-roam-insert--delete-region (region)
-  "Delete REGION in `org-roam-insert' caller."
-  (when region
-    (pcase-let ((`(,min . ,max) region))
-      (org-roam-insert--unshield-region region)
-      (delete-region min max)
-      ;; Reinsert description if `org-roam-capture' was aborted
-      (when org-note-abort
-        (save-excursion
-          (goto-char min)
-          (insert (org-roam-capture--get :link-description))))
-      (set-marker min nil)
-      (set-marker max nil))))
-
 ;;;###autoload
 (defun org-roam-insert (&optional lowercase completions filter-fn description)
   "Find an Org-roam file, and insert a relative org link to it at point.
@@ -1485,10 +1448,10 @@ If DESCRIPTION is provided, use this as the link label.  See
                                                                 description))))
           (cond ((and target-file-path
                       (file-exists-p target-file-path))
-                 (org-roam-insert--delete-region region)
+                 (delete-region (car region) (cdr region))
                  (insert (org-roam--format-link target-file-path link-description)))
                 (t
-                 (setq region (org-roam-insert--shield-region region))
+                 (setq region (org-roam-shield-region region))
                  (let ((org-roam-capture--info `((title . ,title-with-tags)
                                                  (slug . ,(funcall org-roam-title-to-slug-function title-with-tags))))
                        (org-roam-capture--context 'title))

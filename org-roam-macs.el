@@ -77,6 +77,53 @@ to look.
        (s-replace "\\" "\\\\")
        (s-replace "\"" "\\\"")))
 
+;;; Shielding regions
+(defcustom org-roam-shield-strings '("[[" . "]]")
+  "Strings used to shield the region text."
+  :group 'org-roam
+  :type '(cons (string :tag "Opening characters")
+               (string :tag "Closing characters")))
+
+(defun org-roam-shield-region (region)
+  "Shield REGION against modifications.
+REGION must be a cons-cell containing the marker to the region
+beginning and maximum values.
+
+REGION is padded with strings given by `org-roam-shield-strings',
+and the new region is returned."
+  (when region
+    (pcase-let ((`(,min . ,max) region)
+                (`(,s-start . ,s-end) org-roam-shield-strings))
+      (with-current-buffer (marker-buffer min)
+        (save-excursion
+          (goto-char min)
+          (insert s-start)
+          (goto-char max)
+          (insert s-end))
+        (set-marker max (+ max (length s-end)))
+        (add-text-properties min max '(read-only t))
+        (cons min max)))))
+
+(defun org-roam-unshield-region (region)
+  "Unshield the shielded REGION and returns the unshielded region.
+This function assumes that REGION was shielded by `org-roam-shield-region'."
+  (when region
+    (pcase-let ((`(,min . ,max) region)
+                (`(,s-start . ,s-end) org-roam-shield-strings))
+      (with-current-buffer (marker-buffer min)
+        (let ((shielded-text (buffer-substring min max))
+              (inhibit-read-only t))
+          (unless (and (string-prefix-p s-start shielded-text)
+                       (string-suffix-p s-end shielded-text))
+            (error "Region was not shielded by `org-roam-shield-region'"))
+          (remove-text-properties min max '(read-only t))
+          (save-excursion
+            (goto-char min)
+            (delete-char (length s-start))
+            (goto-char max)
+            (delete-char (- (length s-end))))
+          (cons min max))))))
+
 (provide 'org-roam-macs)
 
 ;;; org-roam-macs.el ends here

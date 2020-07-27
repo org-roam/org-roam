@@ -31,6 +31,7 @@
 ;;; Code:
 ;;;; Library Requires
 (require 'org-capture)
+(require 'org-roam-macs)
 (require 'dash)
 (require 's)
 (require 'cl-lib)
@@ -47,7 +48,6 @@
 (declare-function  org-roam--format-link                "org-roam")
 (declare-function  org-roam-mode                        "org-roam")
 (declare-function  org-roam-completion--completing-read "org-roam-completion")
-(declare-function  org-roam-insert--delete-region       "org-roam")
 
 (defvar org-roam-capture--file-name-default "%<%Y%m%d%H%M%S>"
   "The default file name format for Org-roam templates.")
@@ -321,7 +321,9 @@ the capture)."
 
 (defun org-roam-capture--finalize ()
   "Finalize the `org-roam-capture' process."
-  (let ((finalize (org-roam-capture--get :finalize)))
+  (let ((finalize (org-roam-capture--get :finalize))
+        ;; In case any regions were shielded before, unshield them
+        (region (org-roam-unshield-region (org-roam-capture--get :region))))
     (unless org-note-abort
       (pcase finalize
         ('find-file
@@ -332,16 +334,14 @@ the capture)."
          (when-let* ((mkr (org-roam-capture--get :insert-at))
                      (buf (marker-buffer mkr)))
            (with-current-buffer buf
-             (org-roam-insert--delete-region (org-roam-capture--get :region))
+             (when region
+               (delete-region (car region) (cdr region)))
              (let ((path (org-roam-capture--get :file-path))
                    (desc (org-roam-capture--get :link-description)))
                (if (eq (point) (marker-position mkr))
                    (insert (org-roam--format-link path desc))
                  (org-with-point-at mkr
                    (insert (org-roam--format-link path desc))))))))))
-    (when (and org-note-abort
-               (eq finalize 'insert-link))
-      (org-roam-insert--delete-region (org-roam-capture--get :region)))
     (org-roam-capture--save-file-maybe)
     (remove-hook 'org-capture-after-finalize-hook #'org-roam-capture--finalize)))
 
