@@ -1411,10 +1411,6 @@ included as a candidate."
   "Delete REGION in `org-roam-insert' caller."
   (when region
     (pcase-let ((`(,min . ,max) region))
-      ;; If it is shielded, unshield the region
-      (when (get-text-property min 'read-only)
-        (let ((inhibit-read-only t))
-          (remove-text-properties min max '(read-only t))))
       (delete-region min max)
       ;; Reinsert description if `org-roam-capture' was aborted
       (when org-note-abort
@@ -1423,12 +1419,6 @@ included as a candidate."
           (insert (org-roam-capture--get :link-description))))
       (set-marker min nil)
       (set-marker max nil))))
-
-(defun org-roam-insert--shield-region (region)
-  "Shield REGION against modifications in `org-roam-insert' caller."
-  (when region
-    (pcase-let ((`(,min . ,max) region))
-      (add-text-properties min max '(read-only t)))))
 
 ;;;###autoload
 (defun org-roam-insert (&optional lowercase completions filter-fn description)
@@ -1452,14 +1442,8 @@ If DESCRIPTION is provided, use this as the link label.  See
                          (let ((beg (set-marker (make-marker) (region-beginning)))
                                (end (set-marker (make-marker) (region-end))))
                            (setq region-text (buffer-substring-no-properties beg end))
-                           (save-excursion
-                             (goto-char beg)
-                             (insert "[[")
-                             (goto-char end)
-                             (insert "]]"))
                            ;; following may lose active region, so save it
-                           (cons (set-marker (make-marker) beg)
-                                 (set-marker (make-marker) (+ end 2))))))
+                           (cons beg end))))
                (completions (--> (or completions
                                      (org-roam--get-title-path-completions))
                                  (if filter-fn
@@ -1480,7 +1464,6 @@ If DESCRIPTION is provided, use this as the link label.  See
                  (org-roam-insert--delete-region region)
                  (insert (org-roam--format-link target-file-path link-description)))
                 (t
-                 (org-roam-insert--shield-region region)
                  (let ((org-roam-capture--info `((title . ,title-with-tags)
                                                  (slug . ,(funcall org-roam-title-to-slug-function title-with-tags))))
                        (org-roam-capture--context 'title))
