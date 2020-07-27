@@ -327,7 +327,8 @@ Like `file-name-extension', but does not strip version number."
   "Return t if FILE is part of Org-roam system, nil otherwise.
 If FILE is not specified, use the current buffer's file-path."
   (if-let ((path (or file
-                     (buffer-file-name))))
+                     (-> (buffer-base-buffer)
+                         (buffer-file-name)))))
       (save-match-data
         (and
          (org-roam--org-file-p path)

@@ -13,6 +13,7 @@ In this release we support fuzzy links of the form `[[Title]]`, `[[*Headline]]` 
 - [#974](https://github.com/org-roam/org-roam/pull/974) Protect region targeted by `org-roam-insert`
 - [#994](https://github.com/org-roam/org-roam/pull/994) Simplify org-roam-store-link
 - [#910](https://github.com/org-roam/org-roam/pull/910) Support fuzzy links of the form [[Title]], [[*Headline]] and [[Title*Headline]]
+- [#978](https://github.com/org-roam/org-roam/pull/978) Improve org-roam-dailies
 
 ### Bugfixes
 

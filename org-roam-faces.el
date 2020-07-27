@@ -60,6 +60,11 @@ This face is used on the region target by `org-roam-insertion'
 during an `org-roam-capture'."
   :group 'org-roam-faces)
 
+(defface org-roam-dailies-calendar-note
+  '((t :inherit (org-roam-link)))
+  "Face for dates with a daily-note in the calendar"
+  :group 'org-roam-faces)
+
 ;;; _
 
 (provide 'org-roam-faces)
