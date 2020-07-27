@@ -83,26 +83,20 @@ to look.
 REGION must be a cons-cell containing the marker to the region
 beginning and maximum values."
   (when (and beg end)
-    (let ((string (buffer-substring-no-properties beg end)))
-      (org-with-point-at beg
-        (delete-region beg end)
-        (insert (propertize string
-                            'font-lock-face '(:inherit org-roam-link-shielded)
-                            'read-only t))
-        (set-marker end (point))
-        (cons beg end)))))
+    (add-text-properties beg end
+                           '(font-lock-face org-roam-link-shielded
+                                            read-only t)
+                           (marker-buffer beg))
+    (cons beg end)))
 
 (defun org-roam-unshield-region (beg end)
-  "Unshield the shielded REGION and returns the unshielded region.
-This function assumes that REGION was shielded by `org-roam-shield-region'."
+  "Unshield the shielded REGION."
   (when (and beg end)
-    (org-with-point-at beg
-      (let ((inhibit-read-only t))
-        (remove-text-properties beg end '(read-only t))
-        (delete-region beg end)
-        (insert (org-roam-capture--get :link-description))
-        (set-marker end (point))
-        (cons beg end)))))
+    (remove-text-properties beg end
+                           '(font-lock-face org-roam-link-shielded
+                                            read-only t)
+                           (marker-buffer beg))
+    (cons beg end)))
 
 (provide 'org-roam-macs)
 

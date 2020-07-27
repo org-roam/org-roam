@@ -964,7 +964,7 @@ This face is used for links without a destination."
   '((t :inherit (warning org-link)))
   "Face for Org-roam links that are shielded.
 This face is used on the region target by `org-roam-insertion'
-during an `org-roam-capture'.."
+during an `org-roam-capture'."
   :group 'org-roam-faces)
 
 ;;;; org-roam-backlinks-mode
@@ -1433,12 +1433,10 @@ If DESCRIPTION is provided, use this as the link label.  See
       (atomic-change-group
         (let* (region-text
                beg end
-               (region (when (region-active-p)
-                         (let ((beg (setq beg (set-marker (make-marker) (region-beginning))))
-                               (end (setq end (set-marker (make-marker) (region-end)))))
-                           (setq region-text (buffer-substring-no-properties beg end))
-                           ;; following may lose active region, so save it
-                           (cons beg end))))
+               (_ (when (region-active-p)
+                    (setq beg (set-marker (make-marker) (region-beginning)))
+                    (setq end (set-marker (make-marker) (region-end)))
+                    (setq region-text (buffer-substring-no-properties beg end))))
                (completions (--> (or completions
                                      (org-roam--get-title-path-completions))
                                  (if filter-fn
@@ -1461,11 +1459,10 @@ If DESCRIPTION is provided, use this as the link label.  See
                  (set-marker end nil)
                  (insert (org-roam--format-link target-file-path link-description)))
                 (t
-                 (setq region (org-roam-shield-region beg end))
                  (let ((org-roam-capture--info `((title . ,title-with-tags)
                                                  (slug . ,(funcall org-roam-title-to-slug-function title-with-tags))))
                        (org-roam-capture--context 'title))
-                   (setq org-roam-capture-additional-template-props (list :region region
+                   (setq org-roam-capture-additional-template-props (list :region (org-roam-shield-region beg end)
                                                                           :insert-at (point-marker)
                                                                           :link-description link-description
                                                                           :finalize 'insert-link))
