@@ -1426,16 +1426,15 @@ Return the new region with the padding characters."
   "Unshield REGION against modifications in `org-roam-insert' caller."
   (when region
     (pcase-let ((`(,min . ,max) region))
-      (let ((inhibit-read-only t))
-        (remove-text-properties min max '(read-only t))))))
+      (when (get-text-property min 'read-only)
+        (let ((inhibit-read-only t))
+          (remove-text-properties min max '(read-only t)))))))
 
 (defun org-roam-insert--delete-region (region)
   "Delete REGION in `org-roam-insert' caller."
   (when region
     (pcase-let ((`(,min . ,max) region))
-      ;; If it is shielded, unshield the region
-      (when (get-text-property min 'read-only)
-        (org-roam-insert--unshield-region region))
+      (org-roam-insert--unshield-region region)
       (delete-region min max)
       ;; Reinsert description if `org-roam-capture' was aborted
       (when org-note-abort
