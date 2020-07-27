@@ -102,7 +102,7 @@ The Org-roam capture-templates  builds on the default behaviours of
 
 3. The `:head' key is added, which contains the template that is
    inserted upon the creation of a new file. This is where you
-   should add your note metadata should go.
+   your note metadata should go.
 
 Each template should have the following structure:
 
