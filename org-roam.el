@@ -1407,19 +1407,17 @@ included as a candidate."
   (interactive)
   (find-file (seq-random-elt (org-roam--list-all-files))))
 
-(defun org-roam-insert--delete-region (region &optional unshield reinsert)
-  "Delete REGION in `org-roam-insert' caller.
-
-When UNSHIELD is non-nil, removes the read-only property.
-
-When REINSERT is non-nil, reinsert the original text."
+(defun org-roam-insert--delete-region (region)
+  "Delete REGION in `org-roam-insert' caller."
   (when region
     (pcase-let ((`(,min . ,max) region))
-      (when unshield
+      ;; If it is shielded, unshield the region
+      (when (get-text-property min 'read-only)
         (let ((inhibit-read-only t))
           (remove-text-properties min max '(read-only t))))
       (delete-region min max)
-      (when reinsert
+      ;; Reinsert description if `org-roam-capture' was aborted
+      (when org-note-abort
         (save-excursion
           (goto-char min)
           (insert (org-roam-capture--get :link-description))))

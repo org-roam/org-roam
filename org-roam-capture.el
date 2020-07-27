@@ -332,7 +332,7 @@ the capture)."
          (when-let* ((mkr (org-roam-capture--get :insert-at))
                      (buf (marker-buffer mkr)))
            (with-current-buffer buf
-             (org-roam-insert--delete-region (org-roam-capture--get :region) t)
+             (org-roam-insert--delete-region (org-roam-capture--get :region))
              (let ((path (org-roam-capture--get :file-path))
                    (desc (org-roam-capture--get :link-description)))
                (if (eq (point) (marker-position mkr))
@@ -341,7 +341,7 @@ the capture)."
                    (insert (org-roam--format-link path desc))))))))))
     (when (and org-note-abort
                (eq finalize 'insert-link))
-      (org-roam-insert--delete-region (org-roam-capture--get :region) t t))
+      (org-roam-insert--delete-region (org-roam-capture--get :region)))
     (org-roam-capture--save-file-maybe)
     (remove-hook 'org-capture-after-finalize-hook #'org-roam-capture--finalize)))
 
