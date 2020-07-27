@@ -334,8 +334,7 @@ the capture)."
          (when-let* ((mkr (org-roam-capture--get :insert-at))
                      (buf (marker-buffer mkr)))
            (with-current-buffer buf
-             (when region
-               (delete-region (car region) (cdr region)))
+             (org-roam-delete-region region)
              (let ((path (org-roam-capture--get :file-path))
                    (desc (org-roam-capture--get :link-description)))
                (if (eq (point) (marker-position mkr))

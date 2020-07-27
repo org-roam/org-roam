@@ -1448,8 +1448,7 @@ If DESCRIPTION is provided, use this as the link label.  See
                                                                 description))))
           (cond ((and target-file-path
                       (file-exists-p target-file-path))
-                 (pcase-let ((`(,min . ,max) region))
-                   (delete-region min max))
+                 (org-roam-delete-region region)
                  (org-roam-unset-region-markers region)
                  (insert (org-roam--format-link target-file-path link-description)))
                 (t
