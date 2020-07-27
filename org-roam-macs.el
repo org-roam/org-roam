@@ -78,11 +78,6 @@ to look.
        (s-replace "\"" "\\\"")))
 
 ;;; Shielding regions
-(defcustom org-roam-shield-face 'warning
-  "Face to use on the shielded region."
-  :group 'org-roam
-  :type '(symbol :tag "Face"))
-
 (defun org-roam-shield-region (region)
   "Shield REGION against modifications.
 REGION must be a cons-cell containing the marker to the region
@@ -93,7 +88,7 @@ beginning and maximum values."
       (org-with-point-at min
         (delete-region min max)
         (insert (propertize string
-                            'font-lock-face `(:inherit ,org-roam-shield-face)
+                            'font-lock-face '(:inherit org-roam-link-shielded)
                             'read-only t))
         (set-marker max (point))
         (cons min max)))))

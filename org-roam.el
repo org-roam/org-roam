@@ -960,6 +960,13 @@ Return nil if the file does not exist."
 This face is used for links without a destination."
   :group 'org-roam-faces)
 
+(defface org-roam-link-shielded
+  '((t :inherit (warning org-link)))
+  "Face for Org-roam links that are shielded.
+This face is used on the region target by `org-roam-insertion'
+during an `org-roam-capture'.."
+  :group 'org-roam-faces)
+
 ;;;; org-roam-backlinks-mode
 (define-minor-mode org-roam-backlinks-mode
   "Minor mode for the `org-roam-buffer'.
