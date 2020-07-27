@@ -1454,9 +1454,10 @@ If DESCRIPTION is provided, use this as the link label.  See
                                                                 description))))
           (cond ((and target-file-path
                       (file-exists-p target-file-path))
-                 (delete-region beg end)
-                 (set-marker beg nil)
-                 (set-marker end nil)
+                 (when region-text
+                   (delete-region beg end)
+                   (set-marker beg nil)
+                   (set-marker end nil))
                  (insert (org-roam--format-link target-file-path link-description)))
                 (t
                  (let ((org-roam-capture--info `((title . ,title-with-tags)

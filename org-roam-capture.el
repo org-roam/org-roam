@@ -323,8 +323,8 @@ the capture)."
   "Finalize the `org-roam-capture' process."
   (let* ((finalize (org-roam-capture--get :finalize))
          ;; In case any regions were shielded before, unshield them
-         (region (--> (org-roam-capture--get :region)
-                      (org-roam-unshield-region (car it) (cdr it))))
+         (region (when-let ((region (org-roam-capture--get :region)))
+                   (org-roam-unshield-region (car region) (cdr region))))
          (beg (car region))
          (end (cdr region)))
     (unless org-note-abort
@@ -337,15 +337,17 @@ the capture)."
          (when-let* ((mkr (org-roam-capture--get :insert-at))
                      (buf (marker-buffer mkr)))
            (with-current-buffer buf
-             (delete-region (car region) (cdr region))
+             (when region
+               (delete-region (car region) (cdr region)))
              (let ((path (org-roam-capture--get :file-path))
                    (desc (org-roam-capture--get :link-description)))
                (if (eq (point) (marker-position mkr))
                    (insert (org-roam--format-link path desc))
                  (org-with-point-at mkr
                    (insert (org-roam--format-link path desc))))))))))
-    (set-marker beg nil)
-    (set-marker end nil)
+    (when region
+      (set-marker beg nil)
+      (set-marker end nil))
     (org-roam-capture--save-file-maybe)
     (remove-hook 'org-capture-after-finalize-hook #'org-roam-capture--finalize)))
 
