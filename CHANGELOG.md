@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.2.2 (TBD)
+
+### Breaking Changes
+
+### Features
+
+-[#974](https://github.com/org-roam/org-roam/pull/974) Protect region targeted by `org-roam-insert`
+
+### Bugfixes
+
 ## 1.2.1 (27-07-2020)
 
 This release consisted of a big deal of refactoring and bug fixes. Notably, we fixed several catastrophic failures on db builds with bad setups (#854), and modularized tag and title extractions.

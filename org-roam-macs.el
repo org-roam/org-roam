@@ -77,6 +77,28 @@ to look.
        (s-replace "\\" "\\\\")
        (s-replace "\"" "\\\"")))
 
+;;; Shielding regions
+(defun org-roam-shield-region (beg end)
+  "Shield REGION against modifications.
+REGION must be a cons-cell containing the marker to the region
+beginning and maximum values."
+  (when (and beg end)
+    (add-text-properties beg end
+                           '(font-lock-face org-roam-link-shielded
+                                            read-only t)
+                           (marker-buffer beg))
+    (cons beg end)))
+
+(defun org-roam-unshield-region (beg end)
+  "Unshield the shielded REGION."
+  (when (and beg end)
+    (let ((inhibit-read-only t))
+      (remove-text-properties beg end
+                              '(font-lock-face org-roam-link-shielded
+                                               read-only t)
+                              (marker-buffer beg)))
+    (cons beg end)))
+
 (provide 'org-roam-macs)
 
 ;;; org-roam-macs.el ends here

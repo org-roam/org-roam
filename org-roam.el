@@ -960,6 +960,13 @@ Return nil if the file does not exist."
 This face is used for links without a destination."
   :group 'org-roam-faces)
 
+(defface org-roam-link-shielded
+  '((t :inherit (warning org-link)))
+  "Face for Org-roam links that are shielded.
+This face is used on the region target by `org-roam-insertion'
+during an `org-roam-capture'."
+  :group 'org-roam-faces)
+
 ;;;; org-roam-backlinks-mode
 (define-minor-mode org-roam-backlinks-mode
   "Minor mode for the `org-roam-buffer'.
@@ -1420,42 +1427,50 @@ If DESCRIPTION is provided, use this as the link label.  See
 `org-roam--get-title-path-completions' for details."
   (interactive "P")
   (unless org-roam-mode (org-roam-mode))
-  (let* ((region (and (region-active-p)
-                      ;; following may lose active region, so save it
-                      (cons (region-beginning) (region-end))))
-         (region-text (when region
-                        (buffer-substring-no-properties (car region) (cdr region))))
-         (completions (--> (or completions
-                               (org-roam--get-title-path-completions))
-                           (if filter-fn
-                               (funcall filter-fn it)
-                             it)))
-         (title-with-tags (org-roam-completion--completing-read "File: " completions
-                                                                :initial-input region-text))
-         (res (cdr (assoc title-with-tags completions)))
-         (title (or (plist-get res :title)
-                    title-with-tags))
-         (target-file-path (plist-get res :path))
-         (description (or description region-text title))
-         (link-description (org-roam--format-link-title (if lowercase
-                                                            (downcase description)
-                                                          description))))
-    (if (and target-file-path
-             (file-exists-p target-file-path))
-        (progn
-          (when region ;; Remove previously selected text.
-            (delete-region (car region) (cdr region)))
-          (insert (org-roam--format-link target-file-path link-description)))
-      (let ((org-roam-capture--info `((title . ,title-with-tags)
-                                      (slug . ,(funcall org-roam-title-to-slug-function title-with-tags))))
-            (org-roam-capture--context 'title))
-        (setq org-roam-capture-additional-template-props (list :region region
-                                                               :insert-at (point-marker)
-                                                               :link-description link-description
-                                                               :finalize 'insert-link))
-        (org-roam--with-template-error 'org-roam-capture-templates
-          (org-roam-capture--capture))))
-    res))
+  ;; Deactivate the mark on quit since `atomic-change-group' prevents it
+  (unwind-protect
+      ;; Group functions together to avoid inconsistent state on quit
+      (atomic-change-group
+        (let* (region-text
+               beg end
+               (_ (when (region-active-p)
+                    (setq beg (set-marker (make-marker) (region-beginning)))
+                    (setq end (set-marker (make-marker) (region-end)))
+                    (setq region-text (buffer-substring-no-properties beg end))))
+               (completions (--> (or completions
+                                     (org-roam--get-title-path-completions))
+                                 (if filter-fn
+                                     (funcall filter-fn it)
+                                   it)))
+               (title-with-tags (org-roam-completion--completing-read "File: " completions
+                                                                      :initial-input region-text))
+               (res (cdr (assoc title-with-tags completions)))
+               (title (or (plist-get res :title)
+                          title-with-tags))
+               (target-file-path (plist-get res :path))
+               (description (or description region-text title))
+               (link-description (org-roam--format-link-title (if lowercase
+                                                                  (downcase description)
+                                                                description))))
+          (cond ((and target-file-path
+                      (file-exists-p target-file-path))
+                 (when region-text
+                   (delete-region beg end)
+                   (set-marker beg nil)
+                   (set-marker end nil))
+                 (insert (org-roam--format-link target-file-path link-description)))
+                (t
+                 (let ((org-roam-capture--info `((title . ,title-with-tags)
+                                                 (slug . ,(funcall org-roam-title-to-slug-function title-with-tags))))
+                       (org-roam-capture--context 'title))
+                   (setq org-roam-capture-additional-template-props (list :region (org-roam-shield-region beg end)
+                                                                          :insert-at (point-marker)
+                                                                          :link-description link-description
+                                                                          :finalize 'insert-link))
+                   (org-roam--with-template-error 'org-roam-capture-templates
+                     (org-roam-capture--capture)))))
+          res))
+    (deactivate-mark)))
 
 ;;;###autoload
 (defun org-roam-insert-immediate (arg &rest args)
