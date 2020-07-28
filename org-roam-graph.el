@@ -202,7 +202,7 @@ into a digraph."
                (title (org-roam-string-quote title))
                (node-properties
                 `(("label"   . ,shortened-title)
-                  ("URL"     . ,(concat "org-protocol://roam-file?file=" (url-hexify-string file)))
+                  ("URL"     . ,(concat "org-protocol:////roam-file?file=" (url-hexify-string file)))
                   ("tooltip" . ,(xml-escape-string title)))))
           (insert
            (format "  \"%s\" [%s];\n" file
