@@ -1015,13 +1015,15 @@ for Org-ref cite links."
                      target))
 
 (defun org-roam-store-link-file ()
-  "Store a link to an `org-roam' file."
-  (when (org-before-first-heading-p)
-    (when-let ((title (cdr (assoc "TITLE" (org-roam--extract-global-props '("TITLE"))))))
+  "Store a link to an Org-roam file."
+  (when (and (bound-and-true-p org-roam-mode)
+             (org-roam--org-roam-file-p)
+             (org-before-first-heading-p))
+    (when-let ((titles (org-roam--extract-titles)))
       (org-link-store-props
        :type        "file"
        :link        (format "file:%s" (abbreviate-file-name buffer-file-name))
-       :description title))))
+       :description (car titles)))))
 
 (defun org-roam--store-link (arg &optional interactive?)
   "Store a link to the current location within Org-roam.
@@ -1292,8 +1294,9 @@ M-x info for more information at Org-roam > Installation > Post-Installation Tas
     (add-hook 'org-open-at-point-functions #'org-roam-open-id-at-point)
     (advice-add 'rename-file :after #'org-roam--rename-file-advice)
     (advice-add 'delete-file :before #'org-roam--delete-file-advice)
-    (org-link-set-parameters "file" :face 'org-roam--file-link-face :store #'org-roam-store-link-file)
-    (org-link-set-parameters "id" :face 'org-roam---id-link-face)
+    (when (fboundp 'org-link-set-parameters)
+      (org-link-set-parameters "file" :face 'org-roam--file-link-face :store #'org-roam-store-link-file)
+      (org-link-set-parameters "id" :face 'org-roam---id-link-face))
     (org-roam-db-build-cache))
    (t
     (setq org-execute-file-search-functions (delete 'org-roam--execute-file-row-col org-execute-file-search-functions))
@@ -1302,7 +1305,9 @@ M-x info for more information at Org-roam > Installation > Post-Installation Tas
     (remove-hook 'org-open-at-point-functions #'org-roam-open-id-at-point)
     (advice-remove 'rename-file #'org-roam--rename-file-advice)
     (advice-remove 'delete-file #'org-roam--delete-file-advice)
-    (org-link-set-parameters "file" :face 'org-link)
+    (when (fboundp 'org-link-set-parameters)
+      (dolist (face '("file" "id"))
+        (org-link-set-parameters face :face 'org-link)))
     (org-roam-db--close-all)
     ;; Disable local hooks for all org-roam buffers
     (dolist (buf (org-roam--get-roam-buffers))
