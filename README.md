@@ -4,6 +4,11 @@
 
 ## Synopsis
 
+> **NOTE:** Org-roam builds upon Emacs and Org-mode, both of which are intricate
+> tools that require time investment for mastery. This makes Org-roam less
+> friendly for beginners, but extremely powerful for those familiar with the
+> ecosystem, or willing to invest effort in it.
+
 Org-roam is a [Roam][roamresearch] replica built on top of the
 all-powerful [Org-mode][org].
 
