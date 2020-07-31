@@ -249,6 +249,12 @@ space-delimited strings.
   :type 'boolean
   :group 'org-roam)
 
+(defcustom org-roam-link-types nil
+  "List of link types registered for Org Roam in addition to always recognized \"file:\" link.
+Types themselves should be defined in Org. See `org-link-set-parameters'."
+  :type 'list
+  :group 'org-roam)
+
 ;;;; Dynamic variables
 (defvar org-roam-last-window nil
   "Last window `org-roam' was called from.")
@@ -259,7 +265,7 @@ This is set by `org-roam--with-temp-buffer', to allow throwing of
 descriptive warnings when certain operations fail (e.g. parsing).")
 
 (defvar org-roam--org-link-file-bracket-re
-  (rx "[[file:" (seq (group (one-or-more (or (not (any "]" "[" "\\"))
+  (eval `(rx "[[" (or ,@org-roam-link-types "file") ":" (seq (group (one-or-more (or (not (any "]" "[" "\\"))
                                              (seq "\\"
                                                   (zero-or-more "\\\\")
                                                   (any "[" "]"))
@@ -269,7 +275,7 @@ descriptive warnings when certain operations fail (e.g. parsing).")
                      (zero-or-one (seq "["
                                        (group (+? anything))
                                        "]"))
-                     "]"))
+                     "]")))
   "Matches a 'file:' link in double brackets.")
 
 ;;;; Utilities
@@ -584,6 +590,9 @@ it as FILE-PATH."
                             (if (file-remote-p path)
                                 (list path)
                               (list (file-truename (expand-file-name path (file-name-directory file-path))))))
+                           ((pred (lambda (typ)
+                                    (member typ org-roam-link-types)))
+                            (list (file-truename (expand-file-name path (file-name-directory file-path)))))
                            ("id"
                             (list (car (org-roam-id-find path))))
                            ((pred (lambda (typ)
@@ -800,7 +809,7 @@ Examples:
       (funcall org-roam-link-title-format title)
     (format org-roam-link-title-format title)))
 
-(defun org-roam--format-link (target &optional description)
+(defun org-roam--format-link (target &optional description type)
   "Formats an org link for a given file TARGET and link DESCRIPTION."
   (let* ((here (ignore-errors
                  (-> (or (buffer-base-buffer)
@@ -809,9 +818,9 @@ Examples:
                      (file-truename)
                      (file-name-directory)))))
     (org-link-make-string
-     (concat "file:" (if here
-                         (file-relative-name target here)
-                       target))
+     (concat (or type "file") ":" (if here
+                                    (file-relative-name target here)
+                                  target))
      description)))
 
 (defun org-roam--get-title-path-completions ()
@@ -970,6 +979,9 @@ buffer or a marker."
              (dest (org-element-property :path context)))
         (pcase type
           ("file" dest)
+          ((pred (lambda (typ)
+                   (member typ org-roam-link-types))
+                 dest))
           ("id" (car (org-roam-id-find dest))))))))
 
 (defun org-roam--backlink-to-current-p ()
@@ -990,7 +1002,8 @@ This function hooks into `org-open-at-point' via `org-open-at-point-functions'."
            (type (org-element-property :type context))
            (path (org-element-property :path context)))
       (when (and (eq (org-element-type context) 'link)
-                 (string= "file" type)
+                 (or (string= "file" type)
+                     (member type org-roam-link-types))
                  (org-roam--org-roam-file-p (file-truename path)))
         (org-roam-buffer--find-file path)
         (org-show-context)
@@ -1162,7 +1175,8 @@ update with NEW-DESC."
                             (lambda (l)
                               (let ((type (org-element-property :type l))
                                     (path (org-element-property :path l)))
-                                (when (and (equal "file" type)
+                                (when (and (or (equal "file" type)
+                                               (member type org-roam-link-types))
                                            (string-equal (file-truename path)
                                                          old-path))
                                   (set-marker (make-marker) (org-element-property :begin l))))))))
@@ -1176,9 +1190,11 @@ update with NEW-DESC."
                             (org-link-unescape (match-string-no-properties 1))))
                    (new-label (if (string-equal label old-desc)
                                   new-desc
-                                label)))
+                                label))
+                   (element (org-element-at-point))
+                   (type (org-element-property :type elemen)))
               (replace-match (org-link-make-string
-                              (concat "file:" (file-relative-name new-path (file-name-directory (buffer-file-name))))
+                              (concat type ":" (file-relative-name new-path (file-name-directory (buffer-file-name))))
                               new-label)))))))
     (save-buffer)))
 
@@ -1190,7 +1206,8 @@ replaced links are made relative to the current buffer."
                   (lambda (link)
                     (let ((type (org-element-property :type link))
                           (path (org-element-property :path link)))
-                      (when (and (equal "file" type)
+                      (when (and (or (equal "file" type)
+                                     (member type org-roam-link-types))
                                  (f-relative-p path))
                         (cons (set-marker (make-marker)
                                           (org-element-property :begin link))
@@ -1203,8 +1220,10 @@ replaced links are made relative to the current buffer."
             (unless (org-in-regexp org-link-bracket-re 1)
               (user-error "No link at point"))
             (let* ((file-path (expand-file-name path (file-name-directory old-path)))
-                   (new-path (file-relative-name file-path (file-name-directory (buffer-file-name)))))
-              (replace-match (concat "file:" new-path)
+                   (new-path (file-relative-name file-path (file-name-directory (buffer-file-name))))
+                   (l (org-element-at-point)) ; should be link
+                   (type (org-element-property :type l)))
+              (replace-match (concat type ":" new-path)
                              nil t nil 1))
             (set-marker marker nil)))))))
 
@@ -1232,9 +1251,9 @@ replaced links are made relative to the current buffer."
              (files-to-rename (org-roam-db-query [:select :distinct [from]
                                                   :from links
                                                   :where (= to $s1)
-                                                  :and (= type $s2)]
-                                                 old-path
-                                                 "file")))
+                                                  :and (or (= type "file")
+                                                           (member type org-roam-link-types))]
+                                                 old-path)))
         ;; Remove database entries for old-file.org
         (org-roam-db--clear-file old-file)
         ;; Insert new headlines locations in new-file.org after removing the previous IDs
@@ -1296,6 +1315,7 @@ M-x info for more information at Org-roam > Installation > Post-Installation Tas
     (advice-add 'delete-file :before #'org-roam--delete-file-advice)
     (when (fboundp 'org-link-set-parameters)
       (org-link-set-parameters "file" :face 'org-roam--file-link-face :store #'org-roam-store-link-file)
+      ;; TOOO: make the same for link types?
       (org-link-set-parameters "id" :face 'org-roam---id-link-face))
     (org-roam-db-build-cache))
    (t
@@ -1306,7 +1326,7 @@ M-x info for more information at Org-roam > Installation > Post-Installation Tas
     (advice-remove 'rename-file #'org-roam--rename-file-advice)
     (advice-remove 'delete-file #'org-roam--delete-file-advice)
     (when (fboundp 'org-link-set-parameters)
-      (dolist (face '("file" "id"))
+      (dolist (face '("file" "id")) ;TODO: add link types
         (org-link-set-parameters face :face 'org-link)))
     (org-roam-db--close-all)
     ;; Disable local hooks for all org-roam buffers
@@ -1396,7 +1416,13 @@ included as a candidate."
   (find-file (seq-random-elt (org-roam--list-all-files))))
 
 ;;;###autoload
-(defun org-roam-insert (&optional lowercase completions filter-fn description)
+;; (defun org-roam-insert-roam (&optional lowercase completions filter-fn description)
+;;   "Insert roam: link."
+;;   (interactive "P")
+;;   (org-roam-insert "roam" lowercase completions filter-fn description))
+
+;;;###autoload
+(defun org-roam-insert (&optional type lowercase completions filter-fn description)
   "Find an Org-roam file, and insert a relative org link to it at point.
 Return selected file if it exists.
 If LOWERCASE, downcase the title before insertion.
@@ -1439,13 +1465,14 @@ If DESCRIPTION is provided, use this as the link label.  See
                    (delete-region beg end)
                    (set-marker beg nil)
                    (set-marker end nil))
-                 (insert (org-roam--format-link target-file-path link-description)))
+                 (insert (org-roam--format-link target-file-path link-description type)))
                 (t
                  (let ((org-roam-capture--info `((title . ,title-with-tags)
                                                  (slug . ,(funcall org-roam-title-to-slug-function title-with-tags))))
                        (org-roam-capture--context 'title))
                    (setq org-roam-capture-additional-template-props (list :region (org-roam-shield-region beg end)
                                                                           :insert-at (point-marker)
+                                                                          :link-type type
                                                                           :link-description link-description
                                                                           :finalize 'insert-link))
                    (org-roam--with-template-error 'org-roam-capture-templates
