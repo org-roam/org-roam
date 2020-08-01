@@ -1015,7 +1015,7 @@ for Org-ref cite links."
                      target))
 
 (defun org-roam-store-link ()
-  "Store a link to an Org-roam file."
+  "Store a link to an Org-roam file or heading."
   (when (and (bound-and-true-p org-roam-mode)
              (org-roam--org-roam-file-p))
     (if (org-before-first-heading-p)
