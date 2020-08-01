@@ -6,7 +6,8 @@
 
 ### Features
 
--[#974](https://github.com/org-roam/org-roam/pull/974) Protect region targeted by `org-roam-insert`
+- [#974](https://github.com/org-roam/org-roam/pull/974) Protect region targeted by `org-roam-insert`
+- [#994](https://github.com/org-roam/org-roam/pull/994) Simplify org-roam-store-link
 
 ### Bugfixes
 
