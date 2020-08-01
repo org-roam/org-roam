@@ -492,7 +492,7 @@ If FORCE, force a rebuild of the cache from scratch."
           (let ((contents-hash (org-roam-db--file-hash file)))
             (unless (string= (gethash file current-files)
                              contents-hash)
-              (condition-case err-mesg
+              (condition-case nil
                   (org-roam--with-temp-buffer file
                     (org-roam-db--clear-file file)
                     (org-roam-db-query
