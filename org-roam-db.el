@@ -506,7 +506,8 @@ If FORCE, force a rebuild of the cache from scratch."
                 (file-error
                  (setq org-roam-files (remove file org-roam-files))
                  (org-roam-db--clear-file file)
-                 (message "org-roam-db-build-cache: Skipping unreadable file: %s" file)))))))
+                 (lwarn '(org-roam) :warning
+                        "Skipping unreadable file while building cache: %s" file)))))))
       ;; Second step: Rebuild the rest
       (dolist (file org-roam-files)
         (let ((contents-hash (org-roam-db--file-hash file)))
