@@ -1086,22 +1086,45 @@ This function hooks into `org-open-at-point' via
 ;;;; Function Faces
 ;; These faces are used by `org-link-set-parameters', which take one argument,
 ;; which is the path.
+(defcustom org-roam-link-use-custom-faces 'everywhere
+  "Define where to apply custom faces to Org-roam links.
+
+Valide values are:
+
+t            Use custom faces inside Org-roam notes (i.e. files in
+             `org-roam-directory'.)
+
+everywhere   Apply custom faces everywhere.
+
+Otherwise, do not apply custom faces to Org-roam links."
+  :type '(choice
+	  (const :tag "Use custom faces inside Org-roam notes" t)
+	  (const :tag "Apply custom faces everywhere" everywhere)
+	  (const :tag "Do not apply custom faces" nil))
+  :group 'org-roam)
+
 (defun org-roam--file-link-face (path)
   "Conditional face for file: links.
 Applies `org-roam-link-current' if PATH corresponds to the
 currently opened Org-roam file in the backlink buffer, or
 `org-roam-link-face' if PATH corresponds to any other Org-roam
 file."
-  (cond ((and (not (file-remote-p path)) ;; Prevent lockups opening Tramp links
-              (not (file-exists-p path)))
-         'org-roam-link-invalid)
-        ((and (org-roam--in-buffer-p)
-              (org-roam--backlink-to-current-p))
-         'org-roam-link-current)
-        ((org-roam--org-roam-file-p path)
-         'org-roam-link)
-        (t
-         'org-link)))
+  (let* ((in-note (-> (buffer-file-name (buffer-base-buffer))
+                     (org-roam--org-roam-file-p)))
+         (custom (or (and in-note org-roam-link-use-custom-faces)
+                     (eq org-roam-link-use-custom-faces 'everywhere))))
+    (cond ((and custom
+                (not (file-remote-p path)) ;; Prevent lockups opening Tramp links
+                (not (file-exists-p path)))
+           'org-roam-link-invalid)
+          ((and (org-roam--in-buffer-p)
+                (org-roam--backlink-to-current-p))
+           'org-roam-link-current)
+          ((and custom
+                (org-roam--org-roam-file-p path))
+           'org-roam-link)
+          (t
+           'org-link))))
 
 (defun org-roam--id-link-face (id)
   "Conditional face for id links.
