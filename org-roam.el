@@ -1097,7 +1097,10 @@ t            Use custom faces inside Org-roam notes (i.e. files in
 everywhere   Apply custom faces everywhere.
 
 Otherwise, do not apply custom faces to Org-roam links."
-  :type 'boolean
+  :type '(choice
+	  (const :tag "Use custom faces inside Org-roam notes" t)
+	  (const :tag "Apply custom faces everywhere" everywhere)
+	  (const :tag "Do not apply custom faces" nil))
   :group 'org-roam)
 
 (defun org-roam--file-link-face (path)
