@@ -1091,8 +1091,8 @@ This function hooks into `org-open-at-point' via
 
 Valide values are:
 
-t	     Use custom faces inside Org-roam notes (i.e. files in
-	     `org-roam-directory'.)
+t            Use custom faces inside Org-roam notes (i.e. files in
+             `org-roam-directory'.)
 
 everywhere   Apply custom faces everywhere.
 
