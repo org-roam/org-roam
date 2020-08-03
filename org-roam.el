@@ -1188,9 +1188,10 @@ update with NEW-DESC."
                                                (member type org-roam-link-types))
                                            (string-equal (file-truename path)
                                                          old-path))
-                                  (set-marker (make-marker) (org-element-property :begin l))))))))
+                                  (cons (set-marker (make-marker) (org-element-property :begin l))
+                                        type)))))))
         (dolist (m link-markers)
-          (goto-char m)
+          (goto-char (car m))
           (save-match-data
             (unless (org-in-regexp org-link-bracket-re 1)
               (user-error "No link at point"))
@@ -1199,11 +1200,10 @@ update with NEW-DESC."
                             (org-link-unescape (match-string-no-properties 1))))
                    (new-label (if (string-equal label old-desc)
                                   new-desc
-                                label))
-                   (element (org-element-at-point))
-                   (type (org-element-property :type elemen)))
+                                label)))
               (replace-match (org-link-make-string
-                              (concat type ":" (file-relative-name new-path (file-name-directory (buffer-file-name))))
+                              (concat (cdr m) ":"
+                                      (file-relative-name new-path (file-name-directory (buffer-file-name))))
                               new-label)))))))
     (save-buffer)))
 
