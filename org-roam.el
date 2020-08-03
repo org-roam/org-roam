@@ -1027,36 +1027,21 @@ for Org-ref cite links."
                       :order-by (asc from)]
                      target))
 
-(defun org-roam-store-link-file ()
-  "Store a link to an Org-roam file."
+(defun org-roam-store-link ()
+  "Store a link to an Org-roam file or heading."
   (when (and (bound-and-true-p org-roam-mode)
-             (org-roam--org-roam-file-p)
-             (org-before-first-heading-p))
-    (when-let ((titles (org-roam--extract-titles)))
-      (org-link-store-props
-       :type        "file"
-       :link        (format "file:%s" (abbreviate-file-name buffer-file-name))
-       :description (car titles)))))
-
-(defun org-roam--store-link (arg &optional interactive?)
-  "Store a link to the current location within Org-roam.
-See `org-roam-store-link' for details on ARG and INTERACTIVE?."
-  (let ((org-id-link-to-org-use-id t)
-        (id (org-id-get)))
-    (org-store-link arg interactive?)
-    ;; If :ID: was created, update the cache
-    (unless id
-      (org-roam-db--update-headlines))))
-
-(defun org-roam-store-link (arg &optional interactive?)
-  "Store a link to the current location.
-This commands is a wrapper for `org-store-link' which forces the
-automatic creation of :ID: properties.
-See `org-roam-store-link' for details on ARG and INTERACTIVE?."
-  (interactive "P\np")
-  (if (org-roam--org-roam-file-p)
-      (org-roam--store-link arg interactive?)
-    (org-store-link arg interactive?)))
+             (org-roam--org-roam-file-p))
+    (if (org-before-first-heading-p)
+        (when-let ((titles (org-roam--extract-titles)))
+          (org-link-store-props
+           :type        "file"
+           :link        (format "file:%s" (abbreviate-file-name buffer-file-name))
+           :description (car titles)))
+      (let ((id (org-id-get)))
+          (org-id-store-link)
+          ;; If :ID: was created, update the cache
+          (unless id
+            (org-roam-db--update-headlines))))))
 
 (defun org-roam-id-find (id &optional markerp strict)
   "Return the location of the entry with the id ID.
@@ -1114,22 +1099,45 @@ This function hooks into `org-open-at-point' via
 ;;;; Function Faces
 ;; These faces are used by `org-link-set-parameters', which take one argument,
 ;; which is the path.
+(defcustom org-roam-link-use-custom-faces 'everywhere
+  "Define where to apply custom faces to Org-roam links.
+
+Valide values are:
+
+t            Use custom faces inside Org-roam notes (i.e. files in
+             `org-roam-directory'.)
+
+everywhere   Apply custom faces everywhere.
+
+Otherwise, do not apply custom faces to Org-roam links."
+  :type '(choice
+	  (const :tag "Use custom faces inside Org-roam notes" t)
+	  (const :tag "Apply custom faces everywhere" everywhere)
+	  (const :tag "Do not apply custom faces" nil))
+  :group 'org-roam)
+
 (defun org-roam--file-link-face (path)
   "Conditional face for file: links.
 Applies `org-roam-link-current' if PATH corresponds to the
 currently opened Org-roam file in the backlink buffer, or
 `org-roam-link-face' if PATH corresponds to any other Org-roam
 file."
-  (cond ((and (not (file-remote-p path)) ;; Prevent lockups opening Tramp links
-              (not (file-exists-p path)))
-         'org-roam-link-invalid)
-        ((and (org-roam--in-buffer-p)
-              (org-roam--backlink-to-current-p))
-         'org-roam-link-current)
-        ((org-roam--org-roam-file-p path)
-         'org-roam-link)
-        (t
-         'org-link)))
+  (let* ((in-note (-> (buffer-file-name (buffer-base-buffer))
+                     (org-roam--org-roam-file-p)))
+         (custom (or (and in-note org-roam-link-use-custom-faces)
+                     (eq org-roam-link-use-custom-faces 'everywhere))))
+    (cond ((and custom
+                (not (file-remote-p path)) ;; Prevent lockups opening Tramp links
+                (not (file-exists-p path)))
+           'org-roam-link-invalid)
+          ((and (org-roam--in-buffer-p)
+                (org-roam--backlink-to-current-p))
+           'org-roam-link-current)
+          ((and custom
+                (org-roam--org-roam-file-p path))
+           'org-roam-link)
+          (t
+           'org-link))))
 
 (defun org-roam--id-link-face (id)
   "Conditional face for id links.
@@ -1294,7 +1302,6 @@ nil, or positive. If ARG is `toggle', toggle `org-roam-mode'.
 Otherwise, behave as if called interactively."
   :lighter " Org-roam"
   :keymap  (let ((map (make-sparse-keymap)))
-             (define-key map [remap org-store-link] 'org-roam-store-link)
              map)
   :group 'org-roam
   :require 'org-roam
@@ -1314,7 +1321,7 @@ M-x info for more information at Org-roam > Installation > Post-Installation Tas
     (advice-add 'rename-file :after #'org-roam--rename-file-advice)
     (advice-add 'delete-file :before #'org-roam--delete-file-advice)
     (when (fboundp 'org-link-set-parameters)
-      (org-link-set-parameters "file" :face 'org-roam--file-link-face :store #'org-roam-store-link-file)
+      (org-link-set-parameters "file" :face 'org-roam--file-link-face :store #'org-roam-store-link)
       ;; TOOO: make the same for link types?
       (org-link-set-parameters "id" :face 'org-roam---id-link-face))
     (org-roam-db-build-cache))
