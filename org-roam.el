@@ -250,8 +250,9 @@ space-delimited strings.
   :group 'org-roam)
 
 (defcustom org-roam-link-types nil
-  "List of link types registered for Org Roam in addition to always recognized \"file:\" link.
-Types themselves should be defined in Org. See `org-link-set-parameters'."
+  "List of link types registered for Org Roam.
+These types are added to always recognized \"file:\" and \"cite\" links.
+Types themselves should be previously defined in Org. See `org-link-set-parameters'."
   :type 'list
   :group 'org-roam)
 
