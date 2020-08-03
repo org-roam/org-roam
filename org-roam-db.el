@@ -317,14 +317,12 @@ Insertions can fail if the key is already in the database."
 (defun org-roam-db--connected-component (file)
   "Return all files reachable from/connected to FILE, including the file itself.
 If the file does not have any connections, nil is returned."
-  (let ((or-string ""))
-    (dolist (typ org-roam-link-types or-string)
-      (setq or-string (concat or-string " OR \"type\" = '\"" typ "\"'")))
     (let* ((query (concat "WITH RECURSIVE
                    links_of(file, link) AS
                      (WITH filelinks AS (SELECT * FROM links WHERE \"type\" = '\"file\"'"
-           or-string
-           "),
+                          (-reduce-from (lambda (x y) (concat x " OR \"type\" = '\"" y "\"'"))
+                                        "" org-roam-link-types)
+                          "),
                            citelinks AS (SELECT * FROM links
                                                   JOIN refs ON links.\"to\" = refs.\"ref\"
                                                             AND links.\"type\" = '\"cite\"')
@@ -338,19 +336,17 @@ If the file does not have any connections, nil is returned."
                       SELECT link FROM links_of JOIN connected_component USING(file))
                    SELECT * FROM connected_component;"))
          (files (mapcar 'car-safe (emacsql (org-roam-db) query file))))
-    files)))
+    files))
 
 (defun org-roam-db--links-with-max-distance (file max-distance)
   "Return all files connected to FILE in at most MAX-DISTANCE steps.
 This includes the file itself. If the file does not have any
 connections, nil is returned."
-  (let ((or-string ""))
-    (dolist (typ org-roam-link-types or-string)
-      (setq or-string (concat or-string " OR \"type\" = '\"" typ "\"'")))
-    (let* ((query (concat "WITH RECURSIVE
+  (let* ((query (concat "WITH RECURSIVE
                    links_of(file, link) AS
                      (WITH filelinks AS (SELECT * FROM links WHERE \"type\" = '\"file\"'"
-                        or-string
+                        (-reduce-from (lambda (x y) (concat x " OR \"type\" = '\"" y "\"'"))
+                                      "" org-roam-link-types)
                         "),
                            citelinks AS (SELECT * FROM links
                                                   JOIN refs ON links.\"to\" = refs.\"ref\"
@@ -376,7 +372,7 @@ connections, nil is returned."
                    FROM connected_component GROUP BY file ORDER BY distance;"))
          ;; In principle the distance would be available in the second column.
          (files (mapcar 'car-safe (emacsql (org-roam-db) query file max-distance))))
-    files)))
+    files))
 
 (defun org-roam-db--file-hash (&optional file-path)
   "Compute the hash of FILE-PATH, a file or current buffer."
