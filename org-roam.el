@@ -1331,7 +1331,7 @@ M-x info for more information at Org-roam > Installation > Post-Installation Tas
     (advice-remove 'rename-file #'org-roam--rename-file-advice)
     (advice-remove 'delete-file #'org-roam--delete-file-advice)
     (when (fboundp 'org-link-set-parameters)
-      (dolist (face '("file" "id")) 
+      (dolist (face '("file" "id"))
         (org-link-set-parameters face :face 'org-link)))
     (org-roam-db--close-all)
     ;; Disable local hooks for all org-roam buffers
