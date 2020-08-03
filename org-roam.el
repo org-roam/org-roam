@@ -803,10 +803,10 @@ Examples:
            (slug (-reduce-from #'cl-replace (strip-nonspacing-marks title) pairs)))
       (downcase slug))))
 
-(defun org-roam--format-link-title (title)
+(defun org-roam--format-link-title (title &optional type)
   "Return the link title, given the file TITLE."
   (if (functionp org-roam-link-title-format)
-      (funcall org-roam-link-title-format title)
+      (funcall org-roam-link-title-format title type)
     (format org-roam-link-title-format title)))
 
 (defun org-roam--format-link (target &optional description type)
@@ -1452,7 +1452,8 @@ If DESCRIPTION is provided, use this as the link label.  See
                (description (or description region-text title))
                (link-description (org-roam--format-link-title (if lowercase
                                                                   (downcase description)
-                                                                description))))
+                                                                description)
+                                                              type)))
           (cond ((and target-file-path
                       (file-exists-p target-file-path))
                  (when region-text
