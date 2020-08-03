@@ -1320,7 +1320,6 @@ M-x info for more information at Org-roam > Installation > Post-Installation Tas
     (advice-add 'delete-file :before #'org-roam--delete-file-advice)
     (when (fboundp 'org-link-set-parameters)
       (org-link-set-parameters "file" :face 'org-roam--file-link-face :store #'org-roam-store-link)
-      ;; TOOO: make the same for link types?
       (org-link-set-parameters "id" :face 'org-roam---id-link-face))
     (org-roam-db-build-cache))
    (t
@@ -1331,7 +1330,7 @@ M-x info for more information at Org-roam > Installation > Post-Installation Tas
     (advice-remove 'rename-file #'org-roam--rename-file-advice)
     (advice-remove 'delete-file #'org-roam--delete-file-advice)
     (when (fboundp 'org-link-set-parameters)
-      (dolist (face '("file" "id")) ;TODO: add link types
+      (dolist (face '("file" "id")) 
         (org-link-set-parameters face :face 'org-link)))
     (org-roam-db--close-all)
     ;; Disable local hooks for all org-roam buffers
