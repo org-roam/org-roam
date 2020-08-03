@@ -492,16 +492,22 @@ If FORCE, force a rebuild of the cache from scratch."
           (let ((contents-hash (org-roam-db--file-hash file)))
             (unless (string= (gethash file current-files)
                              contents-hash)
-              (org-roam--with-temp-buffer file
-               (org-roam-db--clear-file file)
-               (org-roam-db-query
-                [:insert :into files
-                 :values $v1]
-                (vector file contents-hash (list :atime atime :mtime mtime)))
-               (setq file-count (1+ file-count))
-               (when-let ((headlines (org-roam--extract-headlines file)))
-                 (when (org-roam-db--insert-headlines headlines)
-                   (setq headline-count (1+ headline-count)))))))))
+              (condition-case nil
+                  (org-roam--with-temp-buffer file
+                    (org-roam-db--clear-file file)
+                    (org-roam-db-query
+                     [:insert :into files
+                      :values $v1]
+                     (vector file contents-hash (list :atime atime :mtime mtime)))
+                    (setq file-count (1+ file-count))
+                    (when-let ((headlines (org-roam--extract-headlines file)))
+                      (when (org-roam-db--insert-headlines headlines)
+                        (setq headline-count (1+ headline-count)))))
+                (file-error
+                 (setq org-roam-files (remove file org-roam-files))
+                 (org-roam-db--clear-file file)
+                 (lwarn '(org-roam) :warning
+                        "Skipping unreadable file while building cache: %s" file)))))))
       ;; Second step: Rebuild the rest
       (dolist (file org-roam-files)
         (let ((contents-hash (org-roam-db--file-hash file)))
