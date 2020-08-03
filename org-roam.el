@@ -1219,18 +1219,16 @@ replaced links are made relative to the current buffer."
                                  (f-relative-p path))
                         (cons (set-marker (make-marker)
                                           (org-element-property :begin link))
-                              path)))))))
+                              (cons path type))))))))
     (save-excursion
       (save-match-data
         (dolist (link links)
-          (pcase-let ((`(,marker . ,path) link))
+          (pcase-let ((`(,marker . (,path . ,type)) link))
             (goto-char marker)
             (unless (org-in-regexp org-link-bracket-re 1)
               (user-error "No link at point"))
             (let* ((file-path (expand-file-name path (file-name-directory old-path)))
-                   (new-path (file-relative-name file-path (file-name-directory (buffer-file-name))))
-                   (l (org-element-at-point)) ; should be link
-                   (type (org-element-property :type l)))
+                   (new-path (file-relative-name file-path (file-name-directory (buffer-file-name)))))
               (replace-match (concat type ":" new-path)
                              nil t nil 1))
             (set-marker marker nil)))))))
