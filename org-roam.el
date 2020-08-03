@@ -1416,12 +1416,6 @@ included as a candidate."
   (find-file (seq-random-elt (org-roam--list-all-files))))
 
 ;;;###autoload
-;; (defun org-roam-insert-roam (&optional lowercase completions filter-fn description)
-;;   "Insert roam: link."
-;;   (interactive "P")
-;;   (org-roam-insert "roam" lowercase completions filter-fn description))
-
-;;;###autoload
 (defun org-roam-insert (&optional type lowercase completions filter-fn description)
   "Find an Org-roam file, and insert a relative org link to it at point.
 Return selected file if it exists.
