@@ -1132,15 +1132,21 @@ Applies `org-roam-link-current' if ID corresponds to the
 currently opened Org-roam file in the backlink buffer, or
 `org-roam-link-face' if ID corresponds to any other Org-roam
 file."
-  (cond ((not (org-roam-id-find id))
-         'org-roam-link-invalid)
-        ((and (org-roam--in-buffer-p)
-              (org-roam--backlink-to-current-p))
-         'org-roam-link-current)
-        ((org-roam-id-find id t)
-         'org-roam-link)
-        (t
-         'org-link)))
+  (let* ((in-note (-> (buffer-file-name (buffer-base-buffer))
+                     (org-roam--org-roam-file-p)))
+         (custom (or (and in-note org-roam-link-use-custom-faces)
+                     (eq org-roam-link-use-custom-faces 'everywhere))))
+    (cond ((and custom
+                (not (org-roam-id-find id)))
+           'org-roam-link-invalid)
+          ((and (org-roam--in-buffer-p)
+                (org-roam--backlink-to-current-p))
+           'org-roam-link-current)
+          ((and custom
+                (org-roam-id-find id))
+           'org-roam-link)
+          (t
+           'org-link))))
 
 ;;;; Hooks and Advices
 (defun org-roam--find-file-hook-function ()
