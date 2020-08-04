@@ -1309,7 +1309,7 @@ M-x info for more information at Org-roam > Installation > Post-Installation Tas
     (advice-add 'delete-file :before #'org-roam--delete-file-advice)
     (when (fboundp 'org-link-set-parameters)
       (org-link-set-parameters "file" :face 'org-roam--file-link-face :store #'org-roam-store-link)
-      (org-link-set-parameters "id" :face 'org-roam---id-link-face))
+      (org-link-set-parameters "id" :face 'org-roam--id-link-face))
     (org-roam-db-build-cache))
    (t
     (setq org-execute-file-search-functions (delete 'org-roam--execute-file-row-col org-execute-file-search-functions))
