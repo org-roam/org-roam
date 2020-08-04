@@ -805,13 +805,16 @@ Examples:
       (downcase slug))))
 
 (defun org-roam--format-link-title (title &optional type)
-  "Return the link title, given the file TITLE."
+  "Return the link title, given the file TITLE.
+TYPE allows to format the link title according to the link type. See
+`org-roam-link-title-format title'."
   (if (functionp org-roam-link-title-format)
       (funcall org-roam-link-title-format title type)
     (format org-roam-link-title-format title)))
 
 (defun org-roam--format-link (target &optional description type)
-  "Formats an org link for a given file TARGET and link DESCRIPTION."
+  "Formats an org link for a given file TARGET, link DESCRIPTION and
+link TYPE. When not given, TYPE defaults to \"file\"."
   (let* ((here (ignore-errors
                  (-> (or (buffer-base-buffer)
                          (current-buffer))
@@ -1424,6 +1427,7 @@ included as a candidate."
 (defun org-roam-insert (&optional type lowercase completions filter-fn description)
   "Find an Org-roam file, and insert a relative org link to it at point.
 Return selected file if it exists.
+TYPE is the type of the created link. It defaults to \"file\".
 If LOWERCASE, downcase the title before insertion.
 COMPLETIONS is a list of completions to be used instead of
 `org-roam--get-title-path-completions`.
