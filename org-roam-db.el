@@ -321,7 +321,7 @@ If the file does not have any connections, nil is returned."
                    links_of(file, link) AS
                      (WITH filelinks AS (SELECT * FROM links WHERE \"type\" = '\"file\"'"
                           (-reduce-from (lambda (x y) (concat x " OR \"type\" = '\"" y "\"'"))
-                                        "" org-roam-link-types)
+                                        "" org-roam-extra-link-types)
                           "),
                            citelinks AS (SELECT * FROM links
                                                   JOIN refs ON links.\"to\" = refs.\"ref\"
@@ -346,7 +346,7 @@ connections, nil is returned."
                    links_of(file, link) AS
                      (WITH filelinks AS (SELECT * FROM links WHERE \"type\" = '\"file\"'"
                         (-reduce-from (lambda (x y) (concat x " OR \"type\" = '\"" y "\"'"))
-                                      "" org-roam-link-types)
+                                      "" org-roam-extra-link-types)
                         "),
                            citelinks AS (SELECT * FROM links
                                                   JOIN refs ON links.\"to\" = refs.\"ref\"

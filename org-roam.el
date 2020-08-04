@@ -249,7 +249,7 @@ space-delimited strings.
   :type 'boolean
   :group 'org-roam)
 
-(defcustom org-roam-link-types nil
+(defcustom org-roam-extra-link-types nil
   "List of link types registered for Org Roam.
 These types are added to always recognized \"file:\" and \"cite\" links.
 Types themselves should be previously defined in Org. See `org-link-set-parameters'."
@@ -266,7 +266,7 @@ This is set by `org-roam--with-temp-buffer', to allow throwing of
 descriptive warnings when certain operations fail (e.g. parsing).")
 
 (defvar org-roam--org-link-file-bracket-re
-  (eval `(rx "[[" (or ,@org-roam-link-types "file") ":" (seq (group (one-or-more (or (not (any "]" "[" "\\"))
+  (eval `(rx "[[" (or ,@org-roam-extra-link-types "file") ":" (seq (group (one-or-more (or (not (any "]" "[" "\\"))
                                              (seq "\\"
                                                   (zero-or-more "\\\\")
                                                   (any "[" "]"))
@@ -592,7 +592,7 @@ it as FILE-PATH."
                                 (list path)
                               (list (file-truename (expand-file-name path (file-name-directory file-path))))))
                            ((pred (lambda (typ)
-                                    (member typ org-roam-link-types)))
+                                    (member typ org-roam-extra-link-types)))
                             (list (file-truename (expand-file-name path (file-name-directory file-path)))))
                            ("id"
                             (list (car (org-roam-id-find path))))
@@ -984,7 +984,7 @@ buffer or a marker."
         (pcase type
           ("file" dest)
           ((pred (lambda (typ)
-                   (member typ org-roam-link-types))
+                   (member typ org-roam-extra-link-types))
                  dest))
           ("id" (car (org-roam-id-find dest))))))))
 
@@ -1007,7 +1007,7 @@ This function hooks into `org-open-at-point' via `org-open-at-point-functions'."
            (path (org-element-property :path context)))
       (when (and (eq (org-element-type context) 'link)
                  (or (string= "file" type)
-                     (member type org-roam-link-types))
+                     (member type org-roam-extra-link-types))
                  (org-roam--org-roam-file-p (file-truename path)))
         (org-roam-buffer--find-file path)
         (org-show-context)
@@ -1188,7 +1188,7 @@ update with NEW-DESC."
                               (let ((type (org-element-property :type l))
                                     (path (org-element-property :path l)))
                                 (when (and (or (equal "file" type)
-                                               (member type org-roam-link-types))
+                                               (member type org-roam-extra-link-types))
                                            (string-equal (file-truename path)
                                                          old-path))
                                   (cons (set-marker (make-marker) (org-element-property :begin l))
@@ -1219,7 +1219,7 @@ replaced links are made relative to the current buffer."
                     (let ((type (org-element-property :type link))
                           (path (org-element-property :path link)))
                       (when (and (or (equal "file" type)
-                                     (member type org-roam-link-types))
+                                     (member type org-roam-extra-link-types))
                                  (f-relative-p path))
                         (cons (set-marker (make-marker)
                                           (org-element-property :begin link))
@@ -1262,7 +1262,7 @@ replaced links are made relative to the current buffer."
                                                   :from links
                                                   :where (= to $s1)
                                                   :and (or (= type "file")
-                                                           (member type org-roam-link-types))]
+                                                           (member type org-roam-extra-link-types))]
                                                  old-path)))
         ;; Remove database entries for old-file.org
         (org-roam-db--clear-file old-file)
