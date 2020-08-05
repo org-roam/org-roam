@@ -45,6 +45,7 @@
 
 (declare-function org-roam-db--ensure-built   "org-roam-db")
 (declare-function org-roam--extract-ref       "org-roam")
+(declare-function org-roam--extract-titles    "org-roam")
 (declare-function org-roam--get-title-or-slug "org-roam")
 (declare-function org-roam--get-backlinks     "org-roam")
 (declare-function org-roam-backlinks-mode     "org-roam")
@@ -152,7 +153,9 @@ For example: (setq org-roam-buffer-window-parameters '((no-other-window . t)))"
 (defun org-roam-buffer--insert-backlinks ()
   "Insert the org-roam-buffer backlinks string for the current buffer."
   (if-let* ((file-path (buffer-file-name org-roam-buffer--current))
-            (backlinks (org-roam--get-backlinks file-path))
+            (titles (with-current-buffer org-roam-buffer--current
+                      (org-roam--extract-titles)))
+            (backlinks (org-roam--get-backlinks (push file-path titles)))
             (grouped-backlinks (--group-by (nth 0 it) backlinks)))
       (progn
         (insert (let ((l (length backlinks)))
