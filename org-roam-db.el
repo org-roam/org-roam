@@ -40,6 +40,7 @@
 (defvar org-roam-directory)
 (defvar org-roam-verbose)
 (defvar org-roam-file-name)
+(defvar org-roam-extra-link-types)
 
 (declare-function org-roam--org-roam-file-p                "org-roam")
 (declare-function org-roam--extract-titles                 "org-roam")
