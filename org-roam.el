@@ -1210,8 +1210,9 @@ When NO-INTERACTIVE, return nil if there are multiple options."
          (completing-read "Select file: " files))))))
 
 (defun org-roam--get-id-from-headline (headline &optional file)
-  "Return the file path correspondng to HEADLINE.
-If FILE, get headline from FILE instead."
+  "Return (marker . id) correspondng to HEADLINE.
+If FILE, get headline from FILE instead.
+If there is no corresponding headline, return nil."
   (save-excursion
     (with-current-buffer (or (and file
                                   (or (find-buffer-visiting file)
@@ -1220,7 +1221,9 @@ If FILE, get headline from FILE instead."
       (let ((headlines (org-roam--get-headlines file 'with-markers)))
         (when-let ((marker (cdr (assoc-string headline headlines))))
           (goto-char marker)
-          (org-id-get-create))))))
+          (cons marker
+                (when org-roam-auto-replace-fuzzy-links
+                  (org-id-get-create))))))))
 
 (defun org-roam--open-fuzzy-link (link)
   "Open a Org fuzzy LINK.
@@ -1240,7 +1243,7 @@ Three types of fuzzy links are supported:
   (when (and (bound-and-true-p org-roam-mode)
              (org-roam--org-roam-file-p))
     (let ((splits (org-roam--split-fuzzy-link link))
-          loc loc-type desc)
+          loc loc-type desc id)
       (when splits
           (pcase-let ((`(,title ,has-headline-p ,headline) splits))
             (cond (;; title and headline present
@@ -1249,11 +1252,14 @@ Three types of fuzzy links are supported:
                    (let ((file (org-roam--get-file-from-title title)))
                      (if (not file)
                          (org-roam-message "Cannot find matching file")
-                       (setq loc (org-roam--get-id-from-headline headline file)
-                             loc-type "id"
-                             desc headline)
-                       (unless loc
-                         (org-roam-message "cannot find matching id")))))
+                       (setq loc (org-roam--get-id-from-headline headline file))
+                       (pcase loc
+                         (`(,marker . ,target-id)
+                          (setq loc marker
+                                id target-id
+                                loc-type "id"
+                                desc headline))
+                         (_ (org-roam-message "cannot find matching id"))))))
                   (;; Only title
                    (not has-headline-p)
                    (setq loc (org-roam--get-file-from-title title)
@@ -1262,11 +1268,14 @@ Three types of fuzzy links are supported:
                   (;; Only headline
                    (and (string-empty-p title)
                         has-headline-p)
-                   (setq loc (org-roam--get-id-from-headline headline)
-                         desc headline
-                         loc-type "id")
-                   (unless loc
-                     (org-roam-message "Cannot find matching headline"))))
+                   (setq loc (org-roam--get-id-from-headline headline))
+                   (pcase loc
+                     (`(,marker . ,target-id)
+                      (setq loc marker
+                            id target-id
+                            desc headline
+                            loc-type "id"))
+                     (_ (org-roam-message "Cannot find matching headline")))))
             (cond ((and (not loc)
                         (string-equal loc-type "file"))
                    (org-roam-find-file title nil nil t)))
@@ -1276,8 +1285,8 @@ Three types of fuzzy links are supported:
               (pcase loc-type
                 ("file"
                  (org-roam--find-file loc))
-                (_
-                 (org-roam-id-open loc))))))
+                ("id"
+                 (org-goto-marker-or-bmk loc))))))
       t)))
 
 ;;; Org-roam-mode
