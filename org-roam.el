@@ -1246,7 +1246,7 @@ Three types of fuzzy links are supported:
   (when (and (bound-and-true-p org-roam-mode)
              (org-roam--org-roam-file-p))
     (let ((splits (org-roam--split-fuzzy-link link))
-          loc loc-type desc id)
+          loc loc-type desc target)
       (when splits
           (pcase-let ((`(,title ,has-headline-p ,headline) splits))
             (cond (;; title and headline present
@@ -1259,13 +1259,14 @@ Three types of fuzzy links are supported:
                        (pcase loc
                          (`(,marker . ,target-id)
                           (setq loc marker
-                                id target-id
+                                target target-id
                                 loc-type "id"
                                 desc headline))
                          (_ (org-roam-message "cannot find matching id"))))))
                   (;; Only title
                    (not has-headline-p)
                    (setq loc (org-roam--get-file-from-title title)
+                         target loc
                          loc-type "file")
                    (when loc (setq loc (file-relative-name loc))))
                   (;; Only headline
@@ -1275,7 +1276,7 @@ Three types of fuzzy links are supported:
                    (pcase loc
                      (`(,marker . ,target-id)
                       (setq loc marker
-                            id target-id
+                            target target-id
                             desc headline
                             loc-type "id"))
                      (_ (org-roam-message "Cannot find matching headline")))))
@@ -1284,7 +1285,7 @@ Three types of fuzzy links are supported:
                    (org-roam-find-file title nil nil t)))
             (when loc
               (when org-roam-auto-replace-fuzzy-links
-                (org-roam-replace-fuzzy-link (concat loc-type ":" loc) desc))
+                (org-roam-replace-fuzzy-link (concat loc-type ":" target) desc))
               (pcase loc-type
                 ("file"
                  (org-roam--find-file loc))
