@@ -1008,16 +1008,16 @@ This function hooks into `org-open-at-point' via `org-open-at-point-functions'."
 
 (defun org-roam--get-backlinks (targets)
   "Return the backlinks for TARGETS.
-TARGETS may be a file, for Org-roam file links, or a citation key,
-for Org-ref cite links."
+TARGETS is a list of strings corresponding to the TO value in the
+Org-roam cache. It may be a file, for Org-roam file links, or a
+citation key, for Org-ref cite links."
   (unless (listp targets)
     (setq targets (list targets)))
-  (let ((query (concat "SELECT \"from\", \"to\", \"properties\" FROM links WHERE "
-                       (string-join (mapcar (lambda (target)
-                                             (concat "\"to\" = '\"" target "\"'"))
-                                           targets) " OR ")
-                       " ORDER BY \"from\" ASC;")))
-    (org-roam-db-query query)))
+  (org-roam-db-query
+   (concat "SELECT \"from\", \"to\", \"properties\" FROM links WHERE "
+           (string-join (mapcar (lambda (target)
+                                  (concat "\"to\" = '\"" target "\"'"))
+                                targets) " OR "))))
 
 (defun org-roam-store-link ()
   "Store a link to an Org-roam file or heading."
