@@ -813,8 +813,8 @@ TYPE allows to format the link title according to the link type. See
     (format org-roam-link-title-format title)))
 
 (defun org-roam--format-link (target &optional description type)
-  "Formats an org link for a given file TARGET, link DESCRIPTION and
-link TYPE. When not given, TYPE defaults to \"file\"."
+  "Formats an org link for a given file TARGET, link DESCRIPTION and link TYPE.
+When not given, TYPE defaults to \"file\"."
   (let* ((here (ignore-errors
                  (-> (or (buffer-base-buffer)
                          (current-buffer))
