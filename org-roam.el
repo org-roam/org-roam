@@ -1093,8 +1093,7 @@ This function hooks into `org-open-at-point' via
   "Do appropriate completion for the thing at point."
   (let ((end (point))
         start
-        collection
-        delete-suffix)
+        collection)
     (cond (;; In an open bracket
            (looking-back (concat "^.*" org-roam-open-bracket-regexp) (line-beginning-position))
            (setq start (match-beginning 1)
@@ -1128,16 +1127,15 @@ This function hooks into `org-open-at-point' via
                    (lambda (_)
                      (cl-remove-if (apply-partially 'string= prefix) (funcall collection))))
                 collection)
-              :exit-function (lambda (&rest _)
-                               (when delete-suffix
-                                 (delete-char delete-suffix)))
               'ignore)))))
 
 ;;; Fuzzy Links
 ;;TODO: Fully implement fuzzy link replacement (on navigation, and on save)
 (defcustom org-roam-auto-replace-fuzzy-links nil
   "Whether to replace Org-roam's fuzzy links with true file or id links.
-Doesn't currently work fully, please don't turn it on.")
+Doesn't currently work fully, please don't turn it on."
+  :group 'org-roam
+  :type 'boolean)
 
 (defun org-roam--split-fuzzy-link (link)
   "Splits LINK into title and headline.
