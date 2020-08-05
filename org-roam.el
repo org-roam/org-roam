@@ -591,6 +591,7 @@ it as FILE-PATH."
                                          (-contains? org-ref-cite-types typ))))
                             (setq type "cite")
                             (org-ref-split-and-strip-string path))
+                           ("fuzzy" (list path))
                            (_ (list (org-element-property :raw-link link))))))
               (seq-do (lambda (name)
                         (when name
@@ -1005,14 +1006,18 @@ This function hooks into `org-open-at-point' via `org-open-at-point-functions'."
    ;; If called via `org-open-at-point', fall back to default behavior.
    (t nil)))
 
-(defun org-roam--get-backlinks (target)
-  "Return the backlinks for TARGET.
-TARGET may be a file, for Org-roam file links, or a citation key,
+(defun org-roam--get-backlinks (targets)
+  "Return the backlinks for TARGETS.
+TARGETS may be a file, for Org-roam file links, or a citation key,
 for Org-ref cite links."
-  (org-roam-db-query [:select [from, to, properties] :from links
-                      :where (= to $s1)
-                      :order-by (asc from)]
-                     target))
+  (unless (listp targets)
+    (setq targets (list targets)))
+  (let ((query (concat "SELECT \"from\", \"to\", \"properties\" FROM links WHERE "
+                       (string-join (mapcar (lambda (target)
+                                             (concat "\"to\" = '\"" target "\"'"))
+                                           targets) " OR ")
+                       " ORDER BY \"from\" ASC;")))
+    (org-roam-db-query query)))
 
 (defun org-roam-store-link ()
   "Store a link to an Org-roam file or heading."

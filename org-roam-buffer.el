@@ -152,7 +152,9 @@ For example: (setq org-roam-buffer-window-parameters '((no-other-window . t)))"
 (defun org-roam-buffer--insert-backlinks ()
   "Insert the org-roam-buffer backlinks string for the current buffer."
   (if-let* ((file-path (buffer-file-name org-roam-buffer--current))
-            (backlinks (org-roam--get-backlinks file-path))
+            (titles (with-current-buffer org-roam-buffer--current
+                      (org-roam--extract-titles)))
+            (backlinks (org-roam--get-backlinks (push file-path titles)))
             (grouped-backlinks (--group-by (nth 0 it) backlinks)))
       (progn
         (insert (let ((l (length backlinks)))
