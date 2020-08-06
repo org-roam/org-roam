@@ -319,7 +319,7 @@ Insertions can fail if the key is already in the database."
 If the file does not have any connections, nil is returned."
   (let* ((query "WITH RECURSIVE
                    links_of(file, link) AS
-                     (WITH filelinks AS (SELECT * FROM links WHERE \"type\" = '\"file\"'),
+                     (WITH filelinks AS (SELECT * FROM links WHERE NOT \"type\" = '\"cite\"'),
                            citelinks AS (SELECT * FROM links
                                                   JOIN refs ON links.\"to\" = refs.\"ref\"
                                                             AND links.\"type\" = '\"cite\"')
@@ -341,7 +341,7 @@ This includes the file itself. If the file does not have any
 connections, nil is returned."
   (let* ((query "WITH RECURSIVE
                    links_of(file, link) AS
-                     (WITH filelinks AS (SELECT * FROM links WHERE \"type\" = '\"file\"'),
+                     (WITH filelinks AS (SELECT * FROM links WHERE NOT \"type\" = '\"cite\"'),
                            citelinks AS (SELECT * FROM links
                                                   JOIN refs ON links.\"to\" = refs.\"ref\"
                                                             AND links.\"type\" = '\"cite\"')

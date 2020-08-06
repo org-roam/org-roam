@@ -340,11 +340,12 @@ the capture)."
              (when region
                (delete-region (car region) (cdr region)))
              (let ((path (org-roam-capture--get :file-path))
+                   (type (org-roam-capture--get :link-type))
                    (desc (org-roam-capture--get :link-description)))
                (if (eq (point) (marker-position mkr))
-                   (insert (org-roam--format-link path desc))
+                   (insert (org-roam--format-link path desc type))
                  (org-with-point-at mkr
-                   (insert (org-roam--format-link path desc))))))))))
+                   (insert (org-roam--format-link path desc type))))))))))
     (when region
       (set-marker beg nil)
       (set-marker end nil))
