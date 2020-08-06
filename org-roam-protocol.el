@@ -62,8 +62,7 @@ It opens or creates a note with the given ref.
            (org-roam-capture--info decoded-alist)
            (template (cdr (assoc 'template decoded-alist))))
       (raise-frame)
-      (org-roam--with-template-error 'org-roam-capture-ref-templates
-        (org-roam-capture--capture nil template))
+      (org-roam-capture--capture nil template)
       (org-roam-message "Item captured.")))
   nil)
 
