@@ -104,8 +104,7 @@ Template string   :\n%v")
         (org-roam-capture--info (list (cons 'time time)))
         (org-roam-capture--context 'dailies))
     (setq org-roam-capture-additional-template-props (list :finalize 'find-file))
-    (org-roam--with-template-error 'org-roam-dailies-capture-templates
-      (org-roam-capture--capture))))
+    (org-roam-capture--capture)))
 
 (defun org-roam-dailies-today ()
   "Create and find the daily note for today."

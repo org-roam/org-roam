@@ -1588,8 +1588,7 @@ If NO-CONFIRM, assume that the user does not want to modify the initial prompt."
                                       (slug  . ,(funcall org-roam-title-to-slug-function title-with-tags))))
             (org-roam-capture--context 'title))
         (setq org-roam-capture-additional-template-props (list :finalize 'find-file))
-        (org-roam--with-template-error 'org-roam-capture-templates
-          (org-roam-capture--capture))))))
+        (org-roam-capture--capture)))))
 
 ;;;###autoload
 (defun org-roam-find-directory ()
@@ -1678,8 +1677,7 @@ If DESCRIPTION is provided, use this as the link label.  See
                                                                           :insert-at (point-marker)
                                                                           :link-description link-description
                                                                           :finalize 'insert-link))
-                   (org-roam--with-template-error 'org-roam-capture-templates
-                     (org-roam-capture--capture)))))
+                   (org-roam-capture--capture))))
           res))
     (deactivate-mark)))
 

@@ -53,19 +53,6 @@ If FILE, set `org-roam-temp-file-name' to file and insert its contents."
              (setq-local org-roam-file-name ,file))
            ,@body)))))
 
-(defmacro org-roam--with-template-error (templates &rest body)
-  "Eval BODY, and point to TEMPLATES on error.
-Provides more informative error messages so that users know where
-to look.
-
-\(fn TEMPLATES BODY...)"
-  (declare (debug (form body)) (indent 1))
-  `(condition-case err
-       ,@body
-     (error (user-error "%s.  Please adjust `%s'"
-                        (error-message-string err)
-                        ,templates))))
-
 (defun org-roam-message (format-string &rest args)
   "Pass FORMAT-STRING and ARGS to `message' when `org-roam-verbose' is t."
   (when org-roam-verbose
