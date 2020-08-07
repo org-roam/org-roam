@@ -1628,7 +1628,7 @@ included as a candidate."
 (defun org-roam-insert (&optional lowercase completions filter-fn description link-type)
   "Find an Org-roam file, and insert a relative org link to it at point.
 Return selected file if it exists.
-TYPE is the type of link to be created. It defaults to \"file\".
+LINK-TYPE is the type of link to be created. It defaults to \"file\".
 If LOWERCASE, downcase the title before insertion.
 COMPLETIONS is a list of completions to be used instead of
 `org-roam--get-title-path-completions`.
