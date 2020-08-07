@@ -805,7 +805,7 @@ If `org-roam-link-title-format title' is defined, use it with TYPE."
     (format org-roam-link-title-format title)))
 
 (defun org-roam--format-link (target &optional description type)
-  "Formats an org link for a given file TARGET, link DESCRIPTION and link TYPE. 
+  "Formats an org link for a given file TARGET, link DESCRIPTION and link TYPE.
 TYPE defaults to \"file\"."
   (let* ((here (ignore-errors
                  (-> (or (buffer-base-buffer)
