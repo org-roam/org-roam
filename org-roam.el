@@ -1625,7 +1625,7 @@ included as a candidate."
   (find-file (seq-random-elt (org-roam--list-all-files))))
 
 ;;;###autoload
-(defun org-roam-insert (&optional type lowercase completions filter-fn description)
+(defun org-roam-insert (&optional lowercase completions filter-fn description link-type)
   "Find an Org-roam file, and insert a relative org link to it at point.
 Return selected file if it exists.
 TYPE is the type of link to be created. It defaults to \"file\".
@@ -1663,21 +1663,21 @@ If DESCRIPTION is provided, use this as the link label.  See
                (link-description (org-roam--format-link-title (if lowercase
                                                                   (downcase description)
                                                                 description)
-                                                              type)))
+                                                              link-type)))
           (cond ((and target-file-path
                       (file-exists-p target-file-path))
                  (when region-text
                    (delete-region beg end)
                    (set-marker beg nil)
                    (set-marker end nil))
-                 (insert (org-roam--format-link target-file-path link-description type)))
+                 (insert (org-roam--format-link target-file-path link-description link-type)))
                 (t
                  (let ((org-roam-capture--info `((title . ,title-with-tags)
                                                  (slug . ,(funcall org-roam-title-to-slug-function title-with-tags))))
                        (org-roam-capture--context 'title))
                    (setq org-roam-capture-additional-template-props (list :region (org-roam-shield-region beg end)
                                                                           :insert-at (point-marker)
-                                                                          :link-type type
+                                                                          :link-type link-type
                                                                           :link-description link-description
                                                                           :finalize 'insert-link))
                    (org-roam-capture--capture))))
