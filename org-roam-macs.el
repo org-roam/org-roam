@@ -37,6 +37,15 @@
 
 (defvar org-roam-verbose)
 
+;;;; Utility Functions
+(defun org-roam--list-interleave (lst separator)
+  "Interleaves elements in LST with SEPARATOR."
+  (when lst
+    (let ((new-lst (list (pop lst))))
+      (dolist (it lst)
+        (nconc new-lst (list separator it)))
+      new-lst)))
+
 (defmacro org-roam--with-temp-buffer (file &rest body)
   "Execute BODY within a temp buffer.
 Like `with-temp-buffer', but propagates `org-roam-directory'.

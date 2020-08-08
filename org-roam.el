@@ -1015,11 +1015,12 @@ Org-roam cache. It may be a file, for Org-roam file links, or a
 citation key, for Org-ref cite links."
   (unless (listp targets)
     (setq targets (list targets)))
-  (org-roam-db-query
-   (concat "SELECT \"from\", \"to\", \"properties\" FROM links WHERE "
-           (string-join (mapcar (lambda (target)
-                                  (concat "\"to\" = '\"" target "\"'"))
-                                targets) " OR "))))
+  (let ((conditions (--> targets
+                         (mapcar (lambda (i) (list '= 'to i)) it)
+                         (org-roam--list-interleave it :or))))
+    (org-roam-db-query `[:select [from to properties] :from links
+                         :where ,@conditions
+                         :order-by (asc from)])))
 
 (defun org-roam-store-link ()
   "Store a link to an Org-roam file or heading."
