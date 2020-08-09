@@ -314,6 +314,16 @@ Insertions can fail if the key is already in the database."
                             :limit 1]
                            file)))
 
+(defun org-roam-db--get-tags ()
+  "Return all distinct tags from the cache."
+  (let ((rows (org-roam-db-query [:select :distinct [tags] :from tags]))
+        acc)
+    (dolist (row rows)
+      (dolist (tag (car row))
+        (unless (member tag acc)
+          (push tag acc))))
+    acc))
+
 (defun org-roam-db--connected-component (file)
   "Return all files reachable from/connected to FILE, including the file itself.
 If the file does not have any connections, nil is returned."

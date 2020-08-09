@@ -1098,33 +1098,45 @@ This function hooks into `org-open-at-point' via
 (defun org-roam-complete-at-point ()
   "Do appropriate completion for the thing at point."
   (let ((end (point))
-        start
+        (start (point))
+        (exit-fn (lambda (&rest _) nil))
         collection)
-    (cond (;; In an open bracket
-           (looking-back (concat "^.*" org-roam-open-bracket-regexp) (line-beginning-position))
-           (setq start (match-beginning 1)
-                 end (match-end 1))
-           (save-match-data
-             (save-excursion
-               (goto-char start)
-               (when (looking-at org-roam-title-headline-split-regexp)
-                 (let ((title (match-string-no-properties 1))
-                       (has-headline-p (not (string-empty-p (match-string-no-properties 2))))
-                       (headline-start (match-beginning 3)))
-                   (cond (;; title and headline present
-                          (and (not (string-empty-p title))
-                               has-headline-p)
-                          (when-let ((file (org-roam--get-file-from-title title t)))
-                            (setq collection (apply-partially #'org-roam--get-headlines file))
-                            (setq start headline-start)))
-                         (;; Only title
-                          (not has-headline-p)
-                          (setq collection #'org-roam--get-titles))
-                         (;; Only headline
-                          (string-empty-p title)
-                          has-headline-p
-                          (setq collection #'org-roam--get-headlines)
-                          (setq start headline-start)))))))))
+    (cond
+     (;; completing roam_tags
+      (looking-back "^#\\+roam_tags:.*" (line-beginning-position))
+      (when (looking-at "\\>")
+        (setq start (save-excursion (skip-syntax-backward "w")
+                                    (point))
+              end (point)))
+      (setq collection #'org-roam-db--get-tags
+            exit-fn (lambda (str _status)
+                      (delete-char (- (length str)))
+                      (insert "\"" str "\""))))
+     (;; In an open bracket
+      (looking-back (concat "^.*" org-roam-open-bracket-regexp) (line-beginning-position))
+      (setq start (match-beginning 1)
+            end (match-end 1))
+      (save-match-data
+        (save-excursion
+          (goto-char start)
+          (when (looking-at (concat org-roam-title-headline-split-regexp "\]\]"))
+            (let ((title (match-string-no-properties 1))
+                  (has-headline-p (not (string-empty-p (match-string-no-properties 2))))
+                  (headline-start (match-beginning 3)))
+              (cond (;; title and headline present
+                     (and (not (string-empty-p title))
+                          has-headline-p)
+                     (when-let ((file (org-roam--get-file-from-title title t)))
+                       (setq collection (apply-partially #'org-roam--get-headlines file))
+                       (setq start headline-start)))
+                    (;; Only title
+                     (not has-headline-p)
+                     (setq collection #'org-roam--get-titles))
+                    (;; Only headline
+                     (string-empty-p title)
+                     has-headline-p
+                     (setq collection #'org-roam--get-headlines)
+                     (setq start headline-start)))))))))
     (when collection
       (let ((prefix (buffer-substring-no-properties start end)))
         (list start end
@@ -1133,6 +1145,7 @@ This function hooks into `org-open-at-point' via
                    (lambda (_)
                      (cl-remove-if (apply-partially 'string= prefix) (funcall collection))))
                 collection)
+              :exit-function exit-fn
               'ignore)))))
 
 ;;; Fuzzy Links
