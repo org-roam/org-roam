@@ -500,7 +500,8 @@ PATH should be the root from which to compute the relativity."
         ;; Strip 'file:'
         (setq link (match-string 2))
         ;; Delete relative link
-        (when (f-relative-p link)
+        (when (and (f-relative-p link)
+                   (org-roam--org-roam-file-p (expand-file-name link dir)))
           (delete-region (match-beginning 2)
                          (match-end 2))
           (insert (expand-file-name link dir))))
