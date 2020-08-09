@@ -1238,9 +1238,7 @@ If there is no corresponding headline, return nil."
           (goto-char marker)
           (cons marker
                 (when org-roam-auto-replace-fuzzy-links
-                  (let ((id (org-id-get-create)))
-                    (save-buffer)
-                    id))))))))
+                  (org-id-get-create))))))))
 
 (defun org-roam--get-fuzzy-link-location (link)
   "Return the location of Org-roam fuzzy LINK.
