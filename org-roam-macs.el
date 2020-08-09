@@ -37,6 +37,15 @@
 
 (defvar org-roam-verbose)
 
+;;;; Utility Functions
+(defun org-roam--list-interleave (lst separator)
+  "Interleaves elements in LST with SEPARATOR."
+  (when lst
+    (let ((new-lst (list (pop lst))))
+      (dolist (it lst)
+        (nconc new-lst (list separator it)))
+      new-lst)))
+
 (defmacro org-roam--with-temp-buffer (file &rest body)
   "Execute BODY within a temp buffer.
 Like `with-temp-buffer', but propagates `org-roam-directory'.
@@ -52,19 +61,6 @@ If FILE, set `org-roam-temp-file-name' to file and insert its contents."
              (insert-file-contents ,file)
              (setq-local org-roam-file-name ,file))
            ,@body)))))
-
-(defmacro org-roam--with-template-error (templates &rest body)
-  "Eval BODY, and point to TEMPLATES on error.
-Provides more informative error messages so that users know where
-to look.
-
-\(fn TEMPLATES BODY...)"
-  (declare (debug (form body)) (indent 1))
-  `(condition-case err
-       ,@body
-     (error (user-error "%s.  Please adjust `%s'"
-                        (error-message-string err)
-                        ,templates))))
 
 (defun org-roam-message (format-string &rest args)
   "Pass FORMAT-STRING and ARGS to `message' when `org-roam-verbose' is t."
