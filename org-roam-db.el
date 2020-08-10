@@ -314,6 +314,16 @@ Insertions can fail if the key is already in the database."
                             :limit 1]
                            file)))
 
+(defun org-roam-db--get-tags ()
+  "Return all distinct tags from the cache."
+  (let ((rows (org-roam-db-query [:select :distinct [tags] :from tags]))
+        acc)
+    (dolist (row rows)
+      (dolist (tag (car row))
+        (unless (member tag acc)
+          (push tag acc))))
+    acc))
+
 (defun org-roam-db--connected-component (file)
   "Return all files reachable from/connected to FILE, including the file itself.
 If the file does not have any connections, nil is returned."
@@ -455,15 +465,15 @@ connections, nil is returned."
                         (find-file-noselect file-path t))
                    (current-buffer))))
       (with-current-buffer buf
-        (save-excursion
-          (emacsql-with-transaction (org-roam-db)
-            (org-roam-db--update-meta)
-            (org-roam-db--update-tags)
-            (org-roam-db--update-titles)
-            (org-roam-db--update-refs)
-            (org-roam-db--update-headlines)
-            (org-roam-db--update-links))
-          (org-roam-buffer--update-maybe :redisplay t))))))
+        (org-with-wide-buffer
+         (emacsql-with-transaction (org-roam-db)
+           (org-roam-db--update-meta)
+           (org-roam-db--update-tags)
+           (org-roam-db--update-titles)
+           (org-roam-db--update-refs)
+           (org-roam-db--update-headlines)
+           (org-roam-db--update-links)))
+        (org-roam-buffer--update-maybe :redisplay t)))))
 
 (defun org-roam-db-build-cache (&optional force)
   "Build the cache for `org-roam-directory'.
