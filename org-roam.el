@@ -258,19 +258,19 @@ space-delimited strings.
 This is set by `org-roam--with-temp-buffer', to allow throwing of
 descriptive warnings when certain operations fail (e.g. parsing).")
 
-(defvar org-roam--org-link-file-bracket-re
-  (rx "[[" (group (+? anything)) ":" (seq (group (one-or-more (or (not (any "]" "[" "\\"))
-                                             (seq "\\"
-                                                  (zero-or-more "\\\\")
-                                                  (any "[" "]"))
-                                             (seq (one-or-more "\\")
-                                                  (not (any "]" "["))))))
-                     "]"
-                     (zero-or-one (seq "["
-                                       (group (+? anything))
-                                       "]"))
-                     "]"))
-  "Matches a link in double brackets.")
+(defvar org-roam--org-link-bracket-typed-re
+  (rx (seq "[["
+           (group (+? anything))
+           ":"
+           (group
+            (one-or-more
+             (or (not (any "[]\\"))
+                 (and "\\" (zero-or-more "\\\\") (any "[]"))
+                 (and (one-or-more "\\") (not (any "[]"))))))
+           "]"
+           (opt "[" (group (+? anything)) "]")
+           "]"))
+  "Matches a typed link in double brackets.")
 
 ;;;; Utilities
 (defun org-roam--plist-to-alist (plist)
@@ -489,19 +489,18 @@ The search terminates when the first property is encountered."
   "Crawl CONTENT for relative links and expand them.
 PATH should be the root from which to compute the relativity."
   (let ((dir (file-name-directory path))
-        (re org-roam--org-link-file-bracket-re)
-        link)
+        link link-type)
     (with-temp-buffer
       (insert content)
       (goto-char (point-min))
       ;; Loop over links
-      (while (re-search-forward re (point-max) t)
+      (while (re-search-forward org-roam--org-link-bracket-typed-re (point-max) t)
         (goto-char (match-beginning 2))
-        ;; Strip 'file:'
-        (setq link (match-string 2))
+        (setq link-type (match-string 1)
+              link (match-string 2))
         ;; Delete relative link
-        (when (and (f-relative-p link)
-                   (org-roam--org-roam-file-p (expand-file-name link dir)))
+        (when (and (member link-type '("file")) ; TODO: Fix this
+                   (f-relative-p link))
           (delete-region (match-beginning 2)
                          (match-end 2))
           (insert (expand-file-name link dir))))
