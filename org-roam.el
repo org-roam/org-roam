@@ -1304,17 +1304,16 @@ Three types of fuzzy links are supported:
              (org-roam--org-roam-file-p))
     (when-let ((location (org-roam--get-fuzzy-link-location link)))
       (pcase-let ((`(,link-type ,loc ,desc ,mkr) location))
-        (when (and (not loc)
-                   (string-equal link-type "file"))
-          (org-roam-find-file desc nil nil t))
         (when (and org-roam-auto-replace-fuzzy-links
                    loc desc)
           (org-roam-replace-fuzzy-link (concat link-type ":" loc) desc))
         (pcase link-type
-                ("file"
-                 (org-roam--find-file loc))
-                ("id"
-                 (org-goto-marker-or-bmk mkr)))))
+          ("file"
+           (if loc
+               (org-roam--find-file loc)
+             (org-roam-find-file desc nil nil t)))
+          ("id"
+           (org-goto-marker-or-bmk mkr)))))
     t))
 
 (defun org-roam--replace-all-fuzzy-links ()
