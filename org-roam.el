@@ -1092,11 +1092,14 @@ This function hooks into `org-open-at-point' via
              nil)))))
 
 ;;; Completion at point
-(defconst org-roam-open-bracket-regexp
-  "\\[\\[\\([^\]]*\\)")
-
-(defconst org-roam-title-headline-split-regexp
-  "\\([^\*]*\\)\\(\*?\\)\\([^\]]*\\)")
+(defconst org-roam-fuzzy-link-regexp
+  (rx (seq "[["
+           (group
+            (zero-or-more
+             (or (not (any "[]\\"))
+                 (and "\\" (zero-or-more "\\\\") (any "[]"))
+                 (and (one-or-more "\\") (not (any "[]"))))))
+           "]]")))
 
 (defun org-roam-complete-at-point ()
   "Do appropriate completion for the thing at point."
@@ -1115,41 +1118,31 @@ This function hooks into `org-open-at-point' via
             exit-fn (lambda (str _status)
                       (delete-char (- (length str)))
                       (insert "\"" str "\""))))
-     (;; In an open bracket
-      (looking-back (concat "^.*" org-roam-open-bracket-regexp) (line-beginning-position))
+     (;; In a fuzzy link
+      (org-in-regexp org-roam-fuzzy-link-regexp)
       (setq start (match-beginning 1)
             end (match-end 1))
-      (save-match-data
-        (save-excursion
-          (goto-char start)
-          (when (looking-at (concat org-roam-title-headline-split-regexp "\]\]"))
-            (let ((title (match-string-no-properties 1))
-                  (has-headline-p (not (string-empty-p (match-string-no-properties 2))))
-                  (headline-start (match-beginning 3)))
-              (cond (;; title and headline present
-                     (and (not (string-empty-p title))
-                          has-headline-p)
-                     (when-let ((file (org-roam--get-file-from-title title t)))
-                       (setq collection (apply-partially #'org-roam--get-headlines file))
-                       (setq start headline-start)))
-                    (;; Only title
-                     (not has-headline-p)
-                     (setq collection #'org-roam--get-titles))
-                    (;; Only headline
-                     (string-empty-p title)
-                     has-headline-p
-                     (setq collection #'org-roam--get-headlines)
-                     (setq start headline-start)))))))))
-    (when collection
-      (let ((prefix (buffer-substring-no-properties start end)))
-        (list start end
-              (if (functionp collection)
-                  (completion-table-dynamic
-                   (lambda (_)
-                     (cl-remove-if (apply-partially 'string= prefix) (funcall collection))))
-                collection)
-              :exit-function exit-fn
-              'ignore)))))
+      (pcase-let ((`(,type ,title _ ,star-idx)
+                   (org-roam--split-fuzzy-link (match-string-no-properties 1))))
+        (pcase type
+          ('title+headline
+           (when-let ((file (org-roam--get-file-from-title title t)))
+             (setq collection (apply-partially #'org-roam--get-headlines file))
+             (setq start (+ start star-idx 1))))
+          ('title
+           (setq collection #'org-roam--get-titles))
+          ('headline
+           (setq collection #'org-roam--get-headlines)
+           (setq start (+ start star-idx 1)))))))
+      (when collection
+        (let ((prefix (buffer-substring-no-properties start end)))
+          (list start end
+                (if (functionp collection)
+                    (completion-table-dynamic
+                     (lambda (_)
+                       (cl-remove-if (apply-partially 'string= prefix) (funcall collection))))
+                  collection)
+                :exit-function exit-fn)))))
 
 ;;; Fuzzy Links
 (defcustom org-roam-auto-replace-fuzzy-links t
@@ -1159,12 +1152,23 @@ This function hooks into `org-open-at-point' via
 
 (defun org-roam--split-fuzzy-link (link)
   "Splits LINK into title and headline.
-Return a list of the form (title has-headline-p headline), nil otherwise."
+Return a list of the form (type title has-headline-p headline star-idx).
+type is one of `title', `headline', `title+headline'.
+title is the title component of the link.
+headline is the headline component of the link.
+star-idx is the index of the asterisk, if any."
   (save-match-data
-    (when (string-match org-roam-title-headline-split-regexp link)
-      (list (match-string-no-properties 1 link)
-            (not (string-empty-p (match-string-no-properties 2 link)))
-            (match-string-no-properties 3 link)))))
+    (let* ((star-index (string-match-p "\\*" link))
+           (title (substring-no-properties link 0 star-index))
+           (headline (if star-index
+                         (substring-no-properties link (+ 1 star-index))
+                       ""))
+           (type (cond ((not star-index)
+                       'title)
+                       ((= 0 star-index)
+                       'headline)
+                       (t 'title+headline))))
+      (list type title headline star-index))))
 
 (defun org-roam--get-titles ()
   "Return all titles within Org-roam."
@@ -1251,14 +1255,11 @@ nil is returned if there is no matching location.
 link-type is either \"file\" or \"id\".
 loc is the target location: e.g. a file path, or an id.
 marker is a marker to the headline, if applicable."
-  (let ((splits (org-roam--split-fuzzy-link link))
-        mkr link-type desc loc)
-    (when splits
-      (pcase-let ((`(,title ,has-headline-p ,headline) splits))
-        (cond (;; title and headline present
-               (and (not (string-empty-p title))
-                    has-headline-p)
-               (let ((file (org-roam--get-file-from-title title)))
+  (let (mkr link-type desc loc)
+    (pcase-let ((`(,type ,title ,headline _) (org-roam--split-fuzzy-link link)))
+      (pcase type
+        ('title+headline
+         (let ((file (org-roam--get-file-from-title title)))
                  (if (not file)
                      (org-roam-message "Cannot find matching file")
                    (setq mkr (org-roam--get-id-from-headline headline file))
@@ -1269,24 +1270,21 @@ marker is a marker to the headline, if applicable."
                             link-type "id"
                             desc headline))
                      (_ (org-roam-message "cannot find matching id"))))))
-              (;; Only title
-               (not has-headline-p)
-               (setq loc (org-roam--get-file-from-title title)
+        ('title
+         (setq loc (org-roam--get-file-from-title title)
                      desc title
                      link-type "file")
-               (when loc (setq loc (file-relative-name loc))))
-              (;; Only headline
-               (and (string-empty-p title)
-                    has-headline-p)
-               (setq mkr (org-roam--get-id-from-headline headline))
-               (pcase mkr
+         (when loc (setq loc (file-relative-name loc))))
+        ('headline
+         (setq mkr (org-roam--get-id-from-headline headline))
+         (pcase mkr
                  (`(,marker . ,target-id)
                   (setq mkr marker
                         loc target-id
                         desc headline
                         link-type "id"))
                  (_ (org-roam-message "Cannot find matching headline")))))
-        (list link-type loc desc mkr)))))
+      (list link-type loc desc mkr))))
 
 (defun org-roam--open-fuzzy-link (link)
   "Open a Org fuzzy LINK.
@@ -1307,17 +1305,16 @@ Three types of fuzzy links are supported:
              (org-roam--org-roam-file-p))
     (when-let ((location (org-roam--get-fuzzy-link-location link)))
       (pcase-let ((`(,link-type ,loc ,desc ,mkr) location))
-        (when (and (not loc)
-                   (string-equal link-type "file"))
-          (org-roam-find-file desc nil nil t))
         (when (and org-roam-auto-replace-fuzzy-links
                    loc desc)
           (org-roam-replace-fuzzy-link (concat link-type ":" loc) desc))
         (pcase link-type
-                ("file"
-                 (org-roam--find-file loc))
-                ("id"
-                 (org-goto-marker-or-bmk mkr)))))
+          ("file"
+           (if loc
+               (org-roam--find-file loc)
+             (org-roam-find-file desc nil nil t)))
+          ("id"
+           (org-goto-marker-or-bmk mkr)))))
     t))
 
 (defun org-roam--replace-all-fuzzy-links ()
