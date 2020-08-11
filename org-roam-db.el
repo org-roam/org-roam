@@ -512,9 +512,10 @@ If FORCE, force a rebuild of the cache from scratch."
                       :values $v1]
                      (vector file contents-hash (list :atime atime :mtime mtime)))
                     (setq file-count (1+ file-count))
-                    (when-let ((headlines (org-roam--extract-headlines file)))
-                      (when (org-roam-db--insert-headlines headlines)
-                        (setq headline-count (1+ headline-count)))))
+                    (when org-roam-enable-headline-linking
+                      (when-let ((headlines (org-roam--extract-headlines file)))
+                        (when (org-roam-db--insert-headlines headlines)
+                          (setq headline-count (1+ headline-count))))))
                 (file-error
                  (setq org-roam-files (remove file org-roam-files))
                  (org-roam-db--clear-file file)
