@@ -1498,7 +1498,8 @@ variable using directory-local variables. This is what @code{.dir-locals.el} may
 contain:
 
 @lisp
-((nil . ((org-roam-directory . "/path/to/here/"))))
+((nil . ((org-roam-directory . ".")
+         (org-roam-db-location . "./org-roam.db"))))
 @end lisp
 
 All files within that directory will be treated as their own separate
