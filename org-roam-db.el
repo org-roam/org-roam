@@ -35,6 +35,7 @@
 (require 'emacsql)
 (require 'emacsql-sqlite3)
 (require 'seq)
+(require 'org-macs)
 (require 'org-roam-macs)
 
 (defvar org-roam-directory)
