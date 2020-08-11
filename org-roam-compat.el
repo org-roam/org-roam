@@ -82,8 +82,20 @@
 (define-obsolete-function-alias 'org-roam-db--clear 'org-roam-db-clear
   "org-roam 1.2.0")
 
-(when (version< (org-version) "9.3")
-  (defalias 'org-link-make-string 'org-make-link-string))
+(defalias 'org-roam-link-make-string
+  (if (fboundp 'org-link-make-string)
+      'org-link-make-string
+    'org-make-link-string))
+
+(defalias 'org-roam-link-store-props
+  (if (fboundp 'org-link-store-props)
+      'org-link-store-props
+    'org-store-link-props))
+
+(defalias 'org-roam-link-decode
+  (if (fboundp 'org-link-decode)
+      'org-link-decode
+    'org-link-escape))
 
 ;;;; Variables
 (define-obsolete-variable-alias 'org-roam-graphviz-extra-options
