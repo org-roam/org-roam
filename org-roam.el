@@ -422,10 +422,11 @@ recursion."
                              (funcall predicate full-file)))
                 (let ((sub-files
                        (if (eq predicate t)
-                           (ignore-error file-error
-                             (org-roam--directory-files-recursively
+                           (condition-case nil
+                               (org-roam--directory-files-recursively
                               full-file regexp include-directories
-                              predicate follow-symlinks))
+                              predicate follow-symlinks)
+                             (file-error nil))
                          (org-roam--directory-files-recursively
                           full-file regexp include-directories
                           predicate follow-symlinks))))
@@ -818,7 +819,7 @@ TYPE defaults to \"file\"."
                      (buffer-file-name)
                      (file-truename)
                      (file-name-directory)))))
-    (org-link-make-string
+    (org-roam-link-make-string
      (concat (or type "file") ":" (if here
                                     (file-relative-name target here)
                                   target))
@@ -1033,7 +1034,7 @@ citation key, for Org-ref cite links."
              (org-roam--org-roam-file-p))
     (if (org-before-first-heading-p)
         (when-let ((titles (org-roam--extract-titles)))
-          (org-link-store-props
+          (org-roam-link-store-props
            :type        "file"
            :link        (format "file:%s" (abbreviate-file-name buffer-file-name))
            :description (car titles)))
@@ -1453,7 +1454,7 @@ update with NEW-DESC."
                    (new-label (if (string-equal label old-desc)
                                   new-desc
                                 label)))
-              (replace-match (org-link-make-string
+              (replace-match (org-roam-link-make-string
                               (concat (cdr m) ":"
                                       (file-relative-name new-path (file-name-directory (buffer-file-name))))
                               new-label)))))))
@@ -1857,7 +1858,7 @@ linked, lest the network graph get too crowded."
                                            file-loc)))
                   (let ((rowcol (concat row ":" col)))
                     (insert "- "
-                            (org-link-make-string (concat "file:" file "::" rowcol)
+                            (org-roam-link-make-string (concat "file:" file "::" rowcol)
                                                   (format "[%s] %s" rowcol (org-roam--get-title-or-slug file))))
                     (when (executable-find "sed") ; insert line contents when sed is available
                       (insert " :: "
