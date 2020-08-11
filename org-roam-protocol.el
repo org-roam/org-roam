@@ -52,7 +52,7 @@ It opens or creates a note with the given ref.
               (decoded-alist (mapcar (lambda (k.v)
                                        (let ((key (car k.v))
                                              (val (cdr k.v)))
-                                         (cons key (org-link-decode val)))) alist)))
+                                         (cons key (org-roam-link-decode val)))) alist)))
     (unless (assoc 'ref decoded-alist)
       (error "No ref key provided"))
     (when-let ((title (cdr (assoc 'title decoded-alist))))

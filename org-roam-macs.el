@@ -83,7 +83,7 @@ If DESC, also replace the desc"
     (let ((desc (or desc (match-string-no-properties 1)))
           (remove (list (match-beginning 0) (match-end 0))))
       (apply #'delete-region remove)
-      (insert (org-link-make-string new-loc desc)))
+      (insert (org-roam-link-make-string new-loc desc)))
     (sit-for 0)))
 
 ;;; Shielding regions
