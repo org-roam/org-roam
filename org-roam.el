@@ -258,19 +258,19 @@ space-delimited strings.
 This is set by `org-roam--with-temp-buffer', to allow throwing of
 descriptive warnings when certain operations fail (e.g. parsing).")
 
-(defvar org-roam--org-link-file-bracket-re
-  (rx "[[file:" (seq (group (one-or-more (or (not (any "]" "[" "\\"))
-                                             (seq "\\"
-                                                  (zero-or-more "\\\\")
-                                                  (any "[" "]"))
-                                             (seq (one-or-more "\\")
-                                                  (not (any "]" "["))))))
-                     "]"
-                     (zero-or-one (seq "["
-                                       (group (+? anything))
-                                       "]"))
-                     "]"))
-  "Matches a 'file:' link in double brackets.")
+(defvar org-roam--org-link-bracket-typed-re
+  (rx (seq "[["
+           (group (+? anything))
+           ":"
+           (group
+            (one-or-more
+             (or (not (any "[]\\"))
+                 (and "\\" (zero-or-more "\\\\") (any "[]"))
+                 (and (one-or-more "\\") (not (any "[]"))))))
+           "]"
+           (opt "[" (group (+? anything)) "]")
+           "]"))
+  "Matches a typed link in double brackets.")
 
 ;;;; Utilities
 (defun org-roam--plist-to-alist (plist)
@@ -490,20 +490,20 @@ The search terminates when the first property is encountered."
   "Crawl CONTENT for relative links and expand them.
 PATH should be the root from which to compute the relativity."
   (let ((dir (file-name-directory path))
-        (re org-roam--org-link-file-bracket-re)
-        link)
+        link link-type)
     (with-temp-buffer
       (insert content)
       (goto-char (point-min))
       ;; Loop over links
-      (while (re-search-forward re (point-max) t)
-        (goto-char (match-beginning 1))
-        ;; Strip 'file:'
-        (setq link (match-string 1))
+      (while (re-search-forward org-roam--org-link-bracket-typed-re (point-max) t)
+        (goto-char (match-beginning 2))
+        (setq link-type (match-string 1)
+              link (match-string 2))
         ;; Delete relative link
-        (when (f-relative-p link)
-          (delete-region (match-beginning 1)
-                         (match-end 1))
+        (when (and (member link-type '("file")) ; TODO: Fix this
+                   (f-relative-p link))
+          (delete-region (match-beginning 2)
+                         (match-end 2))
           (insert (expand-file-name link dir))))
       (buffer-string))))
 
@@ -581,10 +581,6 @@ it as FILE-PATH."
                                     :content content
                                     :point begin))
                   (names (pcase type
-                           ("file"
-                            (if (file-remote-p path)
-                                (list path)
-                              (list (file-truename (expand-file-name path (file-name-directory file-path))))))
                            ("id"
                             (list (car (org-roam-id-find path))))
                            ((pred (lambda (typ)
@@ -593,7 +589,13 @@ it as FILE-PATH."
                             (setq type "cite")
                             (org-ref-split-and-strip-string path))
                            ("fuzzy" (list path))
-                           (_ (list (org-element-property :raw-link link))))))
+                           (_ (if (file-remote-p path)
+                                  (list path)
+                                (let ((file-maybe (file-truename
+                                                   (expand-file-name path (file-name-directory file-path)))))
+                                  (if (f-exists? file-maybe)
+                                      (list file-maybe)
+                                    (list path))))))))
               (seq-do (lambda (name)
                         (when name
                           (push (vector file-path
@@ -796,14 +798,16 @@ Examples:
            (slug (-reduce-from #'cl-replace (strip-nonspacing-marks title) pairs)))
       (downcase slug))))
 
-(defun org-roam--format-link-title (title)
-  "Return the link title, given the file TITLE."
+(defun org-roam--format-link-title (title &optional type)
+  "Return the link title, given the file TITLE.
+If `org-roam-link-title-format title' is defined, use it with TYPE."
   (if (functionp org-roam-link-title-format)
-      (funcall org-roam-link-title-format title)
+      (funcall org-roam-link-title-format title type)
     (format org-roam-link-title-format title)))
 
-(defun org-roam--format-link (target &optional description)
-  "Formats an org link for a given file TARGET and link DESCRIPTION."
+(defun org-roam--format-link (target &optional description type)
+  "Formats an org link for a given file TARGET, link DESCRIPTION and link TYPE.
+TYPE defaults to \"file\"."
   (let* ((here (ignore-errors
                  (-> (or (buffer-base-buffer)
                          (current-buffer))
@@ -811,9 +815,9 @@ Examples:
                      (file-truename)
                      (file-name-directory)))))
     (org-link-make-string
-     (concat "file:" (if here
-                         (file-relative-name target here)
-                       target))
+     (concat (or type "file") ":" (if here
+                                    (file-relative-name target here)
+                                  target))
      description)))
 
 (defun org-roam--get-title-path-completions ()
@@ -971,8 +975,8 @@ buffer or a marker."
              (type (org-element-property :type context))
              (dest (org-element-property :path context)))
         (pcase type
-          ("file" dest)
-          ("id" (car (org-roam-id-find dest))))))))
+          ("id" (car (org-roam-id-find dest)))
+          (_ dest))))))
 
 (defun org-roam--backlink-to-current-p ()
   "Return t if backlink is to the current Org-roam file."
@@ -989,10 +993,8 @@ This function hooks into `org-open-at-point' via `org-open-at-point-functions'."
   (cond
    ;; Org-roam link
    ((let* ((context (org-element-context))
-           (type (org-element-property :type context))
            (path (org-element-property :path context)))
       (when (and (eq (org-element-type context) 'link)
-                 (string= "file" type)
                  (org-roam--org-roam-file-p (file-truename path)))
         (org-roam-buffer--find-file path)
         (org-show-context)
@@ -1090,51 +1092,57 @@ This function hooks into `org-open-at-point' via
              nil)))))
 
 ;;; Completion at point
-(defconst org-roam-open-bracket-regexp
-  "\\[\\[\\([^\]]*\\)")
-
-(defconst org-roam-title-headline-split-regexp
-  "\\([^\*]*\\)\\(\*?\\)\\([^\]]*\\)")
+(defconst org-roam-fuzzy-link-regexp
+  (rx (seq "[["
+           (group
+            (zero-or-more
+             (or (not (any "[]\\"))
+                 (and "\\" (zero-or-more "\\\\") (any "[]"))
+                 (and (one-or-more "\\") (not (any "[]"))))))
+           "]]")))
 
 (defun org-roam-complete-at-point ()
   "Do appropriate completion for the thing at point."
   (let ((end (point))
-        start
+        (start (point))
+        (exit-fn (lambda (&rest _) nil))
         collection)
-    (cond (;; In an open bracket
-           (looking-back (concat "^.*" org-roam-open-bracket-regexp) (line-beginning-position))
-           (setq start (match-beginning 1)
-                 end (match-end 1))
-           (save-match-data
-             (save-excursion
-               (goto-char start)
-               (when (looking-at org-roam-title-headline-split-regexp)
-                 (let ((title (match-string-no-properties 1))
-                       (has-headline-p (not (string-empty-p (match-string-no-properties 2))))
-                       (headline-start (match-beginning 3)))
-                   (cond (;; title and headline present
-                          (and (not (string-empty-p title))
-                               has-headline-p)
-                          (when-let ((file (org-roam--get-file-from-title title t)))
-                            (setq collection (apply-partially #'org-roam--get-headlines file))
-                            (setq start headline-start)))
-                         (;; Only title
-                          (not has-headline-p)
-                          (setq collection #'org-roam--get-titles))
-                         (;; Only headline
-                          (string-empty-p title)
-                          has-headline-p
-                          (setq collection #'org-roam--get-headlines)
-                          (setq start headline-start)))))))))
-    (when collection
-      (let ((prefix (buffer-substring-no-properties start end)))
-        (list start end
-              (if (functionp collection)
-                  (completion-table-dynamic
-                   (lambda (_)
-                     (cl-remove-if (apply-partially 'string= prefix) (funcall collection))))
-                collection)
-              'ignore)))))
+    (cond
+     (;; completing roam_tags
+      (looking-back "^#\\+roam_tags:.*" (line-beginning-position))
+      (when (looking-at "\\>")
+        (setq start (save-excursion (skip-syntax-backward "w")
+                                    (point))
+              end (point)))
+      (setq collection #'org-roam-db--get-tags
+            exit-fn (lambda (str _status)
+                      (delete-char (- (length str)))
+                      (insert "\"" str "\""))))
+     (;; In a fuzzy link
+      (org-in-regexp org-roam-fuzzy-link-regexp)
+      (setq start (match-beginning 1)
+            end (match-end 1))
+      (pcase-let ((`(,type ,title _ ,star-idx)
+                   (org-roam--split-fuzzy-link (match-string-no-properties 1))))
+        (pcase type
+          ('title+headline
+           (when-let ((file (org-roam--get-file-from-title title t)))
+             (setq collection (apply-partially #'org-roam--get-headlines file))
+             (setq start (+ start star-idx 1))))
+          ('title
+           (setq collection #'org-roam--get-titles))
+          ('headline
+           (setq collection #'org-roam--get-headlines)
+           (setq start (+ start star-idx 1)))))))
+      (when collection
+        (let ((prefix (buffer-substring-no-properties start end)))
+          (list start end
+                (if (functionp collection)
+                    (completion-table-dynamic
+                     (lambda (_)
+                       (cl-remove-if (apply-partially 'string= prefix) (funcall collection))))
+                  collection)
+                :exit-function exit-fn)))))
 
 ;;; Fuzzy Links
 (defcustom org-roam-auto-replace-fuzzy-links t
@@ -1144,12 +1152,23 @@ This function hooks into `org-open-at-point' via
 
 (defun org-roam--split-fuzzy-link (link)
   "Splits LINK into title and headline.
-Return a list of the form (title has-headline-p headline), nil otherwise."
+Return a list of the form (type title has-headline-p headline star-idx).
+type is one of `title', `headline', `title+headline'.
+title is the title component of the link.
+headline is the headline component of the link.
+star-idx is the index of the asterisk, if any."
   (save-match-data
-    (when (string-match org-roam-title-headline-split-regexp link)
-      (list (match-string-no-properties 1 link)
-            (not (string-empty-p (match-string-no-properties 2 link)))
-            (match-string-no-properties 3 link)))))
+    (let* ((star-index (string-match-p "\\*" link))
+           (title (substring-no-properties link 0 star-index))
+           (headline (if star-index
+                         (substring-no-properties link (+ 1 star-index))
+                       ""))
+           (type (cond ((not star-index)
+                       'title)
+                       ((= 0 star-index)
+                       'headline)
+                       (t 'title+headline))))
+      (list type title headline star-index))))
 
 (defun org-roam--get-titles ()
   "Return all titles within Org-roam."
@@ -1226,9 +1245,7 @@ If there is no corresponding headline, return nil."
           (goto-char marker)
           (cons marker
                 (when org-roam-auto-replace-fuzzy-links
-                  (let ((id (org-id-get-create)))
-                    (save-buffer)
-                    id))))))))
+                  (org-id-get-create))))))))
 
 (defun org-roam--get-fuzzy-link-location (link)
   "Return the location of Org-roam fuzzy LINK.
@@ -1238,14 +1255,11 @@ nil is returned if there is no matching location.
 link-type is either \"file\" or \"id\".
 loc is the target location: e.g. a file path, or an id.
 marker is a marker to the headline, if applicable."
-  (let ((splits (org-roam--split-fuzzy-link link))
-        mkr link-type desc loc)
-    (when splits
-      (pcase-let ((`(,title ,has-headline-p ,headline) splits))
-        (cond (;; title and headline present
-               (and (not (string-empty-p title))
-                    has-headline-p)
-               (let ((file (org-roam--get-file-from-title title)))
+  (let (mkr link-type desc loc)
+    (pcase-let ((`(,type ,title ,headline _) (org-roam--split-fuzzy-link link)))
+      (pcase type
+        ('title+headline
+         (let ((file (org-roam--get-file-from-title title)))
                  (if (not file)
                      (org-roam-message "Cannot find matching file")
                    (setq mkr (org-roam--get-id-from-headline headline file))
@@ -1256,24 +1270,21 @@ marker is a marker to the headline, if applicable."
                             link-type "id"
                             desc headline))
                      (_ (org-roam-message "cannot find matching id"))))))
-              (;; Only title
-               (not has-headline-p)
-               (setq loc (org-roam--get-file-from-title title)
+        ('title
+         (setq loc (org-roam--get-file-from-title title)
                      desc title
                      link-type "file")
-               (when loc (setq loc (file-relative-name loc))))
-              (;; Only headline
-               (and (string-empty-p title)
-                    has-headline-p)
-               (setq mkr (org-roam--get-id-from-headline headline))
-               (pcase mkr
+         (when loc (setq loc (file-relative-name loc))))
+        ('headline
+         (setq mkr (org-roam--get-id-from-headline headline))
+         (pcase mkr
                  (`(,marker . ,target-id)
                   (setq mkr marker
                         loc target-id
                         desc headline
                         link-type "id"))
                  (_ (org-roam-message "Cannot find matching headline")))))
-        (list link-type loc desc mkr)))))
+      (list link-type loc desc mkr))))
 
 (defun org-roam--open-fuzzy-link (link)
   "Open a Org fuzzy LINK.
@@ -1294,17 +1305,16 @@ Three types of fuzzy links are supported:
              (org-roam--org-roam-file-p))
     (when-let ((location (org-roam--get-fuzzy-link-location link)))
       (pcase-let ((`(,link-type ,loc ,desc ,mkr) location))
-        (when (and (not loc)
-                   (string-equal link-type "file"))
-          (org-roam-find-file desc nil nil t))
         (when (and org-roam-auto-replace-fuzzy-links
                    loc desc)
           (org-roam-replace-fuzzy-link (concat link-type ":" loc) desc))
         (pcase link-type
-                ("file"
-                 (org-roam--find-file loc))
-                ("id"
-                 (org-goto-marker-or-bmk mkr)))))
+          ("file"
+           (if loc
+               (org-roam--find-file loc)
+             (org-roam-find-file desc nil nil t)))
+          ("id"
+           (org-goto-marker-or-bmk mkr)))))
     t))
 
 (defun org-roam--replace-all-fuzzy-links ()
@@ -1424,12 +1434,12 @@ update with NEW-DESC."
                             (lambda (l)
                               (let ((type (org-element-property :type l))
                                     (path (org-element-property :path l)))
-                                (when (and (equal "file" type)
-                                           (string-equal (file-truename path)
-                                                         old-path))
-                                  (set-marker (make-marker) (org-element-property :begin l))))))))
+                                (when (string-equal (file-truename path)
+                                                    old-path)
+                                  (cons (set-marker (make-marker) (org-element-property :begin l))
+                                        type)))))))
         (dolist (m link-markers)
-          (goto-char m)
+          (goto-char (car m))
           (save-match-data
             (unless (org-in-regexp org-link-bracket-re 1)
               (user-error "No link at point"))
@@ -1440,7 +1450,8 @@ update with NEW-DESC."
                                   new-desc
                                 label)))
               (replace-match (org-link-make-string
-                              (concat "file:" (file-relative-name new-path (file-name-directory (buffer-file-name))))
+                              (concat (cdr m) ":"
+                                      (file-relative-name new-path (file-name-directory (buffer-file-name))))
                               new-label)))))))
     (save-buffer)))
 
@@ -1452,21 +1463,20 @@ replaced links are made relative to the current buffer."
                   (lambda (link)
                     (let ((type (org-element-property :type link))
                           (path (org-element-property :path link)))
-                      (when (and (equal "file" type)
-                                 (f-relative-p path))
+                      (when (f-relative-p path)
                         (cons (set-marker (make-marker)
                                           (org-element-property :begin link))
-                              path)))))))
+                              (cons path type))))))))
     (save-excursion
       (save-match-data
         (dolist (link links)
-          (pcase-let ((`(,marker . ,path) link))
+          (pcase-let ((`(,marker . (,path . ,type)) link))
             (goto-char marker)
             (unless (org-in-regexp org-link-bracket-re 1)
               (user-error "No link at point"))
             (let* ((file-path (expand-file-name path (file-name-directory old-path)))
                    (new-path (file-relative-name file-path (file-name-directory (buffer-file-name)))))
-              (replace-match (concat "file:" new-path)
+              (replace-match (concat type ":" new-path)
                              nil t nil 1))
             (set-marker marker nil)))))))
 
@@ -1493,10 +1503,8 @@ replaced links are made relative to the current buffer."
                              (find-file-noselect new-path)))
              (files-to-rename (org-roam-db-query [:select :distinct [from]
                                                   :from links
-                                                  :where (= to $s1)
-                                                  :and (= type $s2)]
-                                                 old-path
-                                                 "file")))
+                                                  :where (= to $s1)]
+                                                 old-path)))
         ;; Remove database entries for old-file.org
         (org-roam-db--clear-file old-file)
         ;; Insert new headlines locations in new-file.org after removing the previous IDs
@@ -1662,9 +1670,10 @@ included as a candidate."
   (find-file (seq-random-elt (org-roam--list-all-files))))
 
 ;;;###autoload
-(defun org-roam-insert (&optional lowercase completions filter-fn description)
+(defun org-roam-insert (&optional lowercase completions filter-fn description link-type)
   "Find an Org-roam file, and insert a relative org link to it at point.
 Return selected file if it exists.
+LINK-TYPE is the type of link to be created. It defaults to \"file\".
 If LOWERCASE, downcase the title before insertion.
 COMPLETIONS is a list of completions to be used instead of
 `org-roam--get-title-path-completions`.
@@ -1698,20 +1707,22 @@ If DESCRIPTION is provided, use this as the link label.  See
                (description (or description region-text title))
                (link-description (org-roam--format-link-title (if lowercase
                                                                   (downcase description)
-                                                                description))))
+                                                                description)
+                                                              link-type)))
           (cond ((and target-file-path
                       (file-exists-p target-file-path))
                  (when region-text
                    (delete-region beg end)
                    (set-marker beg nil)
                    (set-marker end nil))
-                 (insert (org-roam--format-link target-file-path link-description)))
+                 (insert (org-roam--format-link target-file-path link-description link-type)))
                 (t
                  (let ((org-roam-capture--info `((title . ,title-with-tags)
                                                  (slug . ,(funcall org-roam-title-to-slug-function title-with-tags))))
                        (org-roam-capture--context 'title))
                    (setq org-roam-capture-additional-template-props (list :region (org-roam-shield-region beg end)
                                                                           :insert-at (point-marker)
+                                                                          :link-type link-type
                                                                           :link-description link-description
                                                                           :finalize 'insert-link))
                    (org-roam-capture--capture))))

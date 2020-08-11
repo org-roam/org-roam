@@ -260,22 +260,26 @@
                 ["801b58eb-97e2-435f-a33e-ff59a2f0c213" ,(test-org-roam--abs-path "headlines/headline.org")])))))
 
 (describe "Test fuzzy links"
+  (it ""
+    (expect (org-roam--split-fuzzy-link "")
+            :to-equal
+            '(title "" "" nil)))
   (it "title"
     (expect (org-roam--split-fuzzy-link "title")
             :to-equal
-            '("title" nil "")))
+            '(title "title" "" nil)))
   (it "title*"
     (expect (org-roam--split-fuzzy-link "title*")
             :to-equal
-            '("title" t "")))
+            '(title+headline "title" "" 5)))
   (it "title*headline"
     (expect (org-roam--split-fuzzy-link "title*headline")
             :to-equal
-            '("title" t "headline")))
+            '(title+headline "title" "headline" 5)))
   (it "*headline"
     (expect (org-roam--split-fuzzy-link "*headline")
             :to-equal
-            '("" t "headline"))))
+            '(headline "" "headline" 0))))
 
 ;;; Tests
 (xdescribe "org-roam-db-build-cache"
