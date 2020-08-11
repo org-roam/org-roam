@@ -272,6 +272,11 @@ descriptive warnings when certain operations fail (e.g. parsing).")
            "]"))
   "Matches a typed link in double brackets.")
 
+;; store timer so we can cancel it when org-mode is shutdown
+(defvar-local org-roam--updater-timer nil)
+;; list of files that need to be save at next idle slot
+(defvar-local org-roam--files-to-be-updated-when-idle '())
+
 ;;;; Utilities
 (defun org-roam--plist-to-alist (plist)
   "Return an alist of the property-value pairs in PLIST."
@@ -1404,6 +1409,22 @@ file."
           (t
            'org-link))))
 
+;; light-weight function that is called during after-save-hook and only schedules the current
+;; orgmode file to be org-roam updated during the next idle slot
+(defun org-roam--update-db-when-idle (&optional file-path)
+  (when (org-roam--org-roam-file-p file-path)
+    (let ((fp (or file-path buffer-file-name)))
+      ;; only add filename if not in the list already
+      (add-to-list 'org-roam--files-to-be-updated-when-idle fp))))
+
+(defun org-roam--idle-updater ()
+  (when org-roam--files-to-be-updated-when-idle
+    ;; if there are filenames queued up, process them all here
+    (message "updating org-roam db because idle")
+    (mapc #'org-roam-db--update-file org-roam--files-to-be-updated-when-idle)
+    ;; and then reset the list
+    (setq org-roam--files-to-be-updated-when-idle '())))
+
 ;;;; Hooks and Advices
 (defun org-roam--find-file-hook-function ()
   "Called by `find-file-hook' when mode symbol `org-roam-mode' is on."
@@ -1411,7 +1432,7 @@ file."
     (setq org-roam-last-window (get-buffer-window))
     (add-hook 'post-command-hook #'org-roam-buffer--update-maybe nil t)
     (add-hook 'before-save-hook #'org-roam--replace-fuzzy-link-on-save nil t)
-    (add-hook 'after-save-hook #'org-roam-db--update-file nil t)
+    (add-hook 'after-save-hook #'org-roam--update-db-when-idle nil t)
     (add-hook 'completion-at-point-functions #'org-roam-complete-at-point nil t)
     (org-roam-buffer--update-maybe :redisplay t)))
 
@@ -1562,6 +1583,7 @@ M-x info for more information at Org-roam > Installation > Post-Installation Tas
     (add-hook 'kill-emacs-hook #'org-roam-db--close-all)
     (add-hook 'org-open-at-point-functions #'org-roam-open-id-at-point)
     (add-hook 'org-open-link-functions #'org-roam--open-fuzzy-link)
+    (setq org-roam--updater-timer (run-with-idle-timer 2 t #'org-roam--idle-updater))
     (advice-add 'rename-file :after #'org-roam--rename-file-advice)
     (advice-add 'delete-file :before #'org-roam--delete-file-advice)
     (when (fboundp 'org-link-set-parameters)
@@ -1574,6 +1596,7 @@ M-x info for more information at Org-roam > Installation > Post-Installation Tas
     (remove-hook 'kill-emacs-hook #'org-roam-db--close-all)
     (remove-hook 'org-open-at-point-functions #'org-roam-open-id-at-point)
     (remove-hook 'org-open-link-functions #'org-roam--open-fuzzy-link)
+    (cancel-timer org-roam--updater-timer)
     (advice-remove 'rename-file #'org-roam--rename-file-advice)
     (advice-remove 'delete-file #'org-roam--delete-file-advice)
     (when (fboundp 'org-link-set-parameters)
@@ -1585,7 +1608,7 @@ M-x info for more information at Org-roam > Installation > Post-Installation Tas
       (with-current-buffer buf
         (remove-hook 'post-command-hook #'org-roam-buffer--update-maybe t)
         (remove-hook 'before-save-hook #'org-roam--replace-fuzzy-link-on-save t)
-        (remove-hook 'after-save-hook #'org-roam-db--update-file t))))))
+        (remove-hook 'after-save-hook #'org-roam--update-db-when-idle t))))))
 
 ;;; Interactive Commands
 ;;;###autoload
