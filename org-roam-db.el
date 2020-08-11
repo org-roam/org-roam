@@ -38,6 +38,7 @@
 (require 'org-roam-macs)
 
 (defvar org-roam-directory)
+(defvar org-roam-disable-headline-linking)
 (defvar org-roam-verbose)
 (defvar org-roam-file-name)
 
