@@ -38,7 +38,7 @@
 (require 'org-roam-macs)
 
 (defvar org-roam-directory)
-(defvar org-roam-disable-headline-linking)
+(defvar org-roam-enable-headline-linking)
 (defvar org-roam-verbose)
 (defvar org-roam-file-name)
 
@@ -472,7 +472,7 @@ connections, nil is returned."
            (org-roam-db--update-tags)
            (org-roam-db--update-titles)
            (org-roam-db--update-refs)
-           (when (not org-roam-disable-headline-linking)
+           (when org-roam-enable-headline-linking
              (org-roam-db--update-headlines))
            (org-roam-db--update-links)))
         (org-roam-buffer--update-maybe :redisplay t)))))

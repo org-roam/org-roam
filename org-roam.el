@@ -244,8 +244,8 @@ space-delimited strings.
            (symbol)))
   :group 'org-roam)
 
-(defcustom org-roam-disable-headline-linking nil
-  "Disable linking to headlines, that is, no automatic :ID: creation and no scanning of :ID:s for org-roam database."
+(defcustom org-roam-enable-headline-linking t
+  "Enable linking to headlines, which includes automatic :ID: creation and scanning of :ID:s for org-roam database."
   :type 'boolean
   :group 'org-roam)
 
@@ -1569,7 +1569,7 @@ M-x info for more information at Org-roam > Installation > Post-Installation Tas
     (advice-add 'rename-file :after #'org-roam--rename-file-advice)
     (advice-add 'delete-file :before #'org-roam--delete-file-advice)
     (when (fboundp 'org-link-set-parameters)
-      (when (not org-roam-disable-headline-linking)
+      (when org-roam-enable-headline-linking
         (org-link-set-parameters "file" :face 'org-roam--file-link-face :store #'org-roam-store-link))
       (org-link-set-parameters "id" :face 'org-roam--id-link-face))
     (org-roam-db-build-cache))
