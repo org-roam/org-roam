@@ -1420,8 +1420,8 @@ file."
 (defun org-roam--idle-updater ()
   (when org-roam--file-update-queue
     ;; if there are filenames queued up, process them all here
-    (message "updating org-roam db because idle")
     (mapc #'org-roam-db--update-file org-roam--file-update-queue)
+    (org-roam-message "org-roam updated files %s during idle." org-roam--file-update-queue)
     ;; and then reset the list
     (setq org-roam--file-update-queue '())))
 
