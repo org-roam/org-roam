@@ -273,9 +273,9 @@ descriptive warnings when certain operations fail (e.g. parsing).")
   "Matches a typed link in double brackets.")
 
 ;; store timer so we can cancel it when org-mode is shutdown
-(defvar-local org-roam--updater-timer nil)
+(defvar org-roam--updater-timer nil)
 ;; list of files that need to be save at next idle slot
-(defvar-local org-roam--files-to-be-updated-when-idle '())
+(defvar org-roam--file-update-queue '())
 
 ;;;; Utilities
 (defun org-roam--plist-to-alist (plist)
@@ -1415,15 +1415,15 @@ file."
   (when (org-roam--org-roam-file-p file-path)
     (let ((fp (or file-path buffer-file-name)))
       ;; only add filename if not in the list already
-      (add-to-list 'org-roam--files-to-be-updated-when-idle fp))))
+      (add-to-list 'org-roam--file-update-queue fp))))
 
 (defun org-roam--idle-updater ()
-  (when org-roam--files-to-be-updated-when-idle
+  (when org-roam--file-update-queue
     ;; if there are filenames queued up, process them all here
     (message "updating org-roam db because idle")
-    (mapc #'org-roam-db--update-file org-roam--files-to-be-updated-when-idle)
+    (mapc #'org-roam-db--update-file org-roam--file-update-queue)
     ;; and then reset the list
-    (setq org-roam--files-to-be-updated-when-idle '())))
+    (setq org-roam--file-update-queue '())))
 
 ;;;; Hooks and Advices
 (defun org-roam--find-file-hook-function ()
