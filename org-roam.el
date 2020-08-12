@@ -1411,9 +1411,9 @@ file."
            'org-link))))
 
 (defun org-roam--queue-file-for-update (&optional file-path)
-  "Schedule file for org-roam database update during idle.
-This is a light-weight function that is called during after-save-hook
-and only schedules the current orgmode file to be org-roam updated
+  "Schedule FILE-PATH for `org-roam' database update during idle.
+This is a light-weight function that is called during `after-save-hook'
+and only schedules the current orgmode file to be `org-roam' updated
 during the next idle slot."
   (when (org-roam--org-roam-file-p file-path)
     (let ((fp (or file-path buffer-file-name)))
@@ -1421,6 +1421,7 @@ during the next idle slot."
       (add-to-list 'org-roam--file-update-queue fp))))
 
 (defun org-roam--idle-updater ()
+  "Update queued up files in `org-roam' db during idle."
   (when org-roam--file-update-queue
     ;; if there are filenames queued up, process them all here
     (mapc #'org-roam-db--update-file org-roam--file-update-queue)
