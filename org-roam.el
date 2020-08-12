@@ -272,11 +272,11 @@ descriptive warnings when certain operations fail (e.g. parsing).")
            "]"))
   "Matches a typed link in double brackets.")
 
-(defvar org-roam--updater-timer nil
-  "Keep binding to idle timer so we can cancel it when `org-roam' is shutdown.")
+(defvar org-roam--file-update-timer nil
+  "Timer for updating the database on file changes.")
 
-(defvar org-roam--file-update-queue '()
-  "List of files that need to be save during next idle timer.")
+(defvar org-roam--file-update-queue nil
+  "List of files that need to be processed for a database update. Processed within `org-roam--file-update-timer'.")
 
 ;;;; Utilities
 (defun org-roam--plist-to-alist (plist)
@@ -1411,24 +1411,21 @@ file."
            'org-link))))
 
 (defun org-roam--queue-file-for-update (&optional file-path)
-  "Schedule FILE-PATH for `org-roam' database update during idle.
-This is a light-weight function that is called during `after-save-hook'
-and only schedules the current orgmode file to be `org-roam' updated
+  "Queue FILE-PATH for `org-roam' database update.
+This is a lightweight function that is called during `after-save-hook'
+and only schedules the current Org file to be `org-roam' updated
 during the next idle slot."
-  (when (org-roam--org-roam-file-p file-path)
-    (let ((fp (or file-path buffer-file-name)))
-      ;; only add filename if not in the list already
+  (let ((fp (or file-path buffer-file-name)))
+    (when (org-roam--org-roam-file-p file-path)
       (add-to-list 'org-roam--file-update-queue fp))))
 
-(defun org-roam--idle-updater ()
-  "Update queued up files in `org-roam' db during idle."
+(defun org-roam--process-update-queue ()
+  "Process files queued in `org-roam--file-update-queue'."
   (when org-roam--file-update-queue
-    ;; if there are filenames queued up, process them all here
     (mapc #'org-roam-db--update-file org-roam--file-update-queue)
     (org-roam-message "database updated during idle: %s."
                       (mapconcat #'file-name-nondirectory org-roam--file-update-queue  ", ") )
-    ;; and then reset the list
-    (setq org-roam--file-update-queue '())))
+    (setq org-roam--file-update-queue nil)))
 
 ;;;; Hooks and Advices
 (defun org-roam--find-file-hook-function ()
@@ -1588,7 +1585,7 @@ M-x info for more information at Org-roam > Installation > Post-Installation Tas
     (add-hook 'kill-emacs-hook #'org-roam-db--close-all)
     (add-hook 'org-open-at-point-functions #'org-roam-open-id-at-point)
     (add-hook 'org-open-link-functions #'org-roam--open-fuzzy-link)
-    (setq org-roam--updater-timer (run-with-idle-timer 2 t #'org-roam--idle-updater))
+    (setq org-roam--file-update-timer (run-with-idle-timer 2 t #'org-roam--process-update-queue))
     (advice-add 'rename-file :after #'org-roam--rename-file-advice)
     (advice-add 'delete-file :before #'org-roam--delete-file-advice)
     (when (fboundp 'org-link-set-parameters)
@@ -1601,7 +1598,8 @@ M-x info for more information at Org-roam > Installation > Post-Installation Tas
     (remove-hook 'kill-emacs-hook #'org-roam-db--close-all)
     (remove-hook 'org-open-at-point-functions #'org-roam-open-id-at-point)
     (remove-hook 'org-open-link-functions #'org-roam--open-fuzzy-link)
-    (cancel-timer org-roam--updater-timer)
+    (when org-roam--file-update-timer
+      (cancel-timer org-roam--file-update-timer))
     (advice-remove 'rename-file #'org-roam--rename-file-advice)
     (advice-remove 'delete-file #'org-roam--delete-file-advice)
     (when (fboundp 'org-link-set-parameters)
