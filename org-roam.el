@@ -277,6 +277,12 @@ descriptive warnings when certain operations fail (e.g. parsing).")
            "]"))
   "Matches a typed link in double brackets.")
 
+(defvar org-roam--file-update-timer nil
+  "Timer for updating the database on file changes.")
+
+(defvar org-roam--file-update-queue nil
+  "List of files that need to be processed for a database update. Processed within `org-roam--file-update-timer'.")
+
 ;;;; Utilities
 (defun org-roam--plist-to-alist (plist)
   "Return an alist of the property-value pairs in PLIST."
@@ -1409,6 +1415,23 @@ file."
           (t
            'org-link))))
 
+(defun org-roam--queue-file-for-update (&optional file-path)
+  "Queue FILE-PATH for `org-roam' database update.
+This is a lightweight function that is called during `after-save-hook'
+and only schedules the current Org file to be `org-roam' updated
+during the next idle slot."
+  (let ((fp (or file-path buffer-file-name)))
+    (when (org-roam--org-roam-file-p file-path)
+      (add-to-list 'org-roam--file-update-queue fp))))
+
+(defun org-roam--process-update-queue ()
+  "Process files queued in `org-roam--file-update-queue'."
+  (when org-roam--file-update-queue
+    (mapc #'org-roam-db--update-file org-roam--file-update-queue)
+    (org-roam-message "database updated during idle: %s."
+                      (mapconcat #'file-name-nondirectory org-roam--file-update-queue  ", ") )
+    (setq org-roam--file-update-queue nil)))
+
 ;;;; Hooks and Advices
 (defun org-roam--find-file-hook-function ()
   "Called by `find-file-hook' when mode symbol `org-roam-mode' is on."
@@ -1416,7 +1439,7 @@ file."
     (setq org-roam-last-window (get-buffer-window))
     (add-hook 'post-command-hook #'org-roam-buffer--update-maybe nil t)
     (add-hook 'before-save-hook #'org-roam--replace-fuzzy-link-on-save nil t)
-    (add-hook 'after-save-hook #'org-roam-db--update-file nil t)
+    (add-hook 'after-save-hook #'org-roam--queue-file-for-update nil t)
     (add-hook 'completion-at-point-functions #'org-roam-complete-at-point nil t)
     (org-roam-buffer--update-maybe :redisplay t)))
 
@@ -1567,6 +1590,7 @@ M-x info for more information at Org-roam > Installation > Post-Installation Tas
     (add-hook 'kill-emacs-hook #'org-roam-db--close-all)
     (add-hook 'org-open-at-point-functions #'org-roam-open-id-at-point)
     (add-hook 'org-open-link-functions #'org-roam--open-fuzzy-link)
+    (setq org-roam--file-update-timer (run-with-idle-timer 2 t #'org-roam--process-update-queue))
     (advice-add 'rename-file :after #'org-roam--rename-file-advice)
     (advice-add 'delete-file :before #'org-roam--delete-file-advice)
     (when (fboundp 'org-link-set-parameters)
@@ -1580,6 +1604,8 @@ M-x info for more information at Org-roam > Installation > Post-Installation Tas
     (remove-hook 'kill-emacs-hook #'org-roam-db--close-all)
     (remove-hook 'org-open-at-point-functions #'org-roam-open-id-at-point)
     (remove-hook 'org-open-link-functions #'org-roam--open-fuzzy-link)
+    (when org-roam--file-update-timer
+      (cancel-timer org-roam--file-update-timer))
     (advice-remove 'rename-file #'org-roam--rename-file-advice)
     (advice-remove 'delete-file #'org-roam--delete-file-advice)
     (when (fboundp 'org-link-set-parameters)
@@ -1591,7 +1617,7 @@ M-x info for more information at Org-roam > Installation > Post-Installation Tas
       (with-current-buffer buf
         (remove-hook 'post-command-hook #'org-roam-buffer--update-maybe t)
         (remove-hook 'before-save-hook #'org-roam--replace-fuzzy-link-on-save t)
-        (remove-hook 'after-save-hook #'org-roam-db--update-file t))))))
+        (remove-hook 'after-save-hook #'org-roam--queue-file-for-update t))))))
 
 ;;; Interactive Commands
 ;;;###autoload
