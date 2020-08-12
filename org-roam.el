@@ -1409,9 +1409,11 @@ file."
           (t
            'org-link))))
 
-;; light-weight function that is called during after-save-hook and only schedules the current
-;; orgmode file to be org-roam updated during the next idle slot
-(defun org-roam--update-db-when-idle (&optional file-path)
+(defun org-roam--queue-file-for-update (&optional file-path)
+  "Schedule file for org-roam database update during idle.
+This is a light-weight function that is called during after-save-hook
+and only schedules the current orgmode file to be org-roam updated
+during the next idle slot."
   (when (org-roam--org-roam-file-p file-path)
     (let ((fp (or file-path buffer-file-name)))
       ;; only add filename if not in the list already
@@ -1432,7 +1434,7 @@ file."
     (setq org-roam-last-window (get-buffer-window))
     (add-hook 'post-command-hook #'org-roam-buffer--update-maybe nil t)
     (add-hook 'before-save-hook #'org-roam--replace-fuzzy-link-on-save nil t)
-    (add-hook 'after-save-hook #'org-roam--update-db-when-idle nil t)
+    (add-hook 'after-save-hook #'org-roam--queue-file-for-update nil t)
     (add-hook 'completion-at-point-functions #'org-roam-complete-at-point nil t)
     (org-roam-buffer--update-maybe :redisplay t)))
 
@@ -1608,7 +1610,7 @@ M-x info for more information at Org-roam > Installation > Post-Installation Tas
       (with-current-buffer buf
         (remove-hook 'post-command-hook #'org-roam-buffer--update-maybe t)
         (remove-hook 'before-save-hook #'org-roam--replace-fuzzy-link-on-save t)
-        (remove-hook 'after-save-hook #'org-roam--update-db-when-idle t))))))
+        (remove-hook 'after-save-hook #'org-roam--queue-file-for-update t))))))
 
 ;;; Interactive Commands
 ;;;###autoload
