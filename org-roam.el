@@ -273,7 +273,7 @@ descriptive warnings when certain operations fail (e.g. parsing).")
   "Matches a typed link in double brackets.")
 
 (defvar org-roam--updater-timer nil
-  "Keep binding to idle timer so we can cancel it when org-mode is shutdown.")
+  "Keep binding to idle timer so we can cancel it when `org-roam' is shutdown.")
 
 (defvar org-roam--file-update-queue '()
   "List of files that need to be save during next idle timer.")
