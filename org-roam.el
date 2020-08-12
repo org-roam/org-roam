@@ -1424,7 +1424,8 @@ during the next idle slot."
   (when org-roam--file-update-queue
     ;; if there are filenames queued up, process them all here
     (mapc #'org-roam-db--update-file org-roam--file-update-queue)
-    (org-roam-message "org-roam updated files %s during idle." org-roam--file-update-queue)
+    (org-roam-message "database updated during idle: %s."
+                      (mapconcat #'file-name-nondirectory org-roam--file-update-queue  ", ") )
     ;; and then reset the list
     (setq org-roam--file-update-queue '())))
 
