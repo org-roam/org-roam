@@ -244,6 +244,11 @@ space-delimited strings.
            (symbol)))
   :group 'org-roam)
 
+(defcustom org-roam-enable-headline-linking t
+  "Enable linking to headlines, which includes automatic :ID: creation and scanning of :ID:s for org-roam database."
+  :type 'boolean
+  :group 'org-roam)
+
 (defcustom org-roam-verbose t
   "Echo messages that are not errors."
   :type 'boolean
@@ -271,6 +276,12 @@ descriptive warnings when certain operations fail (e.g. parsing).")
            (opt "[" (group (+? anything)) "]")
            "]"))
   "Matches a typed link in double brackets.")
+
+(defvar org-roam--file-update-timer nil
+  "Timer for updating the database on file changes.")
+
+(defvar org-roam--file-update-queue nil
+  "List of files that need to be processed for a database update. Processed within `org-roam--file-update-timer'.")
 
 ;;;; Utilities
 (defun org-roam--plist-to-alist (plist)
@@ -418,10 +429,11 @@ recursion."
                              (funcall predicate full-file)))
                 (let ((sub-files
                        (if (eq predicate t)
-                           (ignore-error file-error
-                             (org-roam--directory-files-recursively
+                           (condition-case nil
+                               (org-roam--directory-files-recursively
                               full-file regexp include-directories
-                              predicate follow-symlinks))
+                              predicate follow-symlinks)
+                             (file-error nil))
                          (org-roam--directory-files-recursively
                           full-file regexp include-directories
                           predicate follow-symlinks))))
@@ -814,7 +826,7 @@ TYPE defaults to \"file\"."
                      (buffer-file-name)
                      (file-truename)
                      (file-name-directory)))))
-    (org-link-make-string
+    (org-roam-link-make-string
      (concat (or type "file") ":" (if here
                                     (file-relative-name target here)
                                   target))
@@ -1029,7 +1041,7 @@ citation key, for Org-ref cite links."
              (org-roam--org-roam-file-p))
     (if (org-before-first-heading-p)
         (when-let ((titles (org-roam--extract-titles)))
-          (org-link-store-props
+          (org-roam-link-store-props
            :type        "file"
            :link        (format "file:%s" (abbreviate-file-name buffer-file-name))
            :description (car titles)))
@@ -1404,6 +1416,23 @@ file."
           (t
            'org-link))))
 
+(defun org-roam--queue-file-for-update (&optional file-path)
+  "Queue FILE-PATH for `org-roam' database update.
+This is a lightweight function that is called during `after-save-hook'
+and only schedules the current Org file to be `org-roam' updated
+during the next idle slot."
+  (let ((fp (or file-path buffer-file-name)))
+    (when (org-roam--org-roam-file-p file-path)
+      (add-to-list 'org-roam--file-update-queue fp))))
+
+(defun org-roam--process-update-queue ()
+  "Process files queued in `org-roam--file-update-queue'."
+  (when org-roam--file-update-queue
+    (mapc #'org-roam-db--update-file org-roam--file-update-queue)
+    (org-roam-message "database updated during idle: %s."
+                      (mapconcat #'file-name-nondirectory org-roam--file-update-queue  ", ") )
+    (setq org-roam--file-update-queue nil)))
+
 ;;;; Hooks and Advices
 (defun org-roam--find-file-hook-function ()
   "Called by `find-file-hook' when mode symbol `org-roam-mode' is on."
@@ -1411,7 +1440,7 @@ file."
     (setq org-roam-last-window (get-buffer-window))
     (add-hook 'post-command-hook #'org-roam-buffer--update-maybe nil t)
     (add-hook 'before-save-hook #'org-roam--replace-fuzzy-link-on-save nil t)
-    (add-hook 'after-save-hook #'org-roam-db--update-file nil t)
+    (add-hook 'after-save-hook #'org-roam--queue-file-for-update nil t)
     (add-hook 'completion-at-point-functions #'org-roam-complete-at-point nil t)
     (org-roam-buffer--update-maybe :redisplay t)))
 
@@ -1449,7 +1478,7 @@ update with NEW-DESC."
                    (new-label (if (string-equal label old-desc)
                                   new-desc
                                 label)))
-              (replace-match (org-link-make-string
+              (replace-match (org-roam-link-make-string
                               (concat (cdr m) ":"
                                       (file-relative-name new-path (file-name-directory (buffer-file-name))))
                               new-label)))))))
@@ -1562,10 +1591,12 @@ M-x info for more information at Org-roam > Installation > Post-Installation Tas
     (add-hook 'kill-emacs-hook #'org-roam-db--close-all)
     (add-hook 'org-open-at-point-functions #'org-roam-open-id-at-point)
     (add-hook 'org-open-link-functions #'org-roam--open-fuzzy-link)
+    (setq org-roam--file-update-timer (run-with-idle-timer 2 t #'org-roam--process-update-queue))
     (advice-add 'rename-file :after #'org-roam--rename-file-advice)
     (advice-add 'delete-file :before #'org-roam--delete-file-advice)
     (when (fboundp 'org-link-set-parameters)
-      (org-link-set-parameters "file" :face 'org-roam--file-link-face :store #'org-roam-store-link)
+      (when org-roam-enable-headline-linking
+        (org-link-set-parameters "file" :face 'org-roam--file-link-face :store #'org-roam-store-link))
       (org-link-set-parameters "id" :face 'org-roam--id-link-face))
     (org-roam-db-build-cache))
    (t
@@ -1574,6 +1605,8 @@ M-x info for more information at Org-roam > Installation > Post-Installation Tas
     (remove-hook 'kill-emacs-hook #'org-roam-db--close-all)
     (remove-hook 'org-open-at-point-functions #'org-roam-open-id-at-point)
     (remove-hook 'org-open-link-functions #'org-roam--open-fuzzy-link)
+    (when org-roam--file-update-timer
+      (cancel-timer org-roam--file-update-timer))
     (advice-remove 'rename-file #'org-roam--rename-file-advice)
     (advice-remove 'delete-file #'org-roam--delete-file-advice)
     (when (fboundp 'org-link-set-parameters)
@@ -1585,7 +1618,7 @@ M-x info for more information at Org-roam > Installation > Post-Installation Tas
       (with-current-buffer buf
         (remove-hook 'post-command-hook #'org-roam-buffer--update-maybe t)
         (remove-hook 'before-save-hook #'org-roam--replace-fuzzy-link-on-save t)
-        (remove-hook 'after-save-hook #'org-roam-db--update-file t))))))
+        (remove-hook 'after-save-hook #'org-roam--queue-file-for-update t))))))
 
 ;;; Interactive Commands
 ;;;###autoload
@@ -1852,7 +1885,7 @@ linked, lest the network graph get too crowded."
                                            file-loc)))
                   (let ((rowcol (concat row ":" col)))
                     (insert "- "
-                            (org-link-make-string (concat "file:" file "::" rowcol)
+                            (org-roam-link-make-string (concat "file:" file "::" rowcol)
                                                   (format "[%s] %s" rowcol (org-roam--get-title-or-slug file))))
                     (when (executable-find "sed") ; insert line contents when sed is available
                       (insert " :: "
