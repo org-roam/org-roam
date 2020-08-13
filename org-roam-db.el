@@ -39,6 +39,7 @@
 (require 'org-roam-macs)
 
 (defvar org-roam-directory)
+(defvar org-roam-enable-headline-linking)
 (defvar org-roam-verbose)
 (defvar org-roam-file-name)
 
@@ -472,7 +473,8 @@ connections, nil is returned."
            (org-roam-db--update-tags)
            (org-roam-db--update-titles)
            (org-roam-db--update-refs)
-           (org-roam-db--update-headlines)
+           (when org-roam-enable-headline-linking
+             (org-roam-db--update-headlines))
            (org-roam-db--update-links)))
         (org-roam-buffer--update-maybe :redisplay t)))))
 
@@ -511,9 +513,10 @@ If FORCE, force a rebuild of the cache from scratch."
                       :values $v1]
                      (vector file contents-hash (list :atime atime :mtime mtime)))
                     (setq file-count (1+ file-count))
-                    (when-let ((headlines (org-roam--extract-headlines file)))
-                      (when (org-roam-db--insert-headlines headlines)
-                        (setq headline-count (1+ headline-count)))))
+                    (when org-roam-enable-headline-linking
+                      (when-let ((headlines (org-roam--extract-headlines file)))
+                        (when (org-roam-db--insert-headlines headlines)
+                          (setq headline-count (1+ headline-count))))))
                 (file-error
                  (setq org-roam-files (remove file org-roam-files))
                  (org-roam-db--clear-file file)
