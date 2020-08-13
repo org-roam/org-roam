@@ -513,6 +513,10 @@ This section concerns the placement and creation of files.
   It is the user’s responsibility to set this correctly, especially when used
   with multiple Org-roam instances.
 
+- Variable: org-roam-file-exclude-regexp
+
+  Files matching this regular expression are excluded from the Org-roam.
+
 ** The Org-roam Buffer
 
 The Org-roam buffer displays backlinks for the currently active Org-roam note.
