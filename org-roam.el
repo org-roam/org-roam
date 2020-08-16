@@ -1590,7 +1590,8 @@ M-x info for more information at Org-roam > Installation > Post-Installation Tas
     (add-hook 'kill-emacs-hook #'org-roam-db--close-all)
     (add-hook 'org-open-at-point-functions #'org-roam-open-id-at-point)
     (add-hook 'org-open-link-functions #'org-roam--open-fuzzy-link)
-    (setq org-roam--file-update-timer (run-with-idle-timer 2 t #'org-roam--process-update-queue))
+    (unless org-roam--file-update-timer
+      (setq org-roam--file-update-timer (run-with-idle-timer 2 t #'org-roam--process-update-queue)))
     (advice-add 'rename-file :after #'org-roam--rename-file-advice)
     (advice-add 'delete-file :before #'org-roam--delete-file-advice)
     (when (fboundp 'org-link-set-parameters)
