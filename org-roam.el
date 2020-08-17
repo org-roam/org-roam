@@ -495,16 +495,20 @@ Use external shell commands if defined in `org-roam-list-files-commands'."
 (defun org-roam--extract-global-props (props)
   "Extract PROPS from the current org buffer.
 The search terminates when the first property is encountered."
-  (let ((buf (org-element-parse-buffer))
-        res)
-    (dolist (prop props)
-      (let ((p (org-element-map buf 'keyword
-                 (lambda (kw)
-                   (when (string-equal (org-element-property :key kw) prop)
-                     (org-element-property :value kw)))
-                 :first-match t)))
-        (push (cons prop p) res)))
-    res))
+  (if (functionp 'org-collect-keywords)
+      (->> (org-collect-keywords props)
+           ;; convert (("TITLE" "my title")) to (("TITLE" . "my title"))
+           (mapcar (pcase-lambda (`(,k ,v)) (cons k v))))
+    (let ((buf (org-element-parse-buffer))
+          res)
+      (dolist (prop props)
+        (let ((p (org-element-map buf 'keyword
+                   (lambda (kw)
+                     (when (string-equal (org-element-property :key kw) prop)
+                       (org-element-property :value kw)))
+                   :first-match t)))
+          (push (cons prop p) res)))
+      res)))
 
 (defun org-roam--expand-links (content path)
   "Crawl CONTENT for relative links and expand them.
@@ -631,15 +635,15 @@ it as FILE-PATH."
 If FILE-PATH is nil, use the current file."
   (let ((file-path (or file-path
                        (file-truename (buffer-file-name)))))
-    (org-element-map (org-element-parse-buffer) 'node-property
-      (lambda (node-property)
-        (let ((key (org-element-property :key node-property))
-              (value (org-element-property :value node-property)))
-          (when (string= key "ID")
-            (let* ((id value)
-                   (data (vector id
-                                 file-path)))
-              data)))))))
+    ;; `org-map-entries' always includes all entries, forcing us to
+    ;; have to filter out nil values.
+    (let ((result nil))
+      (org-map-region
+       (lambda ()
+         (when-let ((id (org-entry-get nil "ID")))
+           (push (vector id file-path) result)))
+       (point-min) (point-max))
+      result)))
 
 (defun org-roam--extract-titles-title ()
   "Return title from \"#+title\" of the current buffer."
@@ -665,12 +669,15 @@ Reads from the \"roam_alias\" property."
 
 (defun org-roam--extract-titles-headline ()
   "Return the first headline of the current buffer."
-  (let ((headline (org-element-map
-                      (org-element-parse-buffer)
-                      'headline
-                    (lambda (h)
-                      (org-no-properties (org-element-property :raw-value h)))
-                    :first-match t)))
+  (let ((headline (save-excursion
+                    (goto-char (point-min))
+                    ;; "What happens if a heading star was quoted
+                    ;; before the first heading?"
+                    ;; - `org-map-region' also does this
+                    ;; - Org already breaks badly when you do that;
+                    ;; precede the heading star with a ",".
+                    (re-search-forward org-outline-regexp-bol nil t)
+                    (org-entry-get nil "ITEM"))))
     (when headline
       (list headline))))
 
