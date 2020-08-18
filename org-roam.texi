@@ -731,6 +731,11 @@ database is saved here.
 
 It is the user’s responsibility to set this correctly, especially when used
 with multiple Org-roam instances.
+
+@item
+Variable: org-roam-file-exclude-regexp
+
+Files matching this regular expression are excluded from the Org-roam.
 @end itemize
 
 @node The Org-roam Buffer
