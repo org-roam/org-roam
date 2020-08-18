@@ -100,6 +100,13 @@ ensure that."
   :type '(repeat string)
   :group 'org-roam)
 
+(defcustom org-roam-file-exclude-regexp nil
+  "Files matching this regular expression are excluded from the Org-roam."
+  :type '(choice
+          (string :tag "Regular expression matching files to ignore")
+          (const :tag "Include everything" nil))
+  :group 'org-roam)
+
 (defcustom org-roam-find-file-function nil
   "Function called when visiting files in Org-roam commands.
 If nil, `find-file' is used."
@@ -342,6 +349,8 @@ If FILE is not specified, use the current buffer's file-path."
       (save-match-data
         (and
          (org-roam--org-file-p path)
+         (not (and org-roam-file-exclude-regexp
+                   (string-match-p org-roam-file-exclude-regexp path)))
          (f-descendant-of-p (file-truename path)
                             (file-truename org-roam-directory))))))
 
