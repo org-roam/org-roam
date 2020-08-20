@@ -324,6 +324,50 @@ function are expected to catch the error."
                  (t
                   (signal 'wrong-type-argument `((stringp numberp symbolp) ,item))))) items))))
 
+;;;; Movement functions
+
+(defun org-roam-delete-backward-char (N)
+  "Like `org-delete-backward-char', but makes links fuzzy upon edit."
+  (interactive "p")
+  (cond
+     ((looking-back org-link-bracket-re (point-at-bol) t)
+      (backward-char 2) ;; skip over brackets
+      (when (and (match-string-no-properties 1)
+                 (match-string-no-properties 2))
+        (delete-region (1- (match-beginning 1)) (1+ (match-end 1))))
+      (org-delete-backward-char N))
+     ((org-in-regexp org-link-bracket-re 1)
+      (when (and (match-string-no-properties 1)
+                 (match-string-no-properties 2))
+        (delete-region (1- (match-beginning 1)) (1+ (match-end 1))))
+      (org-delete-backward-char N))
+     ((and (= N 1)
+           (org-in-regexp "\\[\\[\\]\\]"))
+      (delete-region (match-beginning 0) (match-end 0)))
+     (t
+      (org-delete-backward-char N))))
+
+(defun org-roam-delete-char (N)
+  "Like `org-delete-char', but makes links fuzzy upon edit."
+  (interactive "p")
+  (cond
+     ((looking-at org-link-bracket-re)
+      (forward-char 2) ;; skip over brackets
+      (when (and (match-string-no-properties 1)
+                 (match-string-no-properties 2))
+        (delete-region (1- (match-beginning 1)) (1+ (match-end 1))))
+      (org-delete-char N))
+     ((org-in-regexp org-link-bracket-re 1)
+      (when (and (match-string-no-properties 1)
+                 (match-string-no-properties 2))
+        (delete-region (1- (match-beginning 1)) (1+ (match-end 1))))
+      (org-delete-char N))
+     ((and (= N 1)
+           (org-in-regexp "\\[\\[\\]\\]"))
+      (delete-region (match-beginning 0) (match-end 0)))
+     (t
+      (org-delete-char N))))
+
 ;;;; File functions and predicates
 (defun org-roam--file-name-extension (filename)
   "Return file name extension for FILENAME.
