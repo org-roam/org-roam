@@ -1203,8 +1203,6 @@ If USE-STACK, include the parent paths as well."
                        (or (find-buffer-visiting file)
                            (find-file-noselect file)))
                   (current-buffer)))
-         (bol-regex (concat "^\\(?:" outline-regexp "\\)"))
-         (outline-title-fn (lambda () (buffer-substring-no-properties (point) (line-end-position))))
          (outline-level-fn outline-level)
          (path-separator "/")
          (stack-level 0)
@@ -1212,11 +1210,9 @@ If USE-STACK, include the parent paths as well."
     (with-current-buffer buf
       (save-excursion
         (goto-char (point-min))
-        (while (re-search-forward bol-regex nil t)
+        (while (re-search-forward org-complex-heading-regexp nil t)
           (save-excursion
-            (setq name (or (save-match-data
-                             (funcall outline-title-fn))
-                           ""))
+            (setq name (substring-no-properties (or (match-string 4) "")))
             (setq marker (point-marker))
             (when use-stack
               (goto-char (match-beginning 0))
