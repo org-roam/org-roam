@@ -1112,6 +1112,11 @@ This function hooks into `org-open-at-point' via
              nil)))))
 
 ;;; Completion at point
+(defcustom org-roam-completion-case-sensitive nil
+  "If t, completions for Org-roam become case sensitive."
+  :group 'org-roam
+  :type 'boolean)
+
 (defconst org-roam-fuzzy-link-regexp
   (rx (seq "[["
            (group
@@ -1160,7 +1165,10 @@ This function hooks into `org-open-at-point' via
                 (if (functionp collection)
                     (completion-table-dynamic
                      (lambda (_)
-                       (cl-remove-if (apply-partially 'string= prefix) (funcall collection))))
+                       (cl-remove-if (if org-roam-completion-case-sensitive
+                                         (apply-partially 'string= prefix)
+                                       (lambda (s) (string-collate-equalp prefix s nil t)))
+                                     (funcall collection))))
                   collection)
                 :exit-function exit-fn)))))
 
