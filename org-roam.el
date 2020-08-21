@@ -324,50 +324,6 @@ function are expected to catch the error."
                  (t
                   (signal 'wrong-type-argument `((stringp numberp symbolp) ,item))))) items))))
 
-;;;; Movement functions
-
-(defun org-roam-delete-backward-char (N)
-  "Like `org-delete-backward-char', but makes links fuzzy upon edit."
-  (interactive "p")
-  (cond
-     ((looking-back org-link-bracket-re (point-at-bol) t)
-      (backward-char 2) ;; skip over brackets
-      (when (and (match-string-no-properties 1)
-                 (match-string-no-properties 2))
-        (delete-region (1- (match-beginning 1)) (1+ (match-end 1))))
-      (org-delete-backward-char N))
-     ((org-in-regexp org-link-bracket-re 1)
-      (when (and (match-string-no-properties 1)
-                 (match-string-no-properties 2))
-        (delete-region (1- (match-beginning 1)) (1+ (match-end 1))))
-      (org-delete-backward-char N))
-     ((and (= N 1)
-           (org-in-regexp "\\[\\[\\]\\]"))
-      (delete-region (match-beginning 0) (match-end 0)))
-     (t
-      (org-delete-backward-char N))))
-
-(defun org-roam-delete-char (N)
-  "Like `org-delete-char', but makes links fuzzy upon edit."
-  (interactive "p")
-  (cond
-     ((looking-at org-link-bracket-re)
-      (forward-char 2) ;; skip over brackets
-      (when (and (match-string-no-properties 1)
-                 (match-string-no-properties 2))
-        (delete-region (1- (match-beginning 1)) (1+ (match-end 1))))
-      (org-delete-char N))
-     ((org-in-regexp org-link-bracket-re 1)
-      (when (and (match-string-no-properties 1)
-                 (match-string-no-properties 2))
-        (delete-region (1- (match-beginning 1)) (1+ (match-end 1))))
-      (org-delete-char N))
-     ((and (= N 1)
-           (org-in-regexp "\\[\\[\\]\\]"))
-      (delete-region (match-beginning 0) (match-end 0)))
-     (t
-      (org-delete-char N))))
-
 ;;;; File functions and predicates
 (defun org-roam--file-name-extension (filename)
   "Return file name extension for FILENAME.
@@ -1214,6 +1170,9 @@ This function hooks into `org-open-at-point' via
   :group 'org-roam
   :type 'boolean)
 
+(defcustom org-roam-enable-smart-edit t
+  "When t, turns all links into fuzzy links upon editing.")
+
 (defun org-roam--split-fuzzy-link (link)
   "Splits LINK into title and headline.
 Return a list of the form (type title has-headline-p headline star-idx).
@@ -1233,6 +1192,30 @@ star-idx is the index of the asterisk, if any."
                        'headline)
                        (t 'title+headline))))
       (list type title headline star-index))))
+
+(defun org-roam--fuzzy-link-on-edit (&rest ignored)
+  (save-match-data
+    (when (and org-roam-enable-smart-edit
+               (org-in-regexp org-link-bracket-re 1)
+               (match-string-no-properties 1)
+               (match-string-no-properties 2))
+      (let* ((link (match-string-no-properties 1))
+             (colon-index (string-match-p ":" link))
+             (type (substring-no-properties link 0 colon-index))
+             (path (substring-no-properties link (1+ colon-index))))
+        (when (or (and (string-equal type "file")
+                       (org-roam--org-roam-file-p path))
+                  (and (string-equal type "id")
+                       (caar (org-roam-db-query [:select [file]
+                                                 :from headlines
+                                                 :where (= id $s1)
+                                                 :limit 1]
+                                                path))))
+          (delete-region (1- (match-beginning 1)) (1+ (match-end 1))))))))
+
+(defun org-roam-enable-fuzzy-link-on-edit ()
+  "Upon editing links, make the links fuzzy."
+  (add-to-list 'before-change-functions #'org-roam--fuzzy-link-on-edit))
 
 (defun org-roam--get-titles ()
   "Return all titles within Org-roam."
@@ -1494,6 +1477,7 @@ during the next idle slot."
     (add-hook 'before-save-hook #'org-roam--replace-fuzzy-link-on-save nil t)
     (add-hook 'after-save-hook #'org-roam--queue-file-for-update nil t)
     (add-hook 'completion-at-point-functions #'org-roam-complete-at-point nil t)
+    (org-roam-enable-fuzzy-link-on-edit)
     (org-roam-buffer--update-maybe :redisplay t)))
 
 (defun org-roam--delete-file-advice (file &optional _trash)
