@@ -1112,11 +1112,6 @@ This function hooks into `org-open-at-point' via
              nil)))))
 
 ;;; Completion at point
-(defcustom org-roam-completion-case-sensitive nil
-  "If t, completions for Org-roam become case sensitive."
-  :group 'org-roam
-  :type 'boolean)
-
 (defconst org-roam-fuzzy-link-regexp
   (rx (seq "[["
            (group
@@ -1165,9 +1160,7 @@ This function hooks into `org-open-at-point' via
                 (if (functionp collection)
                     (completion-table-dynamic
                      (lambda (_)
-                       (cl-remove-if (if org-roam-completion-case-sensitive
-                                         (apply-partially 'string= prefix)
-                                       (lambda (s) (string-collate-equalp prefix s nil t)))
+                       (cl-remove-if (apply-partially #'string= prefix)
                                      (funcall collection))))
                   collection)
                 :exit-function exit-fn)))))
@@ -1446,10 +1439,16 @@ during the next idle slot."
     (setq org-roam--file-update-queue nil)))
 
 ;;;; Hooks and Advices
+(defcustom org-roam-file-setup-hook nil
+  "Hook that is run on setting up an Org-roam file."
+  :group 'org-roam
+  :type 'hook)
+
 (defun org-roam--find-file-hook-function ()
   "Called by `find-file-hook' when mode symbol `org-roam-mode' is on."
   (when (org-roam--org-roam-file-p)
     (setq org-roam-last-window (get-buffer-window))
+    (run-hooks 'org-roam-file-setup-hook) ; Run user hooks
     (add-hook 'post-command-hook #'org-roam-buffer--update-maybe nil t)
     (add-hook 'before-save-hook #'org-roam--replace-fuzzy-link-on-save nil t)
     (add-hook 'after-save-hook #'org-roam--queue-file-for-update nil t)
