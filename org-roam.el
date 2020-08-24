@@ -635,8 +635,8 @@ it as FILE-PATH."
 If FILE-PATH is nil, use the current file."
   (let ((file-path (or file-path
                        (file-truename (buffer-file-name)))))
-    ;; `org-map-entries' always includes all entries, forcing us to
-    ;; have to filter out nil values.
+    ;; Use `org-map-region' instead of `org-map-entries' as the latter
+    ;; would require another step to remove all nil values.
     (let ((result nil))
       (org-map-region
        (lambda ()
