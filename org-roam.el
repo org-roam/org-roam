@@ -1119,6 +1119,11 @@ This function hooks into `org-open-at-point' via
              nil)))))
 
 ;;; Completion at point
+(defcustom org-roam-completion-everywhere nil
+  "If non-nil, provide completions from the current word at point."
+  :group 'org-roam
+  :type 'boolean)
+
 (defconst org-roam-fuzzy-link-regexp
   (rx (seq "[["
            (group
@@ -1126,7 +1131,8 @@ This function hooks into `org-open-at-point' via
              (or (not (any "[]\\"))
                  (and "\\" (zero-or-more "\\\\") (any "[]"))
                  (and (one-or-more "\\") (not (any "[]"))))))
-           "]]")))
+           "]]"))
+  "Regexp identifying a bracketed Org fuzzy link.")
 
 (defun org-roam-complete-at-point ()
   "Do appropriate completion for the thing at point."
@@ -1160,7 +1166,17 @@ This function hooks into `org-open-at-point' via
            (setq collection #'org-roam--get-titles))
           ('headline
            (setq collection #'org-roam--get-headlines)
-           (setq start (+ start star-idx 1)))))))
+           (setq start (+ start star-idx 1))))))
+     (;; Completions everywhere
+      (and org-roam-completion-everywhere
+           (thing-at-point 'word))
+      (let ((bounds (bounds-of-thing-at-point 'word)))
+        (setq start (car bounds)
+              end (cdr bounds)
+              collection #'org-roam--get-titles
+              exit-fn (lambda (str _status)
+                        (delete-char (- (length str)))
+                        (insert "[[" str "]]"))))))
       (when collection
         (let ((prefix (buffer-substring-no-properties start end)))
           (list start end
