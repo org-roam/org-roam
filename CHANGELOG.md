@@ -15,6 +15,7 @@ In this release we support fuzzy links of the form `[[Title]]`, `[[*Headline]]` 
 - [#1032](https://github.com/org-roam/org-roam/pull/1032) File changes are now propagated to the database on idle timer. This prevents large wait times during file saves.
 - [#974](https://github.com/org-roam/org-roam/pull/974) Protect region targeted by `org-roam-insert`
 - [#994](https://github.com/org-roam/org-roam/pull/994) Simplify org-roam-store-link
+- [#1062](https://github.com/org-roam/org-roam/pull/1062) Variable `org-roam-completions-everywhere` allows for completions everywhere from word at point
 - [#910](https://github.com/org-roam/org-roam/pull/910) Support fuzzy links of the form [[Title]], [[*Headline]] and [[Title*Headline]]
 
 ### Bugfixes
