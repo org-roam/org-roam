@@ -1344,18 +1344,13 @@ Three types of fuzzy links are supported:
 (defun org-roam--replace-all-fuzzy-links ()
   "Replace all fuzzy links in current buffer."
   (save-excursion
-    (let ((fuzzies (org-element-map (org-element-parse-buffer) 'link
-                     (lambda (l)
-                       (when (equal (org-element-property :type l)
-                                    "fuzzy")
-                         (cons (set-marker (make-marker) (org-element-property :begin l))
-                               (org-element-property :path l)))))))
-        (dolist (f fuzzies)
-          (goto-char (car f))
-          (when-let ((location (org-roam--get-fuzzy-link-location (cdr f))))
+    (goto-char (point-min))
+    (while (re-search-forward org-roam-fuzzy-link-regexp nil t)
+      (goto-char (match-beginning 0))
+      (when-let ((location (org-roam--get-fuzzy-link-location (match-string 1))))
             (pcase-let ((`(,link-type ,loc ,desc _) location))
               (when (and link-type loc)
-                (org-roam-replace-fuzzy-link (concat link-type ":" loc) desc))))))))
+                (org-roam-replace-fuzzy-link (concat link-type ":" loc) desc)))))))
 
 (defun org-roam--replace-fuzzy-link-on-save ()
   "Hook to replace all fuzzy links on save."
