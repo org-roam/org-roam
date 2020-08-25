@@ -1484,19 +1484,15 @@ update with NEW-DESC."
   (with-current-buffer (or (find-buffer-visiting file)
                            (find-file-noselect file))
     (save-excursion
-      (let ((link-markers (org-element-map (org-element-parse-buffer) 'link
-                            (lambda (l)
-                              (let ((type (org-element-property :type l))
-                                    (path (org-element-property :path l)))
-                                (when (string-equal (file-truename path)
-                                                    old-path)
-                                  (cons (set-marker (make-marker) (org-element-property :begin l))
-                                        type)))))))
-        (dolist (m link-markers)
-          (goto-char (car m))
-          (save-match-data
-            (unless (org-in-regexp org-link-bracket-re 1)
-              (user-error "No link at point"))
+      (goto-char (point-min))
+      (while (re-search-forward org-link-any-re nil t)
+        (let* ((link (save-excursion
+                       (goto-char (match-beginning 0))
+                       (org-element-link-parser)))
+               (type (org-element-property :type link))
+               (path (org-element-property :path link)))
+          (when (and (string-equal (file-truename path) old-path)
+                     (org-in-regexp org-link-bracket-re 1))
             (let* ((label (if (match-end 2)
                               (match-string-no-properties 2)
                             (org-link-unescape (match-string-no-properties 1))))
@@ -1504,7 +1500,7 @@ update with NEW-DESC."
                                   new-desc
                                 label)))
               (replace-match (org-roam-link-make-string
-                              (concat (cdr m) ":"
+                              (concat type ":"
                                       (file-relative-name new-path (file-name-directory (buffer-file-name))))
                               new-label)))))))
     (save-buffer)))
@@ -1513,26 +1509,20 @@ update with NEW-DESC."
   "Fix file-relative links in current buffer.
 File relative links are assumed to originate from OLD-PATH. The
 replaced links are made relative to the current buffer."
-  (let* ((links (org-element-map (org-element-parse-buffer) 'link
-                  (lambda (link)
-                    (let ((type (org-element-property :type link))
-                          (path (org-element-property :path link)))
-                      (when (f-relative-p path)
-                        (cons (set-marker (make-marker)
-                                          (org-element-property :begin link))
-                              (cons path type))))))))
-    (save-excursion
-      (save-match-data
-        (dolist (link links)
-          (pcase-let ((`(,marker . (,path . ,type)) link))
-            (goto-char marker)
-            (unless (org-in-regexp org-link-bracket-re 1)
-              (user-error "No link at point"))
-            (let* ((file-path (expand-file-name path (file-name-directory old-path)))
-                   (new-path (file-relative-name file-path (file-name-directory (buffer-file-name)))))
+  (save-excursion
+    (goto-char (point-min))
+    (while (re-search-forward org-link-any-re nil t)
+      (let* ((link (save-excursion
+                     (goto-char (match-beginning 0))
+                     (org-element-link-parser)))
+             (type (org-element-property :type link))
+             (path (org-element-property :path link)))
+        (when (and (f-relative-p path)
+                   (org-in-regexp org-link-bracket-re 1))
+          (let* ((file-path (expand-file-name path (file-name-directory old-path)))
+                 (new-path (file-relative-name file-path (file-name-directory (buffer-file-name)))))
               (replace-match (concat type ":" new-path)
-                             nil t nil 1))
-            (set-marker marker nil)))))))
+                             nil t nil 1)))))))
 
 (defun org-roam--rename-file-advice (old-file new-file-or-dir &rest _args)
   "Rename backlinks of OLD-FILE to refer to NEW-FILE-OR-DIR."
