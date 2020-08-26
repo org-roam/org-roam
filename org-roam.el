@@ -1531,7 +1531,7 @@ replaced links are made relative to the current buffer."
   "The current title of the Org-roam file.")
 
 (defun org-roam--setup-title-auto-update ()
-  "Setup automatic link description updates on title changes."
+  "Setup automatic link description update on title change."
   (setq-local org-roam-current-title (car (org-roam--extract-titles)))
   (add-hook 'after-save-hook #'org-roam--update-links-on-title-change nil t))
 
