@@ -582,46 +582,44 @@ it as FILE-PATH."
   (unless file-path
     (setq file-path (file-truename (buffer-file-name))))
   (let (links)
-    (save-excursion
-      (goto-char (point-min))
-      (while (re-search-forward org-link-any-re nil t)
-        (when-let ((link (org-element-lineage (org-element-context) '(link) t)))
-          (let* ((type (org-element-property :type link))
-                 (path (org-element-property :path link))
-                 (element (org-element-at-point))
-                 (begin (or (org-element-property :content-begin element)
-                            (org-element-property :begin element)))
-                 (content (or (org-element-property :raw-value element)
-                              (buffer-substring-no-properties
-                               begin
-                               (or (org-element-property :content-end element)
-                                   (org-element-property :end element)))))
-                 (content (string-trim content))
-                 (content (org-roam--expand-links content file-path))
-                 (properties (list :outline (mapcar (lambda (path)
-                                                      (org-roam--expand-links path file-path))
-                                                    (org-roam--get-outline-path))
-                                   :content content
-                                   :point begin))
-                 (names (pcase type
-                          ("id"
-                           (list (car (org-roam-id-find path))))
-                          ((pred (lambda (typ)
-                                   (and (boundp 'org-ref-cite-types)
-                                        (-contains? org-ref-cite-types typ))))
-                           (setq type "cite")
-                           (org-ref-split-and-strip-string path))
-                          ("fuzzy" (list path))
-                          (_ (if (file-remote-p path)
-                                 (list path)
-                               (let ((file-maybe (file-truename
-                                                  (expand-file-name path (file-name-directory file-path)))))
-                                 (if (f-exists? file-maybe)
-                                     (list file-maybe)
-                                   (list path))))))))
-            (dolist (name names)
-              (when name
-                (push (vector file-path name type properties) links)))))))
+    (org-element-map (org-element-parse-buffer) 'link
+      (lambda (link)
+        (let* ((type (org-element-property :type link))
+               (path (org-element-property :path link))
+               (element (org-element-at-point))
+               (begin (or (org-element-property :content-begin element)
+                          (org-element-property :begin element)))
+               (content (or (org-element-property :raw-value element)
+                            (buffer-substring-no-properties
+                             begin
+                             (or (org-element-property :content-end element)
+                                 (org-element-property :end element)))))
+               (content (string-trim content))
+               (content (org-roam--expand-links content file-path))
+               (properties (list :outline (mapcar (lambda (path)
+                                                    (org-roam--expand-links path file-path))
+                                                  (org-roam--get-outline-path))
+                                 :content content
+                                 :point begin))
+               (names (pcase type
+                        ("id"
+                         (list (car (org-roam-id-find path))))
+                        ((pred (lambda (typ)
+                                 (and (boundp 'org-ref-cite-types)
+                                      (-contains? org-ref-cite-types typ))))
+                         (setq type "cite")
+                         (org-ref-split-and-strip-string path))
+                        ("fuzzy" (list path))
+                        (_ (if (file-remote-p path)
+                               (list path)
+                             (let ((file-maybe (file-truename
+                                                (expand-file-name path (file-name-directory file-path)))))
+                               (if (f-exists? file-maybe)
+                                   (list file-maybe)
+                                 (list path))))))))
+          (dolist (name names)
+            (when name
+              (push (vector file-path name type properties) links))))))
     links))
 
 (defun org-roam--extract-headlines (&optional file-path)
@@ -1363,13 +1361,14 @@ Three types of fuzzy links are supported:
            (org-goto-marker-or-bmk mkr)))))
     t))
 
-(defun org-roam--replace-all-fuzzy-links ()
+(defun org-roam-replace-all-fuzzy-links ()
   "Replace all fuzzy links in current buffer."
+  (interactive)
   (save-excursion
     (goto-char (point-min))
     (while (re-search-forward org-link-any-re nil t)
       (when (org-roam--fuzzy-link-p)
-        (when-let ((location (org-roam--get-fuzzy-link-location (match-string 1))))
+        (when-let ((location (org-roam--get-fuzzy-link-location (match-string-no-properties 2))))
           (pcase-let ((`(,link-type ,loc ,desc _) location))
             (when (and link-type loc)
               (org-roam-replace-fuzzy-link (concat link-type ":" loc) desc))))))))
@@ -1377,7 +1376,7 @@ Three types of fuzzy links are supported:
 (defun org-roam--replace-fuzzy-link-on-save ()
   "Hook to replace all fuzzy links on save."
   (when org-roam-auto-replace-fuzzy-links
-    (org-roam--replace-all-fuzzy-links)))
+    (org-roam-replace-all-fuzzy-links)))
 
 ;;; Org-roam-mode
 ;;;; Function Faces
