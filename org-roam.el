@@ -1472,6 +1472,7 @@ during the next idle slot."
   (when (org-roam--org-roam-file-p)
     (setq org-roam-last-window (get-buffer-window))
     (run-hooks 'org-roam-file-setup-hook) ; Run user hooks
+    (org-roam--setup-title-auto-update)
     (add-hook 'post-command-hook #'org-roam-buffer--update-maybe nil t)
     (add-hook 'before-save-hook #'org-roam--replace-fuzzy-link-on-save nil t)
     (add-hook 'after-save-hook #'org-roam--queue-file-for-update nil t)
@@ -1484,33 +1485,30 @@ during the next idle slot."
              (org-roam--org-roam-file-p file))
     (org-roam-db--clear-file (file-truename file))))
 
-(defun org-roam--replace-link (file old-path new-path &optional old-desc new-desc)
-  "Replace Org-roam file links in FILE with path OLD-PATH to path NEW-PATH.
+(defun org-roam--replace-link (old-path new-path &optional old-desc new-desc)
+  "Replace Org-roam file links with path OLD-PATH to path NEW-PATH.
 If OLD-DESC is passed, and is not the same as the link
 description, it is assumed that the user has modified the
 description, and the description will not be updated. Else,
 update with NEW-DESC."
-  (with-current-buffer (or (find-buffer-visiting file)
-                           (find-file-noselect file))
-    (save-excursion
-      (goto-char (point-min))
-      (while (re-search-forward org-link-any-re nil t)
-        (when-let ((link (org-element-lineage (org-element-context) '(link) t)))
-          (let ((type (org-element-property :type link))
-                (path (org-element-property :path link)))
-            (when (and (string-equal (file-truename path) old-path)
-                       (org-in-regexp org-link-bracket-re 1))
-              (let* ((label (if (match-end 2)
-                                (match-string-no-properties 2)
-                              (org-link-unescape (match-string-no-properties 1))))
-                     (new-label (if (string-equal label old-desc)
-                                    new-desc
-                                  label)))
-                (replace-match (org-roam-link-make-string
-                                (concat type ":"
-                                        (file-relative-name new-path (file-name-directory (buffer-file-name))))
-                                new-label))))))))
-    (save-buffer)))
+  (save-excursion
+    (goto-char (point-min))
+    (while (re-search-forward org-link-any-re nil t)
+      (when-let ((link (org-element-lineage (org-element-context) '(link) t)))
+        (let ((type (org-element-property :type link))
+              (path (org-element-property :path link)))
+          (when (and (string-equal (file-truename path) old-path)
+                     (org-in-regexp org-link-bracket-re 1))
+            (let* ((label (if (match-end 2)
+                              (match-string-no-properties 2)
+                            (org-link-unescape (match-string-no-properties 1))))
+                   (new-label (if (string-equal label old-desc)
+                                  new-desc
+                                label)))
+              (replace-match (org-roam-link-make-string
+                              (concat type ":"
+                                      (file-relative-name new-path (file-name-directory (buffer-file-name))))
+                              new-label)))))))))
 
 (defun org-roam--fix-relative-links (old-path)
   "Fix file-relative links in current buffer.
@@ -1529,9 +1527,38 @@ replaced links are made relative to the current buffer."
               (replace-match (concat type ":" new-path)
                              nil t nil 1))))))))
 
+(defvar-local org-roam-current-title nil
+  "The current title of the Org-roam file.")
+
+(defun org-roam--setup-title-auto-update ()
+  "Setup automatic link description update on title change."
+  (setq-local org-roam-current-title (car (org-roam--extract-titles)))
+  (add-hook 'after-save-hook #'org-roam--update-links-on-title-change nil t))
+
+(defun org-roam--update-links-on-title-change ()
+  "Update the link description of other Org-roam files on title change.
+This function is to be called in `after-save-hook'. If the title
+of the Org-roam file has changed, it will iterate over all
+Org-roam files that link to the current file, and replace the
+link descriptions with the new title if applicable."
+  (let ((new-title (car (org-roam--extract-titles)))
+        (old-title org-roam-current-title))
+    (unless (string-equal old-title new-title)
+      (let* ((current-path (file-truename (buffer-file-name)))
+             (files-affected (org-roam-db-query [:select :distinct [from]
+                                                 :from links
+                                                 :where (= to $s1)]
+                                                current-path)))
+        (dolist (file files-affected)
+          (with-current-buffer (or (find-buffer-visiting (car file))
+                                   (find-file-noselect (car file)))
+            (org-roam--replace-link current-path current-path old-title new-title)
+            (save-buffer)))))
+    (setq-local org-roam-current-title new-title)))
+
 (defun org-roam--rename-file-advice (old-file new-file-or-dir &rest _args)
-  "Rename backlinks of OLD-FILE to refer to NEW-FILE-OR-DIR."
-  ;; When rename-file is passed a directory as an argument, compute the new name
+  "Rename backlinks of OLD-FILE to refer to NEW-FILE-OR-DIR.
+When NEW-FILE-OR-DIR is a directory, we use it to compute the new file path."
   (let ((new-file (if (directory-name-p new-file-or-dir)
                       (expand-file-name (file-name-nondirectory old-file) new-file-or-dir)
                     new-file-or-dir)))
@@ -1543,30 +1570,25 @@ replaced links are made relative to the current buffer."
       (org-roam-db--ensure-built)
       (let* ((old-path (file-truename old-file))
              (new-path (file-truename new-file))
-             (old-slug (org-roam--get-title-or-slug old-file))
-             (old-desc (org-roam--format-link-title old-slug))
-             (new-slug (or (org-roam-db--get-titles old-path)
-                           (org-roam--path-to-slug new-path)))
-             (new-desc (org-roam--format-link-title new-slug))
              (new-buffer (or (find-buffer-visiting new-path)
                              (find-file-noselect new-path)))
-             (files-to-rename (org-roam-db-query [:select :distinct [from]
-                                                  :from links
-                                                  :where (= to $s1)]
-                                                 old-path)))
+             (files-affected (org-roam-db-query [:select :distinct [from]
+                                                 :from links
+                                                 :where (= to $s1)]
+                                                old-path)))
         ;; Remove database entries for old-file.org
         (org-roam-db--clear-file old-file)
-        ;; Insert new headlines locations in new-file.org after removing the previous IDs
-        (with-current-buffer new-buffer
-          (org-roam-db--update-headlines))
         ;; Replace links from old-file.org -> new-file.org in all Org-roam files with these links
         (mapc (lambda (file)
                 (setq file (if (string-equal (file-truename (car file)) old-path)
                                new-path
                              (car file)))
-                (org-roam--replace-link file old-path new-path old-desc new-desc)
-                (org-roam-db--update-file file))
-              files-to-rename)
+                (with-current-buffer (or (find-buffer-visiting file)
+                                         (find-file-noselect file))
+                  (org-roam--replace-link old-path new-path)
+                  (save-buffer)
+                  (org-roam-db--update-file)))
+              files-affected)
         ;; If the new path is in a different directory, relative links
         ;; will break. Fix all file-relative links:
         (unless (string= (file-name-directory old-path)
