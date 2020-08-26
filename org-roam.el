@@ -1536,6 +1536,11 @@ replaced links are made relative to the current buffer."
   (add-hook 'after-save-hook #'org-roam--update-links-on-title-change nil t))
 
 (defun org-roam--update-links-on-title-change ()
+  "Update the link description of other Org-roam files on title change.
+This function is to be called in `after-save-hook'. If the title
+of the Org-roam file has changed, it will iterate over all
+Org-roam files that link to the current file, and replace the
+link descriptions with the new title if applicable."
   (let ((new-title (car (org-roam--extract-titles)))
         (old-title org-roam-current-title))
     (unless (string-equal old-title new-title)
