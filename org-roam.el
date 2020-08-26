@@ -1486,7 +1486,7 @@ during the next idle slot."
     (org-roam-db--clear-file (file-truename file))))
 
 (defun org-roam--replace-link (old-path new-path &optional old-desc new-desc)
-  "Replace Org-roam file links in the current buffer with path OLD-PATH to path NEW-PATH.
+  "Replace Org-roam file links with path OLD-PATH to path NEW-PATH.
 If OLD-DESC is passed, and is not the same as the link
 description, it is assumed that the user has modified the
 description, and the description will not be updated. Else,
