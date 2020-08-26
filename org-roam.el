@@ -1581,8 +1581,8 @@ When NEW-FILE-OR-DIR is a directory, we use it to compute the new file path."
                 (with-current-buffer (or (find-buffer-visiting file)
                                          (find-file-noselect file))
                   (org-roam--replace-link old-path new-path)
-                  (org-roam-db--update-file)
-                  (save-buffer)))
+                  (save-buffer)
+                  (org-roam-db--update-file)))
               files-affected)
         ;; If the new path is in a different directory, relative links
         ;; will break. Fix all file-relative links:
