@@ -1594,6 +1594,7 @@ To be added to `org-roam-title-change-hook'."
                (new-file-name (replace-regexp-in-string old-slug new-slug file-name)))
           (rename-file file-name new-file-name)
           (set-visited-file-name new-file-name t t)
+          (add-to-list 'org-roam--file-update-queue new-file-name)
           (org-roam-message "File moved to %S" (abbreviate-file-name new-file-name)))))))
 
 (defun org-roam--rename-file-advice (old-file new-file-or-dir &rest _args)
