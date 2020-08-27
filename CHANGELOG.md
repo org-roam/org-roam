@@ -9,7 +9,8 @@ In this release we support fuzzy links of the form `[[Title]]`, `[[*Headline]]` 
 - [#910](https://github.com/org-roam/org-roam/pull/910) Deprecate `company-org-roam`, using `completion-at-point` instead. To use this with company, add the `company-capf` backend instead.
 
 ### Features
-
+ 
+- [#1073](https://github.com/org-roam/org-roam/pull/1073) Rename file on title change, when `org-roam-rename-file-on-title-change` is non-nil.
 - [#1071](https://github.com/org-roam/org-roam/pull/1071) Update link descriptions on title changes, and clean-up rename file advice
 - [#1061](https://github.com/org-roam/org-roam/pull/1061) Speed up the extraction of file properties, headlines, and titles
 - [#1046](https://github.com/org-roam/org-roam/pull/1046) New user option to exclude files from Org-roam
