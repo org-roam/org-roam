@@ -56,8 +56,7 @@ If FILE, set `org-roam-temp-file-name' to file and insert its contents."
        (with-temp-buffer
          (let ((org-roam-directory ,current-org-roam-directory)
                (org-mode-hook nil)
-               (org-startup-with-latex-preview nil)
-               (org-startup-with-inline-images nil))
+               (org-inhibit-startup t))
            (org-mode)
            (when ,file
              (insert-file-contents ,file)

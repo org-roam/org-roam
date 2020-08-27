@@ -295,8 +295,7 @@ If CHECKALL, run the check for all Org-roam files."
   "Lint FILES using CHECKERS."
   (save-window-excursion
     (let ((existing-buffers (org-roam--get-roam-buffers))
-          (org-startup-with-latex-preview nil)
-          (org-startup-with-inline-images nil))
+          (org-inhibit-startup org-roam-doctor-inhibit-startup))
       (dolist (f files)
         (let ((buf (find-file-noselect f)))
           (org-roam-doctor--check buf checkers)

@@ -261,6 +261,15 @@ space-delimited strings.
   :type 'boolean
   :group 'org-roam)
 
+(defcustom org-roam-doctor-inhibit-startup t
+  "Inhibit `org-mode' startup when processing files with `org-doctor'.
+When non-nil, images and LaTeX preview will not be generated,
+tables will not be aligned, and headlines will not respect
+startup visability. This significantly improves performance when
+processing multiple files"
+  :type 'boolean
+  :group 'org-roam)
+
 ;;;; Dynamic variables
 (defvar org-roam-last-window nil
   "Last window `org-roam' was called from.")
