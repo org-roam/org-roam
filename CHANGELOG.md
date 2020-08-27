@@ -10,13 +10,19 @@ In this release we support fuzzy links of the form `[[Title]]`, `[[*Headline]]` 
 
 ### Features
 
+- [#1071](https://github.com/org-roam/org-roam/pull/1071) Update link descriptions on title changes, and clean-up rename file advice
+- [#1061](https://github.com/org-roam/org-roam/pull/1061) Speed up the extraction of file properties, headlines, and titles
+- [#1046](https://github.com/org-roam/org-roam/pull/1046) New user option to exclude files from Org-roam
 - [#1032](https://github.com/org-roam/org-roam/pull/1032) File changes are now propagated to the database on idle timer. This prevents large wait times during file saves.
 - [#974](https://github.com/org-roam/org-roam/pull/974) Protect region targeted by `org-roam-insert`
 - [#994](https://github.com/org-roam/org-roam/pull/994) Simplify org-roam-store-link
+- [#1062](https://github.com/org-roam/org-roam/pull/1062) Variable `org-roam-completions-everywhere` allows for completions everywhere from word at point
 - [#910](https://github.com/org-roam/org-roam/pull/910) Support fuzzy links of the form [[Title]], [[*Headline]] and [[Title*Headline]]
 - [#978](https://github.com/org-roam/org-roam/pull/978) Improve org-roam-dailies
 
 ### Bugfixes
+
+- [#1057](https://github.com/org-roam/org-roam/pull/1057) Improve performance of database builds by preventing generation of LaTeX and image previews.
 
 ## 1.2.1 (27-07-2020)
 

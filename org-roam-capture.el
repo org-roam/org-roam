@@ -593,10 +593,11 @@ GOTO and KEYS argument have the same functionality as
       (funcall-interactively org-roam-capture-function))))
 
 ;;;###autoload
-(defun org-roam-capture ()
+(defun org-roam-capture (&optional goto keys)
   "Launches an `org-capture' process for a new or existing note.
-This uses the templates defined at `org-roam-capture-templates'."
-  (interactive)
+This uses the templates defined at `org-roam-capture-templates'.
+Arguments GOTO and KEYS see `org-capture'."
+  (interactive "P")
   (unless org-roam-mode (org-roam-mode))
   (let* ((completions (org-roam--get-title-path-completions))
          (title-with-keys (org-roam-completion--completing-read "File: "
@@ -609,7 +610,7 @@ This uses the templates defined at `org-roam-capture-templates'."
                                         (cons 'file file-path)))
           (org-roam-capture--context 'capture))
       (condition-case err
-          (org-roam-capture--capture)
+          (org-roam-capture--capture goto keys)
         (error (user-error "%s.  Please adjust `org-roam-capture-templates'"
                            (error-message-string err)))))))
 

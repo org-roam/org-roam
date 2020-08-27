@@ -34,4 +34,4 @@ Contributors
 - Rafael Accácio Nogueira <raccacio@poli.ufrj.br>
 - Roland Coeurjoly <rolandcoeurjoly@gmail.com>
 - Sayan <dit7ya@users.noreply.github.com>
-- Tim Quelch <tim@quelch.name>
+- Tim Quelch <tim@tquelch.com>
