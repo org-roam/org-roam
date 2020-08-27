@@ -58,7 +58,15 @@
 
 (defvar org-roam-verbose)
 (defvar org-roam-mode)
-(defvar org-roam-doctor-inhibit-startup)
+
+(defcustom org-roam-doctor-inhibit-startup t
+  "Inhibit `org-mode' startup when processing files with `org-doctor'.
+When non-nil, images and LaTeX preview will not be generated,
+tables will not be aligned, and headlines will not respect
+startup visability. This significantly improves performance when
+processing multiple files"
+  :type 'boolean
+  :group 'org-roam)
 
 (cl-defstruct (org-roam-doctor-checker (:copier nil))
   (name 'missing-checker-name)
