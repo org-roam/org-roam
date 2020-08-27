@@ -58,6 +58,7 @@
 
 (defvar org-roam-verbose)
 (defvar org-roam-mode)
+(defvar org-roam-doctor-inhibit-startup)
 
 (cl-defstruct (org-roam-doctor-checker (:copier nil))
   (name 'missing-checker-name)
