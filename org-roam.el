@@ -1546,7 +1546,7 @@ respectively."
   "The current title of the Org-roam file.")
 
 (defun org-roam--handle-title-change ()
-  "Detect title changes, and run hooks in `org-roam-title-change-hook'."
+  "Detect a title change, and run `org-roam-title-change-hook'."
   (let ((new-title (car (org-roam--extract-titles)))
         (old-title org-roam-current-title))
     (unless (string-equal old-title new-title)
