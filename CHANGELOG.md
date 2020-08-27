@@ -21,6 +21,8 @@ In this release we support fuzzy links of the form `[[Title]]`, `[[*Headline]]` 
 
 ### Bugfixes
 
+- [#1057](https://github.com/org-roam/org-roam/pull/1057) Improve performance of database builds by preventing generation of LaTeX and image previews.
+
 ## 1.2.1 (27-07-2020)
 
 This release consisted of a big deal of refactoring and bug fixes. Notably, we fixed several catastrophic failures on db builds with bad setups (#854), and modularized tag and title extractions.
