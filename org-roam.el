@@ -1535,7 +1535,8 @@ filename."
   :group 'org-roam
   :type 'boolean)
 
-(defcustom org-roam-title-change-hook nil
+(defcustom org-roam-title-change-hook '(org-roam--update-file-name-on-title-change
+                                        org-roam--update-links-on-title-change)
   "Hook run after detecting a title change.
 Each hook is passed two arguments: the old title, and new title
 respectively."
@@ -1556,8 +1557,6 @@ respectively."
 (defun org-roam--setup-title-auto-update ()
   "Setup automatic link description update on title change."
   (setq-local org-roam-current-title (car (org-roam--extract-titles)))
-  (add-hook 'org-roam-title-change-hook #'org-roam--update-file-name-on-title-change)
-  (add-hook 'org-roam-title-change-hook #'org-roam--update-links-on-title-change)
   (add-hook 'after-save-hook #'org-roam--handle-title-change nil t))
 
 (defun org-roam--update-links-on-title-change (old-title new-title)
