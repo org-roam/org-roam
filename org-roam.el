@@ -1546,7 +1546,7 @@ respectively."
   "The current title of the Org-roam file.")
 
 (defun org-roam--handle-title-change ()
-  "Detect a title change, and run `org-roam-title-change-hook'."
+  "Detect a title change, and run `org-roam-title-change-hook'"
   (let ((new-title (car (org-roam--extract-titles)))
         (old-title org-roam-current-title))
     (unless (string-equal old-title new-title)
@@ -1565,6 +1565,7 @@ respectively."
 Iterate over all Org-roam files that have link description of
 OLD-TITLE, and replace the link descriptions with the NEW-TITLE
 if applicable.
+
 To be added to `org-roam-title-change-hook'."
   (let* ((current-path (file-truename (buffer-file-name)))
          (files-affected (org-roam-db-query [:select :distinct [from]
@@ -1579,14 +1580,19 @@ To be added to `org-roam-title-change-hook'."
 
 (defun org-roam--update-file-name-on-title-change (old-title new-title)
   "Update the file name on title change.
+The slug is computed from OLD-TITLE using
+`org-roam-title-to-slug-function'. If the slug is part of the
+current filename, the new slug is computed with NEW-TITLE, and
+that portion of the filename is renamed.
+
 To be added to `org-roam-title-change-hook'."
   (when org-roam-rename-file-on-title-change
     (let* ((old-slug (funcall org-roam-title-to-slug-function old-title))
-           (new-slug (funcall org-roam-title-to-slug-function new-title))
            (file (buffer-file-name (buffer-base-buffer)))
            (file-name (file-name-nondirectory file)))
       (when (string-match-p old-slug file-name)
-        (let ((new-file-name (replace-regexp-in-string old-slug new-slug file-name)))
+        (let ((new-slug (funcall org-roam-title-to-slug-function new-title))
+              (new-file-name (replace-regexp-in-string old-slug new-slug file-name)))
           (rename-file file-name new-file-name)
           (set-visited-file-name new-file-name t t)
           (org-roam-message "File moved to %S" (abbreviate-file-name new-file-name)))))))
