@@ -1550,7 +1550,8 @@ respectively."
   "Detect a title change, and run `org-roam-title-change-hook'."
   (let ((new-title (car (org-roam--extract-titles)))
         (old-title org-roam-current-title))
-    (unless (string-equal old-title new-title)
+    (unless (or (eq old-title nil)
+                (string-equal old-title new-title))
       (run-hook-with-args 'org-roam-title-change-hook old-title new-title)
       (setq-local org-roam-current-title new-title))))
 
