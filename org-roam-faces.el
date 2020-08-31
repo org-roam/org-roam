@@ -42,6 +42,11 @@
   "Face for Org-roam links."
   :group 'org-roam-faces)
 
+(defface org-roam-tag
+  '((t :weight bold))
+  "Face for Org-roam tags in minibuffer commands."
+  :group 'org-roam-faces)
+
 (defface org-roam-link-current
   '((t :inherit org-link))
   "Face for Org-roam links pointing to the current buffer."

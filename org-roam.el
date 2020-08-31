@@ -839,6 +839,14 @@ TYPE defaults to \"file\"."
                                     target))
      description)))
 
+(defun org-roam--prepend-tag-string (str tags)
+  "Prepend TAGS to STR."
+  (concat
+   (when tags
+     (propertize (format "(%s) " (s-join org-roam-tag-separator tags))
+                 'face 'org-roam-tag))
+   str))
+
 (defun org-roam--get-title-path-completions ()
   "Return an alist for completion.
 The car is the displayed title for completion, and the cdr is the
@@ -855,10 +863,7 @@ to the file."
                  rows)
     (dolist (row rows completions)
       (pcase-let ((`(,file-path ,title ,tags) row))
-        (let ((k (concat
-                  (when tags
-                    (format "(%s) " (s-join org-roam-tag-separator tags)))
-                  title))
+        (let ((k (org-roam--prepend-tag-string title tags))
               (v (list :path file-path :title title)))
           (push (cons k v) completions))))))
 
@@ -925,9 +930,8 @@ FILTER can either be a string or a function:
                        (concat
                         (when org-roam-include-type-in-ref-path-completions
                           (format "{%s} " type))
-                        (when tags
-                          (format "(%s) " (s-join org-roam-tag-separator tags)))
-                        (format "%s (%s)" title ref))
+                        (org-roam--prepend-tag-string (format "%s (%s)" title ref)
+                                                      tags))
                      ref))
                 (v (list :path file-path :type type :ref ref)))
             (push (cons k v) completions)))))))
