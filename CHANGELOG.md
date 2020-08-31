@@ -9,7 +9,8 @@ In this release we support fuzzy links of the form `[[Title]]`, `[[*Headline]]` 
 - [#910](https://github.com/org-roam/org-roam/pull/910) Deprecate `company-org-roam`, using `completion-at-point` instead. To use this with company, add the `company-capf` backend instead.
 
 ### Features
- 
+
+- [#1079](https://github.com/org-roam/org-roam/pull/1079) Add `org-roam-tag-face` to customize appearance of tags in interactive commandsg
 - [#1073](https://github.com/org-roam/org-roam/pull/1073) Rename file on title change, when `org-roam-rename-file-on-title-change` is non-nil.
 - [#1071](https://github.com/org-roam/org-roam/pull/1071) Update link descriptions on title changes, and clean-up rename file advice
 - [#1061](https://github.com/org-roam/org-roam/pull/1061) Speed up the extraction of file properties, headlines, and titles
@@ -34,11 +35,13 @@ We also added some new features that had been a long time coming:
 2. We now support nested captures, which is crucial for `org-roam-protocol` (#966)
 
 ### Breaking Changes
+
 - [#908](https://github.com/org-roam/org-roam/pull/908) Normalized titles in database. May break external packages that rely on unnormalized titles.
 
 ### Features
+
 - [#814](https://github.com/org-roam/org-roam/pull/814) Implement `org-roam-insert-immediate`
-- [#833](https://github.com/org-roam/org-roam/pull/833) Add customization of file titles with `org-roam-title-to-slug-function`. 
+- [#833](https://github.com/org-roam/org-roam/pull/833) Add customization of file titles with `org-roam-title-to-slug-function`.
 - [#839](https://github.com/org-roam/org-roam/pull/839) Return selected file from `org-roam-insert`
 - [#847](https://github.com/org-roam/org-roam/pull/847) Add GC threshold `org-roam-db-gc-threshold` to temporarily change the threshold on expensive operations.
 - [#847](https://github.com/org-roam/org-roam/pull/847) Use sqlite3 transactions instead of storing the values to be inserted.
@@ -78,6 +81,7 @@ We also add `org-roam-unlinked-references`, which naively finds text that could 
 - [#679](https://github.com/org-roam/org-roam/pull/679), [#683](https://github.com/org-roam/org-roam/pull/683) Building of the graph now happens in a separate process
 
 ### Bugfixes
+
 - [#714](https://github.com/org-roam/org-roam/pull/714) No longer print citelinks in backlinks buffer if there is no `ROAM_KEY` property or `org-ref` is not installed
 - [#759](https://github.com/org-roam/org-roam/pull/759), [#760](https://github.com/org-roam/org-roam/pull/760) Tags are only added to the tags table if there are actually tags present
 - [#700](https://github.com/org-roam/org-roam/pull/700), [#733](https://github.com/org-roam/org-roam/pull/733) Allow symlinks within the `org-roam` directory
