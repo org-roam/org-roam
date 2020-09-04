@@ -581,47 +581,48 @@ it as FILE-PATH."
   (require 'org-ref nil t)
   (unless file-path
     (setq file-path (file-truename (buffer-file-name))))
-  (let (links)
-    (org-element-map (org-element-parse-buffer) 'link
-      (lambda (link)
-        (goto-char (org-element-property :begin link))
-        (let* ((type (org-element-property :type link))
-               (path (org-element-property :path link))
-               (element (org-element-at-point))
-               (begin (or (org-element-property :content-begin element)
-                          (org-element-property :begin element)))
-               (content (or (org-element-property :raw-value element)
-                            (buffer-substring-no-properties
-                             begin
-                             (or (org-element-property :content-end element)
-                                 (org-element-property :end element)))))
-               (content (string-trim content))
-               (content (org-roam--expand-links content file-path))
-               (properties (list :outline (mapcar (lambda (path)
-                                                    (org-roam--expand-links path file-path))
-                                                  (org-roam--get-outline-path))
-                                 :content content
-                                 :point begin))
-               (names (pcase type
-                        ("id"
-                         (list (car (org-roam-id-find path))))
-                        ((pred (lambda (typ)
-                                 (and (boundp 'org-ref-cite-types)
-                                      (-contains? org-ref-cite-types typ))))
-                         (setq type "cite")
-                         (org-ref-split-and-strip-string path))
-                        ("fuzzy" (list path))
-                        (_ (if (file-remote-p path)
-                               (list path)
-                             (let ((file-maybe (file-truename
-                                                (expand-file-name path (file-name-directory file-path)))))
-                               (if (f-exists? file-maybe)
-                                   (list file-maybe)
-                                 (list path))))))))
-          (dolist (name names)
-            (when name
-              (push (vector file-path name type properties) links))))))
-    links))
+  (save-excursion
+    (let (links)
+      (org-element-map (org-element-parse-buffer) 'link
+        (lambda (link)
+          (goto-char (org-element-property :begin link))
+          (let* ((type (org-element-property :type link))
+                 (path (org-element-property :path link))
+                 (element (org-element-at-point))
+                 (begin (or (org-element-property :content-begin element)
+                            (org-element-property :begin element)))
+                 (content (or (org-element-property :raw-value element)
+                              (buffer-substring-no-properties
+                               begin
+                               (or (org-element-property :content-end element)
+                                   (org-element-property :end element)))))
+                 (content (string-trim content))
+                 (content (org-roam--expand-links content file-path))
+                 (properties (list :outline (mapcar (lambda (path)
+                                                      (org-roam--expand-links path file-path))
+                                                    (org-roam--get-outline-path))
+                                   :content content
+                                   :point begin))
+                 (names (pcase type
+                          ("id"
+                           (list (car (org-roam-id-find path))))
+                          ((pred (lambda (typ)
+                                   (and (boundp 'org-ref-cite-types)
+                                        (-contains? org-ref-cite-types typ))))
+                           (setq type "cite")
+                           (org-ref-split-and-strip-string path))
+                          ("fuzzy" (list path))
+                          (_ (if (file-remote-p path)
+                                 (list path)
+                               (let ((file-maybe (file-truename
+                                                  (expand-file-name path (file-name-directory file-path)))))
+                                 (if (f-exists? file-maybe)
+                                     (list file-maybe)
+                                   (list path))))))))
+            (dolist (name names)
+              (when name
+                (push (vector file-path name type properties) links))))))
+      links)))
 
 (defun org-roam--extract-headlines (&optional file-path)
   "Extract all headlines with IDs within the current buffer.
