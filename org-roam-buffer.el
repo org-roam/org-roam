@@ -163,24 +163,29 @@ For example: (setq org-roam-buffer-window-parameters '((no-other-window . t)))"
                              l (org-roam-buffer--pluralize "Backlink" l))))
         (dolist (group grouped-backlinks)
           (let ((file-from (car group))
-                (bls (cdr group)))
+                (bls (mapcar (lambda (row)
+                                 (nth 2 row)) (cdr group))))
             (insert (format "** [[file:%s][%s]]\n"
                             file-from
                             (org-roam--get-title-or-slug file-from)))
-            (dolist (backlink bls)
-              (pcase-let ((`(,file-from _ ,props) backlink))
-                (insert "*** "
-                        (if-let ((outline (plist-get props :outline)))
-                            (string-join outline " > ")
-                          "Top")
-                        "\n"
-                        (propertize
-                         (s-trim (s-replace "\n" " "
-                                            (plist-get props :content)))
-                         'help-echo "mouse-1: visit backlinked note"
-                         'file-from file-from
-                         'file-from-point (plist-get props :point))
-                        "\n\n"))))))
+            ;; Sort backlinks according to time of occurrence in buffer
+            (setq bls (seq-sort-by (lambda (bl)
+                                     (plist-get bl :point))
+                                   #'<
+                                   bls))
+            (dolist (props bls)
+              (insert "*** "
+                      (if-let ((outline (plist-get props :outline)))
+                          (string-join outline " > ")
+                        "Top")
+                      "\n"
+                      (propertize
+                       (s-trim (s-replace "\n" " "
+                                          (plist-get props :content)))
+                       'help-echo "mouse-1: visit backlinked note"
+                       'file-from file-from
+                       'file-from-point (plist-get props :point))
+                      "\n\n")))))
     (insert "\n\n* No backlinks!")))
 
 (defun org-roam-buffer-update ()
