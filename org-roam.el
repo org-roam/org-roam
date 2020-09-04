@@ -584,11 +584,10 @@ it as FILE-PATH."
   (let (links)
     (org-element-map (org-element-parse-buffer) 'link
       (lambda (link)
+        (goto-char (org-element-property :begin link))
         (let* ((type (org-element-property :type link))
                (path (org-element-property :path link))
-               (element (save-excursion
-                          (goto-char (org-element-property :begin link))
-                          (org-element-at-point)))
+               (element (org-element-at-point))
                (begin (or (org-element-property :content-begin element)
                           (org-element-property :begin element)))
                (content (or (org-element-property :raw-value element)
