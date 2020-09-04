@@ -45,7 +45,7 @@
     (pcase (benchmark-run 1 (org-roam-db-build-cache t))
       (`(,time ,gcs ,time-in-gc)
        (message "Elapsed time: %fs (%fs in %d GCs)" time time-in-gc gcs)
-       (expect time :to-be-less-than 80))))
+       (expect time :to-be-less-than 90))))
   (it "builds quickly without change"
     (pcase (benchmark-run 1 (org-roam-db-build-cache))
       (`(,time ,gcs ,time-in-gc)
