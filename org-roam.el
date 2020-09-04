@@ -586,8 +586,9 @@ it as FILE-PATH."
       (lambda (link)
         (let* ((type (org-element-property :type link))
                (path (org-element-property :path link))
-               (element (progn (org-skip-whitespace)
-                               (org-element-at-point)))
+               (element (save-excursion
+                          (goto-char (org-element-property :begin link))
+                          (org-element-at-point)))
                (begin (or (org-element-property :content-begin element)
                           (org-element-property :begin element)))
                (content (or (org-element-property :raw-value element)
