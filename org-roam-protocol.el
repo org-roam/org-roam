@@ -5,7 +5,7 @@
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
 ;; Version: 1.2.1
-;; Package-Requires: ((emacs "26.1") (org "9.3"))
+;; Package-Requires: ((emacs "27.1") (org "9.3"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -60,7 +60,26 @@ It opens or creates a note with the given ref.
     (let* ((org-roam-capture-templates org-roam-capture-ref-templates)
            (org-roam-capture--context 'ref)
            (org-roam-capture--info decoded-alist)
-           (template (cdr (assoc 'template decoded-alist))))
+           (template (cdr (assoc 'template decoded-alist)))
+           (org-capture-link-is-already-stored t))
+      (let* ((title (cdr (assoc 'title decoded-alist)))
+            (url (cdr (assoc 'ref decoded-alist)))
+            (body (cdr (assoc 'body decoded-alist)))
+            (type (and url
+                       (string-match "^\\([a-z]+\\):" url)
+                       (match-string 1 url)))
+            (orglink
+             (if (null url) title
+               (org-link-make-string url (or (org-string-nw-p title) url)))))
+        (when url
+          (push (list url
+                      title)
+                org-stored-links))
+        (org-link-store-props
+         :type type
+         :link url
+         :annotation orglink
+         :initial body))
       (raise-frame)
       (org-roam-capture--capture nil template)
       (org-roam-message "Item captured.")))
