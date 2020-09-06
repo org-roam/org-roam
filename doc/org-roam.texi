@@ -1301,6 +1301,8 @@ javascript:location.href =
 + encodeURIComponent(location.href)
 + '&title='
 + encodeURIComponent(document.title)
++ '&body='
++ encodeURIComponent(window.getSelection())
 @end example
 
 or as a keybinding in @code{qutebrowser} in , using the @code{config.py} file (see
