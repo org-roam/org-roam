@@ -63,14 +63,14 @@ It opens or creates a note with the given ref.
            (template (cdr (assoc 'template decoded-alist)))
            (org-capture-link-is-already-stored t))
       (let* ((title (cdr (assoc 'title decoded-alist)))
-            (url (cdr (assoc 'ref decoded-alist)))
-            (body (cdr (assoc 'body decoded-alist)))
-            (type (and url
-                       (string-match "^\\([a-z]+\\):" url)
-                       (match-string 1 url)))
-            (orglink
-             (if (null url) title
-               (org-link-make-string url (or (org-string-nw-p title) url)))))
+             (url (cdr (assoc 'ref decoded-alist)))
+             (body (or (cdr (assoc 'body decoded-alist)) ""))
+             (type (and url
+                        (string-match "^\\([a-z]+\\):" url)
+                        (match-string 1 url)))
+             (orglink
+              (if (null url) title
+                (org-link-make-string url (or (org-string-nw-p title) url)))))
         (when url
           (push (list url
                       title)
