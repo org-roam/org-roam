@@ -38,6 +38,13 @@
 (require 'org-protocol)
 (require 'org-roam)
 
+(defcustom org-roam-protocol-quote-template "\n#+BEGIN_QUOTE\n%s\n#+END_QUOTE\n"
+  "The template used to quote text passed in.
+This is evaluated with the `format' function and only one
+argument the `body' is passed in."
+  :type 'string
+  :group 'org-roam)
+
 ;;;; Functions
 (defun org-roam-protocol-open-ref (info)
   "Process an org-protocol://roam-ref?ref= style url with INFO.
@@ -65,6 +72,8 @@ It opens or creates a note with the given ref.
       (let* ((title (cdr (assoc 'title decoded-alist)))
              (url (cdr (assoc 'ref decoded-alist)))
              (body (or (cdr (assoc 'body decoded-alist)) ""))
+             (quoted-text (unless (string-equal body "")
+                            (format org-roam-protocol-quote-template body)))
              (type (and url
                         (string-match "^\\([a-z]+\\):" url)
                         (match-string 1 url)))
@@ -79,7 +88,7 @@ It opens or creates a note with the given ref.
          :type type
          :link url
          :annotation orglink
-         :initial body))
+         :initial quoted-text))
       (raise-frame)
       (org-roam-capture--capture nil template)
       (org-roam-message "Item captured.")))
