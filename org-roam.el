@@ -859,10 +859,10 @@ to the file."
                                    :left :join files
                                    :on (= titles:file files:file)]))
          completions)
-    (seq-sort-by (lambda (x)
-                   (plist-get (nth 3 x) :mtime))
-                 #'time-less-p
-                 rows)
+    (setq rows (seq-sort-by (lambda (x)
+                              (plist-get (nth 3 x) :mtime))
+                            #'time-less-p
+                            rows))
     (dolist (row rows completions)
       (pcase-let ((`(,file-path ,title ,tags) row))
         (let ((k (org-roam--prepend-tag-string title tags))
@@ -915,10 +915,10 @@ FILTER can either be a string or a function:
                 :left :join refs :on (= titles:file refs:file)
                 :where refs:file :is :not :null]))
         completions)
-    (seq-sort-by (lambda (x)
-                   (plist-get (nth 3 x) :mtime))
-                 #'time-less-p
-                 rows)
+    (setq rows (seq-sort-by (lambda (x)
+                              (plist-get (nth 3 x) :mtime))
+                            #'time-less-p
+                            rows))
     (dolist (row rows completions)
       (pcase-let ((`(,type ,ref ,file-path ,title ,tags) row))
         (when (pcase filter
