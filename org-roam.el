@@ -198,7 +198,7 @@ extraction methods:
     Tags may contain spaces if they are double-quoted.
     e.g. #+roam_tags: TAG \"tag with spaces\"
   `vanilla'
-    Extract vanilla org-mode tags, including #+FILETAGS and
+    Extract vanilla `org-mode' tags, including #+FILETAGS and
     inherited tags.
   `all-directories'
     Extract sub-directories relative to `org-roam-directory'.
@@ -729,8 +729,8 @@ tag."
          nil)))))
 
 (defun org-roam--extract-tags-vanilla (_file)
-  "Extract vanilla org-mode tags."
-  (flatten-list (org-get-buffer-tags)))
+  "Extract vanilla `org-mode' tags."
+  (flatten (org-get-buffer-tags)))
 
 (defun org-roam--extract-tags (&optional file)
   "Extract tags from the current buffer.
