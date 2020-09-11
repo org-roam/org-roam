@@ -1362,9 +1362,9 @@ Three types of fuzzy links are supported:
 
   [[Title*Headline]]
     Creates or gets an ID for the corresponding headline from file with corresponding title."
-  (when (and (bound-and-true-p org-roam-mode)
-             (org-roam--org-roam-file-p)
-             org-roam-enable-fuzzy-links)
+  (when (and org-roam-enable-fuzzy-links
+             (bound-and-true-p org-roam-mode)
+             (org-roam--org-roam-file-p))
     (when-let ((location (org-roam--get-fuzzy-link-location link)))
       (pcase-let ((`(,link-type ,loc ,desc ,mkr) location))
         (when (and org-roam-auto-replace-fuzzy-links
