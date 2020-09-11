@@ -730,7 +730,7 @@ tag."
 
 (defun org-roam--extract-tags-vanilla (_file)
   "Extract vanilla org-mode tags."
-  (flatten-tree (org-get-buffer-tags)))
+  (flatten-list (org-get-buffer-tags)))
 
 (defun org-roam--extract-tags (&optional file)
   "Extract tags from the current buffer.
