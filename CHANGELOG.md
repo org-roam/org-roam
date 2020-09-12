@@ -10,6 +10,7 @@ In this release we support fuzzy links of the form `[[Title]]`, `[[*Headline]]` 
 
 ### Features
 
+- [#1093](https://github.com/org-roam/org-roam/pull/1093) Add `vanilla` org-roam-tag-source to extract buffer Org tags
 - [#1079](https://github.com/org-roam/org-roam/pull/1079) Add `org-roam-tag-face` to customize appearance of tags in interactive commandsg
 - [#1073](https://github.com/org-roam/org-roam/pull/1073) Rename file on title change, when `org-roam-rename-file-on-title-change` is non-nil.
 - [#1071](https://github.com/org-roam/org-roam/pull/1071) Update link descriptions on title changes, and clean-up rename file advice
