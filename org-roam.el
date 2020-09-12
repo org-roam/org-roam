@@ -729,7 +729,8 @@ tag."
          nil)))))
 
 (defun org-roam--extract-tags-vanilla (_file)
-  "Extract vanilla `org-mode' tags."
+  "Extract vanilla `org-mode' tags.
+This includes all tags used in the buffer."
   (-flatten (org-get-buffer-tags)))
 
 (defun org-roam--extract-tags (&optional file)
