@@ -197,9 +197,11 @@ extraction methods:
     Tags are space delimited.
     Tags may contain spaces if they are double-quoted.
     e.g. #+roam_tags: TAG \"tag with spaces\"
+
   `vanilla'
     Extract vanilla `org-mode' tags, including #+FILETAGS and
     inherited tags.
+
   `all-directories'
     Extract sub-directories relative to `org-roam-directory'.
     That is, if a file is located at relative path foo/bar/file.org,
@@ -215,6 +217,7 @@ extraction methods:
     That is, if a file is located at relative path foo/bar/file.org,
     the file will have tag \"foo\"."
   :type '(set (const :tag "#+roam_tags" prop)
+              (const :tag "buffer org tags" vanilla)
               (const :tag "sub-directories" all-directories)
               (const :tag "parent directory" last-directory)
               (const :tag "first sub-directory" first-directory)))
@@ -243,10 +246,16 @@ For example the setting: '((title headline) alias) means the following:
 2. Or return 'headline + 'alias otherwise.
 
 The currently supported symbols are:
-1. 'title: The \"#+title\" property of org file.
-2. 'alias: The \"#+roam_alias\" property of the org file, using
-space-delimited strings.
-3. 'headline: The first headline in the org file."
+
+  `title'
+   The \"#+title\" property of org file.
+
+  `alias'
+   The \"#+roam_alias\" property of the org file, using
+   space-delimited strings.
+
+   `headline'
+   The first headline in the org file."
   :type '(repeat
           (choice
            (repeat symbol)
