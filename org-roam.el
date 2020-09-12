@@ -1139,29 +1139,31 @@ This function hooks into `org-open-at-point' via
             exit-fn (lambda (str _status)
                       (delete-char (- (length str)))
                       (insert "\"" str "\""))))
-
-     (;; In a fuzzy link
-      (org-roam--fuzzy-link-p)
-      (org-in-regexp org-link-any-re 1) ; org-roam--fuzzy-link-p guarantees this is true
-      (setq start (match-beginning 2)
-            end (match-end 2))
-      (pcase-let ((`(,type ,title _ ,star-idx)
-                   (org-roam--split-fuzzy-link (match-string-no-properties 2))))
-        (pcase type
-          ('title+headline
-           (when-let ((file (org-roam--get-file-from-title title t)))
-             (setq collection (apply-partially #'org-roam--get-headlines file))
-             (setq start (+ start star-idx 1))))
-          ('title
-           (setq collection #'org-roam--get-titles))
-          ('headline
-           (setq collection #'org-roam--get-headlines)
-           (setq start (+ start star-idx 1))))))
-     (;; At a plain "[[|]]"
-      (org-in-regexp (rx "[[]]"))
-      (setq start (+ (match-beginning 0) 2)
-            end (+ (match-beginning 0) 2)
-            collection #'org-roam--get-titles))
+     (;; Completions for fuzzy links
+      org-roam-enable-fuzzy-links
+      (cond
+       (;; In a fuzzy link
+        (and (org-roam--fuzzy-link-p))
+        (org-in-regexp org-link-any-re 1) ; org-roam--fuzzy-link-p guarantees this is true
+        (setq start (match-beginning 2)
+              end (match-end 2))
+        (pcase-let ((`(,type ,title _ ,star-idx)
+                     (org-roam--split-fuzzy-link (match-string-no-properties 2))))
+          (pcase type
+            ('title+headline
+             (when-let ((file (org-roam--get-file-from-title title t)))
+               (setq collection (apply-partially #'org-roam--get-headlines file))
+               (setq start (+ start star-idx 1))))
+            ('title
+             (setq collection #'org-roam--get-titles))
+            ('headline
+             (setq collection #'org-roam--get-headlines)
+             (setq start (+ start star-idx 1))))))
+       (;; At a plain "[[|]]"
+        (org-in-regexp (rx "[[]]"))
+        (setq start (+ (match-beginning 0) 2)
+              end (+ (match-beginning 0) 2)
+              collection #'org-roam--get-titles))))
      (;; Completions everywhere
       (and org-roam-completion-everywhere
            (thing-at-point 'word))
@@ -1184,8 +1186,17 @@ This function hooks into `org-open-at-point' via
               :exit-function exit-fn)))))
 
 ;;; Fuzzy Links
+(defcustom org-roam-enable-fuzzy-links t
+  "When non-nil, replace Org's [[fuzzy link]] behaviour with Org-roam's.
+
+Org-roam emulates Roam Research, treating [[Foo]] links as links
+to files titled Foo. In addition to this behaviour, [[Foo*Bar]]
+links to the headline Bar within the file titled Foo."
+  :group 'org-roam
+  :type 'boolean)
+
 (defcustom org-roam-auto-replace-fuzzy-links t
-  "When t, replace Org-roam's fuzzy links with file or id links whenever possible."
+  "When non-nil, replace Org-roam's fuzzy links with file or id links whenever possible."
   :group 'org-roam
   :type 'boolean)
 
@@ -1351,7 +1362,8 @@ Three types of fuzzy links are supported:
 
   [[Title*Headline]]
     Creates or gets an ID for the corresponding headline from file with corresponding title."
-  (when (and (bound-and-true-p org-roam-mode)
+  (when (and org-roam-enable-fuzzy-links
+             (bound-and-true-p org-roam-mode)
              (org-roam--org-roam-file-p))
     (when-let ((location (org-roam--get-fuzzy-link-location link)))
       (pcase-let ((`(,link-type ,loc ,desc ,mkr) location))
@@ -1381,7 +1393,8 @@ Three types of fuzzy links are supported:
 
 (defun org-roam--replace-fuzzy-link-on-save ()
   "Hook to replace all fuzzy links on save."
-  (when org-roam-auto-replace-fuzzy-links
+  (when (and org-roam-enable-fuzzy-links
+             org-roam-auto-replace-fuzzy-links)
     (org-roam-replace-all-fuzzy-links)))
 
 ;;; Org-roam-mode
