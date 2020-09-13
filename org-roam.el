@@ -1440,22 +1440,23 @@ Applies `org-roam-link-current' if PATH corresponds to the
 currently opened Org-roam file in the backlink buffer, or
 `org-roam-link-face' if PATH corresponds to any other Org-roam
 file."
-  (let* ((in-note (-> (buffer-file-name (buffer-base-buffer))
-                      (org-roam--org-roam-file-p)))
-         (custom (or (and in-note org-roam-link-use-custom-faces)
-                     (eq org-roam-link-use-custom-faces 'everywhere))))
-    (cond ((and custom
-                (not (file-remote-p path)) ;; Prevent lockups opening Tramp links
-                (not (file-exists-p path)))
-           'org-roam-link-invalid)
-          ((and (org-roam--in-buffer-p)
-                (org-roam--backlink-to-current-p))
-           'org-roam-link-current)
-          ((and custom
-                (org-roam--org-roam-file-p path))
-           'org-roam-link)
-          (t
-           'org-link))))
+  (save-match-data
+    (let* ((in-note (-> (buffer-file-name (buffer-base-buffer))
+                        (org-roam--org-roam-file-p)))
+           (custom (or (and in-note org-roam-link-use-custom-faces)
+                       (eq org-roam-link-use-custom-faces 'everywhere))))
+      (cond ((and custom
+                  (not (file-remote-p path)) ;; Prevent lockups opening Tramp links
+                  (not (file-exists-p path)))
+             'org-roam-link-invalid)
+            ((and (org-roam--in-buffer-p)
+                  (org-roam--backlink-to-current-p))
+             'org-roam-link-current)
+            ((and custom
+                  (org-roam--org-roam-file-p path))
+             'org-roam-link)
+            (t
+             'org-link)))))
 
 (defun org-roam--id-link-face (id)
   "Conditional face for id links.
@@ -1463,21 +1464,22 @@ Applies `org-roam-link-current' if ID corresponds to the
 currently opened Org-roam file in the backlink buffer, or
 `org-roam-link-face' if ID corresponds to any other Org-roam
 file."
-  (let* ((in-note (-> (buffer-file-name (buffer-base-buffer))
-                      (org-roam--org-roam-file-p)))
-         (custom (or (and in-note org-roam-link-use-custom-faces)
-                     (eq org-roam-link-use-custom-faces 'everywhere))))
-    (cond ((and custom
-                (not (org-roam-id-find id)))
-           'org-roam-link-invalid)
-          ((and (org-roam--in-buffer-p)
-                (org-roam--backlink-to-current-p))
-           'org-roam-link-current)
-          ((and custom
-                (org-roam-id-find id))
-           'org-roam-link)
-          (t
-           'org-link))))
+  (save-match-data
+    (let* ((in-note (-> (buffer-file-name (buffer-base-buffer))
+                        (org-roam--org-roam-file-p)))
+           (custom (or (and in-note org-roam-link-use-custom-faces)
+                       (eq org-roam-link-use-custom-faces 'everywhere))))
+      (cond ((and custom
+                  (not (org-roam-id-find id)))
+             'org-roam-link-invalid)
+            ((and (org-roam--in-buffer-p)
+                  (org-roam--backlink-to-current-p))
+             'org-roam-link-current)
+            ((and custom
+                  (org-roam-id-find id))
+             'org-roam-link)
+            (t
+             'org-link)))))
 
 (defun org-roam--queue-file-for-update (&optional file-path)
   "Queue FILE-PATH for `org-roam' database update.
