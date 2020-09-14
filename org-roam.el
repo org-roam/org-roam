@@ -531,15 +531,15 @@ PATH should be the root from which to compute the relativity."
       (goto-char (point-min))
       ;; Loop over links
       (while (re-search-forward org-roam--org-link-bracket-typed-re (point-max) t)
-        (goto-char (match-beginning 2))
         (setq link-type (match-string 1)
               link (match-string 2))
-        ;; Delete relative link
-        (when (and (member link-type '("file")) ; TODO: Fix this
+        (when (and (file-attributes link)
                    (f-relative-p link))
-          (delete-region (match-beginning 2)
-                         (match-end 2))
-          (insert (expand-file-name link dir))))
+          (save-excursion
+            (goto-char (match-beginning 2))
+            (delete-region (match-beginning 2)
+                           (match-end 2))
+            (insert (expand-file-name link dir)))))
       (buffer-string))))
 
 (defun org-roam--get-outline-path ()
