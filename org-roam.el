@@ -532,8 +532,8 @@ PATH should be the root from which to compute the relativity."
       ;; Loop over links
       (while (re-search-forward org-roam--org-link-bracket-typed-re (point-max) t)
         (setq link (match-string 2))
-        (when (and (file-attributes link)
-                   (f-relative-p link))
+        (when (and (f-relative-p link)
+                   (file-attributes link))
           (save-excursion
             (goto-char (match-beginning 2))
             (delete-region (match-beginning 2)
