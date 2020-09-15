@@ -622,7 +622,8 @@ it as FILE-PATH."
                            (setq type "cite")
                            (org-ref-split-and-strip-string path))
                           ("fuzzy" (list path))
-                          (_ (if (file-remote-p path)
+                          (_ (if (or (file-remote-p path)
+                                     (s-starts-with-p "//" path))
                                  (list path)
                                (let ((file-maybe (file-truename
                                                   (expand-file-name path (file-name-directory file-path)))))
