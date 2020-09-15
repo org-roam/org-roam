@@ -74,19 +74,6 @@ If FILE, set `org-roam-temp-file-name' to file and insert its contents."
        (s-replace "\\" "\\\\")
        (s-replace "\"" "\\\"")))
 
-;;; Link Utilities
-(defun org-roam-replace-fuzzy-link (new-loc &optional desc)
-  "Replace the current fuzzy link (e.g. [[Foo]]) with a NEW-LOC.
-If DESC, also replace the desc"
-  (save-match-data
-    (unless (org-in-regexp org-link-bracket-re 1)
-      (user-error "No link at point"))
-    (let ((desc (or desc (match-string-no-properties 1)))
-          (remove (list (match-beginning 0) (match-end 0))))
-      (apply #'delete-region remove)
-      (insert (org-roam-link-make-string new-loc desc)))
-    (sit-for 0)))
-
 ;;; Shielding regions
 (defun org-roam-shield-region (beg end)
   "Shield REGION against modifications.
