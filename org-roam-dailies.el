@@ -295,6 +295,7 @@ EXTRA-FILES can be used to append extra files to the list."
   (let ((dir (org-roam-dailies-directory--get-absolute-path)))
     (append (--remove (let ((file (file-name-nondirectory it)))
                         (when (or (auto-save-file-name-p file)
+                                  (backup-file-name-p file)
                                   (string-match "^\\." file))
                           it))
                       (directory-files-recursively dir ""))
