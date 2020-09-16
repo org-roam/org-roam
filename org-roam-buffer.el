@@ -110,9 +110,9 @@ For example: (setq org-roam-buffer-window-parameters '((no-other-window . t)))"
 (defun org-roam-buffer--insert-title ()
   "Insert the org-roam-buffer title."
   (insert (propertize (org-roam--get-title-or-slug
-                       (file-truename (buffer-file-name org-roam-buffer--current)))
-                       'font-lock-face
-                       'org-document-title)))
+                       (buffer-file-name org-roam-buffer--current))
+                      'font-lock-face
+                      'org-document-title)))
 
 (defun org-roam-buffer--pluralize (string number)
   "Conditionally pluralize STRING if NUMBER is above 1."
@@ -152,7 +152,7 @@ For example: (setq org-roam-buffer-window-parameters '((no-other-window . t)))"
 
 (defun org-roam-buffer--insert-backlinks ()
   "Insert the org-roam-buffer backlinks string for the current buffer."
-  (if-let* ((file-path (file-truename (buffer-file-name org-roam-buffer--current)))
+  (if-let* ((file-path (buffer-file-name org-roam-buffer--current))
             (titles (with-current-buffer org-roam-buffer--current
                       (org-roam--extract-titles)))
             (backlinks (org-roam--get-backlinks (push file-path titles)))
