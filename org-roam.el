@@ -335,6 +335,12 @@ function are expected to catch the error."
                  (t
                   (signal 'wrong-type-argument `((stringp numberp symbolp) ,item))))) items))))
 
+(defun org-roam--url-p (path)
+  "Check if PATH is a URL.
+Assume the protocol is not present in PATH; e.g. URL `https://google.com' is
+passed as `//google.com'."
+  (string-prefix-p "//" path))
+
 ;;;; File functions and predicates
 (defun org-roam--file-name-extension (filename)
   "Return file name extension for FILENAME.
@@ -524,21 +530,19 @@ The search terminates when the first property is encountered."
   "Crawl CONTENT for relative links and expand them.
 PATH should be the root from which to compute the relativity."
   (let ((dir (file-name-directory path))
-        link link-type)
+        link)
     (with-temp-buffer
       (insert content)
       (goto-char (point-min))
       ;; Loop over links
       (while (re-search-forward org-roam--org-link-bracket-typed-re (point-max) t)
-        (goto-char (match-beginning 2))
-        (setq link-type (match-string 1)
-              link (match-string 2))
-        ;; Delete relative link
-        (when (and (member link-type '("file")) ; TODO: Fix this
-                   (f-relative-p link))
-          (delete-region (match-beginning 2)
-                         (match-end 2))
-          (insert (expand-file-name link dir))))
+        (setq link (match-string 2))
+        (when (f-relative-p link)
+          (save-excursion
+            (goto-char (match-beginning 2))
+            (delete-region (match-beginning 2)
+                           (match-end 2))
+            (insert (expand-file-name link dir)))))
       (buffer-string))))
 
 (defun org-roam--get-outline-path ()
@@ -622,7 +626,8 @@ it as FILE-PATH."
                            (setq type "cite")
                            (org-ref-split-and-strip-string path))
                           ("fuzzy" (list path))
-                          (_ (if (file-remote-p path)
+                          (_ (if (or (file-remote-p path)
+                                     (org-roam--url-p path))
                                  (list path)
                                (let ((file-maybe (expand-file-name path (file-name-directory file-path))))
                                  (if (f-exists? file-maybe)
