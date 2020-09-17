@@ -335,12 +335,11 @@ function are expected to catch the error."
                  (t
                   (signal 'wrong-type-argument `((stringp numberp symbolp) ,item))))) items))))
 
-(defun org-roam--is-url-p (path)
+(defun org-roam--url-p (path)
   "Check if PATH is a URL.
 Assume the protocol is not present in PATH; e.g. URL `https://google.com' is
 passed as `//google.com'."
-
-  (s-starts-with-p "//" path))
+  (string-prefix-p "//" path))
 
 ;;;; File functions and predicates
 (defun org-roam--file-name-extension (filename)
@@ -629,7 +628,7 @@ it as FILE-PATH."
                            (org-ref-split-and-strip-string path))
                           ("fuzzy" (list path))
                           (_ (if (or (file-remote-p path)
-                                     (org-roam--is-url-p path))
+                                     (org-roam--url-p path))
                                  (list path)
                                (let ((file-maybe (file-truename
                                                   (expand-file-name path (file-name-directory file-path)))))
