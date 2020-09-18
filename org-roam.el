@@ -1596,8 +1596,8 @@ respectively."
         (old-title org-roam-current-title))
     (unless (or (eq old-title nil)
                 (string-equal old-title new-title))
-      (run-hook-with-args 'org-roam-title-change-hook old-title new-title)
-      (setq-local org-roam-current-title new-title))))
+      (run-hook-with-args 'org-roam-title-change-hook old-title new-title))
+    (setq-local org-roam-current-title new-title)))
 
 (defun org-roam--setup-title-auto-update ()
   "Setup automatic link description update on title change."
