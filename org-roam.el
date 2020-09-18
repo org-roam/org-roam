@@ -1541,7 +1541,8 @@ update with NEW-DESC."
       (when-let ((link (org-element-lineage (org-element-context) '(link) t)))
         (let ((type (org-element-property :type link))
               (path (org-element-property :path link)))
-          (when (and (string-equal (file-truename path) old-path)
+          (when (and (not (tramp-handle-file-remote-p path))
+                     (string-equal (file-truename path) old-path)a
                      (org-in-regexp org-link-bracket-re 1))
             (let* ((label (if (match-end 2)
                               (match-string-no-properties 2)
