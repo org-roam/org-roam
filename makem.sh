@@ -591,6 +591,12 @@ function debug {
         }
     fi
 }
+
+function error_continue {
+    echo_color red "ERROR ($(ts)): $@" >&2
+    ((errors++))
+}
+
 function error {
     echo_color red "ERROR ($(ts)): $@" >&2
     ((errors++))
@@ -763,7 +769,7 @@ function lint-package {
         --funcall package-lint-batch-and-exit \
         "${files_project_feature[@]}" \
         && success "Linting package finished without errors." \
-            || error "Linting package failed."
+            || error_continue "Linting package failed."
 }
 
 function lint-regexps {
