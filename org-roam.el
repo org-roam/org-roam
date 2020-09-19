@@ -530,14 +530,16 @@ The search terminates when the first property is encountered."
   "Crawl CONTENT for relative links and expand them.
 PATH should be the root from which to compute the relativity."
   (let ((dir (file-name-directory path))
-        link)
+        link link-type)
     (with-temp-buffer
       (insert content)
       (goto-char (point-min))
       ;; Loop over links
       (while (re-search-forward org-roam--org-link-bracket-typed-re (point-max) t)
-        (setq link (match-string 2))
-        (when (f-relative-p link)
+        (setq link-type (match-string 1)
+              link (match-string 2))
+        (when (and (string-equal link-type "file")
+                   (f-relative-p link))
           (save-excursion
             (goto-char (match-beginning 2))
             (delete-region (match-beginning 2)
@@ -1590,8 +1592,8 @@ respectively."
         (old-title org-roam-current-title))
     (unless (or (eq old-title nil)
                 (string-equal old-title new-title))
-      (run-hook-with-args 'org-roam-title-change-hook old-title new-title)
-      (setq-local org-roam-current-title new-title))))
+      (run-hook-with-args 'org-roam-title-change-hook old-title new-title))
+    (setq-local org-roam-current-title new-title)))
 
 (defun org-roam--setup-title-auto-update ()
   "Setup automatic link description update on title change."
