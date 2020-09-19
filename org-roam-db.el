@@ -79,7 +79,7 @@ value like `most-positive-fixnum'."
   :type 'int
   :group 'org-roam)
 
-(defconst org-roam-db--version 7)
+(defconst org-roam-db--version 8)
 
 (defvar org-roam-db--connection (make-hash-table :test #'equal)
   "Database connection to Org-roam database.")
@@ -92,7 +92,7 @@ value like `most-positive-fixnum'."
 
 (defun org-roam-db--get-connection ()
   "Return the database connection, if any."
-  (gethash (file-truename org-roam-directory)
+  (gethash (expand-file-name org-roam-directory)
            org-roam-db--connection))
 
 (defun org-roam-db ()
@@ -106,7 +106,7 @@ Performs a database upgrade when required."
       (make-directory (file-name-directory db-file) t)
       (let ((conn (emacsql-sqlite3 db-file)))
         (set-process-query-on-exit-flag (emacsql-process conn) nil)
-        (puthash (file-truename org-roam-directory)
+        (puthash (expand-file-name org-roam-directory)
                  conn
                  org-roam-db--connection)
         (when init-db
@@ -219,8 +219,8 @@ the current `org-roam-directory'."
 (defun org-roam-db--clear-file (&optional filepath)
   "Remove any related links to the file at FILEPATH.
 This is equivalent to removing the node from the graph."
-  (let ((file (file-truename (or filepath
-                                 (buffer-file-name (buffer-base-buffer))))))
+  (let ((file (expand-file-name (or filepath
+                                    (buffer-file-name (buffer-base-buffer))))))
     (dolist (table (mapcar #'car org-roam-db--table-schemata))
       (org-roam-db-query `[:delete :from ,table
                            :where (= ,(if (eq table 'links) 'from 'file) $s1)]
@@ -403,7 +403,7 @@ connections, nil is returned."
 ;;;;; Updating
 (defun org-roam-db--update-meta ()
   "Update the metadata of the current buffer into the cache."
-  (let* ((file (file-truename (buffer-file-name)))
+  (let* ((file (buffer-file-name))
          (attr (file-attributes file))
          (atime (file-attribute-access-time attr))
          (mtime (file-attribute-modification-time attr))
@@ -415,7 +415,7 @@ connections, nil is returned."
 
 (defun org-roam-db--update-titles ()
   "Update the title of the current buffer into the cache."
-  (let* ((file (file-truename (buffer-file-name)))
+  (let* ((file (buffer-file-name))
          (titles (or (org-roam--extract-titles)
                      (list (org-roam--path-to-slug file)))))
     (org-roam-db-query [:delete :from titles
@@ -425,7 +425,7 @@ connections, nil is returned."
 
 (defun org-roam-db--update-tags ()
   "Update the tags of the current buffer into the cache."
-  (let ((file (file-truename (buffer-file-name)))
+  (let ((file (buffer-file-name))
         (tags (org-roam--extract-tags)))
     (org-roam-db-query [:delete :from tags
                         :where (= file $s1)]
@@ -435,7 +435,7 @@ connections, nil is returned."
 
 (defun org-roam-db--update-refs ()
   "Update the ref of the current buffer into the cache."
-  (let ((file (file-truename (buffer-file-name))))
+  (let ((file (buffer-file-name)))
     (org-roam-db-query [:delete :from refs
                         :where (= file $s1)]
                        file)
@@ -444,7 +444,7 @@ connections, nil is returned."
 
 (defun org-roam-db--update-links ()
   "Update the file links of the current buffer in the cache."
-  (let ((file (file-truename (buffer-file-name))))
+  (let ((file (buffer-file-name)))
     (org-roam-db-query [:delete :from links
                         :where (= from $s1)]
                        file)
@@ -453,7 +453,7 @@ connections, nil is returned."
 
 (defun org-roam-db--update-headlines ()
   "Update the file headlines of the current buffer into the cache."
-  (let* ((file (file-truename (buffer-file-name))))
+  (let* ((file (buffer-file-name)))
     (org-roam-db-query [:delete :from headlines
                         :where (= file $s1)]
                        file)
