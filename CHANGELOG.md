@@ -4,9 +4,12 @@
 
 In this release we support fuzzy links of the form `[[Title]]`, `[[*Headline]]` and `[[Title*Headline]]`. Completion for these fuzzy links is supported via `completion-at-point`.
 
+Org-roam also now does not resolve symlinks. This significantly speeds up cache builds, but may result in some workflows breaking. In particular, Org-roam now cannot figure out if two distinct file paths in the Org-roam directory are the same file, and both files will be processed as if they were different files. This error seems to be unavoidable now that symlinks are not resolved, but this workflow is rare and should not affect most users. 
+
 ### Breaking Changes
 
 - [#910](https://github.com/org-roam/org-roam/pull/910) Deprecate `company-org-roam`, using `completion-at-point` instead. To use this with company, add the `company-capf` backend instead.
+- [#1109](https://github.com/org-roam/org-roam/pull/1109) Org-roam now does not resolve symlinks.
 
 ### Features
 

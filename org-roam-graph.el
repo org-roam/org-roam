@@ -265,7 +265,7 @@ CALLBACK is passed the graph file as its sole argument."
   "Build a graph of nodes connected to FILE.
 If MAX-DISTANCE is non-nil, limit nodes to MAX-DISTANCE steps.
 CALLBACK is passed to `org-roam-graph--build'."
-  (let* ((file (file-truename file))
+  (let* ((file (expand-file-name file))
          (files (or (if (and max-distance (>= max-distance 0))
                         (org-roam-db--links-with-max-distance file max-distance)
                       (org-roam-db--connected-component file))

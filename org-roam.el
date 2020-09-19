@@ -368,8 +368,7 @@ If FILE is not specified, use the current buffer's file-path."
          (org-roam--org-file-p path)
          (not (and org-roam-file-exclude-regexp
                    (string-match-p org-roam-file-exclude-regexp path)))
-         (f-descendant-of-p (file-truename path)
-                            (file-truename org-roam-directory))))))
+         (f-descendant-of-p path (expand-file-name org-roam-directory))))))
 
 (defun org-roam--org-roam-headline-p (&optional id)
   "Return t if ID is part of Org-roam system, nil otherwise.
@@ -506,7 +505,7 @@ Use external shell commands if defined in `org-roam-list-files-commands'."
 
 (defun org-roam--list-all-files ()
   "Return a list of all Org-roam files within `org-roam-directory'."
-  (org-roam--list-files (file-truename org-roam-directory)))
+  (org-roam--list-files (expand-file-name org-roam-directory)))
 
 ;;;; Org extraction functions
 (defun org-roam--extract-global-props (props)
@@ -597,7 +596,7 @@ in temp buffers.  In cases where this occurs, we do know the file path, and pass
 it as FILE-PATH."
   (require 'org-ref nil t)
   (unless file-path
-    (setq file-path (file-truename (buffer-file-name))))
+    (setq file-path (buffer-file-name)))
   (save-excursion
     (let (links)
       (org-element-map (org-element-parse-buffer) 'link
@@ -632,8 +631,7 @@ it as FILE-PATH."
                           (_ (if (or (file-remote-p path)
                                      (org-roam--url-p path))
                                  (list path)
-                               (let ((file-maybe (file-truename
-                                                  (expand-file-name path (file-name-directory file-path)))))
+                               (let ((file-maybe (expand-file-name path (file-name-directory file-path))))
                                  (if (f-exists? file-maybe)
                                      (list file-maybe)
                                    (list path))))))))
@@ -646,7 +644,7 @@ it as FILE-PATH."
   "Extract all headlines with IDs within the current buffer.
 If FILE-PATH is nil, use the current file."
   (let ((file-path (or file-path
-                       (file-truename (buffer-file-name)))))
+                       (buffer-file-name))))
     ;; Use `org-map-region' instead of `org-map-entries' as the latter
     ;; would require another step to remove all nil values.
     (let ((result nil))
@@ -713,14 +711,14 @@ If NESTED, return the first successful result from SOURCES."
   "Extract tags from using the directory path FILE.
 All sub-directories relative to `org-roam-directory' are used as tags."
   (when-let ((dir-relative (file-name-directory
-                            (file-relative-name file (file-truename org-roam-directory)))))
+                            (file-relative-name file (expand-file-name org-roam-directory)))))
     (f-split dir-relative)))
 
 (defun org-roam--extract-tags-last-directory (file)
   "Extract tags from using the directory path FILE.
 The final directory component is used as a tag."
   (when-let ((dir-relative (file-name-directory
-                            (file-relative-name file (file-truename org-roam-directory)))))
+                            (file-relative-name file (expand-file-name org-roam-directory)))))
     (last (f-split dir-relative))))
 
 (defun org-roam--extract-tags-first-directory (file)
@@ -728,7 +726,7 @@ The final directory component is used as a tag."
 The first directory component after `org-roam-directory' is used as a
 tag."
   (when-let ((dir-relative (file-name-directory
-                            (file-relative-name file (file-truename org-roam-directory)))))
+                            (file-relative-name file (expand-file-name org-roam-directory)))))
     (list (car (f-split dir-relative)))))
 
 (defun org-roam--extract-tags-prop (_file)
@@ -818,7 +816,7 @@ Examples:
 (defun org-roam--path-to-slug (path)
   "Return a slug from PATH."
   (-> path
-      (file-relative-name (file-truename org-roam-directory))
+      (file-relative-name (expand-file-name org-roam-directory))
       (file-name-sans-extension)))
 
 (defun org-roam--get-title-or-slug (path)
@@ -856,7 +854,6 @@ TYPE defaults to \"file\"."
                  (-> (or (buffer-base-buffer)
                          (current-buffer))
                      (buffer-file-name)
-                     (file-truename)
                      (file-name-directory)))))
     (org-roam-link-make-string
      (concat (or type "file") ":" (if here
@@ -906,7 +903,7 @@ whose title is 'Index'."
                                      `((functionp stringp)
                                        ,wrong-type))))))
     (if (f-relative-p index)
-        (concat (file-truename org-roam-directory) path)
+        (concat (expand-file-name org-roam-directory) path)
       index)))
 
 ;;;; org-roam-find-ref
@@ -983,15 +980,14 @@ Return nil if the file does not exist."
 
 (defun org-roam--file-path-from-id (id)
   "Return path for Org-roam file with ID."
-  (file-truename
-   (let* ((ext (or (car org-roam-file-extensions)
-                   "org"))
-          (file (concat id "." ext)))
-     (expand-file-name
-      (if org-roam-encrypt-files
-          (concat file ".gpg")
-        file)
-      org-roam-directory))))
+  (let* ((ext (or (car org-roam-file-extensions)
+                  "org"))
+         (file (concat id "." ext)))
+    (expand-file-name
+     (if org-roam-encrypt-files
+         (concat file ".gpg")
+       file)
+     org-roam-directory)))
 
 ;;; org-roam-backlinks-mode
 (define-minor-mode org-roam-backlinks-mode
@@ -1043,7 +1039,7 @@ This function hooks into `org-open-at-point' via `org-open-at-point-functions'."
    ((let* ((context (org-element-context))
            (path (org-element-property :path context)))
       (when (and (eq (org-element-type context) 'link)
-                 (org-roam--org-roam-file-p (file-truename path)))
+                 (org-roam--org-roam-file-p path))
         (org-roam-buffer--find-file path)
         (org-show-context)
         t)))
@@ -1527,7 +1523,7 @@ during the next idle slot."
   "Advice for maintaining cache consistency when FILE is deleted."
   (when (and (not (auto-save-file-name-p file))
              (org-roam--org-roam-file-p file))
-    (org-roam-db--clear-file (file-truename file))))
+    (org-roam-db--clear-file (expand-file-name file))))
 
 (defun org-roam--replace-link (old-path new-path &optional old-desc new-desc)
   "Replace Org-roam file links with path OLD-PATH to path NEW-PATH.
@@ -1541,7 +1537,7 @@ update with NEW-DESC."
       (when-let ((link (org-element-lineage (org-element-context) '(link) t)))
         (let ((type (org-element-property :type link))
               (path (org-element-property :path link)))
-          (when (and (string-equal (file-truename path) old-path)
+          (when (and (string-equal (expand-file-name path) old-path)
                      (org-in-regexp org-link-bracket-re 1))
             (let* ((label (if (match-end 2)
                               (match-string-no-properties 2)
@@ -1611,7 +1607,7 @@ OLD-TITLE, and replace the link descriptions with the NEW-TITLE
 if applicable.
 
 To be added to `org-roam-title-change-hook'."
-  (let* ((current-path (file-truename (buffer-file-name)))
+  (let* ((current-path (buffer-file-name))
          (files-affected (org-roam-db-query [:select :distinct [from]
                                              :from links
                                              :where (= to $s1)]
@@ -1654,8 +1650,8 @@ When NEW-FILE-OR-DIR is a directory, we use it to compute the new file path."
                (not (backup-file-name-p new-file))
                (org-roam--org-roam-file-p old-file))
       (org-roam-db--ensure-built)
-      (let* ((old-path (file-truename old-file))
-             (new-path (file-truename new-file))
+      (let* ((old-path (expand-file-name old-file))
+             (new-path (expand-file-name new-file))
              (new-buffer (or (find-buffer-visiting new-path)
                              (find-file-noselect new-path)))
              (files-affected (org-roam-db-query [:select :distinct [from]
@@ -1666,7 +1662,7 @@ When NEW-FILE-OR-DIR is a directory, we use it to compute the new file path."
         (org-roam-db--clear-file old-file)
         ;; Replace links from old-file.org -> new-file.org in all Org-roam files with these links
         (mapc (lambda (file)
-                (setq file (if (string-equal (file-truename (car file)) old-path)
+                (setq file (if (string-equal (expand-file-name (car file)) old-path)
                                new-path
                              (car file)))
                 (with-current-buffer (or (find-buffer-visiting file)
