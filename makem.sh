@@ -592,9 +592,9 @@ function debug {
     fi
 }
 
-function error_continue {
+function error_nonblocking {
     echo_color red "ERROR ($(ts)): $@" >&2
-    ((errors++))
+    ((errors_nonblocking++))
 }
 
 function error {
@@ -769,7 +769,7 @@ function lint-package {
         --funcall package-lint-batch-and-exit \
         "${files_project_feature[@]}" \
         && success "Linting package finished without errors." \
-            || error_continue "Linting package failed."
+            || error_nonblocking "Linting package failed."
 }
 
 function lint-regexps {
@@ -838,6 +838,7 @@ test_files_regexp='^((tests?|t)/)|-test.el$|^test-'
 
 emacs_command=("emacs")
 errors=0
+errors_nonblocking=0
 verbose=0
 compile=true
 arg_batch="--batch"
@@ -1078,9 +1079,9 @@ done
 
 if [[ $errors -gt 0 ]]
 then
-    log_color red "Finished with $errors errors."
+    log_color red "Finished with $errors errors and $errors_nonblocking non-blocking errors."
 else
-    success "Finished without errors."
+    success "Finished with $errors errors and $errors_nonblocking non-blocking errors."
 fi
 
 exit $errors
