@@ -114,7 +114,7 @@ If nil, `find-file' is used."
   :group 'org-roam)
 
 (defcustom org-roam-update-db-idle-delay 2
-  "The idle timer when org-roam update db index"
+  "The idle timer when org-roam update db index."
   :type 'integer
   :group 'org-roam)
 
