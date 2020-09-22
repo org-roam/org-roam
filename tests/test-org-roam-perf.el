@@ -29,7 +29,7 @@
 
 (defun test-org-roam-perf--abs-path (file-path)
   "Get absolute FILE-PATH from `org-roam-directory'."
-  (file-truename (expand-file-name file-path org-roam-directory)))
+  (expand-file-name file-path org-roam-directory))
 
 (defun test-org-roam-perf--init ()
   "."
