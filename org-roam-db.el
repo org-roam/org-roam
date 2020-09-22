@@ -382,23 +382,13 @@ connections, nil is returned."
 
 (defun org-roam-db--file-hash (&optional file-path)
   "Compute the hash of FILE-PATH, a file or current buffer."
-  (let* ((file-p (and file-path))
-         (file-path (or file-path
-                        (buffer-file-name (current-buffer))))
-         (encrypted-p (and file-path
-                           (string= (org-roam--file-name-extension file-path)
-                                    "gpg"))))
-    (cond ((and encrypted-p file-p)
-           (with-temp-buffer
-             (set-buffer-multibyte nil)
-             (insert-file-contents-literally file-path)
-             (secure-hash 'sha1 (current-buffer))))
-          (file-p
-           (with-temp-buffer
-             (insert-file-contents file-path)
-             (secure-hash 'sha1 (current-buffer))))
-          (t
-           (secure-hash 'sha1 (current-buffer))))))
+  (if file-path
+      (with-temp-buffer
+        (set-buffer-multibyte nil)
+        (insert-file-contents-literally file-path)
+        (secure-hash 'sha1 (current-buffer)))
+    (org-with-wide-buffer
+     (secure-hash 'sha1 (current-buffer)))))
 
 ;;;;; Updating
 (defun org-roam-db--update-meta ()
