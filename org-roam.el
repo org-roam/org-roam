@@ -1146,6 +1146,13 @@ This function hooks into `org-open-at-point' via
   :group 'org-roam
   :type 'boolean)
 
+(defun org-roam--completion-exit-fn (&rest _)
+  "After accepting complete-at-point, move out of `]]`.
+This is intended to be set to :exit-function within
+`org-roam-complete-at-point` function."
+  
+  (forward-char 2))
+
 (defun org-roam-complete-at-point ()
   "Do appropriate completion for the thing at point."
   (let ((end (point))
@@ -1207,7 +1214,7 @@ This function hooks into `org-open-at-point' via
                      (cl-remove-if (apply-partially #'string= prefix)
                                    (funcall collection))))
                 collection)
-              :exit-function exit-fn)))))
+              :exit-function #'org-roam--completion-exit-fn)))))
 
 ;;; Fuzzy Links
 (defcustom org-roam-enable-fuzzy-links t
