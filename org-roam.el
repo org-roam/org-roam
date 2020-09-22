@@ -113,7 +113,7 @@ If nil, `find-file' is used."
   :type 'function
   :group 'org-roam)
 
-(defcustom org-roam-update-db-idletimer-by-seconds 2
+(defcustom org-roam-update-db-idle-seconds 2
   "Number of idle seconds before triggering an Org-roam database update."
   :type 'integer
   :group 'org-roam)
@@ -1721,7 +1721,7 @@ M-x info for more information at Org-roam > Installation > Post-Installation Tas
     (add-hook 'org-open-at-point-functions #'org-roam-open-id-at-point)
     (add-hook 'org-open-link-functions #'org-roam--open-fuzzy-link)
     (unless org-roam--file-update-timer
-      (setq org-roam--file-update-timer (run-with-idle-timer org-roam-update-db-idletimer-by-seconds t #'org-roam--process-update-queue)))
+      (setq org-roam--file-update-timer (run-with-idle-timer org-roam-update-db-idle-seconds t #'org-roam--process-update-queue)))
     (advice-add 'rename-file :after #'org-roam--rename-file-advice)
     (advice-add 'delete-file :before #'org-roam--delete-file-advice)
     (when (fboundp 'org-link-set-parameters)
