@@ -27,7 +27,7 @@
 
 (defun test-org-roam--abs-path (file-path)
   "Get absolute FILE-PATH from `org-roam-directory'."
-  (file-truename (expand-file-name file-path org-roam-directory)))
+  (expand-file-name file-path org-roam-directory))
 
 (defun test-org-roam--find-file (path)
   "PATH."
@@ -35,7 +35,7 @@
     (make-directory (file-name-directory path) t)
     (find-file path)))
 
-(defvar test-org-roam-directory (file-truename (concat default-directory "tests/roam-files"))
+(defvar test-org-roam-directory (expand-file-name "tests/roam-files")
   "Directory containing org-roam test org files.")
 
 (defun test-org-roam--init ()

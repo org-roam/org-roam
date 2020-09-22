@@ -224,7 +224,7 @@ This needs to be quick or infrequent, because this is run at
     (when (and (or redisplay
                    (not (eq org-roam-buffer--current buffer)))
                (eq 'visible (org-roam-buffer--visibility))
-               (buffer-local-value 'buffer-file-truename buffer))
+               (buffer-file-name buffer))
       (setq org-roam-buffer--current buffer)
       (org-roam-buffer-update))))
 
