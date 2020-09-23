@@ -23,7 +23,7 @@ Org-roam also now does not resolve symlinks. This significantly speeds up cache 
 - [#974](https://github.com/org-roam/org-roam/pull/974) Protect region targeted by `org-roam-insert`
 - [#994](https://github.com/org-roam/org-roam/pull/994) Simplify org-roam-store-link
 - [#1062](https://github.com/org-roam/org-roam/pull/1062) Variable `org-roam-completions-everywhere` allows for completions everywhere from word at point
-- [#910](https://github.com/org-roam/org-roam/pull/910) Support fuzzy links of the form [[Title]], [[*Headline]] and [[Title*Headline]]
+- [#910](https://github.com/org-roam/org-roam/pull/910), [#1105](https://github.com/org-roam/org-roam/pull/1105) Support fuzzy links of the form [[roam:Title]], [[roam:*Headline]] and [[roam:Title*Headline]]
 
 ### Bugfixes
 

@@ -544,10 +544,46 @@ The Org-roam buffer displays backlinks for the currently active Org-roam note.
 
   The ~no-delete-window~ parameter for the org-roam buffer. Setting it to ~'t~ prevents the window from being deleted when calling ~delete-other-windows~.
 
-** Org-roam Links
+** Org-roam Files
 
-Org-roam links are regular ~file:~ links in Org-mode. By default, links are
-inserted with the title as the link description with ~org-roam-insert~.
+Org-roam files are created and prefilled using Org-roam's templating
+system. The templating system is customizable (see [[*The Templating System][The Templating System]]).
+
+* Inserting Links
+
+The preferred mode of linking is via ~file~ links to files, and ~id~ links for
+headlines. This maintains the strongest compatibility with Org-mode, ensuring
+that the links still function without Org-roam, and work well exporting to other
+backends.
+
+~file~ links can be inserted via ~org-roam-insert~. Links to headlines can be
+inserted by navigating to the desired headline and calling ~org-store-link~.
+This will create an ID for the headline if it does not already exist, and
+populate the Org-roam database. The link can then be inserted via
+~org-insert-link~.
+
+An alternative mode of insertion is using Org-roam's ~roam~ links. Org-roam
+registers this link type, and interprets the path as follows:
+
+- ~[[roam:title]]~ :: links to an Org-roam file with title or alias "title"
+- ~[[roam:*headline]]~ :: links to the headline "headline" in the current Org-roam file
+- ~[[roam:title*headline]]~ :: links to the headline "headline" in the Org-roam file with title or alias "title"
+
+~roam~ links support auto-completion via ~completion-at-point~: simply call
+~completion-at-point~ within a roam link. Users of ~company-mode~ may want to
+prepend ~company-capf~ to the beginning of variable ~company-backends~.
+
+To easily insert ~roam~ links, one may wish to use a package like [[https://github.com/emacsorphanage/key-chord/][key-chord]]. In the following example, typing "[[" will insert a stub ~roam~ link:
+
+#+BEGIN_SRC emacs-lisp
+(key-chord-define org-mode-map "[[" #'my/insert-roam-link)
+
+(defun my/insert-roam-link ()
+    "Inserts an Org-roam link."
+    (interactive)
+    (insert "[[roam:]]")
+    (backward-char 2))
+#+END_SRC
 
 - User Option: org-roam-link-title-format
 
@@ -557,10 +593,18 @@ inserted with the title as the link description with ~org-roam-insert~.
   If your version of Org is at least ~9.2~, consider styling the link differently,
   by customizing the ~org-roam-link~, and ~org-roam-link-current~ faces.
 
-** Org-roam Files
+- User Option: org-roam-completion-ignore-case
 
-Org-roam files are created and prefilled using Org-roam's templating
-system. The templating system is customizable (see [[*The Templating System][The Templating System]]).
+  When non-nil, the ~roam~ link completions are ignore case. For example,
+  calling ~completion-at-point~ within ~[[roam:fo]]~ will present a completion
+  for a file with title "Foo". Defaults to ~t~.
+
+- User Option: org-roam-link-auto-replace
+
+  When non-nil, ~roam~ links will be replaced with ~file~ or ~id~ links when
+  they are navigated to, and on file save, when a match is found. This is
+  desirable to maintain compatibility with vanilla Org, but resolved links are
+  harder to edit. Defaults to ~t~.
 
 * Navigating Around
 
