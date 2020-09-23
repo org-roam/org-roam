@@ -47,6 +47,11 @@
           (function :tag "Custom function"))
   :group 'org-roam)
 
+(defcustom org-roam-completion-ignore-case t
+  "Whether to ignore case in Org-roam `completion-at-point' completions."
+  :group 'org-roam
+  :type 'boolean)
+
 (defun org-roam-completion--helm-candidate-transformer (candidates _source)
   "Transforms CANDIDATES for Helm-based completing read.
 SOURCE is not used."

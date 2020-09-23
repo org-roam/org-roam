@@ -256,10 +256,12 @@ marker is a marker to the headline, if applicable."
       (let ((prefix (buffer-substring-no-properties start end)))
         (list start end
               (if (functionp collection)
-                  (completion-table-dynamic
-                   (lambda (_)
-                     (cl-remove-if (apply-partially #'string= prefix)
-                                   (funcall collection))))
+                  (completion-table-case-fold
+                   (completion-table-dynamic
+                    (lambda (_)
+                      (cl-remove-if (apply-partially #'string= prefix)
+                                    (funcall collection))))
+                   (not org-roam-completion-ignore-case))
                 collection)
               :exit-function exit-fn)))))
 

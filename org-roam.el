@@ -1177,10 +1177,12 @@ This function hooks into `org-open-at-point' via
       (let ((prefix (buffer-substring-no-properties start end)))
         (list start end
               (if (functionp collection)
-                  (completion-table-dynamic
-                   (lambda (_)
-                     (cl-remove-if (apply-partially #'string= prefix)
-                                   (funcall collection))))
+                  (completion-table-case-fold
+                   (completion-table-dynamic
+                    (lambda (_)
+                      (cl-remove-if (apply-partially #'string= prefix)
+                                    (funcall collection))))
+                   (not org-roam-completion-ignore-case))
                 collection)
               :exit-function exit-fn)))))
 
@@ -1208,10 +1210,12 @@ This is active when `org-roam-completion-everywhere' is non-nil."
       (let ((prefix (buffer-substring-no-properties start end)))
         (list start end
               (if (functionp collection)
-                  (completion-table-dynamic
-                   (lambda (_)
-                     (cl-remove-if (apply-partially #'string= prefix)
-                                   (funcall collection))))
+                  (completion-table-case-fold
+                   (completion-table-dynamic
+                    (lambda (_)
+                      (cl-remove-if (apply-partially #'string= prefix)
+                                    (funcall collection))))
+                   (not org-roam-completion-ignore-case))
                 collection)
               :exit-function exit-fn)))))
 
