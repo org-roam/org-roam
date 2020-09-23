@@ -74,7 +74,7 @@ Previous: <a href="Installing-from-the-Git-Repository.html#Installing-from-the-G
 operating system. You can verify that this is the case by executing:
 </p>
 <div class="lisp">
-<pre class="lisp">(executable-find &quot;sqlite3&quot;)
+<pre class="lisp">  (executable-find &quot;sqlite3&quot;)
 </pre></div>
 
 <p>If you have <code>sqlite3</code> installed, and <code>executable-find</code> still reports <code>nil</code>, then
@@ -83,7 +83,7 @@ variable <code>exec-path</code>. You may rectify this by manually adding the pat
 your Emacs configuration:
 </p>
 <div class="lisp">
-<pre class="lisp">(add-to-list 'exec-path &quot;path/to/sqlite3&quot;)
+<pre class="lisp">  (add-to-list 'exec-path &quot;path/to/sqlite3&quot;)
 </pre></div>
 
 

@@ -67,7 +67,7 @@ Next: <a href="Org_002droam-Completion-System.html#Org_002droam-Completion-Syste
 </div>
 <hr>
 <a name="Graphing-1"></a>
-<h2 class="chapter">11 Graphing</h2>
+<h2 class="chapter">12 Graphing</h2>
 
 <p>Org-roam provides graphing capabilities to explore interconnections between
 notes. This is done by performing SQL queries and generating images using
@@ -112,10 +112,10 @@ compact graph layout.
 <p>If you are using WSL2 and would like to open the graph in Windows, you can use the second option to set the browser and network file path:
 </p>
 <div class="lisp">
-<pre class="lisp">(setq org-roam-graph-viewer
-    (lambda (file)
-      (let ((org-roam-graph-viewer &quot;/mnt/c/Program Files/Mozilla Firefox/firefox.exe&quot;))
-        (org-roam-graph--open (concat &quot;file://///wsl$/Ubuntu&quot; file)))))
+<pre class="lisp">  (setq org-roam-graph-viewer
+      (lambda (file)
+        (let ((org-roam-graph-viewer &quot;/mnt/c/Program Files/Mozilla Firefox/firefox.exe&quot;))
+          (org-roam-graph--open (concat &quot;file://///wsl$/Ubuntu&quot; file)))))
 </pre></div>
 </li></ul>
 

@@ -1,0 +1,146 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- Copyright (C) 2020-2020 Jethro Kuan <jethrokuan95@gmail.com>
+
+You can redistribute this document and/or modify it under the terms
+of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any
+later version.
+
+This document is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+ -->
+<!-- Created by GNU Texinfo 6.5, http://www.gnu.org/software/texinfo/ -->
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Inserting Links (Org-roam User Manual)</title>
+
+<meta name="description" content="Inserting Links (Org-roam User Manual)">
+<meta name="keywords" content="Inserting Links (Org-roam User Manual)">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<link href="index.html#Top" rel="start" title="Top">
+<link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="index.html#Top" rel="up" title="Top">
+<link href="Navigating-Around.html#Navigating-Around" rel="next" title="Navigating Around">
+<link href="Org_002droam-Files.html#Org_002droam-Files" rel="prev" title="Org-roam Files">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.indentedblock {margin-right: 0em}
+blockquote.smallindentedblock {margin-right: 0em; font-size: smaller}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smalllisp {margin-left: 3.2em}
+kbd {font-style: oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: inherit; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: inherit; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nolinebreak {white-space: nowrap}
+span.roman {font-family: initial; font-weight: normal}
+span.sansserif {font-family: sans-serif; font-weight: normal}
+ul.no-bullet {list-style: none}
+-->
+</style>
+<link rel="stylesheet" type="text/css" href="assets/page.css">
+
+
+</head>
+
+<body lang="en">
+<a name="Inserting-Links"></a>
+<div class="header">
+<p>
+Next: <a href="Navigating-Around.html#Navigating-Around" accesskey="n" rel="next">Navigating Around</a>, Previous: <a href="Concepts-and-Configuration.html#Concepts-and-Configuration" accesskey="p" rel="prev">Concepts and Configuration</a>, Up: <a href="index.html#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<hr>
+<a name="Inserting-Links-1"></a>
+<h2 class="chapter">9 Inserting Links</h2>
+
+<p>The preferred mode of linking is via <code>file</code> links to files, and <code>id</code> links for
+headlines. This maintains the strongest compatibility with Org-mode, ensuring
+that the links still function without Org-roam, and work well exporting to other
+backends.
+</p>
+<p><code>file</code> links can be inserted via <code>org-roam-insert</code>. Links to headlines can be
+inserted by navigating to the desired headline and calling <code>org-store-link</code>.
+This will create an ID for the headline if it does not already exist, and
+populate the Org-roam database. The link can then be inserted via
+<code>org-insert-link</code>.
+</p>
+<p>An alternative mode of insertion is using Org-roam&rsquo;s <code>roam</code> links. Org-roam
+registers this link type, and interprets the path as follows:
+</p>
+<dl compact="compact">
+<dt><code>[[roam:title]]</code></dt>
+<dd><p>links to an Org-roam file with title or alias &ldquo;title&rdquo;
+</p></dd>
+<dt><code>[[roam:*headline]]</code></dt>
+<dd><p>links to the headline &ldquo;headline&rdquo; in the current Org-roam file
+</p></dd>
+<dt><code>[[roam:title*headline]]</code></dt>
+<dd><p>links to the headline &ldquo;headline&rdquo; in the Org-roam file with title or alias &ldquo;title&rdquo;
+</p></dd>
+</dl>
+
+<p><code>roam</code> links support auto-completion via <code>completion-at-point</code>: simply call
+<code>completion-at-point</code> within a roam link. Users of <code>company-mode</code> may want to
+prepend <code>company-capf</code> to the beginning of variable <code>company-backends</code>.
+</p>
+<p>To easily insert <code>roam</code> links, one may wish to use a package like <a href="https://github.com/emacsorphanage/key-chord/">key-chord</a>. In the following example, typing &ldquo;[[&rdquo; will insert a stub <code>roam</code> link:
+</p>
+<div class="lisp">
+<pre class="lisp">(key-chord-define org-mode-map &quot;[[&quot; #'my/insert-roam-link)
+
+(defun my/insert-roam-link ()
+    &quot;Inserts an Org-roam link.&quot;
+    (interactive)
+    (insert &quot;[[roam:]]&quot;)
+    (backward-char 2))
+</pre></div>
+
+<ul>
+<li> User Option: org-roam-link-title-format
+
+<p>To distinguish between org-roam links and regular links, one may choose to use
+special indicators for Org-roam links. Defaults to <code>&quot;%s&quot;</code>.
+</p>
+<p>If your version of Org is at least <code>9.2</code>, consider styling the link differently,
+by customizing the <code>org-roam-link</code>, and <code>org-roam-link-current</code> faces.
+</p>
+</li><li> User Option: org-roam-completion-ignore-case
+
+<p>When non-nil, the <code>roam</code> link completions are ignore case. For example,
+calling <code>completion-at-point</code> within <code>[[roam:fo]]</code> will present a completion
+for a file with title &ldquo;Foo&rdquo;. Defaults to <code>t</code>.
+</p>
+</li><li> User Option: org-roam-link-auto-replace
+
+<p>When non-nil, <code>roam</code> links will be replaced with <code>file</code> or <code>id</code> links when
+they are navigated to, and on file save, when a match is found. This is
+desirable to maintain compatibility with vanilla Org, but resolved links are
+harder to edit. Defaults to <code>t</code>.
+</p></li></ul>
+
+<hr>
+<div class="header">
+<p>
+Next: <a href="Navigating-Around.html#Navigating-Around" accesskey="n" rel="next">Navigating Around</a>, Previous: <a href="Concepts-and-Configuration.html#Concepts-and-Configuration" accesskey="p" rel="prev">Concepts and Configuration</a>, Up: <a href="index.html#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+
+
+
+</body>
+</html>

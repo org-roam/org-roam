@@ -67,20 +67,20 @@ Next: <a href="Org_002djournal.html#Org_002djournal" accesskey="n" rel="next">Or
 </div>
 <hr>
 <a name="Full_002dtext-search-interface-with-Deft-1"></a>
-<h4 class="subsection">17.2.3 Full-text search interface with Deft</h4>
+<h4 class="subsection">18.2.3 Full-text search interface with Deft</h4>
 
 <p><a href="https://jblevins.org/projects/deft/">Deft</a> provides a nice interface for browsing and filtering org-roam notes.
 </p>
 <div class="lisp">
-<pre class="lisp">(use-package deft
-  :after org
-  :bind
-  (&quot;C-c n d&quot; . deft)
-  :custom
-  (deft-recursive t)
-  (deft-use-filter-string-for-filename t)
-  (deft-default-extension &quot;org&quot;)
-  (deft-directory &quot;/path/to/org-roam-files/&quot;))
+<pre class="lisp">  (use-package deft
+    :after org
+    :bind
+    (&quot;C-c n d&quot; . deft)
+    :custom
+    (deft-recursive t)
+    (deft-use-filter-string-for-filename t)
+    (deft-default-extension &quot;org&quot;)
+    (deft-directory &quot;/path/to/org-roam-files/&quot;))
 </pre></div>
 
 <p>If the title of the Org file is not the first line, you might not get
@@ -89,29 +89,29 @@ functionality. Here I&rsquo;m using
 <a href="https://github.com/raxod502/el-patch">el-patch</a>:
 </p>
 <div class="lisp">
-<pre class="lisp">(use-package el-patch
-  :straight (:host github
-                   :repo &quot;raxod502/el-patch&quot;
-                   :branch &quot;develop&quot;))
+<pre class="lisp">  (use-package el-patch
+    :straight (:host github
+                     :repo &quot;raxod502/el-patch&quot;
+                     :branch &quot;develop&quot;))
 
-(eval-when-compile
-  (require 'el-patch))
+  (eval-when-compile
+    (require 'el-patch))
 
-(use-package deft
-  ;; same as above...
-  :config/el-patch
-  (defun deft-parse-title (file contents)
-    &quot;Parse the given FILE and CONTENTS and determine the title.
-If `deft-use-filename-as-title' is nil, the title is taken to
-be the first non-empty line of the FILE.  Else the base name of the FILE is
-used as title.&quot;
-    (el-patch-swap (if deft-use-filename-as-title
-                       (deft-base-filename file)
-                     (let ((begin (string-match &quot;^.+$&quot; contents)))
-                       (if begin
-                           (funcall deft-parse-title-function
-                                    (substring contents begin (match-end 0))))))
-                   (org-roam--get-title-or-slug file))))
+  (use-package deft
+    ;; same as above...
+    :config/el-patch
+    (defun deft-parse-title (file contents)
+      &quot;Parse the given FILE and CONTENTS and determine the title.
+  If `deft-use-filename-as-title' is nil, the title is taken to
+  be the first non-empty line of the FILE.  Else the base name of the FILE is
+  used as title.&quot;
+      (el-patch-swap (if deft-use-filename-as-title
+                         (deft-base-filename file)
+                       (let ((begin (string-match &quot;^.+$&quot; contents)))
+                         (if begin
+                             (funcall deft-parse-title-function
+                                      (substring contents begin (match-end 0))))))
+                     (org-roam--get-title-or-slug file))))
 </pre></div>
 
 <p>The Deft interface can slow down quickly when the number of files get

@@ -79,9 +79,9 @@ archives to &lsquo;<samp>package-archives</samp>&rsquo;:
 </li></ul>
 
 <div class="lisp">
-<pre class="lisp">(require 'package)
-(add-to-list 'package-archives
-             '(&quot;melpa&quot; . &quot;http://melpa.org/packages/&quot;) t)
+<pre class="lisp">  (require 'package)
+  (add-to-list 'package-archives
+               '(&quot;melpa&quot; . &quot;http://melpa.org/packages/&quot;) t)
 </pre></div>
 
 <ul>
@@ -89,9 +89,9 @@ archives to &lsquo;<samp>package-archives</samp>&rsquo;:
 </li></ul>
 
 <div class="lisp">
-<pre class="lisp">(require 'package)
-(add-to-list 'package-archives
-             '(&quot;melpa-stable&quot; . &quot;http://stable.melpa.org/packages/&quot;) t)
+<pre class="lisp">  (require 'package)
+  (add-to-list 'package-archives
+               '(&quot;melpa-stable&quot; . &quot;http://stable.melpa.org/packages/&quot;) t)
 </pre></div>
 
 <p>Org-roam also depends on a recent version of Org, which can be obtained in Org&rsquo;s
@@ -105,14 +105,14 @@ package repository (see <a href="http://www.gnu.org/software/emacs/manual/html_n
 local package list using:
 </p>
 <div class="example">
-<pre class="example">M-x package-refresh-contents RET
+<pre class="example">  M-x package-refresh-contents RET
 </pre></div>
 
 <p>Once you have done that, you can install Org-roam and its dependencies
 using:
 </p>
 <div class="example">
-<pre class="example">M-x package-install RET org-roam RET
+<pre class="example">  M-x package-install RET org-roam RET
 </pre></div>
 
 <p>Now see <a href="Post_002dInstallation-Tasks.html#Post_002dInstallation-Tasks">Post-Installation Tasks</a>.

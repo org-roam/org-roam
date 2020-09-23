@@ -67,14 +67,14 @@ Next: <a href="Roam-Protocol.html#Roam-Protocol" accesskey="n" rel="next">Roam P
 </div>
 <hr>
 <a name="Org_002droam-Completion-System-1"></a>
-<h2 class="chapter">12 Org-roam Completion System</h2>
+<h2 class="chapter">13 Org-roam Completion System</h2>
 
 <p>Org-roam allows customization of which minibuffer completion system to use for
 its interactive commands. The default setting uses Emacs&rsquo; standard
 <code>completing-read</code> mechanism.
 </p>
 <div class="lisp">
-<pre class="lisp">(setq org-roam-completion-system 'default)
+<pre class="lisp">  (setq org-roam-completion-system 'default)
 </pre></div>
 
 <p>If you have installed Helm or Ivy, and have their modes enabled, under the
@@ -84,7 +84,7 @@ its interactive commands. The default setting uses Emacs&rsquo; standard
 commands, set:
 </p>
 <div class="lisp">
-<pre class="lisp">(setq org-roam-completion-system 'helm)
+<pre class="lisp">  (setq org-roam-completion-system 'helm)
 </pre></div>
 
 <p>Other options include <code>'ido</code>, and <code>'ivy</code>.

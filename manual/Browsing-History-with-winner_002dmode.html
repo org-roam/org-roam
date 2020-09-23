@@ -67,16 +67,16 @@ Next: <a href="Versioning-Notes.html#Versioning-Notes" accesskey="n" rel="next">
 </div>
 <hr>
 <a name="Browsing-History-with-winner_002dmode-1"></a>
-<h4 class="subsection">17.2.1 Browsing History with winner-mode</h4>
+<h4 class="subsection">18.2.1 Browsing History with winner-mode</h4>
 
 <p><code>winner-mode</code> is a global minor mode that allows one to undo and redo changes in the window configuration. It is included with GNU Emacs since version 20.
 </p>
 <p><code>winner-mode</code> can be used as a simple version of browser history for Org-roam. Each click through org-roam links (from both Org files and the backlinks buffer) causes changes in window configuration, which can be undone and redone using <code>winner-mode</code>. To use <code>winner-mode</code>, simply enable it, and bind the appropriate interactive functions:
 </p>
 <div class="lisp">
-<pre class="lisp">(winner-mode +1)
-(define-key winner-mode-map (kbd &quot;&lt;M-left&gt;&quot;) #'winner-undo)
-(define-key winner-mode-map (kbd &quot;&lt;M-right&gt;&quot;) #'winner-redo)
+<pre class="lisp">  (winner-mode +1)
+  (define-key winner-mode-map (kbd &quot;&lt;M-left&gt;&quot;) #'winner-undo)
+  (define-key winner-mode-map (kbd &quot;&lt;M-right&gt;&quot;) #'winner-redo)
 
 </pre></div>
 
