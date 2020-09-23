@@ -37,6 +37,7 @@
 (require 'ol)
 (require 'org-roam-compat)
 
+(defvar org-roam-completion-ignore-case)
 (declare-function  org-roam--find-file                  "org-roam")
 (declare-function  org-roam-find-file                   "org-roam")
 
@@ -54,7 +55,7 @@
   "Navigates to location specified by PATH."
   (pcase-let ((`(,link-type ,loc ,desc ,mkr) (org-roam-link--get-location path)))
     (when (and org-roam-link-auto-replace loc desc)
-      (org-roam-link--roam-to-file-link link-type loc desc))
+      (org-roam-link--replace-link link-type loc desc))
     (pcase link-type
           ("file"
            (if loc
@@ -198,7 +199,11 @@ marker is a marker to the headline, if applicable."
       (list link-type loc desc mkr))))
 
 ;;; Conversion Functions
-(defun org-roam-link--roam-to-file-link (link-type loc desc)
+(defun org-roam-link--replace-link (link-type loc &optional desc)
+  "Replace link at point with a vanilla Org link.
+LINK-TYPE is the Org link type, typically \"file\" or \"id\".
+LOC is path for the Org link.
+DESC is the link description."
   (save-excursion
     (save-match-data
       (unless (org-in-regexp org-link-bracket-re 1)
@@ -219,7 +224,7 @@ marker is a marker to the headline, if applicable."
              (when (string-equal "roam" (org-element-property :type link))
                (pcase-let ((`(,link-type ,loc ,desc _) (org-roam-link--get-location (org-element-property :path link))))
                  (when (and link-type loc)
-                   (org-roam-link--roam-to-file-link link-type loc desc))))))))))
+                   (org-roam-link--replace-link link-type loc desc))))))))))
 
 (defun org-roam-link--replace-link-on-save ()
   "Hook to replace all roam links on save."
