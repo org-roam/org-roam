@@ -1088,15 +1088,21 @@ citation key, for Org-ref cite links."
         (unless id
           (org-roam-db--update-headlines))))))
 
+(defun org-roam-id-get-file (id)
+  "Return the file if ID exists in the Org-roam database.
+Return nil otherwise."
+  (caar (org-roam-db-query [:select [file]
+                            :from headlines
+                            :where (= id $s1)
+                            :limit 1]
+                           id)))
+
 (defun org-roam-id-find (id &optional markerp strict)
   "Return the location of the entry with the id ID.
 When MARKERP is non-nil, return a marker pointing to theheadline.
 Otherwise, return a cons formatted as \(file . pos).
 When STRICT is non-nil, only consider Org-roam’s database."
-  (let ((file (or (caar (org-roam-db-query [:select [file]
-                                            :from headlines
-                                            :where (= id $s1)]
-                                           id))
+  (let ((file (or (org-roam-id-get-file id)
                   (unless strict
                     (org-id-find-id-file id)))))
     (when file
@@ -1478,13 +1484,13 @@ file."
            (custom (or (and in-note org-roam-link-use-custom-faces)
                        (eq org-roam-link-use-custom-faces 'everywhere))))
       (cond ((and custom
-                  (not (org-roam-id-find id)))
+                  (not (org-roam-id-get-file id)))
              'org-roam-link-invalid)
             ((and (org-roam--in-buffer-p)
                   (org-roam--backlink-to-current-p))
              'org-roam-link-current)
             ((and custom
-                  (org-roam-id-find id))
+                  (org-roam-id-get-file id))
              'org-roam-link)
             (t
              'org-link)))))
