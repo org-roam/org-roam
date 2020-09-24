@@ -1111,7 +1111,11 @@ When STRICT is non-nil, only consider Org-roam’s database."
                   (unless strict
                     (org-id-find-id-file id)))))
     (when file
-      (org-id-find-id-in-file id file markerp))))
+      (let (file-already-open-p return-val)
+        (setq file-already-open-p (find-buffer-visiting file))
+        (setq return-val (org-id-find-id-in-file id file markerp))
+        (unless file-already-open-p (kill-buffer (find-buffer-visiting file)))
+        (print return-val)))))
 
 (defun org-roam-id-open (id-or-marker &optional strict)
   "Go to the entry with ID-OR-MARKER.
