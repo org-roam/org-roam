@@ -236,27 +236,28 @@ DESC is the link description."
   "Do appropriate completion for the link at point."
   (let ((end (point))
         (start (point))
-        (exit-fn (lambda (&rest _) nil))
+        (exit-fn (lambda (str &rest _)
+                   (delete-char (- (length str)))
+                   (insert "roam:" str)))
         collection)
     (when (org-in-regexp org-link-bracket-re 1)
-      (setq start (+ (match-beginning 1) (length "roam:"))
+      (setq start (match-beginning 1)
             end (match-end 1))
       (let ((context (org-element-context)))
         (pcase (org-element-lineage context '(link) t)
           (`nil nil)
-          (link (when (string-equal "roam" (org-element-property :type link))
-                  (pcase-let ((`(,type ,title _ ,star-idx)
-                               (org-roam-link--split-path (org-element-property :path link))))
-                    (pcase type
-                      ('title+headline
-                       (when-let ((file (org-roam-link--get-file-from-title title t)))
-                         (setq collection (apply-partially #'org-roam-link--get-headlines file))
-                         (setq start (+ start star-idx 1))))
-                      ('title
-                       (setq collection #'org-roam-link--get-titles))
-                      ('headline
-                       (setq collection #'org-roam-link--get-headlines)
-                       (setq start (+ start star-idx 1))))))))))
+          (link (pcase-let ((`(,type ,title _ ,star-idx)
+                             (org-roam-link--split-path (org-element-property :path link))))
+                  (pcase type
+                    ('title+headline
+                     (when-let ((file (org-roam-link--get-file-from-title title t)))
+                       (setq collection (apply-partially #'org-roam-link--get-headlines file))
+                       (setq start (+ start star-idx 1))))
+                    ('title
+                     (setq collection #'org-roam-link--get-titles))
+                    ('headline
+                     (setq collection #'org-roam-link--get-headlines)
+                     (setq start (+ start star-idx 1)))))))))
     (when collection
       (let ((prefix (buffer-substring-no-properties start end)))
         (list start end
