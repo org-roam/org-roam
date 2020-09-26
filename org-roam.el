@@ -1515,7 +1515,7 @@ Otherwise, behave as if called interactively."
   :global t
   (cond
    (org-roam-mode
-    (unless (or (and (boundp 'emacsql-sqlite3-executable)
+    (unless (or (and (bound-and-true-p 'emacsql-sqlite3-executable)
                      (file-executable-p emacsql-sqlite3-executable))
                 (executable-find "sqlite3"))
       (lwarn '(org-roam) :error "Cannot find executable 'sqlite3'. \
