@@ -49,12 +49,6 @@
 (declare-function  org-roam-mode                        "org-roam")
 (declare-function  org-roam-completion--completing-read "org-roam-completion")
 
-(defvar org-roam-capture--file-name-default "%<%Y%m%d%H%M%S>"
-  "The default file name format for Org-roam templates.")
-
-(defvar org-roam-capture--header-default "#+title: ${title}\n"
-  "The default capture header for Org-roam templates.")
-
 (defvar org-roam-capture--file-path nil
   "The file path for the Org-roam capture.
 This variable is set during the Org-roam capture process.")
@@ -414,13 +408,11 @@ aborted, we do the following:
 3. Add a function on `org-capture-before-finalize-hook' that saves
 the file if the original value of :no-save is not t and
 `org-note-abort' is not t."
-  (let* ((name-templ (or (org-roam-capture--get :file-name)
-                         org-roam-capture--file-name-default))
+  (let* ((name-templ (org-roam-capture--get :file-name))
          (new-id (s-trim (org-roam-capture--fill-template
                           name-templ)))
          (file-path (org-roam--file-path-from-id new-id))
-         (roam-head (or (org-roam-capture--get :head)
-                        org-roam-capture--header-default))
+         (roam-head (org-roam-capture--get :head))
          (org-template (org-capture-get :template))
          (roam-template (concat roam-head org-template)))
     (unless (file-exists-p file-path)
@@ -494,6 +486,9 @@ This function is used solely in Org-roam's capture templates: see
          (let* ((key (pop rest))
                 (val (pop rest))
                 (custom (member key org-roam-capture--template-keywords)))
+           (when (and custom
+                      (not val))
+             (user-error "Invalid capture template format: %s\nkey %s cannot be nil" template key))
            (push val (if custom org-roam-plist options))
            (push key (if custom org-roam-plist options))))
        (append converted options `(:org-roam ,org-roam-plist))))
