@@ -63,6 +63,19 @@ If FILE, set `org-roam-temp-file-name' to file and insert its contents."
              (setq-local org-roam-file-name ,file))
            ,@body)))))
 
+(defmacro org-roam--with-file (file &rest body)
+  "Execute BODY within a FILE.
+Closes the file if the file is not yet visited."
+  (declare (indent 1) (debug t))
+  `(let* ((existing-buf (find-buffer-visiting ,file))
+          (buf (or existing-buf
+                   (find-file-noselect file)))
+          res)
+     (with-current-buffer buf
+       (setq res ,@body))
+     (when existing-buf (kill-buffer existing-buf))
+     res))
+
 (defun org-roam-message (format-string &rest args)
   "Pass FORMAT-STRING and ARGS to `message' when `org-roam-verbose' is t."
   (when org-roam-verbose

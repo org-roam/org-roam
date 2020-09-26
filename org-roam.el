@@ -1102,16 +1102,19 @@ Return nil otherwise."
                             :limit 1]
                            id)))
 
-(defun org-roam-id-find (id &optional markerp strict)
+(defun org-roam-id-find (id &optional markerp strict keep-buffer-p)
   "Return the location of the entry with the id ID.
 When MARKERP is non-nil, return a marker pointing to theheadline.
 Otherwise, return a cons formatted as \(file . pos).
-When STRICT is non-nil, only consider Org-roam’s database."
+When STRICT is non-nil, only consider Org-roam’s database.
+When KEEP-BUFFER-P is non-nil, keep the buffers navigated by Org-roam open."
   (let ((file (or (org-roam-id-get-file id)
-                  (unless strict
-                    (org-id-find-id-file id)))))
+                  (unless strict (org-id-find-id-file id)))))
     (when file
-      (org-id-find-id-in-file id file markerp))))
+      (if keep-buffer-p
+          (org-id-find-id-in-file id file markerp)
+        (org-roam--with-file file
+          (org-id-find-id-in-file id file markerp))))))
 
 (defun org-roam-id-open (id-or-marker &optional strict)
   "Go to the entry with ID-OR-MARKER.
@@ -1124,7 +1127,7 @@ to the default behaviour of `org-id-open'.
 When STRICT is non-nil, only consider Org-roam’s database."
   (when-let ((marker (if (markerp id-or-marker)
                          id-or-marker
-                       (org-roam-id-find id-or-marker t strict))))
+                       (org-roam-id-find id-or-marker t strict t))))
     (org-goto-marker-or-bmk marker)
     (set-marker marker nil)))
 
