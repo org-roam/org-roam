@@ -782,8 +782,7 @@ Tags are obtained via:
 Packages like `org-ref' introduce many different link prefixes,
 but we collate them under the same parent type to clean up
 backlinks."
-  (cond ((and (require 'org-ref nil t)
-              (member type org-ref-cite-types))
+  (cond ((member type org-ref-cite-types)
          "cite")
         ((member type '("http" "https"))
          "website")
