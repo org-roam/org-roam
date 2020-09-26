@@ -195,7 +195,67 @@ using Apt:
 
 Org-roam will then be autoloaded into Emacs.
 
-** TODO Installing from the Git Repository
+** Installing from the Git Repository
+
+You may install Org-roam directly from the repository on [[https://github.com/org-roam/org-roam][GitHub]] if you like. This will give you access to the latest version hours or days before it appears on MELPA, and months (or more) before it is added to the Debian or Ubuntu repositories. This will also give you access to various developmental branches that may be available. 
+
+Note, however, that development version, and especially any feature branches, may not always be in working order. You'll need to be prepared to do some debugging, or to manually roll-back to working versions, if you install from GitHub.
+
+Installing from GitHub requires that you clone the repository:
+
+#+begin_src bash
+git clone https://github.com/org-roam/org-roam.git /path/to/org/roam
+#+end_src
+
+where ~./path/to/org/roam~ is the location you will store your copy of the code.
+
+Next, you need to add this location to your load path, and ~require~ the Org-roam library. Add the following code to your ~.emacs~:
+
+#+begin_src elisp
+(add-to-list 'load-path "/path/to/org/roam")
+(require 'org-roam)
+#+end_src
+
+You now have Org-roam installed. However, you don't necessarily have the dependencies that it requires. These include:
+
+- dash
+- f
+- s
+- org
+- emacsql
+- emacsql-sqlite3
+
+You can install this manually as well, or get the latest version from MELPA. You may wish to use [[https://github.com/jwiegley/use-package][use-package]], [[https://github.com/raxod502/straight.el][straight.el]], or some other tool or tools to help manage this.
+
+If you would like to install the manual for access from Emacs' built-in Info system, you'll need to compile the .texi source file, and install it in an appropriate location.
+
+To compile the .texi source file, from a terminal navigate to the ~/doc~ subdirectory of the Org-roam repository, and run the following:
+
+#+begin_src bash
+make infodir=/path/to/my/info/files install-info
+#+end_src
+
+Where ~/path/to/my/info/files~ is the location where you keep info files. This target directory needs to be stored in the variable `Info-default-directory-list`. If you aren't using one of the default info locations, you can configure this with the following in your ~.emacs~ file:
+
+#+begin_src elisp
+(require 'info)
+(add-to-list 'Info-default-directory-list
+	     "/path/to/my/info/files")
+#+end_src
+
+You can also use one of the default locations, such as:
+
+- /usr/local/share/info/
+- /usr/share/info/
+- /usr/local/share/info/
+
+If you do this, you'll need to make sure you have write-access to that location, or run the above ~make~ command as root.
+
+Now that the info file is ready, you need to add it to the corresponding ~dir~ file:
+
+#+begin_src bash
+install-info /path/to/my/info/files/org-roam.info /path/to/my/info/files/dir
+#+end_src
 
 ** Post-Installation Tasks
 
