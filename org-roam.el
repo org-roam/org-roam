@@ -799,9 +799,9 @@ backlinks."
       (ref
        (when (string-match org-link-plain-re ref)
          (setq type (org-roam--collate-types (match-string 1 ref))
-               path (match-string 2 ref)))
-       (when (and type path)
-         (cons type path))))))
+               path (match-string 2 ref)))))
+    (when (and type path)
+      (cons type path))))
 
 ;;;; Title/Path/Slug conversion
 (defun org-roam--path-to-slug (path)
@@ -1092,8 +1092,8 @@ When KEEP-BUFFER-P is non-nil, keep the buffers navigated by Org-roam open."
   (let ((file (or (org-roam-id-get-file id)
                   (unless strict (org-id-find-id-file id)))))
     (when file
-      (let* ((existing-buf (find-buffer-visiting file))
-             (res (org-id-find-id-in-file id file markerp)))
+      (let ((existing-buf (find-buffer-visiting file))
+            (res (org-id-find-id-in-file id file markerp)))
         (when (and (not keep-buffer-p)
                    existing-buf)
           (kill-buffer existing-buf))
