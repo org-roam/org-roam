@@ -126,10 +126,10 @@ For example: (setq org-roam-buffer-window-parameters '((no-other-window . t)))"
 
 (defun org-roam-buffer--insert-ref-links ()
   "Insert ref backlinks for the current buffer."
-  (when-let ((ref (cdr (with-temp-buffer
-                        (insert-buffer-substring org-roam-buffer--current)
-                        (org-roam--extract-ref)))))
-    (if-let* ((key-backlinks (org-roam--get-backlinks ref))
+  (when-let ((path (cdr (with-temp-buffer
+                          (insert-buffer-substring org-roam-buffer--current)
+                          (org-roam--extract-ref)))))
+    (if-let* ((key-backlinks (org-roam--get-backlinks path))
               (grouped-backlinks (--group-by (nth 0 it) key-backlinks)))
         (progn
           (insert (let ((l (length key-backlinks)))
