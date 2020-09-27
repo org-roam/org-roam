@@ -1192,7 +1192,7 @@ This is active when `org-roam-completion-everywhere' is non-nil."
               collection #'org-roam--get-titles
               exit-fn (lambda (str _status)
                         (delete-char (- (length str)))
-                        (insert "[[" str "]]")))))
+                        (insert "[[roam:" str "]]")))))
     (when collection
       (let ((prefix (buffer-substring-no-properties start end)))
         (list start end
