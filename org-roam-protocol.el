@@ -5,7 +5,7 @@
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
 ;; Version: 1.2.1
-;; Package-Requires: ((emacs "27.1") (org "9.3"))
+;; Package-Requires: ((emacs "26.1") (org "9.3"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -75,16 +75,14 @@ It opens or creates a note with the given ref.
              (quoted-text (unless (string-equal body "")
                             (format org-roam-protocol-quote-template body)))
              (type (and url
-                        (string-match "^\\([a-z]+\\):" url)
+                        (string-match org-link-plain-re url)
                         (match-string 1 url)))
-             (orglink
-              (if (null url) title
-                (org-link-make-string url (or (org-string-nw-p title) url)))))
+             (orglink (if url
+                          (org-link-make-string url (or (org-string-nw-p title) url))
+                        title)))
         (when url
-          (push (list url
-                      title)
-                org-stored-links))
-        (org-link-store-props
+          (push (list url title) org-stored-links))
+        (org-roam-link-store-props
          :type type
          :link url
          :annotation orglink
