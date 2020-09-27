@@ -1094,12 +1094,10 @@ When KEEP-BUFFER-P is non-nil, keep the buffers navigated by Org-roam open."
   (let ((file (or (org-roam-id-get-file id)
                   (unless strict (org-id-find-id-file id)))))
     (when file
-      (let ((existing-buf (find-buffer-visiting file))
-            (res (org-id-find-id-in-file id file markerp)))
-        (when (and (not keep-buffer-p)
-                   existing-buf)
-          (kill-buffer existing-buf))
-        res))))
+      (if keep-buffer-p
+          (org-id-find-id-in-file id file markerp)
+        (org-roam--with-file file
+          (org-id-find-id-in-file id file markerp))))))
 
 (defun org-roam-id-open (id-or-marker &optional strict)
   "Go to the entry with ID-OR-MARKER.
