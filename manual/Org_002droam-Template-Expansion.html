@@ -96,11 +96,11 @@ advantage of org-mode&rsquo;s <code>%(EXP)</code> template expansion to call <co
 directly to provide its third argument to specify UTC.
 </p>
 <div class="lisp">
-<pre class="lisp">  (&quot;d&quot; &quot;default&quot; plain (function org-roam--capture-get-point)
-       &quot;%?&quot;
-       :file-name &quot;%(format-time-string \&quot;%Y-%m-%d--%H-%M-%SZ--${slug}\&quot; (current-time) t)&quot;
-       :head &quot;#+title: ${title}\n&quot;
-       :unnarrowed t)
+<pre class="lisp">(&quot;d&quot; &quot;default&quot; plain (function org-roam--capture-get-point)
+     &quot;%?&quot;
+     :file-name &quot;%(format-time-string \&quot;%Y-%m-%d--%H-%M-%SZ--${slug}\&quot; (current-time) t)&quot;
+     :head &quot;#+title: ${title}\n&quot;
+     :unnarrowed t)
 </pre></div>
 
 

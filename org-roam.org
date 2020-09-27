@@ -1023,6 +1023,20 @@ checker, to perform autofixes for the errors. For each error detected,
 ~org-roam-doctor~ will move the point to the current error, and pop-up a help
 window displaying the error message, as well as the list of actions that can be
 taken provided in ~:actions~.
+
+* Finding Unlinked References
+
+Unlinked references are occurrences of strings of text that exactly match the
+title or alias of an existing note in the Org-roam database. Org-roam provides
+facilities for discovering these unlinked references, so one may decide whether
+to convert them into links.
+
+To use this feature, simply call ~M-x org-roam-unlinked-references~ from within
+an Org-roam note. Org-roam uses [[https://github.com/BurntSushi/ripgrep][ripgrep]], specifically a clever PCRE regex to
+find occurrences of the title or aliases of the currently open note in all
+Org-roam files. This thus requires a version of ripgrep that is compiled with
+PCRE support.
+
 * Performance Optimization
 ** TODO Profiling Key Operations
 ** Garbage Collection

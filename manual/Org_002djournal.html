@@ -67,7 +67,7 @@ Next: <a href="Note_002dtaking-Add_002dons.html#Note_002dtaking-Add_002dons" acc
 </div>
 <hr>
 <a name="Org_002djournal-1"></a>
-<h4 class="subsection">18.2.4 Org-journal</h4>
+<h4 class="subsection">19.2.4 Org-journal</h4>
 
 <p><a href="https://github.com/bastibe/org-journal">Org-journal</a> is a more
 powerful alternative to the simple function <code>org-roam-dailies-today</code>. It
@@ -75,14 +75,14 @@ provides better journaling capabilities, and a nice calendar interface
 to see all dated entries.
 </p>
 <div class="lisp">
-<pre class="lisp">  (use-package org-journal
-    :bind
-    (&quot;C-c n j&quot; . org-journal-new-entry)
-    :custom
-    (org-journal-date-prefix &quot;#+title: &quot;)
-    (org-journal-file-format &quot;%Y-%m-%d.org&quot;)
-    (org-journal-dir &quot;/path/to/org-roam-files/&quot;)
-    (org-journal-date-format &quot;%A, %d %B %Y&quot;))
+<pre class="lisp">(use-package org-journal
+  :bind
+  (&quot;C-c n j&quot; . org-journal-new-entry)
+  :custom
+  (org-journal-date-prefix &quot;#+title: &quot;)
+  (org-journal-file-format &quot;%Y-%m-%d.org&quot;)
+  (org-journal-dir &quot;/path/to/org-roam-files/&quot;)
+  (org-journal-date-format &quot;%A, %d %B %Y&quot;))
 </pre></div>
 
 
