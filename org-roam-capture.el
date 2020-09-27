@@ -79,7 +79,7 @@ note with the given `ref'.")
 
 (defcustom org-roam-capture-templates
   '(("d" "default" plain (function org-roam-capture--get-point)
-     "%i%?"
+     "%?"
      :file-name "%<%Y%m%d%H%M%S>-${slug}"
      :head "#+title: ${title}\n"
      :unnarrowed t))
