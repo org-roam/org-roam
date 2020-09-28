@@ -604,8 +604,9 @@ FILE-FROM is typically the buffer file path, but this may not exist, for example
 in temp buffers.  In cases where this occurs, we do know the file path, and pass
 it as FILE-PATH."
   (require 'org-ref nil t)
-  (unless file-path
-    (setq file-path (buffer-file-name)))
+  (setq file-path (or file-path
+                      org-roam-file-name
+                      (buffer-file-name)))
   (save-excursion
     (let (links)
       (org-element-map (org-element-parse-buffer) 'link
