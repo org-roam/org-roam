@@ -477,6 +477,7 @@ If FORCE, force a rebuild of the cache from scratch."
   (org-roam-db--close) ;; Force a reconnect
   (org-roam-db) ;; To initialize the database, no-op if already initialized
   (let* ((gc-cons-threshold org-roam-db-gc-threshold)
+	 (org-agenda-files nil)
          (org-roam-files (org-roam--list-all-files))
          (current-files (org-roam-db--get-current-files))
          (file-count 0)
