@@ -604,8 +604,9 @@ FILE-FROM is typically the buffer file path, but this may not exist, for example
 in temp buffers.  In cases where this occurs, we do know the file path, and pass
 it as FILE-PATH."
   (require 'org-ref nil t)
-  (unless file-path
-    (setq file-path (buffer-file-name)))
+  (setq file-path (or file-path
+                      org-roam-file-name
+                      (buffer-file-name)))
   (save-excursion
     (let (links)
       (org-element-map (org-element-parse-buffer) 'link
@@ -1192,7 +1193,7 @@ This is active when `org-roam-completion-everywhere' is non-nil."
               collection #'org-roam--get-titles
               exit-fn (lambda (str _status)
                         (delete-char (- (length str)))
-                        (insert "[[" str "]]")))))
+                        (insert "[[roam:" str "]]")))))
     (when collection
       (let ((prefix (buffer-substring-no-properties start end)))
         (list start end

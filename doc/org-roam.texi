@@ -80,6 +80,7 @@ General Public License for more details.
 * Roam Protocol::
 * Daily Notes::
 * Diagnosing and Repairing Files::
+* Finding Unlinked References::
 * Performance Optimization::
 * Appendix::
 * FAQ::
@@ -294,9 +295,9 @@ To use Melpa:
 @end itemize
 
 @lisp
-  (require 'package)
-  (add-to-list 'package-archives
-               '("melpa" . "http://melpa.org/packages/") t)
+(require 'package)
+(add-to-list 'package-archives
+             '("melpa" . "http://melpa.org/packages/") t)
 @end lisp
 
 @itemize
@@ -305,9 +306,9 @@ To use Melpa-Stable:
 @end itemize
 
 @lisp
-  (require 'package)
-  (add-to-list 'package-archives
-               '("melpa-stable" . "http://stable.melpa.org/packages/") t)
+(require 'package)
+(add-to-list 'package-archives
+             '("melpa-stable" . "http://stable.melpa.org/packages/") t)
 @end lisp
 
 Org-roam also depends on a recent version of Org, which can be obtained in Org's
@@ -321,14 +322,14 @@ Once you have added your preferred archive, you need to update the
 local package list using:
 
 @example
-  M-x package-refresh-contents RET
+M-x package-refresh-contents RET
 @end example
 
 Once you have done that, you can install Org-roam and its dependencies
 using:
 
 @example
-  M-x package-install RET org-roam RET
+M-x package-install RET org-roam RET
 @end example
 
 Now see @ref{Post-Installation Tasks}.
@@ -340,7 +341,7 @@ Users of Debian 11 or later or Ubuntu 20.10 or later can simply install Org-roam
 using Apt:
 
 @example
-  apt-get install elpa-org-roam
+apt-get install elpa-org-roam
 @end example
 
 Org-roam will then be autoloaded into Emacs.
@@ -399,7 +400,7 @@ Where @code{/path/to/my/info/files} is the location where you keep info files. T
 @lisp
 (require 'info)
 (add-to-list 'Info-default-directory-list
-             "/path/to/my/info/files")
+         "/path/to/my/info/files")
 @end lisp
 
 You can also use one of the default locations, such as:
@@ -429,7 +430,7 @@ Org-roam uses @code{emacsql-sqlite3}, which requires @code{sqlite3} to be locate
 operating system. You can verify that this is the case by executing:
 
 @lisp
-  (executable-find "sqlite3")
+(executable-find "sqlite3")
 @end lisp
 
 If you have @code{sqlite3} installed, and @code{executable-find} still reports @code{nil}, then
@@ -438,7 +439,7 @@ variable @code{exec-path}. You may rectify this by manually adding the path with
 your Emacs configuration:
 
 @lisp
-  (add-to-list 'exec-path "path/to/sqlite3")
+(add-to-list 'exec-path "path/to/sqlite3")
 @end lisp
 
 @node Getting Started
@@ -551,10 +552,10 @@ The aliases are space-delimited, and can be multi-worded using quotes
 Take for example the following org file:
 
 @example
-  #+title: World War 2
-  #+roam_alias: "WWII" "World War II"
+#+title: World War 2
+#+roam_alias: "WWII" "World War II"
 
-  * Headline
+* Headline
 @end example
 
 @multitable {aaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaa}
@@ -625,8 +626,8 @@ Refs are unique identifiers for files. Each note can only have 1 ref.
 For example, a note for a website may contain a ref:
 
 @example
-  #+title: Google
-  #+roam_key: https://www.google.com/
+#+title: Google
+#+roam_key: https://www.google.com/
 @end example
 
 These keys come in useful for when taking website notes, using the
@@ -636,8 +637,8 @@ Alternatively, add a ref for notes for a specific paper, using its
 @uref{https://github.com/jkitchin/org-ref, org-ref} citation key:
 
 @example
-  #+title: Neural Ordinary Differential Equations
-  #+roam_key: cite:chen18_neural_ordin_differ_equat
+#+title: Neural Ordinary Differential Equations
+#+roam_key: cite:chen18_neural_ordin_differ_equat
 @end example
 
 The backlinks buffer will show any cites of this key: e.g.
@@ -690,11 +691,11 @@ To demonstrate the additions made to org-capture templates. Here, we walkthrough
 the default template, reproduced below.
 
 @lisp
-  ("d" "default" plain (function org-roam--capture-get-point)
-       "%?"
-       :file-name "%<%Y%m%d%H%M%S>-$@{slug@}"
-       :head "#+title: $@{title@}\n"
-       :unnarrowed t)
+("d" "default" plain (function org-roam--capture-get-point)
+     "%?"
+     :file-name "%<%Y%m%d%H%M%S>-$@{slug@}"
+     :head "#+title: $@{title@}\n"
+     :unnarrowed t)
 @end lisp
 
 @enumerate
@@ -760,11 +761,11 @@ advantage of org-mode's @code{%(EXP)} template expansion to call @code{format-ti
 directly to provide its third argument to specify UTC@.
 
 @lisp
-  ("d" "default" plain (function org-roam--capture-get-point)
-       "%?"
-       :file-name "%(format-time-string \"%Y-%m-%d--%H-%M-%SZ--$@{slug@}\" (current-time) t)"
-       :head "#+title: $@{title@}\n"
-       :unnarrowed t)
+("d" "default" plain (function org-roam--capture-get-point)
+     "%?"
+     :file-name "%(format-time-string \"%Y-%m-%d--%H-%M-%SZ--$@{slug@}\" (current-time) t)"
+     :head "#+title: $@{title@}\n"
+     :unnarrowed t)
 @end lisp
 
 @node Concepts and Configuration
@@ -1029,10 +1030,10 @@ a function accepting a single argument: the graph file path.
 If you are using WSL2 and would like to open the graph in Windows, you can use the second option to set the browser and network file path:
 
 @lisp
-  (setq org-roam-graph-viewer
-      (lambda (file)
-        (let ((org-roam-graph-viewer "/mnt/c/Program Files/Mozilla Firefox/firefox.exe"))
-          (org-roam-graph--open (concat "file://///wsl$/Ubuntu" file)))))
+(setq org-roam-graph-viewer
+    (lambda (file)
+      (let ((org-roam-graph-viewer "/mnt/c/Program Files/Mozilla Firefox/firefox.exe"))
+        (org-roam-graph--open (concat "file://///wsl$/Ubuntu" file)))))
 @end lisp
 @end itemize
 
@@ -1091,7 +1092,7 @@ are excluded.
 @end itemize
 
 @example
-    (setq org-roam-graph-exclude-matcher '("private" "dailies"))
+(setq org-roam-graph-exclude-matcher '("private" "dailies"))
 @end example
 
 This setting excludes all files whose path contain ``private'' or ``dailies''.
@@ -1104,7 +1105,7 @@ its interactive commands. The default setting uses Emacs' standard
 @code{completing-read} mechanism.
 
 @lisp
-  (setq org-roam-completion-system 'default)
+(setq org-roam-completion-system 'default)
 @end lisp
 
 If you have installed Helm or Ivy, and have their modes enabled, under the
@@ -1114,7 +1115,7 @@ In the rare scenario where you use Ivy globally, but prefer @uref{https://emacs-
 commands, set:
 
 @lisp
-  (setq org-roam-completion-system 'helm)
+(setq org-roam-completion-system 'helm)
 @end lisp
 
 Other options include @code{'ido}, and @code{'ivy}.
@@ -1309,7 +1310,7 @@ or as a keybinding in @code{qutebrowser} in , using the @code{config.py} file (s
 @uref{https://github.com/qutebrowser/qutebrowser/blob/master/doc/help/configuring.asciidoc, Configuring qutebrowser}):
 
 @example
-  config.bind("<Ctrl-r>", "open javascript:location.href='org-protocol://roam-ref?template=r&ref='+encodeURIComponent(location.href)+'&title='+encodeURIComponent(document.title)")
+config.bind("<Ctrl-r>", "open javascript:location.href='org-protocol://roam-ref?template=r&ref='+encodeURIComponent(location.href)+'&title='+encodeURIComponent(document.title)")
 @end example
 
 where @code{template} is the template key for a template in
@@ -1357,6 +1358,20 @@ checker, to perform autofixes for the errors. For each error detected,
 window displaying the error message, as well as the list of actions that can be
 taken provided in @code{:actions}.
 
+@node Finding Unlinked References
+@chapter Finding Unlinked References
+
+Unlinked references are occurrences of strings of text that exactly match the
+title or alias of an existing note in the Org-roam database. Org-roam provides
+facilities for discovering these unlinked references, so one may decide whether
+to convert them into links.
+
+To use this feature, simply call @code{M-x org-roam-unlinked-references} from within
+an Org-roam note. Org-roam uses @uref{https://github.com/BurntSushi/ripgrep, ripgrep}, specifically a clever PCRE regex to
+find occurrences of the title or aliases of the currently open note in all
+Org-roam files. This thus requires a version of ripgrep that is compiled with
+PCRE support.
+
 @node Performance Optimization
 @chapter Performance Optimization
 
@@ -1380,7 +1395,7 @@ operations. To reduce the number of garbage collection processes, one may set
 @code{org-roam-db-gc-threshold} to a high value (such as @code{most-positive-fixnum}):
 
 @lisp
-  (setq org-roam-db-gc-threshold most-positive-fixnum)
+(setq org-roam-db-gc-threshold most-positive-fixnum)
 @end lisp
 
 @node Appendix
@@ -1444,9 +1459,9 @@ operations. To reduce the number of garbage collection processes, one may set
 @code{winner-mode} can be used as a simple version of browser history for Org-roam. Each click through org-roam links (from both Org files and the backlinks buffer) causes changes in window configuration, which can be undone and redone using @code{winner-mode}. To use @code{winner-mode}, simply enable it, and bind the appropriate interactive functions:
 
 @lisp
-  (winner-mode +1)
-  (define-key winner-mode-map (kbd "<M-left>") #'winner-undo)
-  (define-key winner-mode-map (kbd "<M-right>") #'winner-redo)
+(winner-mode +1)
+(define-key winner-mode-map (kbd "<M-left>") #'winner-undo)
+(define-key winner-mode-map (kbd "<M-right>") #'winner-redo)
 
 @end lisp
 
@@ -1468,15 +1483,15 @@ versions of a tracked Org-roam note.
 @uref{https://jblevins.org/projects/deft/, Deft} provides a nice interface for browsing and filtering org-roam notes.
 
 @lisp
-  (use-package deft
-    :after org
-    :bind
-    ("C-c n d" . deft)
-    :custom
-    (deft-recursive t)
-    (deft-use-filter-string-for-filename t)
-    (deft-default-extension "org")
-    (deft-directory "/path/to/org-roam-files/"))
+(use-package deft
+  :after org
+  :bind
+  ("C-c n d" . deft)
+  :custom
+  (deft-recursive t)
+  (deft-use-filter-string-for-filename t)
+  (deft-default-extension "org")
+  (deft-directory "/path/to/org-roam-files/"))
 @end lisp
 
 If the title of the Org file is not the first line, you might not get
@@ -1485,29 +1500,29 @@ functionality. Here I'm using
 @uref{https://github.com/raxod502/el-patch, el-patch}:
 
 @lisp
-  (use-package el-patch
-    :straight (:host github
-                     :repo "raxod502/el-patch"
-                     :branch "develop"))
+(use-package el-patch
+  :straight (:host github
+                   :repo "raxod502/el-patch"
+                   :branch "develop"))
 
-  (eval-when-compile
-    (require 'el-patch))
+(eval-when-compile
+  (require 'el-patch))
 
-  (use-package deft
-    ;; same as above...
-    :config/el-patch
-    (defun deft-parse-title (file contents)
-      "Parse the given FILE and CONTENTS and determine the title.
-  If `deft-use-filename-as-title' is nil, the title is taken to
-  be the first non-empty line of the FILE.  Else the base name of the FILE is
-  used as title."
-      (el-patch-swap (if deft-use-filename-as-title
-                         (deft-base-filename file)
-                       (let ((begin (string-match "^.+$" contents)))
-                         (if begin
-                             (funcall deft-parse-title-function
-                                      (substring contents begin (match-end 0))))))
-                     (org-roam--get-title-or-slug file))))
+(use-package deft
+  ;; same as above...
+  :config/el-patch
+  (defun deft-parse-title (file contents)
+    "Parse the given FILE and CONTENTS and determine the title.
+If `deft-use-filename-as-title' is nil, the title is taken to
+be the first non-empty line of the FILE.  Else the base name of the FILE is
+used as title."
+    (el-patch-swap (if deft-use-filename-as-title
+                       (deft-base-filename file)
+                     (let ((begin (string-match "^.+$" contents)))
+                       (if begin
+                           (funcall deft-parse-title-function
+                                    (substring contents begin (match-end 0))))))
+                   (org-roam--get-title-or-slug file))))
 @end lisp
 
 The Deft interface can slow down quickly when the number of files get
@@ -1523,14 +1538,14 @@ provides better journaling capabilities, and a nice calendar interface
 to see all dated entries.
 
 @lisp
-  (use-package org-journal
-    :bind
-    ("C-c n j" . org-journal-new-entry)
-    :custom
-    (org-journal-date-prefix "#+title: ")
-    (org-journal-file-format "%Y-%m-%d.org")
-    (org-journal-dir "/path/to/org-roam-files/")
-    (org-journal-date-format "%A, %d %B %Y"))
+(use-package org-journal
+  :bind
+  ("C-c n j" . org-journal-new-entry)
+  :custom
+  (org-journal-date-prefix "#+title: ")
+  (org-journal-file-format "%Y-%m-%d.org")
+  (org-journal-dir "/path/to/org-roam-files/")
+  (org-journal-date-format "%A, %d %B %Y"))
 @end lisp
 
 @node Note-taking Add-ons
@@ -1557,12 +1572,12 @@ These are some plugins that make note-taking in Org-mode more enjoyable.
 @end float
 
 @lisp
-  (use-package org-download
-    :after org
-    :bind
-    (:map org-mode-map
-          (("s-Y" . org-download-screenshot)
-           ("s-y" . org-download-yank))))
+(use-package org-download
+  :after org
+  :bind
+  (:map org-mode-map
+        (("s-Y" . org-download-screenshot)
+         ("s-y" . org-download-yank))))
 @end lisp
 
 @node mathpixel
@@ -1576,12 +1591,12 @@ These are some plugins that make note-taking in Org-mode more enjoyable.
 @end float
 
 @lisp
-  (use-package mathpix.el
-    :straight (:host github :repo "jethrokuan/mathpix.el")
-    :custom ((mathpix-app-id "app-id")
-             (mathpix-app-key "app-key"))
-    :bind
-    ("C-x m" . mathpix-screenshot))
+(use-package mathpix.el
+  :straight (:host github :repo "jethrokuan/mathpix.el")
+  :custom ((mathpix-app-id "app-id")
+           (mathpix-app-key "app-key"))
+  :bind
+  ("C-x m" . mathpix-screenshot))
 @end lisp
 
 @node Org-noter / Interleave
@@ -1628,8 +1643,8 @@ variable using directory-local variables. This is what @code{.dir-locals.el} may
 contain:
 
 @lisp
-    ((nil . ((org-roam-directory . ".")
-             (org-roam-db-location . "./org-roam.db"))))
+((nil . ((org-roam-directory . ".")
+         (org-roam-db-location . "./org-roam.db"))))
 @end lisp
 
 All files within that directory will be treated as their own separate

@@ -393,7 +393,7 @@ connections, nil is returned."
 ;;;;; Updating
 (defun org-roam-db--update-meta ()
   "Update the metadata of the current buffer into the cache."
-  (let* ((file (buffer-file-name))
+  (let* ((file (or org-roam-file-name (buffer-file-name)))
          (attr (file-attributes file))
          (atime (file-attribute-access-time attr))
          (mtime (file-attribute-modification-time attr))
@@ -405,7 +405,7 @@ connections, nil is returned."
 
 (defun org-roam-db--update-titles ()
   "Update the title of the current buffer into the cache."
-  (let* ((file (buffer-file-name))
+  (let* ((file (or org-roam-file-name (buffer-file-name)))
          (titles (or (org-roam--extract-titles)
                      (list (org-roam--path-to-slug file)))))
     (org-roam-db-query [:delete :from titles
@@ -415,8 +415,8 @@ connections, nil is returned."
 
 (defun org-roam-db--update-tags ()
   "Update the tags of the current buffer into the cache."
-  (let ((file (buffer-file-name))
-        (tags (org-roam--extract-tags)))
+  (let* ((file (or org-roam-file-name (buffer-file-name)))
+         (tags (org-roam--extract-tags file)))
     (org-roam-db-query [:delete :from tags
                         :where (= file $s1)]
                        file)
@@ -425,7 +425,7 @@ connections, nil is returned."
 
 (defun org-roam-db--update-refs ()
   "Update the ref of the current buffer into the cache."
-  (let ((file (buffer-file-name)))
+  (let ((file (or org-roam-file-name (buffer-file-name))))
     (org-roam-db-query [:delete :from refs
                         :where (= file $s1)]
                        file)
@@ -434,7 +434,7 @@ connections, nil is returned."
 
 (defun org-roam-db--update-links ()
   "Update the file links of the current buffer in the cache."
-  (let ((file (buffer-file-name)))
+  (let ((file (or org-roam-file-name (buffer-file-name))))
     (org-roam-db-query [:delete :from links
                         :where (= from $s1)]
                        file)
@@ -443,7 +443,7 @@ connections, nil is returned."
 
 (defun org-roam-db--update-headlines ()
   "Update the file headlines of the current buffer into the cache."
-  (let* ((file (buffer-file-name)))
+  (let* ((file (or org-roam-file-name (buffer-file-name))))
     (org-roam-db-query [:delete :from headlines
                         :where (= file $s1)]
                        file)
@@ -459,16 +459,15 @@ If the file exists, update the cache with information."
   (cond ((not (file-exists-p file-path))
          (org-roam-db--clear-file file-path))
         ((org-roam--org-roam-file-p file-path)
-         (with-current-buffer (find-file-noselect file-path t)
-           (org-with-wide-buffer
-            (emacsql-with-transaction (org-roam-db)
+         (org-roam--with-temp-buffer file-path
+           (emacsql-with-transaction (org-roam-db)
               (org-roam-db--update-meta)
               (org-roam-db--update-tags)
               (org-roam-db--update-titles)
               (org-roam-db--update-refs)
               (when org-roam-enable-headline-linking
                 (org-roam-db--update-headlines))
-              (org-roam-db--update-links)))))))
+              (org-roam-db--update-links))))))
 
 (defun org-roam-db-build-cache (&optional force)
   "Build the cache for `org-roam-directory'.
@@ -478,6 +477,7 @@ If FORCE, force a rebuild of the cache from scratch."
   (org-roam-db--close) ;; Force a reconnect
   (org-roam-db) ;; To initialize the database, no-op if already initialized
   (let* ((gc-cons-threshold org-roam-db-gc-threshold)
+	 (org-agenda-files nil)
          (org-roam-files (org-roam--list-all-files))
          (current-files (org-roam-db--get-current-files))
          (file-count 0)
