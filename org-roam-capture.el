@@ -219,7 +219,7 @@ Template string   :\n%v")
 
 (defcustom org-roam-capture-ref-templates
   '(("r" "ref" plain (function org-roam-capture--get-point)
-     "%?"
+     "%i%?"
      :file-name "${slug}"
      :head "#+title: ${title}\n#+roam_key: ${ref}\n"
      :unnarrowed t))
