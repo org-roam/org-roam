@@ -1464,8 +1464,8 @@ When NEW-FILE-OR-DIR is a directory, we use it to compute the new file path."
 
 (defun org-roam--id-new-advice (&rest _args)
   "Update the database if a new Org ID is created."
-  (when (and (org-roam--org-roam-file-p)
-             org-roam-enable-headline-linking)
+  (when (and org-roam-enable-headline-linking
+             (org-roam--org-roam-file-p))
     (add-to-list 'org-roam--file-update-queue (buffer-file-name))))
 
 ;;;###autoload
@@ -1519,7 +1519,7 @@ M-x info for more information at Org-roam > Installation > Post-Installation Tas
       (cancel-timer org-roam--file-update-timer))
     (advice-remove 'rename-file #'org-roam--rename-file-advice)
     (advice-remove 'delete-file #'org-roam--delete-file-advice)
-    (advice-remove 'org-id-new #'org-roam--delete-file-advice)
+    (advice-remove 'org-id-new #'org-roam--id-new-advice)
     (when (fboundp 'org-link-set-parameters)
       (dolist (face '("file" "id"))
         (org-link-set-parameters face :face 'org-link)))

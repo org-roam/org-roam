@@ -456,18 +456,21 @@ If the file does not exist anymore, remove it from the cache.
 If the file exists, update the cache with information."
   (setq file-path (or file-path
                       (buffer-file-name (buffer-base-buffer))))
-  (cond ((not (file-exists-p file-path))
-         (org-roam-db--clear-file file-path))
-        ((org-roam--org-roam-file-p file-path)
-         (org-roam--with-temp-buffer file-path
-           (emacsql-with-transaction (org-roam-db)
-              (org-roam-db--update-meta)
-              (org-roam-db--update-tags)
-              (org-roam-db--update-titles)
-              (org-roam-db--update-refs)
-              (when org-roam-enable-headline-linking
-                (org-roam-db--update-headlines))
-              (org-roam-db--update-links))))))
+  (if (not (file-exists-p file-path))
+        (org-roam-db--clear-file file-path)
+      ;; save the file before performing a database update
+      (when-let ((buf (find-buffer-visiting file-path)))
+        (with-current-buffer buf
+          (save-buffer)))
+      (org-roam--with-temp-buffer file-path
+        (emacsql-with-transaction (org-roam-db)
+          (org-roam-db--update-meta)
+          (org-roam-db--update-tags)
+          (org-roam-db--update-titles)
+          (org-roam-db--update-refs)
+          (when org-roam-enable-headline-linking
+            (org-roam-db--update-headlines))
+          (org-roam-db--update-links)))))
 
 (defun org-roam-db-build-cache (&optional force)
   "Build the cache for `org-roam-directory'.
