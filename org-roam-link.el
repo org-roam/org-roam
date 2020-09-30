@@ -155,18 +155,17 @@ If there is no corresponding headline, return nil."
                   (org-id-get-create))))))))
 
 ;;; Path-related functions
-(defun org-roam-link-get-path (path &optional dir)
+(defun org-roam-link-get-path (path)
   "Return the PATH of the link to use.
 Respect `org-link-file-path-type', see the variable documentation for details.
 If DIR is passed, use DIR as the default directory."
-  (let ((default-directory (or dir default-directory)))
-    (pcase org-roam-link-file-path-type
+  (pcase org-roam-link-file-path-type
       ('absolute
        (abbreviate-file-name (expand-file-name path)))
       ('noabbrev
        (expand-file-name path))
       ('relative
-       (file-relative-name path)))))
+       (file-relative-name path))))
 
 (defun org-roam-link--split-path (path)
   "Splits PATH into title and headline.

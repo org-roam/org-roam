@@ -820,16 +820,10 @@ If `org-roam-link-title-format title' is defined, use it with TYPE."
 (defun org-roam--format-link (target &optional description type)
   "Formats an org link for a given file TARGET, link DESCRIPTION and link TYPE.
 TYPE defaults to \"file\"."
-  (let ((current-dir (ignore-errors
-                       (-> (or (buffer-base-buffer)
-                               (current-buffer))
-                           (buffer-file-name)
-                           (file-name-directory))))
-        (type (or type "file")))
-    (when (string-equal type "file")
-      (setq target (org-roam-link-get-path target current-dir)))
-    (org-roam-link-make-string (concat type ":" target)
-                               description)))
+  (setq type (or type "file"))
+  (when (string-equal type "file")
+    (setq target (org-roam-link-get-path target)))
+  (org-roam-link-make-string (concat type ":" target) description))
 
 (defun org-roam--prepend-tag-string (str tags)
   "Prepend TAGS to STR."
