@@ -447,7 +447,7 @@ connections, nil is returned."
     (org-roam-db-query [:delete :from headlines
                         :where (= file $s1)]
                        file)
-    (when-let ((headlines (org-roam--extract-headlines)))
+    (when-let ((headlines (org-roam--extract-headlines file)))
       (org-roam-db--insert-headlines headlines))))
 
 (defun org-roam-db--update-file (&optional file-path)
