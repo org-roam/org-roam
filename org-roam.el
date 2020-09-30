@@ -370,8 +370,9 @@ Like `file-name-extension', but does not strip version number."
 (defun org-roam--org-roam-file-p (&optional file)
   "Return t if FILE is part of Org-roam system, nil otherwise.
 If FILE is not specified, use the current buffer's file-path."
-  (if-let ((path (or file
-                     (buffer-file-name))))
+  (when-let ((path (or file
+                       org-roam-file-name
+                       (buffer-file-name))))
       (save-match-data
         (and
          (org-roam--org-file-p path)
@@ -1060,22 +1061,6 @@ citation key, for Org-ref cite links."
                          :where ,@conditions
                          :order-by (asc from)])))
 
-(defun org-roam-store-link ()
-  "Store a link to an Org-roam file or heading."
-  (when (and (bound-and-true-p org-roam-mode)
-             (org-roam--org-roam-file-p))
-    (if (org-before-first-heading-p)
-        (when-let ((titles (org-roam--extract-titles)))
-          (org-roam-link-store-props
-           :type        "file"
-           :link        (format "file:%s" (abbreviate-file-name buffer-file-name))
-           :description (car titles)))
-      (let ((id (org-id-get)))
-        (org-id-store-link)
-        ;; If :ID: was created, update the cache
-        (unless id
-          (org-roam-db--update-headlines))))))
-
 (defun org-roam-id-get-file (id)
   "Return the file if ID exists in the Org-roam database.
 Return nil otherwise."
@@ -1477,6 +1462,12 @@ When NEW-FILE-OR-DIR is a directory, we use it to compute the new file path."
         (when (org-roam--org-roam-file-p new-file)
           (org-roam-db--update-file new-path))))))
 
+(defun org-roam--id-new-advice (&rest _args)
+  "Update the database if a new Org ID is created."
+  (when (and org-roam-enable-headline-linking
+             (org-roam--org-roam-file-p))
+    (add-to-list 'org-roam--file-update-queue (buffer-file-name))))
+
 ;;;###autoload
 (define-minor-mode org-roam-mode
   "Minor mode for Org-roam.
@@ -1514,9 +1505,9 @@ M-x info for more information at Org-roam > Installation > Post-Installation Tas
       (setq org-roam--file-update-timer (run-with-idle-timer org-roam-update-db-idle-seconds t #'org-roam--process-update-queue)))
     (advice-add 'rename-file :after #'org-roam--rename-file-advice)
     (advice-add 'delete-file :before #'org-roam--delete-file-advice)
+    (advice-add 'org-id-new :after #'org-roam--id-new-advice)
     (when (fboundp 'org-link-set-parameters)
-      (when org-roam-enable-headline-linking
-        (org-link-set-parameters "file" :face 'org-roam--file-link-face :store #'org-roam-store-link))
+      (org-link-set-parameters "file" :face 'org-roam--file-link-face)
       (org-link-set-parameters "id" :face 'org-roam--id-link-face))
     (org-roam-db-build-cache))
    (t
@@ -1528,6 +1519,7 @@ M-x info for more information at Org-roam > Installation > Post-Installation Tas
       (cancel-timer org-roam--file-update-timer))
     (advice-remove 'rename-file #'org-roam--rename-file-advice)
     (advice-remove 'delete-file #'org-roam--delete-file-advice)
+    (advice-remove 'org-id-new #'org-roam--id-new-advice)
     (when (fboundp 'org-link-set-parameters)
       (dolist (face '("file" "id"))
         (org-link-set-parameters face :face 'org-link)))
