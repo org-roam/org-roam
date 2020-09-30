@@ -34,6 +34,7 @@
 (require 'cl-lib)
 (require 'dash)
 (require 's)
+(require 'f)
 
 (defvar org-roam-directory)
 (defvar org-link-frame-setup)
@@ -42,6 +43,7 @@
 (defvar org-roam-last-window)
 (defvar org-ref-cite-types) ;; in org-ref-core.el
 (defvar org-roam-mode)
+(defvar org-roam--org-link-bracket-typed-re)
 
 (declare-function org-roam-db--ensure-built   "org-roam-db")
 (declare-function org-roam--extract-ref       "org-roam")
@@ -51,6 +53,9 @@
 (declare-function org-roam-backlinks-mode     "org-roam")
 (declare-function org-roam-mode               "org-roam")
 (declare-function org-roam--find-file         "org-roam")
+(declare-function org-roam--format-link       "org-roam")
+(declare-function org-roam-link-make-string   "org-roam-compat")
+(declare-function org-roam-link-get-path      "org-roam-link")
 
 (defcustom org-roam-buffer-position 'right
   "Position of `org-roam' buffer.
@@ -124,6 +129,22 @@ For example: (setq org-roam-buffer-window-parameters '((no-other-window . t)))"
                                    ,wrong-type))))))
     (concat string (when (> l 1) "s"))))
 
+(defun org-roam-buffer-expand-links (content orig-path)
+  "Crawl CONTENT for relative links and corrects them to be correctly displayed.
+ORIG-PATH is the path where the CONTENT originated."
+  (with-temp-buffer
+    (insert content)
+    (goto-char (point-min))
+    (let (link link-type)
+      (while (re-search-forward org-roam--org-link-bracket-typed-re (point-max) t)
+        (setq link-type (match-string 1)
+              link (match-string 2))
+        (when (and (string-equal link-type "file")
+                   (f-relative-p link))
+          (replace-match (org-roam-link-get-path (expand-file-name link (file-name-directory orig-path)))
+                         nil t nil 2))))
+    (buffer-string)))
+
 (defun org-roam-buffer--insert-ref-links ()
   "Insert ref backlinks for the current buffer."
   (when-let ((path (cdr (with-temp-buffer
@@ -138,12 +159,14 @@ For example: (setq org-roam-buffer-window-parameters '((no-other-window . t)))"
           (dolist (group grouped-backlinks)
             (let ((file-from (car group))
                   (bls (cdr group)))
-              (insert (format "** [[file:%s][%s]]\n"
-                              file-from
-                              (org-roam--get-title-or-slug file-from)))
+              (insert (org-roam-link-make-string)
+                      (format "** %s\n"
+                              (org-roam--format-link file-from
+                                                     (org-roam--get-title-or-slug file-from)
+                                                     "file")))
               (dolist (backlink bls)
                 (pcase-let ((`(,file-from _ ,props) backlink))
-                  (insert (propertize (plist-get props :content)
+                  (insert (propertize (org-roam-buffer-expand-links (plist-get props :content) file-from)
                            'help-echo "mouse-1: visit backlinked note"
                            'file-from file-from
                            'file-from-point (plist-get props :point)))
@@ -165,9 +188,10 @@ For example: (setq org-roam-buffer-window-parameters '((no-other-window . t)))"
           (let ((file-from (car group))
                 (bls (mapcar (lambda (row)
                                  (nth 2 row)) (cdr group))))
-            (insert (format "** [[file:%s][%s]]\n"
-                            file-from
-                            (org-roam--get-title-or-slug file-from)))
+            (insert (format "** %s\n"
+                            (org-roam--format-link file-from
+                                                   (org-roam--get-title-or-slug file-from)
+                                                   "file")))
             ;; Sort backlinks according to time of occurrence in buffer
             (setq bls (seq-sort-by (lambda (bl)
                                      (plist-get bl :point))
@@ -176,12 +200,14 @@ For example: (setq org-roam-buffer-window-parameters '((no-other-window . t)))"
             (dolist (props bls)
               (insert "*** "
                       (if-let ((outline (plist-get props :outline)))
-                          (string-join outline " > ")
+                          (-> outline
+                              (string-join " > ")
+                              (org-roam-buffer-expand-links file-from))
                         "Top")
                       "\n"
                       (propertize
                        (s-trim (s-replace "\n" " "
-                                          (plist-get props :content)))
+                                          (org-roam-buffer-expand-links (plist-get props :content) file-from)))
                        'help-echo "mouse-1: visit backlinked note"
                        'file-from file-from
                        'file-from-point (plist-get props :point))
