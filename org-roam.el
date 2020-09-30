@@ -1097,8 +1097,8 @@ When KEEP-BUFFER-P is non-nil, keep the buffers navigated by Org-roam open."
       (let ((existing-buf (find-buffer-visiting file))
             (res (org-id-find-id-in-file id file markerp)))
         (when (and (not keep-buffer-p)
-                   existing-buf)
-          (kill-buffer existing-buf))
+                   (not existing-buf))
+          (kill-buffer (find-buffer-visiting file)))
         res))))
 
 (defun org-roam-id-open (id-or-marker &optional strict)
