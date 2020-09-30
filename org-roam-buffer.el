@@ -106,6 +106,7 @@ For example: (setq org-roam-buffer-window-parameters '((no-other-window . t)))"
 
 (defun org-roam-buffer--find-file (file)
   "Open FILE in the window `org-roam' was called from."
+  (setq file (expand-file-name file))
   (if (and org-roam-last-window (window-valid-p org-roam-last-window))
       (progn (with-selected-window org-roam-last-window
                (org-roam--find-file file))
