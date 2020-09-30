@@ -139,7 +139,7 @@ For example: (setq org-roam-buffer-window-parameters '((no-other-window . t)))"
             (let ((file-from (car group))
                   (bls (cdr group)))
               (insert (format "** [[file:%s][%s]]\n"
-                              file-from
+                              (file-relative-name file-from)
                               (org-roam--get-title-or-slug file-from)))
               (dolist (backlink bls)
                 (pcase-let ((`(,file-from _ ,props) backlink))
@@ -166,7 +166,7 @@ For example: (setq org-roam-buffer-window-parameters '((no-other-window . t)))"
                 (bls (mapcar (lambda (row)
                                  (nth 2 row)) (cdr group))))
             (insert (format "** [[file:%s][%s]]\n"
-                            file-from
+                            (file-relative-name file-from)
                             (org-roam--get-title-or-slug file-from)))
             ;; Sort backlinks according to time of occurrence in buffer
             (setq bls (seq-sort-by (lambda (bl)
