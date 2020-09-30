@@ -1,6 +1,34 @@
-[![License GPL 3][badge-license]](http://www.gnu.org/licenses/gpl-3.0.txt)
-[![GitHub Release](https://img.shields.io/github/v/release/org-roam/org-roam)](https://img.shields.io/github/v/release/org-roam/org-roam)
-[![MELPA](https://melpa.org/packages/org-roam-badge.svg)](https://melpa.org/#/org-roam)
+<h1 align="center">
+<br>
+<a href="https://www.orgroam.com/"><img src="https://raw.githubusercontent.com/org-roam/org-roam/369753c98b5612843948809a638cb9997b2599e0/doc/img/logo.svg" alt="Org-roam Logo" width="200"></a>
+<br>
+Org-roam
+<br>
+</h1>
+
+<h4 align="center">A plain-text personal knowledge management system. </h4>
+
+<p align="center">
+<a href="https://www.gnu.org/licenses/gpl-3.0.txt"><img src="https://img.shields.io/badge/license-GPL_3-green.svg" alt="License GPL 3"></a>
+<a href="https://github.com/org-roam/org-roam/releases"><img src="https://img.shields.io/github/v/release/org-roam/org-roam" alt="GitHub Releases"></a>
+<a href="https://melpa.org/#/org-roam"><img src="https://melpa.org/packages/org-roam-badge.svg" alt="MELPA"></a>
+</p>
+
+<p align="center">
+
+<a href="#synopsis">Synopsis</a> •
+<a href="#preview">Preview</a> •
+<a href="#installation">Installation</a> •
+<a href="#frequently-asked-questions">FAQ</a> •
+<a href="#getting-help">Getting Help</a> •
+<a href="#knowledge-bases-using-org-roam">Example Knowledge Bases</a> •
+<a href="#changelog">Changelog</a> •
+<a href="#contributing">Contributing</a> •
+<a href="#license">License</a>
+</p>
+
+
+
 
 ## Synopsis
 
@@ -32,7 +60,7 @@ Important links:
 - **[Discourse][discourse]**
 - **[Slack][slack]**
 
-## A Preview
+## Preview
 
 Here's a screencast of Org-roam. The `org-roam-buffer` (window on the
 right) shows backlinks for the active Org-roam buffer (window on the
@@ -79,7 +107,7 @@ For more detailed installation and configuration instructions (including for
 Doom and Spacemacs users), please see [the
 documentation][docs].
 
-## Frequently-asked Questions
+## Frequently Asked Questions
 
 Q: How do I create a note whose title already matches one of the candidates (e.g. creating `bar` when `barricade` already exists)?
 
@@ -105,7 +133,7 @@ that it has not already been addressed on
 
 ## Changelog
 
-A changelog is being maintained [here](CHANGELOG.md)
+A changelog is being maintained [here](CHANGELOG.md).
 
 ## Contributing
 
@@ -116,7 +144,7 @@ request. Please also see [CONTRIBUTING.md](.github/CONTRIBUTING.md).
 ## License
 
 Copyright © Jethro Kuan and contributors. Distributed under the GNU
-General Public License, Version 3
+General Public License, Version 3.
 
 [roamresearch]: https://www.roamresearch.com/
 [org]: https://orgmode.org/
