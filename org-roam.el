@@ -536,27 +536,6 @@ The search terminates when the first property is encountered."
           (push (cons prop p) res)))
       res)))
 
-(defun org-roam--expand-links (content path)
-  "Crawl CONTENT for relative links and expand them.
-PATH should be the root from which to compute the relativity."
-  (let ((dir (file-name-directory path))
-        link link-type)
-    (with-temp-buffer
-      (insert content)
-      (goto-char (point-min))
-      ;; Loop over links
-      (while (re-search-forward org-roam--org-link-bracket-typed-re (point-max) t)
-        (setq link-type (match-string 1)
-              link (match-string 2))
-        (when (and (string-equal link-type "file")
-                   (f-relative-p link))
-          (save-excursion
-            (goto-char (match-beginning 2))
-            (delete-region (match-beginning 2)
-                           (match-end 2))
-            (insert (expand-file-name link dir)))))
-      (buffer-string))))
-
 (defun org-roam--get-outline-path ()
   "Return the outline path to the current entry.
 
@@ -624,10 +603,7 @@ it as FILE-PATH."
                                (or (org-element-property :content-end element)
                                    (org-element-property :end element)))))
                  (content (string-trim content))
-                 (content (org-roam--expand-links content file-path))
-                 (properties (list :outline (mapcar (lambda (path)
-                                                      (org-roam--expand-links path file-path))
-                                                    (org-roam--get-outline-path))
+                 (properties (list :outline (org-roam--get-outline-path)
                                    :content content
                                    :point begin))
                  (names (pcase type
@@ -844,16 +820,10 @@ If `org-roam-link-title-format title' is defined, use it with TYPE."
 (defun org-roam--format-link (target &optional description type)
   "Formats an org link for a given file TARGET, link DESCRIPTION and link TYPE.
 TYPE defaults to \"file\"."
-  (let* ((here (ignore-errors
-                 (-> (or (buffer-base-buffer)
-                         (current-buffer))
-                     (buffer-file-name)
-                     (file-name-directory)))))
-    (org-roam-link-make-string
-     (concat (or type "file") ":" (if here
-                                      (file-relative-name target here)
-                                    target))
-     description)))
+  (setq type (or type "file"))
+  (when (string-equal type "file")
+    (setq target (org-roam-link-get-path target)))
+  (org-roam-link-make-string (concat type ":" target) description))
 
 (defun org-roam--prepend-tag-string (str tags)
   "Prepend TAGS to STR."
@@ -1344,7 +1314,7 @@ replaced links are made relative to the current buffer."
           (when (and (f-relative-p path)
                      (org-in-regexp org-link-bracket-re 1))
             (let* ((file-path (expand-file-name path (file-name-directory old-path)))
-                   (new-path (file-relative-name file-path (file-name-directory (buffer-file-name)))))
+                   (new-path (org-roam-link-get-path file-path)))
               (replace-match (concat type ":" new-path)
                              nil t nil 1))))))))
 
