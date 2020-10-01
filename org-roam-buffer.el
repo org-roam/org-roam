@@ -160,8 +160,7 @@ ORIG-PATH is the path where the CONTENT originated."
           (dolist (group grouped-backlinks)
             (let ((file-from (car group))
                   (bls (cdr group)))
-              (insert (org-roam-link-make-string)
-                      (format "** %s\n"
+              (insert (format "** %s\n"
                               (org-roam--format-link file-from
                                                      (org-roam--get-title-or-slug file-from)
                                                      "file")))
