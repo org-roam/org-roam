@@ -370,8 +370,9 @@ Like `file-name-extension', but does not strip version number."
 (defun org-roam--org-roam-file-p (&optional file)
   "Return t if FILE is part of Org-roam system, nil otherwise.
 If FILE is not specified, use the current buffer's file-path."
-  (if-let ((path (or file
-                     (buffer-file-name))))
+  (when-let ((path (or file
+                       org-roam-file-name
+                       (buffer-file-name))))
       (save-match-data
         (and
          (org-roam--org-file-p path)
@@ -535,27 +536,6 @@ The search terminates when the first property is encountered."
           (push (cons prop p) res)))
       res)))
 
-(defun org-roam--expand-links (content path)
-  "Crawl CONTENT for relative links and expand them.
-PATH should be the root from which to compute the relativity."
-  (let ((dir (file-name-directory path))
-        link link-type)
-    (with-temp-buffer
-      (insert content)
-      (goto-char (point-min))
-      ;; Loop over links
-      (while (re-search-forward org-roam--org-link-bracket-typed-re (point-max) t)
-        (setq link-type (match-string 1)
-              link (match-string 2))
-        (when (and (string-equal link-type "file")
-                   (f-relative-p link))
-          (save-excursion
-            (goto-char (match-beginning 2))
-            (delete-region (match-beginning 2)
-                           (match-end 2))
-            (insert (expand-file-name link dir)))))
-      (buffer-string))))
-
 (defun org-roam--get-outline-path ()
   "Return the outline path to the current entry.
 
@@ -623,10 +603,7 @@ it as FILE-PATH."
                                (or (org-element-property :content-end element)
                                    (org-element-property :end element)))))
                  (content (string-trim content))
-                 (content (org-roam--expand-links content file-path))
-                 (properties (list :outline (mapcar (lambda (path)
-                                                      (org-roam--expand-links path file-path))
-                                                    (org-roam--get-outline-path))
+                 (properties (list :outline (org-roam--get-outline-path)
                                    :content content
                                    :point begin))
                  (names (pcase type
@@ -843,16 +820,10 @@ If `org-roam-link-title-format title' is defined, use it with TYPE."
 (defun org-roam--format-link (target &optional description type)
   "Formats an org link for a given file TARGET, link DESCRIPTION and link TYPE.
 TYPE defaults to \"file\"."
-  (let* ((here (ignore-errors
-                 (-> (or (buffer-base-buffer)
-                         (current-buffer))
-                     (buffer-file-name)
-                     (file-name-directory)))))
-    (org-roam-link-make-string
-     (concat (or type "file") ":" (if here
-                                      (file-relative-name target here)
-                                    target))
-     description)))
+  (setq type (or type "file"))
+  (when (string-equal type "file")
+    (setq target (org-roam-link-get-path target)))
+  (org-roam-link-make-string (concat type ":" target) description))
 
 (defun org-roam--prepend-tag-string (str tags)
   "Prepend TAGS to STR."
@@ -1059,22 +1030,6 @@ citation key, for Org-ref cite links."
     (org-roam-db-query `[:select [from to properties] :from links
                          :where ,@conditions
                          :order-by (asc from)])))
-
-(defun org-roam-store-link ()
-  "Store a link to an Org-roam file or heading."
-  (when (and (bound-and-true-p org-roam-mode)
-             (org-roam--org-roam-file-p))
-    (if (org-before-first-heading-p)
-        (when-let ((titles (org-roam--extract-titles)))
-          (org-roam-link-store-props
-           :type        "file"
-           :link        (format "file:%s" (abbreviate-file-name buffer-file-name))
-           :description (car titles)))
-      (let ((id (org-id-get)))
-        (org-id-store-link)
-        ;; If :ID: was created, update the cache
-        (unless id
-          (org-roam-db--update-headlines))))))
 
 (defun org-roam-id-get-file (id)
   "Return the file if ID exists in the Org-roam database.
@@ -1359,7 +1314,7 @@ replaced links are made relative to the current buffer."
           (when (and (f-relative-p path)
                      (org-in-regexp org-link-bracket-re 1))
             (let* ((file-path (expand-file-name path (file-name-directory old-path)))
-                   (new-path (file-relative-name file-path (file-name-directory (buffer-file-name)))))
+                   (new-path (org-roam-link-get-path file-path)))
               (replace-match (concat type ":" new-path)
                              nil t nil 1))))))))
 
@@ -1477,6 +1432,12 @@ When NEW-FILE-OR-DIR is a directory, we use it to compute the new file path."
         (when (org-roam--org-roam-file-p new-file)
           (org-roam-db--update-file new-path))))))
 
+(defun org-roam--id-new-advice (&rest _args)
+  "Update the database if a new Org ID is created."
+  (when (and org-roam-enable-headline-linking
+             (org-roam--org-roam-file-p))
+    (add-to-list 'org-roam--file-update-queue (buffer-file-name))))
+
 ;;;###autoload
 (define-minor-mode org-roam-mode
   "Minor mode for Org-roam.
@@ -1514,9 +1475,9 @@ M-x info for more information at Org-roam > Installation > Post-Installation Tas
       (setq org-roam--file-update-timer (run-with-idle-timer org-roam-update-db-idle-seconds t #'org-roam--process-update-queue)))
     (advice-add 'rename-file :after #'org-roam--rename-file-advice)
     (advice-add 'delete-file :before #'org-roam--delete-file-advice)
+    (advice-add 'org-id-new :after #'org-roam--id-new-advice)
     (when (fboundp 'org-link-set-parameters)
-      (when org-roam-enable-headline-linking
-        (org-link-set-parameters "file" :face 'org-roam--file-link-face :store #'org-roam-store-link))
+      (org-link-set-parameters "file" :face 'org-roam--file-link-face)
       (org-link-set-parameters "id" :face 'org-roam--id-link-face))
     (org-roam-db-build-cache))
    (t
@@ -1528,6 +1489,7 @@ M-x info for more information at Org-roam > Installation > Post-Installation Tas
       (cancel-timer org-roam--file-update-timer))
     (advice-remove 'rename-file #'org-roam--rename-file-advice)
     (advice-remove 'delete-file #'org-roam--delete-file-advice)
+    (advice-remove 'org-id-new #'org-roam--id-new-advice)
     (when (fboundp 'org-link-set-parameters)
       (dolist (face '("file" "id"))
         (org-link-set-parameters face :face 'org-link)))

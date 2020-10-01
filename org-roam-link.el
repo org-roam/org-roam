@@ -38,6 +38,7 @@
 (require 'org-roam-compat)
 
 (defvar org-roam-completion-ignore-case)
+(defvar org-roam-directory)
 (declare-function  org-roam--find-file                  "org-roam")
 (declare-function  org-roam-find-file                   "org-roam")
 
@@ -46,6 +47,21 @@
   "When non-nil, replace Org-roam's roam links with file or id links whenever possible."
   :group 'org-roam
   :type 'boolean)
+
+(defcustom org-roam-link-file-path-type 'relative
+  "How the path name in file links should be stored.
+Valid values are:
+
+relative  Relative to the current directory, i.e. the directory of the file
+          into which the link is being inserted.
+absolute  Absolute path, if possible with ~ for home directory.
+noabbrev  Absolute path, no abbreviation of home directory."
+  :group 'org-roam
+  :type '(choice
+          (const relative)
+          (const absolute)
+          (const noabbrev))
+  :safe #'symbolp)
 
 ;;; the roam: link
 (org-link-set-parameters "roam"
@@ -139,6 +155,18 @@ If there is no corresponding headline, return nil."
                   (org-id-get-create))))))))
 
 ;;; Path-related functions
+(defun org-roam-link-get-path (path)
+  "Return the PATH of the link to use.
+Respect `org-link-file-path-type', see the variable documentation for details.
+If DIR is passed, use DIR as the default directory."
+  (pcase org-roam-link-file-path-type
+      ('absolute
+       (abbreviate-file-name (expand-file-name path)))
+      ('noabbrev
+       (expand-file-name path))
+      ('relative
+       (file-relative-name path))))
+
 (defun org-roam-link--split-path (path)
   "Splits PATH into title and headline.
 Return a list of the form (type title has-headline-p headline star-idx).
@@ -185,8 +213,7 @@ marker is a marker to the headline, if applicable."
         ('title
          (setq loc (org-roam-link--get-file-from-title title)
                desc title
-               link-type "file")
-         (when loc (setq loc (file-relative-name loc))))
+               link-type "file"))
         ('headline
          (setq mkr (org-roam-link--get-id-from-headline headline))
          (pcase mkr
@@ -209,6 +236,8 @@ DESC is the link description."
       (unless (org-in-regexp org-link-bracket-re 1)
         (user-error "No link at point"))
       (replace-match "")
+      (when (string-equal link-type "file")
+        (setq loc (org-roam-link-get-path loc)))
       (insert (org-roam-link-make-string (concat link-type ":" loc) desc)))))
 
 (defun org-roam-link-replace-all ()
