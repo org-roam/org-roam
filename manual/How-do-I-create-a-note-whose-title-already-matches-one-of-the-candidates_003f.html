@@ -15,18 +15,17 @@ General Public License for more details.
 <!-- Created by GNU Texinfo 6.5, http://www.gnu.org/software/texinfo/ -->
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<title>FAQ (Org-roam User Manual)</title>
+<title>How do I create a note whose title already matches one of the candidates? (Org-roam User Manual)</title>
 
-<meta name="description" content="FAQ (Org-roam User Manual)">
-<meta name="keywords" content="FAQ (Org-roam User Manual)">
+<meta name="description" content="How do I create a note whose title already matches one of the candidates? (Org-roam User Manual)">
+<meta name="keywords" content="How do I create a note whose title already matches one of the candidates? (Org-roam User Manual)">
 <meta name="resource-type" content="document">
 <meta name="distribution" content="global">
 <meta name="Generator" content="makeinfo">
 <link href="index.html#Top" rel="start" title="Top">
 <link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
-<link href="index.html#Top" rel="up" title="Top">
-<link href="How-do-I-have-more-than-one-Org_002droam-directory_003f.html#How-do-I-have-more-than-one-Org_002droam-directory_003f" rel="next" title="How do I have more than one Org-roam directory?">
-<link href="Spaced-Repetition.html#Spaced-Repetition" rel="prev" title="Spaced Repetition">
+<link href="FAQ.html#FAQ" rel="up" title="FAQ">
+<link href="How-do-I-migrate-from-Roam-Research_003f.html#How-do-I-migrate-from-Roam-Research_003f" rel="prev" title="How do I migrate from Roam Research?">
 <style type="text/css">
 <!--
 a.summary-letter {text-decoration: none}
@@ -60,25 +59,32 @@ ul.no-bullet {list-style: none}
 </head>
 
 <body lang="en">
-<a name="FAQ"></a>
+<a name="How-do-I-create-a-note-whose-title-already-matches-one-of-the-candidates_003f"></a>
 <div class="header">
 <p>
-Previous: <a href="Appendix.html#Appendix" accesskey="p" rel="prev">Appendix</a>, Up: <a href="index.html#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+Previous: <a href="How-do-I-migrate-from-Roam-Research_003f.html#How-do-I-migrate-from-Roam-Research_003f" accesskey="p" rel="prev">How do I migrate from Roam Research?</a>, Up: <a href="FAQ.html#FAQ" accesskey="u" rel="up">FAQ</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
 </div>
 <hr>
-<a name="FAQ-1"></a>
-<h2 class="chapter">20 FAQ</h2>
+<a name="How-do-I-create-a-note-whose-title-already-matches-one-of-the-candidates_003f-1"></a>
+<h3 class="section">20.3 How do I create a note whose title already matches one of the candidates?</h3>
 
-<table class="menu" border="0" cellspacing="0">
-<tr><td align="left" valign="top">&bull; <a href="How-do-I-have-more-than-one-Org_002droam-directory_003f.html#How-do-I-have-more-than-one-Org_002droam-directory_003f" accesskey="1">How do I have more than one Org-roam directory?</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top">&bull; <a href="How-do-I-migrate-from-Roam-Research_003f.html#How-do-I-migrate-from-Roam-Research_003f" accesskey="2">How do I migrate from Roam Research?</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top">&bull; <a href="How-do-I-create-a-note-whose-title-already-matches-one-of-the-candidates_003f.html#How-do-I-create-a-note-whose-title-already-matches-one-of-the-candidates_003f" accesskey="3">How do I create a note whose title already matches one of the candidates?</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-</table>
+<p>This situation arises when, for example, one would like to create a note titled
+&ldquo;bar&rdquo; when &ldquo;barricade&rdquo; already exists.
+</p>
+<p>The solution is dependent on the mini-buffer completion framework in use. Here
+are the solutions:
+</p>
+<dl compact="compact">
+<dt>Ivy</dt>
+<dd><p>call <code>ivy-immediate-done</code>, typically bound to <code>C-M-j</code>. Alternatively, set <code>ivy-use-selectable-prompt</code> to <code>t</code>, so that &ldquo;bar&rdquo; is now selectable.
+</p></dd>
+<dt>Helm</dt>
+<dd><p>Org-roam should provide a selectable &ldquo;[?] bar&rdquo; candidate at the top of the candidate list.
+</p></dd>
+</dl>
 
-
+<p>Emacs 28.0.50 (Org mode 9.4)
+</p>
 
 
 </body>
