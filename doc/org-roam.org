@@ -1285,6 +1285,17 @@ file within that directory, at least once.
 
 Fabio has produced a command-line tool that converts markdown files exported from Roam Research into Org-roam compatible markdown. More instructions are provided [[https://github.com/fabioberger/roam-migration][in the repository]].
 
+** How do I create a note whose title already matches one of the candidates?
+
+This situation arises when, for example, one would like to create a note titled
+"bar" when "barricade" already exists.
+
+The solution is dependent on the mini-buffer completion framework in use. Here
+are the solutions:
+
+- Ivy :: call ~ivy-immediate-done~, typically bound to ~C-M-j~. Alternatively, set ~ivy-use-selectable-prompt~ to ~t~, so that "bar" is now selectable.
+- Helm :: Org-roam should provide a selectable "[?] bar" candidate at the top of the candidate list.
+
 # Local Variables:
 # eval: (require 'ol-info)
 # before-save-hook: org-make-toc
