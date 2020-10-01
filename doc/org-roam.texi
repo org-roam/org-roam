@@ -151,6 +151,7 @@ FAQ
 
 * How do I have more than one Org-roam directory?::
 * How do I migrate from Roam Research?::
+* How do I create a note whose title already matches one of the candidates?::
 
 @end detailmenu
 @end menu
@@ -1627,6 +1628,7 @@ files. Other alternatives include @uref{https://orgmode.org/worg/org-contrib/org
 @menu
 * How do I have more than one Org-roam directory?::
 * How do I migrate from Roam Research?::
+* How do I create a note whose title already matches one of the candidates?::
 @end menu
 
 @node How do I have more than one Org-roam directory?
@@ -1653,6 +1655,22 @@ file within that directory, at least once.
 @section How do I migrate from Roam Research?
 
 Fabio has produced a command-line tool that converts markdown files exported from Roam Research into Org-roam compatible markdown. More instructions are provided @uref{https://github.com/fabioberger/roam-migration, in the repository}.
+
+@node How do I create a note whose title already matches one of the candidates?
+@section How do I create a note whose title already matches one of the candidates?
+
+This situation arises when, for example, one would like to create a note titled
+``bar'' when ``barricade'' already exists.
+
+The solution is dependent on the mini-buffer completion framework in use. Here
+are the solutions:
+
+@table @asis
+@item Ivy
+call @code{ivy-immediate-done}, typically bound to @code{C-M-j}. Alternatively, set @code{ivy-use-selectable-prompt} to @code{t}, so that ``bar'' is now selectable.
+@item Helm
+Org-roam should provide a selectable ``[?] bar'' candidate at the top of the candidate list.
+@end table
 
 Emacs 28.0.50 (Org mode 9.4)
 @bye
