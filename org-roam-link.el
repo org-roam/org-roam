@@ -235,10 +235,7 @@ DESC is the link description."
     (save-match-data
       (unless (org-in-regexp org-link-bracket-re 1)
         (user-error "No link at point"))
-      (replace-match "")
-      (when (string-equal link-type "file")
-        (setq loc (org-roam-link-get-path loc)))
-      (insert (org-roam-link-make-string (concat link-type ":" loc) desc)))))
+      (replace-match (org-roam--format-link loc desc link-type)))))
 
 (defun org-roam-link-replace-all ()
   "Replace all roam links in the current buffer."

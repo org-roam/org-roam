@@ -811,8 +811,16 @@ If `org-roam-link-title-format title' is defined, use it with TYPE."
 
 (defun org-roam--format-link (target &optional description type)
   "Formats an org link for a given file TARGET, link DESCRIPTION and link TYPE.
-TYPE defaults to \"file\"."
+TYPE defaults to \"file\".
+Here, we also check if there is an ID for the file."
   (setq type (or type "file"))
+  (when-let ((id (and (string-equal type "file")
+                      (caar (org-roam-db-query [:select [id] :from ids
+                                                :where (= file $s1)
+                                                :and (= level 0)
+                                                :limit 1]
+                                               target)))))
+    (setq type "id" target id))
   (when (string-equal type "file")
     (setq target (org-roam-link-get-path target)))
   (org-roam-link-make-string (concat type ":" target) description))
@@ -1288,10 +1296,7 @@ update with NEW-DESC."
                    (new-label (if (string-equal label old-desc)
                                   new-desc
                                 label)))
-              (replace-match (org-roam-link-make-string
-                              (concat type ":"
-                                      (file-relative-name new-path (file-name-directory (buffer-file-name))))
-                              new-label)))))))))
+              (replace-match (org-roam--format-link new-path new-label type)))))))))
 
 (defun org-roam--fix-relative-links (old-path)
   "Fix file-relative links in current buffer.
