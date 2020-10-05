@@ -823,7 +823,7 @@ Here, we also check if there is an ID for the file."
     (setq type "id" target id))
   (when (string-equal type "file")
     (setq target (org-roam-link-get-path target)))
-  (org-roam-link-make-string (concat type ":" target) description))
+  (org-link-make-string (concat type ":" target) description))
 
 (defun org-roam--prepend-tag-string (str tags)
   "Prepend TAGS to STR."
@@ -1763,7 +1763,7 @@ linked, lest the network graph get too crowded."
                                            file-loc)))
                   (let ((rowcol (concat row ":" col)))
                     (insert "- "
-                            (org-roam-link-make-string (concat "file:" file "::" rowcol)
+                            (org-link-make-string (concat "file:" file "::" rowcol)
                                                        (format "[%s] %s" rowcol (org-roam--get-title-or-slug file))))
                     (when (executable-find "sed") ; insert line contents when sed is available
                       (insert " :: "

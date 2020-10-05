@@ -80,11 +80,6 @@
 (define-obsolete-function-alias 'org-roam-db--clear 'org-roam-db-clear
   "org-roam 1.2.0")
 
-(defalias 'org-roam-link-make-string
-  (if (fboundp 'org-link-make-string)
-      'org-link-make-string
-    'org-make-link-string))
-
 (defalias 'org-roam-link-store-props
   (if (fboundp 'org-link-store-props)
       'org-link-store-props
