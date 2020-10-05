@@ -35,6 +35,7 @@
 (require 'dash)
 (require 's)
 (require 'f)
+(require 'ol)
 
 (defvar org-roam-directory)
 (defvar org-link-frame-setup)
@@ -54,7 +55,6 @@
 (declare-function org-roam-mode               "org-roam")
 (declare-function org-roam--find-file         "org-roam")
 (declare-function org-roam-format-link        "org-roam")
-(declare-function org-roam-link-make-string   "org-roam-compat")
 (declare-function org-roam-link-get-path      "org-roam-link")
 
 (defcustom org-roam-buffer-position 'right
