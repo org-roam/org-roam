@@ -80,16 +80,6 @@
 (define-obsolete-function-alias 'org-roam-db--clear 'org-roam-db-clear
   "org-roam 1.2.0")
 
-(defalias 'org-roam-link-store-props
-  (if (fboundp 'org-link-store-props)
-      'org-link-store-props
-    'org-store-link-props))
-
-(defalias 'org-roam-link-decode
-  (if (fboundp 'org-link-decode)
-      'org-link-decode
-    'org-link-escape))
-
 ;;;; Variables
 (define-obsolete-variable-alias 'org-roam-graphviz-extra-options
   'org-roam-graph-extra-config "org-roam 1.0.0")
