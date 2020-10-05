@@ -239,7 +239,7 @@
                 :to-equal
                 '("t1" "t2 with space" "t3" "tags"))))))
 
-(describe "Headline extraction"
+(describe "ID extraction"
   (before-all
     (test-org-roam--init))
 
@@ -252,12 +252,12 @@
                     (buf (find-file-noselect fname)))
                (with-current-buffer buf
                  (funcall fn fname)))))
-    (it "extracts headlines"
-      (expect (test #'org-roam--extract-headlines
+    (it "extracts ids"
+      (expect (test #'org-roam--extract-ids
                     "headlines/headline.org")
               :to-have-same-items-as
-              `(["e84d0630-efad-4017-9059-5ef917908823" ,(test-org-roam--abs-path "headlines/headline.org")]
-                ["801b58eb-97e2-435f-a33e-ff59a2f0c213" ,(test-org-roam--abs-path "headlines/headline.org")])))))
+              `(["e84d0630-efad-4017-9059-5ef917908823" ,(test-org-roam--abs-path "headlines/headline.org") 1]
+                ["801b58eb-97e2-435f-a33e-ff59a2f0c213" ,(test-org-roam--abs-path "headlines/headline.org") 1])))))
 
 (describe "Test roam links"
   (it ""

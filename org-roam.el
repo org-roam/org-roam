@@ -380,15 +380,6 @@ If FILE is not specified, use the current buffer's file-path."
                    (string-match-p org-roam-file-exclude-regexp path)))
          (f-descendant-of-p path (expand-file-name org-roam-directory))))))
 
-(defun org-roam--org-roam-headline-p (&optional id)
-  "Return t if ID is part of Org-roam system, nil otherwise.
-If ID is not specified, use the ID of the entry at point."
-  (if-let ((id (or id
-                   (org-id-get))))
-      (org-roam-db-query [:select [file] :from headlines
-                          :where (= id $s1)]
-                         id)))
-
 (defun org-roam--shell-command-files (cmd)
   "Run CMD in the shell and return a list of files. If no files are found, an empty list is returned."
   (--> cmd
@@ -625,20 +616,21 @@ it as FILE-PATH."
                 (push (vector file-path name type properties) links))))))
       links)))
 
-(defun org-roam--extract-headlines (&optional file-path)
-  "Extract all headlines with IDs within the current buffer.
+(defun org-roam--extract-ids (&optional file-path)
+  "Extract all IDs within the current buffer.
 If FILE-PATH is nil, use the current file."
-  (let ((file-path (or file-path
-                       (buffer-file-name))))
-    ;; Use `org-map-region' instead of `org-map-entries' as the latter
-    ;; would require another step to remove all nil values.
-    (let ((result nil))
+  (setq file-path (or file-path org-roam-file-name (buffer-file-name)))
+  (let (result)
+      ;; We need to handle the special case of the file property drawer (at outline level 0)
+      (org-with-point-at (point-min)
+        (when-let ((id (org-entry-get nil "ID")))
+           (push (vector id file-path (org-outline-level)) result)))
       (org-map-region
        (lambda ()
          (when-let ((id (org-entry-get nil "ID")))
-           (push (vector id file-path) result)))
+           (push (vector id file-path (org-outline-level)) result)))
        (point-min) (point-max))
-      result)))
+      result))
 
 (defun org-roam--extract-titles-title ()
   "Return title from \"#+title\" of the current buffer."
@@ -817,10 +809,18 @@ If `org-roam-link-title-format title' is defined, use it with TYPE."
       (funcall org-roam-link-title-format title type)
     (format org-roam-link-title-format title)))
 
-(defun org-roam--format-link (target &optional description type)
+(defun org-roam-format-link (target &optional description type)
   "Formats an org link for a given file TARGET, link DESCRIPTION and link TYPE.
-TYPE defaults to \"file\"."
+TYPE defaults to \"file\".
+Here, we also check if there is an ID for the file."
   (setq type (or type "file"))
+  (when-let ((id (and (string-equal type "file")
+                      (caar (org-roam-db-query [:select [id] :from ids
+                                                :where (= file $s1)
+                                                :and (= level 0)
+                                                :limit 1]
+                                               target)))))
+    (setq type "id" target id))
   (when (string-equal type "file")
     (setq target (org-roam-link-get-path target)))
   (org-roam-link-make-string (concat type ":" target) description))
@@ -1035,14 +1035,14 @@ citation key, for Org-ref cite links."
   "Return the file if ID exists in the Org-roam database.
 Return nil otherwise."
   (caar (org-roam-db-query [:select [file]
-                            :from headlines
+                            :from ids
                             :where (= id $s1)
                             :limit 1]
                            id)))
 
 (defun org-roam-id-find (id &optional markerp strict keep-buffer-p)
   "Return the location of the entry with the id ID.
-When MARKERP is non-nil, return a marker pointing to theheadline.
+When MARKERP is non-nil, return a marker pointing to the headline.
 Otherwise, return a cons formatted as \(file . pos).
 When STRICT is non-nil, only consider Org-roam’s database.
 When KEEP-BUFFER-P is non-nil, keep the buffers navigated by Org-roam open."
@@ -1296,10 +1296,7 @@ update with NEW-DESC."
                    (new-label (if (string-equal label old-desc)
                                   new-desc
                                 label)))
-              (replace-match (org-roam-link-make-string
-                              (concat type ":"
-                                      (file-relative-name new-path (file-name-directory (buffer-file-name))))
-                              new-label)))))))))
+              (replace-match (org-roam-format-link new-path new-label type)))))))))
 
 (defun org-roam--fix-relative-links (old-path)
   "Fix file-relative links in current buffer.
@@ -1629,7 +1626,7 @@ If DESCRIPTION is provided, use this as the link label.  See
                    (delete-region beg end)
                    (set-marker beg nil)
                    (set-marker end nil))
-                 (insert (org-roam--format-link target-file-path link-description link-type)))
+                 (insert (org-roam-format-link target-file-path link-description link-type)))
                 (t
                  (let ((org-roam-capture--info `((title . ,title-with-tags)
                                                  (slug . ,(funcall org-roam-title-to-slug-function title-with-tags))))

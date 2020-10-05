@@ -41,7 +41,7 @@
 (defvar org-roam-directory)
 (declare-function  org-roam--find-file                  "org-roam")
 (declare-function  org-roam-find-file                   "org-roam")
-
+(declare-function org-roam-format-link                  "org-roam")
 
 (defcustom org-roam-link-auto-replace t
   "When non-nil, replace Org-roam's roam links with file or id links whenever possible."
@@ -236,9 +236,7 @@ DESC is the link description."
       (unless (org-in-regexp org-link-bracket-re 1)
         (user-error "No link at point"))
       (replace-match "")
-      (when (string-equal link-type "file")
-        (setq loc (org-roam-link-get-path loc)))
-      (insert (org-roam-link-make-string (concat link-type ":" loc) desc)))))
+      (insert (org-roam-format-link loc desc link-type)))))
 
 (defun org-roam-link-replace-all ()
   "Replace all roam links in the current buffer."
