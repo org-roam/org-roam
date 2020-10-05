@@ -47,7 +47,7 @@
 (declare-function org-roam--extract-titles                 "org-roam")
 (declare-function org-roam--extract-ref                    "org-roam")
 (declare-function org-roam--extract-tags                   "org-roam")
-(declare-function org-roam--extract-headlines              "org-roam")
+(declare-function org-roam--extract-ids                    "org-roam")
 (declare-function org-roam--extract-links                  "org-roam")
 (declare-function org-roam--list-all-files                 "org-roam")
 (declare-function org-roam--path-to-slug                   "org-roam")
@@ -79,7 +79,7 @@ value like `most-positive-fixnum'."
   :type 'int
   :group 'org-roam)
 
-(defconst org-roam-db--version 8)
+(defconst org-roam-db--version 9)
 
 (defvar org-roam-db--connection (make-hash-table :test #'equal)
   "Database connection to Org-roam database.")
@@ -140,9 +140,10 @@ SQL can be either the emacsql vector representation, or a string."
       (hash :not-null)
       (meta :not-null)])
 
-    (headlines
+    (ids
      [(id :unique :primary-key)
-      (file :not-null)])
+      (file :not-null)
+      (level :not-null)])
 
     (links
      [(from :not-null)
@@ -249,25 +250,25 @@ This is equivalent to removing the node from the graph."
    (mapcar (lambda (title)
              (vector file title)) titles)))
 
-(defun org-roam-db--insert-headlines (headlines)
-  "Insert HEADLINES into the Org-roam cache.
+(defun org-roam-db--insert-ids (ids)
+  "Insert IDS into the Org-roam cache.
 Returns t if the insertion was successful, nil otherwise.
 Insertions can fail when there is an ID conflict."
   (condition-case nil
       (progn
         (org-roam-db-query
-           [:insert :into headlines
+           [:insert :into ids
             :values $v1]
-           headlines)
+           ids)
         t)
     (error
-     (unless (listp headlines)
-       (setq headlines (list headlines)))
+     (unless (listp ids)
+       (setq ids (list ids)))
      (lwarn '(org-roam) :error
             (format "Duplicate IDs in %s, one of:\n\n%s\n\nskipping..."
-                    (aref (car headlines) 1)
+                    (aref (car ids) 1)
                     (string-join (mapcar (lambda (hl)
-                                           (aref hl 0)) headlines) "\n")))
+                                           (aref hl 0)) ids) "\n")))
      nil)))
 
 (defun org-roam-db--insert-tags (file tags)
@@ -441,14 +442,14 @@ connections, nil is returned."
     (when-let ((links (org-roam--extract-links)))
       (org-roam-db--insert-links links))))
 
-(defun org-roam-db--update-headlines ()
-  "Update the file headlines of the current buffer into the cache."
+(defun org-roam-db--update-ids ()
+  "Update the ids of the current buffer into the cache."
   (let* ((file (or org-roam-file-name (buffer-file-name))))
-    (org-roam-db-query [:delete :from headlines
+    (org-roam-db-query [:delete :from ids
                         :where (= file $s1)]
                        file)
-    (when-let ((headlines (org-roam--extract-headlines file)))
-      (org-roam-db--insert-headlines headlines))))
+    (when-let ((ids (org-roam--extract-ids file)))
+      (org-roam-db--insert-ids ids))))
 
 (defun org-roam-db--update-file (&optional file-path)
   "Update Org-roam cache for FILE-PATH.
@@ -469,7 +470,7 @@ If the file exists, update the cache with information."
           (org-roam-db--update-titles)
           (org-roam-db--update-refs)
           (when org-roam-enable-headline-linking
-            (org-roam-db--update-headlines))
+            (org-roam-db--update-ids))
           (org-roam-db--update-links)))))
 
 (defun org-roam-db-build-cache (&optional force)
@@ -484,7 +485,7 @@ If FORCE, force a rebuild of the cache from scratch."
          (org-roam-files (org-roam--list-all-files))
          (current-files (org-roam-db--get-current-files))
          (file-count 0)
-         (headline-count 0)
+         (id-count 0)
          (link-count 0)
          (tag-count 0)
          (title-count 0)
@@ -492,7 +493,7 @@ If FORCE, force a rebuild of the cache from scratch."
          (deleted-count 0))
     (emacsql-with-transaction (org-roam-db)
       ;; Two-step building
-      ;; First step: Rebuild files and headlines
+      ;; First step: Rebuild files and ids
       (dolist (file org-roam-files)
         (let* ((attr (file-attributes file))
                (atime (file-attribute-access-time attr))
@@ -509,9 +510,9 @@ If FORCE, force a rebuild of the cache from scratch."
                      (vector file contents-hash (list :atime atime :mtime mtime)))
                     (setq file-count (1+ file-count))
                     (when org-roam-enable-headline-linking
-                      (when-let ((headlines (org-roam--extract-headlines file)))
-                        (when (org-roam-db--insert-headlines headlines)
-                          (setq headline-count (1+ headline-count))))))
+                      (when-let ((ids (org-roam--extract-ids file)))
+                        (when (org-roam-db--insert-ids ids)
+                          (setq id-count (length ids))))))
                 (file-error
                  (setq org-roam-files (remove file org-roam-files))
                  (org-roam-db--clear-file file)
@@ -547,9 +548,9 @@ If FORCE, force a rebuild of the cache from scratch."
         ;; These files are no longer around, remove from cache...
         (org-roam-db--clear-file file)
         (setq deleted-count (1+ deleted-count))))
-    (org-roam-message "files: Δ%s, headlines: Δ%s, links: Δ%s, tags: Δ%s, titles: Δ%s, refs: Δ%s, deleted: Δ%s"
+    (org-roam-message "files: Δ%s, ids: Δ%s, links: Δ%s, tags: Δ%s, titles: Δ%s, refs: Δ%s, deleted: Δ%s"
                       file-count
-                      headline-count
+                      id-count
                       link-count
                       tag-count
                       title-count
