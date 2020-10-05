@@ -13,6 +13,7 @@ Org-roam also now does not resolve symlinks. This significantly speeds up cache 
 
 ### Features
 
+- [#1163](https://github.com/org-roam/org-roam/pull/1163) Support file-level IDs introduced in Org 9.4
 - [#1093](https://github.com/org-roam/org-roam/pull/1093) Add `vanilla` org-roam-tag-source to extract buffer Org tags
 - [#1079](https://github.com/org-roam/org-roam/pull/1079) Add `org-roam-tag-face` to customize appearance of tags in interactive commandsg
 - [#1073](https://github.com/org-roam/org-roam/pull/1073) Rename file on title change, when `org-roam-rename-file-on-title-change` is non-nil.
