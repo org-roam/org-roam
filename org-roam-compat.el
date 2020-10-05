@@ -41,8 +41,6 @@
   "org-roam 1.0.0")
 (define-obsolete-function-alias 'org-roam-sql         'org-roam-db-query
   "org-roam 1.0.0")
-(define-obsolete-function-alias 'org-roam--get-db     'org-roam-db--get
-  "org-roam 1.0.0")
 (define-obsolete-function-alias 'org-roam--db-clear   'org-roam-db--clear
   "org-roam 1.0.0")
 (define-obsolete-function-alias 'org-roam-show-graph  'org-roam-graph-show

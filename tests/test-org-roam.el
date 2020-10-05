@@ -49,7 +49,7 @@
 
 (defun test-org-roam--teardown ()
   (org-roam-mode -1)
-  (delete-file (org-roam-db--get))
+  (delete-file org-roam-db-location)
   (org-roam-db--close))
 
 (describe "org-roam--str-to-list"

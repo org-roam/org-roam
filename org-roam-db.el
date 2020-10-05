@@ -55,7 +55,7 @@
 (declare-function org-roam-buffer--update-maybe            "org-roam-buffer")
 
 ;;;; Options
-(defcustom org-roam-db-location nil
+(defcustom org-roam-db-location (expand-file-name "org-roam.db" user-emacs-directory)
   "The full path to file where the Org-roam database is stored.
 If this is non-nil, the Org-roam sqlite database is saved here.
 
@@ -85,10 +85,6 @@ value like `most-positive-fixnum'."
   "Database connection to Org-roam database.")
 
 ;;;; Core Functions
-(defun org-roam-db--get ()
-  "Return the sqlite db file."
-  (or org-roam-db-location
-      (expand-file-name "org-roam.db" org-roam-directory)))
 
 (defun org-roam-db--get-connection ()
   "Return the database connection, if any."
@@ -101,10 +97,9 @@ Initializes and stores the database, and the database connection.
 Performs a database upgrade when required."
   (unless (and (org-roam-db--get-connection)
                (emacsql-live-p (org-roam-db--get-connection)))
-    (let* ((db-file (org-roam-db--get))
-           (init-db (not (file-exists-p db-file))))
-      (make-directory (file-name-directory db-file) t)
-      (let ((conn (emacsql-sqlite3 db-file)))
+    (let ((init-db (not (file-exists-p org-roam-db-location))))
+      (make-directory (file-name-directory org-roam-db-location) t)
+      (let ((conn (emacsql-sqlite3 org-roam-db-location)))
         (set-process-query-on-exit-flag (emacsql-process conn) nil)
         (puthash (expand-file-name org-roam-directory)
                  conn
@@ -200,7 +195,7 @@ the current `org-roam-directory'."
 ;;;;; Initialization
 (defun org-roam-db--initialized-p ()
   "Whether the Org-roam cache has been initialized."
-  (and (file-exists-p (org-roam-db--get))
+  (and (file-exists-p org-roam-db-location)
        (> (caar (org-roam-db-query [:select (funcall count) :from titles]))
           0)))
 
@@ -213,7 +208,7 @@ the current `org-roam-directory'."
 (defun org-roam-db-clear ()
   "Clears all entries in the Org-roam cache."
   (interactive)
-  (when (file-exists-p (org-roam-db--get))
+  (when (file-exists-p org-roam-db-location)
     (dolist (table (mapcar #'car org-roam-db--table-schemata))
       (org-roam-db-query `[:delete :from ,table]))))
 
@@ -257,9 +252,9 @@ Insertions can fail when there is an ID conflict."
   (condition-case nil
       (progn
         (org-roam-db-query
-           [:insert :into ids
-            :values $v1]
-           ids)
+         [:insert :into ids
+          :values $v1]
+         ids)
         t)
     (error
      (unless (listp ids)
@@ -286,10 +281,10 @@ Insertions can fail if the key is already in the database."
         (type (car ref)))
     (condition-case nil
         (progn
-         (org-roam-db-query
-          [:insert :into refs :values $v1]
-          (list (vector key file type)))
-         t)
+          (org-roam-db-query
+           [:insert :into refs :values $v1]
+           (list (vector key file type)))
+          t)
       (error
        (lwarn '(org-roam) :error
               (format "Duplicate ref %s in:\n\nA: %s\nB: %s\n\nskipping..."
@@ -458,26 +453,26 @@ If the file exists, update the cache with information."
   (setq file-path (or file-path
                       (buffer-file-name (buffer-base-buffer))))
   (if (not (file-exists-p file-path))
-        (org-roam-db--clear-file file-path)
-      ;; save the file before performing a database update
-      (when-let ((buf (find-buffer-visiting file-path)))
-        (with-current-buffer buf
-          (save-buffer)))
-      (org-roam--with-temp-buffer file-path
-        (emacsql-with-transaction (org-roam-db)
-          (org-roam-db--update-meta)
-          (org-roam-db--update-tags)
-          (org-roam-db--update-titles)
-          (org-roam-db--update-refs)
-          (when org-roam-enable-headline-linking
-            (org-roam-db--update-ids))
-          (org-roam-db--update-links)))))
+      (org-roam-db--clear-file file-path)
+    ;; save the file before performing a database update
+    (when-let ((buf (find-buffer-visiting file-path)))
+      (with-current-buffer buf
+        (save-buffer)))
+    (org-roam--with-temp-buffer file-path
+      (emacsql-with-transaction (org-roam-db)
+        (org-roam-db--update-meta)
+        (org-roam-db--update-tags)
+        (org-roam-db--update-titles)
+        (org-roam-db--update-refs)
+        (when org-roam-enable-headline-linking
+          (org-roam-db--update-ids))
+        (org-roam-db--update-links)))))
 
 (defun org-roam-db-build-cache (&optional force)
   "Build the cache for `org-roam-directory'.
 If FORCE, force a rebuild of the cache from scratch."
   (interactive "P")
-  (when force (delete-file (org-roam-db--get)))
+  (when force (delete-file org-roam-db-location))
   (org-roam-db--close) ;; Force a reconnect
   (org-roam-db) ;; To initialize the database, no-op if already initialized
   (let* ((gc-cons-threshold org-roam-db-gc-threshold)
