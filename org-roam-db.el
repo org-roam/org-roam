@@ -512,38 +512,32 @@ If FORCE, force a rebuild of the cache from scratch."
                     (when org-roam-enable-headline-linking
                       (when-let ((ids (org-roam--extract-ids file)))
                         (when (org-roam-db--insert-ids ids)
-                          (setq id-count (length ids))))))
+                          (setq id-count (+ id-count (length ids))))))
+                    (when-let (links (org-roam--extract-links file))
+                      (org-roam-db-query
+                       [:insert :into links
+                        :values $v1]
+                       links)
+                      (setq link-count (1+ link-count)))
+                    (when-let (tags (org-roam--extract-tags file))
+                      (org-roam-db-query
+                       [:insert :into tags
+                        :values $v1]
+                       (vector file tags))
+                      (setq tag-count (1+ tag-count)))
+                    (let ((titles (or (org-roam--extract-titles)
+                                      (list (org-roam--path-to-slug file)))))
+                      (org-roam-db--insert-titles file titles)
+                      (setq title-count (+ title-count (length titles))))
+                    (when-let* ((ref (org-roam--extract-ref)))
+                      (when (org-roam-db--insert-ref file ref)
+                        (setq ref-count (1+ ref-count)))))
                 (file-error
                  (setq org-roam-files (remove file org-roam-files))
                  (org-roam-db--clear-file file)
                  (lwarn '(org-roam) :warning
-                        "Skipping unreadable file while building cache: %s" file)))))))
-      ;; Second step: Rebuild the rest
-      (dolist (file org-roam-files)
-        (let ((contents-hash (org-roam-db--file-hash file)))
-          (unless (string= (gethash file current-files)
-                           contents-hash)
-            (org-roam--with-temp-buffer file
-             (when-let (links (org-roam--extract-links file))
-               (org-roam-db-query
-                [:insert :into links
-                 :values $v1]
-                links)
-               (setq link-count (1+ link-count)))
-             (when-let (tags (org-roam--extract-tags file))
-               (org-roam-db-query
-                [:insert :into tags
-                 :values $v1]
-                (vector file tags))
-               (setq tag-count (1+ tag-count)))
-             (let ((titles (or (org-roam--extract-titles)
-                               (list (org-roam--path-to-slug file)))))
-               (org-roam-db--insert-titles file titles)
-               (setq title-count (+ title-count (length titles))))
-             (when-let* ((ref (org-roam--extract-ref)))
-               (when (org-roam-db--insert-ref file ref)
-                 (setq ref-count (1+ ref-count))))))
-          (remhash file current-files)))
+                        "Skipping unreadable file while building cache: %s" file))))
+            (remhash file current-files))))
       (dolist (file (hash-table-keys current-files))
         ;; These files are no longer around, remove from cache...
         (org-roam-db--clear-file file)
