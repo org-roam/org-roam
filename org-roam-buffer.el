@@ -53,7 +53,7 @@
 (declare-function org-roam-backlinks-mode     "org-roam")
 (declare-function org-roam-mode               "org-roam")
 (declare-function org-roam--find-file         "org-roam")
-(declare-function org-roam--format-link       "org-roam")
+(declare-function org-roam-format-link        "org-roam")
 (declare-function org-roam-link-make-string   "org-roam-compat")
 (declare-function org-roam-link-get-path      "org-roam-link")
 
@@ -161,7 +161,7 @@ ORIG-PATH is the path where the CONTENT originated."
             (let ((file-from (car group))
                   (bls (cdr group)))
               (insert (format "** %s\n"
-                              (org-roam--format-link file-from
+                              (org-roam-format-link file-from
                                                      (org-roam--get-title-or-slug file-from)
                                                      "file")))
               (dolist (backlink bls)
@@ -189,7 +189,7 @@ ORIG-PATH is the path where the CONTENT originated."
                 (bls (mapcar (lambda (row)
                                  (nth 2 row)) (cdr group))))
             (insert (format "** %s\n"
-                            (org-roam--format-link file-from
+                            (org-roam-format-link file-from
                                                    (org-roam--get-title-or-slug file-from)
                                                    "file")))
             ;; Sort backlinks according to time of occurrence in buffer

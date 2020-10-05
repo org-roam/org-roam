@@ -45,7 +45,7 @@
 (declare-function  org-roam--get-ref-path-completions   "org-roam")
 (declare-function  org-roam--file-path-from-id          "org-roam")
 (declare-function  org-roam--find-file                  "org-roam")
-(declare-function  org-roam--format-link                "org-roam")
+(declare-function  org-roam-format-link                "org-roam")
 (declare-function  org-roam-mode                        "org-roam")
 (declare-function  org-roam-completion--completing-read "org-roam-completion")
 
@@ -337,9 +337,9 @@ the capture)."
                    (type (org-roam-capture--get :link-type))
                    (desc (org-roam-capture--get :link-description)))
                (if (eq (point) (marker-position mkr))
-                   (insert (org-roam--format-link path desc type))
+                   (insert (org-roam-format-link path desc type))
                  (org-with-point-at mkr
-                   (insert (org-roam--format-link path desc type))))))))))
+                   (insert (org-roam-format-link path desc type))))))))))
     (when region
       (set-marker beg nil)
       (set-marker end nil))

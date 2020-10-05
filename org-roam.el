@@ -809,7 +809,7 @@ If `org-roam-link-title-format title' is defined, use it with TYPE."
       (funcall org-roam-link-title-format title type)
     (format org-roam-link-title-format title)))
 
-(defun org-roam--format-link (target &optional description type)
+(defun org-roam-format-link (target &optional description type)
   "Formats an org link for a given file TARGET, link DESCRIPTION and link TYPE.
 TYPE defaults to \"file\".
 Here, we also check if there is an ID for the file."
@@ -1296,7 +1296,7 @@ update with NEW-DESC."
                    (new-label (if (string-equal label old-desc)
                                   new-desc
                                 label)))
-              (replace-match (org-roam--format-link new-path new-label type)))))))))
+              (replace-match (org-roam-format-link new-path new-label type)))))))))
 
 (defun org-roam--fix-relative-links (old-path)
   "Fix file-relative links in current buffer.
@@ -1626,7 +1626,7 @@ If DESCRIPTION is provided, use this as the link label.  See
                    (delete-region beg end)
                    (set-marker beg nil)
                    (set-marker end nil))
-                 (insert (org-roam--format-link target-file-path link-description link-type)))
+                 (insert (org-roam-format-link target-file-path link-description link-type)))
                 (t
                  (let ((org-roam-capture--info `((title . ,title-with-tags)
                                                  (slug . ,(funcall org-roam-title-to-slug-function title-with-tags))))
