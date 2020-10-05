@@ -263,7 +263,7 @@ DESC is the link description."
   "Do appropriate completion for the link at point."
   (let ((end (point))
         (start (point))
-        collection link-type)
+        collection link-type headline-only-p)
     (when (org-in-regexp org-link-bracket-re 1)
       (setq start (match-beginning 1)
             end (match-end 1))
@@ -285,7 +285,8 @@ DESC is the link description."
                   (setq collection #'org-roam-link--get-titles))
                  ('headline
                   (setq collection #'org-roam-link--get-headlines)
-                  (setq start (+ start star-idx 1))))))))))
+                  (setq start (+ start star-idx 1))
+                  (setq headline-only-p t)))))))))
     (when collection
       (let ((prefix (buffer-substring-no-properties start end)))
         (list start end
@@ -299,8 +300,11 @@ DESC is the link description."
                 collection)
               :exit-function
               (lambda (str &rest _)
-                (delete-char (- (length str)))
-                (insert (concat (unless (string= link-type "roam") "roam:") str))))))))
+                (delete-char (- 0 (length str)
+                                (if headline-only-p 1 0)))
+                (insert (concat (unless (string= link-type "roam") "roam:")
+                                (when headline-only-p "*")
+                                str))))))))
 
 (provide 'org-roam-link)
 ;;; org-roam-link.el ends here
