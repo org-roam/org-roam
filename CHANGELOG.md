@@ -8,6 +8,7 @@ Org-roam also now does not resolve symlinks. This significantly speeds up cache 
 
 ### Breaking Changes
 
+- [#1164](https://github.com/org-roam/org-roam/pull/1164) Org-roam now stores the database in the user's Emacs directory by default
 - [#910](https://github.com/org-roam/org-roam/pull/910) Deprecate `company-org-roam`, using `completion-at-point` instead. To use this with company, add the `company-capf` backend instead.
 - [#1109](https://github.com/org-roam/org-roam/pull/1109) Org-roam now does not resolve symlinks.
 
