@@ -490,11 +490,13 @@ If FORCE, force a rebuild of the cache from scratch."
          (tag-count 0)
          (title-count 0)
          (ref-count 0)
-         (deleted-count 0))
+         (deleted-count 0)
+         (processed-count 0))
     (emacsql-with-transaction (org-roam-db)
       ;; Two-step building
       ;; First step: Rebuild files and ids
       (dolist (file org-roam-files)
+        (org-roam-message "Processed %s/%s files..." processed-count (length org-roam-files))
         (let* ((attr (file-attributes file))
                (atime (file-attribute-access-time attr))
                (mtime (file-attribute-modification-time attr)))
@@ -537,7 +539,8 @@ If FORCE, force a rebuild of the cache from scratch."
                  (org-roam-db--clear-file file)
                  (lwarn '(org-roam) :warning
                         "Skipping unreadable file while building cache: %s" file))))
-            (remhash file current-files))))
+            (remhash file current-files)
+            (setq processed-count (+ processed-count 1)))))
       (dolist (file (hash-table-keys current-files))
         ;; These files are no longer around, remove from cache...
         (org-roam-db--clear-file file)
