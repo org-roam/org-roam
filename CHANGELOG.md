@@ -1,10 +1,16 @@
 # Changelog
 
-## 1.2.2 (TBD)
+## 1.2.2 (06-10-2020)
 
-In this release we support fuzzy links of the form `[[Title]]`, `[[*Headline]]` and `[[Title*Headline]]`. Completion for these fuzzy links is supported via `completion-at-point`.
+In this release we support fuzzy links of the form `[[roam:Title]]`, `[[roam:*Headline]]` and `[[roam:Title*Headline]]`. Completion for these fuzzy links is supported via `completion-at-point`.
 
-Org-roam also now does not resolve symlinks. This significantly speeds up cache builds, but may result in some workflows breaking. In particular, Org-roam now cannot figure out if two distinct file paths in the Org-roam directory are the same file, and both files will be processed as if they were different files. This error seems to be unavoidable now that symlinks are not resolved, but this workflow is rare and should not affect most users. 
+Org-roam now does not resolve symlinks. This significantly speeds up cache builds, but may result in some workflows breaking. In particular, Org-roam now cannot figure out if two distinct file paths in the Org-roam directory are the same file, and both files will be processed as if they were different files. This error seems to be unavoidable now that symlinks are not resolved, but this workflow is rare and should not affect most users.
+
+This change requires you to set `org-roam-directory` to the resolved path of a folder. That is:
+
+```elisp
+(setq org-roam-directory (file-truename "/path/to/directory/"))
+```
 
 ### Breaking Changes
 
@@ -16,7 +22,7 @@ Org-roam also now does not resolve symlinks. This significantly speeds up cache 
 
 - [#1163](https://github.com/org-roam/org-roam/pull/1163) Support file-level IDs introduced in Org 9.4
 - [#1093](https://github.com/org-roam/org-roam/pull/1093) Add `vanilla` org-roam-tag-source to extract buffer Org tags
-- [#1079](https://github.com/org-roam/org-roam/pull/1079) Add `org-roam-tag-face` to customize appearance of tags in interactive commandsg
+- [#1079](https://github.com/org-roam/org-roam/pull/1079) Add `org-roam-tag-face` to customize appearance of tags in interactive commands
 - [#1073](https://github.com/org-roam/org-roam/pull/1073) Rename file on title change, when `org-roam-rename-file-on-title-change` is non-nil.
 - [#1071](https://github.com/org-roam/org-roam/pull/1071) Update link descriptions on title changes, and clean-up rename file advice
 - [#1061](https://github.com/org-roam/org-roam/pull/1061) Speed up the extraction of file properties, headlines, and titles
