@@ -1,6 +1,3 @@
-:PROPERTIES:
-:ID:       73e767c2-a364-4748-a950-8d8f5dbd29c8
-:END:
 #+TITLE: Headline
 
 * Headline 1
