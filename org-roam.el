@@ -623,7 +623,8 @@ If FILE-PATH is nil, use the current file."
   (let (result)
       ;; We need to handle the special case of the file property drawer (at outline level 0)
       (org-with-point-at (point-min)
-        (when-let ((id (org-entry-get nil "ID")))
+        (when-let (and (= 0 (org-outline-level))
+                       (id (org-entry-get nil "ID")))
            (push (vector id file-path (org-outline-level)) result)))
       (org-map-region
        (lambda ()
