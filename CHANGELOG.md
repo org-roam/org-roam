@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.3 (TBD)
+
+## Bugfixes
+
+- [#1074](https://github.com/org-roam/org-roam/issues/1074) fix `org-roam--extract-links` to handle content boundaries
+
 ## 1.2.2 (06-10-2020)
 
 In this release we support fuzzy links of the form `[[roam:Title]]`, `[[roam:*Headline]]` and `[[roam:Title*Headline]]`. Completion for these fuzzy links is supported via `completion-at-point`.
