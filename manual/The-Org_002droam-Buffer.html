@@ -91,9 +91,14 @@ Next: <a href="Org_002droam-Files.html#Org_002droam-Files" accesskey="n" rel="ne
 <p>Height of <code>org-roam-buffer</code>. Has an effect only if <code>org-roam-buffer-position</code> is
 <code>'top</code> or <code>'bottom</code>.
 </p>
-</li><li> User Option: org-roam-buffer-no-delete-other-windows
+</li><li> User Option: org-roam-buffer-window-parameters
 
-<p>The <code>no-delete-window</code> parameter for the org-roam buffer. Setting it to <code>'t</code> prevents the window from being deleted when calling <code>delete-other-windows</code>.
+<p>Additional window parameters for the org-roam-buffer side window.
+</p>
+<p>For example one can prevent the window from being deleted when calling
+<code>delete-other-windows</code>, by setting it with the following:
+</p>
+<p><code>(setq org-roam-buffer-window-parameters '((no-other-window . t)))</code>
 </p></li></ul>
 
 
