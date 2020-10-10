@@ -842,9 +842,14 @@ Height of @code{org-roam-buffer}. Has an effect only if @code{org-roam-buffer-po
 @code{'top} or @code{'bottom}.
 
 @item
-User Option: org-roam-buffer-no-delete-other-windows
+User Option: org-roam-buffer-window-parameters
 
-The @code{no-delete-window} parameter for the org-roam buffer. Setting it to @code{'t} prevents the window from being deleted when calling @code{delete-other-windows}.
+Additional window parameters for the org-roam-buffer side window.
+
+For example one can prevent the window from being deleted when calling
+@code{delete-other-windows}, by setting it with the following:
+
+@code{(setq org-roam-buffer-window-parameters '((no-other-window . t)))}
 @end itemize
 
 @node Org-roam Files

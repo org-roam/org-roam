@@ -600,10 +600,15 @@ The Org-roam buffer displays backlinks for the currently active Org-roam note.
   Height of ~org-roam-buffer~. Has an effect only if ~org-roam-buffer-position~ is
   ~'top~ or ~'bottom~.
 
-- User Option: org-roam-buffer-no-delete-other-windows
+- User Option: org-roam-buffer-window-parameters
 
-  The ~no-delete-window~ parameter for the org-roam buffer. Setting it to ~'t~ prevents the window from being deleted when calling ~delete-other-windows~.
+  Additional window parameters for the org-roam-buffer side window.
 
+  For example one can prevent the window from being deleted when calling
+  ~delete-other-windows~, by setting it with the following:
+
+  ~(setq org-roam-buffer-window-parameters '((no-other-window . t)))~
+  
 ** Org-roam Files
 
 Org-roam files are created and prefilled using Org-roam's templating
