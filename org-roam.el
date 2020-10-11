@@ -588,7 +588,7 @@ it as FILE-PATH."
                  (element (org-element-at-point))
                  (begin (or (org-element-property :contents-begin element)
                             (org-element-property :begin element)))
-                 (end (or (org-element-property :content-end element)
+                 (end (or (org-element-property :contents-end element)
                           (org-element-property :end element)))
                  (content (or (org-element-property :raw-value element)
                               (when (and begin end)
