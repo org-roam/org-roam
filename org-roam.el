@@ -1746,7 +1746,7 @@ Return added tag."
     (org-roam--set-global-prop
      "ROAM_TAGS"
      (combine-and-quote-strings (seq-uniq (cons tag existing-tags))))
-    (org-roam-db--update-tags)
+    (org-roam-db--insert-tags 'update)
     tag))
 
 (defun org-roam-tag-delete ()
@@ -1759,7 +1759,7 @@ Return added tag."
         (org-roam--set-global-prop
          "ROAM_TAGS"
          (combine-and-quote-strings (delete tag tags)))
-        (org-roam-db--update-tags))
+        (org-roam-db--insert-tags 'update))
     (user-error "No tag to delete")))
 
 ;;;###autoload

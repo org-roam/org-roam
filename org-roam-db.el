@@ -266,12 +266,20 @@ Insertions can fail when there is an ID conflict."
                                            (aref hl 0)) ids) "\n")))
      nil)))
 
-(defun org-roam-db--insert-tags (file tags)
-  "Insert TAGS for a FILE into the Org-roam cache."
-  (org-roam-db-query
-   [:insert :into tags
-    :values $v1]
-   (list (vector file tags))))
+(defun org-roam-db--insert-tags (&optional update-p)
+  "Insert tags for the current buffer into the Org-roam cache.
+If UPDATE-P is non-nil, first remove tags for the file in the database."
+  (let* ((file (or org-roam-file-name (buffer-file-name)))
+         (tags (org-roam--extract-tags file)))
+    (when update-p
+      (org-roam-db-query [:delete :from tags
+                          :where (= file $s1)]
+                         file))
+    (when tags
+      (org-roam-db-query
+       [:insert :into tags
+        :values $v1]
+       (list (vector file tags))))))
 
 (defun org-roam-db--insert-ref (file ref)
   "Insert REF for FILE into the Org-roam cache.
@@ -409,16 +417,6 @@ connections, nil is returned."
                        file)
     (org-roam-db--insert-titles file titles)))
 
-(defun org-roam-db--update-tags ()
-  "Update the tags of the current buffer into the cache."
-  (let* ((file (or org-roam-file-name (buffer-file-name)))
-         (tags (org-roam--extract-tags file)))
-    (org-roam-db-query [:delete :from tags
-                        :where (= file $s1)]
-                       file)
-    (when tags
-      (org-roam-db--insert-tags file tags))))
-
 (defun org-roam-db--update-refs ()
   "Update the ref of the current buffer into the cache."
   (let ((file (or org-roam-file-name (buffer-file-name))))
@@ -461,7 +459,7 @@ If the file exists, update the cache with information."
     (org-roam--with-temp-buffer file-path
       (emacsql-with-transaction (org-roam-db)
         (org-roam-db--update-meta)
-        (org-roam-db--update-tags)
+        (org-roam-db--insert-tags 'update)
         (org-roam-db--update-titles)
         (org-roam-db--update-refs)
         (when org-roam-enable-headline-linking
