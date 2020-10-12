@@ -230,27 +230,6 @@ This is equivalent to removing the node from the graph."
     :values $v1]
    links))
 
-(defun org-roam-db--insert-ids (ids)
-  "Insert IDS into the Org-roam cache.
-Returns t if the insertion was successful, nil otherwise.
-Insertions can fail when there is an ID conflict."
-  (condition-case nil
-      (progn
-        (org-roam-db-query
-         [:insert :into ids
-          :values $v1]
-         ids)
-        t)
-    (error
-     (unless (listp ids)
-       (setq ids (list ids)))
-     (lwarn '(org-roam) :error
-            (format "Duplicate IDs in %s, one of:\n\n%s\n\nskipping..."
-                    (aref (car ids) 1)
-                    (string-join (mapcar (lambda (hl)
-                                           (aref hl 0)) ids) "\n")))
-     nil)))
-
 (defun org-roam-db--insert-tags (&optional update-p)
   "Insert tags for the current buffer into the Org-roam cache.
 If UPDATE-P is non-nil, first remove tags for the file in the database."
@@ -430,14 +409,30 @@ If UPDATE-P is non-nil, first remove the ref for the file in the database."
     (when-let ((links (org-roam--extract-links)))
       (org-roam-db--insert-links links))))
 
-(defun org-roam-db--update-ids ()
-  "Update the ids of the current buffer into the cache."
-  (let* ((file (or org-roam-file-name (buffer-file-name))))
-    (org-roam-db-query [:delete :from ids
-                        :where (= file $s1)]
-                       file)
+(defun org-roam-db--insert-ids (&optional update-p)
+  "Update the ids of the current buffer into the cache.
+If UPDATE-P is non-nil, first remove ids for the file in the database.
+Returns the number of rows inserted."
+  (let ((file (or org-roam-file-name (buffer-file-name))))
+    (when update-p
+      (org-roam-db-query [:delete :from ids
+                          :where (= file $s1)]
+                         file))
     (when-let ((ids (org-roam--extract-ids file)))
-      (org-roam-db--insert-ids ids))))
+      (condition-case nil
+          (progn
+            (org-roam-db-query
+             [:insert :into ids
+              :values $v1]
+             ids)
+            (length ids))
+        (error
+         (lwarn '(org-roam) :error
+                (format "Duplicate IDs in %s, one of:\n\n%s\n\nskipping..."
+                        (aref (car ids) 1)
+                        (string-join (mapcar (lambda (hl)
+                                               (aref hl 0)) ids) "\n")))
+         0)))))
 
 (defun org-roam-db--update-file (&optional file-path)
   "Update Org-roam cache for FILE-PATH.
@@ -458,7 +453,7 @@ If the file exists, update the cache with information."
         (org-roam-db--insert-titles 'update)
         (org-roam-db--insert-ref 'update)
         (when org-roam-enable-headline-linking
-          (org-roam-db--update-ids))
+          (org-roam-db--insert-ids 'update))
         (org-roam-db--update-links)))))
 
 (defun org-roam-db-build-cache (&optional force)
@@ -500,9 +495,7 @@ If FORCE, force a rebuild of the cache from scratch."
                      (vector file contents-hash (list :atime atime :mtime mtime)))
                     (setq file-count (1+ file-count))
                     (when org-roam-enable-headline-linking
-                      (when-let ((ids (org-roam--extract-ids file)))
-                        (when (org-roam-db--insert-ids ids)
-                          (setq id-count (+ id-count (length ids))))))
+                      (org-roam-db--insert-ids))
                     (when-let (links (org-roam--extract-links file))
                       (org-roam-db-query
                        [:insert :into links
