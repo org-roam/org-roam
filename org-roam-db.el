@@ -222,113 +222,7 @@ This is equivalent to removing the node from the graph."
                            :where (= ,(if (eq table 'links) 'from 'file) $s1)]
                          file))))
 
-;;;;; Insertion
-(defun org-roam-db--insert-tags (&optional update-p)
-  "Insert tags for the current buffer into the Org-roam cache.
-If UPDATE-P is non-nil, first remove tags for the file in the database."
-  (let* ((file (or org-roam-file-name (buffer-file-name)))
-         (tags (org-roam--extract-tags file)))
-    (when update-p
-      (org-roam-db-query [:delete :from tags
-                          :where (= file $s1)]
-                         file))
-    (when tags
-      (org-roam-db-query
-       [:insert :into tags
-        :values $v1]
-       (list (vector file tags))))))
-
-;;;;; Fetching
-(defun org-roam-db--get-current-files ()
-  "Return a hash-table of file to the hash of its file contents."
-  (let* ((current-files (org-roam-db-query [:select * :from files]))
-         (ht (make-hash-table :test #'equal)))
-    (dolist (row current-files)
-      (puthash (car row) (cadr row) ht))
-    ht))
-
-(defun org-roam-db--get-titles (file)
-  "Return the titles of FILE from the cache."
-  (caar (org-roam-db-query [:select [title] :from titles
-                            :where (= file $s1)
-                            :limit 1]
-                           file)))
-
-(defun org-roam-db--get-tags ()
-  "Return all distinct tags from the cache."
-  (let ((rows (org-roam-db-query [:select :distinct [tags] :from tags]))
-        acc)
-    (dolist (row rows)
-      (dolist (tag (car row))
-        (unless (member tag acc)
-          (push tag acc))))
-    acc))
-
-(defun org-roam-db--connected-component (file)
-  "Return all files reachable from/connected to FILE, including the file itself.
-If the file does not have any connections, nil is returned."
-  (let* ((query "WITH RECURSIVE
-                   links_of(file, link) AS
-                     (WITH filelinks AS (SELECT * FROM links WHERE NOT \"type\" = '\"cite\"'),
-                           citelinks AS (SELECT * FROM links
-                                                  JOIN refs ON links.\"to\" = refs.\"ref\"
-                                                            AND links.\"type\" = '\"cite\"')
-                      SELECT \"from\", \"to\" FROM filelinks UNION
-                      SELECT \"to\", \"from\" FROM filelinks UNION
-                      SELECT \"file\", \"from\" FROM citelinks UNION
-                      SELECT \"from\", \"file\" FROM citelinks),
-                   connected_component(file) AS
-                     (SELECT link FROM links_of WHERE file = $s1
-                      UNION
-                      SELECT link FROM links_of JOIN connected_component USING(file))
-                   SELECT * FROM connected_component;")
-         (files (mapcar 'car-safe (emacsql (org-roam-db) query file))))
-    files))
-
-(defun org-roam-db--links-with-max-distance (file max-distance)
-  "Return all files connected to FILE in at most MAX-DISTANCE steps.
-This includes the file itself. If the file does not have any
-connections, nil is returned."
-  (let* ((query "WITH RECURSIVE
-                   links_of(file, link) AS
-                     (WITH filelinks AS (SELECT * FROM links WHERE NOT \"type\" = '\"cite\"'),
-                           citelinks AS (SELECT * FROM links
-                                                  JOIN refs ON links.\"to\" = refs.\"ref\"
-                                                            AND links.\"type\" = '\"cite\"')
-                      SELECT \"from\", \"to\" FROM filelinks UNION
-                      SELECT \"to\", \"from\" FROM filelinks UNION
-                      SELECT \"file\", \"from\" FROM citelinks UNION
-                      SELECT \"from\", \"file\" FROM citelinks),
-                   -- Links are traversed in a breadth-first search.  In order to calculate the
-                   -- distance of nodes and to avoid following cyclic links, the visited nodes
-                   -- are tracked in 'trace'.
-                   connected_component(file, trace) AS
-                     (VALUES($s1, json_array($s1))
-                      UNION
-                      SELECT lo.link, json_insert(cc.trace, '$[' || json_array_length(cc.trace) || ']', lo.link) FROM
-                      connected_component AS cc JOIN links_of AS lo USING(file)
-                      WHERE (
-                        -- Avoid cycles by only visiting each file once.
-                        (SELECT count(*) FROM json_each(cc.trace) WHERE json_each.value == lo.link) == 0
-                        -- Note: BFS is cut off early here.
-                        AND json_array_length(cc.trace) < ($s2 + 1)))
-                   SELECT DISTINCT file, min(json_array_length(trace)) AS distance
-                   FROM connected_component GROUP BY file ORDER BY distance;")
-         ;; In principle the distance would be available in the second column.
-         (files (mapcar 'car-safe (emacsql (org-roam-db) query file max-distance))))
-    files))
-
-(defun org-roam-db--file-hash (&optional file-path)
-  "Compute the hash of FILE-PATH, a file or current buffer."
-  (if file-path
-      (with-temp-buffer
-        (set-buffer-multibyte nil)
-        (insert-file-contents-literally file-path)
-        (secure-hash 'sha1 (current-buffer)))
-    (org-with-wide-buffer
-     (secure-hash 'sha1 (current-buffer)))))
-
-;;;;; Updating
+;;;;; Inserting
 (defun org-roam-db--insert-meta (&optional update-p)
   "Update the metadata of the current buffer into the cache.
 If UPDATE-P is non-nil, first remove the meta for the file in the database."
@@ -436,6 +330,112 @@ Returns the number of rows inserted."
          0))
       0)))
 
+(defun org-roam-db--insert-tags (&optional update-p)
+  "Insert tags for the current buffer into the Org-roam cache.
+If UPDATE-P is non-nil, first remove tags for the file in the database."
+  (let* ((file (or org-roam-file-name (buffer-file-name)))
+         (tags (org-roam--extract-tags file)))
+    (when update-p
+      (org-roam-db-query [:delete :from tags
+                          :where (= file $s1)]
+                         file))
+    (when tags
+      (org-roam-db-query
+       [:insert :into tags
+        :values $v1]
+       (list (vector file tags))))))
+
+;;;;; Fetching
+(defun org-roam-db--get-current-files ()
+  "Return a hash-table of file to the hash of its file contents."
+  (let* ((current-files (org-roam-db-query [:select * :from files]))
+         (ht (make-hash-table :test #'equal)))
+    (dolist (row current-files)
+      (puthash (car row) (cadr row) ht))
+    ht))
+
+(defun org-roam-db--get-titles (file)
+  "Return the titles of FILE from the cache."
+  (caar (org-roam-db-query [:select [title] :from titles
+                            :where (= file $s1)
+                            :limit 1]
+                           file)))
+
+(defun org-roam-db--get-tags ()
+  "Return all distinct tags from the cache."
+  (let ((rows (org-roam-db-query [:select :distinct [tags] :from tags]))
+        acc)
+    (dolist (row rows)
+      (dolist (tag (car row))
+        (unless (member tag acc)
+          (push tag acc))))
+    acc))
+
+(defun org-roam-db--connected-component (file)
+  "Return all files reachable from/connected to FILE, including the file itself.
+If the file does not have any connections, nil is returned."
+  (let* ((query "WITH RECURSIVE
+                   links_of(file, link) AS
+                     (WITH filelinks AS (SELECT * FROM links WHERE NOT \"type\" = '\"cite\"'),
+                           citelinks AS (SELECT * FROM links
+                                                  JOIN refs ON links.\"to\" = refs.\"ref\"
+                                                            AND links.\"type\" = '\"cite\"')
+                      SELECT \"from\", \"to\" FROM filelinks UNION
+                      SELECT \"to\", \"from\" FROM filelinks UNION
+                      SELECT \"file\", \"from\" FROM citelinks UNION
+                      SELECT \"from\", \"file\" FROM citelinks),
+                   connected_component(file) AS
+                     (SELECT link FROM links_of WHERE file = $s1
+                      UNION
+                      SELECT link FROM links_of JOIN connected_component USING(file))
+                   SELECT * FROM connected_component;")
+         (files (mapcar 'car-safe (emacsql (org-roam-db) query file))))
+    files))
+
+(defun org-roam-db--links-with-max-distance (file max-distance)
+  "Return all files connected to FILE in at most MAX-DISTANCE steps.
+This includes the file itself. If the file does not have any
+connections, nil is returned."
+  (let* ((query "WITH RECURSIVE
+                   links_of(file, link) AS
+                     (WITH filelinks AS (SELECT * FROM links WHERE NOT \"type\" = '\"cite\"'),
+                           citelinks AS (SELECT * FROM links
+                                                  JOIN refs ON links.\"to\" = refs.\"ref\"
+                                                            AND links.\"type\" = '\"cite\"')
+                      SELECT \"from\", \"to\" FROM filelinks UNION
+                      SELECT \"to\", \"from\" FROM filelinks UNION
+                      SELECT \"file\", \"from\" FROM citelinks UNION
+                      SELECT \"from\", \"file\" FROM citelinks),
+                   -- Links are traversed in a breadth-first search.  In order to calculate the
+                   -- distance of nodes and to avoid following cyclic links, the visited nodes
+                   -- are tracked in 'trace'.
+                   connected_component(file, trace) AS
+                     (VALUES($s1, json_array($s1))
+                      UNION
+                      SELECT lo.link, json_insert(cc.trace, '$[' || json_array_length(cc.trace) || ']', lo.link) FROM
+                      connected_component AS cc JOIN links_of AS lo USING(file)
+                      WHERE (
+                        -- Avoid cycles by only visiting each file once.
+                        (SELECT count(*) FROM json_each(cc.trace) WHERE json_each.value == lo.link) == 0
+                        -- Note: BFS is cut off early here.
+                        AND json_array_length(cc.trace) < ($s2 + 1)))
+                   SELECT DISTINCT file, min(json_array_length(trace)) AS distance
+                   FROM connected_component GROUP BY file ORDER BY distance;")
+         ;; In principle the distance would be available in the second column.
+         (files (mapcar 'car-safe (emacsql (org-roam-db) query file max-distance))))
+    files))
+
+(defun org-roam-db--file-hash (&optional file-path)
+  "Compute the hash of FILE-PATH, a file or current buffer."
+  (if file-path
+      (with-temp-buffer
+        (set-buffer-multibyte nil)
+        (insert-file-contents-literally file-path)
+        (secure-hash 'sha1 (current-buffer)))
+    (org-with-wide-buffer
+     (secure-hash 'sha1 (current-buffer)))))
+
+;;;;; Updating
 (defun org-roam-db--update-file (&optional file-path)
   "Update Org-roam cache for FILE-PATH.
 If the file does not exist anymore, remove it from the cache.
