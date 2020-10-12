@@ -292,9 +292,10 @@ If UPDATE-P is non-nil, first remove the ref for the file in the database."
 If UPDATE-P is non-nil, first remove the links for the file in the database.
 Return the number of rows inserted."
   (let ((file (or org-roam-file-name (buffer-file-name))))
-    (org-roam-db-query [:delete :from links
-                        :where (= from $s1)]
-                       file)
+    (when update-p
+      (org-roam-db-query [:delete :from links
+                          :where (= from $s1)]
+                         file))
     (if-let ((links (org-roam--extract-links)))
         (progn
           (org-roam-db-query
