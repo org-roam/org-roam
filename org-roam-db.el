@@ -267,7 +267,7 @@ If UPDATE-P is non-nil, first remove the ref for the file in the database."
       (org-roam-db-query [:delete :from refs
                           :where (= file $s1)]
                          file))
-    (when-let ((ref (org-roam--extract-ref)))
+    (if-let ((ref (org-roam--extract-ref)))
       (let ((key (cdr ref))
             (type (car ref)))
         (condition-case nil
@@ -275,7 +275,7 @@ If UPDATE-P is non-nil, first remove the ref for the file in the database."
               (org-roam-db-query
                [:insert :into refs :values $v1]
                (list (vector key file type)))
-              t)
+              1)
           (error
            (lwarn '(org-roam) :error
                   (format "Duplicate ref %s in:\n\nA: %s\nB: %s\n\nskipping..."
@@ -285,7 +285,8 @@ If UPDATE-P is non-nil, first remove the ref for the file in the database."
                                  [:select file :from refs
                                   :where (= ref $v1)]
                                  (vector key)))))
-           nil))))))
+           0)))
+      0)))
 
 (defun org-roam-db--insert-links (&optional update-p)
   "Update the file links of the current buffer in the cache.
@@ -499,22 +500,10 @@ If FORCE, force a rebuild of the cache from scratch."
                     (setq file-count (1+ file-count))
                     (when org-roam-enable-headline-linking
                       (setq id-count (+ id-count (org-roam-db--insert-ids))))
-                    (when-let (links (org-roam--extract-links file))
-                      (org-roam-db-query
-                       [:insert :into links
-                        :values $v1]
-                       links)
-                      (setq link-count (1+ link-count)))
-                    (when-let (tags (org-roam--extract-tags file))
-                      (org-roam-db-query
-                       [:insert :into tags
-                        :values $v1]
-                       (vector file tags))
-                      (setq tag-count (1+ tag-count)))
-                    (setq title-count (+ title-count
-                                         (org-roam-db--insert-titles)))
-                    (when (org-roam-db--insert-ref)
-                        (setq ref-count (1+ ref-count))))
+                    (setq link-count (+ link-count (org-roam-db--insert-links)))
+                    (setq tag-count (+ tag-count (org-roam-db--insert-tags)))
+                    (setq title-count (+ title-count (org-roam-db--insert-titles)))
+                    (setq ref-count (+ ref-count (org-roam-db--insert-ref))))
                 (file-error
                  (setq org-roam-files (remove file org-roam-files))
                  (org-roam-db--clear-file file)
