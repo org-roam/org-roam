@@ -334,18 +334,21 @@ Returns the number of rows inserted."
 
 (defun org-roam-db--insert-tags (&optional update-p)
   "Insert tags for the current buffer into the Org-roam cache.
-If UPDATE-P is non-nil, first remove tags for the file in the database."
+If UPDATE-P is non-nil, first remove tags for the file in the database.
+Return the number of rows inserted."
   (let* ((file (or org-roam-file-name (buffer-file-name)))
          (tags (org-roam--extract-tags file)))
     (when update-p
       (org-roam-db-query [:delete :from tags
                           :where (= file $s1)]
                          file))
-    (when tags
-      (org-roam-db-query
-       [:insert :into tags
-        :values $v1]
-       (list (vector file tags))))))
+    (if tags
+        (progn (org-roam-db-query
+                [:insert :into tags
+                 :values $v1]
+                (list (vector file tags)))
+               1)
+      0)))
 
 ;;;;; Fetching
 (defun org-roam-db--get-current-files ()
