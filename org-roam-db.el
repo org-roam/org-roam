@@ -266,29 +266,6 @@ If UPDATE-P is non-nil, first remove tags for the file in the database."
         :values $v1]
        (list (vector file tags))))))
 
-(defun org-roam-db--insert-ref (file ref)
-  "Insert REF for FILE into the Org-roam cache.
-Returns t if successful, and nil otherwise.
-Insertions can fail if the key is already in the database."
-  (let ((key (cdr ref))
-        (type (car ref)))
-    (condition-case nil
-        (progn
-          (org-roam-db-query
-           [:insert :into refs :values $v1]
-           (list (vector key file type)))
-          t)
-      (error
-       (lwarn '(org-roam) :error
-              (format "Duplicate ref %s in:\n\nA: %s\nB: %s\n\nskipping..."
-                      key
-                      file
-                      (caar (org-roam-db-query
-                             [:select file :from refs
-                              :where (= ref $v1)]
-                             (vector key)))))
-       nil))))
-
 ;;;;; Fetching
 (defun org-roam-db--get-current-files ()
   "Return a hash-table of file to the hash of its file contents."
@@ -416,14 +393,33 @@ Returns the number of rows inserted."
         rows)
     (length rows)))
 
-(defun org-roam-db--update-refs ()
-  "Update the ref of the current buffer into the cache."
+(defun org-roam-db--insert-ref (&optional update-p)
+  "Update the ref of the current buffer into the cache.
+If UPDATE-P is non-nil, first remove the ref for the file in the database."
   (let ((file (or org-roam-file-name (buffer-file-name))))
-    (org-roam-db-query [:delete :from refs
-                        :where (= file $s1)]
-                       file)
+    (when update-p
+      (org-roam-db-query [:delete :from refs
+                          :where (= file $s1)]
+                         file))
     (when-let ((ref (org-roam--extract-ref)))
-      (org-roam-db--insert-ref file ref))))
+      (let ((key (cdr ref))
+            (type (car ref)))
+        (condition-case nil
+            (progn
+              (org-roam-db-query
+               [:insert :into refs :values $v1]
+               (list (vector key file type)))
+              t)
+          (error
+           (lwarn '(org-roam) :error
+                  (format "Duplicate ref %s in:\n\nA: %s\nB: %s\n\nskipping..."
+                          key
+                          file
+                          (caar (org-roam-db-query
+                                 [:select file :from refs
+                                  :where (= ref $v1)]
+                                 (vector key)))))
+           nil))))))
 
 (defun org-roam-db--update-links ()
   "Update the file links of the current buffer in the cache."
@@ -460,7 +456,7 @@ If the file exists, update the cache with information."
         (org-roam-db--insert-meta 'update)
         (org-roam-db--insert-tags 'update)
         (org-roam-db--insert-titles 'update)
-        (org-roam-db--update-refs)
+        (org-roam-db--insert-ref 'update)
         (when org-roam-enable-headline-linking
           (org-roam-db--update-ids))
         (org-roam-db--update-links)))))
@@ -519,12 +515,10 @@ If FORCE, force a rebuild of the cache from scratch."
                         :values $v1]
                        (vector file tags))
                       (setq tag-count (1+ tag-count)))
-
                     (setq title-count (+ title-count
                                          (org-roam-db--insert-titles)))
-                    (when-let* ((ref (org-roam--extract-ref)))
-                      (when (org-roam-db--insert-ref file ref)
-                        (setq ref-count (1+ ref-count)))))
+                    (when (org-roam-db--insert-ref)
+                        (setq ref-count (1+ ref-count))))
                 (file-error
                  (setq org-roam-files (remove file org-roam-files))
                  (org-roam-db--clear-file file)
