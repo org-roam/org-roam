@@ -419,7 +419,7 @@ Returns the number of rows inserted."
       (org-roam-db-query [:delete :from ids
                           :where (= file $s1)]
                          file))
-    (when-let ((ids (org-roam--extract-ids file)))
+    (if-let ((ids (org-roam--extract-ids file)))
       (condition-case nil
           (progn
             (org-roam-db-query
@@ -433,7 +433,8 @@ Returns the number of rows inserted."
                         (aref (car ids) 1)
                         (string-join (mapcar (lambda (hl)
                                                (aref hl 0)) ids) "\n")))
-         0)))))
+         0))
+      0)))
 
 (defun org-roam-db--update-file (&optional file-path)
   "Update Org-roam cache for FILE-PATH.
@@ -496,7 +497,7 @@ If FORCE, force a rebuild of the cache from scratch."
                      (vector file contents-hash (list :atime atime :mtime mtime)))
                     (setq file-count (1+ file-count))
                     (when org-roam-enable-headline-linking
-                      (org-roam-db--insert-ids))
+                      (setq id-count (+ id-count (org-roam-db--insert-ids))))
                     (when-let (links (org-roam--extract-links file))
                       (org-roam-db-query
                        [:insert :into links
