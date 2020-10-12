@@ -222,79 +222,133 @@ This is equivalent to removing the node from the graph."
                            :where (= ,(if (eq table 'links) 'from 'file) $s1)]
                          file))))
 
-;;;;; Insertion
-(defun org-roam-db--insert-meta (file hash meta)
-  "Insert HASH and META for a FILE into the Org-roam cache."
-  (org-roam-db-query
-   [:insert :into files
-    :values $v1]
-   (list (vector file hash meta))))
+;;;;; Inserting
+(defun org-roam-db--insert-meta (&optional update-p)
+  "Update the metadata of the current buffer into the cache.
+If UPDATE-P is non-nil, first remove the meta for the file in the database."
+  (let* ((file (or org-roam-file-name (buffer-file-name)))
+         (attr (file-attributes file))
+         (atime (file-attribute-access-time attr))
+         (mtime (file-attribute-modification-time attr))
+         (hash (org-roam-db--file-hash)))
+    (when update-p
+      (org-roam-db-query [:delete :from files
+                          :where (= file $s1)]
+                         file))
+    (org-roam-db-query
+     [:insert :into files
+      :values $v1]
+     (list (vector file hash (list :atime atime :mtime mtime))))))
 
-(defun org-roam-db--insert-links (links)
-  "Insert LINKS into the Org-roam cache."
-  (org-roam-db-query
-   [:insert :into links
-    :values $v1]
-   links))
+(defun org-roam-db--insert-titles (&optional update-p)
+  "Update the titles of the current buffer into the cache.
+If UPDATE-P is non-nil, first remove titles for the file in the database.
+Returns the number of rows inserted."
+  (let* ((file (or org-roam-file-name (buffer-file-name)))
+         (titles (or (org-roam--extract-titles)
+                     (list (org-roam--path-to-slug file))))
+         (rows (mapcar (lambda (title)
+                         (vector file title)) titles)))
+    (when update-p
+      (org-roam-db-query [:delete :from titles
+                          :where (= file $s1)]
+                         file))
+    (org-roam-db-query
+        [:insert :into titles
+         :values $v1]
+        rows)
+    (length rows)))
 
-(defun org-roam-db--insert-titles (file titles)
-  "Insert TITLES for a FILE into the Org-roam cache."
-  (org-roam-db-query
-   [:insert :into titles
-    :values $v1]
-   (mapcar (lambda (title)
-             (vector file title)) titles)))
+(defun org-roam-db--insert-ref (&optional update-p)
+  "Update the ref of the current buffer into the cache.
+If UPDATE-P is non-nil, first remove the ref for the file in the database."
+  (let ((file (or org-roam-file-name (buffer-file-name))))
+    (when update-p
+      (org-roam-db-query [:delete :from refs
+                          :where (= file $s1)]
+                         file))
+    (if-let ((ref (org-roam--extract-ref)))
+      (let ((key (cdr ref))
+            (type (car ref)))
+        (condition-case nil
+            (progn
+              (org-roam-db-query
+               [:insert :into refs :values $v1]
+               (list (vector key file type)))
+              1)
+          (error
+           (lwarn '(org-roam) :error
+                  (format "Duplicate ref %s in:\n\nA: %s\nB: %s\n\nskipping..."
+                          key
+                          file
+                          (caar (org-roam-db-query
+                                 [:select file :from refs
+                                  :where (= ref $v1)]
+                                 (vector key)))))
+           0)))
+      0)))
 
-(defun org-roam-db--insert-ids (ids)
-  "Insert IDS into the Org-roam cache.
-Returns t if the insertion was successful, nil otherwise.
-Insertions can fail when there is an ID conflict."
-  (condition-case nil
-      (progn
-        (org-roam-db-query
-         [:insert :into ids
-          :values $v1]
-         ids)
-        t)
-    (error
-     (unless (listp ids)
-       (setq ids (list ids)))
-     (lwarn '(org-roam) :error
-            (format "Duplicate IDs in %s, one of:\n\n%s\n\nskipping..."
-                    (aref (car ids) 1)
-                    (string-join (mapcar (lambda (hl)
-                                           (aref hl 0)) ids) "\n")))
-     nil)))
-
-(defun org-roam-db--insert-tags (file tags)
-  "Insert TAGS for a FILE into the Org-roam cache."
-  (org-roam-db-query
-   [:insert :into tags
-    :values $v1]
-   (list (vector file tags))))
-
-(defun org-roam-db--insert-ref (file ref)
-  "Insert REF for FILE into the Org-roam cache.
-Returns t if successful, and nil otherwise.
-Insertions can fail if the key is already in the database."
-  (let ((key (cdr ref))
-        (type (car ref)))
-    (condition-case nil
+(defun org-roam-db--insert-links (&optional update-p)
+  "Update the file links of the current buffer in the cache.
+If UPDATE-P is non-nil, first remove the links for the file in the database.
+Return the number of rows inserted."
+  (let ((file (or org-roam-file-name (buffer-file-name))))
+    (when update-p
+      (org-roam-db-query [:delete :from links
+                          :where (= from $s1)]
+                         file))
+    (if-let ((links (org-roam--extract-links)))
         (progn
           (org-roam-db-query
-           [:insert :into refs :values $v1]
-           (list (vector key file type)))
-          t)
-      (error
-       (lwarn '(org-roam) :error
-              (format "Duplicate ref %s in:\n\nA: %s\nB: %s\n\nskipping..."
-                      key
-                      file
-                      (caar (org-roam-db-query
-                             [:select file :from refs
-                              :where (= ref $v1)]
-                             (vector key)))))
-       nil))))
+           [:insert :into links
+            :values $v1]
+           links)
+          (length links))
+      0)))
+
+(defun org-roam-db--insert-ids (&optional update-p)
+  "Update the ids of the current buffer into the cache.
+If UPDATE-P is non-nil, first remove ids for the file in the database.
+Returns the number of rows inserted."
+  (let ((file (or org-roam-file-name (buffer-file-name))))
+    (when update-p
+      (org-roam-db-query [:delete :from ids
+                          :where (= file $s1)]
+                         file))
+    (if-let ((ids (org-roam--extract-ids file)))
+      (condition-case nil
+          (progn
+            (org-roam-db-query
+             [:insert :into ids
+              :values $v1]
+             ids)
+            (length ids))
+        (error
+         (lwarn '(org-roam) :error
+                (format "Duplicate IDs in %s, one of:\n\n%s\n\nskipping..."
+                        (aref (car ids) 1)
+                        (string-join (mapcar (lambda (hl)
+                                               (aref hl 0)) ids) "\n")))
+         0))
+      0)))
+
+(defun org-roam-db--insert-tags (&optional update-p)
+  "Insert tags for the current buffer into the Org-roam cache.
+If UPDATE-P is non-nil, first remove tags for the file in the database.
+Return the number of rows inserted."
+  (let* ((file (or org-roam-file-name (buffer-file-name)))
+         (tags (org-roam--extract-tags file)))
+    (when update-p
+      (org-roam-db-query [:delete :from tags
+                          :where (= file $s1)]
+                         file))
+    (if tags
+        (progn (org-roam-db-query
+                [:insert :into tags
+                 :values $v1]
+                (list (vector file tags)))
+               1)
+      0)))
 
 ;;;;; Fetching
 (defun org-roam-db--get-current-files ()
@@ -387,65 +441,6 @@ connections, nil is returned."
      (secure-hash 'sha1 (current-buffer)))))
 
 ;;;;; Updating
-(defun org-roam-db--update-meta ()
-  "Update the metadata of the current buffer into the cache."
-  (let* ((file (or org-roam-file-name (buffer-file-name)))
-         (attr (file-attributes file))
-         (atime (file-attribute-access-time attr))
-         (mtime (file-attribute-modification-time attr))
-         (hash (org-roam-db--file-hash)))
-    (org-roam-db-query [:delete :from files
-                        :where (= file $s1)]
-                       file)
-    (org-roam-db--insert-meta file hash (list :atime atime :mtime mtime))))
-
-(defun org-roam-db--update-titles ()
-  "Update the title of the current buffer into the cache."
-  (let* ((file (or org-roam-file-name (buffer-file-name)))
-         (titles (or (org-roam--extract-titles)
-                     (list (org-roam--path-to-slug file)))))
-    (org-roam-db-query [:delete :from titles
-                        :where (= file $s1)]
-                       file)
-    (org-roam-db--insert-titles file titles)))
-
-(defun org-roam-db--update-tags ()
-  "Update the tags of the current buffer into the cache."
-  (let* ((file (or org-roam-file-name (buffer-file-name)))
-         (tags (org-roam--extract-tags file)))
-    (org-roam-db-query [:delete :from tags
-                        :where (= file $s1)]
-                       file)
-    (when tags
-      (org-roam-db--insert-tags file tags))))
-
-(defun org-roam-db--update-refs ()
-  "Update the ref of the current buffer into the cache."
-  (let ((file (or org-roam-file-name (buffer-file-name))))
-    (org-roam-db-query [:delete :from refs
-                        :where (= file $s1)]
-                       file)
-    (when-let ((ref (org-roam--extract-ref)))
-      (org-roam-db--insert-ref file ref))))
-
-(defun org-roam-db--update-links ()
-  "Update the file links of the current buffer in the cache."
-  (let ((file (or org-roam-file-name (buffer-file-name))))
-    (org-roam-db-query [:delete :from links
-                        :where (= from $s1)]
-                       file)
-    (when-let ((links (org-roam--extract-links)))
-      (org-roam-db--insert-links links))))
-
-(defun org-roam-db--update-ids ()
-  "Update the ids of the current buffer into the cache."
-  (let* ((file (or org-roam-file-name (buffer-file-name))))
-    (org-roam-db-query [:delete :from ids
-                        :where (= file $s1)]
-                       file)
-    (when-let ((ids (org-roam--extract-ids file)))
-      (org-roam-db--insert-ids ids))))
-
 (defun org-roam-db--update-file (&optional file-path)
   "Update Org-roam cache for FILE-PATH.
 If the file does not exist anymore, remove it from the cache.
@@ -460,13 +455,13 @@ If the file exists, update the cache with information."
         (save-buffer)))
     (org-roam--with-temp-buffer file-path
       (emacsql-with-transaction (org-roam-db)
-        (org-roam-db--update-meta)
-        (org-roam-db--update-tags)
-        (org-roam-db--update-titles)
-        (org-roam-db--update-refs)
+        (org-roam-db--insert-meta 'update)
+        (org-roam-db--insert-tags 'update)
+        (org-roam-db--insert-titles 'update)
+        (org-roam-db--insert-ref 'update)
         (when org-roam-enable-headline-linking
-          (org-roam-db--update-ids))
-        (org-roam-db--update-links)))))
+          (org-roam-db--insert-ids 'update))
+        (org-roam-db--insert-links 'update)))))
 
 (defun org-roam-db-build-cache (&optional force)
   "Build the cache for `org-roam-directory'.
@@ -507,28 +502,11 @@ If FORCE, force a rebuild of the cache from scratch."
                      (vector file contents-hash (list :atime atime :mtime mtime)))
                     (setq file-count (1+ file-count))
                     (when org-roam-enable-headline-linking
-                      (when-let ((ids (org-roam--extract-ids file)))
-                        (when (org-roam-db--insert-ids ids)
-                          (setq id-count (+ id-count (length ids))))))
-                    (when-let (links (org-roam--extract-links file))
-                      (org-roam-db-query
-                       [:insert :into links
-                        :values $v1]
-                       links)
-                      (setq link-count (1+ link-count)))
-                    (when-let (tags (org-roam--extract-tags file))
-                      (org-roam-db-query
-                       [:insert :into tags
-                        :values $v1]
-                       (vector file tags))
-                      (setq tag-count (1+ tag-count)))
-                    (let ((titles (or (org-roam--extract-titles)
-                                      (list (org-roam--path-to-slug file)))))
-                      (org-roam-db--insert-titles file titles)
-                      (setq title-count (+ title-count (length titles))))
-                    (when-let* ((ref (org-roam--extract-ref)))
-                      (when (org-roam-db--insert-ref file ref)
-                        (setq ref-count (1+ ref-count)))))
+                      (setq id-count (+ id-count (org-roam-db--insert-ids))))
+                    (setq link-count (+ link-count (org-roam-db--insert-links)))
+                    (setq tag-count (+ tag-count (org-roam-db--insert-tags)))
+                    (setq title-count (+ title-count (org-roam-db--insert-titles)))
+                    (setq ref-count (+ ref-count (org-roam-db--insert-ref))))
                 (file-error
                  (setq org-roam-files (remove file org-roam-files))
                  (org-roam-db--clear-file file)
