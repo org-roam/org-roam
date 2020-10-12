@@ -870,6 +870,26 @@ whose title is 'Index'."
         (concat (expand-file-name org-roam-directory) path)
       index)))
 
+;;;; dealing with file-wide properties
+(defun org-roam--set-global-prop (name value)
+  "Set a file property called NAME to VALUE.
+
+If the property is already set, it's value is replaced."
+  (save-excursion
+    (widen)
+    (goto-char (point-min))
+    (if (re-search-forward (concat "^#\\+" name ": \\(.*\\)") (point-max) t)
+        (replace-match (concat "#+" name ": " value) 'fixedcase)
+      (while (and (not (eobp))
+                  (looking-at "^[#:]"))
+        (if (save-excursion (end-of-line) (eobp))
+            (progn
+              (end-of-line)
+              (insert "\n"))
+          (forward-line)
+          (beginning-of-line)))
+      (insert "#+" name ": " value "\n"))))
+
 ;;;; org-roam-find-ref
 (defun org-roam--get-ref-path-completions (&optional arg filter)
   "Return an alist of refs to absolute path of Org-roam files.
@@ -1679,6 +1699,68 @@ command will offer you to create one."
         (org-roam--find-file index)
       (when (y-or-n-p "Index file does not exist.  Would you like to create it? ")
         (org-roam-find-file "Index")))))
+
+;;;###autoload
+(defun org-roam-alias-add ()
+  "Add an alias to Org-roam file.
+
+Return added alias."
+  (interactive)
+  (unless org-roam-mode (org-roam-mode))
+  (let ((alias (read-string "Alias: " )))
+    (when (string-empty-p alias)
+      (user-error "Alias can't be empty"))
+    (org-roam--set-global-prop
+     "ROAM_ALIAS"
+     (combine-and-quote-strings
+      (seq-uniq (cons alias
+                      (org-roam--extract-titles-alias)))))
+    (org-roam-db--update-file (buffer-file-name (buffer-base-buffer)))
+    alias))
+
+;;;###autoload
+(defun org-roam-alias-delete ()
+  "Delete an alias from Org-roam file."
+  (interactive)
+  (unless org-roam-mode (org-roam-mode))
+  (if-let ((aliases (org-roam--extract-titles-alias)))
+      (let ((alias (completing-read "Alias: " aliases nil 'require-match)))
+        (org-roam--set-global-prop
+         "ROAM_ALIAS"
+         (combine-and-quote-strings (delete alias aliases)))
+        (org-roam-db--update-file (buffer-file-name (buffer-base-buffer))))
+    (user-error "No aliases to delete")))
+
+(defun org-roam-tag-add ()
+  "Add a tag to Org-roam file.
+
+Return added tag."
+  (interactive)
+  (unless org-roam-mode (org-roam-mode))
+  (let* ((all-tags (org-roam-db--get-tags))
+         (tag (completing-read "Tag: " all-tags))
+         (file (buffer-file-name (buffer-base-buffer)))
+         (existing-tags (org-roam--extract-tags-prop file)))
+    (when (string-empty-p tag)
+      (user-error "Tag can't be empty"))
+    (org-roam--set-global-prop
+     "ROAM_TAGS"
+     (combine-and-quote-strings (seq-uniq (cons tag existing-tags))))
+    (org-roam-db--update-tags)
+    tag))
+
+(defun org-roam-tag-delete ()
+  "Delete a tag from Org-roam file."
+  (interactive)
+  (unless org-roam-mode (org-roam-mode))
+  (if-let* ((file (buffer-file-name (buffer-base-buffer)))
+            (tags (org-roam--extract-tags-prop file)))
+      (let ((tag (completing-read "Tag: " tags nil 'require-match)))
+        (org-roam--set-global-prop
+         "ROAM_TAGS"
+         (combine-and-quote-strings (delete tag tags)))
+        (org-roam-db--update-tags))
+    (user-error "No tag to delete")))
 
 ;;;###autoload
 (defun org-roam-switch-to-buffer ()

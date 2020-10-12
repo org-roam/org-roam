@@ -2,7 +2,11 @@
 
 ## 1.2.3 (TBD)
 
-## Bugfixes
+### Features
+
+- [#1183](https://github.com/org-roam/org-roam/pull/1183) add interactive functions for managing aliases and tags in Org-roam file, namely `org-roam-alias-add`, `org-roam-alias-delete`, `org-roam-tag-add`, and `org-roam-tag-delete`.
+
+### Bugfixes
 
 - [#1074](https://github.com/org-roam/org-roam/issues/1074) fix `org-roam--extract-links` to handle content boundaries
 
