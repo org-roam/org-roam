@@ -223,13 +223,6 @@ This is equivalent to removing the node from the graph."
                          file))))
 
 ;;;;; Insertion
-(defun org-roam-db--insert-links (links)
-  "Insert LINKS into the Org-roam cache."
-  (org-roam-db-query
-   [:insert :into links
-    :values $v1]
-   links))
-
 (defun org-roam-db--insert-tags (&optional update-p)
   "Insert tags for the current buffer into the Org-roam cache.
 If UPDATE-P is non-nil, first remove tags for the file in the database."
@@ -400,14 +393,22 @@ If UPDATE-P is non-nil, first remove the ref for the file in the database."
                                  (vector key)))))
            nil))))))
 
-(defun org-roam-db--update-links ()
-  "Update the file links of the current buffer in the cache."
+(defun org-roam-db--insert-links (&optional update-p)
+  "Update the file links of the current buffer in the cache.
+If UPDATE-P is non-nil, first remove the links for the file in the database.
+Return the number of rows inserted."
   (let ((file (or org-roam-file-name (buffer-file-name))))
     (org-roam-db-query [:delete :from links
                         :where (= from $s1)]
                        file)
-    (when-let ((links (org-roam--extract-links)))
-      (org-roam-db--insert-links links))))
+    (if-let ((links (org-roam--extract-links)))
+        (progn
+          (org-roam-db-query
+           [:insert :into links
+            :values $v1]
+           links)
+          (length links))
+      0)))
 
 (defun org-roam-db--insert-ids (&optional update-p)
   "Update the ids of the current buffer into the cache.
@@ -454,7 +455,7 @@ If the file exists, update the cache with information."
         (org-roam-db--insert-ref 'update)
         (when org-roam-enable-headline-linking
           (org-roam-db--insert-ids 'update))
-        (org-roam-db--update-links)))))
+        (org-roam-db--insert-links 'update)))))
 
 (defun org-roam-db-build-cache (&optional force)
   "Build the cache for `org-roam-directory'.
