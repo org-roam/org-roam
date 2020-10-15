@@ -607,7 +607,7 @@ The Org-roam buffer displays backlinks for the currently active Org-roam note.
   For example one can prevent the window from being deleted when calling
   ~delete-other-windows~, by setting it with the following:
 
-  ~(setq org-roam-buffer-window-parameters '((no-other-window . t)))~
+  ~(setq org-roam-buffer-window-parameters '((no-delete-other-windows . t)))~
   
 ** Org-roam Files
 
