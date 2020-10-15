@@ -1329,6 +1329,19 @@ update with NEW-DESC."
                               old-path new-path old-desc new-desc))))
         (replace-match new-link)))))
 
+(defun org-roam--get-relative-link-replacement (old-path)
+  "Create file-relative link for link at point if needed.
+File relative links are assumed to originate from OLD-PATH. The
+replaced links are made relative to the current buffer."
+  (when-let ((link (org-element-lineage (org-element-context) '(link) t)))
+    (let ((type (org-element-property :type link))
+          (path (org-element-property :path link)))
+      (when (and (f-relative-p path)
+                 (org-in-regexp org-link-bracket-re 1))
+        (let* ((file-path (expand-file-name path (file-name-directory old-path)))
+               (new-path (org-roam-link-get-path file-path)))
+          (concat type ":" new-path))))))
+
 (defun org-roam--fix-relative-links (old-path)
   "Fix file-relative links in current buffer.
 File relative links are assumed to originate from OLD-PATH. The
@@ -1336,15 +1349,9 @@ replaced links are made relative to the current buffer."
   (save-excursion
     (goto-char (point-min))
     (while (re-search-forward org-link-any-re nil t)
-      (when-let ((link (org-element-lineage (org-element-context) '(link) t)))
-        (let ((type (org-element-property :type link))
-              (path (org-element-property :path link)))
-          (when (and (f-relative-p path)
-                     (org-in-regexp org-link-bracket-re 1))
-            (let* ((file-path (expand-file-name path (file-name-directory old-path)))
-                   (new-path (org-roam-link-get-path file-path)))
-              (replace-match (concat type ":" new-path)
-                             nil t nil 1))))))))
+      (when-let ((new-link (save-match-data
+                             (org-roam--get-relative-link-replacement old-path))))
+        (replace-match new-link nil t nil 1)))))
 
 (defcustom org-roam-rename-file-on-title-change t
   "If non-nil, alter the filename on title change.
