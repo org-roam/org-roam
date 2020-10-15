@@ -849,7 +849,7 @@ Additional window parameters for the org-roam-buffer side window.
 For example one can prevent the window from being deleted when calling
 @code{delete-other-windows}, by setting it with the following:
 
-@code{(setq org-roam-buffer-window-parameters '((no-other-window . t)))}
+@code{(setq org-roam-buffer-window-parameters '((no-delete-other-windows . t)))}
 @end itemize
 
 @node Org-roam Files
