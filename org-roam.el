@@ -802,13 +802,6 @@ backlinks."
            (slug (-reduce-from #'cl-replace (strip-nonspacing-marks title) pairs)))
       (downcase slug))))
 
-(defun org-roam--format-link-title (title &optional type)
-  "Return the link title, given the file TITLE.
-If `org-roam-link-title-format title' is defined, use it with TYPE."
-  (if (functionp org-roam-link-title-format)
-      (funcall org-roam-link-title-format title type)
-    (format org-roam-link-title-format title)))
-
 (defun org-roam-format-link (target &optional description type)
   "Formats an org link for a given file TARGET, link DESCRIPTION and link TYPE.
 TYPE defaults to \"file\".
@@ -823,6 +816,10 @@ Here, we also check if there is an ID for the file."
     (setq type "id" target id))
   (when (string-equal type "file")
     (setq target (org-roam-link-get-path target)))
+  (setq description
+        (if (functionp org-roam-link-title-format)
+            (funcall org-roam-link-title-format description type)
+          (format org-roam-link-title-format description)))
   (org-link-make-string (concat type ":" target) description))
 
 (defun org-roam--prepend-tag-string (str tags)
@@ -1625,8 +1622,8 @@ included as a candidate."
 (defun org-roam-insert (&optional lowercase completions filter-fn description link-type)
   "Find an Org-roam file, and insert a relative org link to it at point.
 Return selected file if it exists.
+If LOWERCASE is non-nil, downcase the link description.
 LINK-TYPE is the type of link to be created. It defaults to \"file\".
-If LOWERCASE, downcase the title before insertion.
 COMPLETIONS is a list of completions to be used instead of
 `org-roam--get-title-path-completions`.
 FILTER-FN is the name of a function to apply on the candidates
@@ -1657,17 +1654,16 @@ If DESCRIPTION is provided, use this as the link label.  See
                           title-with-tags))
                (target-file-path (plist-get res :path))
                (description (or description region-text title))
-               (link-description (org-roam--format-link-title (if lowercase
-                                                                  (downcase description)
-                                                                description)
-                                                              link-type)))
+               (description (if lowercase
+                                (downcase description)
+                              description)))
           (cond ((and target-file-path
                       (file-exists-p target-file-path))
                  (when region-text
                    (delete-region beg end)
                    (set-marker beg nil)
                    (set-marker end nil))
-                 (insert (org-roam-format-link target-file-path link-description link-type)))
+                 (insert (org-roam-format-link target-file-path description link-type)))
                 (t
                  (let ((org-roam-capture--info `((title . ,title-with-tags)
                                                  (slug . ,(funcall org-roam-title-to-slug-function title-with-tags))))
@@ -1675,7 +1671,7 @@ If DESCRIPTION is provided, use this as the link label.  See
                    (setq org-roam-capture-additional-template-props (list :region (org-roam-shield-region beg end)
                                                                           :insert-at (point-marker)
                                                                           :link-type link-type
-                                                                          :link-description link-description
+                                                                          :link-description description
                                                                           :finalize 'insert-link))
                    (org-roam-capture--capture))))
           res))
