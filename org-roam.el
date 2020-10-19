@@ -1243,7 +1243,8 @@ file."
            (custom (or (and in-note org-roam-link-use-custom-faces)
                        (eq org-roam-link-use-custom-faces 'everywhere))))
       (cond ((and custom
-                  (not (org-roam-id-get-file id)))
+                  (not (org-roam-id-get-file id))
+                  (not (org-id-find id)))
              'org-roam-link-invalid)
             ((and (org-roam--in-buffer-p)
                   (org-roam--backlink-to-current-p))
