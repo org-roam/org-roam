@@ -107,11 +107,12 @@ For example: (setq org-roam-buffer-window-parameters '((no-other-window . t)))"
 (defun org-roam-buffer--find-file (file)
   "Open FILE in the window `org-roam' was called from."
   (setq file (expand-file-name file))
-  (if (and org-roam-last-window (window-valid-p org-roam-last-window))
-      (progn (with-selected-window org-roam-last-window
-               (org-roam--find-file file))
-             (select-window org-roam-last-window))
-    (org-roam--find-file file)))
+  (let ((last-window org-roam-last-window))
+    (if (window-valid-p last-window)
+        (progn (with-selected-window last-window
+                 (org-roam--find-file file))
+               (select-window last-window))
+      (org-roam--find-file file))))
 
 (defun org-roam-buffer--insert-title ()
   "Insert the org-roam-buffer title."
