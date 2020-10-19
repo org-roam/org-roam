@@ -598,7 +598,7 @@ it as FILE-PATH."
                                    :point begin))
                  (names (pcase type
                           ("id"
-                           (list (car (org-roam-id-find path))))
+                           (list (car (org-roam-id-find path nil nil 'keep-buffer))))
                           ("cite" (list path))
                           ("website" (list path))
                           ("fuzzy" (list path))
