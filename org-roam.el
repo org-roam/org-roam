@@ -1190,7 +1190,7 @@ This is active when `org-roam-completion-everywhere' is non-nil."
 ;;;; Function Faces
 ;; These faces are used by `org-link-set-parameters', which take one argument,
 ;; which is the path.
-(defcustom org-roam-link-use-custom-faces 'everywhere
+(defcustom org-roam-link-use-custom-faces t
   "Define where to apply custom faces to Org-roam links.
 
 Valide values are:
@@ -1202,9 +1202,9 @@ everywhere   Apply custom faces everywhere.
 
 Otherwise, do not apply custom faces to Org-roam links."
   :type '(choice
-	  (const :tag "Use custom faces inside Org-roam notes" t)
-	  (const :tag "Apply custom faces everywhere" everywhere)
-	  (const :tag "Do not apply custom faces" nil))
+          (const :tag "Use custom faces inside Org-roam notes" t)
+          (const :tag "Apply custom faces everywhere" everywhere)
+          (const :tag "Do not apply custom faces" nil))
   :group 'org-roam)
 
 (defun org-roam--file-link-face (path)
@@ -1244,7 +1244,8 @@ file."
                        (eq org-roam-link-use-custom-faces 'everywhere))))
       (cond ((and custom
                   (not (org-roam-id-get-file id))
-                  (not (org-id-find id)))
+                  (not (and (eq org-roam-link-use-custom-faces 'everywhere)
+                            (org-id-find id))))
              'org-roam-link-invalid)
             ((and (org-roam--in-buffer-p)
                   (org-roam--backlink-to-current-p))
