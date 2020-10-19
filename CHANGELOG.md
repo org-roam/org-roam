@@ -12,6 +12,7 @@
 - [#1193](https://github.com/org-roam/org-roam/issues/1193) fix `org-roam-db-build-cache` by not killing temporary buffer in `org-roam--extract-links`.
 - [#1195](https://github.com/org-roam/org-roam/issues/1195) fix ID face showing as invalid if within Org ID files, but not Org-roam's.
 - [#1199](https://github.com/org-roam/org-roam/issues/1199) make Org-roam link insertions respect `org-roam-link-title-format` everywhere.
+- [#1201](https://github.com/org-roam/org-roam/issues/1201) fix `org-roam-db-build-cache` failing in scenarios involving duplicate IDs and deleted files.
 
 ## 1.2.2 (06-10-2020)
 
