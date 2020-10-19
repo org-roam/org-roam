@@ -10,6 +10,7 @@
 
 - [#1074](https://github.com/org-roam/org-roam/issues/1074) fix `org-roam--extract-links` to handle content boundaries.
 - [#1193](https://github.com/org-roam/org-roam/issues/1193) fix `org-roam-db-build-cache` by not killing temporary buffer in `org-roam--extract-links`.
+- [#1195](https://github.com/org-roam/org-roam/issues/1195) fix ID face showing as invalid if within Org ID files, but not Org-roam's.
 
 ## 1.2.2 (06-10-2020)
 
