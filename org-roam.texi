@@ -111,6 +111,7 @@ Concepts and Configuration
 * Directories and Files::
 * The Org-roam Buffer::
 * Org-roam Files::
+* Org-roam Faces::
 
 Navigating Around
 
@@ -783,6 +784,7 @@ All of Org-roam's customization options can be viewed via
 * Directories and Files::
 * The Org-roam Buffer::
 * Org-roam Files::
+* Org-roam Faces::
 @end menu
 
 @node Directories and Files
@@ -857,6 +859,29 @@ For example one can prevent the window from being deleted when calling
 
 Org-roam files are created and prefilled using Org-roam's templating
 system. The templating system is customizable (see @ref{The Templating System}).
+
+@node Org-roam Faces
+@section Org-roam Faces
+
+Org-roam introduces several faces to distinguish links within the same buffer.
+These faces are enabled by default in Org-roam notes.
+
+@itemize
+@item
+User Option: org-roam-link-use-custom-faces
+
+When @code{t}, use custom faces only inside Org-roam notes.
+When @code{everywhere}, the custom face is applied additionally to non Org-roam notes.
+When @code{nil}, do not use Org-roam's custom faces.
+@end itemize
+
+The @code{org-roam-link} face is the face applied to links to other Org-roam files.
+This distinguishes internal links from external links (e.g. external web links).
+
+The @code{org-roam-link-current} face corresponds to links to the same file it is in.
+
+The @code{org-roam-link-invalid} face is applied to links that are broken. These are
+links to files or IDs that cannot be found.
 
 @node Inserting Links
 @chapter Inserting Links

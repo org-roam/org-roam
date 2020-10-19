@@ -15,18 +15,18 @@ General Public License for more details.
 <!-- Created by GNU Texinfo 6.5, http://www.gnu.org/software/texinfo/ -->
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<title>Org-roam Files (Org-roam User Manual)</title>
+<title>Org-roam Faces (Org-roam User Manual)</title>
 
-<meta name="description" content="Org-roam Files (Org-roam User Manual)">
-<meta name="keywords" content="Org-roam Files (Org-roam User Manual)">
+<meta name="description" content="Org-roam Faces (Org-roam User Manual)">
+<meta name="keywords" content="Org-roam Faces (Org-roam User Manual)">
 <meta name="resource-type" content="document">
 <meta name="distribution" content="global">
 <meta name="Generator" content="makeinfo">
 <link href="index.html#Top" rel="start" title="Top">
 <link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
 <link href="Concepts-and-Configuration.html#Concepts-and-Configuration" rel="up" title="Concepts and Configuration">
-<link href="Org_002droam-Faces.html#Org_002droam-Faces" rel="next" title="Org-roam Faces">
-<link href="The-Org_002droam-Buffer.html#The-Org_002droam-Buffer" rel="prev" title="The Org-roam Buffer">
+<link href="Inserting-Links.html#Inserting-Links" rel="next" title="Inserting Links">
+<link href="Org_002droam-Files.html#Org_002droam-Files" rel="prev" title="Org-roam Files">
 <style type="text/css">
 <!--
 a.summary-letter {text-decoration: none}
@@ -60,17 +60,33 @@ ul.no-bullet {list-style: none}
 </head>
 
 <body lang="en">
-<a name="Org_002droam-Files"></a>
+<a name="Org_002droam-Faces"></a>
 <div class="header">
 <p>
-Next: <a href="Org_002droam-Faces.html#Org_002droam-Faces" accesskey="n" rel="next">Org-roam Faces</a>, Previous: <a href="The-Org_002droam-Buffer.html#The-Org_002droam-Buffer" accesskey="p" rel="prev">The Org-roam Buffer</a>, Up: <a href="Concepts-and-Configuration.html#Concepts-and-Configuration" accesskey="u" rel="up">Concepts and Configuration</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+Previous: <a href="Org_002droam-Files.html#Org_002droam-Files" accesskey="p" rel="prev">Org-roam Files</a>, Up: <a href="Concepts-and-Configuration.html#Concepts-and-Configuration" accesskey="u" rel="up">Concepts and Configuration</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
 </div>
 <hr>
-<a name="Org_002droam-Files-1"></a>
-<h3 class="section">8.3 Org-roam Files</h3>
+<a name="Org_002droam-Faces-1"></a>
+<h3 class="section">8.4 Org-roam Faces</h3>
 
-<p>Org-roam files are created and prefilled using Org-roam&rsquo;s templating
-system. The templating system is customizable (see <a href="The-Templating-System.html#The-Templating-System">The Templating System</a>).
+<p>Org-roam introduces several faces to distinguish links within the same buffer.
+These faces are enabled by default in Org-roam notes.
+</p>
+<ul>
+<li> User Option: org-roam-link-use-custom-faces
+
+<p>When <code>t</code>, use custom faces only inside Org-roam notes.
+When <code>everywhere</code>, the custom face is applied additionally to non Org-roam notes.
+When <code>nil</code>, do not use Org-roam&rsquo;s custom faces.
+</p></li></ul>
+
+<p>The <code>org-roam-link</code> face is the face applied to links to other Org-roam files.
+This distinguishes internal links from external links (e.g. external web links).
+</p>
+<p>The <code>org-roam-link-current</code> face corresponds to links to the same file it is in.
+</p>
+<p>The <code>org-roam-link-invalid</code> face is applied to links that are broken. These are
+links to files or IDs that cannot be found.
 </p>
 
 
