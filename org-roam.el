@@ -1253,21 +1253,32 @@ file."
             (t
              'org-link)))))
 
+(defun org-roam--add-path-to-update-queue (file-path)
+  "Add FILE-PATH to `org-roam--file-update-queue.
+Stores possible local dir variables with path."
+  (add-to-list 'org-roam--file-update-queue
+               (list file-path org-roam-directory org-roam-db-location)))
+
 (defun org-roam--queue-file-for-update (&optional file-path)
   "Queue FILE-PATH for `org-roam' database update.
 This is a lightweight function that is called during `after-save-hook'
 and only schedules the current Org file to be `org-roam' updated
 during the next idle slot."
   (let ((fp (or file-path buffer-file-name)))
-    (when (org-roam--org-roam-file-p file-path)
-      (add-to-list 'org-roam--file-update-queue fp))))
+    (when (org-roam--org-roam-file-p fp)
+      (org-roam--add-path-to-update-queue fp))))
 
 (defun org-roam--process-update-queue ()
   "Process files queued in `org-roam--file-update-queue'."
   (when org-roam--file-update-queue
-    (mapc #'org-roam-db--update-file org-roam--file-update-queue)
+    (dolist (info org-roam--file-update-queue)
+      (let ((org-roam-directory (elt info 1))
+            (org-roam-db-location (elt info 2)))
+        (org-roam-db--update-file (elt info 0))))
     (org-roam-message "database updated during idle: %s."
-                      (mapconcat #'file-name-nondirectory org-roam--file-update-queue  ", ") )
+                      (mapconcat
+                       (lambda (info) (file-name-nondirectory (elt info 0)))
+                       org-roam--file-update-queue  ", ") )
     (setq org-roam--file-update-queue nil)))
 
 ;;;; Hooks and Advices
@@ -1421,7 +1432,7 @@ To be added to `org-roam-title-change-hook'."
           (unless (string-match-p file-name new-file-name)
             (rename-file file-name new-file-name)
             (set-visited-file-name new-file-name t t)
-            (add-to-list 'org-roam--file-update-queue new-file-name)
+            (org-roam--add-path-to-update-queue new-file-name)
             (org-roam-message "File moved to %S" (abbreviate-file-name new-file-name))))))))
 
 (defun org-roam--rename-file-advice (old-file new-file-or-dir &rest _args)
@@ -1471,7 +1482,7 @@ When NEW-FILE-OR-DIR is a directory, we use it to compute the new file path."
   "Update the database if a new Org ID is created."
   (when (and org-roam-enable-headline-linking
              (org-roam--org-roam-file-p))
-    (add-to-list 'org-roam--file-update-queue (buffer-file-name))))
+    (org-roam--add-path-to-update-queue (buffer-file-name))))
 
 ;;;###autoload
 (define-minor-mode org-roam-mode
