@@ -385,6 +385,12 @@ The file is saved if the original value of :no-save is not t and
    ((and (not (org-roam-capture--get :orig-no-save))
          (not org-note-abort))
     (with-current-buffer (org-capture-get :buffer)
+      ;; Store original title in local var in case user changed it. This way
+      ;; change title hooks will run.
+      (when-let ((title (org-roam-capture--get :title))
+                 ((or (not (boundp 'org-roam-current-title))
+                      (null org-roam-current-title))))
+        (setq-local org-roam-current-title title))
       (save-buffer)))))
 
 (defun org-roam-capture--new-file ()
@@ -462,6 +468,7 @@ This function is used solely in Org-roam's capture templates: see
                             (plist-get pl :path)
                           (org-roam-capture--new-file))))
                      (_ (error "Invalid org-roam-capture-context")))))
+    (org-roam-capture--put :title (cdr (assoc 'title org-roam-capture--info)))
     (org-capture-put :template
                      (org-roam-capture--fill-template (org-capture-get :template)))
     (org-roam-capture--put :file-path file-path)
