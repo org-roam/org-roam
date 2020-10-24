@@ -47,7 +47,7 @@
 (defvar org-roam--org-link-bracket-typed-re)
 
 (declare-function org-roam-db--ensure-built   "org-roam-db")
-(declare-function org-roam--extract-ref       "org-roam")
+(declare-function org-roam--extract-refs      "org-roam")
 (declare-function org-roam--extract-titles    "org-roam")
 (declare-function org-roam--get-title-or-slug "org-roam")
 (declare-function org-roam--get-backlinks     "org-roam")
@@ -149,10 +149,11 @@ ORIG-PATH is the path where the CONTENT originated."
 
 (defun org-roam-buffer--insert-ref-links ()
   "Insert ref backlinks for the current buffer."
-  (when-let ((path (cdr (with-temp-buffer
-                          (insert-buffer-substring org-roam-buffer--current)
-                          (org-roam--extract-ref)))))
-    (if-let* ((key-backlinks (org-roam--get-backlinks path))
+  (when-let* ((refs (with-temp-buffer
+                      (insert-buffer-substring org-roam-buffer--current)
+                      (org-roam--extract-refs)))
+              (paths (mapcar #'cdr refs)))
+    (if-let* ((key-backlinks (mapcan #'org-roam--get-backlinks paths))
               (grouped-backlinks (--group-by (nth 0 it) key-backlinks)))
         (progn
           (insert (let ((l (length key-backlinks)))
@@ -163,8 +164,8 @@ ORIG-PATH is the path where the CONTENT originated."
                   (bls (cdr group)))
               (insert (format "** %s\n"
                               (org-roam-format-link file-from
-                                                     (org-roam--get-title-or-slug file-from)
-                                                     "file")))
+                                                    (org-roam--get-title-or-slug file-from)
+                                                    "file")))
               (dolist (backlink bls)
                 (pcase-let ((`(,file-from _ ,props) backlink))
                   (insert (if-let ((content (plist-get props :content)))
