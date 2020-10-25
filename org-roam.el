@@ -307,9 +307,6 @@ descriptive warnings when certain operations fail (e.g. parsing).")
 (defvar org-roam--file-update-timer nil
   "Timer for updating the database on file changes.")
 
-(defvar org-roam--file-update-queue nil
-  "List of files that need to be processed for a database update. Processed within `org-roam--file-update-timer'.")
-
 ;;;; Utilities
 (defun org-roam--plist-to-alist (plist)
   "Return an alist of the property-value pairs in PLIST."
@@ -598,7 +595,8 @@ it as FILE-PATH."
                                    :point begin))
                  (names (pcase type
                           ("id"
-                           (list (car (org-roam-id-find path nil nil 'keep-buffer))))
+                           (when-let ((file-path (org-roam-id-get-file path)))
+                             (list file-path)))
                           ("cite" (list path))
                           ("website" (list path))
                           ("fuzzy" (list path))
@@ -1253,23 +1251,6 @@ file."
             (t
              'org-link)))))
 
-(defun org-roam--queue-file-for-update (&optional file-path)
-  "Queue FILE-PATH for `org-roam' database update.
-This is a lightweight function that is called during `after-save-hook'
-and only schedules the current Org file to be `org-roam' updated
-during the next idle slot."
-  (let ((fp (or file-path buffer-file-name)))
-    (when (org-roam--org-roam-file-p file-path)
-      (add-to-list 'org-roam--file-update-queue fp))))
-
-(defun org-roam--process-update-queue ()
-  "Process files queued in `org-roam--file-update-queue'."
-  (when org-roam--file-update-queue
-    (mapc #'org-roam-db--update-file org-roam--file-update-queue)
-    (org-roam-message "database updated during idle: %s."
-                      (mapconcat #'file-name-nondirectory org-roam--file-update-queue  ", ") )
-    (setq org-roam--file-update-queue nil)))
-
 ;;;; Hooks and Advices
 (defcustom org-roam-file-setup-hook nil
   "Hook that is run on setting up an Org-roam file."
@@ -1284,7 +1265,7 @@ during the next idle slot."
     (org-roam--setup-title-auto-update)
     (add-hook 'post-command-hook #'org-roam-buffer--update-maybe nil t)
     (add-hook 'before-save-hook #'org-roam-link--replace-link-on-save nil t)
-    (add-hook 'after-save-hook #'org-roam--queue-file-for-update nil t)
+    (add-hook 'after-save-hook #'org-roam-db--mark-dirty nil t)
     (dolist (fn org-roam-completion-functions)
       (add-hook 'completion-at-point-functions fn nil t))
     (org-roam-buffer--update-maybe :redisplay t)))
@@ -1421,7 +1402,7 @@ To be added to `org-roam-title-change-hook'."
           (unless (string-match-p file-name new-file-name)
             (rename-file file-name new-file-name)
             (set-visited-file-name new-file-name t t)
-            (add-to-list 'org-roam--file-update-queue new-file-name)
+            (org-roam-db--mark-dirty)
             (org-roam-message "File moved to %S" (abbreviate-file-name new-file-name))))))))
 
 (defun org-roam--rename-file-advice (old-file new-file-or-dir &rest _args)
@@ -1471,7 +1452,7 @@ When NEW-FILE-OR-DIR is a directory, we use it to compute the new file path."
   "Update the database if a new Org ID is created."
   (when (and org-roam-enable-headline-linking
              (org-roam--org-roam-file-p))
-    (add-to-list 'org-roam--file-update-queue (buffer-file-name))))
+    (org-roam-db--mark-dirty)))
 
 ;;;###autoload
 (define-minor-mode org-roam-mode
@@ -1507,7 +1488,7 @@ M-x info for more information at Org-roam > Installation > Post-Installation Tas
     (add-hook 'kill-emacs-hook #'org-roam-db--close-all)
     (add-hook 'org-open-at-point-functions #'org-roam-open-id-at-point)
     (unless org-roam--file-update-timer
-      (setq org-roam--file-update-timer (run-with-idle-timer org-roam-update-db-idle-seconds t #'org-roam--process-update-queue)))
+      (setq org-roam--file-update-timer (run-with-idle-timer org-roam-update-db-idle-seconds t #'org-roam-db-update-cache)))
     (advice-add 'rename-file :after #'org-roam--rename-file-advice)
     (advice-add 'delete-file :before #'org-roam--delete-file-advice)
     (advice-add 'org-id-new :after #'org-roam--id-new-advice)
@@ -1534,7 +1515,7 @@ M-x info for more information at Org-roam > Installation > Post-Installation Tas
       (with-current-buffer buf
         (remove-hook 'post-command-hook #'org-roam-buffer--update-maybe t)
         (remove-hook 'before-save-hook #'org-roam-link--replace-link-on-save t)
-        (remove-hook 'after-save-hook #'org-roam--queue-file-for-update t))))))
+        (remove-hook 'after-save-hook #'org-roam-db--mark-dirty t))))))
 
 ;;; Interactive Commands
 ;;;###autoload

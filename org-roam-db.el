@@ -84,6 +84,9 @@ value like `most-positive-fixnum'."
 (defvar org-roam-db--connection (make-hash-table :test #'equal)
   "Database connection to Org-roam database.")
 
+(defvar org-roam-db-dirty nil
+  "Whether the org-roam database is dirty and requires an update.")
+
 ;;;; Core Functions
 
 (defun org-roam-db--get-connection ()
@@ -190,6 +193,10 @@ the current `org-roam-directory'."
   "Closes all database connections made by Org-roam."
   (dolist (conn (hash-table-values org-roam-db--connection))
     (org-roam-db--close conn)))
+
+(defun org-roam-db--mark-dirty ()
+  "Mark the Org-roam database as dirty."
+  (setq org-roam-db-dirty t))
 
 ;;;; Database API
 ;;;;; Initialization
@@ -494,8 +501,11 @@ If FORCE, force a rebuild of the cache from scratch."
         (setq deleted-count (1+ deleted-count)))
     (pcase-dolist (`(,file . _) modified-files)
       (org-roam-db--clear-file file))
+    ;; Process all the files for IDs first
+    ;;
+    ;; We do this so that link extraction is cheaper: this eliminates the need
+    ;; to read the file to check if the ID really exists
     (pcase-dolist (`(,file . ,contents-hash) modified-files)
-      (org-roam-message "Processed %s/%s modified files..." modified-count (length modified-files))
       (let* ((attr (file-attributes file))
              (atime (file-attribute-access-time attr))
              (mtime (file-attribute-modification-time attr)))
@@ -505,9 +515,18 @@ If FORCE, force a rebuild of the cache from scratch."
                [:insert :into files
                 :values $v1]
                (vector file contents-hash (list :atime atime :mtime mtime)))
-              (setq modified-count (1+ modified-count))
               (when org-roam-enable-headline-linking
-                (setq id-count (+ id-count (org-roam-db--insert-ids))))
+                (setq id-count (+ id-count (org-roam-db--insert-ids)))))
+          (file-error
+           (setq org-roam-files (remove file org-roam-files))
+           (org-roam-db--clear-file file)
+           (lwarn '(org-roam) :warning
+                  "Skipping unreadable file while building cache: %s" file)))))
+    (pcase-dolist (`(,file . _) modified-files)
+      (org-roam-message "Processed %s/%s modified files..." modified-count (length modified-files))
+      (condition-case nil
+            (org-roam--with-temp-buffer file
+              (setq modified-count (1+ modified-count))
               (setq link-count (+ link-count (org-roam-db--insert-links)))
               (setq tag-count (+ tag-count (org-roam-db--insert-tags)))
               (setq title-count (+ title-count (org-roam-db--insert-titles)))
@@ -516,7 +535,7 @@ If FORCE, force a rebuild of the cache from scratch."
            (setq org-roam-files (remove file org-roam-files))
            (org-roam-db--clear-file file)
            (lwarn '(org-roam) :warning
-                  "Skipping unreadable file while building cache: %s" file)))))
+                  "Skipping unreadable file while building cache: %s" file))))
     (org-roam-message "total: Δ%s, files-modified: Δ%s, ids: Δ%s, links: Δ%s, tags: Δ%s, titles: Δ%s, refs: Δ%s, deleted: Δ%s"
                       (length org-roam-files)
                       modified-count
@@ -526,6 +545,12 @@ If FORCE, force a rebuild of the cache from scratch."
                       title-count
                       ref-count
                       deleted-count)))
+
+(defun org-roam-db-update-cache ()
+  "Update the cache if the database is dirty."
+  (when org-roam-db-dirty
+    (org-roam-db-build-cache)
+    (setq org-roam-db-dirty nil)))
 
 (provide 'org-roam-db)
 
