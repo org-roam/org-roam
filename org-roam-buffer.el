@@ -208,7 +208,7 @@ ORIG-PATH is the path where the CONTENT originated."
                       "\n"
                       (propertize
                        (s-trim (s-replace "\n" " "
-                                          (org-roam-buffer-expand-links (plist-get props :content) file-from)))
+                                          (org-roam-buffer-expand-links (or (plist-get props :content) " ") file-from)))
                        'help-echo "mouse-1: visit backlinked note"
                        'file-from file-from
                        'file-from-point (plist-get props :point))
