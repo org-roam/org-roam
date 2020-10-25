@@ -300,21 +300,21 @@
 
     ;; Links
     (expect (caar (org-roam-db-query [:select (funcall count) :from links
-                                      :where (= from $s1)]
+                                      :where (= source $s1)]
                                      (test-org-roam--abs-path "foo.org"))) :to-be 1)
     (expect (caar (org-roam-db-query [:select (funcall count) :from links
-                                      :where (= from $s1)]
+                                      :where (= source $s1)]
                                      (test-org-roam--abs-path "nested/bar.org"))) :to-be 2)
 
     ;; Links -- File-to
     (expect (caar (org-roam-db-query [:select (funcall count) :from links
-                                      :where (= to $s1)]
+                                      :where (= dest $s1)]
                                      (test-org-roam--abs-path "nested/foo.org"))) :to-be 1)
     (expect (caar (org-roam-db-query [:select (funcall count) :from links
-                                      :where (= to $s1)]
+                                      :where (= dest $s1)]
                                      (test-org-roam--abs-path "nested/bar.org"))) :to-be 1)
     (expect (caar (org-roam-db-query [:select (funcall count) :from links
-                                      :where (= to $s1)]
+                                      :where (= dest $s1)]
                                      (test-org-roam--abs-path "unlinked.org"))) :to-be 0)
     ;; TODO Test titles
     (expect (org-roam-db-query [:select * :from titles])
