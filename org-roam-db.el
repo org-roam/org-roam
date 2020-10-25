@@ -79,7 +79,7 @@ value like `most-positive-fixnum'."
   :type 'int
   :group 'org-roam)
 
-(defconst org-roam-db--version 9)
+(defconst org-roam-db--version 10)
 
 (defvar org-roam-db--connection (make-hash-table :test #'equal)
   "Database connection to Org-roam database.")
@@ -144,8 +144,8 @@ SQL can be either the emacsql vector representation, or a string."
       (level :not-null)])
 
     (links
-     [(from :not-null)
-      (to :not-null)
+     [(source :not-null)
+      (dest :not-null)
       (type :not-null)
       (properties :not-null)])
 
@@ -226,7 +226,7 @@ This is equivalent to removing the node from the graph."
                                     (buffer-file-name (buffer-base-buffer))))))
     (dolist (table (mapcar #'car org-roam-db--table-schemata))
       (org-roam-db-query `[:delete :from ,table
-                           :where (= ,(if (eq table 'links) 'from 'file) $s1)]
+                           :where (= ,(if (eq table 'links) 'source 'file) $s1)]
                          file))))
 
 ;;;;; Inserting
@@ -302,7 +302,7 @@ Return the number of rows inserted."
   (let ((file (or org-roam-file-name (buffer-file-name))))
     (when update-p
       (org-roam-db-query [:delete :from links
-                          :where (= from $s1)]
+                          :where (= source $s1)]
                          file))
     (if-let ((links (org-roam--extract-links)))
         (progn
@@ -390,12 +390,12 @@ If the file does not have any connections, nil is returned."
                    links_of(file, link) AS
                      (WITH filelinks AS (SELECT * FROM links WHERE NOT \"type\" = '\"cite\"'),
                            citelinks AS (SELECT * FROM links
-                                                  JOIN refs ON links.\"to\" = refs.\"ref\"
+                                                  JOIN refs ON links.\"dest\" = refs.\"ref\"
                                                             AND links.\"type\" = '\"cite\"')
-                      SELECT \"from\", \"to\" FROM filelinks UNION
-                      SELECT \"to\", \"from\" FROM filelinks UNION
-                      SELECT \"file\", \"from\" FROM citelinks UNION
-                      SELECT \"from\", \"file\" FROM citelinks),
+                      SELECT \"source\", \"dest\" FROM filelinks UNION
+                      SELECT \"dest\", \"source\" FROM filelinks UNION
+                      SELECT \"file\", \"source\" FROM citelinks UNION
+                      SELECT \"dest\", \"file\" FROM citelinks),
                    connected_component(file) AS
                      (SELECT link FROM links_of WHERE file = $s1
                       UNION
@@ -412,12 +412,12 @@ connections, nil is returned."
                    links_of(file, link) AS
                      (WITH filelinks AS (SELECT * FROM links WHERE NOT \"type\" = '\"cite\"'),
                            citelinks AS (SELECT * FROM links
-                                                  JOIN refs ON links.\"to\" = refs.\"ref\"
+                                                  JOIN refs ON links.\"dest\" = refs.\"ref\"
                                                             AND links.\"type\" = '\"cite\"')
-                      SELECT \"from\", \"to\" FROM filelinks UNION
-                      SELECT \"to\", \"from\" FROM filelinks UNION
-                      SELECT \"file\", \"from\" FROM citelinks UNION
-                      SELECT \"from\", \"file\" FROM citelinks),
+                      SELECT \"source\", \"dest\" FROM filelinks UNION
+                      SELECT \"dest\", \"source\" FROM filelinks UNION
+                      SELECT \"file\", \"source\" FROM citelinks UNION
+                      SELECT \"source\", \"file\" FROM citelinks),
                    -- Links are traversed in a breadth-first search.  In order to calculate the
                    -- distance of nodes and to avoid following cyclic links, the visited nodes
                    -- are tracked in 'trace'.

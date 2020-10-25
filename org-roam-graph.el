@@ -169,15 +169,15 @@ into a digraph."
     (let* ((nodes (org-roam-db-query node-query))
            (edges-query
             `[:with selected :as [:select [file] :from ,node-query]
-              :select :distinct [to from] :from links
-              :where (and (in to selected) (in from selected))])
+              :select :distinct [dest source] :from links
+              :where (and (in dest selected) (in source selected))])
            (edges-cites-query
             `[:with selected :as [:select [file] :from ,node-query]
-              :select :distinct [file from]
-              :from links :inner :join refs :on (and (= links:to refs:ref)
+              :select :distinct [file source]
+              :from links :inner :join refs :on (and (= links:dest refs:ref)
                                                      (= links:type "cite")
                                                      (= refs:type "cite"))
-              :where (and (in file selected) (in from selected))])
+              :where (and (in file selected) (in source selected))])
            (edges       (org-roam-db-query edges-query))
            (edges-cites (org-roam-db-query edges-cites-query)))
       (insert "digraph \"org-roam\" {\n")
