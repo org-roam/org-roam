@@ -167,53 +167,52 @@ ORIG-PATH is the path where the CONTENT originated."
                                                      "file")))
               (dolist (backlink bls)
                 (pcase-let ((`(,file-from _ ,props) backlink))
-                  (insert (propertize (org-roam-buffer-expand-links (plist-get props :content) file-from)
-                           'help-echo "mouse-1: visit backlinked note"
-                           'file-from file-from
-                           'file-from-point (plist-get props :point)))
-                  (insert "\n\n"))))))
+                  (insert (if-let ((content (plist-get props :content)))
+                              (propertize (org-roam-buffer-expand-links content file-from)
+                                          'help-echo "mouse-1: visit backlinked note"
+                                          'file-from file-from
+                                          'file-from-point (plist-get props :point))
+                            "")
+                          "\n\n"))))))
       (insert "\n\n* No ref backlinks!"))))
 
 (defun org-roam-buffer--insert-backlinks ()
   "Insert the org-roam-buffer backlinks string for the current buffer."
-  (if-let* ((file-path (buffer-file-name org-roam-buffer--current))
-            (titles (with-current-buffer org-roam-buffer--current
-                      (org-roam--extract-titles)))
-            (backlinks (org-roam--get-backlinks (push file-path titles)))
-            (grouped-backlinks (--group-by (nth 0 it) backlinks)))
-      (progn
-        (insert (let ((l (length backlinks)))
-                     (format "\n\n* %d %s\n"
-                             l (org-roam-buffer--pluralize "Backlink" l))))
-        (dolist (group grouped-backlinks)
-          (let ((file-from (car group))
-                (bls (mapcar (lambda (row)
-                                 (nth 2 row)) (cdr group))))
+  (let (props file-from)
+    (if-let* ((file-path (buffer-file-name org-roam-buffer--current))
+              (titles (with-current-buffer org-roam-buffer--current
+                        (org-roam--extract-titles)))
+              (backlinks (org-roam--get-backlinks (push file-path titles)))
+              (grouped-backlinks (--group-by (nth 0 it) backlinks)))
+        (progn
+          (insert (let ((l (length backlinks)))
+                    (format "\n\n* %d %s\n"
+                            l (org-roam-buffer--pluralize "Backlink" l))))
+          (dolist (group grouped-backlinks)
+            (setq file-from (car group))
+            (setq props (mapcar (lambda (row) (nth 2 row)) (cdr group)))
+            (setq props (seq-sort-by (lambda (p) (plist-get p :point)) #'< props))
             (insert (format "** %s\n"
                             (org-roam-format-link file-from
-                                                   (org-roam--get-title-or-slug file-from)
-                                                   "file")))
-            ;; Sort backlinks according to time of occurrence in buffer
-            (setq bls (seq-sort-by (lambda (bl)
-                                     (plist-get bl :point))
-                                   #'<
-                                   bls))
-            (dolist (props bls)
+                                                  (org-roam--get-title-or-slug file-from)
+                                                  "file")))
+            (dolist (prop props)
               (insert "*** "
-                      (if-let ((outline (plist-get props :outline)))
+                      (if-let ((outline (plist-get prop :outline)))
                           (-> outline
                               (string-join " > ")
                               (org-roam-buffer-expand-links file-from))
                         "Top")
                       "\n"
-                      (propertize
-                       (s-trim (s-replace "\n" " "
-                                          (org-roam-buffer-expand-links (or (plist-get props :content) " ") file-from)))
-                       'help-echo "mouse-1: visit backlinked note"
-                       'file-from file-from
-                       'file-from-point (plist-get props :point))
-                      "\n\n")))))
-    (insert "\n\n* No backlinks!")))
+                      (if-let ((content (plist-get prop :content)))
+                          (propertize
+                           (s-trim (s-replace "\n" " " (org-roam-buffer-expand-links content file-from)))
+                           'help-echo "mouse-1: visit backlinked note"
+                           'file-from file-from
+                           'file-from-point (plist-get prop :point))
+                        "")
+                      "\n\n"))))
+      (insert "\n\n* No backlinks!"))))
 
 (defun org-roam-buffer-update ()
   "Update the `org-roam-buffer'."
