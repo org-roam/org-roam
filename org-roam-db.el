@@ -85,7 +85,9 @@ value like `most-positive-fixnum'."
   "Database connection to Org-roam database.")
 
 (defvar org-roam-db-dirty nil
-  "Whether the org-roam database is dirty and requires an update.")
+  "Whether the org-roam database is dirty and requires an update.
+Contains pairs of `org-roam-directory' and `org-roam-db-location'
+so that multi-directories are updated.")
 
 ;;;; Core Functions
 
@@ -196,7 +198,8 @@ the current `org-roam-directory'."
 
 (defun org-roam-db--mark-dirty ()
   "Mark the Org-roam database as dirty."
-  (setq org-roam-db-dirty t))
+  (add-to-list 'org-roam-db-dirty (list org-roam-directory org-roam-db-location)
+               nil #'equal))
 
 ;;;; Database API
 ;;;;; Initialization
@@ -548,9 +551,9 @@ If FORCE, force a rebuild of the cache from scratch."
 
 (defun org-roam-db-update-cache ()
   "Update the cache if the database is dirty."
-  (when org-roam-db-dirty
-    (org-roam-db-build-cache)
-    (setq org-roam-db-dirty nil)))
+  (pcase-dolist (`(,org-roam-directory ,org-roam-db-location) org-roam-db-dirty)
+    (org-roam-db-build-cache))
+  (setq org-roam-db-dirty nil))
 
 (provide 'org-roam-db)
 

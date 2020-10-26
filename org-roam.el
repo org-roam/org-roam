@@ -1089,6 +1089,7 @@ When STRICT is non-nil, only consider Org-roam’s database."
   (when-let ((marker (if (markerp id-or-marker)
                          id-or-marker
                        (org-roam-id-find id-or-marker t strict t))))
+    (org-mark-ring-push)
     (org-goto-marker-or-bmk marker)
     (set-marker marker nil)))
 
