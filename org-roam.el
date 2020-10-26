@@ -565,7 +565,7 @@ Assume buffer is widened and point is on a headline."
   "Extracts all link items within the current buffer.
 Link items are of the form:
 
-    [from to type properties]
+    [source dest type properties]
 
 This is the format that emacsql expects when inserting into the database.
 FILE-FROM is typically the buffer file path, but this may not exist, for example
@@ -1040,11 +1040,11 @@ citation key, for Org-ref cite links."
   (unless (listp targets)
     (setq targets (list targets)))
   (let ((conditions (--> targets
-                         (mapcar (lambda (i) (list '= 'to i)) it)
+                         (mapcar (lambda (i) (list '= 'dest i)) it)
                          (org-roam--list-interleave it :or))))
-    (org-roam-db-query `[:select [from to properties] :from links
+    (org-roam-db-query `[:select [source dest properties] :from links
                          :where ,@conditions
-                         :order-by (asc from)])))
+                         :order-by (asc source)])))
 
 (defun org-roam-id-get-file (id)
   "Return the file if ID exists in the Org-roam database.
@@ -1374,9 +1374,9 @@ if applicable.
 
 To be added to `org-roam-title-change-hook'."
   (let* ((current-path (buffer-file-name))
-         (files-affected (org-roam-db-query [:select :distinct [from]
+         (files-affected (org-roam-db-query [:select :distinct [source]
                                              :from links
-                                             :where (= to $s1)]
+                                             :where (= dest $s1)]
                                             current-path)))
     (dolist (file files-affected)
       (with-current-buffer (or (find-buffer-visiting (car file))
@@ -1421,9 +1421,9 @@ When NEW-FILE-OR-DIR is a directory, we use it to compute the new file path."
              (new-path (expand-file-name new-file))
              (new-buffer (or (find-buffer-visiting new-path)
                              (find-file-noselect new-path)))
-             (files-affected (org-roam-db-query [:select :distinct [from]
+             (files-affected (org-roam-db-query [:select :distinct [source]
                                                  :from links
-                                                 :where (= to $s1)]
+                                                 :where (= dest $s1)]
                                                 old-path)))
         ;; Remove database entries for old-file.org
         (org-roam-db--clear-file old-file)
