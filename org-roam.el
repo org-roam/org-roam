@@ -1046,14 +1046,21 @@ citation key, for Org-ref cite links."
                          :where ,@conditions
                          :order-by (asc source)])))
 
-(defun org-roam-id-get-file (id)
-  "Return the file if ID exists in the Org-roam database.
+(defun org-roam-id-get-file (id &optional strict)
+  "Return the file if ID exists.
+When STRICT is non-nil, only consider Org-roam's database.
 Return nil otherwise."
-  (caar (org-roam-db-query [:select [file]
-                            :from ids
-                            :where (= id $s1)
-                            :limit 1]
-                           id)))
+  (or (caar (org-roam-db-query [:select [file]
+                                :from ids
+                                :where (= id $s1)
+                                :limit 1]
+                               id))
+      (and (not strict)
+           (progn
+             (unless org-id-locations (org-id-locations-load))
+             (or (and org-id-locations
+                      (hash-table-p org-id-locations)
+                      (gethash id org-id-locations)))))))
 
 (defun org-roam-id-find (id &optional markerp strict keep-buffer-p)
   "Return the location of the entry with the id ID.
@@ -1061,8 +1068,7 @@ When MARKERP is non-nil, return a marker pointing to the headline.
 Otherwise, return a cons formatted as \(file . pos).
 When STRICT is non-nil, only consider Org-roam’s database.
 When KEEP-BUFFER-P is non-nil, keep the buffers navigated by Org-roam open."
-  (let ((file (or (org-roam-id-get-file id)
-                  (unless strict (org-id-find-id-file id)))))
+  (let ((file (org-roam-id-get-file id strict)))
     (when file
       (let ((existing-buf (find-buffer-visiting file))
             (res (org-id-find-id-in-file id file markerp)))
@@ -1238,17 +1244,15 @@ file."
                         (org-roam--org-roam-file-p)))
            (custom (or (and in-note org-roam-link-use-custom-faces)
                        (eq org-roam-link-use-custom-faces 'everywhere))))
-      (cond ((and custom
-                  (not (org-roam-id-get-file id))
-                  (not (and (eq org-roam-link-use-custom-faces 'everywhere)
-                            (org-id-find id))))
-             'org-roam-link-invalid)
-            ((and (org-roam--in-buffer-p)
+      (cond ((and (org-roam--in-buffer-p)
                   (org-roam--backlink-to-current-p))
              'org-roam-link-current)
             ((and custom
-                  (org-roam-id-get-file id))
+                  (org-roam-id-get-file id t))
              'org-roam-link)
+            ((and custom
+                  (not (org-roam-id-get-file id)))
+             'org-roam-link-invalid)
             (t
              'org-link)))))
 
