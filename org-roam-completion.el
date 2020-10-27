@@ -79,6 +79,7 @@ Return user choice."
             (if (fboundp 'ivy-read)
                 (ivy-read prompt choices
                           :initial-input initial-input
+                          :preselect initial-input
                           :require-match require-match
                           :action (prog1 action
                                     (setq action nil))
