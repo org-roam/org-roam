@@ -32,7 +32,8 @@
 ;;; Code:
 (require 'xml) ;xml-escape-string
 (require 's)   ;s-truncate, s-replace
-(require 'org-roam-macs)
+(eval-and-compile
+  (require 'org-roam-macs))
 (require 'org-roam-db)
 
 ;;;; Declarations
