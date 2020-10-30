@@ -34,8 +34,14 @@
 ;;; Code:
 ;;;; Library Requires
 (require 'dash)
+(require 's)
 
 (defvar org-roam-verbose)
+
+;; This is necessary to ensure all dependents on this module see
+;; `org-mode-hook' and `org-inhibit-startup' as dynamic variables,
+;; regardless of whether Org is loaded before their compilation.
+(require 'org)
 
 ;;;; Utility Functions
 (defun org-roam--list-interleave (lst separator)
