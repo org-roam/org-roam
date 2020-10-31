@@ -1336,7 +1336,7 @@ replaced links are made relative to the current buffer."
     (while (re-search-forward org-link-any-re nil t)
       (when-let ((new-link (save-match-data
                              (org-roam--get-relative-link-replacement old-path))))
-        (replace-match new-link nil t nil 1)))))
+        (replace-match new-link nil t nil 2)))))
 
 (defcustom org-roam-rename-file-on-title-change t
   "If non-nil, alter the filename on title change.
