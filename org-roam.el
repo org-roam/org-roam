@@ -669,18 +669,19 @@ Reads from the \"roam_alias\" property."
 (defun org-roam--extract-titles (&optional sources nested)
   "Extract the titles from current buffer using SOURCES.
 If NESTED, return the first successful result from SOURCES."
-  (let (coll res)
-    (cl-dolist (source (or sources
-                           org-roam-title-sources))
-      (setq res (if (symbolp source)
-                    (funcall (intern (concat "org-roam--extract-titles-" (symbol-name source))))
-                  (org-roam--extract-titles source t)))
-      (when res
-        (if (not nested)
-            (setq coll (nconc coll res))
-          (setq coll res)
-          (cl-return))))
-    coll))
+  (org-with-wide-buffer
+   (let (coll res)
+     (cl-dolist (source (or sources
+                            org-roam-title-sources))
+       (setq res (if (symbolp source)
+                     (funcall (intern (concat "org-roam--extract-titles-" (symbol-name source))))
+                   (org-roam--extract-titles source t)))
+       (when res
+         (if (not nested)
+             (setq coll (nconc coll res))
+           (setq coll res)
+           (cl-return))))
+     coll)))
 
 (defun org-roam--extract-tags-all-directories (file)
   "Extract tags from using the directory path FILE.
