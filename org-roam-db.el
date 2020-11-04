@@ -274,8 +274,8 @@ Returns the number of rows inserted."
         rows)
     (length rows)))
 
-(defun org-roam-db--insert-ref (&optional update-p)
-  "Update the ref of the current buffer into the cache.
+(defun org-roam-db--insert-refs (&optional update-p)
+  "Update the refs of the current buffer into the cache.
 If UPDATE-P is non-nil, first remove the ref for the file in the database."
   (let ((file (or org-roam-file-name (buffer-file-name)))
         (count 0))
@@ -474,7 +474,7 @@ If the file exists, update the cache with information."
         (org-roam-db--insert-meta 'update)
         (org-roam-db--insert-tags 'update)
         (org-roam-db--insert-titles 'update)
-        (org-roam-db--insert-ref 'update)
+        (org-roam-db--insert-refs 'update)
         (when org-roam-enable-headline-linking
           (org-roam-db--insert-ids 'update))
         (org-roam-db--insert-links 'update)))))
@@ -539,7 +539,7 @@ If FORCE, force a rebuild of the cache from scratch."
               (setq link-count (+ link-count (org-roam-db--insert-links)))
               (setq tag-count (+ tag-count (org-roam-db--insert-tags)))
               (setq title-count (+ title-count (org-roam-db--insert-titles)))
-              (setq ref-count (+ ref-count (org-roam-db--insert-ref))))
+              (setq ref-count (+ ref-count (org-roam-db--insert-refs))))
           (file-error
            (setq org-roam-files (remove file org-roam-files))
            (org-roam-db--clear-file file)
