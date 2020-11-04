@@ -35,13 +35,18 @@
 (require 'emacsql)
 (require 'emacsql-sqlite3)
 (require 'seq)
-(require 'org-macs)
-(require 'org-roam-macs)
+
+(eval-and-compile
+  (require 'org-roam-macs)
+  ;; For `org-with-wide-buffer'
+  (require 'org-macs))
 
 (defvar org-roam-directory)
 (defvar org-roam-enable-headline-linking)
 (defvar org-roam-verbose)
 (defvar org-roam-file-name)
+
+(defvar org-agenda-files)
 
 (declare-function org-roam--org-roam-file-p                "org-roam")
 (declare-function org-roam--extract-titles                 "org-roam")

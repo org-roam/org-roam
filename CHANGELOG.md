@@ -13,6 +13,9 @@
 - [#1195](https://github.com/org-roam/org-roam/issues/1195) fix ID face showing as invalid if within Org ID files, but not Org-roam's.
 - [#1199](https://github.com/org-roam/org-roam/issues/1199) make Org-roam link insertions respect `org-roam-link-title-format` everywhere.
 - [#1201](https://github.com/org-roam/org-roam/issues/1201) fix `org-roam-db-build-cache` failing in scenarios involving duplicate IDs and deleted files.
+- [#1226](https://github.com/org-roam/org-roam/issues/1226) only update relative path of file links
+- [#1232](https://github.com/org-roam/org-roam/issues/1232) fix incorrect title extractions from narrowed buffers
+- [#1233](https://github.com/org-roam/org-roam/issues/1233) fixes bug where descriptive file links become plain links during update for relative paths
 
 ## 1.2.2 (06-10-2020)
 

@@ -36,6 +36,10 @@
 
 (require 'ol)
 (require 'org-roam-compat)
+(require 'org-roam-macs)
+(require 'org-roam-db)
+
+(require 'org-element)
 
 (defvar org-roam-completion-ignore-case)
 (defvar org-roam-directory)
