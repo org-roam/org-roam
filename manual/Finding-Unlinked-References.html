@@ -75,11 +75,17 @@ facilities for discovering these unlinked references, so one may decide whether
 to convert them into links.
 </p>
 <p>To use this feature, simply call <code>M-x org-roam-unlinked-references</code> from within
-an Org-roam note. Org-roam uses <a href="https://github.com/BurntSushi/ripgrep">ripgrep</a>, specifically a clever PCRE regex to
+an Org-roam note. Internally, Org-roam uses <a href="https://github.com/BurntSushi/ripgrep">ripgrep</a> and a clever PCRE regex to
 find occurrences of the title or aliases of the currently open note in all
-Org-roam files. This thus requires a version of ripgrep that is compiled with
+Org-roam files. Hence, this requires a version of ripgrep that is compiled with
 PCRE support.
 </p>
+<blockquote>
+<p>NOTE: Since ripgrep cannot read encrypted files, this function cannot find
+unlinked references within encrypted files.
+</p>
+</blockquote>
+
 
 
 
