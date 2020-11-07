@@ -147,6 +147,11 @@ Formatter may be a function that takes title as its only argument."
           (function :tag "Custom function"))
   :group 'org-roam)
 
+(defcustom org-roam-prefer-id-links t
+  "If non-nil, use ID for linking instead where available."
+  :type 'boolean
+  :group 'org-roam)
+
 (defcustom org-roam-list-files-commands
   (if (member system-type '(windows-nt ms-dos cygwin))
       nil
@@ -824,7 +829,8 @@ Each ref is returned as a cons of its type and its key."
 TYPE defaults to \"file\".
 Here, we also check if there is an ID for the file."
   (setq type (or type "file"))
-  (when-let ((id (and (string-equal type "file")
+  (when-let ((id (and org-roam-prefer-id-links
+                      (string-equal type "file")
                       (caar (org-roam-db-query [:select [id] :from ids
                                                 :where (= file $s1)
                                                 :and (= level 0)
