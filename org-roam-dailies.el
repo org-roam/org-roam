@@ -39,13 +39,21 @@
 (require 'org-roam-macs)
 (require 'f)
 
+;;;; Declarations
+(defvar org-roam-mode)
+(defvar org-roam-directory)
+(declare-function org-roam--org-file-p        "org-roam")
+(declare-function org-roam--file-path-from-id "org-roam")
+(declare-function org-roam--find-file         "org-roam")
+(declare-function org-roam-mode               "org-roam")
+
 (defvar org-roam-dailies-capture--file-name-default "%<%Y-%m-%d>"
   "The default file-name for `org-roam-dailies-capture-templates'.")
 
 (defvar org-roam-dailies-capture--header-default "#+title: %<%Y-%m-%d>\n"
   "The default header for `org-roam-dailies-capture-templates'.")
 
-;;; Customizable variables
+;;;; Customizable variables
 (defcustom org-roam-dailies-directory "daily/"
   "Path to daily-notes."
   :group 'org-roam
@@ -112,14 +120,7 @@ Template string   :\n%v")
                           ((const :format "%v " :kill-buffer) (const t))
                           ((const :format "%v " :unnarrowed) (const t))))))))
 
-;; Declarations
-(defvar org-roam-mode)
-(defvar org-roam-directory)
-(declare-function org-roam--org-file-p        "org-roam")
-(declare-function org-roam--file-path-from-id "org-roam")
-(declare-function org-roam--find-file         "org-roam")
-(declare-function org-roam-mode               "org-roam")
-
+;;;; Utilities
 (defun org-roam-dailies-directory--get-absolute-path ()
   "Get absolute path to `org-roam-dailies-directory'."
   (-> (concat
@@ -158,9 +159,8 @@ When GOTO is non-nil, go the note without creating an entry."
     (setq org-roam-capture-additional-template-props (list :finalize 'find-file))
     (org-roam-capture--capture (when goto '(4)))))
 
-;;----------------------------------------------------------------------------
-;; Today
-;;----------------------------------------------------------------------------
+;;;; Commands
+;;; Today
 (defun org-roam-dailies-capture-today (&optional goto)
   "Create an entry in the daily note for today.
 
@@ -176,9 +176,7 @@ When GOTO is non-nil, go the note without creating an entry."
   (interactive)
   (org-roam-dailies-capture-today t))
 
-;;----------------------------------------------------------------------------
-;; Tomorrow
-;;----------------------------------------------------------------------------
+;;; Tomorrow
 (defun org-roam-dailies-capture-tomorrow (n &optional goto)
   "Create an entry in the daily note for tomorrow.
 
@@ -196,9 +194,7 @@ With numeric argument N, use N days in the future."
   (interactive "p")
   (org-roam-dailies-capture-tomorrow n t))
 
-;;----------------------------------------------------------------------------
-;; Yesterday
-;;----------------------------------------------------------------------------
+;;; Yesterday
 (defun org-roam-dailies-capture-yesterday (n &optional goto)
   "Create an entry in the daily note for yesteday.
 
@@ -215,9 +211,7 @@ With numeric argument N, use N days in the future."
   (interactive "p")
   (org-roam-dailies-capture-tomorrow (- n) t))
 
-;;----------------------------------------------------------------------------
-;; Calendar
-;;----------------------------------------------------------------------------
+;;; Calendar
 (defvar org-roam-dailies-calendar-hook (list 'org-roam-dailies-calendar-mark-entries)
   "Hooks to run when showing the `org-roam-dailies-calendar'.")
 
@@ -259,9 +253,7 @@ Return (MONTH DAY YEAR)."
       (when (calendar-date-is-visible-p date)
         (calendar-mark-visible-date date 'org-roam-dailies-calendar-note)))))
 
-;;----------------------------------------------------------------------------
-;; Date
-;;----------------------------------------------------------------------------
+;;; Date
 (defun org-roam-dailies-capture-date (&optional goto prefer-future)
   "Create an entry in the daily note for a date using the calendar.
 
@@ -286,9 +278,7 @@ creating an entry."
   (interactive)
   (org-roam-dailies-capture-date t))
 
-;;----------------------------------------------------------------------------
-;; Navigation
-;;----------------------------------------------------------------------------
+;;; Navigation
 (defun org-roam-dailies--list-files (&rest extra-files)
   "List all files in `org-roam-dailies-directory'.
 
@@ -354,9 +344,7 @@ negative, find note N days in the future."
   (let ((n (if n (- n) -1)))
     (org-roam-dailies-find-next-note n)))
 
-;;----------------------------------------------------------------------------
-;; Keybindings
-;;----------------------------------------------------------------------------
+;;;; Bindings
 (defvar org-roam-dailies-map (make-sparse-keymap)
   "Keymap for `org-roam-dailies'.")
 
