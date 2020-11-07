@@ -39,6 +39,11 @@
 (require 'org-roam)
 (require 'ol) ;; for org-link-decode
 
+(defcustom org-roam-protocol-store-links nil
+  "Whether to store links when capturing websites with `org-roam-protocol'."
+  :type 'boolean
+  :group 'org-roam)
+
 ;;;; Functions
 (defun org-roam-protocol-open-ref (info)
   "Process an org-protocol://roam-ref?ref= style url with INFO.
@@ -79,6 +84,9 @@ It opens or creates a note with the given ref.
            (orglink
             (if (null ref) title
               (org-link-make-string ref (or (org-string-nw-p title) ref)))))
+      (when (and org-roam-protocol-store-links
+                 ref)
+        (push (list ref title) org-stored-links))
       (org-link-store-props :type type
                             :link ref
                             :description title
