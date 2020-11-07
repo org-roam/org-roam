@@ -512,22 +512,30 @@ Use external shell commands if defined in `org-roam-list-files-commands'."
 
 ;;;; Org extraction functions
 (defun org-roam--extract-global-props (props)
-  "Extract PROPS from the current org buffer.
-The search terminates when the first property is encountered."
-  (if (functionp 'org-collect-keywords)
-      (->> (org-collect-keywords props)
-           ;; convert (("TITLE" "my title")) to (("TITLE" . "my title"))
-           (mapcar (pcase-lambda (`(,k ,v)) (cons k v))))
-    (let ((buf (org-element-parse-buffer))
-          res)
-      (dolist (prop props)
-        (let ((p (org-element-map buf 'keyword
-                   (lambda (kw)
-                     (when (string-equal (org-element-property :key kw) prop)
-                       (org-element-property :value kw)))
-                   :first-match t)))
-          (push (cons prop p) res)))
-      res)))
+  "Extract PROPS from the current org buffer."
+  (let ((collected
+         ;; Collect the raw props first
+         ;; It'll be returned in the form of
+         ;; (("PROP" "value" ...) ("PROP2" "value" ...))
+         (if (functionp 'org-collect-keywords)
+             (org-collect-keywords props)
+           (let ((buf (org-element-parse-buffer))
+                 res)
+             (dolist (prop props)
+               (let ((p (org-element-map buf 'keyword
+                          (lambda (kw)
+                            (when (string-equal (org-element-property :key kw) prop)
+                              (org-element-property :value kw)))
+                          :first-match nil)))
+                 (push (cons prop p) res)))
+             res))))
+    ;; convert (("TITLE" "a" "b") ("Another" "c"))
+    ;; to (("TITLE" . "a") ("TITLE" . "b") ("Another" . "c"))
+    (let (ret)
+      (pcase-dolist (`(,key . ,values) collected)
+        (dolist (value values)
+          (push (cons key value) ret)))
+      ret)))
 
 (defun org-roam--get-outline-path ()
   "Return the outline path to the current entry.
@@ -763,20 +771,30 @@ backlinks."
          "website")
         (t type)))
 
+(defun org-roam--extract-refs ()
+  "Extract all refs (ROAM_KEY statements) from the current buffer.
+
+Each ref is returned as a cons of its type and its key."
+  (let (refs)
+    (pcase-dolist
+        (`(,_ . ,roam-key)
+         (org-roam--extract-global-props '("ROAM_KEY")))
+      (let (type path)
+        (pcase roam-key
+          ('nil nil)
+          ((pred string-empty-p)
+           (user-error "Org property #+roam_key cannot be empty"))
+          (ref
+           (when (string-match org-link-plain-re ref)
+             (setq type (org-roam--collate-types (match-string 1 ref))
+                   path (match-string 2 ref)))))
+        (when (and type path)
+          (push (cons type path) refs))))
+    refs))
+
 (defun org-roam--extract-ref ()
   "Extract the ref from current buffer and return the type and the key of the ref."
-  (let (type path)
-    (pcase (cdr (assoc "ROAM_KEY"
-                       (org-roam--extract-global-props '("ROAM_KEY"))))
-      ('nil nil)
-      ((pred string-empty-p)
-       (user-error "Org property #+roam_key cannot be empty"))
-      (ref
-       (when (string-match org-link-plain-re ref)
-         (setq type (org-roam--collate-types (match-string 1 ref))
-               path (match-string 2 ref)))))
-    (when (and type path)
-      (cons type path))))
+  (car (org-roam--extract-refs)))
 
 ;;;; Title/Path/Slug conversion
 (defun org-roam--path-to-slug (path)
