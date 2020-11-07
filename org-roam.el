@@ -148,8 +148,7 @@ Formatter may be a function that takes title as its only argument."
   :group 'org-roam)
 
 (defcustom org-roam-prefer-id-links t
-  "If non-nil, when inserting links with Org-roam and an ID is
-available, Org-roam will use the ID for linking instead."
+  "If non-nil, use ID for linking instead where available."
   :type 'boolean
   :group 'org-roam)
 
