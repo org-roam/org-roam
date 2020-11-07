@@ -58,6 +58,33 @@ It opens or creates a note with the given ref.
       (error "No ref key provided"))
     (when-let ((title (cdr (assoc 'title decoded-alist))))
       (push (cons 'slug (funcall org-roam-title-to-slug-function title)) decoded-alist))
+    (let* ((parts
+            (pcase (org-protocol-parse-parameters info)
+              ;; New style links are parsed as a plist.
+              ((let `(,(pred keywordp) . ,_) info) info)
+              ;; Old style links, with or without template key, are
+              ;; parsed as a list of strings.
+              (p
+               (let ((k (if (= 1 (length (car p)))
+                            '(:template :url :title :body)
+                          '(:url :title :body))))
+                 (org-protocol-assign-parameters p k)))))
+           (ref (and (plist-get parts :ref)
+                     (org-protocol-sanitize-uri (plist-get parts :ref))))
+           (type (and ref
+                      (string-match "^\\([a-z]+\\):" ref)
+                      (match-string 1 ref)))
+           (title (or (plist-get parts :title) ""))
+           (region (or (plist-get parts :body) ""))
+           (orglink
+            (if (null ref) title
+              (org-link-make-string ref (or (org-string-nw-p title) ref)))))
+      (org-link-store-props :type type
+                            :link ref
+                            :description title
+                            :annotation orglink
+                            :initial region
+                            :query parts))
     (let* ((org-roam-capture-templates org-roam-capture-ref-templates)
            (org-roam-capture--context 'ref)
            (org-roam-capture--info decoded-alist)
