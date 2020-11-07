@@ -5,6 +5,7 @@
 ### Features
 
 - [#1183](https://github.com/org-roam/org-roam/pull/1183) add interactive functions for managing aliases and tags in Org-roam file, namely `org-roam-alias-add`, `org-roam-alias-delete`, `org-roam-tag-add`, and `org-roam-tag-delete`.
+- [#1238](https://github.com/org-roam/org-roam/pull/1238) add `org-roam-prefer-id-links` variable to select linking method
 
 ### Bugfixes
 
