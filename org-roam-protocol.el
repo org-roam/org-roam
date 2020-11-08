@@ -70,10 +70,8 @@ It opens or creates a note with the given ref.
              (title (or \.title ""))
              (body (or \.body ""))
              (orglink
-              (if (null ref) title
-                (org-link-make-string ref (or (org-string-nw-p title) ref)))))
-        (when (and org-roam-protocol-store-links
-                   ref)
+              (org-link-make-string ref (or (org-string-nw-p title) ref))))
+        (when org-roam-protocol-store-links
           (push (list ref title) org-stored-links))
         (org-link-store-props :type type
                               :link ref
