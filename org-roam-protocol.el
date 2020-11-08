@@ -64,11 +64,11 @@ It opens or creates a note with the given ref.
     (when-let ((title (cdr (assoc 'title decoded-alist))))
       (push (cons 'slug (funcall org-roam-title-to-slug-function title)) decoded-alist))
     (let-alist decoded-alist
-      (let* ((ref (org-protocol-sanitize-uri \.ref))
+      (let* ((ref (org-protocol-sanitize-uri .ref))
              (type (and (string-match "^\\([a-z]+\\):" ref)
                         (match-string 1 ref)))
-             (title (or \.title ""))
-             (body (or \.body ""))
+             (title (or .title ""))
+             (body (or .body ""))
              (orglink
               (org-link-make-string ref (or (org-string-nw-p title) ref))))
         (when org-roam-protocol-store-links
