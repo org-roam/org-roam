@@ -51,7 +51,7 @@
 It opens or creates a note with the given ref.
 
   javascript:location.href = \\='org-protocol://roam-ref?template=r&ref=\\='+ \\
-        encodeURIComponent(location.href) + \\='&title=\\=' \\
+        encodeURIComponent(location.href) + \\='&title=\\=' + \\
         encodeURIComponent(document.title) + \\='&body=\\=' + \\
         encodeURIComponent(window.getSelection())"
   (when-let* ((alist (org-roam--plist-to-alist info))
