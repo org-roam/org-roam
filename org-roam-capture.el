@@ -512,7 +512,8 @@ GOTO and KEYS argument have the same functionality as
 `org-capture'."
   (let* ((org-capture-templates (mapcar #'org-roam-capture--convert-template org-roam-capture-templates))
          (one-template-p (= (length org-capture-templates) 1))
-         org-capture-templates-contexts)
+         org-capture-templates-contexts
+         (org-capture-link-is-already-stored t))
     (when one-template-p
       (setq keys (caar org-capture-templates)))
     (if (or one-template-p
