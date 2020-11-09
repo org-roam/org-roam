@@ -47,12 +47,6 @@
 (declare-function org-roam--find-file         "org-roam")
 (declare-function org-roam-mode               "org-roam")
 
-(defvar org-roam-dailies-capture--file-name-default "%<%Y-%m-%d>"
-  "The default file-name for `org-roam-dailies-capture-templates'.")
-
-(defvar org-roam-dailies-capture--header-default "#+title: %<%Y-%m-%d>\n"
-  "The default header for `org-roam-dailies-capture-templates'.")
-
 ;;;; Customizable variables
 (defcustom org-roam-dailies-directory "daily/"
   "Path to daily-notes."
@@ -67,16 +61,19 @@
 (defcustom org-roam-dailies-capture-templates
   `(("d" "daily" entry #'org-roam-capture--get-point
      "* %?"
-     :header ,org-roam-dailies-capture--header-default))
+     :header "#+title: %<%Y-%m-%d>"
+     :file-name ,(concat org-roam-dailies-directory
+                         "%<%Y-%m-%d>")))
   "Capture templates for daily-notes in Org-roam."
   :group 'org-roam
   ;; Adapted from `org-capture-templates'
   :type
-  '(repeat
+  `(repeat
     (choice :value ("d" "daily" plain (function org-roam-capture--get-point)
                     ""
                     :immediate-finish t
-                    :file-name "%<%Y-%m-%d>"
+                    :file-name ,(concat org-roam-dailies-directory
+                         "%<%Y-%m-%d>")
                     :head "#+title: %<%Y-%m-%d>")
             (list :tag "Multikey description"
                   (string :tag "Keys       ")
