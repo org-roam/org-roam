@@ -647,31 +647,35 @@ accepts the absolute file path as its argument. See
 @node File Refs
 @section File Refs
 
-Refs are unique identifiers for files. Each note can only have 1 ref.
-For example, a note for a website may contain a ref:
+Refs are unique identifiers for files. For example, a note for a website may contain a ref:
 
 @example
 #+title: Google
 #+roam_key: https://www.google.com/
 @end example
 
-These keys come in useful for when taking website notes, using the
-@code{roam-ref} protocol (see @ref{Roam Protocol}).
+These keys allow references to the key to show up in the backlinks buffer. For instance,
+with the example above, if another file then links to @uref{https://www.google.com}, that will
+show up as a “Ref Backlink”.
 
-Alternatively, add a ref for notes for a specific paper, using its
-@uref{https://github.com/jkitchin/org-ref, org-ref} citation key:
+These keys also come in useful for when taking website notes, using the @code{roam-ref} protocol
+ (see @ref{Roam Protocol}).
+
+@uref{https://github.com/jkitchin/org-ref, org-ref} citation keys can also be used as refs:
 
 @example
 #+title: Neural Ordinary Differential Equations
 #+roam_key: cite:chen18_neural_ordin_differ_equat
 @end example
 
-The backlinks buffer will show any cites of this key: e.g.
-
 @float Figure
 @image{images/org-ref-citelink,,,,png}
 @caption{org-ref-citelink}
 @end float
+
+You may assign multiple refs to a single file, for example when you want multiple papers
+in a series to share the same note, or an article has a citation key and a URL at the same
+time.
 
 @node The Templating System
 @chapter The Templating System
