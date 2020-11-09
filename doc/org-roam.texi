@@ -89,6 +89,11 @@ General Public License for more details.
 @detailmenu
 --- The Detailed Node Listing ---
 
+A Brief Introduction to the Zettelkasten Method
+
+* Fleeting notes::
+* Permanent notes::
+
 Installation
 
 * Installing from MELPA::
@@ -125,7 +130,6 @@ Graphing
 
 Roam Protocol
 
-* _::
 * Installation: Installation (1). 
 * The roam-file protocol::
 * The roam-ref protocol::
@@ -267,12 +271,23 @@ create new zettels, pre-filling boilerplate content using a powerful templating
 system. Org-roam also facilitates the linking of zettels using Org-mode @code{file:}
 links.
 
+@menu
+* Fleeting notes::
+* Permanent notes::
+@end menu
+
+@node Fleeting notes
+@section Fleeting notes
+
 A slip-box requires a method of quickly capturing ideas. These are called
 @strong{fleeting notes}: they are simple reminders of information or ideas that will
 need to be processed later on, or trashed. This is typically accomplished using
 @code{org-capture} (see @ref{capture,,,org,}), or using Org-roam's daily notes
 functionality (see @ref{Daily-notes}). This provides a central inbox for collecting
 thoughts, to be processed later into permanent notes.
+
+@node Permanent notes
+@section Permanent notes
 
 Permanent notes are further split into two categories: @strong{literature notes} and
 @strong{concept notes}. Literature notes can be brief annotations on a particular
@@ -418,7 +433,7 @@ Where @code{/path/to/my/info/files} is the location where you keep info files. T
 @lisp
 (require 'info)
 (add-to-list 'Info-default-directory-list
-         "/path/to/my/info/files")
+             "/path/to/my/info/files")
 @end lisp
 
 You can also use one of the default locations, such as:
@@ -568,7 +583,7 @@ title extraction methods supported are:
 
 @item
 @code{'alias}: This extracts a list of titles using the @code{#+roam_alias} property.
-The aliases are space-delimited, and can be multi-worded using quotes
+The aliases are space-delimited, and can be multi-worded using quotes.
 @end itemize
 
 Take for example the following org file:
@@ -1022,10 +1037,10 @@ Note that Emacs will prompt for a password for encrypted files during
 cache updates if it requires reading the encrypted file. To reduce the
 number of password prompts, you may wish to cache the password.
 
-@defvar org-roam-encrypt-files
+@defopt org-roam-encrypt-files
 
 Whether to encrypt new files.  If true, create files with .org.gpg extension.
-@end defvar
+@end defopt
 
 @node Graphing
 @chapter Graphing
@@ -1177,18 +1192,14 @@ Other options include @code{'ido}, and @code{'ivy}.
 @node Roam Protocol
 @chapter Roam Protocol
 
+Org-roam extends @code{org-protocol} with 2 protocols: the @code{roam-file}
+and @code{roam-ref} protocols.
+
 @menu
-* _::
 * Installation: Installation (1). 
 * The roam-file protocol::
 * The roam-ref protocol::
 @end menu
-
-@node _
-@section _ :ignore:
-
-Org-roam extending @code{org-protocol} with 2 protocols: the @code{roam-file}
-and @code{roam-ref} protocol.
 
 @node Installation (1)
 @section Installation
@@ -1523,8 +1534,9 @@ Perform a check on Org-roam files to ensure cleanliness. If THIS-BUFFER, run
 the check only for the current buffer.
 @end defun
 
-The checks run are defined in @code{org-roam-doctor--checkers}. Each checker is an
-instance of @code{org-roam-doctor-checker}. To define a checker, use
+The checks run are defined in @code{org-roam-doctor--checkers}. By default, there are checkers for broken links and invalid @samp{#+roam_*} properties.
+
+Each checker is an instance of @code{org-roam-doctor-checker}. To define a checker, use
 @code{make-org-roam-doctor-checker}. Here is a sample definition:
 
 @lisp
@@ -1817,6 +1829,8 @@ tight integration between
 @uref{https://github.com/tmalsburg/helm-bibtex, helm-bibtex} and
 @code{org-roam}. This helps you manage your bibliographic notes under
 @code{org-roam}.
+
+For example, though helm-bibtex provides the ability to visit notes for bibliographic entries, org-roam-bibtex extends it with the ability to visit the file with the right @samp{#+roam_key}.
 
 @node Spaced Repetition
 @unnumberedsubsubsec Spaced Repetition
