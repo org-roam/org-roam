@@ -43,6 +43,7 @@
 (defvar org-roam-title-to-slug-function)
 (defvar org-roam-dailies-directory)
 (defvar org-roam-dailies-capture--file-name-default)
+(defvar org-roam-dailies-capture--header-default)
 (declare-function  org-roam--get-title-path-completions "org-roam")
 (declare-function  org-roam--get-ref-path-completions   "org-roam")
 (declare-function  org-roam--file-path-from-id          "org-roam")
