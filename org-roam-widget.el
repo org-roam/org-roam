@@ -1,7 +1,6 @@
 ;; For the lack of a better name, we're now calling this file org-roam-widget,
 ;; but it is meant to replace org-roam-buffer at some point
 
-(require 's)
 (require 'eieio)
 (require 'magit-section)
 
@@ -185,10 +184,10 @@ Items are of the form: ((key (list of values for key)))")
                      (not (f-equal-p (expand-file-name file org-roam-directory)
                                      (buffer-file-name org-roam-buffer--current))))
             (magit-insert-section (unlinked-reference)
-              (insert (s-pad-right 8
-                                   " "
-                                   (propertize (format "%s:%s" row col)
-                                               'font-lock-face 'org-roam-rowcol))
+              (insert (propertize (format
+                                   "%-8s"
+                                   (format "%s:%s" row col))
+                                  'font-lock-face 'org-roam-rowcol)
                       " "
                       (org-roam--get-title-or-slug file)
                       "\n"))
