@@ -185,7 +185,7 @@ When GOTO is non-nil, go the note without creating an entry."
 (defun org-roam-dailies-capture-tomorrow (n &optional goto)
   "Create an entry in the daily note for tomorrow.
 
-With numeric argument N, use N days in the future.
+With numeric argument N, use the daily note N days in the future.
 
 With a `C-u' prefix or when GOTO is non-nil, go the note without
 creating an entry."
@@ -195,7 +195,8 @@ creating an entry."
 (defun org-roam-dailies-find-tomorrow (n)
   "Find the daily note for tomorrow, creating it if necessary.
 
-With numeric argument N, use N days in the future."
+With numeric argument N, use the daily note N days in the
+future."
   (interactive "p")
   (org-roam-dailies-capture-tomorrow n t))
 
@@ -203,7 +204,7 @@ With numeric argument N, use N days in the future."
 (defun org-roam-dailies-capture-yesterday (n &optional goto)
   "Create an entry in the daily note for yesteday.
 
-With numeric argument N, use N days in the past.
+With numeric argument N, use the daily-note N days in the past.
 
 When GOTO is non-nil, go the note without creating an entry."
   (interactive "p")
@@ -212,7 +213,8 @@ When GOTO is non-nil, go the note without creating an entry."
 (defun org-roam-dailies-find-yesterday (n)
   "Find the daily note for yesterday, creating it if necessary.
 
-With numeric argument N, use N days in the future."
+With numeric argument N, use the daily note N days in the
+future."
   (interactive "p")
   (org-roam-dailies-capture-tomorrow (- n) t))
 
