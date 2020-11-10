@@ -47,12 +47,6 @@
 (declare-function org-roam--find-file         "org-roam")
 (declare-function org-roam-mode               "org-roam")
 
-(defvar org-roam-dailies-capture--file-name-default "%<%Y-%m-%d>"
-  "The default file-name for `org-roam-dailies-capture-templates'.")
-
-(defvar org-roam-dailies-capture--header-default "#+title: %<%Y-%m-%d>\n"
-  "The default header for `org-roam-dailies-capture-templates'.")
-
 ;;;; Customizable variables
 (defcustom org-roam-dailies-directory "daily/"
   "Path to daily-notes."
