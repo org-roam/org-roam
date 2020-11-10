@@ -1824,7 +1824,7 @@ Users are encouraged to think hard about whether items should be
 linked, lest the network graph get too crowded.
 
 Requires a version of Ripgrep with PCRE2 support installed, with
-the executable 'rg' in `exec-path'."
+the executable 'rg' in variable `exec-path'."
   (interactive)
   (unless (org-roam--org-roam-file-p)
     (user-error "Not in org-roam file"))
