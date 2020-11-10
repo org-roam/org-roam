@@ -83,7 +83,7 @@ note with the given `ref'.")
 (defvar org-roam-capture-additional-template-props nil
   "Additional props to be added to the Org-roam template.")
 
-(defconst org-roam-capture--template-keywords '(:file-name :dir-name :head :olp)
+(defconst org-roam-capture--template-keywords '(:file-name :head :olp)
   "Keywords used in `org-roam-capture-templates' specific to Org-roam.")
 
 (defcustom org-roam-capture-templates
@@ -438,8 +438,7 @@ the file if the original value of :no-save is not t and
   (let* ((name-templ (or (org-roam-capture--get :file-name)
                          (pcase org-roam-capture--context
                            ('dailies
-                            (or (-some-> (or (org-roam-capture--get :dir-name)
-                                             org-roam-dailies-directory)
+                            (or (-some-> org-roam-dailies-directory
                                   (file-name-as-directory)
                                   (concat org-roam-dailies-capture--file-name-default))
                                 (user-error "`org-roam-dailies-directory' cannot be nil")))
