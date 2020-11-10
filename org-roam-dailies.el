@@ -278,10 +278,12 @@ creating an entry."
       (run-hooks 'org-roam-dailies-find-file-hook)
       (message "Showing note for %s" time-str))))
 
-(defun org-roam-dailies-find-date ()
-  "Find the daily note for a date using the calendar, creating it if necessary."
+(defun org-roam-dailies-find-date (prefer-future)
+  "Find the daily note for a date using the calendar, creating it if necessary.
+
+Prefer past dates, unless PREFER-FUTURE is non-nil."
   (interactive)
-  (org-roam-dailies-capture-date t))
+  (org-roam-dailies-capture-date t prefer-future))
 
 ;;; Navigation
 (defun org-roam-dailies--list-files (&rest extra-files)
