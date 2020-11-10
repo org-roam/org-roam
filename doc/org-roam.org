@@ -123,7 +123,7 @@ A slip-box requires a method of quickly capturing ideas. These are called
 *fleeting notes*: they are simple reminders of information or ideas that will
 need to be processed later on, or trashed. This is typically accomplished using
 ~org-capture~ (see info:org#capture), or using Org-roam's daily notes
-functionality (see [[*Daily Notes][Daily Notes]]). This provides a central inbox for collecting
+functionality (see [[*Daily-notes][Daily-notes]]). This provides a central inbox for collecting
 thoughts, to be processed later into permanent notes.
 
 Permanent notes are further split into two categories: *literature notes* and
@@ -1013,7 +1013,122 @@ where ~template~ is the template key for a template in
 ~org-roam-capture-ref-templates~ (see [[*The Templating System][The Templating System]]). These templates
 should contain a ~#+roam_key: ${ref}~ in it.
 
-* TODO Daily Notes
+* Daily-notes
+
+Org-roam provides journaling capabilities akin to
+[[#org-journal][Org-journal]] with ~org-roam-dailies~.
+
+** Configuration
+
+For ~org-roam-dailies~ to work, you need to define two variables:
+
+- Variable: ~org-roam-dailies-directory~
+
+  Path to daily-notes.
+
+- Variable: ~org-roam-dailies-capture-templates~
+
+  Capture templates for daily-notes in Org-roam.
+
+Here is a sane default configuration:
+
+#+begin_src emacs-lisp
+  (setq org-roam-dailies-directory "daily/")
+
+  (setq org-roam-dailies-capture-templates
+        '(("d" "default" entry
+           #'org-roam-capture--get-point
+           "* %?"
+           :file-name "daily/%<%Y-%m-%d>"
+           :head "#+title: %<%Y-%m-%d>\n\n")))
+#+end_src
+
+Make sure that ~org-roam-dailies-directory~ appears in ~:file-name~ for your
+notes to be recognized as daily-notes. You can have different templates
+placing their notes in different directories, but the one in
+~org-roam-dailies-directory~ will be considered as the main one in commands.
+
+See [[*The Templating System][The Templating System]] for creating new
+templates. ~org-roam-dailies~ provides an extra ~:olp~ option which allows to
+specify the outline-path to a heading:
+
+#+begin_src emacs-lisp
+  (setq org-roam-dailies-capture-templates
+        '(("l" "lab" entry
+           #'org-roam-capture--get-point
+           "* %?"
+           :file-name "daily/%<%Y-%m-%d>"
+           :head "#+title: %<%Y-%m-%d>\n\n* Lab notes\n* Journal"
+           :olp ("Journal"))
+
+          ("j" "journal" entry
+           #'org-roam-capture--get-point
+           "* %?"
+           :file-name "daily/%<%Y-%m-%d>"
+           :head "#+title: %<%Y-%m-%d>\n\n* Lab notes\n* Journal"
+           :olp ("Lab notes"))))
+#+end_src
+
+The template ~l~ will put its notes under the heading ‘Lab notes’, and the
+template ~j~ will put its notes under the heading ‘Journal’.  When you use
+~:olp~, make sure that the headings are present in ~:head~.
+
+** Capturing and finding daily-notes
+
+- Function: ~org-roam-dailies-capture-today~ &optional goto
+
+  Create an entry in the daily note for today.
+
+  When ~goto~ is non-nil, go the note without creating an entry.
+
+- Function: ~org-roam-dailies-find-today~
+
+  Find the daily note for today, creating it if necessary.
+
+There are variants of those commands for ~-yesterday~ and ~-tomorrow~:
+
+- Function: ~org-roam-dailies-capture-yesterday~ n &optional goto
+
+  Create an entry in the daily note for yesteday.
+
+  With numeric argument ~n~, use the daily note ~n~ days in the past.
+
+- Function: ~org-roam-dailies-find-yesterday~
+
+  With numeric argument N, use the daily-note N days in the future.
+
+There are also commands which allow you to use Emacs’s ~calendar~ to find the date
+
+- Function: ~org-roam-dailies-capture-date~
+
+  Create an entry in the daily note for a date using the calendar.
+
+  Prefer past dates, unless ~prefer-future~ is non-nil.
+  
+  With a 'C-u' prefix or when ~goto~ is non-nil, go the note without
+  creating an entry.
+
+- Function: ~org-roam-dailies-find-date~
+
+  Find the daily note for a date using the calendar, creating it if necessary.
+
+  Prefer past dates, unless ~prefer-future~ is non-nil.
+
+** Navigation
+  
+You can navigate between daily-notes:
+
+- Function: ~org-roam-dailies-find-directory~
+
+  Find and open ~org-roam-dailies-directory~.
+
+- Function: ~org-roam-dailies-find-previous-note~
+
+  When in an daily-note, find the previous one.
+
+- Function: ~org-roam-dailies-find-next-note~
+
+  When in an daily-note, find the next one.
 
 * Diagnosing and Repairing Files
 

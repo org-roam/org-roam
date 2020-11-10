@@ -78,7 +78,7 @@ General Public License for more details.
 * Graphing::
 * Org-roam Completion System::
 * Roam Protocol::
-* Daily Notes::
+* Daily-notes::
 * Diagnosing and Repairing Files::
 * Finding Unlinked References::
 * Performance Optimization::
@@ -128,6 +128,12 @@ Roam Protocol
 * Installation: Installation (1). 
 * The roam-file protocol::
 * The roam-ref protocol::
+
+Daily-notes
+
+* Configuration::
+* Capturing and finding daily-notes::
+* Navigation::
 
 Performance Optimization
 
@@ -260,7 +266,7 @@ A slip-box requires a method of quickly capturing ideas. These are called
 @strong{fleeting notes}: they are simple reminders of information or ideas that will
 need to be processed later on, or trashed. This is typically accomplished using
 @code{org-capture} (see @ref{capture,,,org,}), or using Org-roam's daily notes
-functionality (see @ref{Daily Notes}). This provides a central inbox for collecting
+functionality (see @ref{Daily-notes}). This provides a central inbox for collecting
 thoughts, to be processed later into permanent notes.
 
 Permanent notes are further split into two categories: @strong{literature notes} and
@@ -1348,13 +1354,22 @@ where @code{template} is the template key for a template in
 @code{org-roam-capture-ref-templates} (see @ref{The Templating System}). These templates
 should contain a @code{#+roam_key: $@{ref@}} in it.
 
-@node Daily Notes
-@chapter Daily Notes
+@node Daily-notes
+@chapter Daily-notes
 
 Org-roam provides journaling capabilities akin to
 @ref{Org-journal} with @code{org-roam-dailies}.
 
-The default variables that you need to modify.
+@menu
+* Configuration::
+* Capturing and finding daily-notes::
+* Navigation::
+@end menu
+
+@node Configuration
+@section Configuration
+
+For @code{org-roam-dailies} to work, you need to define two variables:
 
 @itemize
 @item
@@ -1407,7 +1422,12 @@ specify the outline-path to a heading:
          :olp ("Lab notes"))))
 @end lisp
 
-The template @code{l} will put its notes under the heading ‘
+The template @code{l} will put its notes under the heading ‘Lab notes’, and the
+template @code{j} will put its notes under the heading ‘Journal’.  When you use
+@code{:olp}, make sure that the headings are present in @code{:head}.
+
+@node Capturing and finding daily-notes
+@section Capturing and finding daily-notes
 
 @itemize
 @item
@@ -1436,8 +1456,12 @@ With numeric argument @code{n}, use the daily note @code{n} days in the past.
 @item
 Function: @code{org-roam-dailies-find-yesterday}
 
-Find the daily note for today, creating it if necessary.
+With numeric argument N, use the daily-note N days in the future.
+@end itemize
 
+There are also commands which allow you to use Emacs’s @code{calendar} to find the date
+
+@itemize
 @item
 Function: @code{org-roam-dailies-capture-date}
 
@@ -1456,9 +1480,17 @@ Find the daily note for a date using the calendar, creating it if necessary.
 Prefer past dates, unless @code{prefer-future} is non-nil.
 @end itemize
 
-You can also navigate between daily-notes:
+@node Navigation
+@section Navigation
+
+You can navigate between daily-notes:
 
 @itemize
+@item
+Function: @code{org-roam-dailies-find-directory}
+
+Find and open @code{org-roam-dailies-directory}.
+
 @item
 Function: @code{org-roam-dailies-find-previous-note}
 
@@ -1468,11 +1500,6 @@ When in an daily-note, find the previous one.
 Function: @code{org-roam-dailies-find-next-note}
 
 When in an daily-note, find the next one.
-
-@item
-Function: @code{org-roam-dailies-find-directory}
-
-Find and open @code{org-roam-dailies-directory}.
 @end itemize
 
 @node Diagnosing and Repairing Files
