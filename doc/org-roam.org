@@ -1049,8 +1049,8 @@ placing their notes in different directories, but the one in
 ~org-roam-dailies-directory~ will be considered as the main one in commands.
 
 See [[*The Templating System][The Templating System]] for creating new
-templates. ~org-roam-dailies~ provides an extra ~:olp~ option which allows to
-specify the outline-path to a heading:
+templates. ~org-roam-dailies~ provides an extra ~:olp~ option which allows
+specifying the outline-path to a heading:
 
 #+begin_src emacs-lisp
   (setq org-roam-dailies-capture-templates

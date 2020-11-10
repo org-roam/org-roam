@@ -1402,8 +1402,8 @@ placing their notes in different directories, but the one in
 @code{org-roam-dailies-directory} will be considered as the main one in commands.
 
 See @ref{The Templating System} for creating new
-templates. @code{org-roam-dailies} provides an extra @code{:olp} option which allows to
-specify the outline-path to a heading:
+templates. @code{org-roam-dailies} provides an extra @code{:olp} option which allows
+specifying the outline-path to a heading:
 
 @lisp
 (setq org-roam-dailies-capture-templates
