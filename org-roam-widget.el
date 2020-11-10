@@ -4,6 +4,7 @@
 (require 'eieio)
 (require 'magit-section)
 
+;;; Widget Class Definition
 (cl-deftype function ()
   '(satisfies fboundp))
 
@@ -37,13 +38,15 @@ Items are of the form: ((key (list of values for key)))")
 
 (cl-defmethod org-roam-widget-render ((widget org-roam-widget))
   "Render items in WIDGET."
-  (magit-insert-section widget-root
+  (magit-insert-section (widget-root)
     (magit-insert-heading (oref widget header))
     (let ((items (funcall (oref widget items))))
       (if items
           (funcall (oref widget render) items)
         (magit-cancel-section)))))
 
+;;; Widgets
+;;;; Backlinks Widget
 (defun org-roam-widget-get-backlinks ()
   (let* ((file-path (buffer-file-name org-roam-buffer--current))
          (titles (with-current-buffer org-roam-buffer--current
@@ -52,7 +55,7 @@ Items are of the form: ((key (list of values for key)))")
     (--group-by (nth 0 it) backlinks)))
 
 (defun org-roam-widget-show-backlinks-p ()
-  t)
+  (org-roam--org-roam-file-p (buffer-file-name org-roam-buffer--current)))
 
 (defun org-roam-widget-render-backlinks (items)
   (let (key values prop)
@@ -75,29 +78,67 @@ Items are of the form: ((key (list of values for key)))")
               (magit-insert-section (backlink-preview)
                 (insert (org-fontify-like-in-org-mode content) "\n")))))))))
 
-(defconst org-roam-widgets
-  (list
-   (org-roam-widget :name 'backlinks
-                    :header "Backlinks:"
-                    :items #'org-roam-widget-get-backlinks
-                    :render #'org-roam-widget-render-backlinks
-                    :show-p #'org-roam-widget-show-backlinks-p)))
+(defvar org-roam-widget-backlinks
+  (org-roam-widget :name 'backlinks
+                   :header "Backlinks:"
+                   :items #'org-roam-widget-get-backlinks
+                   :render #'org-roam-widget-render-backlinks
+                   :show-p #'org-roam-widget-show-backlinks-p)
+  "Widget for backlinks.")
 
-(defmacro with-org-roam-buffer (&rest body)
-  (declare (indent 0))
-  `(let ((buffer (get-buffer-create "*org-roam*")))
+;;;; Citelinks Widget
+(defun org-roam-widget-show-reflinks-p ()
+  (org-roam--org-roam-file-p (buffer-file-name org-roam-buffer--current)))
+
+(defun org-roam-widget-get-reflinks ()
+  (when-let* ((refs (with-temp-buffer
+                      (insert-buffer-substring org-roam-buffer--current)
+                      (org-roam--extract-refs)))
+              (paths (mapcar #'cdr refs))
+              (key-backlinks (mapcan #'org-roam--get-backlinks paths)))
+    (--group-by (nth 0 it) key-backlinks)))
+
+(defun org-roam-widget-render-reflinks (items)
+  (let (file-from reflinks content)
+    (dolist (item items)
+      (setq file-from (car item)
+            reflinks (cdr item))
+      (magit-insert-section (reflinks-file)
+        (magit-insert-heading
+          (org-roam-format-link file-from
+                                (org-roam--get-title-or-slug file-from)
+                                "file"))
+        (dolist (reflink reflinks)
+          (pcase-let ((`(_ _ ,props) reflink))
+            (setq content (or (plist-get props :content) ""))
+            (magit-insert-section (reflink)
+              (insert content "\n"))))))))
+
+(defvar org-roam-widget-reflinks
+  (org-roam-widget :name 'reflinks
+                   :header "Reflinks:"
+                   :items #'org-roam-widget-get-reflinks
+                   :render #'org-roam-widget-render-reflinks
+                   :show-p #'org-roam-widget-show-reflinks-p)
+  "Widget for reflinks.")
+
+;;;
+(defconst org-roam-widgets
+  (list org-roam-widget-backlinks
+        org-roam-widget-reflinks)
+  "List of Org-roam widgets.")
+
+;; Current Test Function
+(defun org-roam-widget ()
+  (interactive)
+  (let ((buffer (get-buffer-create "*org-roam*")))
      (with-current-buffer buffer
        (let ((inhibit-read-only t))
          (erase-buffer)
          (magit-section-mode)
          (magit-insert-section (demo-buffer)
-           ,@body)))
+           (dolist (widget org-roam-widgets)
+             (when (org-roam-widget-show widget)
+               (org-roam-widget-render widget)))
+           (insert "\n"))))
      (switch-to-buffer-other-window buffer)))
-
-;; Current Test Function
-(defun org-roam-widget ()
-  (interactive)
-  (with-org-roam-buffer
-    (dolist (widget org-roam-widgets)
-      (when (org-roam-widget-show widget)
-        (org-roam-widget-render widget)))))
