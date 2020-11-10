@@ -1821,12 +1821,17 @@ means that the results can be noisy, and may not truly indicate
 an unlinked reference.
 
 Users are encouraged to think hard about whether items should be
-linked, lest the network graph get too crowded."
+linked, lest the network graph get too crowded.
+
+Requires a version of Ripgrep with PCRE2 support installed, with
+the executable 'rg' in variable `exec-path'."
   (interactive)
   (unless (org-roam--org-roam-file-p)
     (user-error "Not in org-roam file"))
   (if (not (executable-find "rg"))
       (error "Cannot find the ripgrep executable \"rg\". Check that it is installed and available on `exec-path'")
+    (when (string-match "PCRE2 is not available" (shell-command-to-string "rg --pcre2-version"))
+      (error "\"rg\" must be compiled with PCRE2 support"))
     (let* ((titles (org-roam--extract-titles))
            (rg-command (concat "rg -o --vimgrep -P -i "
                                (string-join (mapcar (lambda (glob) (concat "-g " glob))
