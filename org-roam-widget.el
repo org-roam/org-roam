@@ -42,7 +42,9 @@ Items are of the form: ((key (list of values for key)))")
     (magit-insert-heading (oref widget header))
     (let ((items (funcall (oref widget items))))
       (if items
-          (funcall (oref widget render) items)
+          (progn
+            (funcall (oref widget render) items)
+            (insert "\n"))
         (magit-cancel-section)))))
 
 ;;; Widgets
@@ -139,6 +141,5 @@ Items are of the form: ((key (list of values for key)))")
          (magit-insert-section (demo-buffer)
            (dolist (widget org-roam-widgets)
              (when (org-roam-widget-show widget)
-               (org-roam-widget-render widget)))
-           (insert "\n"))))
+               (org-roam-widget-render widget))))))
      (switch-to-buffer-other-window buffer)))
