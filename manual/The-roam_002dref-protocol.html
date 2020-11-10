@@ -25,7 +25,7 @@ General Public License for more details.
 <link href="index.html#Top" rel="start" title="Top">
 <link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
 <link href="Roam-Protocol.html#Roam-Protocol" rel="up" title="Roam Protocol">
-<link href="Daily-Notes.html#Daily-Notes" rel="next" title="Daily Notes">
+<link href="Daily_002dnotes.html#Daily_002dnotes" rel="next" title="Daily-notes">
 <link href="The-roam_002dfile-protocol.html#The-roam_002dfile-protocol" rel="prev" title="The roam-file protocol">
 <style type="text/css">
 <!--
@@ -77,10 +77,12 @@ Previous: <a href="The-roam_002dfile-protocol.html#The-roam_002dfile-protocol" a
 </p>
 <div class="example">
 <pre class="example">javascript:location.href =
-'org-protocol://roam-ref?template=r&amp;ref='
-+ encodeURIComponent(location.href)
-+ '&amp;title='
-+ encodeURIComponent(document.title)
+    'org-protocol://roam-ref?template=r&amp;ref='
+    + encodeURIComponent(location.href)
+    + '&amp;title='
+    + encodeURIComponent(document.title)
+    + '&amp;body='
+    + encodeURIComponent(window.getSelection())
 </pre></div>
 
 <p>or as a keybinding in <code>qutebrowser</code> in , using the <code>config.py</code> file (see
