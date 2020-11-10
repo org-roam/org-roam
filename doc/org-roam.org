@@ -993,11 +993,13 @@ This protocol finds or creates a new note with a given ~roam_key~ (see [[*Anatom
 To use this, create the following [[https://en.wikipedia.org/wiki/Bookmarklet][bookmarklet]] in your browser:
 
 #+BEGIN_SRC javascript
-javascript:location.href =
-'org-protocol://roam-ref?template=r&ref='
-+ encodeURIComponent(location.href)
-+ '&title='
-+ encodeURIComponent(document.title)
+  javascript:location.href =
+      'org-protocol://roam-ref?template=r&ref='
+      + encodeURIComponent(location.href)
+      + '&title='
+      + encodeURIComponent(document.title)
+      + '&body='
+      + encodeURIComponent(window.getSelection())
 #+END_SRC
 
 or as a keybinding in ~qutebrowser~ in , using the ~config.py~ file (see

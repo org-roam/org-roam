@@ -402,7 +402,7 @@ Where @code{/path/to/my/info/files} is the location where you keep info files. T
 @lisp
 (require 'info)
 (add-to-list 'Info-default-directory-list
-         "/path/to/my/info/files")
+             "/path/to/my/info/files")
 @end lisp
 
 You can also use one of the default locations, such as:
@@ -1329,10 +1329,12 @@ To use this, create the following @uref{https://en.wikipedia.org/wiki/Bookmarkle
 
 @example
 javascript:location.href =
-'org-protocol://roam-ref?template=r&ref='
-+ encodeURIComponent(location.href)
-+ '&title='
-+ encodeURIComponent(document.title)
+    'org-protocol://roam-ref?template=r&ref='
+    + encodeURIComponent(location.href)
+    + '&title='
+    + encodeURIComponent(document.title)
+    + '&body='
+    + encodeURIComponent(window.getSelection())
 @end example
 
 or as a keybinding in @code{qutebrowser} in , using the @code{config.py} file (see
@@ -1832,5 +1834,5 @@ call @code{ivy-immediate-done}, typically bound to @code{C-M-j}. Alternatively, 
 Org-roam should provide a selectable ``[?] bar'' candidate at the top of the candidate list.
 @end table
 
-Emacs 28.0.50 (Org mode 9.4)
+Emacs 27.1.50 (Org mode 9.4)
 @bye
