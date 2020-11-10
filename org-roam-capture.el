@@ -410,7 +410,7 @@ aborted, we do the following:
 the file if the original value of :no-save is not t and
 `org-note-abort' is not t."
   (let* ((name-templ (or (org-roam-capture--get :file-name)
-                         (user-error "Template needs to have a file name.")))
+                         (user-error "Template needs to specify `:file-name'")))
          (new-id (s-trim (org-roam-capture--fill-template
                           name-templ)))
          (file-path (org-roam--file-path-from-id new-id))
