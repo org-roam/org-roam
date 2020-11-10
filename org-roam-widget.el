@@ -1,6 +1,7 @@
 ;; For the lack of a better name, we're now calling this file org-roam-widget,
 ;; but it is meant to replace org-roam-buffer at some point
 
+(require 's)
 (require 'eieio)
 (require 'magit-section)
 
@@ -40,12 +41,10 @@ Items are of the form: ((key (list of values for key)))")
   "Render items in WIDGET."
   (magit-insert-section (widget-root)
     (magit-insert-heading (oref widget header))
-    (let ((items (funcall (oref widget items))))
-      (if items
-          (progn
-            (funcall (oref widget render) items)
-            (insert "\n"))
-        (magit-cancel-section)))))
+    (if-let* ((items (funcall (oref widget items)))
+              (not-empty (not (funcall (oref widget render) items))))
+        (insert "\n")
+      (magit-cancel-section))))
 
 ;;; Widgets
 ;;;; Backlinks Widget
@@ -60,10 +59,12 @@ Items are of the form: ((key (list of values for key)))")
   (org-roam--org-roam-file-p (buffer-file-name org-roam-buffer--current)))
 
 (defun org-roam-widget-render-backlinks (items)
-  (let (key values prop)
+  (let ((empty t)
+        key values prop)
     (dolist (item items)
-      (setq key (car item))
-      (setq values (cdr item))
+      (setq key (car item)
+            values (cdr item)
+            empty nil)
       (magit-insert-section (backlinks-file)
         (magit-insert-heading (concat
                                (org-fontify-like-in-org-mode
@@ -74,11 +75,13 @@ Items are of the form: ((key (list of values for key)))")
           (let ((outline (or (plist-get prop :outline) '("Top")))
                 (content (or (plist-get prop :content) "")))
             (magit-insert-section (backlink-outline)
-              (magit-insert-heading (-> outline
-                                        (string-join " > ")
-                                        (org-roam-buffer-expand-links key)))
+              (magit-insert-heading (org-fontify-like-in-org-mode
+                                     (-> outline
+                                         (string-join " > ")
+                                         (org-roam-buffer-expand-links key))))
               (magit-insert-section (backlink-preview)
-                (insert (org-fontify-like-in-org-mode content) "\n")))))))))
+                (insert (org-fontify-like-in-org-mode content) "\n")))))))
+    empty))
 
 (defvar org-roam-widget-backlinks
   (org-roam-widget :name 'backlinks
@@ -101,20 +104,24 @@ Items are of the form: ((key (list of values for key)))")
     (--group-by (nth 0 it) key-backlinks)))
 
 (defun org-roam-widget-render-reflinks (items)
-  (let (file-from reflinks content)
+  (let ((empty t)
+        file-from reflinks content)
     (dolist (item items)
       (setq file-from (car item)
-            reflinks (cdr item))
+            reflinks (cdr item)
+            empty nil)
       (magit-insert-section (reflinks-file)
         (magit-insert-heading
-          (org-roam-format-link file-from
-                                (org-roam--get-title-or-slug file-from)
-                                "file"))
+          (org-fontify-like-in-org-mode
+           (org-roam-format-link file-from
+                                 (org-roam--get-title-or-slug file-from)
+                                 "file")))
         (dolist (reflink reflinks)
           (pcase-let ((`(_ _ ,props) reflink))
             (setq content (or (plist-get props :content) ""))
             (magit-insert-section (reflink)
-              (insert content "\n"))))))))
+              (insert (org-fontify-like-in-org-mode content) "\n"))))))
+    empty))
 
 (defvar org-roam-widget-reflinks
   (org-roam-widget :name 'reflinks
@@ -125,6 +132,12 @@ Items are of the form: ((key (list of values for key)))")
   "Widget for reflinks.")
 
 ;;;; Unlinked References Widget
+(defface org-roam-rowcol
+  '((((class color) (background light)) :foreground "grey60")
+    (((class color) (background  dark)) :foreground "grey40"))
+  "Face for the rowcol part of the widgets."
+  :group 'org-roam-faces)
+
 (defvar org-roam-unlinked-reference-result-re
   (rx (group (one-or-more anything))
       ":"
@@ -158,6 +171,7 @@ Items are of the form: ((key (list of values for key)))")
   (let ((titles (with-temp-buffer
                    (insert-buffer-substring org-roam-buffer--current)
                    (org-roam--extract-titles)))
+        (empty t)
         file row col match)
     (dolist (line lines)
       (save-match-data
@@ -171,8 +185,15 @@ Items are of the form: ((key (list of values for key)))")
                      (not (f-equal-p (expand-file-name file org-roam-directory)
                                      (buffer-file-name org-roam-buffer--current))))
             (magit-insert-section (unlinked-reference)
-              (insert (file-relative-name file org-roam-directory) " " (format "%s:%s" row col)
-                      "\n"))))))))
+              (insert (s-pad-right 8
+                                   " "
+                                   (propertize (format "%s:%s" row col)
+                                               'font-lock-face 'org-roam-rowcol))
+                      " "
+                      (org-roam--get-title-or-slug file)
+                      "\n"))
+            (setq empty nil)))))
+    empty))
 
 (defvar org-roam-widget-unlinked-references
   (org-roam-widget :name 'unlinked-refs
