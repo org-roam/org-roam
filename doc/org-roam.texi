@@ -1347,7 +1347,131 @@ where @code{template} is the template key for a template in
 should contain a @code{#+roam_key: $@{ref@}} in it.
 
 @node Daily Notes
-@chapter @strong{TODO} Daily Notes
+@chapter Daily Notes
+
+Org-roam provides journaling capabilities akin to
+@ref{Org-journal} with @code{org-roam-dailies}.
+
+The default variables that you need to modify.
+
+@itemize
+@item
+Variable: @code{org-roam-dailies-directory}
+
+Path to daily-notes.
+
+@item
+Variable: @code{org-roam-dailies-capture-templates}
+
+Capture templates for daily-notes in Org-roam.
+@end itemize
+
+Here is a sane default configuration:
+
+@lisp
+(setq org-roam-dailies-directory "daily/")
+
+(setq org-roam-dailies-capture-templates
+      '(("d" "default" entry
+         #'org-roam-capture--get-point
+         "* %?"
+         :file-name "daily/%<%Y-%m-%d>"
+         :head "#+title: %<%Y-%m-%d>\n\n")))
+@end lisp
+
+Make sure that @code{org-roam-dailies-directory} appears in @code{:file-name} for your
+notes to be recognized as daily-notes. You can have different templates
+placing their notes in different directories, but the one in
+@code{org-roam-dailies-directory} will be considered as the main one in commands.
+
+See @ref{The Templating System} for creating new
+templates. @code{org-roam-dailies} provides an extra @code{:olp} option which allows to
+specify the outline-path to a heading:
+
+@lisp
+(setq org-roam-dailies-capture-templates
+      '(("l" "lab" entry
+         #'org-roam-capture--get-point
+         "* %?"
+         :file-name "daily/%<%Y-%m-%d>"
+         :head "#+title: %<%Y-%m-%d>\n\n* Lab notes\n* Journal"
+         :olp ("Journal"))
+
+        ("j" "journal" entry
+         #'org-roam-capture--get-point
+         "* %?"
+         :file-name "daily/%<%Y-%m-%d>"
+         :head "#+title: %<%Y-%m-%d>\n\n* Lab notes\n* Journal"
+         :olp ("Lab notes"))))
+@end lisp
+
+The template @code{l} will put its notes under the heading ‘
+
+@itemize
+@item
+Function: @code{org-roam-dailies-capture-today} &optional goto
+
+Create an entry in the daily note for today.
+
+When @code{goto} is non-nil, go the note without creating an entry.
+
+@item
+Function: @code{org-roam-dailies-find-today}
+
+Find the daily note for today, creating it if necessary.
+@end itemize
+
+There are variants of those commands for @code{-yesterday} and @code{-tomorrow}:
+
+@itemize
+@item
+Function: @code{org-roam-dailies-capture-yesterday} n &optional goto
+
+Create an entry in the daily note for yesteday.
+
+With numeric argument @code{n}, use the daily note @code{n} days in the past.
+
+@item
+Function: @code{org-roam-dailies-find-yesterday}
+
+Find the daily note for today, creating it if necessary.
+
+@item
+Function: @code{org-roam-dailies-capture-date}
+
+Create an entry in the daily note for a date using the calendar.
+
+Prefer past dates, unless @code{prefer-future} is non-nil.
+
+With a 'C-u' prefix or when @code{goto} is non-nil, go the note without
+creating an entry.
+
+@item
+Function: @code{org-roam-dailies-find-date}
+
+Find the daily note for a date using the calendar, creating it if necessary.
+
+Prefer past dates, unless @code{prefer-future} is non-nil.
+@end itemize
+
+You can also navigate between daily-notes:
+
+@itemize
+@item
+Function: @code{org-roam-dailies-find-previous-note}
+
+When in an daily-note, find the previous one.
+
+@item
+Function: @code{org-roam-dailies-find-next-note}
+
+When in an daily-note, find the next one.
+
+@item
+Function: @code{org-roam-dailies-find-directory}
+
+Find and open @code{org-roam-dailies-directory}.
+@end itemize
 
 @node Diagnosing and Repairing Files
 @chapter Diagnosing and Repairing Files

@@ -1,4 +1,4 @@
-;;; org-roam-dailies.el --- Daily notes for Org-roam -*- coding: utf-8; lexical-binding: t; -*-
+;;; org-roam-dailies.el --- Daily-notes for Org-roam -*- coding: utf-8; lexical-binding: t; -*-
 ;;;
 ;; Copyright © 2020 Jethro Kuan <jethrokuan95@gmail.com>
 ;; Copyright © 2020 Leo Vivier <leo.vivier+dev@gmail.com>
@@ -29,7 +29,7 @@
 
 ;;; Commentary:
 ;;
-;; This library provides functionality for creating daily notes. This is a
+;; This library provides functionality for creating daily-notes. This is a
 ;; concept borrowed from Roam Research.
 ;;
 ;;; Code:
@@ -153,7 +153,7 @@ If FILE is not specified, use the current buffer's file-path."
        (f-descendant-of-p path directory)))))
 
 (defun org-roam-dailies--capture (time &optional goto)
-  "Capture an entry in a daily note for TIME, creating it if necessary.
+  "Capture an entry in a daily-note for TIME, creating it if necessary.
 
 When GOTO is non-nil, go the note without creating an entry."
   (unless org-roam-mode (org-roam-mode))
@@ -167,7 +167,7 @@ When GOTO is non-nil, go the note without creating an entry."
 ;;;; Commands
 ;;; Today
 (defun org-roam-dailies-capture-today (&optional goto)
-  "Create an entry in the daily note for today.
+  "Create an entry in the daily-note for today.
 
 When GOTO is non-nil, go the note without creating an entry."
   (interactive "P")
@@ -177,15 +177,15 @@ When GOTO is non-nil, go the note without creating an entry."
     (message "Showing daily-note for today")))
 
 (defun org-roam-dailies-find-today ()
-  "Find the daily note for today, creating it if necessary."
+  "Find the daily-note for today, creating it if necessary."
   (interactive)
   (org-roam-dailies-capture-today t))
 
 ;;; Tomorrow
 (defun org-roam-dailies-capture-tomorrow (n &optional goto)
-  "Create an entry in the daily note for tomorrow.
+  "Create an entry in the daily-note for tomorrow.
 
-With numeric argument N, use the daily note N days in the future.
+With numeric argument N, use the daily-note N days in the future.
 
 With a `C-u' prefix or when GOTO is non-nil, go the note without
 creating an entry."
@@ -193,16 +193,16 @@ creating an entry."
   (org-roam-dailies--capture (time-add (* n 86400) (current-time)) goto))
 
 (defun org-roam-dailies-find-tomorrow (n)
-  "Find the daily note for tomorrow, creating it if necessary.
+  "Find the daily-note for tomorrow, creating it if necessary.
 
-With numeric argument N, use the daily note N days in the
+With numeric argument N, use the daily-note N days in the
 future."
   (interactive "p")
   (org-roam-dailies-capture-tomorrow n t))
 
 ;;; Yesterday
 (defun org-roam-dailies-capture-yesterday (n &optional goto)
-  "Create an entry in the daily note for yesteday.
+  "Create an entry in the daily-note for yesteday.
 
 With numeric argument N, use the daily-note N days in the past.
 
@@ -211,9 +211,9 @@ When GOTO is non-nil, go the note without creating an entry."
   (org-roam-dailies-capture-tomorrow (- n) goto))
 
 (defun org-roam-dailies-find-yesterday (n)
-  "Find the daily note for yesterday, creating it if necessary.
+  "Find the daily-note for yesterday, creating it if necessary.
 
-With numeric argument N, use the daily note N days in the
+With numeric argument N, use the daily-note N days in the
 future."
   (interactive "p")
   (org-roam-dailies-capture-tomorrow (- n) t))
@@ -261,7 +261,7 @@ Return (MONTH DAY YEAR)."
 
 ;;; Date
 (defun org-roam-dailies-capture-date (&optional goto prefer-future)
-  "Create an entry in the daily note for a date using the calendar.
+  "Create an entry in the daily-note for a date using the calendar.
 
 Prefer past dates, unless PREFER-FUTURE is non-nil.
 
@@ -280,7 +280,7 @@ creating an entry."
       (message "Showing note for %s" time-str))))
 
 (defun org-roam-dailies-find-date (prefer-future)
-  "Find the daily note for a date using the calendar, creating it if necessary.
+  "Find the daily-note for a date using the calendar, creating it if necessary.
 
 Prefer past dates, unless PREFER-FUTURE is non-nil."
   (interactive)
@@ -301,7 +301,7 @@ EXTRA-FILES can be used to append extra files to the list."
             extra-files)))
 
 (defun org-roam-dailies--find-next-note-path (&optional n file)
-  "Find next daily note from FILE.
+  "Find next daily-note from FILE.
 
 With numeric argument N, find note N days in the future. If N is
 negative, find note N days in the past.
@@ -344,7 +344,7 @@ negative, find note N days in the past."
     (run-hooks 'org-roam-dailies-find-file-hook)))
 
 (defun org-roam-dailies-find-previous-note (&optional n)
-  "Find previous daily note.
+  "Find previous daily-note.
 
 With numeric argument N, find note N days in the past. If N is
 negative, find note N days in the future."
