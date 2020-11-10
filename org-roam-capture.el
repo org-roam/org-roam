@@ -41,9 +41,7 @@
 (defvar org-roam-directory)
 (defvar org-roam-mode)
 (defvar org-roam-title-to-slug-function)
-(defvar org-roam-dailies-directory)
-(defvar org-roam-dailies-capture--file-name-default)
-(defvar org-roam-dailies-capture--header-default)
+
 (declare-function  org-roam--get-title-path-completions "org-roam")
 (declare-function  org-roam--get-ref-path-completions   "org-roam")
 (declare-function  org-roam--file-path-from-id          "org-roam")
@@ -51,12 +49,6 @@
 (declare-function  org-roam-format-link                "org-roam")
 (declare-function  org-roam-mode                        "org-roam")
 (declare-function  org-roam-completion--completing-read "org-roam-completion")
-
-(defvar org-roam-capture--file-name-default "%<%Y%m%d%H%M%S>-${slug}"
-  "The default file-name format for Org-roam templates.")
-
-(defvar org-roam-capture--header-default "#+title: ${title}\n"
-  "The default header for Org-roam templates.")
 
 (defvar org-roam-capture--file-path nil
   "The file path for the Org-roam capture.
@@ -89,8 +81,8 @@ note with the given `ref'.")
 (defcustom org-roam-capture-templates
   `(("d" "default" plain (function org-roam-capture--get-point)
      "%?"
-     :file-name ,org-roam-capture--file-name-default
-     :head ,org-roam-capture--header-default
+     :file-name "%<%Y%m%d%H%M%S>-${slug}"
+     :head "#+title: ${title}\n"
      :unnarrowed t))
   "Capture templates for Org-roam.
 The Org-roam capture-templates  builds on the default behaviours of
@@ -226,18 +218,12 @@ Template string   :\n%v")
                  ((const :format "%v " :table-line-pos) (string))
                  ((const :format "%v " :kill-buffer) (const t))))))
 
-(defvar org-roam-capture-ref--file-name-default "${slug}"
-  "The default file-name for `org-roam-capture-ref-templates'.")
-
-(defvar org-roam-capture-ref--header-default "#+title: ${title}\n#+roam_key: ${ref}"
-  "The default header for `org-roam-capture-ref-templates'.")
-
 (defcustom org-roam-capture-ref-templates
-  `(("r" "ref" plain (function org-roam-capture--get-point)
-    "%?"
-    :file-name ,org-roam-capture-ref--file-name-default
-    :head ,org-roam-capture--header-default
-    :unnarrowed t))
+  '(("r" "ref" plain #'org-roam-capture--get-point
+     "%?"
+     :file-name "${slug}"
+     :head "#+title: ${title}\n#+roam_key: ${ref}"
+     :unnarrowed t))
   "The Org-roam templates used during a capture from the roam-ref protocol.
 Details on how to specify for the template is given in `org-roam-capture-templates'."
   :group 'org-roam
@@ -402,18 +388,6 @@ The file is saved if the original value of :no-save is not t and
     (with-current-buffer (org-capture-get :buffer)
       (save-buffer)))))
 
-(defun org-roam-capture--expand-file-name (file-name)
-  "Expand FILE-NAME for `org-roam-capture'.
-
-Prepend `org-roam-dailies-directory' to the value of `:file' when
-capturing a daily-note."
-  (when file-name
-    (pcase org-roam-capture--context
-      ('dailies
-       (concat org-roam-dailies-directory file-name))
-      (_
-       file-name))))
-
 (defun org-roam-capture--new-file ()
   "Return the path to the new file during an Org-roam capture.
 
@@ -436,27 +410,12 @@ aborted, we do the following:
 the file if the original value of :no-save is not t and
 `org-note-abort' is not t."
   (let* ((name-templ (or (org-roam-capture--get :file-name)
-                         (pcase org-roam-capture--context
-                           ('dailies
-                            (or (-some-> org-roam-dailies-directory
-                                  (file-name-as-directory)
-                                  (concat org-roam-dailies-capture--file-name-default))
-                                (user-error "`org-roam-dailies-directory' cannot be nil")))
-                           ('ref
-                            org-roam-capture-ref--file-name-default)
-                           (_
-                            org-roam-capture--file-name-default))))
+                         (user-error "Template needs to specify `:file-name'")))
          (new-id (s-trim (org-roam-capture--fill-template
                           name-templ)))
          (file-path (org-roam--file-path-from-id new-id))
          (roam-head (or (org-roam-capture--get :head)
-                        (pcase org-roam-capture--context
-                          ('dailies
-                           org-roam-dailies-capture--header-default)
-                          ('ref
-                           org-roam-capture-ref--header-default)
-                          (_
-                           org-roam-capture--header-default))))
+                        ""))
          (org-template (org-capture-get :template))
          (roam-template (concat roam-head org-template)))
     (unless (or (file-exists-p file-path)
