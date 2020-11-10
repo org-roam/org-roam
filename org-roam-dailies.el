@@ -251,7 +251,6 @@ Return (MONTH DAY YEAR)."
 
 (defun org-roam-dailies-calendar-mark-entries ()
   "Mark days in the calendar for which a daily-note is present."
-  (interactive)
   (when (file-exists-p (org-roam-dailies-directory--get-absolute-path))
     (dolist (date (mapcar #'org-roam-dailies-calendar--file-to-date
                           (org-roam-dailies--list-files)))
