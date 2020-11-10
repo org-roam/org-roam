@@ -79,6 +79,14 @@
   "org-roam 1.1.0")
 (define-obsolete-function-alias 'org-roam-db--clear 'org-roam-db-clear
   "org-roam 1.2.0")
+(define-obsolete-function-alias 'org-roam-dailies-today 'org-roam-dailies-find-today
+  "org-roam 1.2.2")
+(define-obsolete-function-alias 'org-roam-dailies-yesterday 'org-roam-dailies-find-yesterday
+  "org-roam 1.2.2")
+(define-obsolete-function-alias 'org-roam-dailies-tomorrow 'org-roam-dailies-find-tomorrow
+  "org-roam 1.2.2")
+(define-obsolete-function-alias 'org-roam-dailies-date 'org-roam-dailies-find-date
+  "org-roam 1.2.2")
 
 ;;;; Variables
 (define-obsolete-variable-alias 'org-roam-graphviz-extra-options
