@@ -78,7 +78,7 @@ General Public License for more details.
 * Graphing::
 * Org-roam Completion System::
 * Roam Protocol::
-* Daily Notes::
+* Daily-notes::
 * Diagnosing and Repairing Files::
 * Finding Unlinked References::
 * Performance Optimization::
@@ -128,6 +128,12 @@ Roam Protocol
 * Installation: Installation (1). 
 * The roam-file protocol::
 * The roam-ref protocol::
+
+Daily-notes
+
+* Configuration::
+* Capturing and finding daily-notes::
+* Navigation::
 
 Performance Optimization
 
@@ -260,7 +266,7 @@ A slip-box requires a method of quickly capturing ideas. These are called
 @strong{fleeting notes}: they are simple reminders of information or ideas that will
 need to be processed later on, or trashed. This is typically accomplished using
 @code{org-capture} (see @ref{capture,,,org,}), or using Org-roam's daily notes
-functionality (see @ref{Daily Notes}). This provides a central inbox for collecting
+functionality (see @ref{Daily-notes}). This provides a central inbox for collecting
 thoughts, to be processed later into permanent notes.
 
 Permanent notes are further split into two categories: @strong{literature notes} and
@@ -402,7 +408,7 @@ Where @code{/path/to/my/info/files} is the location where you keep info files. T
 @lisp
 (require 'info)
 (add-to-list 'Info-default-directory-list
-         "/path/to/my/info/files")
+             "/path/to/my/info/files")
 @end lisp
 
 You can also use one of the default locations, such as:
@@ -1329,10 +1335,12 @@ To use this, create the following @uref{https://en.wikipedia.org/wiki/Bookmarkle
 
 @example
 javascript:location.href =
-'org-protocol://roam-ref?template=r&ref='
-+ encodeURIComponent(location.href)
-+ '&title='
-+ encodeURIComponent(document.title)
+    'org-protocol://roam-ref?template=r&ref='
+    + encodeURIComponent(location.href)
+    + '&title='
+    + encodeURIComponent(document.title)
+    + '&body='
+    + encodeURIComponent(window.getSelection())
 @end example
 
 or as a keybinding in @code{qutebrowser} in , using the @code{config.py} file (see
@@ -1346,8 +1354,153 @@ where @code{template} is the template key for a template in
 @code{org-roam-capture-ref-templates} (see @ref{The Templating System}). These templates
 should contain a @code{#+roam_key: $@{ref@}} in it.
 
-@node Daily Notes
-@chapter @strong{TODO} Daily Notes
+@node Daily-notes
+@chapter Daily-notes
+
+Org-roam provides journaling capabilities akin to
+@ref{Org-journal} with @code{org-roam-dailies}.
+
+@menu
+* Configuration::
+* Capturing and finding daily-notes::
+* Navigation::
+@end menu
+
+@node Configuration
+@section Configuration
+
+For @code{org-roam-dailies} to work, you need to define two variables:
+
+@itemize
+@item
+Variable: @code{org-roam-dailies-directory}
+
+Path to daily-notes.
+
+@item
+Variable: @code{org-roam-dailies-capture-templates}
+
+Capture templates for daily-notes in Org-roam.
+@end itemize
+
+Here is a sane default configuration:
+
+@lisp
+(setq org-roam-dailies-directory "daily/")
+
+(setq org-roam-dailies-capture-templates
+      '(("d" "default" entry
+         #'org-roam-capture--get-point
+         "* %?"
+         :file-name "daily/%<%Y-%m-%d>"
+         :head "#+title: %<%Y-%m-%d>\n\n")))
+@end lisp
+
+Make sure that @code{org-roam-dailies-directory} appears in @code{:file-name} for your
+notes to be recognized as daily-notes. You can have different templates
+placing their notes in different directories, but the one in
+@code{org-roam-dailies-directory} will be considered as the main one in commands.
+
+See @ref{The Templating System} for creating new
+templates. @code{org-roam-dailies} provides an extra @code{:olp} option which allows
+specifying the outline-path to a heading:
+
+@lisp
+(setq org-roam-dailies-capture-templates
+      '(("l" "lab" entry
+         #'org-roam-capture--get-point
+         "* %?"
+         :file-name "daily/%<%Y-%m-%d>"
+         :head "#+title: %<%Y-%m-%d>\n\n* Lab notes\n* Journal"
+         :olp ("Journal"))
+
+        ("j" "journal" entry
+         #'org-roam-capture--get-point
+         "* %?"
+         :file-name "daily/%<%Y-%m-%d>"
+         :head "#+title: %<%Y-%m-%d>\n\n* Lab notes\n* Journal"
+         :olp ("Lab notes"))))
+@end lisp
+
+The template @code{l} will put its notes under the heading ‘Lab notes’, and the
+template @code{j} will put its notes under the heading ‘Journal’.  When you use
+@code{:olp}, make sure that the headings are present in @code{:head}.
+
+@node Capturing and finding daily-notes
+@section Capturing and finding daily-notes
+
+@itemize
+@item
+Function: @code{org-roam-dailies-capture-today} &optional goto
+
+Create an entry in the daily note for today.
+
+When @code{goto} is non-nil, go the note without creating an entry.
+
+@item
+Function: @code{org-roam-dailies-find-today}
+
+Find the daily note for today, creating it if necessary.
+@end itemize
+
+There are variants of those commands for @code{-yesterday} and @code{-tomorrow}:
+
+@itemize
+@item
+Function: @code{org-roam-dailies-capture-yesterday} n &optional goto
+
+Create an entry in the daily note for yesteday.
+
+With numeric argument @code{n}, use the daily note @code{n} days in the past.
+
+@item
+Function: @code{org-roam-dailies-find-yesterday}
+
+With numeric argument N, use the daily-note N days in the future.
+@end itemize
+
+There are also commands which allow you to use Emacs’s @code{calendar} to find the date
+
+@itemize
+@item
+Function: @code{org-roam-dailies-capture-date}
+
+Create an entry in the daily note for a date using the calendar.
+
+Prefer past dates, unless @code{prefer-future} is non-nil.
+
+With a 'C-u' prefix or when @code{goto} is non-nil, go the note without
+creating an entry.
+
+@item
+Function: @code{org-roam-dailies-find-date}
+
+Find the daily note for a date using the calendar, creating it if necessary.
+
+Prefer past dates, unless @code{prefer-future} is non-nil.
+@end itemize
+
+@node Navigation
+@section Navigation
+
+You can navigate between daily-notes:
+
+@itemize
+@item
+Function: @code{org-roam-dailies-find-directory}
+
+Find and open @code{org-roam-dailies-directory}.
+
+@item
+Function: @code{org-roam-dailies-find-previous-note}
+
+When in an daily-note, find the previous one.
+
+@item
+Function: @code{org-roam-dailies-find-next-note}
+
+When in an daily-note, find the next one.
+@end itemize
 
 @node Diagnosing and Repairing Files
 @chapter Diagnosing and Repairing Files
@@ -1567,10 +1720,11 @@ that uses an external search engine and indexer.
 @node Org-journal
 @subsection Org-journal
 
-@uref{https://github.com/bastibe/org-journal, Org-journal} is a more
-powerful alternative to the simple function @code{org-roam-dailies-today}. It
-provides better journaling capabilities, and a nice calendar interface
-to see all dated entries.
+@uref{https://github.com/bastibe/org-journal, Org-journal} provides journaling
+capabilities to Org-mode. A lot of its functionalities have been incorporated
+into Org-roam under the name @code{org-roam-dailies}.  It remains a good tool if
+you want to isolate your verbose journal entries from the ideas you would
+write on a scratchpad.
 
 @lisp
 (use-package org-journal
@@ -1579,7 +1733,7 @@ to see all dated entries.
   :custom
   (org-journal-date-prefix "#+title: ")
   (org-journal-file-format "%Y-%m-%d.org")
-  (org-journal-dir "/path/to/org-roam-files/")
+  (org-journal-dir "/path/to/journal/files/")
   (org-journal-date-format "%A, %d %B %Y"))
 @end lisp
 
@@ -1708,5 +1862,5 @@ call @code{ivy-immediate-done}, typically bound to @code{C-M-j}. Alternatively, 
 Org-roam should provide a selectable ``[?] bar'' candidate at the top of the candidate list.
 @end table
 
-Emacs 28.0.50 (Org mode 9.4)
+Emacs 27.1.50 (Org mode 9.4)
 @bye

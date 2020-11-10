@@ -374,13 +374,14 @@ Like `file-name-extension', but does not strip version number."
 If FILE is not specified, use the current buffer's file-path."
   (when-let ((path (or file
                        org-roam-file-name
-                       (buffer-file-name))))
-      (save-match-data
-        (and
-         (org-roam--org-file-p path)
-         (not (and org-roam-file-exclude-regexp
-                   (string-match-p org-roam-file-exclude-regexp path)))
-         (f-descendant-of-p path (expand-file-name org-roam-directory))))))
+                       (-> (buffer-base-buffer)
+                           (buffer-file-name)))))
+    (save-match-data
+      (and
+       (org-roam--org-file-p path)
+       (not (and org-roam-file-exclude-regexp
+                 (string-match-p org-roam-file-exclude-regexp path)))
+       (f-descendant-of-p path (expand-file-name org-roam-directory))))))
 
 (defun org-roam--shell-command-files (cmd)
   "Run CMD in the shell and return a list of files. If no files are found, an empty list is returned."
