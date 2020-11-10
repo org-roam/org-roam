@@ -65,11 +65,10 @@
   :type 'hook)
 
 (defcustom org-roam-dailies-capture-templates
-  '(("d" "default" plain (function org-roam-capture--get-point)
-     "%s"
+  '(("d" "default" entry (function org-roam-capture--get-point)
+     "* %?"
      :file-name "daily/%<%Y-%m-%d>"
-     :head "#+title: %<%Y-%m-%d>\n"
-     :unnarrowed t))
+     :head "#+title: %<%Y-%m-%d>\n"))
   "Capture templates for daily-notes in Org-roam."
   :group 'org-roam
   ;; Adapted from `org-capture-templates'
@@ -86,7 +85,9 @@
       (list :tag "Template entry"
         (string :tag "Keys              ")
         (string :tag "Description       ")
-        (const :format "" plain)
+        (choice :tag "Type              "
+         (const :tag "Plain" plain)
+         (const :tag "Entry (for creating headlines)" entry))
         (const :format "" #'org-roam-capture--get-point)
         (choice :tag "Template          "
           (string :tag "String"
@@ -102,8 +103,6 @@ Template string   :\n%v")
         (string :format " %v" :value "daily/%<%Y-%m-%d>")
         (const :format "Header format     :" :head)
         (string :format " %v" :value "#+title: ${title}\n")
-        (const :format "" :unnarrowed)
-        (const :format "" t)
         (plist :inline t
                :tag "Options"
           ;; Give the most common options as checkboxes
@@ -111,6 +110,7 @@ Template string   :\n%v")
                (((const :tag "Outline path" :olp)
                  (repeat :tag "Headings"
                    (string :tag "Heading")))
+                ((const :format "%v " :unnarrowed) (const t))
                 ((const :format "%v " :prepend) (const t))
                 ((const :format "%v " :immediate-finish) (const t))
                 ((const :format "%v " :jump-to-captured) (const t))
