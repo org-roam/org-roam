@@ -1200,10 +1200,11 @@ that uses an external search engine and indexer.
    :CUSTOM_ID: org-journal
    :END:
 
-[[https://github.com/bastibe/org-journal][Org-journal]] is a more
-powerful alternative to the simple function ~org-roam-dailies-today~. It
-provides better journaling capabilities, and a nice calendar interface
-to see all dated entries.
+[[https://github.com/bastibe/org-journal][Org-journal]] provides journaling
+capabilities to Org-mode. A lot of its functionalities have been incorporated
+into Org-roam under the name ~org-roam-dailies~.  It remains a good tool if
+you want to isolate your verbose journal entries from the ideas you would
+write on a scratchpad.
 
 #+BEGIN_SRC emacs-lisp
   (use-package org-journal

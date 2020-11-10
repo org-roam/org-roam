@@ -1693,10 +1693,11 @@ that uses an external search engine and indexer.
 @node Org-journal
 @subsection Org-journal
 
-@uref{https://github.com/bastibe/org-journal, Org-journal} is a more
-powerful alternative to the simple function @code{org-roam-dailies-today}. It
-provides better journaling capabilities, and a nice calendar interface
-to see all dated entries.
+@uref{https://github.com/bastibe/org-journal, Org-journal} provides journaling
+capabilities to Org-mode. A lot of its functionalities have been incorporated
+into Org-roam under the name @code{org-roam-dailies}.  It remains a good tool if
+you want to isolate your verbose journal entries from the ideas you would
+write on a scratchpad.
 
 @lisp
 (use-package org-journal
