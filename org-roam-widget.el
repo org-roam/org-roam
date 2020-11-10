@@ -124,10 +124,69 @@ Items are of the form: ((key (list of values for key)))")
                    :show-p #'org-roam-widget-show-reflinks-p)
   "Widget for reflinks.")
 
+;;;; Unlinked References Widget
+(defvar org-roam-unlinked-reference-result-re
+  (rx (group (one-or-more anything))
+      ":"
+      (group (one-or-more digit))
+      ":"
+      (group (one-or-more digit))
+      ":"
+      (group (zero-or-more anything)))
+  "Regex for the return result of a ripgrep query.")
+
+(defun org-roam-widget-show-unlinked-references-p ()
+  (and (executable-find "rg")
+       (not (string-match "PCRE2 is not available" (shell-command-to-string "rg --pcre2-version")))
+       (org-roam--org-roam-file-p (buffer-file-name org-roam-buffer--current))))
+
+(defun org-roam-widget-get-unlinked-references ()
+  (let* ((titles (with-temp-buffer
+                   (insert-buffer-substring org-roam-buffer--current)
+                   (org-roam--extract-titles)))
+         (rg-command (concat "rg -o --vimgrep -P -i "
+                             (string-join (mapcar (lambda (glob) (concat "-g " glob))
+                                                  (org-roam--list-files-search-globs org-roam-file-extensions)) " ")
+                             (format " '\\[([^[]]++|(?R))*\\]%s' "
+                                     (mapconcat (lambda (title)
+                                                  (format "|(\\b%s\\b)" (shell-quote-argument title)))
+                                                titles ""))
+                             org-roam-directory)))
+    (split-string (shell-command-to-string rg-command) "\n")))
+
+(defun org-roam-widget-render-unlinked-references (lines)
+  (let ((titles (with-temp-buffer
+                   (insert-buffer-substring org-roam-buffer--current)
+                   (org-roam--extract-titles)))
+        file row col match)
+    (dolist (line lines)
+      (save-match-data
+        (when (string-match org-roam-unlinked-reference-result-re line)
+          (setq file (match-string 1 line)
+                row (match-string 2 line)
+                col (match-string 3 line)
+                match (match-string 4 line))
+          (when (and match
+                     (member (downcase match) (mapcar #'downcase titles))
+                     (not (f-equal-p (expand-file-name file org-roam-directory)
+                                     (buffer-file-name org-roam-buffer--current))))
+            (magit-insert-section (unlinked-reference)
+              (insert (file-relative-name file org-roam-directory) " " (format "%s:%s" row col)
+                      "\n"))))))))
+
+(defvar org-roam-widget-unlinked-references
+  (org-roam-widget :name 'unlinked-refs
+                   :header "Unlinked References:"
+                   :items #'org-roam-widget-get-unlinked-references
+                   :render #'org-roam-widget-render-unlinked-references
+                   :show-p #'org-roam-widget-show-unlinked-references-p)
+  "Widget for unlinked references.")
+
 ;;;
 (defconst org-roam-widgets
   (list org-roam-widget-backlinks
-        org-roam-widget-reflinks)
+        org-roam-widget-reflinks
+        org-roam-widget-unlinked-references)
   "List of Org-roam widgets.")
 
 ;; Current Test Function
