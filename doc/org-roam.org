@@ -12,7 +12,7 @@
 #+texinfo_dir_desc: Rudimentary Roam Replica for Emacs.
 #+subtitle: for version 1.2.2
 
-#+options: H:4 num:3 toc:2 creator:t
+#+options: H:4 num:3 toc:2 creator:t ':t
 #+property: header-args :eval never
 #+texinfo: @noindent
 
@@ -122,12 +122,16 @@ create new zettels, pre-filling boilerplate content using a powerful templating
 system. Org-roam also facilitates the linking of zettels using Org-mode ~file:~
 links.
 
+** Fleeting notes
+
 A slip-box requires a method of quickly capturing ideas. These are called
 *fleeting notes*: they are simple reminders of information or ideas that will
 need to be processed later on, or trashed. This is typically accomplished using
 ~org-capture~ (see info:org#capture), or using Org-roam's daily notes
 functionality (see [[*Daily-notes][Daily-notes]]). This provides a central inbox for collecting
 thoughts, to be processed later into permanent notes.
+
+** Permanent notes
 
 Permanent notes are further split into two categories: *literature notes* and
 *concept notes*. Literature notes can be brief annotations on a particular
@@ -370,7 +374,7 @@ title extraction methods supported are:
 1. ~'title~: This extracts the title using the file ~#+title~ property
 2. ~'headline~: This extracts the title from the first headline in the Org file
 3. ~'alias~: This extracts a list of titles using the ~#+roam_alias~ property.
-   The aliases are space-delimited, and can be multi-worded using quotes
+   The aliases are space-delimited, and can be multi-worded using quotes.
 
 Take for example the following org file:
 
@@ -731,7 +735,7 @@ Note that Emacs will prompt for a password for encrypted files during
 cache updates if it requires reading the encrypted file. To reduce the
 number of password prompts, you may wish to cache the password.
 
-- Variable: org-roam-encrypt-files
+- User Option: org-roam-encrypt-files
 
   Whether to encrypt new files.  If true, create files with .org.gpg extension.
 * Graphing
@@ -847,9 +851,9 @@ commands, set:
 Other options include ~'ido~, and ~'ivy~.
 
 * Roam Protocol
-** _ :ignore:
-Org-roam extending ~org-protocol~ with 2 protocols: the ~roam-file~
-and ~roam-ref~ protocol.
+
+Org-roam extends ~org-protocol~ with 2 protocols: the ~roam-file~
+and ~roam-ref~ protocols.
 
 ** Installation
 
@@ -1149,8 +1153,9 @@ org-roam-doctor~, but note that this may take some time.
   Perform a check on Org-roam files to ensure cleanliness. If THIS-BUFFER, run
   the check only for the current buffer.
 
-The checks run are defined in ~org-roam-doctor--checkers~. Each checker is an
-instance of ~org-roam-doctor-checker~. To define a checker, use
+The checks run are defined in ~org-roam-doctor--checkers~. By default, there are checkers for broken links and invalid =#+roam_*= properties.
+
+Each checker is an instance of ~org-roam-doctor-checker~. To define a checker, use
 ~make-org-roam-doctor-checker~. Here is a sample definition:
 
 #+BEGIN_SRC emacs-lisp
@@ -1405,6 +1410,8 @@ tight integration between
 [[https://github.com/tmalsburg/helm-bibtex][helm-bibtex]] and
 ~org-roam~. This helps you manage your bibliographic notes under
 ~org-roam~.
+
+For example, though helm-bibtex provides the ability to visit notes for bibliographic entries, org-roam-bibtex extends it with the ability to visit the file with the right =#+roam_key=.
 
 **** Spaced Repetition
     :PROPERTIES:
