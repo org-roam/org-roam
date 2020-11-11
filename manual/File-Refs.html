@@ -69,31 +69,35 @@ Previous: <a href="Tags.html#Tags" accesskey="p" rel="prev">Tags</a>, Up: <a hre
 <a name="File-Refs-1"></a>
 <h3 class="section">6.3 File Refs</h3>
 
-<p>Refs are unique identifiers for files. Each note can only have 1 ref.
-For example, a note for a website may contain a ref:
+<p>Refs are unique identifiers for files. For example, a note for a website may contain a ref:
 </p>
 <div class="example">
 <pre class="example">#+title: Google
 #+roam_key: https://www.google.com/
 </pre></div>
 
-<p>These keys come in useful for when taking website notes, using the
-<code>roam-ref</code> protocol (see <a href="Roam-Protocol.html#Roam-Protocol">Roam Protocol</a>).
+<p>These keys allow references to the key to show up in the backlinks buffer. For instance,
+with the example above, if another file then links to <a href="https://www.google.com">https://www.google.com</a>, that will
+show up as a “Ref Backlink”.
 </p>
-<p>Alternatively, add a ref for notes for a specific paper, using its
-<a href="https://github.com/jkitchin/org-ref">org-ref</a> citation key:
+<p>These keys also come in useful for when taking website notes, using the <code>roam-ref</code> protocol
+ (see <a href="Roam-Protocol.html#Roam-Protocol">Roam Protocol</a>).
+</p>
+<p><a href="https://github.com/jkitchin/org-ref">org-ref</a> citation keys can also be used as refs:
 </p>
 <div class="example">
 <pre class="example">#+title: Neural Ordinary Differential Equations
 #+roam_key: cite:chen18_neural_ordin_differ_equat
 </pre></div>
 
-<p>The backlinks buffer will show any cites of this key: e.g.
-</p>
 <div class="float">
 <img src="images/org-ref-citelink.png" alt="images/org-ref-citelink">
 
 <div class="float-caption"><p><strong>Figure: </strong>org-ref-citelink</p></div></div>
+<p>You may assign multiple refs to a single file, for example when you want multiple papers
+in a series to share the same note, or an article has a citation key and a URL at the same
+time.
+</p>
 
 
 
