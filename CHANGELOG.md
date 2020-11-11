@@ -19,6 +19,7 @@
 - [#1226](https://github.com/org-roam/org-roam/issues/1226) only update relative path of file links
 - [#1232](https://github.com/org-roam/org-roam/issues/1232) fix incorrect title extractions from narrowed buffers
 - [#1233](https://github.com/org-roam/org-roam/issues/1233) fixes bug where descriptive file links become plain links during update for relative paths
+- [#1252](https://github.com/org-roam/org-roam/issues/1252) respect original link type during automatic replacement
 
 ## 1.2.2 (06-10-2020)
 

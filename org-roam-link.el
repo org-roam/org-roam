@@ -159,11 +159,11 @@ If there is no corresponding headline, return nil."
                   (org-id-get-create))))))))
 
 ;;; Path-related functions
-(defun org-roam-link-get-path (path)
+(defun org-roam-link-get-path (path &optional type)
   "Return the PATH of the link to use.
-Respect `org-link-file-path-type', see the variable documentation for details.
-If DIR is passed, use DIR as the default directory."
-  (pcase org-roam-link-file-path-type
+If TYPE is non-nil, create a link of TYPE. Otherwise, respect
+`org-link-file-path-type'."
+  (pcase (or type org-roam-link-file-path-type)
       ('absolute
        (abbreviate-file-name (expand-file-name path)))
       ('noabbrev
