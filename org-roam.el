@@ -825,10 +825,11 @@ Each ref is returned as a cons of its type and its key."
            (slug (-reduce-from #'cl-replace (strip-nonspacing-marks title) pairs)))
       (downcase slug))))
 
-(defun org-roam-format-link (target &optional description type)
+(defun org-roam-format-link (target &optional description type link-type)
   "Formats an org link for a given file TARGET, link DESCRIPTION and link TYPE.
-TYPE defaults to \"file\".
-Here, we also check if there is an ID for the file."
+TYPE defaults to \"file\". LINK-TYPE is the type of file link to
+be generated. Here, we also check if there is an ID for the
+file."
   (setq type (or type "file"))
   (when-let ((id (and org-roam-prefer-id-links
                       (string-equal type "file")
@@ -839,7 +840,7 @@ Here, we also check if there is an ID for the file."
                                                target)))))
     (setq type "id" target id))
   (when (string-equal type "file")
-    (setq target (org-roam-link-get-path target)))
+    (setq target (org-roam-link-get-path target link-type)))
   (setq description
         (if (functionp org-roam-link-title-format)
             (funcall org-roam-link-title-format description type)
@@ -1307,24 +1308,24 @@ file."
              (org-roam--org-roam-file-p file))
     (org-roam-db--clear-file (expand-file-name file))))
 
-(defun org-roam--get-link-replacement (old-path new-path old-desc new-desc)
+(defun org-roam--get-link-replacement (old-path new-path &optional old-desc new-desc)
   "Create replacement text for link at point if OLD-PATH is a match.
 Will update link to NEW-PATH. If OLD-DESC is set, and is not the
 same as the link description, it is assumed that the user has
 modified the description, and the description will not be
 updated. Else, update with NEW-DESC."
-  (when-let ((link (org-element-lineage (org-element-context) '(link) t)))
-    (let ((type (org-element-property :type link))
-          (path (org-element-property :path link)))
+  (let (type path link-type label new-label)
+    (when-let ((link (org-element-lineage (org-element-context) '(link) t)))
+      (setq type (org-element-property :type link)
+            path (org-element-property :path link))
       (when (and (string-equal (expand-file-name path) old-path)
                  (org-in-regexp org-link-bracket-re 1))
-        (let* ((label (if (match-end 2)
-                          (match-string-no-properties 2)
-                        (org-link-unescape (match-string-no-properties 1))))
-               (new-label (if (string-equal label old-desc)
-                              new-desc
-                            label)))
-          (org-roam-format-link new-path new-label type))))))
+        (setq link-type (when (file-name-absolute-p path) 'absolute)
+              label (if (match-end 2)
+                        (match-string-no-properties 2)
+                      (org-link-unescape (match-string-no-properties 1))))
+        (setq new-label (if (string-equal label old-desc) new-desc label))
+        (org-roam-format-link new-path new-label type link-type)))))
 
 (defun org-roam--replace-link (old-path new-path &optional old-desc new-desc)
   "Replace Org-roam file links with path OLD-PATH to path NEW-PATH.
@@ -1332,13 +1333,10 @@ If OLD-DESC is passed, and is not the same as the link
 description, it is assumed that the user has modified the
 description, and the description will not be updated. Else,
 update with NEW-DESC."
-  (save-excursion
-    (goto-char (point-min))
-    (while (re-search-forward org-link-any-re nil t)
-      (when-let ((new-link (save-match-data
-                             (org-roam--get-link-replacement
-                              old-path new-path old-desc new-desc))))
-        (replace-match new-link)))))
+  (org-with-point-at 1
+    (while (re-search-forward org-link-bracket-re nil t)
+      (when-let ((link (save-match-data (org-roam--get-link-replacement old-path new-path old-desc new-desc))))
+        (replace-match link)))))
 
 (defun org-roam--fix-relative-links (old-path)
   "Fix file-relative links in current buffer.
@@ -1440,36 +1438,34 @@ When NEW-FILE-OR-DIR is a directory, we use it to compute the new file path."
                (not (backup-file-name-p new-file))
                (org-roam--org-roam-file-p old-file))
       (org-roam-db--ensure-built)
-      (let* ((old-path (expand-file-name old-file))
-             (new-path (expand-file-name new-file))
-             (new-buffer (or (find-buffer-visiting new-path)
-                             (find-file-noselect new-path)))
+      (let* ((new-buffer (or (find-buffer-visiting new-file)
+                             (find-file-noselect new-file)))
              (files-affected (org-roam-db-query [:select :distinct [source]
                                                  :from links
                                                  :where (= dest $s1)]
-                                                old-path)))
+                                                old-file)))
         ;; Remove database entries for old-file.org
         (org-roam-db--clear-file old-file)
         ;; Replace links from old-file.org -> new-file.org in all Org-roam files with these links
         (mapc (lambda (file)
-                (setq file (if (string-equal (expand-file-name (car file)) old-path)
-                               new-path
+                (setq file (if (string-equal (car file) old-file)
+                               new-file
                              (car file)))
                 (with-current-buffer (or (find-buffer-visiting file)
                                          (find-file-noselect file))
-                  (org-roam--replace-link old-path new-path)
+                  (org-roam--replace-link old-file new-file)
                   (save-buffer)
                   (org-roam-db--update-file)))
               files-affected)
         ;; If the new path is in a different directory, relative links
         ;; will break. Fix all file-relative links:
-        (unless (string= (file-name-directory old-path)
-                         (file-name-directory new-path))
+        (unless (string= (file-name-directory old-file)
+                         (file-name-directory new-file))
           (with-current-buffer new-buffer
-            (org-roam--fix-relative-links old-path)
+            (org-roam--fix-relative-links old-file)
             (save-buffer)))
         (when (org-roam--org-roam-file-p new-file)
-          (org-roam-db--update-file new-path))))))
+          (org-roam-db--update-file new-file))))))
 
 (defun org-roam--id-new-advice (&rest _args)
   "Update the database if a new Org ID is created."
