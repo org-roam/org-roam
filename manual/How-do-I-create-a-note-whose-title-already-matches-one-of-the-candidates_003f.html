@@ -74,16 +74,13 @@ Previous: <a href="How-do-I-migrate-from-Roam-Research_003f.html#How-do-I-migrat
 <p>The solution is dependent on the mini-buffer completion framework in use. Here
 are the solutions:
 </p>
-<dl compact="compact">
-<dt>Ivy</dt>
-<dd><p>call <code>ivy-immediate-done</code>, typically bound to <code>C-M-j</code>. Alternatively, set <code>ivy-use-selectable-prompt</code> to <code>t</code>, so that &ldquo;bar&rdquo; is now selectable.
-</p></dd>
-<dt>Helm</dt>
-<dd><p>Org-roam should provide a selectable &ldquo;[?] bar&rdquo; candidate at the top of the candidate list.
-</p></dd>
-</dl>
+<ul>
+<li> Ivycall <code>ivy-immediate-done</code>, typically bound to <code>C-M-j</code>. Alternatively, set <code>ivy-use-selectable-prompt</code> to <code>t</code>, so that &ldquo;bar&rdquo; is now selectable.
 
-<p>Emacs 27.1.50 (Org mode 9.4)
+</li><li> HelmOrg-roam should provide a selectable &ldquo;[?] bar&rdquo; candidate at the top of the candidate list.
+</li></ul>
+
+<p>Emacs 28.0.50 (Org mode 9.4)
 </p>
 
 

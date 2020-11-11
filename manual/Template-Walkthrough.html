@@ -80,28 +80,35 @@ the default template, reproduced below.
      :unnarrowed t)
 </pre></div>
 
-<ol>
+<ul>
 <li> The template has short key <code>&quot;d&quot;</code>. If you have only one template,
 org-roam automatically chooses this template for you.
+
 </li><li> The template is given a description of <code>&quot;default&quot;</code>.
+
 </li><li> <code>plain</code> text is inserted. Other options include Org headings via
 <code>entry</code>.
+
 </li><li> <code>(function org-roam--capture-get-point)</code> should not be changed.
+
 </li><li> <code>&quot;%?&quot;</code> is the template inserted on each call to <code>org-roam-capture--capture</code>.
 This template means don&rsquo;t insert any content, but place the cursor
 here.
+
 </li><li> <code>:file-name</code> is the file-name template for a new note, if it doesn&rsquo;t yet
 exist. This creates a file at path that looks like
 <code>/path/to/org-roam-directory/20200213032037-foo.org</code>. This template also
 allows you to specify if you want the note to go into a subdirectory. For
 example, the template <code>private/${slug}</code> will create notes in
 <code>/path/to/org-roam-directory/private</code>.
+
 </li><li> <code>:head</code> contains the initial template to be inserted (once only), at
 the beginning of the file. Here, the title global attribute is
 inserted.
+
 </li><li> <code>:unnarrowed t</code> tells org-capture to show the contents for the whole
 file, rather than narrowing to just the entry.
-</li></ol>
+</li></ul>
 
 <p>Other options you may want to learn about include <code>:immediate-finish</code>.
 </p>

@@ -69,50 +69,56 @@ Next: <a href="Navigation.html#Navigation" accesskey="n" rel="next">Navigation</
 <a name="Capturing-and-finding-daily_002dnotes-1"></a>
 <h3 class="section">15.2 Capturing and finding daily-notes</h3>
 
-<ul>
-<li> Function: <code>org-roam-dailies-capture-today</code> &amp;optional goto
-
+<dl>
+<dt><a name="index-org_002droam_002ddailies_002dcapture_002dtoday"></a>Function: <strong><code>org-roam-dailies-capture-today</code></strong> <em>&amp;optional goto</em></dt>
+<dd>
 <p>Create an entry in the daily note for today.
 </p>
 <p>When <code>goto</code> is non-nil, go the note without creating an entry.
-</p>
-</li><li> Function: <code>org-roam-dailies-find-today</code>
+</p></dd></dl>
 
+<dl>
+<dt><a name="index-org_002droam_002ddailies_002dfind_002dtoday"></a>Function: <strong><code>org-roam-dailies-find-today</code></strong></dt>
+<dd>
 <p>Find the daily note for today, creating it if necessary.
-</p></li></ul>
+</p></dd></dl>
 
 <p>There are variants of those commands for <code>-yesterday</code> and <code>-tomorrow</code>:
 </p>
-<ul>
-<li> Function: <code>org-roam-dailies-capture-yesterday</code> n &amp;optional goto
-
+<dl>
+<dt><a name="index-org_002droam_002ddailies_002dcapture_002dyesterday"></a>Function: <strong><code>org-roam-dailies-capture-yesterday</code></strong> <em>n &amp;optional goto</em></dt>
+<dd>
 <p>Create an entry in the daily note for yesteday.
 </p>
 <p>With numeric argument <code>n</code>, use the daily note <code>n</code> days in the past.
-</p>
-</li><li> Function: <code>org-roam-dailies-find-yesterday</code>
+</p></dd></dl>
 
+<dl>
+<dt><a name="index-org_002droam_002ddailies_002dfind_002dyesterday"></a>Function: <strong><code>org-roam-dailies-find-yesterday</code></strong></dt>
+<dd>
 <p>With numeric argument N, use the daily-note N days in the future.
-</p></li></ul>
+</p></dd></dl>
 
 <p>There are also commands which allow you to use Emacs’s <code>calendar</code> to find the date
 </p>
-<ul>
-<li> Function: <code>org-roam-dailies-capture-date</code>
-
+<dl>
+<dt><a name="index-org_002droam_002ddailies_002dcapture_002ddate"></a>Function: <strong><code>org-roam-dailies-capture-date</code></strong></dt>
+<dd>
 <p>Create an entry in the daily note for a date using the calendar.
 </p>
 <p>Prefer past dates, unless <code>prefer-future</code> is non-nil.
 </p>
 <p>With a &rsquo;C-u&rsquo; prefix or when <code>goto</code> is non-nil, go the note without
 creating an entry.
-</p>
-</li><li> Function: <code>org-roam-dailies-find-date</code>
+</p></dd></dl>
 
+<dl>
+<dt><a name="index-org_002droam_002ddailies_002dfind_002ddate"></a>Function: <strong><code>org-roam-dailies-find-date</code></strong></dt>
+<dd>
 <p>Find the daily note for a date using the calendar, creating it if necessary.
 </p>
 <p>Prefer past dates, unless <code>prefer-future</code> is non-nil.
-</p></li></ul>
+</p></dd></dl>
 
 
 

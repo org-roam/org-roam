@@ -74,12 +74,12 @@ Next: <a href="Finding-Unlinked-References.html#Finding-Unlinked-References" acc
 Org-roam file. To run the check only for the current file, run <code>C-u M-x
 org-roam-doctor</code>, but note that this may take some time.
 </p>
-<ul>
-<li> Function: org-roam-doctor &amp;optional this-buffer
-
+<dl>
+<dt><a name="index-org_002droam_002ddoctor"></a>Function: <strong>org-roam-doctor</strong> <em>&amp;optional this-buffer</em></dt>
+<dd>
 <p>Perform a check on Org-roam files to ensure cleanliness. If THIS-BUFFER, run
 the check only for the current buffer.
-</p></li></ul>
+</p></dd></dl>
 
 <p>The checks run are defined in <code>org-roam-doctor--checkers</code>. Each checker is an
 instance of <code>org-roam-doctor-checker</code>. To define a checker, use

@@ -83,17 +83,13 @@ populate the Org-roam database. The link can then be inserted via
 <p>An alternative mode of insertion is using Org-roam&rsquo;s <code>roam</code> links. Org-roam
 registers this link type, and interprets the path as follows:
 </p>
-<dl compact="compact">
-<dt><code>[[roam:title]]</code></dt>
-<dd><p>links to an Org-roam file with title or alias &ldquo;title&rdquo;
-</p></dd>
-<dt><code>[[roam:*headline]]</code></dt>
-<dd><p>links to the headline &ldquo;headline&rdquo; in the current Org-roam file
-</p></dd>
-<dt><code>[[roam:title*headline]]</code></dt>
-<dd><p>links to the headline &ldquo;headline&rdquo; in the Org-roam file with title or alias &ldquo;title&rdquo;
-</p></dd>
-</dl>
+<ul>
+<li> <code>[[roam:title]]</code>links to an Org-roam file with title or alias &ldquo;title&rdquo;
+
+</li><li> <code>[[roam:*headline]]</code>links to the headline &ldquo;headline&rdquo; in the current Org-roam file
+
+</li><li> <code>[[roam:title*headline]]</code>links to the headline &ldquo;headline&rdquo; in the Org-roam file with title or alias &ldquo;title&rdquo;
+</li></ul>
 
 <p><code>roam</code> links support auto-completion via <code>completion-at-point</code>: simply call
 <code>completion-at-point</code> within a roam link. Users of <code>company-mode</code> may want to
@@ -111,28 +107,32 @@ prepend <code>company-capf</code> to the beginning of variable <code>company-bac
     (backward-char 2))
 </pre></div>
 
-<ul>
-<li> User Option: org-roam-link-title-format
-
+<dl>
+<dt><a name="index-org_002droam_002dlink_002dtitle_002dformat"></a>User Option: <strong>org-roam-link-title-format</strong></dt>
+<dd>
 <p>To distinguish between org-roam links and regular links, one may choose to use
 special indicators for Org-roam links. Defaults to <code>&quot;%s&quot;</code>.
 </p>
 <p>If your version of Org is at least <code>9.2</code>, consider styling the link differently,
 by customizing the <code>org-roam-link</code>, and <code>org-roam-link-current</code> faces.
-</p>
-</li><li> User Option: org-roam-completion-ignore-case
+</p></dd></dl>
 
+<dl>
+<dt><a name="index-org_002droam_002dcompletion_002dignore_002dcase"></a>User Option: <strong>org-roam-completion-ignore-case</strong></dt>
+<dd>
 <p>When non-nil, the <code>roam</code> link completions are ignore case. For example,
 calling <code>completion-at-point</code> within <code>[[roam:fo]]</code> will present a completion
 for a file with title &ldquo;Foo&rdquo;. Defaults to <code>t</code>.
-</p>
-</li><li> User Option: org-roam-link-auto-replace
+</p></dd></dl>
 
+<dl>
+<dt><a name="index-org_002droam_002dlink_002dauto_002dreplace"></a>User Option: <strong>org-roam-link-auto-replace</strong></dt>
+<dd>
 <p>When non-nil, <code>roam</code> links will be replaced with <code>file</code> or <code>id</code> links when
 they are navigated to, and on file save, when a match is found. This is
 desirable to maintain compatibility with vanilla Org, but resolved links are
 harder to edit. Defaults to <code>t</code>.
-</p></li></ul>
+</p></dd></dl>
 
 <hr>
 <div class="header">

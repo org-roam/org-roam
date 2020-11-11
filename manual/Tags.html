@@ -77,18 +77,21 @@ notes: differentiating between bibliographical and structure notes during intera
 variable <code>org-roam-tag-sources</code>, to control how tags are extracted. The tag
 extraction methods supported are:
 </p>
-<ol>
+<ul>
 <li> <code>'prop</code>: This extracts tags from the <code>#+roam_tags</code> property. Tags are space delimited, and can be multi-word using double quotes.
+
 </li><li> <code>'all-directories</code>: All sub-directories relative to <code>org-roam-directory</code> are
 extracted as tags. That is, if a file is located at relative path
 <code>foo/bar/file.org</code>, the file will have tags <code>foo</code> and <code>bar</code>.
+
 </li><li> <code>'last-directory</code>: Extracts the last directory relative to
 <code>org-roam-directory</code> as the tag. That is, if a file is located at relative
 path <code>foo/bar/file.org</code>, the file will have tag <code>bar</code>.
+
 </li><li> <code>'first-directory</code>: Extracts the first directory relative to
 <code>org-roam-directory</code> as the tag. That is, if a file is located at relative
 path <code>foo/bar/file.org</code>, the file will have tag <code>foo</code>.
-</li></ol>
+</li></ul>
 
 <p>By default, only the <code>'prop</code> extraction method is enabled. To enable the other
 extraction methods, you may modify <code>org-roam-tag-sources</code>:

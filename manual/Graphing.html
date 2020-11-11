@@ -75,37 +75,47 @@ notes. This is done by performing SQL queries and generating images using
 </p>
 <p>The entry point to graph creation is <code>org-roam-graph</code>.
 </p>
-<ul>
-<li> Function: org-roam-graph &amp; optional arg file node-query
-
+<dl>
+<dt><a name="index-org_002droam_002dgraph"></a>Function: <strong>org-roam-graph</strong> <em>&amp; optional arg file node-query</em></dt>
+<dd>
 <p>Build and possibly display a graph for FILE from NODE-QUERY.
 If FILE is nil, default to current buffer’s file name.
 ARG may be any of the following values:
 </p>
 <ul>
 <li> <code>nil</code>       show the graph.
+
 </li><li> <code>C-u</code>       show the graph for FILE.
+
 </li><li> <code>C-u N</code>     show the graph for FILE limiting nodes to N steps.
+
 </li><li> <code>C-u C-u</code>   build the graph.
+
 </li><li> <code>C-u -</code>     build the graph for FILE.
+
 </li><li> <code>C-u -N</code>    build the graph for FILE limiting nodes to N steps.
 </li></ul>
+</dd></dl>
 
-</li><li> User Option: org-roam-graph-executable
-
+<dl>
+<dt><a name="index-org_002droam_002dgraph_002dexecutable"></a>User Option: <strong>org-roam-graph-executable</strong></dt>
+<dd>
 <p>Path to the graphing executable (in this case, Graphviz). Set this if Org-roam is unable to find the Graphviz executable on your system.
 </p>
 <p>You may also choose to use <code>neato</code> in place of <code>dot</code>, which generates a more
 compact graph layout.
-</p>
-</li><li> User Option: org-roam-graph-viewer
+</p></dd></dl>
 
+<dl>
+<dt><a name="index-org_002droam_002dgraph_002dviewer"></a>User Option: <strong>org-roam-graph-viewer</strong></dt>
+<dd>
 <p>Org-roam defaults to using Firefox (located on PATH) to view the SVG, but you may choose to set it to:
 </p>
-<ol>
+<ul>
 <li> A string, which is a path to the program used
+
 </li><li> a function accepting a single argument: the graph file path.
-</li></ol>
+</li></ul>
 
 <p><code>nil</code> uses <code>view-file</code> to view the graph.
 </p>
@@ -117,7 +127,7 @@ compact graph layout.
       (let ((org-roam-graph-viewer &quot;/mnt/c/Program Files/Mozilla Firefox/firefox.exe&quot;))
         (org-roam-graph--open (concat &quot;file://///wsl$/Ubuntu&quot; file)))))
 </pre></div>
-</li></ul>
+</dd></dl>
 
 <table class="menu" border="0" cellspacing="0">
 <tr><td align="left" valign="top">&bull; <a href="Graph-Options.html#Graph-Options" accesskey="1">Graph Options</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
