@@ -5,6 +5,8 @@
 #+date: 2020-2020
 #+language: en
 
+
+#+texinfo_deffn: t
 #+texinfo_dir_category: Emacs
 #+texinfo_dir_title: Org-roam: (org-roam).
 #+texinfo_dir_desc: Rudimentary Roam Replica for Emacs.
@@ -14,6 +16,7 @@
 #+property: header-args :eval never
 #+texinfo: @noindent
 
+#+texinfo: @noindent
 This manual is for Org-roam version 1.2.2.
 
 #+BEGIN_QUOTE
@@ -1444,6 +1447,7 @@ are the solutions:
 
 # Local Variables:
 # eval: (require 'ol-info)
+# eval: (require 'ox-texinfo+ nil t)
 # before-save-hook: org-make-toc
 # after-save-hook: (lambda nil (progn (require 'ox-texinfo nil t) (org-texinfo-export-to-info)))
 # indent-tabs-mode: nil
