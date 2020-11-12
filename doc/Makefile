@@ -27,12 +27,9 @@ dir: org-roam.info
 	@printf "Generating $@\n"
 	@$(MAKEINFO) --html --no-split $(MANUAL_HTML_ARGS) $<
 
-html-dir: 
-	@printf "Generating org-roam/*.html\n"
-	@$(MAKEINFO) --html $(MANUAL_HTML_ARGS) org-roam.texi
-	mv org-roam manual
-	cp -r assets manual
-	cp -r images manual
+html-dir:
+	@$(MAKEINFO) --html --no-split $(MANUAL_HTML_ARGS) org-roam.texi
+	mv org-roam.html manual.html
 
 %.pdf: %.texi
 	@printf "Generating $@\n"
