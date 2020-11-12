@@ -1,3 +1,8 @@
+:root {
+  --border: #526980;
+  --code: #007;
+}
+
 body {
     margin: 5ex 10ex;
     max-width: 80ex;
@@ -18,16 +23,29 @@ pre {
     background: #eee;
     border: solid 1px #ddd;
     min-width: 0;
-    font-size: 90%;
+    font-size: 80%;
     overflow: auto;
 }
 
 code {
-    color: #007;
+    color: var(--code);
 }
 
 img {
     max-width: 100%;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+thead {
+  border-bottom: 1px solid var(--border);
+}
+
+tfoot {
+  border-top: 1px solid var(--border);
 }
 
 blockquote {

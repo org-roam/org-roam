@@ -964,7 +964,6 @@ brew cask install platypus
 
 3. Create a Platypus app with the following settings:
 
-#+begin_example
 | Setting                        | Value                     |
 |--------------------------------+---------------------------|
 | App Name                       | "OrgProtocol"             |
@@ -973,18 +972,15 @@ brew cask install platypus
 | Interface                      | None                      |
 | Accept dropped items           | true                      |
 | Remain running after execution | false                     |
-#+end_example
 
 
 Inside ~Settings~:
 
-#+begin_example
 | Setting                        | Value          |
 |--------------------------------+----------------|
 | Accept dropped files           | true           |
 | Register as URI scheme handler | true           |
 | Protocol                       | "org-protocol" |
-#+end_example
 
 To disable the "confirm" prompt in Chrome, you can also make Chrome
 show a checkbox to tick, so that the ~OrgProtocol~ app will be used
