@@ -1875,7 +1875,9 @@ the executable 'rg' in variable `exec-path'."
                                (concat "sed -n "
                                        row
                                        "p "
-                                       file))))
+                                       "\""
+                                       file
+                                       "\""))))
                     (insert "\n")))))))
         (read-only-mode +1)
         (dolist (title titles)
