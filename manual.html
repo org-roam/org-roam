@@ -1629,27 +1629,25 @@ setting up with Platypus and Chrome:
 <li> Create a Platypus app with the following settings:
 </li></ul>
 
-<div class="example">
-<pre class="example">| Setting                        | Value                     |
-|--------------------------------+---------------------------|
-| App Name                       | &quot;OrgProtocol&quot;             |
-| Script Type                    | &quot;env&quot; · &quot;/usr/bin/env&quot;    |
-| Script Path                    | &quot;path/to/launch-emacs.sh&quot; |
-| Interface                      | None                      |
-| Accept dropped items           | true                      |
-| Remain running after execution | false                     |
-</pre></div>
+<table>
+<thead><tr><th>Setting</th><th>Value</th></tr></thead>
+<tr><td>App Name</td><td>&ldquo;OrgProtocol&rdquo;</td></tr>
+<tr><td>Script Type</td><td>&ldquo;env&rdquo; · &ldquo;/usr/bin/env&rdquo;</td></tr>
+<tr><td>Script Path</td><td>&ldquo;path/to/launch-emacs.sh&rdquo;</td></tr>
+<tr><td>Interface</td><td>None</td></tr>
+<tr><td>Accept dropped items</td><td>true</td></tr>
+<tr><td>Remain running after execution</td><td>false</td></tr>
+</table>
 
 
 <p>Inside <code>Settings</code>:
 </p>
-<div class="example">
-<pre class="example">| Setting                        | Value          |
-|--------------------------------+----------------|
-| Accept dropped files           | true           |
-| Register as URI scheme handler | true           |
-| Protocol                       | &quot;org-protocol&quot; |
-</pre></div>
+<table>
+<thead><tr><th>Setting</th><th>Value</th></tr></thead>
+<tr><td>Accept dropped files</td><td>true</td></tr>
+<tr><td>Register as URI scheme handler</td><td>true</td></tr>
+<tr><td>Protocol</td><td>&ldquo;org-protocol&rdquo;</td></tr>
+</table>
 
 <p>To disable the &ldquo;confirm&rdquo; prompt in Chrome, you can also make Chrome
 show a checkbox to tick, so that the <code>OrgProtocol</code> app will be used
