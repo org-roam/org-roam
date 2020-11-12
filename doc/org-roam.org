@@ -1329,9 +1329,9 @@ that uses an external search engine and indexer.
 
 [[https://github.com/bastibe/org-journal][Org-journal]] provides journaling
 capabilities to Org-mode. A lot of its functionalities have been incorporated
-into Org-roam under the name ~org-roam-dailies~.  It remains a good tool if
-you want to isolate your verbose journal entries from the ideas you would
-write on a scratchpad.
+into Org-roam under the name [[*Daily-notes][~org-roam-dailies~]].  It remains
+a good tool if you want to isolate your verbose journal entries from the ideas
+you would write on a scratchpad.
 
 #+BEGIN_SRC emacs-lisp
   (use-package org-journal
