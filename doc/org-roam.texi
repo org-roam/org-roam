@@ -1750,9 +1750,9 @@ that uses an external search engine and indexer.
 
 @uref{https://github.com/bastibe/org-journal, Org-journal} provides journaling
 capabilities to Org-mode. A lot of its functionalities have been incorporated
-into Org-roam under the name @code{org-roam-dailies}.  It remains a good tool if
-you want to isolate your verbose journal entries from the ideas you would
-write on a scratchpad.
+into Org-roam under the name @ref{Daily-notes, , @code{org-roam-dailies}}.  It remains
+a good tool if you want to isolate your verbose journal entries from the ideas
+you would write on a scratchpad.
 
 @lisp
 (use-package org-journal
