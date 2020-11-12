@@ -1,0 +1,2465 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- Copyright (C) 2020-2020 Jethro Kuan <jethrokuan95@gmail.com>
+
+You can redistribute this document and/or modify it under the terms
+of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any
+later version.
+
+This document is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+ -->
+<!-- Created by GNU Texinfo 6.5, http://www.gnu.org/software/texinfo/ -->
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Org-roam User Manual</title>
+
+<meta name="description" content="Org-roam User Manual">
+<meta name="keywords" content="Org-roam User Manual">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<link href="#Top" rel="start" title="Top">
+<link href="#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="dir.html#Top" rel="up" title="(dir)">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.indentedblock {margin-right: 0em}
+blockquote.smallindentedblock {margin-right: 0em; font-size: smaller}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smalllisp {margin-left: 3.2em}
+kbd {font-style: oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: inherit; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: inherit; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nolinebreak {white-space: nowrap}
+span.roman {font-family: initial; font-weight: normal}
+span.sansserif {font-family: sans-serif; font-weight: normal}
+ul.no-bullet {list-style: none}
+-->
+</style>
+<link rel="stylesheet" type="text/css" href="assets/page.css">
+
+
+</head>
+
+<body lang="en">
+<h1 class="settitle" align="center">Org-roam User Manual</h1>
+
+
+
+
+<a name="SEC_Contents"></a>
+<h2 class="contents-heading">Table of Contents</h2>
+
+<div class="contents">
+
+<ul class="no-bullet">
+  <li><a name="toc-Introduction-1" href="#Introduction">1 Introduction</a></li>
+  <li><a name="toc-Target-Audience-1" href="#Target-Audience">2 Target Audience</a></li>
+  <li><a name="toc-A-Brief-Introduction-to-the-Zettelkasten-Method-1" href="#A-Brief-Introduction-to-the-Zettelkasten-Method">3 A Brief Introduction to the Zettelkasten Method</a>
+  <ul class="no-bullet">
+    <li><a name="toc-Fleeting-notes-1" href="#Fleeting-notes">3.1 Fleeting notes</a></li>
+    <li><a name="toc-Permanent-notes-1" href="#Permanent-notes">3.2 Permanent notes</a></li>
+  </ul></li>
+  <li><a name="toc-Installation-1" href="#Installation">4 Installation</a>
+  <ul class="no-bullet">
+    <li><a name="toc-Installing-from-MELPA-1" href="#Installing-from-MELPA">4.1 Installing from MELPA</a></li>
+    <li><a name="toc-Installing-from-Apt-1" href="#Installing-from-Apt">4.2 Installing from Apt</a></li>
+    <li><a name="toc-Installing-from-the-Git-Repository-1" href="#Installing-from-the-Git-Repository">4.3 Installing from the Git Repository</a></li>
+    <li><a name="toc-Post_002dInstallation-Tasks-1" href="#Post_002dInstallation-Tasks">4.4 Post-Installation Tasks</a></li>
+  </ul></li>
+  <li><a name="toc-Getting-Started-1" href="#Getting-Started">5 Getting Started</a></li>
+  <li><a name="toc-Anatomy-of-an-Org_002droam-File-1" href="#Anatomy-of-an-Org_002droam-File">6 Anatomy of an Org-roam File</a>
+  <ul class="no-bullet">
+    <li><a name="toc-Titles-1" href="#Titles">6.1 Titles</a></li>
+    <li><a name="toc-Tags-1" href="#Tags">6.2 Tags</a></li>
+    <li><a name="toc-File-Refs-1" href="#File-Refs">6.3 File Refs</a></li>
+  </ul></li>
+  <li><a name="toc-The-Templating-System-1" href="#The-Templating-System">7 The Templating System</a>
+  <ul class="no-bullet">
+    <li><a name="toc-Template-Walkthrough-1" href="#Template-Walkthrough">7.1 Template Walkthrough</a></li>
+    <li><a name="toc-Org_002droam-Template-Expansion-1" href="#Org_002droam-Template-Expansion">7.2 Org-roam Template Expansion</a></li>
+  </ul></li>
+  <li><a name="toc-Concepts-and-Configuration-1" href="#Concepts-and-Configuration">8 Concepts and Configuration</a>
+  <ul class="no-bullet">
+    <li><a name="toc-Directories-and-Files-1" href="#Directories-and-Files">8.1 Directories and Files</a></li>
+    <li><a name="toc-The-Org_002droam-Buffer-1" href="#The-Org_002droam-Buffer">8.2 The Org-roam Buffer</a></li>
+    <li><a name="toc-Org_002droam-Files-1" href="#Org_002droam-Files">8.3 Org-roam Files</a></li>
+    <li><a name="toc-Org_002droam-Faces-1" href="#Org_002droam-Faces">8.4 Org-roam Faces</a></li>
+  </ul></li>
+  <li><a name="toc-Inserting-Links-1" href="#Inserting-Links">9 Inserting Links</a></li>
+  <li><a name="toc-Navigating-Around-1" href="#Navigating-Around">10 Navigating Around</a>
+  <ul class="no-bullet">
+    <li><a name="toc-Index-File-1" href="#Index-File">10.1 Index File</a></li>
+  </ul></li>
+  <li><a name="toc-Encryption-1" href="#Encryption">11 Encryption</a></li>
+  <li><a name="toc-Graphing-1" href="#Graphing">12 Graphing</a>
+  <ul class="no-bullet">
+    <li><a name="toc-Graph-Options-1" href="#Graph-Options">12.1 Graph Options</a></li>
+    <li><a name="toc-Excluding-Nodes-and-Edges-1" href="#Excluding-Nodes-and-Edges">12.2 Excluding Nodes and Edges</a></li>
+  </ul></li>
+  <li><a name="toc-Org_002droam-Completion-System-1" href="#Org_002droam-Completion-System">13 Org-roam Completion System</a></li>
+  <li><a name="toc-Roam-Protocol-1" href="#Roam-Protocol">14 Roam Protocol</a>
+  <ul class="no-bullet">
+    <li><a name="toc-Installation-2" href="#Installation-_00281_0029">14.1 Installation</a></li>
+    <li><a name="toc-The-roam_002dfile-protocol-1" href="#The-roam_002dfile-protocol">14.2 The roam-file protocol</a></li>
+    <li><a name="toc-The-roam_002dref-protocol-1" href="#The-roam_002dref-protocol">14.3 The roam-ref protocol</a></li>
+  </ul></li>
+  <li><a name="toc-Daily_002dnotes-1" href="#Daily_002dnotes">15 Daily-notes</a>
+  <ul class="no-bullet">
+    <li><a name="toc-Configuration-1" href="#Configuration">15.1 Configuration</a></li>
+    <li><a name="toc-Capturing-and-finding-daily_002dnotes-1" href="#Capturing-and-finding-daily_002dnotes">15.2 Capturing and finding daily-notes</a></li>
+    <li><a name="toc-Navigation-1" href="#Navigation">15.3 Navigation</a></li>
+  </ul></li>
+  <li><a name="toc-Diagnosing-and-Repairing-Files-1" href="#Diagnosing-and-Repairing-Files">16 Diagnosing and Repairing Files</a></li>
+  <li><a name="toc-Finding-Unlinked-References-1" href="#Finding-Unlinked-References">17 Finding Unlinked References</a></li>
+  <li><a name="toc-Performance-Optimization-1" href="#Performance-Optimization">18 Performance Optimization</a>
+  <ul class="no-bullet">
+    <li><a name="toc-TODO-Profiling-Key-Operations" href="#Profiling-Key-Operations">18.1 <strong>TODO</strong> Profiling Key Operations</a></li>
+    <li><a name="toc-Garbage-Collection-1" href="#Garbage-Collection">18.2 Garbage Collection</a></li>
+  </ul></li>
+  <li><a name="toc-Appendix-1" href="#Appendix">19 Appendix</a>
+  <ul class="no-bullet">
+    <li><a name="toc-Note_002dtaking-Workflows-1" href="#Note_002dtaking-Workflows">19.1 Note-taking Workflows</a></li>
+    <li><a name="toc-Ecosystem-1" href="#Ecosystem">19.2 Ecosystem</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Browsing-History-with-winner_002dmode-1" href="#Browsing-History-with-winner_002dmode">19.2.1 Browsing History with winner-mode</a></li>
+      <li><a name="toc-Versioning-Notes-1" href="#Versioning-Notes">19.2.2 Versioning Notes</a></li>
+      <li><a name="toc-Full_002dtext-search-interface-with-Deft-1" href="#Full_002dtext-search-interface-with-Deft">19.2.3 Full-text search interface with Deft</a></li>
+      <li><a name="toc-Org_002djournal-1" href="#Org_002djournal">19.2.4 Org-journal</a></li>
+      <li><a name="toc-Note_002dtaking-Add_002dons-1" href="#Note_002dtaking-Add_002dons">19.2.5 Note-taking Add-ons</a>
+      <ul class="no-bullet">
+        <li><a name="toc-Org_002ddownload-1" href="#Org_002ddownload">Org-download</a></li>
+        <li><a name="toc-mathpix_002eel" href="#mathpixel">mathpix.el</a></li>
+        <li><a name="toc-Org_002dnoter-_002f-Interleave-1" href="#Org_002dnoter-_002f-Interleave">Org-noter / Interleave</a></li>
+        <li><a name="toc-Bibliography-1" href="#Bibliography">Bibliography</a></li>
+        <li><a name="toc-Spaced-Repetition-1" href="#Spaced-Repetition">Spaced Repetition</a></li>
+      </ul></li>
+    </ul></li>
+  </ul></li>
+  <li><a name="toc-FAQ-1" href="#FAQ">20 FAQ</a>
+  <ul class="no-bullet">
+    <li><a name="toc-How-do-I-have-more-than-one-Org_002droam-directory_003f-1" href="#How-do-I-have-more-than-one-Org_002droam-directory_003f">20.1 How do I have more than one Org-roam directory?</a></li>
+    <li><a name="toc-How-do-I-migrate-from-Roam-Research_003f-1" href="#How-do-I-migrate-from-Roam-Research_003f">20.2 How do I migrate from Roam Research?</a></li>
+    <li><a name="toc-How-do-I-create-a-note-whose-title-already-matches-one-of-the-candidates_003f-1" href="#How-do-I-create-a-note-whose-title-already-matches-one-of-the-candidates_003f">20.3 How do I create a note whose title already matches one of the candidates?</a></li>
+  </ul></li>
+</ul>
+</div>
+
+
+<a name="Top"></a>
+<div class="header">
+<p>
+Next: <a href="#Introduction" accesskey="n" rel="next">Introduction</a>, Up: <a href="dir.html#Top" accesskey="u" rel="up">(dir)</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Org_002droam-User-Manual"></a>
+<h1 class="top">Org-roam User Manual</h1>
+
+
+<p>This manual is for Org-roam version 1.2.2.
+</p>
+<blockquote>
+<p>Copyright (C) 2020-2020 Jethro Kuan &lt;jethrokuan95@gmail.com&gt;
+</p>
+<p>You can redistribute this document and/or modify it under the terms of the GNU
+General Public License as published by the Free Software Foundation, either
+version 3 of the License, or (at your option) any later version.
+</p>
+<p>This document is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+</p>
+</blockquote>
+
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Introduction" accesskey="1">Introduction</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Target-Audience" accesskey="2">Target Audience</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#A-Brief-Introduction-to-the-Zettelkasten-Method" accesskey="3">A Brief Introduction to the Zettelkasten Method</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Installation" accesskey="4">Installation</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Getting-Started" accesskey="5">Getting Started</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Anatomy-of-an-Org_002droam-File" accesskey="6">Anatomy of an Org-roam File</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#The-Templating-System" accesskey="7">The Templating System</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Concepts-and-Configuration" accesskey="8">Concepts and Configuration</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Inserting-Links" accesskey="9">Inserting Links</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Navigating-Around">Navigating Around</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Encryption">Encryption</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Graphing">Graphing</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Org_002droam-Completion-System">Org-roam Completion System</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Roam-Protocol">Roam Protocol</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Daily_002dnotes">Daily-notes</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Diagnosing-and-Repairing-Files">Diagnosing and Repairing Files</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Finding-Unlinked-References">Finding Unlinked References</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Performance-Optimization">Performance Optimization</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Appendix">Appendix</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#FAQ">FAQ</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+
+</pre></th></tr><tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">&mdash; The Detailed Node Listing &mdash;
+
+A Brief Introduction to the Zettelkasten Method
+
+</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="#Fleeting-notes">Fleeting notes</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Permanent-notes">Permanent notes</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+
+Installation
+
+</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="#Installing-from-MELPA">Installing from MELPA</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Installing-from-Apt">Installing from Apt</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Installing-from-the-Git-Repository">Installing from the Git Repository</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Post_002dInstallation-Tasks">Post-Installation Tasks</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+
+Anatomy of an Org-roam File
+
+</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="#Titles">Titles</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Tags">Tags</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#File-Refs">File Refs</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+
+The Templating System
+
+</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="#Template-Walkthrough">Template Walkthrough</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Org_002droam-Template-Expansion">Org-roam Template Expansion</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+
+Concepts and Configuration
+
+</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="#Directories-and-Files">Directories and Files</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#The-Org_002droam-Buffer">The Org-roam Buffer</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Org_002droam-Files">Org-roam Files</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Org_002droam-Faces">Org-roam Faces</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+
+Navigating Around
+
+</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="#Index-File">Index File</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+
+Graphing
+
+</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="#Graph-Options">Graph Options</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Excluding-Nodes-and-Edges">Excluding Nodes and Edges</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+
+Roam Protocol
+
+</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="#Installation-_00281_0029">Installation</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#The-roam_002dfile-protocol">The roam-file protocol</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#The-roam_002dref-protocol">The roam-ref protocol</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+
+Daily-notes
+
+</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="#Configuration">Configuration</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Capturing-and-finding-daily_002dnotes">Capturing and finding daily-notes</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Navigation">Navigation</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+
+Performance Optimization
+
+</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="#Profiling-Key-Operations">Profiling Key Operations</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Garbage-Collection">Garbage Collection</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+
+Appendix
+
+</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="#Note_002dtaking-Workflows">Note-taking Workflows</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Ecosystem">Ecosystem</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+
+Ecosystem
+
+</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="#Browsing-History-with-winner_002dmode">Browsing History with winner-mode</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Versioning-Notes">Versioning Notes</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Full_002dtext-search-interface-with-Deft">Full-text search interface with Deft</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Org_002djournal">Org-journal</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Note_002dtaking-Add_002dons">Note-taking Add-ons</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+
+
+FAQ
+
+</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="#How-do-I-have-more-than-one-Org_002droam-directory_003f">How do I have more than one Org-roam directory?</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#How-do-I-migrate-from-Roam-Research_003f">How do I migrate from Roam Research?</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#How-do-I-create-a-note-whose-title-already-matches-one-of-the-candidates_003f">How do I create a note whose title already matches one of the candidates?</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+
+</pre></th></tr></table>
+
+<hr>
+<a name="Introduction"></a>
+<div class="header">
+<p>
+Next: <a href="#Target-Audience" accesskey="n" rel="next">Target Audience</a>, Previous: <a href="#Top" accesskey="p" rel="prev">Top</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Introduction-1"></a>
+<h2 class="chapter">1 Introduction</h2>
+
+<p>Org-roam is a <a href="https://roamresearch.com/">Roam Research</a> replica built around the
+all-powerful <a href="https://orgmode.org/">Org-mode</a>.
+</p>
+<p>Org-roam is a solution for effortless non-hierarchical note-taking
+with Org-mode. With Org-roam, notes flow naturally, making note-taking
+fun and easy. Org-roam should also work as a plug-and-play solution
+for anyone already using Org-mode for their personal wiki.
+</p>
+<p>To understand more about Roam, a collection of links are available in
+<a href="#Note_002dtaking-Workflows">Note-taking Workflows</a>.
+</p>
+<p>Org-roam aims to implement the core features of Roam, leveraging the
+mature ecosystem around Org-mode where possible. Eventually, we hope
+to further introduce features enabled by the Emacs ecosystem.
+</p>
+<p>Org-roam provides several benefits over other tooling:
+</p>
+<ul>
+<li> Privacy and SecurityEdit your personal wiki completely offline, entirely in your control. Encrypt your notes with GPG.
+
+</li><li> Longevity of Plain TextUnlike web solutions like Roam research, the notes are first and foremost plain Org-mode files &ndash; Org-roam simply builds up an auxilliary database to give the personal wiki superpowers. Having your notes in plain-text is crucial for the longevity of your wiki. Never have to worry about proprietary web solutions being taken down. Edit your plain-text notes in notepad if all other editors cease to exist
+
+</li><li> Free and Open SourceOrg-roam is free and open-source, which means that if you feel unhappy with any part of Org-roam, you may choose to extend Org-roam, or open a PR.
+
+</li><li> Leverages the Org-mode ecosystemOver the years, Emacs and Org-mode has developed into a mature system for plain-text organization. Building upon Org-mode already puts Org-roam light-years ahead of many other solutions.
+
+</li><li> Built on EmacsEmacs is also a fantastic interface for editing text, and we can inherit many of the powerful text-navigation and editing packages available to Emacs.
+</li></ul>
+
+<hr>
+<a name="Target-Audience"></a>
+<div class="header">
+<p>
+Next: <a href="#A-Brief-Introduction-to-the-Zettelkasten-Method" accesskey="n" rel="next">A Brief Introduction to the Zettelkasten Method</a>, Previous: <a href="#Introduction" accesskey="p" rel="prev">Introduction</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Target-Audience-1"></a>
+<h2 class="chapter">2 Target Audience</h2>
+
+<p>Org-roam is a tool that will appear unfriendly to anyone unfamiliar with Emacs
+and Org-mode, but is also extremely powerful to those willing to put effort in
+mastering the intricacies of the tools. Org-roam stands on the shoulders on
+giants. Emacs was first created in 1976, and remains a top tier tool for editing
+text and designing textual interfaces. The malleability of Emacs allowed the
+creation of Org-mode, an all-purpose plain-text system for maintaining TODO
+lists, planning projects, and authoring documents. Both of these tools are
+incredibly vast and require significant time investment to master.
+</p>
+<p>Org-roam assumes basic familiarity with these tools. It is not difficult to get
+up and running with basic text-editing functionality, but one will only fully
+appreciate the power of building Roam functionality into Emacs and Org-mode when
+the usage of these tools become more advanced.
+</p>
+<p>One key advantage to Org-roam is that building on top of Emacs gives it
+malleability. This is especially important for note-taking workflows. It is our
+belief that note-taking workflows are extremely personal, and there is no one
+tool that&rsquo;s perfect for you. Org-mode and Org-roam allows you to discover what
+works for you, and build that perfect tool for yourself.
+</p>
+<p>If you are new to the software, and choose to take this leap of faith, I hope
+you find yourself equally entranced as Neal Stephenson was.
+</p>
+<blockquote>
+<p>Emacs outshines all other editing software in approximately the same way that
+the noonday sun does the stars. It is not just bigger and brighter; it simply
+makes everything else vanish. – Neal Stephenson, In the Beginning was the
+Command Line (1998)
+</p>
+</blockquote>
+
+<hr>
+<a name="A-Brief-Introduction-to-the-Zettelkasten-Method"></a>
+<div class="header">
+<p>
+Next: <a href="#Installation" accesskey="n" rel="next">Installation</a>, Previous: <a href="#Target-Audience" accesskey="p" rel="prev">Target Audience</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="A-Brief-Introduction-to-the-Zettelkasten-Method-1"></a>
+<h2 class="chapter">3 A Brief Introduction to the Zettelkasten Method</h2>
+
+<p>Org-roam provides utilities for maintaining a digital slip-box. This section
+aims to provide a brief introduction to the &ldquo;slip-box&rdquo;, or &ldquo;Zettelkasten&rdquo;
+method. By providing some background on the method, we hope that the design
+decisions of Org-roam will become clear, and that will aid in using Org-roam
+appropriately. In this section we will also introduce terms commonly used within
+the Zettelkasten community, which will also commonly appear in the Org-roam
+forums and channels of discussion.
+</p>
+<p>The Zettelkasten method of note-taking is designed to increase research
+productivity: in particular, it acts as a research partner, where conversations
+with it may produce new and surprising lines of thought. This method is
+attributed to German sociologist Niklas Luhmann, who using the method had
+produced volumes of written works.
+</p>
+<p>In its paper form, the slip-box is simply a box of cards. These cards are small
+&ndash; often only large enough to fit a single concept. The size limitation
+encourages ideas to be broken down into individual concepts. These ideas are
+explicitly linked together. The breakdown of ideas encourages tangential
+exploration of ideas, increasing the surface for thought. Making linking
+explicit between notes also encourages one to think about the connections
+between concepts.
+</p>
+<p>Org-roam is the slip-box, digitalized in Org-mode. Every zettel (card) is a
+plain-text, Org-mode file. These files are often placed in the same directory.
+In the same way one would maintain a paper slip-box, Org-roam makes it easy to
+create new zettels, pre-filling boilerplate content using a powerful templating
+system. Org-roam also facilitates the linking of zettels using Org-mode <code>file:</code>
+links.
+</p>
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Fleeting-notes" accesskey="1">Fleeting notes</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Permanent-notes" accesskey="2">Permanent notes</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr>
+<a name="Fleeting-notes"></a>
+<div class="header">
+<p>
+Next: <a href="#Permanent-notes" accesskey="n" rel="next">Permanent notes</a>, Up: <a href="#A-Brief-Introduction-to-the-Zettelkasten-Method" accesskey="u" rel="up">A Brief Introduction to the Zettelkasten Method</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Fleeting-notes-1"></a>
+<h3 class="section">3.1 Fleeting notes</h3>
+
+<p>A slip-box requires a method of quickly capturing ideas. These are called
+<strong>fleeting notes</strong>: they are simple reminders of information or ideas that will
+need to be processed later on, or trashed. This is typically accomplished using
+<code>org-capture</code> (see <a href="http://www.gnu.org/software/emacs/manual/html_mono/org.html#capture">(org)capture</a>), or using Org-roam&rsquo;s daily notes
+functionality (see <a href="#Daily_002dnotes">Daily-notes</a>). This provides a central inbox for collecting
+thoughts, to be processed later into permanent notes.
+</p>
+<hr>
+<a name="Permanent-notes"></a>
+<div class="header">
+<p>
+Previous: <a href="#Fleeting-notes" accesskey="p" rel="prev">Fleeting notes</a>, Up: <a href="#A-Brief-Introduction-to-the-Zettelkasten-Method" accesskey="u" rel="up">A Brief Introduction to the Zettelkasten Method</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Permanent-notes-1"></a>
+<h3 class="section">3.2 Permanent notes</h3>
+
+<p>Permanent notes are further split into two categories: <strong>literature notes</strong> and
+<strong>concept notes</strong>. Literature notes can be brief annotations on a particular
+source (e.g. book, website or paper), that you&rsquo;d like to access later on.
+Concept notes require much more care in authoring: they need to be
+self-explanatory and detailed. Org-roam&rsquo;s templating system supports the
+addition of different templates to facilitate the creation of these notes.
+</p>
+<hr>
+<a name="Installation"></a>
+<div class="header">
+<p>
+Next: <a href="#Getting-Started" accesskey="n" rel="next">Getting Started</a>, Previous: <a href="#A-Brief-Introduction-to-the-Zettelkasten-Method" accesskey="p" rel="prev">A Brief Introduction to the Zettelkasten Method</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Installation-1"></a>
+<h2 class="chapter">4 Installation</h2>
+
+<p>Org-roam can be installed using Emacs&rsquo; package manager or manually from its
+development repository.
+</p>
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Installing-from-MELPA" accesskey="1">Installing from MELPA</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Installing-from-Apt" accesskey="2">Installing from Apt</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Installing-from-the-Git-Repository" accesskey="3">Installing from the Git Repository</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Post_002dInstallation-Tasks" accesskey="4">Post-Installation Tasks</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr>
+<a name="Installing-from-MELPA"></a>
+<div class="header">
+<p>
+Next: <a href="#Installing-from-Apt" accesskey="n" rel="next">Installing from Apt</a>, Up: <a href="#Installation" accesskey="u" rel="up">Installation</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Installing-from-MELPA-1"></a>
+<h3 class="section">4.1 Installing from MELPA</h3>
+
+<p>Org-roam is available from Melpa and Melpa-Stable. If you haven&rsquo;t used Emacs&rsquo;
+package manager before, you may familiarize yourself with it by reading the
+documentation in the Emacs manual, see <a href="https://www.gnu.org/software/emacs/manual/html_mono/emacs.html#Packages">(emacs)Packages</a>. Then, add one of the
+archives to &lsquo;<samp>package-archives</samp>&rsquo;:
+</p>
+<ul>
+<li> To use Melpa:
+</li></ul>
+
+<div class="lisp">
+<pre class="lisp">(require 'package)
+(add-to-list 'package-archives
+             '(&quot;melpa&quot; . &quot;http://melpa.org/packages/&quot;) t)
+</pre></div>
+
+<ul>
+<li> To use Melpa-Stable:
+</li></ul>
+
+<div class="lisp">
+<pre class="lisp">(require 'package)
+(add-to-list 'package-archives
+             '(&quot;melpa-stable&quot; . &quot;http://stable.melpa.org/packages/&quot;) t)
+</pre></div>
+
+<p>Org-roam also depends on a recent version of Org, which can be obtained in Org&rsquo;s
+package repository (see <a href="http://www.gnu.org/software/emacs/manual/html_mono/org.html#Installation">(org)Installation</a>). To use Org&rsquo;s ELPA archive:
+</p>
+<div class="lisp">
+<pre class="lisp">(add-to-list 'package-archives '(&quot;org&quot; . &quot;https://orgmode.org/elpa/&quot;) t)
+</pre></div>
+
+<p>Once you have added your preferred archive, you need to update the
+local package list using:
+</p>
+<div class="example">
+<pre class="example">M-x package-refresh-contents RET
+</pre></div>
+
+<p>Once you have done that, you can install Org-roam and its dependencies
+using:
+</p>
+<div class="example">
+<pre class="example">M-x package-install RET org-roam RET
+</pre></div>
+
+<p>Now see <a href="#Post_002dInstallation-Tasks">Post-Installation Tasks</a>.
+</p>
+<hr>
+<a name="Installing-from-Apt"></a>
+<div class="header">
+<p>
+Next: <a href="#Installing-from-the-Git-Repository" accesskey="n" rel="next">Installing from the Git Repository</a>, Previous: <a href="#Installing-from-MELPA" accesskey="p" rel="prev">Installing from MELPA</a>, Up: <a href="#Installation" accesskey="u" rel="up">Installation</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Installing-from-Apt-1"></a>
+<h3 class="section">4.2 Installing from Apt</h3>
+
+<p>Users of Debian 11 or later or Ubuntu 20.10 or later can simply install Org-roam
+using Apt:
+</p>
+<div class="example">
+<pre class="example">apt-get install elpa-org-roam
+</pre></div>
+
+<p>Org-roam will then be autoloaded into Emacs.
+</p>
+<hr>
+<a name="Installing-from-the-Git-Repository"></a>
+<div class="header">
+<p>
+Next: <a href="#Post_002dInstallation-Tasks" accesskey="n" rel="next">Post-Installation Tasks</a>, Previous: <a href="#Installing-from-Apt" accesskey="p" rel="prev">Installing from Apt</a>, Up: <a href="#Installation" accesskey="u" rel="up">Installation</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Installing-from-the-Git-Repository-1"></a>
+<h3 class="section">4.3 Installing from the Git Repository</h3>
+
+<p>You may install Org-roam directly from the repository on <a href="https://github.com/org-roam/org-roam">GitHub</a> if you like. This will give you access to the latest version hours or days before it appears on MELPA, and months (or more) before it is added to the Debian or Ubuntu repositories. This will also give you access to various developmental branches that may be available. 
+</p>
+<p>Note, however, that development version, and especially any feature branches, may not always be in working order. You&rsquo;ll need to be prepared to do some debugging, or to manually roll-back to working versions, if you install from GitHub.
+</p>
+<p>Installing from GitHub requires that you clone the repository:
+</p>
+<div class="example">
+<pre class="example">git clone https://github.com/org-roam/org-roam.git /path/to/org/roam
+</pre></div>
+
+<p>where <code>./path/to/org/roam</code> is the location you will store your copy of the code.
+</p>
+<p>Next, you need to add this location to your load path, and <code>require</code> the Org-roam library. Add the following code to your <code>.emacs</code>:
+</p>
+<div class="lisp">
+<pre class="lisp">(add-to-list 'load-path &quot;/path/to/org/roam&quot;)
+(require 'org-roam)
+</pre></div>
+
+<p>You now have Org-roam installed. However, you don&rsquo;t necessarily have the dependencies that it requires. These include:
+</p>
+<ul>
+<li> dash
+
+</li><li> f
+
+</li><li> s
+
+</li><li> org
+
+</li><li> emacsql
+
+</li><li> emacsql-sqlite3
+</li></ul>
+
+<p>You can install this manually as well, or get the latest version from MELPA. You may wish to use <a href="https://github.com/jwiegley/use-package">use-package</a>, <a href="https://github.com/raxod502/straight.el">straight.el</a>, or some other tool or tools to help manage this.
+</p>
+<p>If you would like to install the manual for access from Emacs&rsquo; built-in Info system, you&rsquo;ll need to compile the .texi source file, and install it in an appropriate location.
+</p>
+<p>To compile the .texi source file, from a terminal navigate to the <code>/doc</code> subdirectory of the Org-roam repository, and run the following:
+</p>
+<div class="example">
+<pre class="example">make infodir=/path/to/my/info/files install-info
+</pre></div>
+
+<p>Where <code>/path/to/my/info/files</code> is the location where you keep info files. This target directory needs to be stored in the variable &lsquo;Info-default-directory-list&lsquo;. If you aren&rsquo;t using one of the default info locations, you can configure this with the following in your <code>.emacs</code> file:
+</p>
+<div class="lisp">
+<pre class="lisp">(require 'info)
+(add-to-list 'Info-default-directory-list
+             &quot;/path/to/my/info/files&quot;)
+</pre></div>
+
+<p>You can also use one of the default locations, such as:
+</p>
+<ul>
+<li> <em>usr/local/share/info</em>
+
+</li><li> <em>usr/share/info</em>
+
+</li><li> <em>usr/local/share/info</em>
+</li></ul>
+
+<p>If you do this, you&rsquo;ll need to make sure you have write-access to that location, or run the above <code>make</code> command as root.
+</p>
+<p>Now that the info file is ready, you need to add it to the corresponding <code>dir</code> file:
+</p>
+<div class="example">
+<pre class="example">install-info /path/to/my/info/files/org-roam.info /path/to/my/info/files/dir
+</pre></div>
+
+<hr>
+<a name="Post_002dInstallation-Tasks"></a>
+<div class="header">
+<p>
+Previous: <a href="#Installing-from-the-Git-Repository" accesskey="p" rel="prev">Installing from the Git Repository</a>, Up: <a href="#Installation" accesskey="u" rel="up">Installation</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Post_002dInstallation-Tasks-1"></a>
+<h3 class="section">4.4 Post-Installation Tasks</h3>
+
+<p>Org-roam uses <code>emacsql-sqlite3</code>, which requires <code>sqlite3</code> to be located on
+<code>exec-path</code>. Please ensure that <code>sqlite3</code> is installed appropriately on your
+operating system. You can verify that this is the case by executing:
+</p>
+<div class="lisp">
+<pre class="lisp">(executable-find &quot;sqlite3&quot;)
+</pre></div>
+
+<p>If you have <code>sqlite3</code> installed, and <code>executable-find</code> still reports <code>nil</code>, then
+it is likely that the path to the executable is not a member of the Emacs
+variable <code>exec-path</code>. You may rectify this by manually adding the path within
+your Emacs configuration:
+</p>
+<div class="lisp">
+<pre class="lisp">(add-to-list 'exec-path &quot;path/to/sqlite3&quot;)
+</pre></div>
+
+<hr>
+<a name="Getting-Started"></a>
+<div class="header">
+<p>
+Next: <a href="#Anatomy-of-an-Org_002droam-File" accesskey="n" rel="next">Anatomy of an Org-roam File</a>, Previous: <a href="#Installation" accesskey="p" rel="prev">Installation</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Getting-Started-1"></a>
+<h2 class="chapter">5 Getting Started</h2>
+
+<p>This short tutorial describes the essential commands used in Org-roam, to help
+you get started.
+</p>
+<p>First, it is important to understand how Org-roam was designed. Org-roam was
+built to support a workflow that was not possible with vanilla Org-mode. This
+flow is modelled after the <a href="https://zettelkasten.de/">Zettelkasten Method</a>, and many of <a href="https://roamresearch.com">Roam Research&rsquo;s</a>
+workflows. Org-roam does not magically make note-taking better &ndash; this often
+requires a radical change in your current note-taking workflow. To understand
+more about the methods and madness, see <a href="#Note_002dtaking-Workflows">Note-taking Workflows</a>.
+</p>
+<p>To first start using Org-roam, one needs to pick a location to store the
+Org-roam files. The directory that will contain your notes, and database index
+is specified by the variable <code>org-roam-directory</code>. This variable needs to be set
+before any calls to Org-roam functions, including enabling <code>org-roam-mode</code>. For
+this tutorial, create an empty directory, and set <code>org-roam-directory</code>:
+</p>
+<div class="lisp">
+<pre class="lisp">(make-directory &quot;~/org-roam&quot;)
+(setq org-roam-directory &quot;~/org-roam&quot;)
+</pre></div>
+
+<p>We encourage using a flat hierarchy for storing notes, but some prefer using
+folders for storing specific kinds of notes (e.g. websites, papers). This is
+fine; Org-roam searches recursively within <code>org-roam-directory</code> for any notes.
+Instead of relying on the file hierarchy for any form of categorization, we
+solely rely on links between files to establish connections between notes.
+</p>
+<p>Next, we need to enable the global minor mode <code>org-roam-mode</code>. This sets up Emacs
+with several hooks, builds a cache and keeps it consistent. We recommend
+starting <code>org-roam-mode</code> on startup:
+</p>
+<div class="lisp">
+<pre class="lisp">(add-hook 'after-init-hook 'org-roam-mode)
+</pre></div>
+
+<p>To build the cache manually, one can run <code>M-x org-roam-db-build-cache</code>. The
+cache is a sqlite database named <code>org-roam.db</code>, which defaults to residing in
+the root <code>org-roam-directory</code>. Cache builds may take a while the first time, but
+is often instantaneous in subsequent runs.
+</p>
+<p>Let us now create our first note. Call <code>M-x org-roam-find-file</code>. This shows a list
+of titles for notes that reside in <code>org-roam-directory</code>. It should show nothing
+right now, since there are no notes in the directory. Entering the title of the
+note you wish to create, and pressing <code>RET</code> should begin the note creation
+process. This process uses <code>org-capture</code>&rsquo;s templating system, and can be freely
+customized (see <a href="#The-Templating-System">The Templating System</a>). Using the default template, pressing <code>C-c
+C-c</code> finishes the note capture. Running <code>M-x org-roam-find-file</code> again should show
+the note you have created, and selecting that entry will bring you to that note.
+</p>
+<p>The crux of Org-roam is making it easy to create notes, and link them together.
+To link notes together, we call <code>M-x org-roam-insert</code>. This brings up a prompt
+with a list of title for existing notes. Selecting an existing entry will create
+and insert a link to the current file. Entering a non-existent title will create
+a new note with that title. Good usage of Org-roam requires liberally linking
+files: this facilitates building up a dense knowledge graph of inter-connected
+notes.
+</p>
+<p>Org-roam provides an interface to view backlinks. It shows backlinks for the
+currently active Org-roam note, along with some surrounding context. To toggle
+the visibility of this buffer, call <code>M-x org-roam</code>.
+</p>
+<p>For a visual representation of the notes and their connections, Org-roam also
+provides graphing capabilities, using Graphviz. It generates graphs with notes
+as nodes, and links between them as edges. The generated graph can be used to
+navigate to the files, but this requires some additional setup (see <a href="#Roam-Protocol">Roam
+Protocol</a>).
+</p>
+<hr>
+<a name="Anatomy-of-an-Org_002droam-File"></a>
+<div class="header">
+<p>
+Next: <a href="#The-Templating-System" accesskey="n" rel="next">The Templating System</a>, Previous: <a href="#Getting-Started" accesskey="p" rel="prev">Getting Started</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Anatomy-of-an-Org_002droam-File-1"></a>
+<h2 class="chapter">6 Anatomy of an Org-roam File</h2>
+
+<p>The bulk of Org-roam&rsquo;s functionality is built on top of vanilla
+Org-mode. However, to support additional functionality, Org-roam adds
+several Org-roam-specific keywords. These functionality are not crucial
+to effective use of Org-roam.
+</p>
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Titles" accesskey="1">Titles</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Tags" accesskey="2">Tags</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#File-Refs" accesskey="3">File Refs</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr>
+<a name="Titles"></a>
+<div class="header">
+<p>
+Next: <a href="#Tags" accesskey="n" rel="next">Tags</a>, Up: <a href="#Anatomy-of-an-Org_002droam-File" accesskey="u" rel="up">Anatomy of an Org-roam File</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Titles-1"></a>
+<h3 class="section">6.1 Titles</h3>
+
+<p>To easily find a note, a title needs to be prescribed to a note. A note can have
+many titles: this allows a note to be referred to by different names, which is
+especially useful for topics or concepts with acronyms. For example, for a note
+like &ldquo;World War 2&rdquo;, it may be desirable to also refer to it using the acronym
+&ldquo;WWII&rdquo;.
+</p>
+<p>Org-roam calls <code>org-roam--extract-titles</code> to extract titles. It uses the
+variable <code>org-roam-title-sources</code>, to control how the titles are extracted. The
+title extraction methods supported are:
+</p>
+<ul>
+<li> <code>'title</code>: This extracts the title using the file <code>#+title</code> property
+
+</li><li> <code>'headline</code>: This extracts the title from the first headline in the Org file
+
+</li><li> <code>'alias</code>: This extracts a list of titles using the <code>#+roam_alias</code> property.
+The aliases are space-delimited, and can be multi-worded using quotes.
+</li></ul>
+
+<p>Take for example the following org file:
+</p>
+<div class="example">
+<pre class="example">#+title: World War 2
+#+roam_alias: &quot;WWII&quot; &quot;World War II&quot;
+
+* Headline
+</pre></div>
+
+<table>
+<thead><tr><th>Method</th><th>Titles</th></tr></thead>
+<tr><td><code>'title</code></td><td>&rsquo;(&ldquo;World War 2&rdquo;)</td></tr>
+<tr><td><code>'headline</code></td><td>&rsquo;(&ldquo;Headline&rdquo;)</td></tr>
+<tr><td><code>'alias</code></td><td>&rsquo;(&ldquo;WWII&rdquo; &ldquo;World War II&rdquo;)</td></tr>
+</table>
+
+<p>One can freely control which extraction methods to use by customizing
+<code>org-roam-title-sources</code>: see the doc-string for the variable for more
+information. If all methods of title extraction return no results, the file-name
+is used in place of the titles for completions.
+</p>
+<p>If you wish to add your own title extraction method, you may push a symbol
+<code>'foo</code> into <code>org-roam-title-sources</code>, and define a
+<code>org-roam--extract-titles-foo</code> which accepts no arguments. See
+<code>org-roam--extract-titles-title</code> for an example.
+</p>
+<hr>
+<a name="Tags"></a>
+<div class="header">
+<p>
+Next: <a href="#File-Refs" accesskey="n" rel="next">File Refs</a>, Previous: <a href="#Titles" accesskey="p" rel="prev">Titles</a>, Up: <a href="#Anatomy-of-an-Org_002droam-File" accesskey="u" rel="up">Anatomy of an Org-roam File</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Tags-1"></a>
+<h3 class="section">6.2 Tags</h3>
+
+<p>Tags are used as meta-data for files: they facilitate interactions with notes
+where titles are insufficient. For example, tags allow for categorization of
+notes: differentiating between bibliographical and structure notes during interactive commands.
+</p>
+<p>Org-roam calls <code>org-roam--extract-tags</code> to extract tags from files. It uses the
+variable <code>org-roam-tag-sources</code>, to control how tags are extracted. The tag
+extraction methods supported are:
+</p>
+<ul>
+<li> <code>'prop</code>: This extracts tags from the <code>#+roam_tags</code> property. Tags are space delimited, and can be multi-word using double quotes.
+
+</li><li> <code>'all-directories</code>: All sub-directories relative to <code>org-roam-directory</code> are
+extracted as tags. That is, if a file is located at relative path
+<code>foo/bar/file.org</code>, the file will have tags <code>foo</code> and <code>bar</code>.
+
+</li><li> <code>'last-directory</code>: Extracts the last directory relative to
+<code>org-roam-directory</code> as the tag. That is, if a file is located at relative
+path <code>foo/bar/file.org</code>, the file will have tag <code>bar</code>.
+
+</li><li> <code>'first-directory</code>: Extracts the first directory relative to
+<code>org-roam-directory</code> as the tag. That is, if a file is located at relative
+path <code>foo/bar/file.org</code>, the file will have tag <code>foo</code>.
+</li></ul>
+
+<p>By default, only the <code>'prop</code> extraction method is enabled. To enable the other
+extraction methods, you may modify <code>org-roam-tag-sources</code>:
+</p>
+<div class="lisp">
+<pre class="lisp">(setq org-roam-tag-sources '(prop last-directory))
+</pre></div>
+
+<p>If you wish to add your own tag extraction method, you may push a symbol <code>'foo</code>
+into <code>org-roam-tag-sources</code>, and define a <code>org-roam--extract-tags-foo</code> which
+accepts the absolute file path as its argument. See
+<code>org-roam--extract-tags-prop</code> for an example.
+</p>
+<hr>
+<a name="File-Refs"></a>
+<div class="header">
+<p>
+Previous: <a href="#Tags" accesskey="p" rel="prev">Tags</a>, Up: <a href="#Anatomy-of-an-Org_002droam-File" accesskey="u" rel="up">Anatomy of an Org-roam File</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="File-Refs-1"></a>
+<h3 class="section">6.3 File Refs</h3>
+
+<p>Refs are unique identifiers for files. For example, a note for a website may contain a ref:
+</p>
+<div class="example">
+<pre class="example">#+title: Google
+#+roam_key: https://www.google.com/
+</pre></div>
+
+<p>These keys allow references to the key to show up in the backlinks buffer. For instance,
+with the example above, if another file then links to <a href="https://www.google.com">https://www.google.com</a>, that will
+show up as a “Ref Backlink”.
+</p>
+<p>These keys also come in useful for when taking website notes, using the <code>roam-ref</code> protocol
+ (see <a href="#Roam-Protocol">Roam Protocol</a>).
+</p>
+<p><a href="https://github.com/jkitchin/org-ref">org-ref</a> citation keys can also be used as refs:
+</p>
+<div class="example">
+<pre class="example">#+title: Neural Ordinary Differential Equations
+#+roam_key: cite:chen18_neural_ordin_differ_equat
+</pre></div>
+
+<div class="float">
+<img src="images/org-ref-citelink.png" alt="images/org-ref-citelink">
+
+<div class="float-caption"><p><strong>Figure: </strong>org-ref-citelink</p></div></div>
+<p>You may assign multiple refs to a single file, for example when you want multiple papers
+in a series to share the same note, or an article has a citation key and a URL at the same
+time.
+</p>
+<hr>
+<a name="The-Templating-System"></a>
+<div class="header">
+<p>
+Next: <a href="#Concepts-and-Configuration" accesskey="n" rel="next">Concepts and Configuration</a>, Previous: <a href="#Anatomy-of-an-Org_002droam-File" accesskey="p" rel="prev">Anatomy of an Org-roam File</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="The-Templating-System-1"></a>
+<h2 class="chapter">7 The Templating System</h2>
+
+<p>Rather than creating blank files on <code>org-roam-insert</code> and <code>org-roam-find-file</code>,
+it may be desirable to prefill the file with templated content. This may
+include:
+</p>
+<ul>
+<li> Time of creation
+
+</li><li> File it was created from
+
+</li><li> Clipboard content
+
+</li><li> Any other data you may want to input manually
+</li></ul>
+
+<p>This requires a complex template insertion system. Fortunately, Org ships with a
+powerful one: <code>org-capture</code> (see <a href="http://www.gnu.org/software/emacs/manual/html_mono/org.html#capture">(org)capture</a>). However, org-capture was not
+designed for such use. Org-roam abuses <code>org-capture</code>, extending its syntax and
+capabilities. To first understand how org-roam&rsquo;s templating system works, it may
+be useful to look into basic usage of <code>org-capture</code>.
+</p>
+<p>For these reasons, Org-roam capture templates are not compatible with regular
+<code>org-capture</code>. Hence, Org-roam&rsquo;s templates can be customized by instead
+modifying the variable <code>org-roam-capture-templates</code>. Just like
+<code>org-capture-templates</code>, <code>org-roam-capture-templates</code> can contain multiple
+templates. If <code>org-roam-capture-templates</code> only contains one template, there
+will be no prompt for template selection.
+</p>
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Template-Walkthrough" accesskey="1">Template Walkthrough</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Org_002droam-Template-Expansion" accesskey="2">Org-roam Template Expansion</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr>
+<a name="Template-Walkthrough"></a>
+<div class="header">
+<p>
+Next: <a href="#Org_002droam-Template-Expansion" accesskey="n" rel="next">Org-roam Template Expansion</a>, Up: <a href="#The-Templating-System" accesskey="u" rel="up">The Templating System</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Template-Walkthrough-1"></a>
+<h3 class="section">7.1 Template Walkthrough</h3>
+
+<p>To demonstrate the additions made to org-capture templates. Here, we walkthrough
+the default template, reproduced below.
+</p>
+<div class="lisp">
+<pre class="lisp">(&quot;d&quot; &quot;default&quot; plain (function org-roam--capture-get-point)
+     &quot;%?&quot;
+     :file-name &quot;%&lt;%Y%m%d%H%M%S&gt;-${slug}&quot;
+     :head &quot;#+title: ${title}\n&quot;
+     :unnarrowed t)
+</pre></div>
+
+<ul>
+<li> The template has short key <code>&quot;d&quot;</code>. If you have only one template,
+org-roam automatically chooses this template for you.
+
+</li><li> The template is given a description of <code>&quot;default&quot;</code>.
+
+</li><li> <code>plain</code> text is inserted. Other options include Org headings via
+<code>entry</code>.
+
+</li><li> <code>(function org-roam--capture-get-point)</code> should not be changed.
+
+</li><li> <code>&quot;%?&quot;</code> is the template inserted on each call to <code>org-roam-capture--capture</code>.
+This template means don&rsquo;t insert any content, but place the cursor
+here.
+
+</li><li> <code>:file-name</code> is the file-name template for a new note, if it doesn&rsquo;t yet
+exist. This creates a file at path that looks like
+<code>/path/to/org-roam-directory/20200213032037-foo.org</code>. This template also
+allows you to specify if you want the note to go into a subdirectory. For
+example, the template <code>private/${slug}</code> will create notes in
+<code>/path/to/org-roam-directory/private</code>.
+
+</li><li> <code>:head</code> contains the initial template to be inserted (once only), at
+the beginning of the file. Here, the title global attribute is
+inserted.
+
+</li><li> <code>:unnarrowed t</code> tells org-capture to show the contents for the whole
+file, rather than narrowing to just the entry.
+</li></ul>
+
+<p>Other options you may want to learn about include <code>:immediate-finish</code>.
+</p>
+<hr>
+<a name="Org_002droam-Template-Expansion"></a>
+<div class="header">
+<p>
+Previous: <a href="#Template-Walkthrough" accesskey="p" rel="prev">Template Walkthrough</a>, Up: <a href="#The-Templating-System" accesskey="u" rel="up">The Templating System</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Org_002droam-Template-Expansion-1"></a>
+<h3 class="section">7.2 Org-roam Template Expansion</h3>
+
+<p>Org-roam&rsquo;s template definitions also extend org-capture&rsquo;s template syntax, to
+allow prefilling of strings. We have seen a glimpse of this in <a href="#Template-Walkthrough">Template
+Walkthrough</a>.
+</p>
+<p>In org-roam templates, the <code>${var}</code> syntax allows for the expansion of
+variables, stored in <code>org-roam-capture--info</code>. For example, during
+<code>org-roam-insert</code>, the user is prompted for a title. Upon entering a
+non-existent title, the <code>title</code> key in <code>org-roam-capture--info</code> is set to the
+provided title. <code>${title}</code> is then expanded into the provided title during the
+org-capture process. Any variables that do not contain strings, are prompted for
+values using <code>completing-read</code>.
+</p>
+<p>After doing this expansion, the org-capture&rsquo;s template expansion system
+is used to fill up the rest of the template. You may read up more on
+this on <a href="https://orgmode.org/manual/Template-expansion.html#Template-expansion">org-capture&rsquo;s documentation page</a>.
+</p>
+<p>To illustrate this dual expansion process, take for example the template string:
+<code>&quot;%&lt;%Y%m%d%H%M%S&gt;-${title}&quot;</code>, with the title <code>&quot;Foo&quot;</code>. The template is first
+expanded into <code>%&lt;%Y%m%d%H%M%S&gt;-Foo</code>. Then org-capture expands <code>%&lt;%Y%m%d%H%M%S&gt;</code>
+with timestamp: e.g. <code>20200213032037-Foo</code>.
+</p>
+<p>All of the flexibility afforded by Emacs and Org-mode are available. For
+example, if you want to encode a UTC timestamp in the filename, you can take
+advantage of org-mode&rsquo;s <code>%(EXP)</code> template expansion to call <code>format-time-string</code>
+directly to provide its third argument to specify UTC.
+</p>
+<div class="lisp">
+<pre class="lisp">(&quot;d&quot; &quot;default&quot; plain (function org-roam--capture-get-point)
+     &quot;%?&quot;
+     :file-name &quot;%(format-time-string \&quot;%Y-%m-%d--%H-%M-%SZ--${slug}\&quot; (current-time) t)&quot;
+     :head &quot;#+title: ${title}\n&quot;
+     :unnarrowed t)
+</pre></div>
+
+<hr>
+<a name="Concepts-and-Configuration"></a>
+<div class="header">
+<p>
+Next: <a href="#Inserting-Links" accesskey="n" rel="next">Inserting Links</a>, Previous: <a href="#The-Templating-System" accesskey="p" rel="prev">The Templating System</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Concepts-and-Configuration-1"></a>
+<h2 class="chapter">8 Concepts and Configuration</h2>
+
+<p>The number of configuration options is deliberately kept small, to keep
+the Org-roam codebase manageable. However, we attempt to accommodate as
+many usage styles as possible.
+</p>
+<p>All of Org-roam&rsquo;s customization options can be viewed via
+<code>M-x customize-group org-roam</code>.
+</p>
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Directories-and-Files" accesskey="1">Directories and Files</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#The-Org_002droam-Buffer" accesskey="2">The Org-roam Buffer</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Org_002droam-Files" accesskey="3">Org-roam Files</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Org_002droam-Faces" accesskey="4">Org-roam Faces</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr>
+<a name="Directories-and-Files"></a>
+<div class="header">
+<p>
+Next: <a href="#The-Org_002droam-Buffer" accesskey="n" rel="next">The Org-roam Buffer</a>, Up: <a href="#Concepts-and-Configuration" accesskey="u" rel="up">Concepts and Configuration</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Directories-and-Files-1"></a>
+<h3 class="section">8.1 Directories and Files</h3>
+
+<p>This section concerns the placement and creation of files.
+</p>
+<dl>
+<dt><a name="index-org_002droam_002ddirectory"></a>Variable: <strong>org-roam-directory</strong></dt>
+<dd>
+<p>This is the default path to Org-roam files. All Org files, at any level of
+nesting, are considered part of the Org-roam.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-org_002droam_002ddb_002dlocation"></a>Variable: <strong>org-roam-db-location</strong></dt>
+<dd>
+<p>Location of the Org-roam database. If this is non-nil, the Org-roam sqlite
+database is saved here.
+</p>
+<p>It is the user’s responsibility to set this correctly, especially when used
+with multiple Org-roam instances.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-org_002droam_002dfile_002dexclude_002dregexp"></a>Variable: <strong>org-roam-file-exclude-regexp</strong></dt>
+<dd>
+<p>Files matching this regular expression are excluded from the Org-roam.
+</p></dd></dl>
+
+<hr>
+<a name="The-Org_002droam-Buffer"></a>
+<div class="header">
+<p>
+Next: <a href="#Org_002droam-Files" accesskey="n" rel="next">Org-roam Files</a>, Previous: <a href="#Directories-and-Files" accesskey="p" rel="prev">Directories and Files</a>, Up: <a href="#Concepts-and-Configuration" accesskey="u" rel="up">Concepts and Configuration</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="The-Org_002droam-Buffer-1"></a>
+<h3 class="section">8.2 The Org-roam Buffer</h3>
+
+<p>The Org-roam buffer displays backlinks for the currently active Org-roam note.
+</p>
+<dl>
+<dt><a name="index-org_002droam_002dbuffer"></a>User Option: <strong>org-roam-buffer</strong></dt>
+<dd>
+<p>The name of the org-roam buffer. Defaults to <code>*org-roam*</code>.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-org_002droam_002dbuffer_002dposition"></a>User Option: <strong>org-roam-buffer-position</strong></dt>
+<dd>
+<p>The position of the Org-roam buffer side window. Valid values are <code>'left</code>,
+<code>'right</code>, <code>'top</code>, <code>'bottom</code>.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-org_002droam_002dbuffer_002dwidth"></a>User Option: <strong>org-roam-buffer-width</strong></dt>
+<dd>
+<p>Width of <code>org-roam-buffer</code>. Has an effect only if <code>org-roam-buffer-position</code> is
+<code>'left</code> or <code>'right</code>.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-org_002droam_002dbuffer_002dheight"></a>User Option: <strong>org-roam-buffer-height</strong></dt>
+<dd>
+<p>Height of <code>org-roam-buffer</code>. Has an effect only if <code>org-roam-buffer-position</code> is
+<code>'top</code> or <code>'bottom</code>.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-org_002droam_002dbuffer_002dwindow_002dparameters"></a>User Option: <strong>org-roam-buffer-window-parameters</strong></dt>
+<dd>
+<p>Additional window parameters for the org-roam-buffer side window.
+</p>
+<p>For example one can prevent the window from being deleted when calling
+<code>delete-other-windows</code>, by setting it with the following:
+</p>
+<p><code>(setq org-roam-buffer-window-parameters '((no-delete-other-windows . t)))</code>
+</p></dd></dl>
+
+<hr>
+<a name="Org_002droam-Files"></a>
+<div class="header">
+<p>
+Next: <a href="#Org_002droam-Faces" accesskey="n" rel="next">Org-roam Faces</a>, Previous: <a href="#The-Org_002droam-Buffer" accesskey="p" rel="prev">The Org-roam Buffer</a>, Up: <a href="#Concepts-and-Configuration" accesskey="u" rel="up">Concepts and Configuration</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Org_002droam-Files-1"></a>
+<h3 class="section">8.3 Org-roam Files</h3>
+
+<p>Org-roam files are created and prefilled using Org-roam&rsquo;s templating
+system. The templating system is customizable (see <a href="#The-Templating-System">The Templating System</a>).
+</p>
+<hr>
+<a name="Org_002droam-Faces"></a>
+<div class="header">
+<p>
+Previous: <a href="#Org_002droam-Files" accesskey="p" rel="prev">Org-roam Files</a>, Up: <a href="#Concepts-and-Configuration" accesskey="u" rel="up">Concepts and Configuration</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Org_002droam-Faces-1"></a>
+<h3 class="section">8.4 Org-roam Faces</h3>
+
+<p>Org-roam introduces several faces to distinguish links within the same buffer.
+These faces are enabled by default in Org-roam notes.
+</p>
+<dl>
+<dt><a name="index-org_002droam_002dlink_002duse_002dcustom_002dfaces"></a>User Option: <strong>org-roam-link-use-custom-faces</strong></dt>
+<dd>
+<p>When <code>t</code>, use custom faces only inside Org-roam notes.
+When <code>everywhere</code>, the custom face is applied additionally to non Org-roam notes.
+When <code>nil</code>, do not use Org-roam&rsquo;s custom faces.
+</p></dd></dl>
+
+<p>The <code>org-roam-link</code> face is the face applied to links to other Org-roam files.
+This distinguishes internal links from external links (e.g. external web links).
+</p>
+<p>The <code>org-roam-link-current</code> face corresponds to links to the same file it is in.
+</p>
+<p>The <code>org-roam-link-invalid</code> face is applied to links that are broken. These are
+links to files or IDs that cannot be found.
+</p>
+<hr>
+<a name="Inserting-Links"></a>
+<div class="header">
+<p>
+Next: <a href="#Navigating-Around" accesskey="n" rel="next">Navigating Around</a>, Previous: <a href="#Concepts-and-Configuration" accesskey="p" rel="prev">Concepts and Configuration</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Inserting-Links-1"></a>
+<h2 class="chapter">9 Inserting Links</h2>
+
+<p>The preferred mode of linking is via <code>file</code> links to files, and <code>id</code> links for
+headlines. This maintains the strongest compatibility with Org-mode, ensuring
+that the links still function without Org-roam, and work well exporting to other
+backends.
+</p>
+<p><code>file</code> links can be inserted via <code>org-roam-insert</code>. Links to headlines can be
+inserted by navigating to the desired headline and calling <code>org-store-link</code>.
+This will create an ID for the headline if it does not already exist, and
+populate the Org-roam database. The link can then be inserted via
+<code>org-insert-link</code>.
+</p>
+<p>An alternative mode of insertion is using Org-roam&rsquo;s <code>roam</code> links. Org-roam
+registers this link type, and interprets the path as follows:
+</p>
+<ul>
+<li> <code>[[roam:title]]</code>links to an Org-roam file with title or alias &ldquo;title&rdquo;
+
+</li><li> <code>[[roam:*headline]]</code>links to the headline &ldquo;headline&rdquo; in the current Org-roam file
+
+</li><li> <code>[[roam:title*headline]]</code>links to the headline &ldquo;headline&rdquo; in the Org-roam file with title or alias &ldquo;title&rdquo;
+</li></ul>
+
+<p><code>roam</code> links support auto-completion via <code>completion-at-point</code>: simply call
+<code>completion-at-point</code> within a roam link. Users of <code>company-mode</code> may want to
+prepend <code>company-capf</code> to the beginning of variable <code>company-backends</code>.
+</p>
+<p>To easily insert <code>roam</code> links, one may wish to use a package like <a href="https://github.com/emacsorphanage/key-chord/">key-chord</a>. In the following example, typing &ldquo;[[&rdquo; will insert a stub <code>roam</code> link:
+</p>
+<div class="lisp">
+<pre class="lisp">(key-chord-define org-mode-map &quot;[[&quot; #'my/insert-roam-link)
+
+(defun my/insert-roam-link ()
+    &quot;Inserts an Org-roam link.&quot;
+    (interactive)
+    (insert &quot;[[roam:]]&quot;)
+    (backward-char 2))
+</pre></div>
+
+<dl>
+<dt><a name="index-org_002droam_002dlink_002dtitle_002dformat"></a>User Option: <strong>org-roam-link-title-format</strong></dt>
+<dd>
+<p>To distinguish between org-roam links and regular links, one may choose to use
+special indicators for Org-roam links. Defaults to <code>&quot;%s&quot;</code>.
+</p>
+<p>If your version of Org is at least <code>9.2</code>, consider styling the link differently,
+by customizing the <code>org-roam-link</code>, and <code>org-roam-link-current</code> faces.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-org_002droam_002dcompletion_002dignore_002dcase"></a>User Option: <strong>org-roam-completion-ignore-case</strong></dt>
+<dd>
+<p>When non-nil, the <code>roam</code> link completions are ignore case. For example,
+calling <code>completion-at-point</code> within <code>[[roam:fo]]</code> will present a completion
+for a file with title &ldquo;Foo&rdquo;. Defaults to <code>t</code>.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-org_002droam_002dlink_002dauto_002dreplace"></a>User Option: <strong>org-roam-link-auto-replace</strong></dt>
+<dd>
+<p>When non-nil, <code>roam</code> links will be replaced with <code>file</code> or <code>id</code> links when
+they are navigated to, and on file save, when a match is found. This is
+desirable to maintain compatibility with vanilla Org, but resolved links are
+harder to edit. Defaults to <code>t</code>.
+</p></dd></dl>
+
+<hr>
+<a name="Navigating-Around"></a>
+<div class="header">
+<p>
+Next: <a href="#Encryption" accesskey="n" rel="next">Encryption</a>, Previous: <a href="#Inserting-Links" accesskey="p" rel="prev">Inserting Links</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Navigating-Around-1"></a>
+<h2 class="chapter">10 Navigating Around</h2>
+
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Index-File" accesskey="1">Index File</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr>
+<a name="Index-File"></a>
+<div class="header">
+<p>
+Up: <a href="#Navigating-Around" accesskey="u" rel="up">Navigating Around</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Index-File-1"></a>
+<h3 class="section">10.1 Index File</h3>
+
+<p>As your collection grows, you might want to create an index where you keep links
+to your main files.
+</p>
+<p>In Org-roam, you can define the path to your index file by setting
+<code>org-roam-index-file</code>.
+</p>
+<dl>
+<dt><a name="index-org_002droam_002dindex_002dfile"></a>Variable: <strong>org-roam-index-file</strong></dt>
+<dd>
+<p>Path to the Org-roam index file.
+</p>
+<p>The path can be a string or a function. If it is a string, it should be the
+path (absolute or relative to <code>org-roam-directory</code>) to the index file. If it
+is is a function, the function should return the path to the index file.
+Otherwise, the index is assumed to be a note in <code>org-roam-index</code> whose
+title is <code>&quot;Index&quot;</code>.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-org_002droam_002dfind_002dindex"></a>Function: <strong>org-roam-find-index</strong></dt>
+<dd>
+<p>Opens the Index file in the current <code>org-roam-directory</code>.
+</p></dd></dl>
+
+<hr>
+<a name="Encryption"></a>
+<div class="header">
+<p>
+Next: <a href="#Graphing" accesskey="n" rel="next">Graphing</a>, Previous: <a href="#Navigating-Around" accesskey="p" rel="prev">Navigating Around</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Encryption-1"></a>
+<h2 class="chapter">11 Encryption</h2>
+
+<p>One may wish to keep private, encrypted files. Org-roam supports encryption (via
+GPG), which can be enabled for all new files by setting <code>org-roam-encrypt-files</code>
+to <code>t</code>. When enabled, new files are created with the <code>.org.gpg</code> extension and
+decryption are handled automatically by EasyPG.
+</p>
+<p>Note that Emacs will prompt for a password for encrypted files during
+cache updates if it requires reading the encrypted file. To reduce the
+number of password prompts, you may wish to cache the password.
+</p>
+<dl>
+<dt><a name="index-org_002droam_002dencrypt_002dfiles"></a>User Option: <strong>org-roam-encrypt-files</strong></dt>
+<dd>
+<p>Whether to encrypt new files.  If true, create files with .org.gpg extension.
+</p></dd></dl>
+
+<hr>
+<a name="Graphing"></a>
+<div class="header">
+<p>
+Next: <a href="#Org_002droam-Completion-System" accesskey="n" rel="next">Org-roam Completion System</a>, Previous: <a href="#Encryption" accesskey="p" rel="prev">Encryption</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Graphing-1"></a>
+<h2 class="chapter">12 Graphing</h2>
+
+<p>Org-roam provides graphing capabilities to explore interconnections between
+notes. This is done by performing SQL queries and generating images using
+<a href="https://graphviz.org/">Graphviz</a>. The graph can also be navigated: see <a href="#Roam-Protocol">Roam Protocol</a>.
+</p>
+<p>The entry point to graph creation is <code>org-roam-graph</code>.
+</p>
+<dl>
+<dt><a name="index-org_002droam_002dgraph"></a>Function: <strong>org-roam-graph</strong> <em>&amp; optional arg file node-query</em></dt>
+<dd>
+<p>Build and possibly display a graph for FILE from NODE-QUERY.
+If FILE is nil, default to current buffer’s file name.
+ARG may be any of the following values:
+</p>
+<ul>
+<li> <code>nil</code>       show the graph.
+
+</li><li> <code>C-u</code>       show the graph for FILE.
+
+</li><li> <code>C-u N</code>     show the graph for FILE limiting nodes to N steps.
+
+</li><li> <code>C-u C-u</code>   build the graph.
+
+</li><li> <code>C-u -</code>     build the graph for FILE.
+
+</li><li> <code>C-u -N</code>    build the graph for FILE limiting nodes to N steps.
+</li></ul>
+</dd></dl>
+
+<dl>
+<dt><a name="index-org_002droam_002dgraph_002dexecutable"></a>User Option: <strong>org-roam-graph-executable</strong></dt>
+<dd>
+<p>Path to the graphing executable (in this case, Graphviz). Set this if Org-roam is unable to find the Graphviz executable on your system.
+</p>
+<p>You may also choose to use <code>neato</code> in place of <code>dot</code>, which generates a more
+compact graph layout.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-org_002droam_002dgraph_002dviewer"></a>User Option: <strong>org-roam-graph-viewer</strong></dt>
+<dd>
+<p>Org-roam defaults to using Firefox (located on PATH) to view the SVG, but you may choose to set it to:
+</p>
+<ul>
+<li> A string, which is a path to the program used
+
+</li><li> a function accepting a single argument: the graph file path.
+</li></ul>
+
+<p><code>nil</code> uses <code>view-file</code> to view the graph.
+</p>
+<p>If you are using WSL2 and would like to open the graph in Windows, you can use the second option to set the browser and network file path:
+</p>
+<div class="lisp">
+<pre class="lisp">(setq org-roam-graph-viewer
+    (lambda (file)
+      (let ((org-roam-graph-viewer &quot;/mnt/c/Program Files/Mozilla Firefox/firefox.exe&quot;))
+        (org-roam-graph--open (concat &quot;file://///wsl$/Ubuntu&quot; file)))))
+</pre></div>
+</dd></dl>
+
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Graph-Options" accesskey="1">Graph Options</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Excluding-Nodes-and-Edges" accesskey="2">Excluding Nodes and Edges</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr>
+<a name="Graph-Options"></a>
+<div class="header">
+<p>
+Next: <a href="#Excluding-Nodes-and-Edges" accesskey="n" rel="next">Excluding Nodes and Edges</a>, Up: <a href="#Graphing" accesskey="u" rel="up">Graphing</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Graph-Options-1"></a>
+<h3 class="section">12.1 Graph Options</h3>
+
+<p>Graphviz provides many options for customizing the graph output, and Org-roam supports some of them. See <a href="https://graphviz.gitlab.io/_pages/doc/info/attrs.html">https://graphviz.gitlab.io/_pages/doc/info/attrs.html</a> for customizable options.
+</p>
+<dl>
+<dt><a name="index-org_002droam_002dgraph_002dextra_002dconfig"></a>User Option: <strong>org-roam-graph-extra-config</strong></dt>
+<dd>
+<p>Extra options passed to graphviz for the digraph (The &ldquo;G&rdquo; attributes).
+Example: <code>'~((&quot;rankdir&quot; . &quot;LR&quot;))</code>
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-org_002droam_002dgraph_002dnode_002dextra_002dconfig"></a>User Option: <strong>org-roam-graph-node-extra-config</strong></dt>
+<dd>
+<p>Extra options for nodes in the graphviz output (The &ldquo;N&rdquo; attributes).
+Example: <code>'((&quot;color&quot; . &quot;skyblue&quot;))</code>
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-org_002droam_002dgraph_002dedge_002dextra_002dconfig"></a>User Option: <strong>org-roam-graph-edge-extra-config</strong></dt>
+<dd>
+<p>Extra options for edges in the graphviz output (The &ldquo;E&rdquo; attributes).
+Example: <code>'((&quot;dir&quot; . &quot;back&quot;))</code>
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-org_002droam_002dgraph_002dedge_002dcites_002dextra_002dconfig"></a>User Option: <strong>org-roam-graph-edge-cites-extra-config</strong></dt>
+<dd>
+<p>Extra options for citation edges in the graphviz output.
+Example: <code>'((&quot;color&quot; . &quot;red&quot;))</code>
+</p></dd></dl>
+
+<hr>
+<a name="Excluding-Nodes-and-Edges"></a>
+<div class="header">
+<p>
+Previous: <a href="#Graph-Options" accesskey="p" rel="prev">Graph Options</a>, Up: <a href="#Graphing" accesskey="u" rel="up">Graphing</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Excluding-Nodes-and-Edges-1"></a>
+<h3 class="section">12.2 Excluding Nodes and Edges</h3>
+
+<p>One may want to exclude certain files to declutter the graph.
+</p>
+<dl>
+<dt><a name="index-org_002droam_002dgraph_002dexclude_002dmatcher"></a>User Option: <strong>org-roam-graph-exclude-matcher</strong></dt>
+<dd>
+<p>Matcher for excluding nodes from the generated graph. Any nodes and links for
+file paths matching this string is excluded from the graph.
+</p>
+<p>If value is a string, the string is the only matcher.
+</p>
+<p>If value is a list, all file paths matching any of the strings
+are excluded.
+</p></dd></dl>
+
+<div class="example">
+<pre class="example">(setq org-roam-graph-exclude-matcher '(&quot;private&quot; &quot;dailies&quot;))
+</pre></div>
+
+<p>This setting excludes all files whose path contain &ldquo;private&rdquo; or &ldquo;dailies&rdquo;.
+</p>
+<hr>
+<a name="Org_002droam-Completion-System"></a>
+<div class="header">
+<p>
+Next: <a href="#Roam-Protocol" accesskey="n" rel="next">Roam Protocol</a>, Previous: <a href="#Graphing" accesskey="p" rel="prev">Graphing</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Org_002droam-Completion-System-1"></a>
+<h2 class="chapter">13 Org-roam Completion System</h2>
+
+<p>Org-roam allows customization of which minibuffer completion system to use for
+its interactive commands. The default setting uses Emacs&rsquo; standard
+<code>completing-read</code> mechanism.
+</p>
+<div class="lisp">
+<pre class="lisp">(setq org-roam-completion-system 'default)
+</pre></div>
+
+<p>If you have installed Helm or Ivy, and have their modes enabled, under the
+<code>'default</code> setting they will be used.
+</p>
+<p>In the rare scenario where you use Ivy globally, but prefer <a href="https://emacs-helm.github.io/helm/">Helm</a> for org-roam
+commands, set:
+</p>
+<div class="lisp">
+<pre class="lisp">(setq org-roam-completion-system 'helm)
+</pre></div>
+
+<p>Other options include <code>'ido</code>, and <code>'ivy</code>.
+</p>
+<hr>
+<a name="Roam-Protocol"></a>
+<div class="header">
+<p>
+Next: <a href="#Daily_002dnotes" accesskey="n" rel="next">Daily-notes</a>, Previous: <a href="#Org_002droam-Completion-System" accesskey="p" rel="prev">Org-roam Completion System</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Roam-Protocol-1"></a>
+<h2 class="chapter">14 Roam Protocol</h2>
+
+<p>Org-roam extends <code>org-protocol</code> with 2 protocols: the <code>roam-file</code>
+and <code>roam-ref</code> protocols.
+</p>
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Installation-_00281_0029" accesskey="1">Installation</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#The-roam_002dfile-protocol" accesskey="2">The roam-file protocol</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#The-roam_002dref-protocol" accesskey="3">The roam-ref protocol</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr>
+<a name="Installation-_00281_0029"></a>
+<div class="header">
+<p>
+Next: <a href="#The-roam_002dfile-protocol" accesskey="n" rel="next">The roam-file protocol</a>, Up: <a href="#Roam-Protocol" accesskey="u" rel="up">Roam Protocol</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Installation-2"></a>
+<h3 class="section">14.1 Installation</h3>
+
+<p>To enable Org-roam&rsquo;s protocol extensions, you have to add the following to your init file:
+</p>
+<div class="lisp">
+<pre class="lisp">(require 'org-roam-protocol)
+</pre></div>
+
+<p>The instructions for setting up <code>org-protocol</code> are reproduced below.
+</p>
+<p>We will also need to create a desktop application for <code>emacsclient</code>. The
+instructions for various platforms are shown below.
+</p>
+<p>For Linux users, create a desktop application in <code>~/.local/share/applications/org-protocol.desktop</code>:
+</p>
+<div class="example">
+<pre class="example">[Desktop Entry]
+Name=Org-Protocol
+Exec=emacsclient %u
+Icon=emacs-icon
+Type=Application
+Terminal=false
+MimeType=x-scheme-handler/org-protocol
+</pre></div>
+
+<p>Associate <code>org-protocol://</code> links with the desktop application by
+running in your shell:
+</p>
+<div class="example">
+<pre class="example">xdg-mime default org-protocol.desktop x-scheme-handler/org-protocol
+</pre></div>
+
+<p>To disable the &ldquo;confirm&rdquo; prompt in Chrome, you can also make Chrome
+show a checkbox to tick, so that the <code>Org-Protocol Client</code> app will be used
+without confirmation. To do this, run in a shell:
+</p>
+<div class="example">
+<pre class="example">sudo mkdir -p /etc/opt/chrome/policies/managed/
+sudo tee /etc/opt/chrome/policies/managed/external_protocol_dialog.json &gt;/dev/null &lt;&lt;'EOF'
+{
+  &quot;ExternalProtocolDialogShowAlwaysOpenCheckbox&quot;: true
+}
+EOF
+sudo chmod 644 /etc/opt/chrome/policies/managed/external_protocol_dialog.json
+</pre></div>
+
+<p>and then restart Chrome (for example, by navigating to &lt;chrome://restart&gt;) to
+make the new policy take effect.
+</p>
+<p>See <a href="https://www.chromium.org/administrators/linux-quick-start">here</a> for more info on the <code>/etc/opt/chrome/policies/managed</code> directory and
+<a href="https://cloud.google.com/docs/chrome-enterprise/policies/?policy=ExternalProtocolDialogShowAlwaysOpenCheckbox">here</a> for information on the <code>ExternalProtocolDialogShowAlwaysOpenCheckbox</code> policy.
+</p>
+<p>For MacOS, one solution is to use <a href="https://github.com/sveinbjornt/Platypus">Platypus</a>. Here are the instructions for
+setting up with Platypus and Chrome:
+</p>
+<ul>
+<li> Install and launch Platypus (with <a href="https://brew.sh/">Homebrew</a>):
+</li></ul>
+
+<div class="example">
+<pre class="example">brew cask install platypus
+</pre></div>
+
+<ul>
+<li> Create a script <code>launch_emacs.sh</code>:
+</li></ul>
+
+<div class="example">
+<pre class="example">#!/usr/bin/env bash
+/usr/local/bin/emacsclient --no-wait $1
+</pre></div>
+
+<ul>
+<li> Create a Platypus app with the following settings:
+</li></ul>
+
+<div class="example">
+<pre class="example">| Setting                        | Value                     |
+|--------------------------------+---------------------------|
+| App Name                       | &quot;OrgProtocol&quot;             |
+| Script Type                    | &quot;env&quot; · &quot;/usr/bin/env&quot;    |
+| Script Path                    | &quot;path/to/launch-emacs.sh&quot; |
+| Interface                      | None                      |
+| Accept dropped items           | true                      |
+| Remain running after execution | false                     |
+</pre></div>
+
+
+<p>Inside <code>Settings</code>:
+</p>
+<div class="example">
+<pre class="example">| Setting                        | Value          |
+|--------------------------------+----------------|
+| Accept dropped files           | true           |
+| Register as URI scheme handler | true           |
+| Protocol                       | &quot;org-protocol&quot; |
+</pre></div>
+
+<p>To disable the &ldquo;confirm&rdquo; prompt in Chrome, you can also make Chrome
+show a checkbox to tick, so that the <code>OrgProtocol</code> app will be used
+without confirmation. To do this, run in a shell:
+</p>
+<div class="example">
+<pre class="example">defaults write com.google.Chrome ExternalProtocolDialogShowAlwaysOpenCheckbox -bool true
+</pre></div>
+
+
+<p>If you&rsquo;re using <a href="https://github.com/railwaycat/homebrew-emacsmacport">Emacs Mac Port</a>, it registered its &lsquo;Emacs.app&lsquo; as the default
+handler for the URL scheme &lsquo;org-protocol&lsquo;. To make <code>OrgProtocol.app</code>
+the default handler instead, run:
+</p>
+<div class="example">
+<pre class="example">defaults write com.apple.LaunchServices/com.apple.launchservices.secure LSHandlers -array-add \
+'{&quot;LSHandlerPreferredVersions&quot; = { &quot;LSHandlerRoleAll&quot; = &quot;-&quot;; }; LSHandlerRoleAll = &quot;org.yourusername.OrgProtocol&quot;; LSHandlerURLScheme = &quot;org-protocol&quot;;}'
+</pre></div>
+
+<p>Then restart your computer.
+</p>
+<p>For Windows, create a temporary <code>org-protocol.reg</code> file:
+</p>
+<div class="example">
+<pre class="example">REGEDIT4
+
+[HKEY_CLASSES_ROOT\org-protocol]
+@=&quot;URL:Org Protocol&quot;
+&quot;URL Protocol&quot;=&quot;&quot;
+[HKEY_CLASSES_ROOT\org-protocol\shell]
+[HKEY_CLASSES_ROOT\org-protocol\shell\open]
+[HKEY_CLASSES_ROOT\org-protocol\shell\open\command]
+@=&quot;\&quot;C:\\Windows\\System32\\wsl.exe\&quot; emacsclient \&quot;%1\&quot;&quot;
+</pre></div>
+
+<p>The above will forward the protocol to WSL. If you run Emacs natively on Windows, replace the last line with:
+</p>
+<div class="example">
+<pre class="example">@=&quot;\&quot;c:\\path\\to\\emacs\\bin\\emacsclientw.exe\&quot;  \&quot;%1\&quot;&quot;
+</pre></div>
+
+<p>After executing the .reg file, the protocol is registered and you can delete the file.
+</p>
+<hr>
+<a name="The-roam_002dfile-protocol"></a>
+<div class="header">
+<p>
+Next: <a href="#The-roam_002dref-protocol" accesskey="n" rel="next">The roam-ref protocol</a>, Previous: <a href="#Installation-_00281_0029" accesskey="p" rel="prev">Installation (1)</a>, Up: <a href="#Roam-Protocol" accesskey="u" rel="up">Roam Protocol</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="The-roam_002dfile-protocol-1"></a>
+<h3 class="section">14.2 The roam-file protocol</h3>
+
+<p>This is a simple protocol that opens the path specified by the <code>file</code>
+key (e.g. <code>org-protocol://roam-file?file=/tmp/file.org</code>). This is used
+in the generated graph.
+</p>
+<hr>
+<a name="The-roam_002dref-protocol"></a>
+<div class="header">
+<p>
+Previous: <a href="#The-roam_002dfile-protocol" accesskey="p" rel="prev">The roam-file protocol</a>, Up: <a href="#Roam-Protocol" accesskey="u" rel="up">Roam Protocol</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="The-roam_002dref-protocol-1"></a>
+<h3 class="section">14.3 The roam-ref protocol</h3>
+
+<p>This protocol finds or creates a new note with a given <code>roam_key</code> (see <a href="#Anatomy-of-an-Org_002droam-File">Anatomy of an Org-roam File</a>):
+</p>
+<img src="images/roam-ref.gif" alt="images/roam-ref">
+
+<p>To use this, create the following <a href="https://en.wikipedia.org/wiki/Bookmarklet">bookmarklet</a> in your browser:
+</p>
+<div class="example">
+<pre class="example">javascript:location.href =
+    'org-protocol://roam-ref?template=r&amp;ref='
+    + encodeURIComponent(location.href)
+    + '&amp;title='
+    + encodeURIComponent(document.title)
+    + '&amp;body='
+    + encodeURIComponent(window.getSelection())
+</pre></div>
+
+<p>or as a keybinding in <code>qutebrowser</code> in , using the <code>config.py</code> file (see
+<a href="https://github.com/qutebrowser/qutebrowser/blob/master/doc/help/configuring.asciidoc">Configuring qutebrowser</a>):
+</p>
+<div class="example">
+<pre class="example">config.bind(&quot;&lt;Ctrl-r&gt;&quot;, &quot;open javascript:location.href='org-protocol://roam-ref?template=r&amp;ref='+encodeURIComponent(location.href)+'&amp;title='+encodeURIComponent(document.title)&quot;)
+</pre></div>
+
+<p>where <code>template</code> is the template key for a template in
+<code>org-roam-capture-ref-templates</code> (see <a href="#The-Templating-System">The Templating System</a>). These templates
+should contain a <code>#+roam_key: ${ref}</code> in it.
+</p>
+<hr>
+<a name="Daily_002dnotes"></a>
+<div class="header">
+<p>
+Next: <a href="#Diagnosing-and-Repairing-Files" accesskey="n" rel="next">Diagnosing and Repairing Files</a>, Previous: <a href="#Roam-Protocol" accesskey="p" rel="prev">Roam Protocol</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Daily_002dnotes-1"></a>
+<h2 class="chapter">15 Daily-notes</h2>
+
+<p>Org-roam provides journaling capabilities akin to
+<a href="#Org_002djournal">Org-journal</a> with <code>org-roam-dailies</code>.
+</p>
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Configuration" accesskey="1">Configuration</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Capturing-and-finding-daily_002dnotes" accesskey="2">Capturing and finding daily-notes</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Navigation" accesskey="3">Navigation</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr>
+<a name="Configuration"></a>
+<div class="header">
+<p>
+Next: <a href="#Capturing-and-finding-daily_002dnotes" accesskey="n" rel="next">Capturing and finding daily-notes</a>, Up: <a href="#Daily_002dnotes" accesskey="u" rel="up">Daily-notes</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Configuration-1"></a>
+<h3 class="section">15.1 Configuration</h3>
+
+<p>For <code>org-roam-dailies</code> to work, you need to define two variables:
+</p>
+<dl>
+<dt><a name="index-org_002droam_002ddailies_002ddirectory"></a>Variable: <strong><code>org-roam-dailies-directory</code></strong></dt>
+<dd>
+<p>Path to daily-notes.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-org_002droam_002ddailies_002dcapture_002dtemplates"></a>Variable: <strong><code>org-roam-dailies-capture-templates</code></strong></dt>
+<dd>
+<p>Capture templates for daily-notes in Org-roam.
+</p></dd></dl>
+
+<p>Here is a sane default configuration:
+</p>
+<div class="lisp">
+<pre class="lisp">(setq org-roam-dailies-directory &quot;daily/&quot;)
+
+(setq org-roam-dailies-capture-templates
+      '((&quot;d&quot; &quot;default&quot; entry
+         #'org-roam-capture--get-point
+         &quot;* %?&quot;
+         :file-name &quot;daily/%&lt;%Y-%m-%d&gt;&quot;
+         :head &quot;#+title: %&lt;%Y-%m-%d&gt;\n\n&quot;)))
+</pre></div>
+
+<p>Make sure that <code>org-roam-dailies-directory</code> appears in <code>:file-name</code> for your
+notes to be recognized as daily-notes. You can have different templates
+placing their notes in different directories, but the one in
+<code>org-roam-dailies-directory</code> will be considered as the main one in commands.
+</p>
+<p>See <a href="#The-Templating-System">The Templating System</a> for creating new
+templates. <code>org-roam-dailies</code> provides an extra <code>:olp</code> option which allows
+specifying the outline-path to a heading:
+</p>
+<div class="lisp">
+<pre class="lisp">(setq org-roam-dailies-capture-templates
+      '((&quot;l&quot; &quot;lab&quot; entry
+         #'org-roam-capture--get-point
+         &quot;* %?&quot;
+         :file-name &quot;daily/%&lt;%Y-%m-%d&gt;&quot;
+         :head &quot;#+title: %&lt;%Y-%m-%d&gt;\n\n* Lab notes\n* Journal&quot;
+         :olp (&quot;Journal&quot;))
+
+        (&quot;j&quot; &quot;journal&quot; entry
+         #'org-roam-capture--get-point
+         &quot;* %?&quot;
+         :file-name &quot;daily/%&lt;%Y-%m-%d&gt;&quot;
+         :head &quot;#+title: %&lt;%Y-%m-%d&gt;\n\n* Lab notes\n* Journal&quot;
+         :olp (&quot;Lab notes&quot;))))
+</pre></div>
+
+<p>The template <code>l</code> will put its notes under the heading ‘Lab notes’, and the
+template <code>j</code> will put its notes under the heading ‘Journal’.  When you use
+<code>:olp</code>, make sure that the headings are present in <code>:head</code>.
+</p>
+<hr>
+<a name="Capturing-and-finding-daily_002dnotes"></a>
+<div class="header">
+<p>
+Next: <a href="#Navigation" accesskey="n" rel="next">Navigation</a>, Previous: <a href="#Configuration" accesskey="p" rel="prev">Configuration</a>, Up: <a href="#Daily_002dnotes" accesskey="u" rel="up">Daily-notes</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Capturing-and-finding-daily_002dnotes-1"></a>
+<h3 class="section">15.2 Capturing and finding daily-notes</h3>
+
+<dl>
+<dt><a name="index-org_002droam_002ddailies_002dcapture_002dtoday"></a>Function: <strong><code>org-roam-dailies-capture-today</code></strong> <em>&amp;optional goto</em></dt>
+<dd>
+<p>Create an entry in the daily note for today.
+</p>
+<p>When <code>goto</code> is non-nil, go the note without creating an entry.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-org_002droam_002ddailies_002dfind_002dtoday"></a>Function: <strong><code>org-roam-dailies-find-today</code></strong></dt>
+<dd>
+<p>Find the daily note for today, creating it if necessary.
+</p></dd></dl>
+
+<p>There are variants of those commands for <code>-yesterday</code> and <code>-tomorrow</code>:
+</p>
+<dl>
+<dt><a name="index-org_002droam_002ddailies_002dcapture_002dyesterday"></a>Function: <strong><code>org-roam-dailies-capture-yesterday</code></strong> <em>n &amp;optional goto</em></dt>
+<dd>
+<p>Create an entry in the daily note for yesteday.
+</p>
+<p>With numeric argument <code>n</code>, use the daily note <code>n</code> days in the past.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-org_002droam_002ddailies_002dfind_002dyesterday"></a>Function: <strong><code>org-roam-dailies-find-yesterday</code></strong></dt>
+<dd>
+<p>With numeric argument N, use the daily-note N days in the future.
+</p></dd></dl>
+
+<p>There are also commands which allow you to use Emacs’s <code>calendar</code> to find the date
+</p>
+<dl>
+<dt><a name="index-org_002droam_002ddailies_002dcapture_002ddate"></a>Function: <strong><code>org-roam-dailies-capture-date</code></strong></dt>
+<dd>
+<p>Create an entry in the daily note for a date using the calendar.
+</p>
+<p>Prefer past dates, unless <code>prefer-future</code> is non-nil.
+</p>
+<p>With a &rsquo;C-u&rsquo; prefix or when <code>goto</code> is non-nil, go the note without
+creating an entry.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-org_002droam_002ddailies_002dfind_002ddate"></a>Function: <strong><code>org-roam-dailies-find-date</code></strong></dt>
+<dd>
+<p>Find the daily note for a date using the calendar, creating it if necessary.
+</p>
+<p>Prefer past dates, unless <code>prefer-future</code> is non-nil.
+</p></dd></dl>
+
+<hr>
+<a name="Navigation"></a>
+<div class="header">
+<p>
+Previous: <a href="#Capturing-and-finding-daily_002dnotes" accesskey="p" rel="prev">Capturing and finding daily-notes</a>, Up: <a href="#Daily_002dnotes" accesskey="u" rel="up">Daily-notes</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Navigation-1"></a>
+<h3 class="section">15.3 Navigation</h3>
+
+<p>You can navigate between daily-notes:
+</p>
+<dl>
+<dt><a name="index-org_002droam_002ddailies_002dfind_002ddirectory"></a>Function: <strong><code>org-roam-dailies-find-directory</code></strong></dt>
+<dd>
+<p>Find and open <code>org-roam-dailies-directory</code>.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-org_002droam_002ddailies_002dfind_002dprevious_002dnote"></a>Function: <strong><code>org-roam-dailies-find-previous-note</code></strong></dt>
+<dd>
+<p>When in an daily-note, find the previous one.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-org_002droam_002ddailies_002dfind_002dnext_002dnote"></a>Function: <strong><code>org-roam-dailies-find-next-note</code></strong></dt>
+<dd>
+<p>When in an daily-note, find the next one.
+</p></dd></dl>
+
+<hr>
+<a name="Diagnosing-and-Repairing-Files"></a>
+<div class="header">
+<p>
+Next: <a href="#Finding-Unlinked-References" accesskey="n" rel="next">Finding Unlinked References</a>, Previous: <a href="#Daily_002dnotes" accesskey="p" rel="prev">Daily-notes</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Diagnosing-and-Repairing-Files-1"></a>
+<h2 class="chapter">16 Diagnosing and Repairing Files</h2>
+
+<p>Org-roam provides a utility for diagnosing and repairing problematic files via
+<code>org-roam-doctor</code>. By default, <code>org-roam-doctor</code> runs the check on the current
+Org-roam file. To run the check only for the current file, run <code>C-u M-x
+org-roam-doctor</code>, but note that this may take some time.
+</p>
+<dl>
+<dt><a name="index-org_002droam_002ddoctor"></a>Function: <strong>org-roam-doctor</strong> <em>&amp;optional this-buffer</em></dt>
+<dd>
+<p>Perform a check on Org-roam files to ensure cleanliness. If THIS-BUFFER, run
+the check only for the current buffer.
+</p></dd></dl>
+
+<p>The checks run are defined in <code>org-roam-doctor--checkers</code>. By default, there are checkers for broken links and invalid &lsquo;<samp>#+roam_*</samp>&rsquo; properties.
+</p>
+<p>Each checker is an instance of <code>org-roam-doctor-checker</code>. To define a checker, use
+<code>make-org-roam-doctor-checker</code>. Here is a sample definition:
+</p>
+<div class="lisp">
+<pre class="lisp">(make-org-roam-doctor-checker
+    :name 'org-roam-doctor-broken-links
+    :description &quot;Fix broken links.&quot;
+    :actions '((&quot;d&quot; . (&quot;Unlink&quot; . org-roam-doctor--remove-link))
+               (&quot;r&quot; . (&quot;Replace link&quot; . org-roam-doctor--replace-link))
+               (&quot;R&quot; . (&quot;Replace link (keep label)&quot; . org-roam-doctor--replace-link-keep-label))))
+</pre></div>
+
+<p>The <code>:name</code> property is the name of the function run. The function takes in the
+Org parse tree, and returns a list of <code>(point error-message)</code>. <code>:description</code> is a
+short description of what the checker does. <code>:actions</code> is an alist containing
+elements of the form <code>(char . (prompt . function))</code>. These actions are defined per
+checker, to perform autofixes for the errors. For each error detected,
+<code>org-roam-doctor</code> will move the point to the current error, and pop-up a help
+window displaying the error message, as well as the list of actions that can be
+taken provided in <code>:actions</code>.
+</p>
+<hr>
+<a name="Finding-Unlinked-References"></a>
+<div class="header">
+<p>
+Next: <a href="#Performance-Optimization" accesskey="n" rel="next">Performance Optimization</a>, Previous: <a href="#Diagnosing-and-Repairing-Files" accesskey="p" rel="prev">Diagnosing and Repairing Files</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Finding-Unlinked-References-1"></a>
+<h2 class="chapter">17 Finding Unlinked References</h2>
+
+<p>Unlinked references are occurrences of strings of text that exactly match the
+title or alias of an existing note in the Org-roam database. Org-roam provides
+facilities for discovering these unlinked references, so one may decide whether
+to convert them into links.
+</p>
+<p>To use this feature, simply call <code>M-x org-roam-unlinked-references</code> from within
+an Org-roam note. Internally, Org-roam uses <a href="https://github.com/BurntSushi/ripgrep">ripgrep</a> and a clever PCRE regex to
+find occurrences of the title or aliases of the currently open note in all
+Org-roam files. Hence, this requires a version of ripgrep that is compiled with
+PCRE support.
+</p>
+<blockquote>
+<p>NOTE: Since ripgrep cannot read encrypted files, this function cannot find
+unlinked references within encrypted files.
+</p>
+</blockquote>
+
+<hr>
+<a name="Performance-Optimization"></a>
+<div class="header">
+<p>
+Next: <a href="#Appendix" accesskey="n" rel="next">Appendix</a>, Previous: <a href="#Finding-Unlinked-References" accesskey="p" rel="prev">Finding Unlinked References</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Performance-Optimization-1"></a>
+<h2 class="chapter">18 Performance Optimization</h2>
+
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Profiling-Key-Operations" accesskey="1">Profiling Key Operations</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Garbage-Collection" accesskey="2">Garbage Collection</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr>
+<a name="Profiling-Key-Operations"></a>
+<div class="header">
+<p>
+Next: <a href="#Garbage-Collection" accesskey="n" rel="next">Garbage Collection</a>, Up: <a href="#Performance-Optimization" accesskey="u" rel="up">Performance Optimization</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="TODO-Profiling-Key-Operations"></a>
+<h3 class="section">18.1 <strong>TODO</strong> Profiling Key Operations</h3>
+
+<hr>
+<a name="Garbage-Collection"></a>
+<div class="header">
+<p>
+Previous: <a href="#Profiling-Key-Operations" accesskey="p" rel="prev">Profiling Key Operations</a>, Up: <a href="#Performance-Optimization" accesskey="u" rel="up">Performance Optimization</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Garbage-Collection-1"></a>
+<h3 class="section">18.2 Garbage Collection</h3>
+
+<p>During the cache-build process, Org-roam generates a lot of in-memory
+data-structures (such as the Org file&rsquo;s AST), which are discarded after use. These structures are garbage collected at regular intervals (see <a href="https://www.gnu.org/software/emacs/manual/html_mono/elisp.html#Garbage-Collection">(elisp)info:elisp#Garbage Collection</a>).
+</p>
+<p>Org-roam provides the option <code>org-roam-db-gc-threshold</code> to temporarily change
+the threshold value for GC to be triggered during these memory-intensive
+operations. To reduce the number of garbage collection processes, one may set
+<code>org-roam-db-gc-threshold</code> to a high value (such as <code>most-positive-fixnum</code>):
+</p>
+<div class="lisp">
+<pre class="lisp">(setq org-roam-db-gc-threshold most-positive-fixnum)
+</pre></div>
+
+<hr>
+<a name="Appendix"></a>
+<div class="header">
+<p>
+Next: <a href="#FAQ" accesskey="n" rel="next">FAQ</a>, Previous: <a href="#Performance-Optimization" accesskey="p" rel="prev">Performance Optimization</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Appendix-1"></a>
+<h2 class="chapter">19 Appendix</h2>
+
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Note_002dtaking-Workflows" accesskey="1">Note-taking Workflows</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Ecosystem" accesskey="2">Ecosystem</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr>
+<a name="Note_002dtaking-Workflows"></a>
+<div class="header">
+<p>
+Next: <a href="#Ecosystem" accesskey="n" rel="next">Ecosystem</a>, Up: <a href="#Appendix" accesskey="u" rel="up">Appendix</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Note_002dtaking-Workflows-1"></a>
+<h3 class="section">19.1 Note-taking Workflows</h3>
+
+<ul>
+<li> Books<ul>
+<li> <a href="https://www.goodreads.com/book/show/34507927-how-to-take-smart-notes">How To Take Smart Notes</a>
+</li></ul>
+
+</li><li> Articles<ul>
+<li> <a href="https://www.lesswrong.com/posts/NfdHG6oHBJ8Qxc26s/the-zettelkasten-method-1">The Zettelkasten Method - LessWrong 2.0</a>
+
+</li><li> <a href="https://reddit.com/r/RoamResearch/comments/eho7de/building_a_second_brain_in_roamand_why_you_might">Building a Second Brain in Roam&hellip;And Why You Might Want To : RoamResearch</a>
+
+</li><li> <a href="https://www.nateliason.com/blog/roam">Roam Research: Why I Love It and How I Use It - Nat Eliason</a>
+
+</li><li> <a href="https://twitter.com/adam_keesling/status/1196864424725774336?s=20">Adam Keesling&rsquo;s Twitter Thread</a>
+
+</li><li> <a href="https://blog.jethro.dev/posts/how_to_take_smart_notes_org/">How To Take Smart Notes With Org-mode · Jethro Kuan</a>
+</li></ul>
+
+</li><li> Threads<ul>
+<li> <a href="https://news.ycombinator.com/item?id=22473209">Ask HN: How to Take Good Notes</a>
+</li></ul>
+
+</li><li> Videos<ul>
+<li> <a href="https://www.youtube.com/watch?v=RvWic15iXjk">How to Use Roam to Outline a New Article in Under 20 Minutes</a>
+</li></ul>
+</li></ul>
+
+<hr>
+<a name="Ecosystem"></a>
+<div class="header">
+<p>
+Previous: <a href="#Note_002dtaking-Workflows" accesskey="p" rel="prev">Note-taking Workflows</a>, Up: <a href="#Appendix" accesskey="u" rel="up">Appendix</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Ecosystem-1"></a>
+<h3 class="section">19.2 Ecosystem</h3>
+
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Browsing-History-with-winner_002dmode" accesskey="1">Browsing History with winner-mode</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Versioning-Notes" accesskey="2">Versioning Notes</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Full_002dtext-search-interface-with-Deft" accesskey="3">Full-text search interface with Deft</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Org_002djournal" accesskey="4">Org-journal</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Note_002dtaking-Add_002dons" accesskey="5">Note-taking Add-ons</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr>
+<a name="Browsing-History-with-winner_002dmode"></a>
+<div class="header">
+<p>
+Next: <a href="#Versioning-Notes" accesskey="n" rel="next">Versioning Notes</a>, Up: <a href="#Ecosystem" accesskey="u" rel="up">Ecosystem</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Browsing-History-with-winner_002dmode-1"></a>
+<h4 class="subsection">19.2.1 Browsing History with winner-mode</h4>
+
+<p><code>winner-mode</code> is a global minor mode that allows one to undo and redo changes in the window configuration. It is included with GNU Emacs since version 20.
+</p>
+<p><code>winner-mode</code> can be used as a simple version of browser history for Org-roam. Each click through org-roam links (from both Org files and the backlinks buffer) causes changes in window configuration, which can be undone and redone using <code>winner-mode</code>. To use <code>winner-mode</code>, simply enable it, and bind the appropriate interactive functions:
+</p>
+<div class="lisp">
+<pre class="lisp">(winner-mode +1)
+(define-key winner-mode-map (kbd &quot;&lt;M-left&gt;&quot;) #'winner-undo)
+(define-key winner-mode-map (kbd &quot;&lt;M-right&gt;&quot;) #'winner-redo)
+
+</pre></div>
+
+<hr>
+<a name="Versioning-Notes"></a>
+<div class="header">
+<p>
+Next: <a href="#Full_002dtext-search-interface-with-Deft" accesskey="n" rel="next">Full-text search interface with Deft</a>, Previous: <a href="#Browsing-History-with-winner_002dmode" accesskey="p" rel="prev">Browsing History with winner-mode</a>, Up: <a href="#Ecosystem" accesskey="u" rel="up">Ecosystem</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Versioning-Notes-1"></a>
+<h4 class="subsection">19.2.2 Versioning Notes</h4>
+
+<p>Since Org-roam notes are just plain text, it is trivial to track changes in your
+notes database using version control systems such as <a href="https://git-scm.com/">Git</a>. Simply initialize
+<code>org-roam-directory</code> as a Git repository, and commit your files at regular or
+appropriate intervals. <a href="https://magit.vc/">Magit</a> is a great interface to Git within Emacs.
+</p>
+<p>In addition, it may be useful to observe how a particular note has evolved, by
+looking at the file history. <a href="https://gitlab.com/pidu/git-timemachine">Git-timemachine</a> allows you to visit historic
+versions of a tracked Org-roam note.
+</p>
+<hr>
+<a name="Full_002dtext-search-interface-with-Deft"></a>
+<div class="header">
+<p>
+Next: <a href="#Org_002djournal" accesskey="n" rel="next">Org-journal</a>, Previous: <a href="#Versioning-Notes" accesskey="p" rel="prev">Versioning Notes</a>, Up: <a href="#Ecosystem" accesskey="u" rel="up">Ecosystem</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Full_002dtext-search-interface-with-Deft-1"></a>
+<h4 class="subsection">19.2.3 Full-text search interface with Deft</h4>
+
+<p><a href="https://jblevins.org/projects/deft/">Deft</a> provides a nice interface for browsing and filtering org-roam notes.
+</p>
+<div class="lisp">
+<pre class="lisp">(use-package deft
+  :after org
+  :bind
+  (&quot;C-c n d&quot; . deft)
+  :custom
+  (deft-recursive t)
+  (deft-use-filter-string-for-filename t)
+  (deft-default-extension &quot;org&quot;)
+  (deft-directory &quot;/path/to/org-roam-files/&quot;))
+</pre></div>
+
+<p>If the title of the Org file is not the first line, you might not get
+nice titles. You may choose to patch this to use <code>org-roam</code>&rsquo;s
+functionality. Here I&rsquo;m using
+<a href="https://github.com/raxod502/el-patch">el-patch</a>:
+</p>
+<div class="lisp">
+<pre class="lisp">(use-package el-patch
+  :straight (:host github
+                   :repo &quot;raxod502/el-patch&quot;
+                   :branch &quot;develop&quot;))
+
+(eval-when-compile
+  (require 'el-patch))
+
+(use-package deft
+  ;; same as above...
+  :config/el-patch
+  (defun deft-parse-title (file contents)
+    &quot;Parse the given FILE and CONTENTS and determine the title.
+If `deft-use-filename-as-title' is nil, the title is taken to
+be the first non-empty line of the FILE.  Else the base name of the FILE is
+used as title.&quot;
+    (el-patch-swap (if deft-use-filename-as-title
+                       (deft-base-filename file)
+                     (let ((begin (string-match &quot;^.+$&quot; contents)))
+                       (if begin
+                           (funcall deft-parse-title-function
+                                    (substring contents begin (match-end 0))))))
+                   (org-roam--get-title-or-slug file))))
+</pre></div>
+
+<p>The Deft interface can slow down quickly when the number of files get
+huge. <a href="https://github.com/hasu/notdeft">Notdeft</a> is a fork of Deft
+that uses an external search engine and indexer.
+</p>
+<hr>
+<a name="Org_002djournal"></a>
+<div class="header">
+<p>
+Next: <a href="#Note_002dtaking-Add_002dons" accesskey="n" rel="next">Note-taking Add-ons</a>, Previous: <a href="#Full_002dtext-search-interface-with-Deft" accesskey="p" rel="prev">Full-text search interface with Deft</a>, Up: <a href="#Ecosystem" accesskey="u" rel="up">Ecosystem</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Org_002djournal-1"></a>
+<h4 class="subsection">19.2.4 Org-journal</h4>
+
+<p><a href="https://github.com/bastibe/org-journal">Org-journal</a> provides journaling
+capabilities to Org-mode. A lot of its functionalities have been incorporated
+into Org-roam under the name <code>org-roam-dailies</code>.  It remains a good tool if
+you want to isolate your verbose journal entries from the ideas you would
+write on a scratchpad.
+</p>
+<div class="lisp">
+<pre class="lisp">(use-package org-journal
+  :bind
+  (&quot;C-c n j&quot; . org-journal-new-entry)
+  :custom
+  (org-journal-date-prefix &quot;#+title: &quot;)
+  (org-journal-file-format &quot;%Y-%m-%d.org&quot;)
+  (org-journal-dir &quot;/path/to/journal/files/&quot;)
+  (org-journal-date-format &quot;%A, %d %B %Y&quot;))
+</pre></div>
+
+<hr>
+<a name="Note_002dtaking-Add_002dons"></a>
+<div class="header">
+<p>
+Previous: <a href="#Org_002djournal" accesskey="p" rel="prev">Org-journal</a>, Up: <a href="#Ecosystem" accesskey="u" rel="up">Ecosystem</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Note_002dtaking-Add_002dons-1"></a>
+<h4 class="subsection">19.2.5 Note-taking Add-ons</h4>
+
+<p>These are some plugins that make note-taking in Org-mode more enjoyable.
+</p>
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Org_002ddownload" accesskey="1">Org-download</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#mathpixel" accesskey="2">mathpix.el</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Org_002dnoter-_002f-Interleave" accesskey="3">Org-noter / Interleave</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Bibliography" accesskey="4">Bibliography</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Spaced-Repetition" accesskey="5">Spaced Repetition</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr>
+<a name="Org_002ddownload"></a>
+<div class="header">
+<p>
+Next: <a href="#mathpixel" accesskey="n" rel="next">mathpixel</a>, Up: <a href="#Note_002dtaking-Add_002dons" accesskey="u" rel="up">Note-taking Add-ons</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Org_002ddownload-1"></a>
+<h4 class="unnumberedsubsubsec">Org-download</h4>
+
+<p><a href="https://github.com/abo-abo/org-download">Org-download</a> lets you screenshot and yank images from the web into your notes:
+</p>
+<div class="float">
+<img src="images/org-download.gif" alt="images/org-download">
+
+<div class="float-caption"><p><strong>Figure: </strong>org-download</p></div></div>
+<div class="lisp">
+<pre class="lisp">(use-package org-download
+  :after org
+  :bind
+  (:map org-mode-map
+        ((&quot;s-Y&quot; . org-download-screenshot)
+         (&quot;s-y&quot; . org-download-yank))))
+</pre></div>
+
+<hr>
+<a name="mathpixel"></a>
+<div class="header">
+<p>
+Next: <a href="#Org_002dnoter-_002f-Interleave" accesskey="n" rel="next">Org-noter / Interleave</a>, Previous: <a href="#Org_002ddownload" accesskey="p" rel="prev">Org-download</a>, Up: <a href="#Note_002dtaking-Add_002dons" accesskey="u" rel="up">Note-taking Add-ons</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="mathpix_002eel"></a>
+<h4 class="unnumberedsubsubsec">mathpix.el</h4>
+
+<p><a href="https://github.com/jethrokuan/mathpix.el">mathpix.el</a> uses <a href="https://mathpix.com/">Mathpix&rsquo;s</a> API to convert clips into latex equations:
+</p>
+<div class="float">
+<img src="images/mathpix.gif" alt="images/mathpix">
+
+<div class="float-caption"><p><strong>Figure: </strong>mathpix</p></div></div>
+<div class="lisp">
+<pre class="lisp">(use-package mathpix.el
+  :straight (:host github :repo &quot;jethrokuan/mathpix.el&quot;)
+  :custom ((mathpix-app-id &quot;app-id&quot;)
+           (mathpix-app-key &quot;app-key&quot;))
+  :bind
+  (&quot;C-x m&quot; . mathpix-screenshot))
+</pre></div>
+
+<hr>
+<a name="Org_002dnoter-_002f-Interleave"></a>
+<div class="header">
+<p>
+Next: <a href="#Bibliography" accesskey="n" rel="next">Bibliography</a>, Previous: <a href="#mathpixel" accesskey="p" rel="prev">mathpixel</a>, Up: <a href="#Note_002dtaking-Add_002dons" accesskey="u" rel="up">Note-taking Add-ons</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Org_002dnoter-_002f-Interleave-1"></a>
+<h4 class="unnumberedsubsubsec">Org-noter / Interleave</h4>
+
+<p><a href="https://github.com/weirdNox/org-noter">Org-noter</a> and
+<a href="https://github.com/rudolfochrist/interleave">Interleave</a> are both
+projects that allow synchronised annotation of documents (PDF, EPUB
+etc.) within Org-mode.
+</p>
+<hr>
+<a name="Bibliography"></a>
+<div class="header">
+<p>
+Next: <a href="#Spaced-Repetition" accesskey="n" rel="next">Spaced Repetition</a>, Previous: <a href="#Org_002dnoter-_002f-Interleave" accesskey="p" rel="prev">Org-noter / Interleave</a>, Up: <a href="#Note_002dtaking-Add_002dons" accesskey="u" rel="up">Note-taking Add-ons</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Bibliography-1"></a>
+<h4 class="unnumberedsubsubsec">Bibliography</h4>
+
+<p><a href="https://github.com/org-roam/org-roam-bibtex">org-roam-bibtex</a> offers
+tight integration between
+<a href="https://github.com/jkitchin/org-ref">org-ref</a>,
+<a href="https://github.com/tmalsburg/helm-bibtex">helm-bibtex</a> and
+<code>org-roam</code>. This helps you manage your bibliographic notes under
+<code>org-roam</code>.
+</p>
+<p>For example, though helm-bibtex provides the ability to visit notes for bibliographic entries, org-roam-bibtex extends it with the ability to visit the file with the right &lsquo;<samp>#+roam_key</samp>&rsquo;.
+</p>
+<hr>
+<a name="Spaced-Repetition"></a>
+<div class="header">
+<p>
+Previous: <a href="#Bibliography" accesskey="p" rel="prev">Bibliography</a>, Up: <a href="#Note_002dtaking-Add_002dons" accesskey="u" rel="up">Note-taking Add-ons</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="Spaced-Repetition-1"></a>
+<h4 class="unnumberedsubsubsec">Spaced Repetition</h4>
+
+<p><a href="https://www.leonrische.me/fc/index.html">Org-fc</a> is a spaced repetition system that scales well with a large number of
+files. Other alternatives include <a href="https://orgmode.org/worg/org-contrib/org-drill.html">org-drill</a>, and <a href="https://github.com/abo-abo/pamparam">pamparam</a>.
+</p>
+<hr>
+<a name="FAQ"></a>
+<div class="header">
+<p>
+Previous: <a href="#Appendix" accesskey="p" rel="prev">Appendix</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="FAQ-1"></a>
+<h2 class="chapter">20 FAQ</h2>
+
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#How-do-I-have-more-than-one-Org_002droam-directory_003f" accesskey="1">How do I have more than one Org-roam directory?</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#How-do-I-migrate-from-Roam-Research_003f" accesskey="2">How do I migrate from Roam Research?</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#How-do-I-create-a-note-whose-title-already-matches-one-of-the-candidates_003f" accesskey="3">How do I create a note whose title already matches one of the candidates?</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr>
+<a name="How-do-I-have-more-than-one-Org_002droam-directory_003f"></a>
+<div class="header">
+<p>
+Next: <a href="#How-do-I-migrate-from-Roam-Research_003f" accesskey="n" rel="next">How do I migrate from Roam Research?</a>, Up: <a href="#FAQ" accesskey="u" rel="up">FAQ</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="How-do-I-have-more-than-one-Org_002droam-directory_003f-1"></a>
+<h3 class="section">20.1 How do I have more than one Org-roam directory?</h3>
+
+<p>Emacs supports directory-local variables, allowing the value of
+<code>org-roam-directory</code> to be different in different directories. It does this by
+checking for a file named <code>.dir-locals.el</code>.
+</p>
+<p>To add support for multiple directories, override the <code>org-roam-directory</code>
+variable using directory-local variables. This is what <code>.dir-locals.el</code> may
+contain:
+</p>
+<div class="lisp">
+<pre class="lisp">((nil . ((org-roam-directory . &quot;.&quot;)
+         (org-roam-db-location . &quot;./org-roam.db&quot;))))
+</pre></div>
+
+<p>All files within that directory will be treated as their own separate
+set of Org-roam files. Remember to run <code>org-roam-db-build-cache</code> from a
+file within that directory, at least once.
+</p>
+<hr>
+<a name="How-do-I-migrate-from-Roam-Research_003f"></a>
+<div class="header">
+<p>
+Next: <a href="#How-do-I-create-a-note-whose-title-already-matches-one-of-the-candidates_003f" accesskey="n" rel="next">How do I create a note whose title already matches one of the candidates?</a>, Previous: <a href="#How-do-I-have-more-than-one-Org_002droam-directory_003f" accesskey="p" rel="prev">How do I have more than one Org-roam directory?</a>, Up: <a href="#FAQ" accesskey="u" rel="up">FAQ</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="How-do-I-migrate-from-Roam-Research_003f-1"></a>
+<h3 class="section">20.2 How do I migrate from Roam Research?</h3>
+
+<p>Fabio has produced a command-line tool that converts markdown files exported from Roam Research into Org-roam compatible markdown. More instructions are provided <a href="https://github.com/fabioberger/roam-migration">in the repository</a>.
+</p>
+<hr>
+<a name="How-do-I-create-a-note-whose-title-already-matches-one-of-the-candidates_003f"></a>
+<div class="header">
+<p>
+Previous: <a href="#How-do-I-migrate-from-Roam-Research_003f" accesskey="p" rel="prev">How do I migrate from Roam Research?</a>, Up: <a href="#FAQ" accesskey="u" rel="up">FAQ</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<a name="How-do-I-create-a-note-whose-title-already-matches-one-of-the-candidates_003f-1"></a>
+<h3 class="section">20.3 How do I create a note whose title already matches one of the candidates?</h3>
+
+<p>This situation arises when, for example, one would like to create a note titled
+&ldquo;bar&rdquo; when &ldquo;barricade&rdquo; already exists.
+</p>
+<p>The solution is dependent on the mini-buffer completion framework in use. Here
+are the solutions:
+</p>
+<ul>
+<li> Ivycall <code>ivy-immediate-done</code>, typically bound to <code>C-M-j</code>. Alternatively, set <code>ivy-use-selectable-prompt</code> to <code>t</code>, so that &ldquo;bar&rdquo; is now selectable.
+
+</li><li> HelmOrg-roam should provide a selectable &ldquo;[?] bar&rdquo; candidate at the top of the candidate list.
+</li></ul>
+
+<p>Emacs 28.0.50 (Org mode 9.4)
+</p><hr>
+
+
+
+</body>
+</html>
