@@ -1015,24 +1015,18 @@ Return nil if the file does not exist."
   (and (boundp org-roam-backlinks-mode)
        org-roam-backlinks-mode))
 
-(defun org-roam--retrieve-link-destination (&optional pom)
-  "Retrieve the destination of the link at POM.
-The point-or-marker POM can either be a position in the current
-buffer or a marker."
-  (let ((pom (or pom (point))))
-    (org-with-point-at pom
-      (let* ((context (org-element-context))
-             (type (org-element-property :type context))
-             (dest (org-element-property :path context)))
-        (pcase type
-          ("id" (car (org-roam-id-find dest)))
-          (_ dest))))))
-
 (defun org-roam--backlink-to-current-p ()
-  "Return t if backlink is to the current Org-roam file."
-  (let ((current (buffer-file-name org-roam-buffer--current))
-        (backlink-dest (org-roam--retrieve-link-destination)))
-    (string= current backlink-dest)))
+  "Return t if the link at point is to the current Org-roam file."
+  (save-match-data
+    (let ((current-file (buffer-file-name org-roam-buffer--current))
+          (backlink-dest (save-excursion
+                           (let* ((context (org-element-context))
+                                  (type (org-element-property :type context))
+                                  (dest (org-element-property :path context)))
+                             (pcase type
+                               ("id" (org-roam-id-get-file dest))
+                               (_ dest))))))
+      (string= current-file backlink-dest))))
 
 (defun org-roam-open-at-point ()
   "Open an Org-roam link or visit the text previewed at point.
