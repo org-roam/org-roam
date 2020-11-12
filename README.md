@@ -121,7 +121,7 @@ General Public License, Version 3
 [roamresearch]: https://www.roamresearch.com/
 [org]: https://orgmode.org/
 [badge-license]: https://img.shields.io/badge/license-GPL_3-green.svg
-[docs]: https://www.orgroam.com/manual/
+[docs]: https://www.orgroam.com/manual.html
 [discourse]: https://org-roam.discourse.group/
 [slack]: https://join.slack.com/t/orgroam/shared_invite/zt-deoqamys-043YQ~s5Tay3iJ5QRI~Lxg
 [issues]: https://github.com/org-roam/org-roam/issues
