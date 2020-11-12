@@ -94,6 +94,23 @@ value like `most-positive-fixnum'."
 Contains pairs of `org-roam-directory' and `org-roam-db-location'
 so that multi-directories are updated.")
 
+(defcustom org-roam-db-update-method 'idle-timer
+  "Method to update the Org-roam database.
+
+`immediate'
+  Update the database immediately upon file changes.
+
+`idle-timer'
+  Updates the database if dirty, if Emacs idles for `org-roam-update-db-idle-seconds'."
+  :type '(set (const :tag "idle-timer" idle-timer)
+              (const :tag "immediate" immediate))
+  :group 'org-roam)
+
+(defcustom org-roam-update-db-idle-seconds 2
+  "Number of idle seconds before triggering an Org-roam database update."
+  :type 'integer
+  :group 'org-roam)
+
 ;;;; Core Functions
 
 (defun org-roam-db--get-connection ()
@@ -201,10 +218,21 @@ the current `org-roam-directory'."
   (dolist (conn (hash-table-values org-roam-db--connection))
     (org-roam-db--close conn)))
 
-(defun org-roam-db--mark-dirty ()
+;;;; Timer-based updating
+(defvar org-roam-db-file-update-timer nil
+  "Timer for updating the database when dirty.")
+
+(defun org-roam-db-mark-dirty ()
   "Mark the Org-roam database as dirty."
   (add-to-list 'org-roam-db-dirty (list org-roam-directory org-roam-db-location)
                nil #'equal))
+
+(defun org-roam-db-update-cache-on-timer ()
+  "Update the cache if the database is dirty.
+This function is called on `org-roam-db-file-update-timer'."
+  (pcase-dolist (`(,org-roam-directory ,org-roam-db-location) org-roam-db-dirty)
+    (org-roam-db-build-cache))
+  (setq org-roam-db-dirty nil))
 
 ;;;; Database API
 ;;;;; Initialization
@@ -555,11 +583,15 @@ If FORCE, force a rebuild of the cache from scratch."
                       ref-count
                       deleted-count)))
 
-(defun org-roam-db-update-cache ()
-  "Update the cache if the database is dirty."
-  (pcase-dolist (`(,org-roam-directory ,org-roam-db-location) org-roam-db-dirty)
-    (org-roam-db-build-cache))
-  (setq org-roam-db-dirty nil))
+(defun org-roam-db-update ()
+  "Update the database."
+  (pcase org-roam-db-update-method
+    ('immediate
+     (org-roam-db-build-cache))
+    ('idle-timer
+     (org-roam-db-mark-dirty))
+    (_
+     (user-error "Invalid `org-roam-db-update-method'"))))
 
 (provide 'org-roam-db)
 

@@ -114,11 +114,6 @@ If nil, `find-file' is used."
   :type 'function
   :group 'org-roam)
 
-(defcustom org-roam-update-db-idle-seconds 2
-  "Number of idle seconds before triggering an Org-roam database update."
-  :type 'integer
-  :group 'org-roam)
-
 (defcustom org-roam-include-type-in-ref-path-completions nil
   "When t, include the type in ref-path completions.
 Note that this only affects interactive calls.
@@ -308,9 +303,6 @@ descriptive warnings when certain operations fail (e.g. parsing).")
            (opt "[" (group (+? anything)) "]")
            "]"))
   "Matches a typed link in double brackets.")
-
-(defvar org-roam--file-update-timer nil
-  "Timer for updating the database on file changes.")
 
 ;;;; Utilities
 (defun org-roam--plist-to-alist (plist)
@@ -1291,7 +1283,7 @@ file."
     (org-roam--setup-title-auto-update)
     (add-hook 'post-command-hook #'org-roam-buffer--update-maybe nil t)
     (add-hook 'before-save-hook #'org-roam-link--replace-link-on-save nil t)
-    (add-hook 'after-save-hook #'org-roam-db--mark-dirty nil t)
+    (add-hook 'after-save-hook #'org-roam-db-update nil t)
     (dolist (fn org-roam-completion-functions)
       (add-hook 'completion-at-point-functions fn nil t))
     (org-roam-buffer--update-maybe :redisplay t)))
@@ -1417,7 +1409,7 @@ To be added to `org-roam-title-change-hook'."
           (unless (string-match-p file-name new-file-name)
             (rename-file file-name new-file-name)
             (set-visited-file-name new-file-name t t)
-            (org-roam-db--mark-dirty)
+            (org-roam-db-update)
             (org-roam-message "File moved to %S" (abbreviate-file-name new-file-name))))))))
 
 (defun org-roam--rename-file-advice (old-file new-file-or-dir &rest _args)
@@ -1465,7 +1457,7 @@ When NEW-FILE-OR-DIR is a directory, we use it to compute the new file path."
   "Update the database if a new Org ID is created."
   (when (and org-roam-enable-headline-linking
              (org-roam--org-roam-file-p))
-    (org-roam-db--mark-dirty)))
+    (org-roam-db-update)))
 
 ;;;###autoload
 (define-minor-mode org-roam-mode
@@ -1500,8 +1492,9 @@ M-x info for more information at Org-roam > Installation > Post-Installation Tas
     (add-hook 'find-file-hook #'org-roam--find-file-hook-function)
     (add-hook 'kill-emacs-hook #'org-roam-db--close-all)
     (add-hook 'org-open-at-point-functions #'org-roam-open-id-at-point)
-    (unless org-roam--file-update-timer
-      (setq org-roam--file-update-timer (run-with-idle-timer org-roam-update-db-idle-seconds t #'org-roam-db-update-cache)))
+    (if (and org-roam-db-file-update-timer
+             (eq org-roam-db-update-method 'idle-timer))
+        (setq org-roam-db-file-update-timer (run-with-idle-timer org-roam-update-db-idle-seconds t #'org-roam-db-update-cache-on-timer)))
     (advice-add 'rename-file :after #'org-roam--rename-file-advice)
     (advice-add 'delete-file :before #'org-roam--delete-file-advice)
     (advice-add 'org-id-new :after #'org-roam--id-new-advice)
@@ -1514,8 +1507,8 @@ M-x info for more information at Org-roam > Installation > Post-Installation Tas
     (remove-hook 'find-file-hook #'org-roam--find-file-hook-function)
     (remove-hook 'kill-emacs-hook #'org-roam-db--close-all)
     (remove-hook 'org-open-at-point-functions #'org-roam-open-id-at-point)
-    (when org-roam--file-update-timer
-      (cancel-timer org-roam--file-update-timer))
+    (when org-roam-db-file-update-timer
+      (cancel-timer org-roam-db-file-update-timer))
     (advice-remove 'rename-file #'org-roam--rename-file-advice)
     (advice-remove 'delete-file #'org-roam--delete-file-advice)
     (advice-remove 'org-id-new #'org-roam--id-new-advice)
@@ -1528,7 +1521,7 @@ M-x info for more information at Org-roam > Installation > Post-Installation Tas
       (with-current-buffer buf
         (remove-hook 'post-command-hook #'org-roam-buffer--update-maybe t)
         (remove-hook 'before-save-hook #'org-roam-link--replace-link-on-save t)
-        (remove-hook 'after-save-hook #'org-roam-db--mark-dirty t))))))
+        (remove-hook 'after-save-hook #'org-roam-db-update t))))))
 
 ;;; Interactive Commands
 ;;;###autoload
