@@ -245,9 +245,9 @@ make infodir=/path/to/my/info/files install-info
 Where ~/path/to/my/info/files~ is the location where you keep info files. This target directory needs to be stored in the variable `Info-default-directory-list`. If you aren't using one of the default info locations, you can configure this with the following in your ~.emacs~ file:
 
 #+begin_src elisp
-(require 'info)
-(add-to-list 'Info-default-directory-list
-	     "/path/to/my/info/files")
+  (require 'info)
+  (add-to-list 'Info-default-directory-list
+               "/path/to/my/info/files")
 #+end_src
 
 You can also use one of the default locations, such as:
@@ -1455,6 +1455,29 @@ are the solutions:
 
 - Ivy :: call ~ivy-immediate-done~, typically bound to ~C-M-j~. Alternatively, set ~ivy-use-selectable-prompt~ to ~t~, so that "bar" is now selectable.
 - Helm :: Org-roam should provide a selectable "[?] bar" candidate at the top of the candidate list.
+
+* Keystroke Index
+:PROPERTIES:
+:APPENDIX:   t
+:INDEX:      ky
+:COOKIE_DATA: recursive
+:END:
+* Command Index
+:PROPERTIES:
+:APPENDIX:   t
+:INDEX:      cp
+:END:
+* Function Index
+:PROPERTIES:
+:APPENDIX:   t
+:INDEX:      fn
+:END:
+* Variable Index
+:PROPERTIES:
+:APPENDIX:   t
+:INDEX:      vr
+:END:
+
 
 # Local Variables:
 # eval: (require 'ol-info)
