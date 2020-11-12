@@ -590,8 +590,9 @@ it as FILE-PATH."
                       org-roam-file-name
                       (buffer-file-name)))
   (save-excursion
-    (let (links)
-      (org-element-map (org-element-parse-buffer) 'link
+    (let ((parsed (org-element-parse-buffer))
+          links)
+      (org-element-map parsed 'link
         (lambda (link)
           (goto-char (org-element-property :begin link))
           (let* ((type (org-roam--collate-types (org-element-property :type link)))
@@ -625,6 +626,27 @@ it as FILE-PATH."
             (dolist (name names)
               (when name
                 (push (vector file-path name type properties) links))))))
+      (org-element-map parsed 'timestamp
+        (lambda (timestamp)
+          (goto-char (org-element-property :begin timestamp))
+          (let* ((time (encode-time (list 0 0 0
+                                          (org-element-property :day-start timestamp)
+                                          (org-element-property :month-start timestamp)
+                                          (org-element-property :year-start timestamp)
+                                          nil nil nil)))
+                 (timestr (format-time-string (car org-time-stamp-formats) time))
+                 (element (org-element-at-point))
+                 (begin (or (org-element-property :contents-begin element)
+                            (org-element-property :begin element)))
+                 (end (or (org-element-property :contents-end element)
+                          (org-element-property :end element)))
+                 (content (or (org-element-property :raw-value element)
+                              (when (and begin end)
+                                (string-trim (buffer-substring-no-properties begin end)))))
+                 (properties (list :outline (org-roam--get-outline-path)
+                                   :content content
+                                   :point begin)))
+            (push (vector file-path timestr "timestamp" properties) links))))
       links)))
 
 (defun org-roam--extract-ids (&optional file-path)
@@ -785,10 +807,12 @@ Each ref is returned as a cons of its type and its key."
           ('nil nil)
           ((pred string-empty-p)
            (user-error "Org property #+roam_key cannot be empty"))
-          (ref
-           (when (string-match org-link-plain-re ref)
-             (setq type (org-roam--collate-types (match-string 1 ref))
-                   path (match-string 2 ref)))))
+          ((pred (string-match org-link-plain-re))
+           (setq type (org-roam--collate-types (match-string 1 ref))
+                 path (match-string 2 ref)))
+          ((pred (string-match org-ts-regexp2))
+           (setq type "timestamp"
+                 path roam-key)))
         (when (and type path)
           (push (cons type path) refs))))
     refs))
