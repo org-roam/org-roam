@@ -2,12 +2,15 @@
 
 ## 1.2.3 (TBD)
 
-### Features
+### Changed
+- [#1264](https://github.com/org-roam/org-roam/pull/1264) renamed `org-roam-update-db-idle-seconds` to `org-roam-db-idle-idle-seconds` 
 
+### Features
 - [#1183](https://github.com/org-roam/org-roam/pull/1183) add interactive functions for managing aliases and tags in Org-roam file, namely `org-roam-alias-add`, `org-roam-alias-delete`, `org-roam-tag-add`, and `org-roam-tag-delete`.
 - [#1215](https://github.com/org-roam/org-roam/pull/1215) Multiple `ROAM_KEY` keywords can now be specified in one file. This allows bibliographical entries to share the same note file.
 - [#1238](https://github.com/org-roam/org-roam/pull/1238) add `org-roam-prefer-id-links` variable to select linking method
 - [#1239](https://github.com/org-roam/org-roam/pull/1239) Allow `org-roam-protocol` to capture the webpage's selection, and add a toggle for storing the links to the pages
+- [#1264](https://github.com/org-roam/org-roam/pull/1264) add `org-roam-db-update-method`
 
 ### Bugfixes
 
