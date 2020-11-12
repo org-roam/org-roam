@@ -671,6 +671,23 @@ The ~org-roam-link-current~ face corresponds to links to the same file it is in.
 
 The ~org-roam-link-invalid~ face is applied to links that are broken. These are
 links to files or IDs that cannot be found.
+** TODO The Database
+
+Org-roam is backed by a Sqlite database.
+
+- User Option: org-roam-db-update-method
+
+  Method to update the Org-roam database.
+
+  ~'immediate~: Update the database immediately upon file changes.
+
+  ~'idle-timer~: Updates the database if dirty, if Emacs idles for
+  ~org-roam-db-update-idle-seconds~.
+
+- User Option: org-roam-db-update-idle-seconds
+
+  Number of idle seconds before triggering an Org-roam database update. This is
+  only valid if ~org-roam-db-update-method~ is ~'idle-timer~.
 
 * Inserting Links
 
