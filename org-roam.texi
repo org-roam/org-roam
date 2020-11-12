@@ -85,6 +85,10 @@ General Public License for more details.
 * Performance Optimization::
 * Appendix::
 * FAQ::
+* Keystroke Index::
+* Command Index::
+* Function Index::
+* Variable Index::
 
 @detailmenu
 --- The Detailed Node Listing ---
@@ -1892,6 +1896,26 @@ are the solutions:
 @item
  HelmOrg-roam should provide a selectable ``[?] bar'' candidate at the top of the candidate list.
 @end itemize
+
+@node Keystroke Index
+@appendix Keystroke Index
+
+@printindex ky
+
+@node Command Index
+@appendix Command Index
+
+@printindex cp
+
+@node Function Index
+@appendix Function Index
+
+@printindex fn
+
+@node Variable Index
+@appendix Variable Index
+
+@printindex vr
 
 Emacs 28.0.50 (Org mode 9.4)
 @bye
