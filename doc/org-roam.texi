@@ -119,6 +119,7 @@ Concepts and Configuration
 * The Org-roam Buffer::
 * Org-roam Files::
 * Org-roam Faces::
+* The Database::
 
 Navigating Around
 
@@ -878,6 +879,7 @@ org-roam}.
 * The Org-roam Buffer::
 * Org-roam Files::
 * Org-roam Faces::
+* The Database::
 @end menu
 
 @node Directories and Files
@@ -969,6 +971,27 @@ The @code{org-roam-link-current} face corresponds to links to the same file it i
 
 The @code{org-roam-link-invalid} face is applied to links that are broken. These are
 links to files or IDs that cannot be found.
+
+@node The Database
+@section @strong{TODO} The Database
+
+Org-roam is backed by a Sqlite database.
+
+@defopt org-roam-db-update-method
+
+Method to update the Org-roam database.
+
+@code{'immediate}: Update the database immediately upon file changes.
+
+@code{'idle-timer}: Updates the database if dirty, if Emacs idles for
+@code{org-roam-db-update-idle-seconds}.
+@end defopt
+
+@defopt org-roam-db-update-idle-seconds
+
+Number of idle seconds before triggering an Org-roam database update. This is
+only valid if @code{org-roam-db-update-method} is @code{'idle-timer}.
+@end defopt
 
 @node Inserting Links
 @chapter Inserting Links
