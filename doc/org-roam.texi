@@ -1336,27 +1336,36 @@ Create a script @code{launch_emacs.sh}:
 Create a Platypus app with the following settings:
 @end itemize
 
-@example
-| Setting                        | Value                     |
-|--------------------------------+---------------------------|
-| App Name                       | "OrgProtocol"             |
-| Script Type                    | "env" · "/usr/bin/env"    |
-| Script Path                    | "path/to/launch-emacs.sh" |
-| Interface                      | None                      |
-| Accept dropped items           | true                      |
-| Remain running after execution | false                     |
-@end example
+@multitable {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaa}
+@headitem Setting
+@tab Value
+@item App Name
+@tab ``OrgProtocol''
+@item Script Type
+@tab ``env'' · ``/usr/bin/env''
+@item Script Path
+@tab ``path/to/launch-emacs.sh''
+@item Interface
+@tab None
+@item Accept dropped items
+@tab true
+@item Remain running after execution
+@tab false
+@end multitable
 
 
 Inside @code{Settings}:
 
-@example
-| Setting                        | Value          |
-|--------------------------------+----------------|
-| Accept dropped files           | true           |
-| Register as URI scheme handler | true           |
-| Protocol                       | "org-protocol" |
-@end example
+@multitable {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa} {aaaaaaaaaaaaaa}
+@headitem Setting
+@tab Value
+@item Accept dropped files
+@tab true
+@item Register as URI scheme handler
+@tab true
+@item Protocol
+@tab ``org-protocol''
+@end multitable
 
 To disable the ``confirm'' prompt in Chrome, you can also make Chrome
 show a checkbox to tick, so that the @code{OrgProtocol} app will be used
