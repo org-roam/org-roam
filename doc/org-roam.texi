@@ -108,6 +108,10 @@ Anatomy of an Org-roam File
 * Tags::
 * File Refs::
 
+Titles
+
+* Customizing Title Extraction::
+
 The Templating System
 
 * Template Walkthrough::
@@ -645,15 +649,65 @@ Take for example the following org file:
 @tab '(``WWII'' ``World War II'')
 @end multitable
 
-One can freely control which extraction methods to use by customizing
-@code{org-roam-title-sources}: see the doc-string for the variable for more
-information. If all methods of title extraction return no results, the file-name
-is used in place of the titles for completions.
+@menu
+* Customizing Title Extraction::
+@end menu
 
-If you wish to add your own title extraction method, you may push a symbol
-@code{'foo} into @code{org-roam-title-sources}, and define a
-@code{org-roam--extract-titles-foo} which accepts no arguments. See
-@code{org-roam--extract-titles-title} for an example.
+@node Customizing Title Extraction
+@subsection Customizing Title Extraction
+
+To control how Org-roam extracts titles, customize @code{org-roam-title-sources}. If
+all methods of title extraction return no results, the file-name is used as the
+note's title.
+
+@defopt org-roam-title-sources
+
+The list of sources from which to retrieve a note title.
+Each element in the list is either:
+@end defopt
+
+@itemize
+@item
+a symbol -- this symbol corresponds to a title retrieval function, which
+returns the list of titles for the current buffer
+@itemize
+@item
+a list of symbols -- symbols in the list are treated as with (1). The
+return value of this list is the first symbol in the list returning a
+non-nil value.
+@end itemize
+
+The return results of the root list are concatenated.
+
+For example the setting: '((title headline) alias) means the following:
+
+@itemize
+@item
+Return the 'title + 'alias, if the title of current buffer is non-empty;
+
+@item
+Or return 'headline + 'alias otherwise.
+@end itemize
+
+The currently supported symbols are:
+
+`title'
+ The \``#+title\'' property of org file.
+
+`alias'
+ The \``#+roam@math{_alias}\'' property of the org file, using
+ space-delimited strings.
+
+`headline'
+The first headline in the org file.
+@end itemize
+
+Adding your own title extraction method requires two steps. First, define a
+method @code{(defun org-roam--extract-titles-foo () ...)}, where @code{foo} a
+self-prescribed name for the title extraction method. This method takes no
+arguments, and returns a list of strings (titles). Finally, push the symbol
+@code{foo} into @code{org-roam-title-sources}. You may need to rebuild the cache from
+scratch to re-process all files to pick up the new titles.
 
 @node Tags
 @section Tags
