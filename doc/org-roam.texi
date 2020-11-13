@@ -180,16 +180,17 @@ FAQ
 @node Introduction
 @chapter Introduction
 
-Org-roam is a @uref{https://roamresearch.com/, Roam Research} replica built around the
-all-powerful @uref{https://orgmode.org/, Org-mode}.
+Org-roam is a tool for network thought. It reproduces some of @uref{https://roamresearch.com/, Roam
+Research's} @footnote{To understand more about Roam, a collection of links are available in @ref{Note-taking Workflows}.} features within the all-powerful @uref{https://orgmode.org/, Org-mode}.
 
-Org-roam is a solution for effortless non-hierarchical note-taking
-with Org-mode. With Org-roam, notes flow naturally, making note-taking
-fun and easy. Org-roam should also work as a plug-and-play solution
-for anyone already using Org-mode for their personal wiki.
+Org-roam is a solution for effortless non-hierarchical note-taking with
+Org-mode. With Org-roam, notes flow naturally, making note-taking fun and easy.
+Org-roam keeps closely to Org syntax, and will work for anyone already using
+Org-mode for their personal wiki.
 
-To understand more about Roam, a collection of links are available in
-@ref{Note-taking Workflows}.
+Org-roam gains its superpowers by leveraging the mature ecosystem around
+Org-mode. For example, it has first-class support for @uref{https://github.com/jkitchin/org-ref, org-ref} for citation
+management.
 
 Org-roam aims to implement the core features of Roam, leveraging the
 mature ecosystem around Org-mode where possible. Eventually, we hope
@@ -198,30 +199,30 @@ to further introduce features enabled by the Emacs ecosystem.
 Org-roam provides several benefits over other tooling:
 
 @itemize
- @item
- Privacy and SecurityEdit your personal wiki completely offline, entirely
-in your control. Encrypt your notes with GPG@.
+@item
+@strong{Privacy and Security:} Keep your personal wiki entirely offline and in your
+control. Encrypt your notes with GPG@.
 
 @item
- Longevity of Plain TextUnlike web solutions like Roam research, the notes
-are first and foremost plain Org-mode files -- Org-roam simply builds up an
-auxilliary database to give the personal wiki superpowers. Having your notes
+@strong{Longevity of Plain Text:} Unlike web solutions like Roam Research, the notes
+are first and foremost plain Org-mode files -- Org-roam simply builds an
+auxiliary database to give the personal wiki superpowers. Having your notes
 in plain-text is crucial for the longevity of your wiki. Never have to worry
-about proprietary web solutions being taken down. Edit your plain-text notes
-in notepad if all other editors cease to exist
+about proprietary web solutions being taken down. The notes are still
+functional even if Org-roam ceases to exist.
 
 @item
- Free and Open SourceOrg-roam is free and open-source, which means that if
+@strong{Free and Open Source:} Org-roam is free and open-source, which means that if
 you feel unhappy with any part of Org-roam, you may choose to extend Org-roam,
-or open a PR@.
+or open a pull request.
 
 @item
- Leverages the Org-mode ecosystemOver the years, Emacs and Org-mode has
+@strong{Leverage the Org-mode ecosystem:} Over the years, Emacs and Org-mode has
 developed into a mature system for plain-text organization. Building upon
 Org-mode already puts Org-roam light-years ahead of many other solutions.
 
 @item
- Built on EmacsEmacs is also a fantastic interface for editing text, and we
+@strong{Built on Emacs:} Emacs is also a fantastic interface for editing text, and we
 can inherit many of the powerful text-navigation and editing packages
 available to Emacs.
 @end itemize
@@ -267,30 +268,32 @@ Org-roam provides utilities for maintaining a digital slip-box. This section
 aims to provide a brief introduction to the ``slip-box'', or ``Zettelkasten''
 method. By providing some background on the method, we hope that the design
 decisions of Org-roam will become clear, and that will aid in using Org-roam
-appropriately. In this section we will also introduce terms commonly used within
-the Zettelkasten community, which will also commonly appear in the Org-roam
-forums and channels of discussion.
+appropriately. In this section we will introduce terms commonly used within the
+Zettelkasten community and the Org-roam forums.
 
-The Zettelkasten method of note-taking is designed to increase research
-productivity: in particular, it acts as a research partner, where conversations
-with it may produce new and surprising lines of thought. This method is
-attributed to German sociologist Niklas Luhmann, who using the method had
-produced volumes of written works.
+The Zettelkasten is a personal tool for thinking and writing. It places heavy
+emphasis on connecting ideas, building up a web of thought. Hence, it is well
+suited for knowledge workers and intellectual tasks, such as conducting
+research. The Zettelkasten can act as a research partner, where conversations
+with it may produce new and surprising lines of thought.
 
-In its paper form, the slip-box is simply a box of cards. These cards are small
--- often only large enough to fit a single concept. The size limitation
-encourages ideas to be broken down into individual concepts. These ideas are
-explicitly linked together. The breakdown of ideas encourages tangential
-exploration of ideas, increasing the surface for thought. Making linking
-explicit between notes also encourages one to think about the connections
-between concepts.
+This method is attributed to German sociologist Niklas Luhmann, who using the
+method had produced volumes of written works. Luhmann's slip-box was simply a
+box of cards. These cards are small -- often only large enough to fit a single
+concept. The size limitation encourages ideas to be broken down into individual
+concepts. These ideas are explicitly linked together. The breakdown of ideas
+encourages tangential exploration of ideas, increasing the surface for thought.
+Making linking explicit between notes also encourages one to think about the
+connections between concepts.
+
+At the corner of each note, Luhmann ascribed each note with an ordered ID,
+allowing him to link and jump between notes. In Org-roam, we simply use
+hyperlinks.
 
 Org-roam is the slip-box, digitalized in Org-mode. Every zettel (card) is a
-plain-text, Org-mode file. These files are often placed in the same directory.
-In the same way one would maintain a paper slip-box, Org-roam makes it easy to
-create new zettels, pre-filling boilerplate content using a powerful templating
-system. Org-roam also facilitates the linking of zettels using Org-mode @code{file:}
-links.
+plain-text, Org-mode file. In the same way one would maintain a paper slip-box,
+Org-roam makes it easy to create new zettels, pre-filling boilerplate content
+using a powerful templating system.
 
 @menu
 * Fleeting notes::
@@ -300,7 +303,7 @@ links.
 @node Fleeting notes
 @section Fleeting notes
 
-A slip-box requires a method of quickly capturing ideas. These are called
+A slip-box requires a method for quickly capturing ideas. These are called
 @strong{fleeting notes}: they are simple reminders of information or ideas that will
 need to be processed later on, or trashed. This is typically accomplished using
 @code{org-capture} (see @ref{capture,,,org,}), or using Org-roam's daily notes
@@ -449,8 +452,7 @@ emacsql-sqlite3
 @end itemize
 
 You can install this manually as well, or get the latest version from MELPA@. You
-may wish to use @uref{https://github.com/jwiegley/use-package, use-package}, @uref{https://github.com/raxod502/straight.el, straight.el}, or some other tool or tools to help
-manage this.
+may wish to use @uref{https://github.com/jwiegley/use-package, use-package}, @uref{https://github.com/raxod502/straight.el, straight.el} to help manage this.
 
 If you would like to install the manual for access from Emacs' built-in Info
 system, you'll need to compile the .texi source file, and install it in an
@@ -531,10 +533,10 @@ requires a radical change in your current note-taking workflow. To understand
 more about the methods and madness, see @ref{Note-taking Workflows}.
 
 To first start using Org-roam, one needs to pick a location to store the
-Org-roam files. The directory that will contain your notes, and database index
-is specified by the variable @code{org-roam-directory}. This variable needs to be set
-before any calls to Org-roam functions, including enabling @code{org-roam-mode}. For
-this tutorial, create an empty directory, and set @code{org-roam-directory}:
+Org-roam files. The directory that will contain your notes is specified by the
+variable @code{org-roam-directory}. This variable needs to be set before any calls to
+Org-roam functions, including enabling @code{org-roam-mode}. For this tutorial,
+create an empty directory, and set @code{org-roam-directory}:
 
 @lisp
 (make-directory "~/org-roam")
@@ -543,39 +545,38 @@ this tutorial, create an empty directory, and set @code{org-roam-directory}:
 
 We encourage using a flat hierarchy for storing notes, but some prefer using
 folders for storing specific kinds of notes (e.g. websites, papers). This is
-fine; Org-roam searches recursively within @code{org-roam-directory} for any notes.
-Instead of relying on the file hierarchy for any form of categorization, we
-solely rely on links between files to establish connections between notes.
+fine; Org-roam searches recursively within @code{org-roam-directory} for notes.
+Instead of relying on the file hierarchy for any form of categorization, one
+should use links between files to establish connections between notes.
 
-Next, we need to enable the global minor mode @code{org-roam-mode}. This sets up Emacs
-with several hooks, builds a cache and keeps it consistent. We recommend
-starting @code{org-roam-mode} on startup:
+Next, we need to enable the global minor mode @code{org-roam-mode}. This sets up
+Emacs with several hooks, building a cache that is kept consistent as your
+slip-box grows. We recommend starting @code{org-roam-mode} on startup:
 
 @lisp
 (add-hook 'after-init-hook 'org-roam-mode)
 @end lisp
 
-To build the cache manually, one can run @code{M-x org-roam-db-build-cache}. The
-cache is a sqlite database named @code{org-roam.db}, which defaults to residing in
-the root @code{org-roam-directory}. Cache builds may take a while the first time, but
-is often instantaneous in subsequent runs.
+To build the cache manually, one can run @code{M-x org-roam-db-build-cache}. Cache
+builds may take a while the first time, but is often instantaneous in subsequent
+runs because it only reprocesses modified files.
 
-Let us now create our first note. Call @code{M-x org-roam-find-file}. This shows a list
-of titles for notes that reside in @code{org-roam-directory}. It should show nothing
-right now, since there are no notes in the directory. Entering the title of the
-note you wish to create, and pressing @code{RET} should begin the note creation
-process. This process uses @code{org-capture}'s templating system, and can be freely
-customized (see @ref{The Templating System}). Using the default template, pressing @code{C-c
-C-c} finishes the note capture. Running @code{M-x org-roam-find-file} again should show
-the note you have created, and selecting that entry will bring you to that note.
+Let us now create our first note. Call @code{M-x org-roam-find-file}. This shows a
+list of titles for notes that reside in @code{org-roam-directory}. It should show
+nothing right now, since there are no notes in the directory. Entering the title
+of the note you wish to create, and pressing @code{RET} should begin the note
+creation process. This process uses @code{org-capture}'s templating system, and can
+be customized (see @ref{The Templating System}). Using the default template, pressing
+@code{C-c C-c} finishes the note capture. Running @code{M-x org-roam-find-file} again
+should show the note you have created, and selecting that entry will bring you
+to that note.
 
-The crux of Org-roam is making it easy to create notes, and link them together.
-To link notes together, we call @code{M-x org-roam-insert}. This brings up a prompt
-with a list of title for existing notes. Selecting an existing entry will create
-and insert a link to the current file. Entering a non-existent title will create
-a new note with that title. Good usage of Org-roam requires liberally linking
-files: this facilitates building up a dense knowledge graph of inter-connected
-notes.
+Org-roam makes it easy to create notes, and link them together. To link notes
+together, we call @code{M-x org-roam-insert}. This brings up a prompt with a list of
+title for existing notes. Selecting an existing entry will create and insert a
+link to the current file. Entering a non-existent title will create a new note
+with that title. Good usage of Org-roam requires liberally linking files: this
+facilitates building up a dense graph of inter-connected notes.
 
 Org-roam provides an interface to view backlinks. It shows backlinks for the
 currently active Org-roam note, along with some surrounding context. To toggle
@@ -584,16 +585,14 @@ the visibility of this buffer, call @code{M-x org-roam}.
 For a visual representation of the notes and their connections, Org-roam also
 provides graphing capabilities, using Graphviz. It generates graphs with notes
 as nodes, and links between them as edges. The generated graph can be used to
-navigate to the files, but this requires some additional setup (see @ref{Roam Protocol, , Roam
-Protocol}).
+navigate to the files, but this requires some additional setup (see @ref{Roam Protocol}).
 
 @node Anatomy of an Org-roam File
 @chapter Anatomy of an Org-roam File
 
-The bulk of Org-roam's functionality is built on top of vanilla
-Org-mode. However, to support additional functionality, Org-roam adds
-several Org-roam-specific keywords. These functionality are not crucial
-to effective use of Org-roam.
+The bulk of Org-roam's functionality is built on top of vanilla Org-mode.
+However, to support additional functionality, Org-roam adds several
+Org-roam-specific keywords.
 
 @menu
 * Titles::
