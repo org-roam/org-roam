@@ -171,6 +171,12 @@ Anatomy of an Org-roam File
 </td></tr>
 <tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
 
+Titles
+
+</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="#Customizing-Title-Extraction">Customizing Title Extraction</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+
 The Templating System
 
 </pre></th></tr><tr><td align="left" valign="top">&bull; <a href="#Template-Walkthrough">Template Walkthrough</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
@@ -815,15 +821,69 @@ The aliases are space-delimited, and can be multi-worded using quotes.
 <tr><td><code>'alias</code></td><td>&rsquo;(&ldquo;WWII&rdquo; &ldquo;World War II&rdquo;)</td></tr>
 </table>
 
-<p>One can freely control which extraction methods to use by customizing
-<code>org-roam-title-sources</code>: see the doc-string for the variable for more
-information. If all methods of title extraction return no results, the file-name
-is used in place of the titles for completions.
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Customizing-Title-Extraction" accesskey="1">Customizing Title Extraction</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr>
+<a name="Customizing-Title-Extraction"></a>
+<div class="header">
+<p>
+Up: <a href="#Titles" accesskey="u" rel="up">Titles</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Customizing-Title-Extraction-1"></a>
+<h4 class="subsection">6.1.1 Customizing Title Extraction</h4>
+
+<p>To control how Org-roam extracts titles, customize <code>org-roam-title-sources</code>. If
+all methods of title extraction return no results, the file-name is used as the
+note&rsquo;s title.
 </p>
-<p>If you wish to add your own title extraction method, you may push a symbol
-<code>'foo</code> into <code>org-roam-title-sources</code>, and define a
-<code>org-roam--extract-titles-foo</code> which accepts no arguments. See
-<code>org-roam--extract-titles-title</code> for an example.
+<dl>
+<dt><a name="index-org_002droam_002dtitle_002dsources"></a>User Option: <strong>org-roam-title-sources</strong></dt>
+<dd>
+<p>The list of sources from which to retrieve a note title.
+Each element in the list is either:
+</p></dd></dl>
+
+<ul>
+<li> a symbol &ndash; this symbol corresponds to a title retrieval function, which
+returns the list of titles for the current buffer
+<ul>
+<li> a list of symbols &ndash; symbols in the list are treated as with (1). The
+return value of this list is the first symbol in the list returning a
+non-nil value.
+</li></ul>
+
+<p>The return results of the root list are concatenated.
+</p>
+<p>For example the setting: &rsquo;((title headline) alias) means the following:
+</p>
+<ul>
+<li> Return the &rsquo;title + &rsquo;alias, if the title of current buffer is non-empty;
+
+</li><li> Or return &rsquo;headline + &rsquo;alias otherwise.
+</li></ul>
+
+<p>The currently supported symbols are:
+</p>
+<p>&lsquo;title&rsquo;
+ The \&ldquo;#+title\&rdquo; property of org file.
+</p>
+<p>&lsquo;alias&rsquo;
+ The \&ldquo;#+roam<em>_alias</em>\&rdquo; property of the org file, using
+ space-delimited strings.
+</p>
+<p>&lsquo;headline&rsquo;
+The first headline in the org file.
+</p></li></ul>
+
+<p>Adding your own title extraction method requires two steps. First, define a
+method <code>(defun org-roam--extract-titles-foo () ...)</code>, where <code>foo</code> a
+self-prescribed name for the title extraction method. This method takes no
+arguments, and returns a list of strings (titles). Finally, push the symbol
+<code>foo</code> into <code>org-roam-title-sources</code>. You may need to rebuild the cache from
+scratch to re-process all files to pick up the new titles.
 </p>
 <hr>
 <a name="Tags"></a>
@@ -2557,6 +2617,7 @@ Previous: <a href="#Function-Index" accesskey="p" rel="prev">Function Index</a>,
 <tr><td></td><td valign="top"><a href="#index-org_002droam_002dlink_002dauto_002dreplace"><code>org-roam-link-auto-replace</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Inserting-Links">Inserting Links</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-org_002droam_002dlink_002dtitle_002dformat"><code>org-roam-link-title-format</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Inserting-Links">Inserting Links</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-org_002droam_002dlink_002duse_002dcustom_002dfaces"><code>org-roam-link-use-custom-faces</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Org_002droam-Faces">Org-roam Faces</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-org_002droam_002dtitle_002dsources"><code>org-roam-title-sources</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Customizing-Title-Extraction">Customizing Title Extraction</a></td></tr>
 <tr><td colspan="4"> <hr></td></tr>
 </table>
 <table><tr><th valign="top">Jump to: &nbsp; </th><td><a class="summary-letter" href="#Variable-Index_vr_letter-O"><b>O</b></a>
