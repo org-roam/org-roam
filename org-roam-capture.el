@@ -442,9 +442,9 @@ the file if the original value of :no-save is not t and
       (org-capture-put :no-save t))
     file-path))
 
-(defun org-roam-capture-find-or-create-olp (path)
+(defun org-roam-capture-find-or-create-olp (olp)
   "Return a marker pointing to the entry at OLP in the current buffer.
-if OLP does not exist, create it. If anything goes wrong, throw
+If OLP does not exist, create it. If anything goes wrong, throw
 an error, and if you need to do something based on this error,
 you can catch it with `condition-case'."
   (let* ((level 1)
@@ -457,7 +457,7 @@ you can catch it with `condition-case'."
       (error "Buffer %s needs to be in Org mode" (current-buffer)))
     (org-with-wide-buffer
      (goto-char start)
-     (dolist (heading path)
+     (dolist (heading olp)
        (let ((re (format org-complex-heading-regexp-format
                          (regexp-quote heading)))
              (cnt 0))
