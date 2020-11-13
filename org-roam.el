@@ -808,8 +808,8 @@ Each ref is returned as a cons of its type and its key."
           ((pred string-empty-p)
            (user-error "Org property #+roam_key cannot be empty"))
           ((pred (string-match org-link-plain-re))
-           (setq type (org-roam--collate-types (match-string 1 ref))
-                 path (match-string 2 ref)))
+           (setq type (org-roam--collate-types (match-string 1 roam-key))
+                 path (match-string 2 roam-key)))
           ((pred (string-match org-ts-regexp2))
            (setq type "timestamp"
                  path roam-key)))
