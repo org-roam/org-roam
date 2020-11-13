@@ -417,15 +417,48 @@ Take for example the following org file:
 | ~'headline~ | '("Headline")            |
 | ~'alias~    | '("WWII" "World War II") |
 
-One can freely control which extraction methods to use by customizing
-~org-roam-title-sources~: see the doc-string for the variable for more
-information. If all methods of title extraction return no results, the file-name
-is used in place of the titles for completions.
+*** Customizing Title Extraction
 
-If you wish to add your own title extraction method, you may push a symbol
-~'foo~ into ~org-roam-title-sources~, and define a
-~org-roam--extract-titles-foo~ which accepts no arguments. See
-~org-roam--extract-titles-title~ for an example.
+To control how Org-roam extracts titles, customize ~org-roam-title-sources~. If
+all methods of title extraction return no results, the file-name is used as the
+note's title.
+
+- User Option: org-roam-title-sources
+
+  The list of sources from which to retrieve a note title.
+  Each element in the list is either:
+
+1. a symbol -- this symbol corresponds to a title retrieval function, which
+   returns the list of titles for the current buffer
+  2. a list of symbols -- symbols in the list are treated as with (1). The
+     return value of this list is the first symbol in the list returning a
+     non-nil value.
+
+  The return results of the root list are concatenated.
+
+  For example the setting: '((title headline) alias) means the following:
+
+  1. Return the 'title + 'alias, if the title of current buffer is non-empty;
+  2. Or return 'headline + 'alias otherwise.
+
+  The currently supported symbols are:
+
+  `title'
+   The \"#+title\" property of org file.
+
+  `alias'
+   The \"#+roam_alias\" property of the org file, using
+   space-delimited strings.
+
+   `headline'
+   The first headline in the org file.
+
+Adding your own title extraction method requires two steps. First, define a
+method ~(defun org-roam--extract-titles-foo () ...)~, where ~foo~ a
+self-prescribed name for the title extraction method. This method takes no
+arguments, and returns a list of strings (titles). Finally, push the symbol
+~foo~ into ~org-roam-title-sources~. You may need to rebuild the cache from
+scratch to re-process all files to pick up the new titles.
 
 ** Tags
 
