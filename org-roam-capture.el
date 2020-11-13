@@ -443,7 +443,7 @@ the file if the original value of :no-save is not t and
     file-path))
 
 (defun org-roam-capture-find-or-create-olp (path)
-  "Return a marker pointing to the entry at outline path OLP in the current buffer.
+  "Return a marker pointing to the entry at OLP in the current buffer.
 if OLP does not exist, create it. If anything goes wrong, throw
 an error, and if you need to do something based on this error,
 you can catch it with `condition-case'."
@@ -454,7 +454,7 @@ you can catch it with `condition-case'."
          (end (point-max))
          found flevel)
     (unless (derived-mode-p 'org-mode)
-      (error "Buffer %s needs to be in Org mode" buffer))
+      (error "Buffer %s needs to be in Org mode" (current-buffer)))
     (org-with-wide-buffer
      (goto-char start)
      (dolist (heading path)
