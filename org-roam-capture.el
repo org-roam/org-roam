@@ -442,6 +442,50 @@ the file if the original value of :no-save is not t and
       (org-capture-put :no-save t))
     file-path))
 
+(defun org-roam-capture-find-or-create-olp (path)
+  "Return a marker pointing to the entry at outline path OLP in the current buffer.
+if OLP does not exist, create it. If anything goes wrong, throw
+an error, and if you need to do something based on this error,
+you can catch it with `condition-case'."
+  (let* ((level 1)
+         (lmin 1)
+         (lmax 1)
+         (start (point-min))
+         (end (point-max))
+         found flevel)
+    (unless (derived-mode-p 'org-mode)
+      (error "Buffer %s needs to be in Org mode" buffer))
+    (org-with-wide-buffer
+     (goto-char start)
+     (dolist (heading path)
+       (let ((re (format org-complex-heading-regexp-format
+                         (regexp-quote heading)))
+             (cnt 0))
+         (while (re-search-forward re end t)
+           (setq level (- (match-end 1) (match-beginning 1)))
+           (when (and (>= level lmin) (<= level lmax))
+             (setq found (match-beginning 0) flevel level cnt (1+ cnt))))
+         (when (> cnt 1)
+           (error "Heading not unique on level %d: %s" lmax heading))
+         (when (= cnt 0)
+           ;; Create heading if it doesn't exist
+           (goto-char end)
+           (unless (bolp) (newline))
+           (org-insert-heading nil nil t)
+           (unless (= lmax 1) (org-do-demote))
+           (insert heading)
+           (setq end (point))
+           (goto-char start)
+           (while (re-search-forward re end t)
+             (setq level (- (match-end 1) (match-beginning 1)))
+             (when (and (>= level lmin) (<= level lmax))
+               (setq found (match-beginning 0) flevel level cnt (1+ cnt))))))
+       (goto-char found)
+       (setq lmin (1+ flevel) lmax (+ lmin (if org-odd-levels-only 1 0)))
+       (setq start found
+             end (save-excursion (org-end-of-subtree t t))))
+     (point-marker))))
+
 (defun org-roam-capture--get-point ()
   "Return exact point to file for org-capture-template.
 The file to use is dependent on the context:
@@ -485,26 +529,23 @@ This function is used solely in Org-roam's capture templates: see
         (org-roam-capture--put prop val)))
     (set-buffer (org-capture-target-buffer file-path))
     (widen)
-    (if-let* ((olp (when (eq org-roam-capture--context 'dailies)
-                     (--> (org-roam-capture--get :olp)
-                          (pcase it
-                            ((pred stringp)
-                             (list it))
-                            ((pred listp)
-                             it)
-                            (wrong-type
-                             (signal 'wrong-type-argument
-                                     `((stringp listp)
-                                       ,wrong-type))))))))
+    (if-let* ((olp (--> (org-roam-capture--get :olp)
+                        (pcase it
+                          ((pred listp)
+                           it)
+                          (wrong-type
+                           (signal 'wrong-type-argument
+                                   `((stringp listp)
+                                     ,wrong-type)))))))
         (condition-case err
-            (when-let ((marker (org-find-olp `(,file-path ,@olp))))
+            (when-let ((marker (org-roam-capture-find-or-create-olp olp)))
               (goto-char marker)
               (set-marker marker nil))
           (error
            (when (org-roam-capture--get :new-file)
              (kill-buffer))
            (signal (car err) (cdr err))))
-      (goto-char (point-min)))))
+      (goto-char (point-max)))))
 
 (defun org-roam-capture--convert-template (template)
   "Convert TEMPLATE from Org-roam syntax to `org-capture-templates' syntax."

@@ -1123,20 +1123,19 @@ specifying the outline-path to a heading:
            #'org-roam-capture--get-point
            "* %?"
            :file-name "daily/%<%Y-%m-%d>"
-           :head "#+title: %<%Y-%m-%d>\n\n* Lab notes\n* Journal"
+           :head "#+title: %<%Y-%m-%d>\n"
            :olp ("Journal"))
 
           ("j" "journal" entry
            #'org-roam-capture--get-point
            "* %?"
            :file-name "daily/%<%Y-%m-%d>"
-           :head "#+title: %<%Y-%m-%d>\n\n* Lab notes\n* Journal"
+           :head "#+title: %<%Y-%m-%d>\n"
            :olp ("Lab notes"))))
 #+end_src
 
 The template ~l~ will put its notes under the heading ‘Lab notes’, and the
-template ~j~ will put its notes under the heading ‘Journal’. When you use
-~:olp~, make sure that the headings are present in ~:head~.
+template ~j~ will put its notes under the heading ‘Journal’. 
 
 ** Capturing and finding daily-notes
 
