@@ -1124,14 +1124,14 @@ specifying the outline-path to a heading:
            "* %?"
            :file-name "daily/%<%Y-%m-%d>"
            :head "#+title: %<%Y-%m-%d>\n"
-           :olp ("Journal"))
+           :olp ("Lab notes"))
 
           ("j" "journal" entry
            #'org-roam-capture--get-point
            "* %?"
            :file-name "daily/%<%Y-%m-%d>"
            :head "#+title: %<%Y-%m-%d>\n"
-           :olp ("Lab notes"))))
+           :olp ("Journal"))))
 #+end_src
 
 The template ~l~ will put its notes under the heading ‘Lab notes’, and the
