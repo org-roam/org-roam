@@ -1525,20 +1525,19 @@ specifying the outline-path to a heading:
          #'org-roam-capture--get-point
          "* %?"
          :file-name "daily/%<%Y-%m-%d>"
-         :head "#+title: %<%Y-%m-%d>\n\n* Lab notes\n* Journal"
+         :head "#+title: %<%Y-%m-%d>\n"
          :olp ("Journal"))
 
         ("j" "journal" entry
          #'org-roam-capture--get-point
          "* %?"
          :file-name "daily/%<%Y-%m-%d>"
-         :head "#+title: %<%Y-%m-%d>\n\n* Lab notes\n* Journal"
+         :head "#+title: %<%Y-%m-%d>\n"
          :olp ("Lab notes"))))
 @end lisp
 
 The template @code{l} will put its notes under the heading ‘Lab notes’, and the
-template @code{j} will put its notes under the heading ‘Journal’. When you use
-@code{:olp}, make sure that the headings are present in @code{:head}.
+template @code{j} will put its notes under the heading ‘Journal’.
 
 @node Capturing and finding daily-notes
 @section Capturing and finding daily-notes
