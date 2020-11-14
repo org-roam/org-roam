@@ -99,7 +99,7 @@ General Public License for more details.
 </td></tr>
 <tr><td align="left" valign="top">&bull; <a href="#Getting-Started" accesskey="5">Getting Started</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
-<tr><td align="left" valign="top">&bull; <a href="#Anatomy-of-an-Org_002droam-File" accesskey="6">Anatomy of an Org-roam File</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+<tr><td align="left" valign="top">&bull; <a href="#Files" accesskey="6">Files</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
 <tr><td align="left" valign="top">&bull; <a href="#The-Templating-System" accesskey="7">The Templating System</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
@@ -161,19 +161,25 @@ Installation
 </td></tr>
 <tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
 
-Anatomy of an Org-roam File
+Files
 
-</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="#Titles">Titles</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="#File-Titles">File Titles</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
-<tr><td align="left" valign="top">&bull; <a href="#Tags">Tags</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+<tr><td align="left" valign="top">&bull; <a href="#File-Tags">File Tags</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
 <tr><td align="left" valign="top">&bull; <a href="#File-Refs">File Refs</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
 <tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
 
-Titles
+File Titles
 
 </pre></th></tr><tr><td align="left" valign="top">&bull; <a href="#Customizing-Title-Extraction">Customizing Title Extraction</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+
+File Tags
+
+</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="#Customizing-Tag-Extraction">Customizing Tag Extraction</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
 <tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
 
@@ -685,7 +691,7 @@ your Emacs configuration:
 <a name="Getting-Started"></a>
 <div class="header">
 <p>
-Next: <a href="#Anatomy-of-an-Org_002droam-File" accesskey="n" rel="next">Anatomy of an Org-roam File</a>, Previous: <a href="#Installation" accesskey="p" rel="prev">Installation</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+Next: <a href="#Files" accesskey="n" rel="next">Files</a>, Previous: <a href="#Installation" accesskey="p" rel="prev">Installation</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
 <a name="Getting-Started-1"></a>
 <h2 class="chapter">5 Getting Started</h2>
@@ -756,41 +762,48 @@ as nodes, and links between them as edges. The generated graph can be used to
 navigate to the files, but this requires some additional setup (see <a href="#Roam-Protocol">Roam Protocol</a>).
 </p>
 <hr>
-<a name="Anatomy-of-an-Org_002droam-File"></a>
+<a name="Files"></a>
 <div class="header">
 <p>
 Next: <a href="#The-Templating-System" accesskey="n" rel="next">The Templating System</a>, Previous: <a href="#Getting-Started" accesskey="p" rel="prev">Getting Started</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<a name="Anatomy-of-an-Org_002droam-File-1"></a>
-<h2 class="chapter">6 Anatomy of an Org-roam File</h2>
+<a name="Files-1"></a>
+<h2 class="chapter">6 Files</h2>
 
-<p>The bulk of Org-roam&rsquo;s functionality is built on top of vanilla Org-mode.
-However, to support additional functionality, Org-roam adds several
-Org-roam-specific keywords.
+<p>In Org-roam, notes typically consist of multiple files, where each file is a
+zettel.
+</p>
+<p>While the bulk of Org-roam&rsquo;s functionality is built on top of vanilla Org-mode,
+Org-roam adds several Org-roam-specific keywords to support additional
+functionality.
+</p>
+<p>This section explains the important components of a file, and the extensions to
+Org-mode.
 </p>
 <table class="menu" border="0" cellspacing="0">
-<tr><td align="left" valign="top">&bull; <a href="#Titles" accesskey="1">Titles</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+<tr><td align="left" valign="top">&bull; <a href="#File-Titles" accesskey="1">File Titles</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
-<tr><td align="left" valign="top">&bull; <a href="#Tags" accesskey="2">Tags</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+<tr><td align="left" valign="top">&bull; <a href="#File-Tags" accesskey="2">File Tags</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
 <tr><td align="left" valign="top">&bull; <a href="#File-Refs" accesskey="3">File Refs</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
 </table>
 
 <hr>
-<a name="Titles"></a>
+<a name="File-Titles"></a>
 <div class="header">
 <p>
-Next: <a href="#Tags" accesskey="n" rel="next">Tags</a>, Up: <a href="#Anatomy-of-an-Org_002droam-File" accesskey="u" rel="up">Anatomy of an Org-roam File</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+Next: <a href="#File-Tags" accesskey="n" rel="next">File Tags</a>, Up: <a href="#Files" accesskey="u" rel="up">Files</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<a name="Titles-1"></a>
-<h3 class="section">6.1 Titles</h3>
+<a name="File-Titles-1"></a>
+<h3 class="section">6.1 File Titles</h3>
 
-<p>To easily find a note, a title needs to be prescribed to a note. A note can have
-many titles: this allows a note to be referred to by different names, which is
-especially useful for topics or concepts with acronyms. For example, for a note
-like &ldquo;World War 2&rdquo;, it may be desirable to also refer to it using the acronym
-&ldquo;WWII&rdquo;.
+<p>To easily find a note, a title needs to be prescribed to a note.
+</p>
+<p>A note can have many titles: this allows a note to be referred to by different
+names, which is especially useful for topics or concepts with acronyms. For
+example, for a note like &ldquo;World War 2&rdquo;, it may be desirable to also refer to it
+using the acronym &ldquo;WWII&rdquo;.
 </p>
 <p>Org-roam calls <code>org-roam--extract-titles</code> to extract titles. It uses the
 variable <code>org-roam-title-sources</code>, to control how the titles are extracted. The
@@ -821,6 +834,8 @@ The aliases are space-delimited, and can be multi-worded using quotes.
 <tr><td><code>'alias</code></td><td>&rsquo;(&ldquo;WWII&rdquo; &ldquo;World War II&rdquo;)</td></tr>
 </table>
 
+<p>If no title is provided, Org-roam defaults to using the file-path.
+</p>
 <table class="menu" border="0" cellspacing="0">
 <tr><td align="left" valign="top">&bull; <a href="#Customizing-Title-Extraction" accesskey="1">Customizing Title Extraction</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
@@ -830,7 +845,7 @@ The aliases are space-delimited, and can be multi-worded using quotes.
 <a name="Customizing-Title-Extraction"></a>
 <div class="header">
 <p>
-Up: <a href="#Titles" accesskey="u" rel="up">Titles</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+Up: <a href="#File-Titles" accesskey="u" rel="up">File Titles</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
 <a name="Customizing-Title-Extraction-1"></a>
 <h4 class="subsection">6.1.1 Customizing Title Extraction</h4>
@@ -867,14 +882,14 @@ non-nil value.
 
 <p>The currently supported symbols are:
 </p>
-<p>&lsquo;title&rsquo;
- The \&ldquo;#+title\&rdquo; property of org file.
+<p><code>'title</code>
+The <code>#+title</code> property of org file.
 </p>
-<p>&lsquo;alias&rsquo;
- The \&ldquo;#+roam<em>_alias</em>\&rdquo; property of the org file, using
- space-delimited strings.
+<p><code>'alias</code>
+The <code>#+roam_alias</code> property of the org file, using
+space-delimited strings.
 </p>
-<p>&lsquo;headline&rsquo;
+<p><code>'headline</code>
 The first headline in the org file.
 </p></li></ul>
 
@@ -886,57 +901,92 @@ arguments, and returns a list of strings (titles). Finally, push the symbol
 scratch to re-process all files to pick up the new titles.
 </p>
 <hr>
-<a name="Tags"></a>
+<a name="File-Tags"></a>
 <div class="header">
 <p>
-Next: <a href="#File-Refs" accesskey="n" rel="next">File Refs</a>, Previous: <a href="#Titles" accesskey="p" rel="prev">Titles</a>, Up: <a href="#Anatomy-of-an-Org_002droam-File" accesskey="u" rel="up">Anatomy of an Org-roam File</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+Next: <a href="#File-Refs" accesskey="n" rel="next">File Refs</a>, Previous: <a href="#File-Titles" accesskey="p" rel="prev">File Titles</a>, Up: <a href="#Files" accesskey="u" rel="up">Files</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<a name="Tags-1"></a>
-<h3 class="section">6.2 Tags</h3>
+<a name="File-Tags-1"></a>
+<h3 class="section">6.2 File Tags</h3>
 
 <p>Tags are used as meta-data for files: they facilitate interactions with notes
 where titles are insufficient. For example, tags allow for categorization of
 notes: differentiating between bibliographical and structure notes during
 interactive commands.
 </p>
-<p>Org-roam calls <code>org-roam--extract-tags</code> to extract tags from files. It uses the
-variable <code>org-roam-tag-sources</code>, to control how tags are extracted. The tag
-extraction methods supported are:
+<p>By default, tags are extracted from the <code>#+roam_tags</code> property. To add
+additional extraction methods, see <a href="#Customizing-Tag-Extraction">Customizing Tag Extraction</a>.
 </p>
-<ul>
-<li> <code>'prop</code>: This extracts tags from the <code>#+roam_tags</code> property. Tags are space
-delimited, and can be multi-word using double quotes.
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Customizing-Tag-Extraction" accesskey="1">Customizing Tag Extraction</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
 
-</li><li> <code>'all-directories</code>: All sub-directories relative to <code>org-roam-directory</code> are
-extracted as tags. That is, if a file is located at relative path
-<code>foo/bar/file.org</code>, the file will have tags <code>foo</code> and <code>bar</code>.
+<hr>
+<a name="Customizing-Tag-Extraction"></a>
+<div class="header">
+<p>
+Up: <a href="#File-Tags" accesskey="u" rel="up">File Tags</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Customizing-Tag-Extraction-1"></a>
+<h4 class="subsection">6.2.1 Customizing Tag Extraction</h4>
 
-</li><li> <code>'last-directory</code>: Extracts the last directory relative to
-<code>org-roam-directory</code> as the tag. That is, if a file is located at relative
-path <code>foo/bar/file.org</code>, the file will have tag <code>bar</code>.
+<p>Org-roam calls <code>org-roam--extract-tags</code> to extract tags from files. The variable
+<code>org-roam-tag-sources</code>, to control how tags are extracted.
+</p>
+<dl>
+<dt><a name="index-org_002droam_002dtag_002dsources"></a>User Option: <strong>org-roam-tag-sources</strong></dt>
+</dl>
 
-</li><li> <code>'first-directory</code>: Extracts the first directory relative to
-<code>org-roam-directory</code> as the tag. That is, if a file is located at relative
-path <code>foo/bar/file.org</code>, the file will have tag <code>foo</code>.
-</li></ul>
-
+<p>Sources to obtain tags from.
+</p>
+<p>It should be a list of symbols representing any of the following extraction
+methods:
+</p>
+<p><code>'prop</code>
+  Extract tags from the <code>#+roam_tags</code> property.
+  Tags are space delimited.
+  Tags may contain spaces if they are double-quoted.
+  e.g. <code>#+roam_tags: TAG &quot;tag with spaces&quot;</code>
+</p>
+<p><code>'vanilla</code>
+  Extract vanilla org-mode tags, including <code>#+FILETAGS</code> and
+  inherited tags.
+</p>
+<p><code>'all-directories</code>
+  Extract sub-directories relative to <code>org-roam-directory</code>.
+  That is, if a file is located at relative path foo/bar/file.org,
+  the file will have tags &ldquo;foo&rdquo; and &ldquo;bar&rdquo;.
+</p>
+<p><code>'last-directory</code>
+  Extract the last directory relative to &lsquo;org-roam-directory&rsquo;.
+  That is, if a file is located at relative path foo/bar/file.org,
+  the file will have tag \&ldquo;bar\&rdquo;.
+</p>
+<p><code>'first-directory</code>
+  Extract the first directory relative to <code>org-roam-directory</code>.
+  That is, if a file is located at relative path foo/bar/file.org,
+  the file will have tag &ldquo;foo&rdquo;
+</p>
 <p>By default, only the <code>'prop</code> extraction method is enabled. To enable the other
-extraction methods, you may modify <code>org-roam-tag-sources</code>:
+extraction methods, you may modify <code>org-roam-tag-sources</code>, for example:
 </p>
 <div class="lisp">
 <pre class="lisp">(setq org-roam-tag-sources '(prop last-directory))
 </pre></div>
 
-<p>If you wish to add your own tag extraction method, you may push a symbol <code>'foo</code>
-into <code>org-roam-tag-sources</code>, and define a <code>org-roam--extract-tags-foo</code> which
-accepts the absolute file path as its argument. See
-<code>org-roam--extract-tags-prop</code> for an example.
+<p>Adding your own tag extraction method requires two steps. First, define a method
+<code>(defun org-roam--extract-tags-foo (file) ...)</code>, where <code>foo</code> a self-prescribed
+name for the tag extraction method. This method takes the file path as an
+argument, and returns a list of strings (titles). Finally, push the symbol <code>foo</code>
+into <code>org-roam-tag-sources</code>. You may need to rebuild the cache from scratch to
+re-process all files to pick up the new tags.
 </p>
 <hr>
 <a name="File-Refs"></a>
 <div class="header">
 <p>
-Previous: <a href="#Tags" accesskey="p" rel="prev">Tags</a>, Up: <a href="#Anatomy-of-an-Org_002droam-File" accesskey="u" rel="up">Anatomy of an Org-roam File</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+Previous: <a href="#File-Tags" accesskey="p" rel="prev">File Tags</a>, Up: <a href="#Files" accesskey="u" rel="up">Files</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
 <a name="File-Refs-1"></a>
 <h3 class="section">6.3 File Refs</h3>
@@ -975,7 +1025,7 @@ key and a URL at the same time.
 <a name="The-Templating-System"></a>
 <div class="header">
 <p>
-Next: <a href="#Concepts-and-Configuration" accesskey="n" rel="next">Concepts and Configuration</a>, Previous: <a href="#Anatomy-of-an-Org_002droam-File" accesskey="p" rel="prev">Anatomy of an Org-roam File</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+Next: <a href="#Concepts-and-Configuration" accesskey="n" rel="next">Concepts and Configuration</a>, Previous: <a href="#Files" accesskey="p" rel="prev">Files</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
 <a name="The-Templating-System-1"></a>
 <h2 class="chapter">7 The Templating System</h2>
@@ -1807,7 +1857,7 @@ Previous: <a href="#The-roam_002dfile-protocol" accesskey="p" rel="prev">The roa
 <a name="The-roam_002dref-protocol-1"></a>
 <h3 class="section">14.3 The roam-ref protocol</h3>
 
-<p>This protocol finds or creates a new note with a given <code>roam_key</code> (see <a href="#Anatomy-of-an-Org_002droam-File">Anatomy of an Org-roam File</a>):
+<p>This protocol finds or creates a new note with a given <code>roam_key</code> (see <a href="#Files">Files</a>):
 </p>
 <img src="images/roam-ref.gif" alt="images/roam-ref">
 
@@ -2617,6 +2667,7 @@ Previous: <a href="#Function-Index" accesskey="p" rel="prev">Function Index</a>,
 <tr><td></td><td valign="top"><a href="#index-org_002droam_002dlink_002dauto_002dreplace"><code>org-roam-link-auto-replace</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Inserting-Links">Inserting Links</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-org_002droam_002dlink_002dtitle_002dformat"><code>org-roam-link-title-format</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Inserting-Links">Inserting Links</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-org_002droam_002dlink_002duse_002dcustom_002dfaces"><code>org-roam-link-use-custom-faces</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Org_002droam-Faces">Org-roam Faces</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-org_002droam_002dtag_002dsources"><code>org-roam-tag-sources</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Customizing-Tag-Extraction">Customizing Tag Extraction</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-org_002droam_002dtitle_002dsources"><code>org-roam-title-sources</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Customizing-Title-Extraction">Customizing Title Extraction</a></td></tr>
 <tr><td colspan="4"> <hr></td></tr>
 </table>
