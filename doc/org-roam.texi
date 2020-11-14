@@ -67,7 +67,7 @@ General Public License for more details.
 * A Brief Introduction to the Zettelkasten Method::
 * Installation::
 * Getting Started::
-* Anatomy of an Org-roam File::
+* Files::
 * The Templating System::
 * Concepts and Configuration::
 * Inserting Links::
@@ -102,15 +102,19 @@ Installation
 * Installing from the Git Repository::
 * Post-Installation Tasks::
 
-Anatomy of an Org-roam File
+Files
 
-* Titles::
-* Tags::
+* File Titles::
+* File Tags::
 * File Refs::
 
-Titles
+File Titles
 
 * Customizing Title Extraction::
+
+File Tags
+
+* Customizing Tag Extraction::
 
 The Templating System
 
@@ -591,27 +595,34 @@ provides graphing capabilities, using Graphviz. It generates graphs with notes
 as nodes, and links between them as edges. The generated graph can be used to
 navigate to the files, but this requires some additional setup (see @ref{Roam Protocol}).
 
-@node Anatomy of an Org-roam File
-@chapter Anatomy of an Org-roam File
+@node Files
+@chapter Files
 
-The bulk of Org-roam's functionality is built on top of vanilla Org-mode.
-However, to support additional functionality, Org-roam adds several
-Org-roam-specific keywords.
+In Org-roam, notes typically consist of multiple files, where each file is a
+zettel.
+
+While the bulk of Org-roam's functionality is built on top of vanilla Org-mode,
+Org-roam adds several Org-roam-specific keywords to support additional
+functionality.
+
+This section explains the important components of a file, and the extensions to
+Org-mode.
 
 @menu
-* Titles::
-* Tags::
+* File Titles::
+* File Tags::
 * File Refs::
 @end menu
 
-@node Titles
-@section Titles
+@node File Titles
+@section File Titles
 
-To easily find a note, a title needs to be prescribed to a note. A note can have
-many titles: this allows a note to be referred to by different names, which is
-especially useful for topics or concepts with acronyms. For example, for a note
-like ``World War 2'', it may be desirable to also refer to it using the acronym
-``WWII''.
+To easily find a note, a title needs to be prescribed to a note.
+
+A note can have many titles: this allows a note to be referred to by different
+names, which is especially useful for topics or concepts with acronyms. For
+example, for a note like ``World War 2'', it may be desirable to also refer to it
+using the acronym ``WWII''.
 
 Org-roam calls @code{org-roam--extract-titles} to extract titles. It uses the
 variable @code{org-roam-title-sources}, to control how the titles are extracted. The
@@ -648,6 +659,8 @@ Take for example the following org file:
 @item @code{'alias}
 @tab '(``WWII'' ``World War II'')
 @end multitable
+
+If no title is provided, Org-roam defaults to using the file-path.
 
 @menu
 * Customizing Title Extraction::
@@ -691,14 +704,14 @@ Or return 'headline + 'alias otherwise.
 
 The currently supported symbols are:
 
-`title'
- The \``#+title\'' property of org file.
+@code{'title}
+The @code{#+title} property of org file.
 
-`alias'
- The \``#+roam@math{_alias}\'' property of the org file, using
- space-delimited strings.
+@code{'alias}
+The @code{#+roam_alias} property of the org file, using
+space-delimited strings.
 
-`headline'
+@code{'headline}
 The first headline in the org file.
 @end itemize
 
@@ -709,50 +722,73 @@ arguments, and returns a list of strings (titles). Finally, push the symbol
 @code{foo} into @code{org-roam-title-sources}. You may need to rebuild the cache from
 scratch to re-process all files to pick up the new titles.
 
-@node Tags
-@section Tags
+@node File Tags
+@section File Tags
 
 Tags are used as meta-data for files: they facilitate interactions with notes
 where titles are insufficient. For example, tags allow for categorization of
 notes: differentiating between bibliographical and structure notes during
 interactive commands.
 
-Org-roam calls @code{org-roam--extract-tags} to extract tags from files. It uses the
-variable @code{org-roam-tag-sources}, to control how tags are extracted. The tag
-extraction methods supported are:
+By default, tags are extracted from the @code{#+roam_tags} property. To add
+additional extraction methods, see @ref{Customizing Tag Extraction}.
 
-@itemize
-@item
-@code{'prop}: This extracts tags from the @code{#+roam_tags} property. Tags are space
-delimited, and can be multi-word using double quotes.
+@menu
+* Customizing Tag Extraction::
+@end menu
 
-@item
-@code{'all-directories}: All sub-directories relative to @code{org-roam-directory} are
-extracted as tags. That is, if a file is located at relative path
-@code{foo/bar/file.org}, the file will have tags @code{foo} and @code{bar}.
+@node Customizing Tag Extraction
+@subsection Customizing Tag Extraction
 
-@item
-@code{'last-directory}: Extracts the last directory relative to
-@code{org-roam-directory} as the tag. That is, if a file is located at relative
-path @code{foo/bar/file.org}, the file will have tag @code{bar}.
+Org-roam calls @code{org-roam--extract-tags} to extract tags from files. The variable
+@code{org-roam-tag-sources}, to control how tags are extracted.
 
-@item
-@code{'first-directory}: Extracts the first directory relative to
-@code{org-roam-directory} as the tag. That is, if a file is located at relative
-path @code{foo/bar/file.org}, the file will have tag @code{foo}.
-@end itemize
+@defopt org-roam-tag-sources
+@end defopt
+
+Sources to obtain tags from.
+
+It should be a list of symbols representing any of the following extraction
+methods:
+
+@code{'prop}
+  Extract tags from the @code{#+roam_tags} property.
+  Tags are space delimited.
+  Tags may contain spaces if they are double-quoted.
+  e.g. @code{#+roam_tags: TAG "tag with spaces"}
+
+@code{'vanilla}
+  Extract vanilla org-mode tags, including @code{#+FILETAGS} and
+  inherited tags.
+
+@code{'all-directories}
+  Extract sub-directories relative to @code{org-roam-directory}.
+  That is, if a file is located at relative path foo/bar/file.org,
+  the file will have tags ``foo'' and ``bar''.
+
+@code{'last-directory}
+  Extract the last directory relative to `org-roam-directory'.
+  That is, if a file is located at relative path foo/bar/file.org,
+  the file will have tag \``bar\''.
+
+@code{'first-directory}
+  Extract the first directory relative to @code{org-roam-directory}.
+  That is, if a file is located at relative path foo/bar/file.org,
+  the file will have tag ``foo''
 
 By default, only the @code{'prop} extraction method is enabled. To enable the other
-extraction methods, you may modify @code{org-roam-tag-sources}:
+extraction methods, you may modify @code{org-roam-tag-sources}, for example:
 
 @lisp
 (setq org-roam-tag-sources '(prop last-directory))
 @end lisp
 
-If you wish to add your own tag extraction method, you may push a symbol @code{'foo}
-into @code{org-roam-tag-sources}, and define a @code{org-roam--extract-tags-foo} which
-accepts the absolute file path as its argument. See
-@code{org-roam--extract-tags-prop} for an example.
+Adding your own tag extraction method requires two steps. First, define a method
+@code{(defun org-roam--extract-tags-foo (file) ...)}, where @code{foo} a self-prescribed
+name for the tag extraction method. This method takes the file path as an
+argument, and returns a list of strings (titles). Finally, push the symbol @code{foo}
+into @code{org-roam-tag-sources}. You may need to rebuild the cache from scratch to
+re-process all files to pick up the new tags.
 
 @node File Refs
 @section File Refs
@@ -1497,7 +1533,7 @@ in the generated graph.
 @node The roam-ref protocol
 @section The roam-ref protocol
 
-This protocol finds or creates a new note with a given @code{roam_key} (see @ref{Anatomy of an Org-roam File}):
+This protocol finds or creates a new note with a given @code{roam_key} (see @ref{Files}):
 
 @image{images/roam-ref,,,,gif}
 
