@@ -40,6 +40,15 @@ table {
   width: 100%;
 }
 
+pre.menu-comment {
+  background: none;
+  border: none;
+  font-family: sans-serif;
+  padding: 0;
+  margin: 0;
+  font-size: 100%;
+}
+
 thead {
   border-bottom: 1px solid var(--border);
 }
