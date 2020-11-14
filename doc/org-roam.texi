@@ -71,10 +71,11 @@ General Public License for more details.
 * The Templating System::
 * Concepts and Configuration::
 * Inserting Links::
+* Completions::
 * Navigating Around::
 * Encryption::
 * Graphing::
-* Org-roam Completion System::
+* Minibuffer Completion::
 * Roam Protocol::
 * Daily-notes::
 * Diagnosing and Repairing Files::
@@ -128,6 +129,15 @@ Concepts and Configuration
 * Org-roam Files::
 * Org-roam Faces::
 * The Database::
+
+Completions
+
+* Link Completion::
+* Tag Completion::
+
+Link Completion
+
+* Link Completions Everywhere::
 
 Navigating Around
 
@@ -1110,24 +1120,8 @@ Org-roam file
 @item
  @code{[[roam:title*headline]]}links to the headline ``headline'' in the Org-roam
 file with title or alias ``title''
+
 @end itemize
-
-@code{roam} links support auto-completion via @code{completion-at-point}: simply call
-@code{completion-at-point} within a roam link. Users of @code{company-mode} may want to
-prepend @code{company-capf} to the beginning of variable @code{company-backends}.
-
-To easily insert @code{roam} links, one may wish to use a package like @uref{https://github.com/emacsorphanage/key-chord/, key-chord}. In
-the following example, typing ``[['' will insert a stub @code{roam} link:
-
-@lisp
-(key-chord-define org-mode-map "[[" #'my/insert-roam-link)
-
-(defun my/insert-roam-link ()
-    "Inserts an Org-roam link."
-    (interactive)
-    (insert "[[roam:]]")
-    (backward-char 2))
-@end lisp
 
 @defopt org-roam-link-title-format
 
@@ -1138,13 +1132,6 @@ If your version of Org is at least @code{9.2}, consider styling the link differe
 by customizing the @code{org-roam-link}, and @code{org-roam-link-current} faces.
 @end defopt
 
-@defopt org-roam-completion-ignore-case
-
-When non-nil, the @code{roam} link completions are ignore case. For example,
-calling @code{completion-at-point} within @code{[[roam:fo]]} will present a completion
-for a file with title ``Foo''. Defaults to @code{t}.
-@end defopt
-
 @defopt org-roam-link-auto-replace
 
 When non-nil, @code{roam} links will be replaced with @code{file} or @code{id} links when
@@ -1152,6 +1139,90 @@ they are navigated to, and on file save, when a match is found. This is
 desirable to maintain compatibility with vanilla Org, but resolved links are
 harder to edit. Defaults to @code{t}.
 @end defopt
+
+@node Completions
+@chapter Completions
+
+Completions for Org-roam are provided via @code{completion-at-point}. Completion
+suggestions are implemented as separate functions. Org-roam installs all
+functions in @code{org-roam-completion-functions} to @code{completion-at-point-functions}.
+
+@defvar org-roam-completion-functions
+
+The list of functions to be used with @code{completion-at-point}.
+@end defvar
+
+@defopt org-roam-completion-ignore-case
+
+When non-nil, the @code{roam} link completions are ignore case. For example,
+calling @code{completion-at-point} within @code{[[roam:fo]]} will present a completion
+for a file with title ``Foo''. Defaults to @code{t}.
+@end defopt
+
+To use the completions from Org-roam with @code{company-mode}, prepend @code{company-capf}
+to variable @code{company-backends}.
+
+@menu
+* Link Completion::
+* Tag Completion::
+@end menu
+
+@node Link Completion
+@section Link Completion
+
+@code{roam} links support auto-completion via @code{completion-at-point}: simply call
+@code{M-x completion-at-point} within a roam link. That is, where the @code{|} character
+represents the cursor:
+
+@itemize
+@item
+@code{[[|]]}: completes for a file title
+
+@item
+@code{[[roam:]]}: completes for a file title
+
+@item
+@code{[[*|]]}: completes for a headline within this file
+
+@item
+@code{[[foo*|]]}: completes a headline within the file with title ``foo''
+
+@item
+@code{[[roam:foo*|]]} completes a headline within the file with title ``foo''
+@end itemize
+
+Completions account for the current input. For example, for @code{[[f|]]}, the
+completions (by default) only show for files with titles that start with ``f''.
+
+@defun org-roam-link-complete-at-point
+
+Do appropriate completion for the link at point.
+@end defun
+
+@menu
+* Link Completions Everywhere::
+@end menu
+
+@node Link Completions Everywhere
+@subsection Link Completions Everywhere
+
+Org-roam is able to provide completions from the current word at point, enabling
+as-you-type link completions. However, this is disabled by default: the author
+believes that linking should be a deliberate action and linking should be
+performed with great care.
+
+Setting @code{org-roam-completion-everywhere} to @code{t} will enable word-at-point
+completions.
+
+@defopt org-roam-completion-everywhere
+
+If non-nil, provide completions from the current word at point. That is, in
+the scenario @code{this is a sent|}, calling @code{completion-at-point} will show
+completions for titles that begin with ``sent''.
+@end defopt
+
+@node Tag Completion
+@section @strong{TODO} Tag Completion
 
 @node Navigating Around
 @chapter Navigating Around
@@ -1331,8 +1402,8 @@ are excluded.
 
 This setting excludes all files whose path contain ``private'' or ``dailies''.
 
-@node Org-roam Completion System
-@chapter Org-roam Completion System
+@node Minibuffer Completion
+@chapter Minibuffer Completion
 
 Org-roam allows customization of which minibuffer completion system to use for
 its interactive commands. The default setting uses Emacs' standard
