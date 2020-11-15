@@ -7,6 +7,7 @@
 ### Changed
 
 ### Fixed
+- [#1281](https://github.com/org-roam/org-roam/pull/1281) fixed idle-timer not instantiated on `org-roam-mode`
 
 ## 1.2.3 (13-11-2020)
 

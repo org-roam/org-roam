@@ -1492,8 +1492,8 @@ M-x info for more information at Org-roam > Installation > Post-Installation Tas
     (add-hook 'find-file-hook #'org-roam--find-file-hook-function)
     (add-hook 'kill-emacs-hook #'org-roam-db--close-all)
     (add-hook 'org-open-at-point-functions #'org-roam-open-id-at-point)
-    (if (and org-roam-db-file-update-timer
-             (eq org-roam-db-update-method 'idle-timer))
+    (when (and (not org-roam-db-file-update-timer)
+               (eq org-roam-db-update-method 'idle-timer))
         (setq org-roam-db-file-update-timer (run-with-idle-timer org-roam-db-update-idle-seconds t #'org-roam-db-update-cache-on-timer)))
     (advice-add 'rename-file :after #'org-roam--rename-file-advice)
     (advice-add 'delete-file :before #'org-roam--delete-file-advice)
