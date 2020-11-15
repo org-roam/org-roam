@@ -531,9 +531,9 @@ If FORCE, force a rebuild of the cache from scratch."
         ;; These files are no longer around, remove from cache...
         (org-roam-db--clear-file file)
         (setq deleted-count (1+ deleted-count)))
-    (setq count-plist (org-roam-db--update-files modified-files (length org-roam-files)))
+    (setq count-plist (org-roam-db--update-files modified-files))
     (org-roam-message "total: Δ%s, files-modified: Δ%s, ids: Δ%s, links: Δ%s, tags: Δ%s, titles: Δ%s, refs: Δ%s, deleted: Δ%s"
-                      (plist-get count-plist :total-count)
+                      (- (length org-roam-files) (plist-get count-plist :error-count))
                       (plist-get count-plist :modified-count)
                       (plist-get count-plist :id-count)
                       (plist-get count-plist :link-count)
@@ -542,7 +542,28 @@ If FORCE, force a rebuild of the cache from scratch."
                       (plist-get count-plist :ref-count)
                       deleted-count)))
 
-(defun org-roam-db--update-files (modified-files total-count)
+(defun org-roam-db--get-file-hash-from-db (&optional file-path)
+  "Get hash from Org-roam database for FILE-PATH."
+  (setq file-path (or file-path
+                      (buffer-file-name (buffer-base-buffer))))
+  (caar (org-roam-db-query [:select hash :from files
+                              :where (= file $s1)] file-path)))
+
+(defun org-roam-db-update-file (&optional file-path)
+  "Update Org-roam cache for FILE-PATH.
+If the file does not exist anymore, remove it from the cache.
+If the file exists, update the cache with information."
+  (setq file-path (or file-path
+                      (buffer-file-name (buffer-base-buffer))))
+  (let ((content-hash (org-roam-db--file-hash file-path))
+        (db-hash  (org-roam-db--get-file-hash-from-db file-path)))
+    (unless (string= content-hash db-hash)
+      (org-roam-db--update-files (list (cons file-path content-hash)))
+      (org-roam-message "updated db for: %s" file-path))))
+
+(defun org-roam-db--update-files (modified-files)
+  "Update Org-roam cache for a list of MODIFIED-FILES.
+Expects a list of file, hash pair."
   (let* ((gc-cons-threshold org-roam-db-gc-threshold)
          (org-agenda-files nil)
          (error-count 0)
@@ -551,9 +572,7 @@ If FORCE, force a rebuild of the cache from scratch."
          (tag-count 0)
          (title-count 0)
          (ref-count 0)
-         (deleted-count 0)
-         (modified-count 0)
- )
+         (modified-count 0))
     ;; Clear database entry for file
     (pcase-dolist (`(,file . _) modified-files)
       (org-roam-db--clear-file file))
@@ -575,7 +594,6 @@ If FORCE, force a rebuild of the cache from scratch."
               (when org-roam-enable-headline-linking
                 (setq id-count (+ id-count (org-roam-db--insert-ids)))))
           (file-error
-           (setq total-count (1- total-count))
            (setq error-count (1+ error-count))
            (org-roam-db--clear-file file)
            (lwarn '(org-roam) :warning
@@ -592,18 +610,17 @@ If FORCE, force a rebuild of the cache from scratch."
               (setq title-count (+ title-count (org-roam-db--insert-titles)))
               (setq ref-count (+ ref-count (org-roam-db--insert-refs))))
           (file-error
-           (setq total-count (1- total-count))
            (setq error-count (1+ error-count))
            (org-roam-db--clear-file file)
            (lwarn '(org-roam) :warning
                   "Skipping unreadable file while building cache: %s" file))))
-    (list :total-count total-count :error-count error-count :modified-count modified-count :id-count id-count :title-count title-count :tag-count tag-count :link-count link-count :ref-count ref-count)))
+    (list :error-count error-count :modified-count modified-count :id-count id-count :title-count title-count :tag-count tag-count :link-count link-count :ref-count ref-count)))
 
 (defun org-roam-db-update ()
   "Update the database."
   (pcase org-roam-db-update-method
     ('immediate
-     (org-roam-db-build-cache))
+     (org-roam-db-update-file))
     ('idle-timer
      (org-roam-db-mark-dirty))
     (_
