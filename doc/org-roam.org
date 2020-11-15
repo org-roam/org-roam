@@ -855,7 +855,16 @@ completions.
   the scenario ~this is a sent|~, calling ~completion-at-point~ will show
   completions for titles that begin with "sent".
 
-** TODO Tag Completion
+** Tag Completion
+
+Org-roam facilitates the insertion of existing tags via ~completion-at-point~.
+
+That is, suppose you have notes with tags "foo", and "bar". Now, in a note, if
+you're on a line beginning with ~#+roam_tags:~, completions for these will
+appear as-you-type if they match.
+
+This functionality is implemented in ~org-roam-complete-tags-at-point~.
+
 * Navigating Around
 ** Index File
 
