@@ -796,11 +796,6 @@ Each ref is returned as a cons of its type and its key."
       (file-relative-name (expand-file-name org-roam-directory))
       (file-name-sans-extension)))
 
-(defun org-roam--get-title-or-slug (path)
-  "Convert `PATH' to the file title, if it exists.  Else, return the path."
-  (or (org-roam-db--get-titles path)
-      (org-roam--path-to-slug path)))
-
 (defun org-roam--title-to-slug (title)
   "Convert TITLE to a filename-suitable slug."
   (cl-flet* ((nonspacing-mark-p (char)
@@ -1772,7 +1767,7 @@ Return added tag."
   (interactive)
   (let* ((roam-buffers (org-roam--get-roam-buffers))
          (names-and-buffers (mapcar (lambda (buffer)
-                                      (cons (or (org-roam--get-title-or-slug
+                                      (cons (or (org-roam-db--get-title
                                                  (buffer-file-name buffer))
                                                 (buffer-name buffer))
                                             buffer))
@@ -1855,7 +1850,8 @@ the executable 'rg' in variable `exec-path'."
                   (let ((rowcol (concat row ":" col)))
                     (insert "- "
                             (org-link-make-string (concat "file:" file "::" rowcol)
-                                                       (format "[%s] %s" rowcol (org-roam--get-title-or-slug file))))
+                                                  (format "[%s] %s" rowcol (or (org-roam-db--get-title file)
+                                                                               file))))
                     (when (executable-find "sed") ; insert line contents when sed is available
                       (insert " :: "
                               (shell-command-to-string
@@ -1870,7 +1866,6 @@ the executable 'rg' in variable `exec-path'."
         (dolist (title titles)
           (highlight-phrase (downcase title) 'bold-italic))
         (goto-char (point-min))))))
-
 
 ;;;###autoload
 (defun org-roam-version (&optional message)

@@ -403,8 +403,8 @@ Return the number of rows inserted."
       (puthash (car row) (cadr row) ht))
     ht))
 
-(defun org-roam-db--get-titles (file)
-  "Return the titles of FILE from the cache."
+(defun org-roam-db--get-title (file)
+  "Return the main title of FILE from the cache."
   (caar (org-roam-db-query [:select [title] :from titles
                             :where (= file $s1)
                             :limit 1]

@@ -47,9 +47,9 @@
 (defvar org-roam--org-link-bracket-typed-re)
 
 (declare-function org-roam-db--ensure-built   "org-roam-db")
+(declare-function org-roam-db--get-title      "org-roam-db")
 (declare-function org-roam--extract-refs      "org-roam")
 (declare-function org-roam--extract-titles    "org-roam")
-(declare-function org-roam--get-title-or-slug "org-roam")
 (declare-function org-roam--get-backlinks     "org-roam")
 (declare-function org-roam-backlinks-mode     "org-roam")
 (declare-function org-roam-mode               "org-roam")
@@ -116,7 +116,7 @@ For example: (setq org-roam-buffer-window-parameters '((no-other-window . t)))"
 
 (defun org-roam-buffer--insert-title ()
   "Insert the org-roam-buffer title."
-  (insert (propertize (org-roam--get-title-or-slug
+  (insert (propertize (org-roam-db--get-title
                        (buffer-file-name org-roam-buffer--current))
                       'font-lock-face
                       'org-document-title)))
@@ -164,7 +164,7 @@ ORIG-PATH is the path where the CONTENT originated."
                   (bls (cdr group)))
               (insert (format "** %s\n"
                               (org-roam-format-link file-from
-                                                    (org-roam--get-title-or-slug file-from)
+                                                    (org-roam-db--get-title file-from)
                                                     "file")))
               (dolist (backlink bls)
                 (pcase-let ((`(,file-from _ ,props) backlink))
@@ -195,7 +195,7 @@ ORIG-PATH is the path where the CONTENT originated."
             (setq props (seq-sort-by (lambda (p) (plist-get p :point)) #'< props))
             (insert (format "** %s\n"
                             (org-roam-format-link file-from
-                                                  (org-roam--get-title-or-slug file-from)
+                                                  (org-roam-db--get-title file-from)
                                                   "file")))
             (dolist (prop props)
               (insert "*** "

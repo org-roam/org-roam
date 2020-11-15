@@ -1471,8 +1471,8 @@ using [[https://github.com/raxod502/el-patch][el-patch]]:
 #+BEGIN_SRC emacs-lisp
   (use-package el-patch
     :straight (:host github
-                     :repo "raxod502/el-patch"
-                     :branch "develop"))
+               :repo "raxod502/el-patch"
+               :branch "develop"))
 
   (eval-when-compile
     (require 'el-patch))
@@ -1491,7 +1491,7 @@ using [[https://github.com/raxod502/el-patch][el-patch]]:
                          (if begin
                              (funcall deft-parse-title-function
                                       (substring contents begin (match-end 0))))))
-                     (org-roam--get-title-or-slug file))))
+                     (org-roam-db--get-title file))))
 #+END_SRC
 
 The Deft interface can slow down quickly when the number of files get huge.
