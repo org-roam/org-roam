@@ -2433,8 +2433,8 @@ using <a href="https://github.com/raxod502/el-patch">el-patch</a>:
 <div class="lisp">
 <pre class="lisp">(use-package el-patch
   :straight (:host github
-                   :repo &quot;raxod502/el-patch&quot;
-                   :branch &quot;develop&quot;))
+             :repo &quot;raxod502/el-patch&quot;
+             :branch &quot;develop&quot;))
 
 (eval-when-compile
   (require 'el-patch))
@@ -2453,7 +2453,7 @@ used as title.&quot;
                        (if begin
                            (funcall deft-parse-title-function
                                     (substring contents begin (match-end 0))))))
-                   (org-roam--get-title-or-slug file))))
+                   (org-roam-db--get-title file))))
 </pre></div>
 
 <p>The Deft interface can slow down quickly when the number of files get huge.
