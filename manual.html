@@ -1515,9 +1515,17 @@ completions for titles that begin with &ldquo;sent&rdquo;.
 <p>
 Previous: <a href="#Link-Completion" accesskey="p" rel="prev">Link Completion</a>, Up: <a href="#Completions" accesskey="u" rel="up">Completions</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<a name="TODO-Tag-Completion"></a>
-<h3 class="section">10.2 <strong>TODO</strong> Tag Completion</h3>
+<a name="Tag-Completion-1"></a>
+<h3 class="section">10.2 Tag Completion</h3>
 
+<p>Org-roam facilitates the insertion of existing tags via <code>completion-at-point</code>.
+</p>
+<p>That is, suppose you have notes with tags &ldquo;foo&rdquo;, and &ldquo;bar&rdquo;. Now, in a note, if
+you&rsquo;re on a line beginning with <code>#+roam_tags:</code>, completions for these will
+appear as-you-type if they match.
+</p>
+<p>This functionality is implemented in <code>org-roam-complete-tags-at-point</code>.
+</p>
 <hr>
 <a name="Navigating-Around"></a>
 <div class="header">
