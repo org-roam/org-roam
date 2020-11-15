@@ -1976,8 +1976,8 @@ using @uref{https://github.com/raxod502/el-patch, el-patch}:
 @lisp
 (use-package el-patch
   :straight (:host github
-                   :repo "raxod502/el-patch"
-                   :branch "develop"))
+             :repo "raxod502/el-patch"
+             :branch "develop"))
 
 (eval-when-compile
   (require 'el-patch))
@@ -1996,7 +1996,7 @@ used as title."
                        (if begin
                            (funcall deft-parse-title-function
                                     (substring contents begin (match-end 0))))))
-                   (org-roam--get-title-or-slug file))))
+                   (org-roam-db--get-title file))))
 @end lisp
 
 The Deft interface can slow down quickly when the number of files get huge.
