@@ -1222,7 +1222,15 @@ completions for titles that begin with ``sent''.
 @end defopt
 
 @node Tag Completion
-@section @strong{TODO} Tag Completion
+@section Tag Completion
+
+Org-roam facilitates the insertion of existing tags via @code{completion-at-point}.
+
+That is, suppose you have notes with tags ``foo'', and ``bar''. Now, in a note, if
+you're on a line beginning with @code{#+roam_tags:}, completions for these will
+appear as-you-type if they match.
+
+This functionality is implemented in @code{org-roam-complete-tags-at-point}.
 
 @node Navigating Around
 @chapter Navigating Around
