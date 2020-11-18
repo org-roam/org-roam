@@ -45,10 +45,13 @@ jobs:
 
     - uses: actions/checkout@v2
 
-    - name: Initialize sandbox
+    - name: Create Sandbox Directory
       run: |
         SANDBOX_DIR=$(mktemp -d) || exit 1
-        echo ::set-env name=SANDBOX_DIR::$SANDBOX_DIR
+        echo "SANDBOX_DIR=$SANDBOX_DIR" >> $GITHUB_ENV
+
+    - name: Initialize Sandbox
+      run: |
         ./makem.sh -vv --sandbox $SANDBOX_DIR --install-deps --install-linters
 
     # The "all" rule is not used, because it treats compilation warnings
