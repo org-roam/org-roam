@@ -48,6 +48,7 @@
 
 (declare-function org-roam-db--ensure-built   "org-roam-db")
 (declare-function org-roam-db--get-title      "org-roam-db")
+(declare-function org-roam-db-has-file-p      "org-roam-db")
 (declare-function org-roam--extract-refs      "org-roam")
 (declare-function org-roam--extract-titles    "org-roam")
 (declare-function org-roam--get-backlinks     "org-roam")
