@@ -62,7 +62,8 @@ If FILE, set `org-roam-temp-file-name' to file and insert its contents."
        (with-temp-buffer
          (let ((org-roam-directory ,current-org-roam-directory)
                (org-mode-hook nil)
-               (org-inhibit-startup t))
+               (org-inhibit-startup t)
+               (default-directory (file-name-directory ,file)))
            (org-mode)
            (when ,file
              (insert-file-contents ,file)
