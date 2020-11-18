@@ -48,6 +48,7 @@
 
 (declare-function org-roam-db--ensure-built   "org-roam-db")
 (declare-function org-roam-db--get-title      "org-roam-db")
+(declare-function org-roam-db-has-file-p      "org-roam-db")
 (declare-function org-roam--extract-refs      "org-roam")
 (declare-function org-roam--extract-titles    "org-roam")
 (declare-function org-roam--get-backlinks     "org-roam")
@@ -251,7 +252,8 @@ This needs to be quick or infrequent, because this is run at
     (when (and (or redisplay
                    (not (eq org-roam-buffer--current buffer)))
                (eq 'visible (org-roam-buffer--visibility))
-               (buffer-file-name buffer))
+               (buffer-file-name buffer)
+               (org-roam-db-has-file-p (buffer-file-name buffer)))
       (setq org-roam-buffer--current buffer)
       (org-roam-buffer-update))))
 

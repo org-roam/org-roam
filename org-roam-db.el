@@ -395,6 +395,13 @@ Return the number of rows inserted."
       0)))
 
 ;;;;; Fetching
+(defun org-roam-db-has-file-p (file)
+  "Return t if FILE is in the database, nil otherwise."
+  (> (caar (org-roam-db-query [:select (funcall count) :from files
+                              :where (= file $s1)]
+                              file))
+     0))
+
 (defun org-roam-db--get-current-files ()
   "Return a hash-table of file to the hash of its file contents."
   (let* ((current-files (org-roam-db-query [:select * :from files]))
