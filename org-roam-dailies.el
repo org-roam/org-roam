@@ -122,10 +122,7 @@ Template string   :\n%v")
 ;;;; Utilities
 (defun org-roam-dailies-directory--get-absolute-path ()
   "Get absolute path to `org-roam-dailies-directory'."
-  (-> (concat
-       (file-name-as-directory org-roam-directory)
-       org-roam-dailies-directory)
-      (file-truename)))
+  (expand-file-name org-roam-dailies-directory org-roam-directory))
 
 (defun org-roam-dailies-find-directory ()
   "Find and open `org-roam-dailies-directory'."
@@ -140,7 +137,7 @@ If FILE is not specified, use the current buffer's file-path."
                        (-> (buffer-base-buffer)
                            (buffer-file-name))))
              (directory (org-roam-dailies-directory--get-absolute-path)))
-    (setq path (file-truename path))
+    (setq path (expand-file-name path))
     (save-match-data
       (and
        (org-roam--org-file-p path)
