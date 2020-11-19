@@ -280,7 +280,6 @@ Prefer past dates, unless PREFER-FUTURE is non-nil."
 ;;; Navigation
 (defun org-roam-dailies--list-files (&rest extra-files)
   "List all files in `org-roam-dailies-directory'.
-
 EXTRA-FILES can be used to append extra files to the list."
   (let ((dir (org-roam-dailies-directory--get-absolute-path)))
     (append (--remove (let ((file (file-name-nondirectory it)))
@@ -291,48 +290,31 @@ EXTRA-FILES can be used to append extra files to the list."
                       (directory-files-recursively dir ""))
             extra-files)))
 
-(defun org-roam-dailies--find-next-note-path (&optional n file)
-  "Find next daily-note from FILE.
-
-With numeric argument N, find note N days in the future. If N is
-negative, find note N days in the past.
-
-If FILE is not provided, use the file visited by the current
-buffer."
-  (unless (org-roam-dailies--daily-note-p file)
-    (user-error "Not in a daily-note"))
-  (let ((n (or n 1))
-        (file (or file
-                  (-> (buffer-base-buffer)
-                      (buffer-file-name)))))
-    ;; Ensure that the buffer is saved before moving
-    (save-buffer file)
-    (let* ((list (org-roam-dailies--list-files))
-           (position
-            (cl-position-if (lambda (candidate)
-                              (string= file candidate))
-                            list)))
-      (pcase n
-        ((pred (natnump))
-         (if (eq position (- (length list) 1))
-             (user-error "Already at newest note")
-           (message "Showing next daily-note")))
-        ((pred (integerp))
-         (if (eq position 0)
-             (user-error "Already at oldest note")
-           (message "Showing previous daily-note"))))
-      (nth (+ position n) list))))
-
 (defun org-roam-dailies-find-next-note (&optional n)
   "Find next daily-note.
 
 With numeric argument N, find note N days in the future. If N is
 negative, find note N days in the past."
   (interactive "p")
-  (let* ((n (or n 1))
-         (next (org-roam-dailies--find-next-note-path n)))
-    (find-file next)
-    (run-hooks 'org-roam-dailies-find-file-hook)))
+  (unless (org-roam-dailies--daily-note-p)
+    (user-error "Not in a daily-note"))
+  (setq n (or n 1))
+  (let* ((dailies (org-roam-dailies--list-files))
+         (position
+          (cl-position-if (lambda (candidate)
+                            (string= (buffer-file-name (buffer-base-buffer)) candidate))
+                          dailies))
+         note)
+      (pcase n
+        ((pred (natnump))
+         (when (eq position (- (length dailies) 1))
+           (user-error "Already at newest note")))
+        ((pred (integerp))
+         (when (eq position 0)
+             (user-error "Already at oldest note"))))
+      (setq note (nth (+ position n) dailies))
+      (find-file note)
+      (run-hooks 'org-roam-dailies-find-file-hook)))
 
 (defun org-roam-dailies-find-previous-note (&optional n)
   "Find previous daily-note.
