@@ -255,15 +255,14 @@ This function is called on `org-roam-db-file-update-timer'."
     (dolist (table (mapcar #'car org-roam-db--table-schemata))
       (org-roam-db-query `[:delete :from ,table]))))
 
-(defun org-roam-db--clear-file (&optional filepath)
-  "Remove any related links to the file at FILEPATH.
+(defun org-roam-db--clear-file (&optional file)
+  "Remove any related links to the FILE.
 This is equivalent to removing the node from the graph."
-  (let ((file (expand-file-name (or filepath
-                                    (buffer-file-name (buffer-base-buffer))))))
-    (dolist (table (mapcar #'car org-roam-db--table-schemata))
-      (org-roam-db-query `[:delete :from ,table
-                           :where (= ,(if (eq table 'links) 'source 'file) $s1)]
-                         file))))
+  (setq file (or file (buffer-file-name (buffer-base-buffer))))
+  (dolist (table (mapcar #'car org-roam-db--table-schemata))
+    (org-roam-db-query `[:delete :from ,table
+                         :where (= ,(if (eq table 'links) 'source 'file) $s1)]
+                       file)))
 
 ;;;;; Inserting
 (defun org-roam-db--insert-meta (&optional update-p)
