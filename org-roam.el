@@ -1401,7 +1401,7 @@ To be added to `org-roam-title-change-hook'."
       (when (string-match-p old-slug file-name)
         (let* ((new-slug (funcall org-roam-title-to-slug-function new-title))
                (new-file-name (replace-regexp-in-string old-slug new-slug file-name)))
-          (unless (string-match-p file-name new-file-name)
+          (unless (string-equal file-name new-file-name)
             (rename-file file-name new-file-name)
             (set-visited-file-name new-file-name t t)
             (org-roam-db-update)
