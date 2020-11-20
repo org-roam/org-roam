@@ -5,6 +5,7 @@
 - [#1270](https://github.com/org-roam/org-roam/pull/1270) capture: create OLP if it does not exist. Removes need for OLP setup in `:head`.
 
 ### Changed
+- [#1312](https://github.com/org-roam/org-roam/pull/1312) follow new org-mode convention to use lowercase for buffer properties like `#+roam_key`, `#+roam_alias`, etc.
 
 ### Fixed
 - [#1281](https://github.com/org-roam/org-roam/pull/1281) fixed idle-timer not instantiated on `org-roam-mode`

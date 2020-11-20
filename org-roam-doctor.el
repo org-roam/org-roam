@@ -102,7 +102,7 @@ AST is the org-element parse tree."
     (org-element-map ast 'keyword
       (lambda (kw)
         (let ((key (org-element-property :key kw)))
-          (when (and (string-prefix-p "ROAM_" key t)
+          (when (and (string-prefix-p "roam_" key 'ignore-case)
                      (not (member (downcase key) org-roam-doctor--supported-roam-properties)))
             (push
              `(,(org-element-property :begin kw)

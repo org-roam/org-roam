@@ -517,7 +517,9 @@ Use external shell commands if defined in `org-roam-list-files-commands'."
              (dolist (prop props)
                (let ((p (org-element-map buf 'keyword
                           (lambda (kw)
-                            (when (string-equal (org-element-property :key kw) prop)
+                            (when (compare-strings (org-element-property :key kw) prop
+                                                   nil nil nil nil
+                                                   'ignore-case)
                               (org-element-property :value kw)))
                           :first-match nil)))
                  (push (cons prop p) res)))
@@ -638,16 +640,16 @@ If FILE-PATH is nil, use the current file."
 
 (defun org-roam--extract-titles-title ()
   "Return title from \"#+title\" of the current buffer."
-  (let* ((prop (org-roam--extract-global-props '("TITLE")))
-         (title (cdr (assoc "TITLE" prop))))
+  (let* ((prop (org-roam--extract-global-props '("title")))
+         (title (cdr (assoc "title" prop))))
     (when title
       (list title))))
 
 (defun org-roam--extract-titles-alias ()
   "Return the aliases from the current buffer.
 Reads from the \"roam_alias\" property."
-  (let* ((prop (org-roam--extract-global-props '("ROAM_ALIAS")))
-         (aliases (cdr (assoc "ROAM_ALIAS" prop))))
+  (let* ((prop (org-roam--extract-global-props '("roam_alias")))
+         (aliases (cdr (assoc "roam_alias" prop))))
     (condition-case nil
         (org-roam--str-to-list aliases)
       (error
@@ -713,7 +715,7 @@ tag."
 
 (defun org-roam--extract-tags-prop (_file)
   "Extract tags from the current buffer's \"#roam_tags\" global property."
-  (let* ((prop (cdr (assoc "ROAM_TAGS" (org-roam--extract-global-props '("ROAM_TAGS"))))))
+  (let* ((prop (cdr (assoc "roam_tags" (org-roam--extract-global-props '("roam_tags"))))))
     (condition-case nil
         (org-roam--str-to-list prop)
       (error
@@ -765,13 +767,13 @@ backlinks."
         (t type)))
 
 (defun org-roam--extract-refs ()
-  "Extract all refs (ROAM_KEY statements) from the current buffer.
+  "Extract all refs (roam_key statements) from the current buffer.
 
 Each ref is returned as a cons of its type and its key."
   (let (refs)
     (pcase-dolist
         (`(,_ . ,roam-key)
-         (org-roam--extract-global-props '("ROAM_KEY")))
+         (org-roam--extract-global-props '("roam_key")))
       (let (type path)
         (pcase roam-key
           ('nil nil)
@@ -1716,7 +1718,7 @@ Return added alias."
     (when (string-empty-p alias)
       (user-error "Alias can't be empty"))
     (org-roam--set-global-prop
-     "ROAM_ALIAS"
+     "roam_alias"
      (combine-and-quote-strings
       (seq-uniq (cons alias
                       (org-roam--extract-titles-alias)))))
@@ -1731,7 +1733,7 @@ Return added alias."
   (if-let ((aliases (org-roam--extract-titles-alias)))
       (let ((alias (completing-read "Alias: " aliases nil 'require-match)))
         (org-roam--set-global-prop
-         "ROAM_ALIAS"
+         "roam_alias"
          (combine-and-quote-strings (delete alias aliases)))
         (org-roam-db--update-file (buffer-file-name (buffer-base-buffer))))
     (user-error "No aliases to delete")))
@@ -1749,7 +1751,7 @@ Return added tag."
     (when (string-empty-p tag)
       (user-error "Tag can't be empty"))
     (org-roam--set-global-prop
-     "ROAM_TAGS"
+     "roam_tags"
      (combine-and-quote-strings (seq-uniq (cons tag existing-tags))))
     (org-roam-db--insert-tags 'update)
     tag))
@@ -1762,7 +1764,7 @@ Return added tag."
             (tags (org-roam--extract-tags-prop file)))
       (let ((tag (completing-read "Tag: " tags nil 'require-match)))
         (org-roam--set-global-prop
-         "ROAM_TAGS"
+         "roam_tags"
          (combine-and-quote-strings (delete tag tags)))
         (org-roam-db--insert-tags 'update))
     (user-error "No tag to delete")))
