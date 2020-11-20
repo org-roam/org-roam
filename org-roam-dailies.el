@@ -152,7 +152,6 @@ When GOTO is non-nil, go the note without creating an entry."
                                          (if goto (list (car it)) it)))
         (org-roam-capture--info (list (cons 'time time)))
         (org-roam-capture--context 'dailies))
-    (setq org-roam-capture-additional-template-props (list :finalize 'find-file))
     (org-roam-capture--capture (when goto '(4)))))
 
 ;;;; Commands
@@ -164,8 +163,7 @@ When GOTO is non-nil, go the note without creating an entry."
   (interactive "P")
   (org-roam-dailies--capture (current-time) goto)
   (when goto
-    (run-hooks 'org-roam-dailies-find-file-hook)
-    (message "Showing daily-note for today")))
+    (run-hooks 'org-roam-dailies-find-file-hook)))
 
 (defun org-roam-dailies-find-today ()
   "Find the daily-note for today, creating it if necessary."
@@ -267,8 +265,7 @@ creating an entry."
          (time (org-read-date nil t time-str)))
     (org-roam-dailies--capture time goto)
     (when goto
-      (run-hooks 'org-roam-dailies-find-file-hook)
-      (message "Showing note for %s" time-str))))
+      (run-hooks 'org-roam-dailies-find-file-hook))))
 
 (defun org-roam-dailies-find-date (&optional prefer-future)
   "Find the daily-note for a date using the calendar, creating it if necessary.
