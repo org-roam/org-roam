@@ -1490,6 +1490,7 @@ Otherwise, behave as if called interactively."
 Ensure it is installed and can be found within `exec-path'. \
 M-x info for more information at Org-roam > Installation > Post-Installation Tasks."))
     (add-to-list 'org-execute-file-search-functions 'org-roam--execute-file-row-col)
+    (add-hook 'post-command-hook #'org-roam-buffer--update-maybe t)
     (add-hook 'find-file-hook #'org-roam--find-file-hook-function)
     (add-hook 'kill-emacs-hook #'org-roam-db--close-all)
     (add-hook 'org-open-at-point-functions #'org-roam-open-id-at-point)
