@@ -1502,6 +1502,11 @@ M-x info for more information at Org-roam > Installation > Post-Installation Tas
     (when (fboundp 'org-link-set-parameters)
       (org-link-set-parameters "file" :face 'org-roam--file-link-face)
       (org-link-set-parameters "id" :face 'org-roam--id-link-face))
+    (dolist (buf (org-roam--get-roam-buffers))
+      (with-current-buffer buf
+        (add-hook 'post-command-hook #'org-roam-buffer--update-maybe nil t)
+        (add-hook 'before-save-hook #'org-roam-link--replace-link-on-save nil t)
+        (add-hook 'after-save-hook #'org-roam-db-update nil t)))
     (org-roam-db-build-cache))
    (t
     (setq org-execute-file-search-functions (delete 'org-roam--execute-file-row-col org-execute-file-search-functions))
