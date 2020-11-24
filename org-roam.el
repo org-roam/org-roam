@@ -687,7 +687,7 @@ If NESTED, return the first successful result from SOURCES."
              (setq coll (nconc coll res))
            (setq coll res)
            (cl-return))))
-     coll)))
+     (-uniq coll))))
 
 (defun org-roam--extract-tags-all-directories (file)
   "Extract tags from using the directory path FILE.
@@ -738,11 +738,12 @@ Tags are obtained via:
    path is considered a tag.
 2. The key #+roam_tags."
   (let* ((file (or file (buffer-file-name (buffer-base-buffer))))
-         (tags (mapcan (lambda (source)
-                         (funcall (intern (concat "org-roam--extract-tags-"
-                                                  (symbol-name source)))
-                                  file))
-                       org-roam-tag-sources)))
+         (tags (-uniq
+                (mapcan (lambda (source)
+                          (funcall (intern (concat "org-roam--extract-tags-"
+                                                   (symbol-name source)))
+                                   file))
+                        org-roam-tag-sources))))
     (pcase org-roam-tag-sort
       ('nil tags)
       ((pred booleanp) (cl-sort tags 'string-lessp :key 'downcase))

@@ -9,6 +9,7 @@
 ### Fixed
 - [#1281](https://github.com/org-roam/org-roam/pull/1281) fixed idle-timer not instantiated on `org-roam-mode`
 - [#1308](https://github.com/org-roam/org-roam/pull/1308) fixed file renames corrupting database
+- [#1325](https://github.com/org-roam/org-roam/pull/1325) make titles and tags extracted unique per note 
 
 ## 1.2.3 (13-11-2020)
 
