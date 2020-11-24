@@ -529,14 +529,7 @@ This function is used solely in Org-roam's capture templates: see
         (org-roam-capture--put prop val)))
     (set-buffer (org-capture-target-buffer file-path))
     (widen)
-    (if-let* ((olp (--> (org-roam-capture--get :olp)
-                        (pcase it
-                          ((pred listp)
-                           it)
-                          (wrong-type
-                           (signal 'wrong-type-argument
-                                   `((stringp listp)
-                                     ,wrong-type)))))))
+    (if-let* ((olp (org-roam-capture--get :olp)))
         (condition-case err
             (when-let ((marker (org-roam-capture-find-or-create-olp olp)))
               (goto-char marker)
