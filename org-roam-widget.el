@@ -4,6 +4,12 @@
 (require 'eieio)
 (require 'magit-section)
 
+;; Faces
+(defface org-roam-title
+  '((t :weight bold))
+  "Face for Org-roam titles."
+  :group 'org-roam-faces)
+
 ;;; Widget Class Definition
 (cl-deftype function ()
   '(satisfies fboundp))
@@ -65,9 +71,11 @@ Items are of the form: ((key (list of values for key)))")
             values (cdr item)
             empty nil)
       (magit-insert-section (backlinks-file)
+        (propertize (org-roam-db--get-title key)
+                    'font-lock-face 'org-roam-title)
         (magit-insert-heading (concat
                                (org-fontify-like-in-org-mode
-                                (org-roam-format-link key (org-roam--get-title-or-slug key)))
+                                (org-roam-format-link key (org-roam-db--get-title key)))
                                ":"))
         (dolist (value values)
           (setq prop (nth 2 value))
@@ -113,7 +121,7 @@ Items are of the form: ((key (list of values for key)))")
         (magit-insert-heading
           (org-fontify-like-in-org-mode
            (org-roam-format-link file-from
-                                 (org-roam--get-title-or-slug file-from)
+                                 (org-roam-db--get-title file-from)
                                  "file")))
         (dolist (reflink reflinks)
           (pcase-let ((`(_ _ ,props) reflink))
@@ -189,7 +197,7 @@ Items are of the form: ((key (list of values for key)))")
                                    (format "%s:%s" row col))
                                   'font-lock-face 'org-roam-rowcol)
                       " "
-                      (org-roam--get-title-or-slug file)
+                      (org-roam-db--get-title file)
                       "\n"))
             (setq empty nil)))))
     empty))
