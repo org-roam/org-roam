@@ -73,16 +73,16 @@ noabbrev  Absolute path, no abbreviation of home directory."
 
 (defun org-roam-link-follow-link (path)
   "Navigates to location specified by PATH."
-  (pcase-let ((`(,link-type ,loc ,desc ,mkr) (org-roam-link--get-location path)))
+  (pcase-let ((`(,link-type ,loc ,desc ,mkr) (org-roam-link--get-location path t)))
     (when (and org-roam-link-auto-replace loc desc)
       (org-roam-link--replace-link link-type loc desc))
     (pcase link-type
-          ("file"
-           (if loc
-               (org-roam--find-file loc)
-             (org-roam-find-file desc nil nil t)))
-          ("id"
-           (org-goto-marker-or-bmk mkr)))))
+      ("file"
+       (if loc
+           (org-roam--find-file loc)
+         (org-roam-find-file desc nil nil t)))
+      ("id"
+       (org-goto-marker-or-bmk mkr)))))
 
 ;;; Retrieval Functions
 (defun org-roam-link--get-titles ()
@@ -191,14 +191,18 @@ star-idx is the index of the asterisk, if any."
                        (t 'title+headline))))
       (list type title headline star-index))))
 
-(defun org-roam-link--get-location (link)
+(defun org-roam-link--get-location (link &optional use-existing-p)
   "Return the location of Org-roam fuzzy LINK.
 The location is returned as a list containing (link-type loc desc marker).
 nil is returned if there is no matching location.
 
 link-type is either \"file\" or \"id\".
 loc is the target location: e.g. a file path, or an id.
-marker is a marker to the headline, if applicable."
+marker is a marker to the headline, if applicable.
+
+desc is either the target of LINK (title or heading content), or,
+if USE-EXISTING-P is non-nil, the description of the link under
+point in the current buffer."
   (let (mkr link-type desc loc)
     (pcase-let ((`(,type ,title ,headline _) (org-roam-link--split-path link)))
       (pcase type
@@ -227,6 +231,20 @@ marker is a marker to the headline, if applicable."
                   desc headline
                   link-type "id"))
            (_ (org-roam-message "Cannot find matching headline")))))
+      ;; Why default to not fetch from current buffer? So that it's
+      ;; not surprising from the call site when this function looks at
+      ;; the current buffer.
+      (when use-existing-p
+        ;; Favor existing description over description fetched
+        ;; from the link target, to achieve this:
+        ;; [[roam:Abc][def]] -> [[file:path/to/abc.org][def]]
+        ;; [[roam:Abc]] -> [[file:path/to/abc.org][Abc]]
+        (let* ((elem (org-element-context))
+               (begin (org-element-property :contents-begin elem))
+               (end (org-element-property :contents-end elem)))
+          ;; make sure elem is actually a link
+          (when (and (eq (org-element-type elem) 'link) begin end)
+            (setq desc (buffer-substring-no-properties begin end)))))
       (list link-type loc desc mkr))))
 
 ;;; Conversion Functions
@@ -249,13 +267,13 @@ DESC is the link description."
     (goto-char (point-min))
     (while (re-search-forward org-link-bracket-re nil t)
       (let ((context (org-element-context)))
-          (pcase (org-element-lineage context '(link) t)
-            (`nil nil)
-            (link
-             (when (string-equal "roam" (org-element-property :type link))
-               (pcase-let ((`(,link-type ,loc ,desc _) (org-roam-link--get-location (org-element-property :path link))))
-                 (when (and link-type loc)
-                   (org-roam-link--replace-link link-type loc desc))))))))))
+        (pcase (org-element-lineage context '(link) t)
+          (`nil nil)
+          (link
+           (when (string-equal "roam" (org-element-property :type link))
+             (pcase-let ((`(,link-type ,loc ,desc _) (org-roam-link--get-location (org-element-property :path link) t)))
+               (when (and link-type loc)
+                 (org-roam-link--replace-link link-type loc desc))))))))))
 
 (defun org-roam-link--replace-link-on-save ()
   "Hook to replace all roam links on save."
