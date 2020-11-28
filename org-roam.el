@@ -79,7 +79,7 @@
   :group 'org
   :prefix "org-roam-"
   :link '(url-link :tag "Github" "https://github.com/org-roam/org-roam")
-  :link '(url-link :tag "Online Manual" "https://www.orgroam.com/manual/"))
+  :link '(url-link :tag "Online Manual" "https://www.orgroam.com/manual.html"))
 
 (defcustom org-roam-directory (expand-file-name "~/org-roam/")
   "Default path to Org-roam files.
