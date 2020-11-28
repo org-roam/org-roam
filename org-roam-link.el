@@ -6,7 +6,7 @@
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
-;; Version: 1.2.2
+;; Version: 1.2.3
 ;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (s "1.12.0") (org "9.3") (emacsql "3.0.0") (emacsql-sqlite3 "1.0.2"))
 
 ;; This file is NOT part of GNU Emacs.
@@ -159,11 +159,11 @@ If there is no corresponding headline, return nil."
                   (org-id-get-create))))))))
 
 ;;; Path-related functions
-(defun org-roam-link-get-path (path)
+(defun org-roam-link-get-path (path &optional type)
   "Return the PATH of the link to use.
-Respect `org-link-file-path-type', see the variable documentation for details.
-If DIR is passed, use DIR as the default directory."
-  (pcase org-roam-link-file-path-type
+If TYPE is non-nil, create a link of TYPE. Otherwise, respect
+`org-link-file-path-type'."
+  (pcase (or type org-roam-link-file-path-type)
       ('absolute
        (abbreviate-file-name (expand-file-name path)))
       ('noabbrev

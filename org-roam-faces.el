@@ -5,7 +5,7 @@
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
-;; Version: 1.2.2
+;; Version: 1.2.3
 ;; Package-Requires: ((emacs "26.1"))
 
 ;; This file is NOT part of GNU Emacs.
@@ -63,6 +63,11 @@ This face is used for links without a destination."
   "Face for Org-roam links that are shielded.
 This face is used on the region target by `org-roam-insertion'
 during an `org-roam-capture'."
+  :group 'org-roam-faces)
+
+(defface org-roam-dailies-calendar-note
+  '((t :inherit (org-roam-link) :underline nil))
+  "Face for dates with a daily-note in the calendar"
   :group 'org-roam-faces)
 
 ;;; _

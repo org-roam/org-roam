@@ -5,7 +5,7 @@
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
-;; Version: 1.2.2
+;; Version: 1.2.3
 ;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (s "1.12.0") (org "9.3") (emacsql "3.0.0") (emacsql-sqlite3 "1.0.2"))
 
 ;; This file is NOT part of GNU Emacs.
@@ -94,6 +94,23 @@ value like `most-positive-fixnum'."
 Contains pairs of `org-roam-directory' and `org-roam-db-location'
 so that multi-directories are updated.")
 
+(defcustom org-roam-db-update-method 'idle-timer
+  "Method to update the Org-roam database.
+
+`immediate'
+  Update the database immediately upon file changes.
+
+`idle-timer'
+  Updates the database if dirty, if Emacs idles for `org-roam-db-update-idle-seconds'."
+  :type '(choice (const :tag "idle-timer" idle-timer)
+		 (const :tag "immediate" immediate))
+  :group 'org-roam)
+
+(defcustom org-roam-db-update-idle-seconds 2
+  "Number of idle seconds before triggering an Org-roam database update."
+  :type 'integer
+  :group 'org-roam)
+
 ;;;; Core Functions
 
 (defun org-roam-db--get-connection ()
@@ -117,7 +134,7 @@ Performs a database upgrade when required."
         (when init-db
           (org-roam-db--init conn))
         (let* ((version (caar (emacsql conn "PRAGMA user_version")))
-               (version (org-roam-db--update-maybe conn version)))
+               (version (org-roam-db--upgrade-maybe conn version)))
           (cond
            ((> version org-roam-db--version)
             (emacsql-close conn)
@@ -176,7 +193,7 @@ SQL can be either the emacsql vector representation, or a string."
       (emacsql db [:create-table $i1 $S2] table schema))
     (emacsql db (format "PRAGMA user_version = %s" org-roam-db--version))))
 
-(defun org-roam-db--update-maybe (db version)
+(defun org-roam-db--upgrade-maybe (db version)
   "Upgrades the database schema for DB, if VERSION is old."
   (emacsql-with-transaction db
     'ignore
@@ -201,10 +218,21 @@ the current `org-roam-directory'."
   (dolist (conn (hash-table-values org-roam-db--connection))
     (org-roam-db--close conn)))
 
-(defun org-roam-db--mark-dirty ()
+;;;; Timer-based updating
+(defvar org-roam-db-file-update-timer nil
+  "Timer for updating the database when dirty.")
+
+(defun org-roam-db-mark-dirty ()
   "Mark the Org-roam database as dirty."
   (add-to-list 'org-roam-db-dirty (list org-roam-directory org-roam-db-location)
                nil #'equal))
+
+(defun org-roam-db-update-cache-on-timer ()
+  "Update the cache if the database is dirty.
+This function is called on `org-roam-db-file-update-timer'."
+  (pcase-dolist (`(,org-roam-directory ,org-roam-db-location) org-roam-db-dirty)
+    (org-roam-db-build-cache))
+  (setq org-roam-db-dirty nil))
 
 ;;;; Database API
 ;;;;; Initialization
@@ -227,15 +255,14 @@ the current `org-roam-directory'."
     (dolist (table (mapcar #'car org-roam-db--table-schemata))
       (org-roam-db-query `[:delete :from ,table]))))
 
-(defun org-roam-db--clear-file (&optional filepath)
-  "Remove any related links to the file at FILEPATH.
+(defun org-roam-db--clear-file (&optional file)
+  "Remove any related links to the FILE.
 This is equivalent to removing the node from the graph."
-  (let ((file (expand-file-name (or filepath
-                                    (buffer-file-name (buffer-base-buffer))))))
-    (dolist (table (mapcar #'car org-roam-db--table-schemata))
-      (org-roam-db-query `[:delete :from ,table
-                           :where (= ,(if (eq table 'links) 'source 'file) $s1)]
-                         file))))
+  (setq file (or file (buffer-file-name (buffer-base-buffer))))
+  (dolist (table (mapcar #'car org-roam-db--table-schemata))
+    (org-roam-db-query `[:delete :from ,table
+                         :where (= ,(if (eq table 'links) 'source 'file) $s1)]
+                       file)))
 
 ;;;;; Inserting
 (defun org-roam-db--insert-meta (&optional update-p)
@@ -367,6 +394,13 @@ Return the number of rows inserted."
       0)))
 
 ;;;;; Fetching
+(defun org-roam-db-has-file-p (file)
+  "Return t if FILE is in the database, nil otherwise."
+  (> (caar (org-roam-db-query [:select (funcall count) :from files
+                              :where (= file $s1)]
+                              file))
+     0))
+
 (defun org-roam-db--get-current-files ()
   "Return a hash-table of file to the hash of its file contents."
   (let* ((current-files (org-roam-db-query [:select * :from files]))
@@ -375,8 +409,8 @@ Return the number of rows inserted."
       (puthash (car row) (cadr row) ht))
     ht))
 
-(defun org-roam-db--get-titles (file)
-  "Return the titles of FILE from the cache."
+(defun org-roam-db--get-title (file)
+  "Return the main title of FILE from the cache."
   (caar (org-roam-db-query [:select [title] :from titles
                             :where (= file $s1)
                             :limit 1]
@@ -490,13 +524,8 @@ If FORCE, force a rebuild of the cache from scratch."
          (org-agenda-files nil)
          (org-roam-files (org-roam--list-all-files))
          (current-files (org-roam-db--get-current-files))
-         (id-count 0)
-         (link-count 0)
-         (tag-count 0)
-         (title-count 0)
-         (ref-count 0)
+         (count-plist nil)
          (deleted-count 0)
-         (modified-count 0)
          (modified-files nil))
     (dolist (file org-roam-files)
       (let ((contents-hash (org-roam-db--file-hash file)))
@@ -508,6 +537,46 @@ If FORCE, force a rebuild of the cache from scratch."
         ;; These files are no longer around, remove from cache...
         (org-roam-db--clear-file file)
         (setq deleted-count (1+ deleted-count)))
+    (setq count-plist (org-roam-db--update-files modified-files))
+    (org-roam-message "total: Δ%s, files-modified: Δ%s, ids: Δ%s, links: Δ%s, tags: Δ%s, titles: Δ%s, refs: Δ%s, deleted: Δ%s"
+                      (- (length org-roam-files) (plist-get count-plist :error-count))
+                      (plist-get count-plist :modified-count)
+                      (plist-get count-plist :id-count)
+                      (plist-get count-plist :link-count)
+                      (plist-get count-plist :tag-count)
+                      (plist-get count-plist :title-count)
+                      (plist-get count-plist :ref-count)
+                      deleted-count)))
+
+(defun org-roam-db--get-file-hash-from-db (&optional file-path)
+  "Get hash from Org-roam database for FILE-PATH."
+  (setq file-path (or file-path
+                      (buffer-file-name (buffer-base-buffer))))
+  (caar (org-roam-db-query [:select hash :from files
+                              :where (= file $s1)] file-path)))
+
+(defun org-roam-db-update-file (file-path)
+  "Update Org-roam cache for FILE-PATH.
+If the file does not exist anymore, remove it from the cache.
+If the file exists, update the cache with information."
+  (let ((content-hash (org-roam-db--file-hash file-path))
+        (db-hash  (org-roam-db--get-file-hash-from-db file-path)))
+    (unless (string= content-hash db-hash)
+      (org-roam-db--update-files (list (cons file-path content-hash)))
+      (org-roam-message "Updated: %s" file-path))))
+
+(defun org-roam-db--update-files (modified-files)
+  "Update Org-roam cache for a list of MODIFIED-FILES.
+FILES is a list of (file . hash) pairs."
+  (let* ((gc-cons-threshold org-roam-db-gc-threshold)
+         (org-agenda-files nil)
+         (error-count 0)
+         (id-count 0)
+         (link-count 0)
+         (tag-count 0)
+         (title-count 0)
+         (ref-count 0)
+         (modified-count 0))
     (pcase-dolist (`(,file . _) modified-files)
       (org-roam-db--clear-file file))
     ;; Process all the files for IDs first
@@ -527,39 +596,37 @@ If FORCE, force a rebuild of the cache from scratch."
               (when org-roam-enable-headline-linking
                 (setq id-count (+ id-count (org-roam-db--insert-ids)))))
           (file-error
-           (setq org-roam-files (remove file org-roam-files))
+           (setq error-count (1+ error-count))
            (org-roam-db--clear-file file)
            (lwarn '(org-roam) :warning
                   "Skipping unreadable file while building cache: %s" file)))))
+
+    ;; Process titles, tags, links and ref links of file
     (pcase-dolist (`(,file . _) modified-files)
       (org-roam-message "Processed %s/%s modified files..." modified-count (length modified-files))
       (condition-case nil
-            (org-roam--with-temp-buffer file
-              (setq modified-count (1+ modified-count))
-              (setq link-count (+ link-count (org-roam-db--insert-links)))
-              (setq tag-count (+ tag-count (org-roam-db--insert-tags)))
-              (setq title-count (+ title-count (org-roam-db--insert-titles)))
-              (setq ref-count (+ ref-count (org-roam-db--insert-refs))))
-          (file-error
-           (setq org-roam-files (remove file org-roam-files))
-           (org-roam-db--clear-file file)
-           (lwarn '(org-roam) :warning
-                  "Skipping unreadable file while building cache: %s" file))))
-    (org-roam-message "total: Δ%s, files-modified: Δ%s, ids: Δ%s, links: Δ%s, tags: Δ%s, titles: Δ%s, refs: Δ%s, deleted: Δ%s"
-                      (length org-roam-files)
-                      modified-count
-                      id-count
-                      link-count
-                      tag-count
-                      title-count
-                      ref-count
-                      deleted-count)))
+          (org-roam--with-temp-buffer file
+            (setq modified-count (1+ modified-count))
+            (setq link-count (+ link-count (org-roam-db--insert-links)))
+            (setq tag-count (+ tag-count (org-roam-db--insert-tags)))
+            (setq title-count (+ title-count (org-roam-db--insert-titles)))
+            (setq ref-count (+ ref-count (org-roam-db--insert-refs))))
+        (file-error
+         (setq error-count (1+ error-count))
+         (org-roam-db--clear-file file)
+         (lwarn '(org-roam) :warning
+                "Skipping unreadable file while building cache: %s" file))))
+    (list :error-count error-count :modified-count modified-count :id-count id-count :title-count title-count :tag-count tag-count :link-count link-count :ref-count ref-count)))
 
-(defun org-roam-db-update-cache ()
-  "Update the cache if the database is dirty."
-  (pcase-dolist (`(,org-roam-directory ,org-roam-db-location) org-roam-db-dirty)
-    (org-roam-db-build-cache))
-  (setq org-roam-db-dirty nil))
+(defun org-roam-db-update ()
+  "Update the database."
+  (pcase org-roam-db-update-method
+    ('immediate
+     (org-roam-db-update-file (buffer-file-name (buffer-base-buffer))))
+    ('idle-timer
+     (org-roam-db-mark-dirty))
+    (_
+     (user-error "Invalid `org-roam-db-update-method'"))))
 
 (provide 'org-roam-db)
 

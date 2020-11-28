@@ -1,16 +1,34 @@
 # Changelog
+## 1.2.4 (TBD)
 
-## 1.2.3 (TBD)
+### Added
+- [#1270](https://github.com/org-roam/org-roam/pull/1270) capture: create OLP if it does not exist. Removes need for OLP setup in `:head`.
 
-### Features
+### Changed
 
-- [#1183](https://github.com/org-roam/org-roam/pull/1183) add interactive functions for managing aliases and tags in Org-roam file, namely `org-roam-alias-add`, `org-roam-alias-delete`, `org-roam-tag-add`, and `org-roam-tag-delete`.
+### Fixed
+- [#1281](https://github.com/org-roam/org-roam/pull/1281) fixed idle-timer not instantiated on `org-roam-mode`
+- [#1308](https://github.com/org-roam/org-roam/pull/1308) fixed file renames corrupting database
+- [#1325](https://github.com/org-roam/org-roam/pull/1325) make titles and tags extracted unique per note 
+
+## 1.2.3 (13-11-2020)
+
+Primarily a stabilization and bug-fix release.
+
+Org-roam-dailies has also been revamped to include new features, see [this video](https://www.youtube.com/watch?v=1q9x2aZCJJ4) for a quick overview.
+
+### Added
+- [#978](https://github.com/org-roam/org-roam/pull/978) Revamp org-roam-dailies
+- [#1183](https://github.com/org-roam/org-roam/pull/1183) Interactive functions for managing aliases and tags in Org-roam file, namely `org-roam-alias-add`, `org-roam-alias-delete`, `org-roam-tag-add`, and `org-roam-tag-delete`.
 - [#1215](https://github.com/org-roam/org-roam/pull/1215) Multiple `ROAM_KEY` keywords can now be specified in one file. This allows bibliographical entries to share the same note file.
-- [#1238](https://github.com/org-roam/org-roam/pull/1238) add `org-roam-prefer-id-links` variable to select linking method
+- [#1238](https://github.com/org-roam/org-roam/pull/1238) Add `org-roam-prefer-id-links` variable to select linking method
 - [#1239](https://github.com/org-roam/org-roam/pull/1239) Allow `org-roam-protocol` to capture the webpage's selection, and add a toggle for storing the links to the pages
+- [#1264](https://github.com/org-roam/org-roam/pull/1264) add `org-roam-db-update-method` to control when the cache is rebuilt.
 
-### Bugfixes
+### Changed
+- [#1264](https://github.com/org-roam/org-roam/pull/1264) renamed `org-roam-update-db-idle-seconds` to `org-roam-db-idle-idle-seconds` 
 
+### Fixed
 - [#1074](https://github.com/org-roam/org-roam/issues/1074) fix `org-roam--extract-links` to handle content boundaries.
 - [#1193](https://github.com/org-roam/org-roam/issues/1193) fix `org-roam-db-build-cache` by not killing temporary buffer in `org-roam--extract-links`.
 - [#1195](https://github.com/org-roam/org-roam/issues/1195) fix ID face showing as invalid if within Org ID files, but not Org-roam's.
@@ -19,6 +37,7 @@
 - [#1226](https://github.com/org-roam/org-roam/issues/1226) only update relative path of file links
 - [#1232](https://github.com/org-roam/org-roam/issues/1232) fix incorrect title extractions from narrowed buffers
 - [#1233](https://github.com/org-roam/org-roam/issues/1233) fixes bug where descriptive file links become plain links during update for relative paths
+- [#1252](https://github.com/org-roam/org-roam/issues/1252) respect original link type during automatic replacement
 
 ## 1.2.2 (06-10-2020)
 

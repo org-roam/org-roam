@@ -31,14 +31,12 @@ General Public License for more details.
 @finalout
 @titlepage
 @title Org-roam User Manual
-@subtitle for version 1.2.2
+@subtitle for version 1.2.3
 @author Jethro Kuan
 @page
 @vskip 0pt plus 1filll
 @insertcopying
 @end titlepage
-
-@contents
 
 @ifnottex
 @node Top
@@ -46,7 +44,7 @@ General Public License for more details.
 
 @noindent
 
-This manual is for Org-roam version 1.2.2.
+This manual is for Org-roam version 1.2.3.
 
 @quotation
 Copyright (C) 2020-2020 Jethro Kuan <jethrokuan95@@gmail.com>
@@ -69,24 +67,34 @@ General Public License for more details.
 * A Brief Introduction to the Zettelkasten Method::
 * Installation::
 * Getting Started::
-* Anatomy of an Org-roam File::
+* Files::
 * The Templating System::
 * Concepts and Configuration::
 * Inserting Links::
+* Completions::
 * Navigating Around::
 * Encryption::
 * Graphing::
-* Org-roam Completion System::
+* Minibuffer Completion::
 * Roam Protocol::
-* Daily Notes::
+* Daily-notes::
 * Diagnosing and Repairing Files::
 * Finding Unlinked References::
 * Performance Optimization::
 * Appendix::
 * FAQ::
+* Keystroke Index::
+* Command Index::
+* Function Index::
+* Variable Index::
 
 @detailmenu
 --- The Detailed Node Listing ---
+
+A Brief Introduction to the Zettelkasten Method
+
+* Fleeting notes::
+* Permanent notes::
 
 Installation
 
@@ -95,11 +103,19 @@ Installation
 * Installing from the Git Repository::
 * Post-Installation Tasks::
 
-Anatomy of an Org-roam File
+Files
 
-* Titles::
-* Tags::
+* File Titles::
+* File Tags::
 * File Refs::
+
+File Titles
+
+* Customizing Title Extraction::
+
+File Tags
+
+* Customizing Tag Extraction::
 
 The Templating System
 
@@ -112,6 +128,16 @@ Concepts and Configuration
 * The Org-roam Buffer::
 * Org-roam Files::
 * Org-roam Faces::
+* The Database::
+
+Completions
+
+* Link Completion::
+* Tag Completion::
+
+Link Completion
+
+* Link Completions Everywhere::
 
 Navigating Around
 
@@ -124,10 +150,15 @@ Graphing
 
 Roam Protocol
 
-* _::
 * Installation: Installation (1). 
 * The roam-file protocol::
 * The roam-ref protocol::
+
+Daily-notes
+
+* Configuration::
+* Capturing and finding daily-notes::
+* Navigation::
 
 Performance Optimization
 
@@ -147,6 +178,13 @@ Ecosystem
 * Org-journal::
 * Note-taking Add-ons::
 
+Note-taking Add-ons
+
+* Org-download::
+* mathpix.el: mathpixel. 
+* Org-noter / Interleave::
+* Bibliography::
+* Spaced Repetition::
 
 FAQ
 
@@ -160,16 +198,17 @@ FAQ
 @node Introduction
 @chapter Introduction
 
-Org-roam is a @uref{https://roamresearch.com/, Roam Research} replica built around the
-all-powerful @uref{https://orgmode.org/, Org-mode}.
+Org-roam is a tool for network thought. It reproduces some of @uref{https://roamresearch.com/, Roam
+Research's} @footnote{To understand more about Roam, a collection of links are available in @ref{Note-taking Workflows}.} features within the all-powerful @uref{https://orgmode.org/, Org-mode}.
 
-Org-roam is a solution for effortless non-hierarchical note-taking
-with Org-mode. With Org-roam, notes flow naturally, making note-taking
-fun and easy. Org-roam should also work as a plug-and-play solution
-for anyone already using Org-mode for their personal wiki.
+Org-roam is a solution for effortless non-hierarchical note-taking with
+Org-mode. With Org-roam, notes flow naturally, making note-taking fun and easy.
+Org-roam keeps closely to Org syntax, and will work for anyone already using
+Org-mode for their personal wiki.
 
-To understand more about Roam, a collection of links are available in
-@ref{Note-taking Workflows}.
+Org-roam gains its superpowers by leveraging the mature ecosystem around
+Org-mode. For example, it has first-class support for @uref{https://github.com/jkitchin/org-ref, org-ref} for citation
+management.
 
 Org-roam aims to implement the core features of Roam, leveraging the
 mature ecosystem around Org-mode where possible. Eventually, we hope
@@ -177,18 +216,34 @@ to further introduce features enabled by the Emacs ecosystem.
 
 Org-roam provides several benefits over other tooling:
 
-@table @asis
-@item Privacy and Security
-Edit your personal wiki completely offline, entirely in your control. Encrypt your notes with GPG@.
-@item Longevity of Plain Text
-Unlike web solutions like Roam research, the notes are first and foremost plain Org-mode files -- Org-roam simply builds up an auxilliary database to give the personal wiki superpowers. Having your notes in plain-text is crucial for the longevity of your wiki. Never have to worry about proprietary web solutions being taken down. Edit your plain-text notes in notepad if all other editors cease to exist
-@item Free and Open Source
-Org-roam is free and open-source, which means that if you feel unhappy with any part of Org-roam, you may choose to extend Org-roam, or open a PR@.
-@item Leverages the Org-mode ecosystem
-Over the years, Emacs and Org-mode has developed into a mature system for plain-text organization. Building upon Org-mode already puts Org-roam light-years ahead of many other solutions.
-@item Built on Emacs
-Emacs is also a fantastic interface for editing text, and we can inherit many of the powerful text-navigation and editing packages available to Emacs.
-@end table
+@itemize
+@item
+@strong{Privacy and Security:} Keep your personal wiki entirely offline and in your
+control. Encrypt your notes with GPG@.
+
+@item
+@strong{Longevity of Plain Text:} Unlike web solutions like Roam Research, the notes
+are first and foremost plain Org-mode files -- Org-roam simply builds an
+auxiliary database to give the personal wiki superpowers. Having your notes
+in plain-text is crucial for the longevity of your wiki. Never have to worry
+about proprietary web solutions being taken down. The notes are still
+functional even if Org-roam ceases to exist.
+
+@item
+@strong{Free and Open Source:} Org-roam is free and open-source, which means that if
+you feel unhappy with any part of Org-roam, you may choose to extend Org-roam,
+or open a pull request.
+
+@item
+@strong{Leverage the Org-mode ecosystem:} Over the years, Emacs and Org-mode has
+developed into a mature system for plain-text organization. Building upon
+Org-mode already puts Org-roam light-years ahead of many other solutions.
+
+@item
+@strong{Built on Emacs:} Emacs is also a fantastic interface for editing text, and we
+can inherit many of the powerful text-navigation and editing packages
+available to Emacs.
+@end itemize
 
 @node Target Audience
 @chapter Target Audience
@@ -231,37 +286,50 @@ Org-roam provides utilities for maintaining a digital slip-box. This section
 aims to provide a brief introduction to the ``slip-box'', or ``Zettelkasten''
 method. By providing some background on the method, we hope that the design
 decisions of Org-roam will become clear, and that will aid in using Org-roam
-appropriately. In this section we will also introduce terms commonly used within
-the Zettelkasten community, which will also commonly appear in the Org-roam
-forums and channels of discussion.
+appropriately. In this section we will introduce terms commonly used within the
+Zettelkasten community and the Org-roam forums.
 
-The Zettelkasten method of note-taking is designed to increase research
-productivity: in particular, it acts as a research partner, where conversations
-with it may produce new and surprising lines of thought. This method is
-attributed to German sociologist Niklas Luhmann, who using the method had
-produced volumes of written works.
+The Zettelkasten is a personal tool for thinking and writing. It places heavy
+emphasis on connecting ideas, building up a web of thought. Hence, it is well
+suited for knowledge workers and intellectual tasks, such as conducting
+research. The Zettelkasten can act as a research partner, where conversations
+with it may produce new and surprising lines of thought.
 
-In its paper form, the slip-box is simply a box of cards. These cards are small
--- often only large enough to fit a single concept. The size limitation
-encourages ideas to be broken down into individual concepts. These ideas are
-explicitly linked together. The breakdown of ideas encourages tangential
-exploration of ideas, increasing the surface for thought. Making linking
-explicit between notes also encourages one to think about the connections
-between concepts.
+This method is attributed to German sociologist Niklas Luhmann, who using the
+method had produced volumes of written works. Luhmann's slip-box was simply a
+box of cards. These cards are small -- often only large enough to fit a single
+concept. The size limitation encourages ideas to be broken down into individual
+concepts. These ideas are explicitly linked together. The breakdown of ideas
+encourages tangential exploration of ideas, increasing the surface for thought.
+Making linking explicit between notes also encourages one to think about the
+connections between concepts.
+
+At the corner of each note, Luhmann ascribed each note with an ordered ID,
+allowing him to link and jump between notes. In Org-roam, we simply use
+hyperlinks.
 
 Org-roam is the slip-box, digitalized in Org-mode. Every zettel (card) is a
-plain-text, Org-mode file. These files are often placed in the same directory.
-In the same way one would maintain a paper slip-box, Org-roam makes it easy to
-create new zettels, pre-filling boilerplate content using a powerful templating
-system. Org-roam also facilitates the linking of zettels using Org-mode @code{file:}
-links.
+plain-text, Org-mode file. In the same way one would maintain a paper slip-box,
+Org-roam makes it easy to create new zettels, pre-filling boilerplate content
+using a powerful templating system.
 
-A slip-box requires a method of quickly capturing ideas. These are called
+@menu
+* Fleeting notes::
+* Permanent notes::
+@end menu
+
+@node Fleeting notes
+@section Fleeting notes
+
+A slip-box requires a method for quickly capturing ideas. These are called
 @strong{fleeting notes}: they are simple reminders of information or ideas that will
 need to be processed later on, or trashed. This is typically accomplished using
 @code{org-capture} (see @ref{capture,,,org,}), or using Org-roam's daily notes
-functionality (see @ref{Daily Notes}). This provides a central inbox for collecting
+functionality (see @ref{Daily-notes}). This provides a central inbox for collecting
 thoughts, to be processed later into permanent notes.
+
+@node Permanent notes
+@section Permanent notes
 
 Permanent notes are further split into two categories: @strong{literature notes} and
 @strong{concept notes}. Literature notes can be brief annotations on a particular
@@ -351,9 +419,16 @@ Org-roam will then be autoloaded into Emacs.
 @node Installing from the Git Repository
 @section Installing from the Git Repository
 
-You may install Org-roam directly from the repository on @uref{https://github.com/org-roam/org-roam, GitHub} if you like. This will give you access to the latest version hours or days before it appears on MELPA, and months (or more) before it is added to the Debian or Ubuntu repositories. This will also give you access to various developmental branches that may be available. 
+You may install Org-roam directly from the repository on @uref{https://github.com/org-roam/org-roam, GitHub} if you like.
+This will give you access to the latest version hours or days before it appears
+on MELPA, and months (or more) before it is added to the Debian or Ubuntu
+repositories. This will also give you access to various developmental branches
+that may be available.
 
-Note, however, that development version, and especially any feature branches, may not always be in working order. You'll need to be prepared to do some debugging, or to manually roll-back to working versions, if you install from GitHub.
+Note, however, that development version, and especially any feature branches,
+may not always be in working order. You'll need to be prepared to do some
+debugging, or to manually roll-back to working versions, if you install from
+GitHub.
 
 Installing from GitHub requires that you clone the repository:
 
@@ -363,46 +438,60 @@ git clone https://github.com/org-roam/org-roam.git /path/to/org/roam
 
 where @code{./path/to/org/roam} is the location you will store your copy of the code.
 
-Next, you need to add this location to your load path, and @code{require} the Org-roam library. Add the following code to your @code{.emacs}:
+Next, you need to add this location to your load path, and @code{require} the
+Org-roam library. Add the following code to your @code{.emacs}:
 
 @lisp
 (add-to-list 'load-path "/path/to/org/roam")
 (require 'org-roam)
 @end lisp
 
-You now have Org-roam installed. However, you don't necessarily have the dependencies that it requires. These include:
+You now have Org-roam installed. However, you don't necessarily have the
+dependencies that it requires. These include:
 
 @itemize
 @item
 dash
+
 @item
 f
+
 @item
 s
+
 @item
 org
+
 @item
 emacsql
+
 @item
 emacsql-sqlite3
 @end itemize
 
-You can install this manually as well, or get the latest version from MELPA@. You may wish to use @uref{https://github.com/jwiegley/use-package, use-package}, @uref{https://github.com/raxod502/straight.el, straight.el}, or some other tool or tools to help manage this.
+You can install this manually as well, or get the latest version from MELPA@. You
+may wish to use @uref{https://github.com/jwiegley/use-package, use-package}, @uref{https://github.com/raxod502/straight.el, straight.el} to help manage this.
 
-If you would like to install the manual for access from Emacs' built-in Info system, you'll need to compile the .texi source file, and install it in an appropriate location.
+If you would like to install the manual for access from Emacs' built-in Info
+system, you'll need to compile the .texi source file, and install it in an
+appropriate location.
 
-To compile the .texi source file, from a terminal navigate to the @code{/doc} subdirectory of the Org-roam repository, and run the following:
+To compile the .texi source file, from a terminal navigate to the @code{/doc}
+subdirectory of the Org-roam repository, and run the following:
 
 @example
 make infodir=/path/to/my/info/files install-info
 @end example
 
-Where @code{/path/to/my/info/files} is the location where you keep info files. This target directory needs to be stored in the variable `Info-default-directory-list`. If you aren't using one of the default info locations, you can configure this with the following in your @code{.emacs} file:
+Where @code{/path/to/my/info/files} is the location where you keep info files. This
+target directory needs to be stored in the variable
+`Info-default-directory-list`. If you aren't using one of the default info
+locations, you can configure this with the following in your @code{.emacs} file:
 
 @lisp
 (require 'info)
 (add-to-list 'Info-default-directory-list
-         "/path/to/my/info/files")
+             "/path/to/my/info/files")
 @end lisp
 
 You can also use one of the default locations, such as:
@@ -410,15 +499,19 @@ You can also use one of the default locations, such as:
 @itemize
 @item
 @emph{usr/local/share/info}
+
 @item
 @emph{usr/share/info}
+
 @item
 @emph{usr/local/share/info}
 @end itemize
 
-If you do this, you'll need to make sure you have write-access to that location, or run the above @code{make} command as root.
+If you do this, you'll need to make sure you have write-access to that location,
+or run the above @code{make} command as root.
 
-Now that the info file is ready, you need to add it to the corresponding @code{dir} file:
+Now that the info file is ready, you need to add it to the corresponding @code{dir}
+file:
 
 @example
 install-info /path/to/my/info/files/org-roam.info /path/to/my/info/files/dir
@@ -458,10 +551,10 @@ requires a radical change in your current note-taking workflow. To understand
 more about the methods and madness, see @ref{Note-taking Workflows}.
 
 To first start using Org-roam, one needs to pick a location to store the
-Org-roam files. The directory that will contain your notes, and database index
-is specified by the variable @code{org-roam-directory}. This variable needs to be set
-before any calls to Org-roam functions, including enabling @code{org-roam-mode}. For
-this tutorial, create an empty directory, and set @code{org-roam-directory}:
+Org-roam files. The directory that will contain your notes is specified by the
+variable @code{org-roam-directory}. This variable needs to be set before any calls to
+Org-roam functions, including enabling @code{org-roam-mode}. For this tutorial,
+create an empty directory, and set @code{org-roam-directory}:
 
 @lisp
 (make-directory "~/org-roam")
@@ -470,39 +563,38 @@ this tutorial, create an empty directory, and set @code{org-roam-directory}:
 
 We encourage using a flat hierarchy for storing notes, but some prefer using
 folders for storing specific kinds of notes (e.g. websites, papers). This is
-fine; Org-roam searches recursively within @code{org-roam-directory} for any notes.
-Instead of relying on the file hierarchy for any form of categorization, we
-solely rely on links between files to establish connections between notes.
+fine; Org-roam searches recursively within @code{org-roam-directory} for notes.
+Instead of relying on the file hierarchy for any form of categorization, one
+should use links between files to establish connections between notes.
 
-Next, we need to enable the global minor mode @code{org-roam-mode}. This sets up Emacs
-with several hooks, builds a cache and keeps it consistent. We recommend
-starting @code{org-roam-mode} on startup:
+Next, we need to enable the global minor mode @code{org-roam-mode}. This sets up
+Emacs with several hooks, building a cache that is kept consistent as your
+slip-box grows. We recommend starting @code{org-roam-mode} on startup:
 
 @lisp
 (add-hook 'after-init-hook 'org-roam-mode)
 @end lisp
 
-To build the cache manually, one can run @code{M-x org-roam-db-build-cache}. The
-cache is a sqlite database named @code{org-roam.db}, which defaults to residing in
-the root @code{org-roam-directory}. Cache builds may take a while the first time, but
-is often instantaneous in subsequent runs.
+To build the cache manually, one can run @code{M-x org-roam-db-build-cache}. Cache
+builds may take a while the first time, but is often instantaneous in subsequent
+runs because it only reprocesses modified files.
 
-Let us now create our first note. Call @code{M-x org-roam-find-file}. This shows a list
-of titles for notes that reside in @code{org-roam-directory}. It should show nothing
-right now, since there are no notes in the directory. Entering the title of the
-note you wish to create, and pressing @code{RET} should begin the note creation
-process. This process uses @code{org-capture}'s templating system, and can be freely
-customized (see @ref{The Templating System}). Using the default template, pressing @code{C-c
-C-c} finishes the note capture. Running @code{M-x org-roam-find-file} again should show
-the note you have created, and selecting that entry will bring you to that note.
+Let us now create our first note. Call @code{M-x org-roam-find-file}. This shows a
+list of titles for notes that reside in @code{org-roam-directory}. It should show
+nothing right now, since there are no notes in the directory. Entering the title
+of the note you wish to create, and pressing @code{RET} should begin the note
+creation process. This process uses @code{org-capture}'s templating system, and can
+be customized (see @ref{The Templating System}). Using the default template, pressing
+@code{C-c C-c} finishes the note capture. Running @code{M-x org-roam-find-file} again
+should show the note you have created, and selecting that entry will bring you
+to that note.
 
-The crux of Org-roam is making it easy to create notes, and link them together.
-To link notes together, we call @code{M-x org-roam-insert}. This brings up a prompt
-with a list of title for existing notes. Selecting an existing entry will create
-and insert a link to the current file. Entering a non-existent title will create
-a new note with that title. Good usage of Org-roam requires liberally linking
-files: this facilitates building up a dense knowledge graph of inter-connected
-notes.
+Org-roam makes it easy to create notes, and link them together. To link notes
+together, we call @code{M-x org-roam-insert}. This brings up a prompt with a list of
+title for existing notes. Selecting an existing entry will create and insert a
+link to the current file. Entering a non-existent title will create a new note
+with that title. Good usage of Org-roam requires liberally linking files: this
+facilitates building up a dense graph of inter-connected notes.
 
 Org-roam provides an interface to view backlinks. It shows backlinks for the
 currently active Org-roam note, along with some surrounding context. To toggle
@@ -511,45 +603,52 @@ the visibility of this buffer, call @code{M-x org-roam}.
 For a visual representation of the notes and their connections, Org-roam also
 provides graphing capabilities, using Graphviz. It generates graphs with notes
 as nodes, and links between them as edges. The generated graph can be used to
-navigate to the files, but this requires some additional setup (see @ref{Roam Protocol, , Roam
-Protocol}).
+navigate to the files, but this requires some additional setup (see @ref{Roam Protocol}).
 
-@node Anatomy of an Org-roam File
-@chapter Anatomy of an Org-roam File
+@node Files
+@chapter Files
 
-The bulk of Org-roam's functionality is built on top of vanilla
-Org-mode. However, to support additional functionality, Org-roam adds
-several Org-roam-specific keywords. These functionality are not crucial
-to effective use of Org-roam.
+In Org-roam, notes typically consist of multiple files, where each file is a
+zettel.
+
+While the bulk of Org-roam's functionality is built on top of vanilla Org-mode,
+Org-roam adds several Org-roam-specific keywords to support additional
+functionality.
+
+This section explains the important components of a file, and the extensions to
+Org-mode.
 
 @menu
-* Titles::
-* Tags::
+* File Titles::
+* File Tags::
 * File Refs::
 @end menu
 
-@node Titles
-@section Titles
+@node File Titles
+@section File Titles
 
-To easily find a note, a title needs to be prescribed to a note. A note can have
-many titles: this allows a note to be referred to by different names, which is
-especially useful for topics or concepts with acronyms. For example, for a note
-like ``World War 2'', it may be desirable to also refer to it using the acronym
-``WWII''.
+To easily find a note, a title needs to be prescribed to a note.
+
+A note can have many titles: this allows a note to be referred to by different
+names, which is especially useful for topics or concepts with acronyms. For
+example, for a note like ``World War 2'', it may be desirable to also refer to it
+using the acronym ``WWII''.
 
 Org-roam calls @code{org-roam--extract-titles} to extract titles. It uses the
 variable @code{org-roam-title-sources}, to control how the titles are extracted. The
 title extraction methods supported are:
 
-@enumerate
+@itemize
 @item
 @code{'title}: This extracts the title using the file @code{#+title} property
+
 @item
 @code{'headline}: This extracts the title from the first headline in the Org file
+
 @item
 @code{'alias}: This extracts a list of titles using the @code{#+roam_alias} property.
-The aliases are space-delimited, and can be multi-worded using quotes
-@end enumerate
+The aliases are space-delimited, and can be multi-worded using quotes.
+@end itemize
 
 Take for example the following org file:
 
@@ -571,84 +670,169 @@ Take for example the following org file:
 @tab '(``WWII'' ``World War II'')
 @end multitable
 
-One can freely control which extraction methods to use by customizing
-@code{org-roam-title-sources}: see the doc-string for the variable for more
-information. If all methods of title extraction return no results, the file-name
-is used in place of the titles for completions.
+If no title is provided, Org-roam defaults to using the file-path.
 
-If you wish to add your own title extraction method, you may push a symbol
-@code{'foo} into @code{org-roam-title-sources}, and define a
-@code{org-roam--extract-titles-foo} which accepts no arguments. See
-@code{org-roam--extract-titles-title} for an example.
+@menu
+* Customizing Title Extraction::
+@end menu
 
-@node Tags
-@section Tags
+@node Customizing Title Extraction
+@subsection Customizing Title Extraction
+
+To control how Org-roam extracts titles, customize @code{org-roam-title-sources}. If
+all methods of title extraction return no results, the file-name is used as the
+note's title.
+
+@defopt org-roam-title-sources
+
+The list of sources from which to retrieve a note title.
+Each element in the list is either:
+@end defopt
+
+@itemize
+@item
+a symbol -- this symbol corresponds to a title retrieval function, which
+returns the list of titles for the current buffer
+@itemize
+@item
+a list of symbols -- symbols in the list are treated as with (1). The
+return value of this list is the first symbol in the list returning a
+non-nil value.
+@end itemize
+
+The return results of the root list are concatenated.
+
+For example the setting: '((title headline) alias) means the following:
+
+@itemize
+@item
+Return the 'title + 'alias, if the title of current buffer is non-empty;
+
+@item
+Or return 'headline + 'alias otherwise.
+@end itemize
+
+The currently supported symbols are:
+
+@code{'title}
+The @code{#+title} property of org file.
+
+@code{'alias}
+The @code{#+roam_alias} property of the org file, using
+space-delimited strings.
+
+@code{'headline}
+The first headline in the org file.
+@end itemize
+
+Adding your own title extraction method requires two steps. First, define a
+method @code{(defun org-roam--extract-titles-foo () ...)}, where @code{foo} a
+self-prescribed name for the title extraction method. This method takes no
+arguments, and returns a list of strings (titles). Finally, push the symbol
+@code{foo} into @code{org-roam-title-sources}. You may need to rebuild the cache from
+scratch to re-process all files to pick up the new titles.
+
+@node File Tags
+@section File Tags
 
 Tags are used as meta-data for files: they facilitate interactions with notes
 where titles are insufficient. For example, tags allow for categorization of
-notes: differentiating between bibliographical and structure notes during interactive commands.
+notes: differentiating between bibliographical and structure notes during
+interactive commands.
 
-Org-roam calls @code{org-roam--extract-tags} to extract tags from files. It uses the
-variable @code{org-roam-tag-sources}, to control how tags are extracted. The tag
-extraction methods supported are:
+By default, tags are extracted from the @code{#+roam_tags} property. To add
+additional extraction methods, see @ref{Customizing Tag Extraction}.
 
-@enumerate
-@item
-@code{'prop}: This extracts tags from the @code{#+roam_tags} property. Tags are space delimited, and can be multi-word using double quotes.
-@item
-@code{'all-directories}: All sub-directories relative to @code{org-roam-directory} are
-extracted as tags. That is, if a file is located at relative path
-@code{foo/bar/file.org}, the file will have tags @code{foo} and @code{bar}.
-@item
-@code{'last-directory}: Extracts the last directory relative to
-@code{org-roam-directory} as the tag. That is, if a file is located at relative
-path @code{foo/bar/file.org}, the file will have tag @code{bar}.
-@item
-@code{'first-directory}: Extracts the first directory relative to
-@code{org-roam-directory} as the tag. That is, if a file is located at relative
-path @code{foo/bar/file.org}, the file will have tag @code{foo}.
-@end enumerate
+@menu
+* Customizing Tag Extraction::
+@end menu
+
+@node Customizing Tag Extraction
+@subsection Customizing Tag Extraction
+
+Org-roam calls @code{org-roam--extract-tags} to extract tags from files. The variable
+@code{org-roam-tag-sources}, to control how tags are extracted.
+
+@defopt org-roam-tag-sources
+@end defopt
+
+Sources to obtain tags from.
+
+It should be a list of symbols representing any of the following extraction
+methods:
+
+@code{'prop}
+  Extract tags from the @code{#+roam_tags} property.
+  Tags are space delimited.
+  Tags may contain spaces if they are double-quoted.
+  e.g. @code{#+roam_tags: TAG "tag with spaces"}
+
+@code{'vanilla}
+  Extract vanilla org-mode tags, including @code{#+FILETAGS} and
+  inherited tags.
+
+@code{'all-directories}
+  Extract sub-directories relative to @code{org-roam-directory}.
+  That is, if a file is located at relative path foo/bar/file.org,
+  the file will have tags ``foo'' and ``bar''.
+
+@code{'last-directory}
+  Extract the last directory relative to `org-roam-directory'.
+  That is, if a file is located at relative path foo/bar/file.org,
+  the file will have tag \``bar\''.
+
+@code{'first-directory}
+  Extract the first directory relative to @code{org-roam-directory}.
+  That is, if a file is located at relative path foo/bar/file.org,
+  the file will have tag ``foo''
 
 By default, only the @code{'prop} extraction method is enabled. To enable the other
-extraction methods, you may modify @code{org-roam-tag-sources}:
+extraction methods, you may modify @code{org-roam-tag-sources}, for example:
 
 @lisp
 (setq org-roam-tag-sources '(prop last-directory))
 @end lisp
 
-If you wish to add your own tag extraction method, you may push a symbol @code{'foo}
-into @code{org-roam-tag-sources}, and define a @code{org-roam--extract-tags-foo} which
-accepts the absolute file path as its argument. See
-@code{org-roam--extract-tags-prop} for an example.
+Adding your own tag extraction method requires two steps. First, define a method
+@code{(defun org-roam--extract-tags-foo (file) ...)}, where @code{foo} a self-prescribed
+name for the tag extraction method. This method takes the file path as an
+argument, and returns a list of strings (titles). Finally, push the symbol @code{foo}
+into @code{org-roam-tag-sources}. You may need to rebuild the cache from scratch to
+re-process all files to pick up the new tags.
 
 @node File Refs
 @section File Refs
 
-Refs are unique identifiers for files. Each note can only have 1 ref.
-For example, a note for a website may contain a ref:
+Refs are unique identifiers for files. For example, a note for a website may
+contain a ref:
 
 @example
 #+title: Google
 #+roam_key: https://www.google.com/
 @end example
 
-These keys come in useful for when taking website notes, using the
-@code{roam-ref} protocol (see @ref{Roam Protocol}).
+These keys allow references to the key to show up in the backlinks buffer. For
+instance, with the example above, if another file then links to
+@uref{https://www.google.com}, that will show up as a “Ref Backlink”.
 
-Alternatively, add a ref for notes for a specific paper, using its
-@uref{https://github.com/jkitchin/org-ref, org-ref} citation key:
+These keys also come in useful for when taking website notes, using the
+ @code{roam-ref} protocol (see @ref{Roam Protocol}).
+
+@uref{https://github.com/jkitchin/org-ref, org-ref} citation keys can also be used as refs:
 
 @example
 #+title: Neural Ordinary Differential Equations
 #+roam_key: cite:chen18_neural_ordin_differ_equat
 @end example
 
-The backlinks buffer will show any cites of this key: e.g.
-
 @float Figure
 @image{images/org-ref-citelink,,,,png}
 @caption{org-ref-citelink}
 @end float
+
+You may assign multiple refs to a single file, for example when you want
+multiple papers in a series to share the same note, or an article has a citation
+key and a URL at the same time.
 
 @node The Templating System
 @chapter The Templating System
@@ -660,10 +844,13 @@ include:
 @itemize
 @item
 Time of creation
+
 @item
 File it was created from
+
 @item
 Clipboard content
+
 @item
 Any other data you may want to input manually
 @end itemize
@@ -700,21 +887,25 @@ the default template, reproduced below.
      :unnarrowed t)
 @end lisp
 
-@enumerate
+@itemize
 @item
-The template has short key @code{"d"}. If you have only one template,
-org-roam automatically chooses this template for you.
+The template has short key @code{"d"}. If you have only one template, org-roam
+automatically chooses this template for you.
+
 @item
 The template is given a description of @code{"default"}.
+
 @item
 @code{plain} text is inserted. Other options include Org headings via
 @code{entry}.
+
 @item
 @code{(function org-roam--capture-get-point)} should not be changed.
+
 @item
 @code{"%?"} is the template inserted on each call to @code{org-roam-capture--capture}.
-This template means don't insert any content, but place the cursor
-here.
+This template means don't insert any content, but place the cursor here.
+
 @item
 @code{:file-name} is the file-name template for a new note, if it doesn't yet
 exist. This creates a file at path that looks like
@@ -722,14 +913,16 @@ exist. This creates a file at path that looks like
 allows you to specify if you want the note to go into a subdirectory. For
 example, the template @code{private/$@{slug@}} will create notes in
 @code{/path/to/org-roam-directory/private}.
+
 @item
 @code{:head} contains the initial template to be inserted (once only), at
 the beginning of the file. Here, the title global attribute is
 inserted.
+
 @item
 @code{:unnarrowed t} tells org-capture to show the contents for the whole
 file, rather than narrowing to just the entry.
-@end enumerate
+@end itemize
 
 Other options you may want to learn about include @code{:immediate-finish}.
 
@@ -748,9 +941,9 @@ provided title. @code{$@{title@}} is then expanded into the provided title durin
 org-capture process. Any variables that do not contain strings, are prompted for
 values using @code{completing-read}.
 
-After doing this expansion, the org-capture's template expansion system
-is used to fill up the rest of the template. You may read up more on
-this on @uref{https://orgmode.org/manual/Template-expansion.html#Template-expansion, org-capture's documentation page}.
+After doing this expansion, the org-capture's template expansion system is used
+to fill up the rest of the template. You may read up more on this on
+@uref{https://orgmode.org/manual/Template-expansion.html#Template-expansion, org-capture's documentation page}.
 
 To illustrate this dual expansion process, take for example the template string:
 @code{"%<%Y%m%d%H%M%S>-$@{title@}"}, with the title @code{"Foo"}. The template is first
@@ -773,18 +966,19 @@ directly to provide its third argument to specify UTC@.
 @node Concepts and Configuration
 @chapter Concepts and Configuration
 
-The number of configuration options is deliberately kept small, to keep
-the Org-roam codebase manageable. However, we attempt to accommodate as
-many usage styles as possible.
+The number of configuration options is deliberately kept small, to keep the
+Org-roam codebase manageable. However, we attempt to accommodate as many usage
+styles as possible.
 
-All of Org-roam's customization options can be viewed via
-@code{M-x customize-group org-roam}.
+All of Org-roam's customization options can be viewed via @code{M-x customize-group
+org-roam}.
 
 @menu
 * Directories and Files::
 * The Org-roam Buffer::
 * Org-roam Files::
 * Org-roam Faces::
+* The Database::
 @end menu
 
 @node Directories and Files
@@ -792,59 +986,55 @@ All of Org-roam's customization options can be viewed via
 
 This section concerns the placement and creation of files.
 
-@itemize
-@item
-Variable: org-roam-directory
+@defvar org-roam-directory
 
 This is the default path to Org-roam files. All Org files, at any level of
 nesting, are considered part of the Org-roam.
+@end defvar
 
-@item
-Variable: org-roam-db-location
+@defvar org-roam-db-location
 
 Location of the Org-roam database. If this is non-nil, the Org-roam sqlite
 database is saved here.
 
 It is the user’s responsibility to set this correctly, especially when used
 with multiple Org-roam instances.
+@end defvar
 
-@item
-Variable: org-roam-file-exclude-regexp
+@defvar org-roam-file-exclude-regexp
 
 Files matching this regular expression are excluded from the Org-roam.
-@end itemize
+@end defvar
 
 @node The Org-roam Buffer
 @section The Org-roam Buffer
 
 The Org-roam buffer displays backlinks for the currently active Org-roam note.
 
-@itemize
-@item
-User Option: org-roam-buffer
+@defopt org-roam-buffer
 
 The name of the org-roam buffer. Defaults to @code{*org-roam*}.
+@end defopt
 
-@item
-User Option: org-roam-buffer-position
+@defopt org-roam-buffer-position
 
 The position of the Org-roam buffer side window. Valid values are @code{'left},
 @code{'right}, @code{'top}, @code{'bottom}.
+@end defopt
 
-@item
-User Option: org-roam-buffer-width
+@defopt org-roam-buffer-width
 
 Width of @code{org-roam-buffer}. Has an effect only if @code{org-roam-buffer-position} is
 @code{'left} or @code{'right}.
+@end defopt
 
-@item
-User Option: org-roam-buffer-height
+@defopt org-roam-buffer-height
 
 Height of @code{org-roam-buffer}. Has an effect only if @code{org-roam-buffer-position} is
 @code{'top} or @code{'bottom}.
+@end defopt
 
-@item
-User Option: org-roam-buffer-window-parameters
+@defopt org-roam-buffer-window-parameters
 
 Additional window parameters for the org-roam-buffer side window.
 
@@ -852,7 +1042,7 @@ For example one can prevent the window from being deleted when calling
 @code{delete-other-windows}, by setting it with the following:
 
 @code{(setq org-roam-buffer-window-parameters '((no-delete-other-windows . t)))}
-@end itemize
+@end defopt
 
 @node Org-roam Files
 @section Org-roam Files
@@ -866,14 +1056,12 @@ system. The templating system is customizable (see @ref{The Templating System}).
 Org-roam introduces several faces to distinguish links within the same buffer.
 These faces are enabled by default in Org-roam notes.
 
-@itemize
-@item
-User Option: org-roam-link-use-custom-faces
+@defopt org-roam-link-use-custom-faces
 
 When @code{t}, use custom faces only inside Org-roam notes.
 When @code{everywhere}, the custom face is applied additionally to non Org-roam notes.
 When @code{nil}, do not use Org-roam's custom faces.
-@end itemize
+@end defopt
 
 The @code{org-roam-link} face is the face applied to links to other Org-roam files.
 This distinguishes internal links from external links (e.g. external web links).
@@ -882,6 +1070,27 @@ The @code{org-roam-link-current} face corresponds to links to the same file it i
 
 The @code{org-roam-link-invalid} face is applied to links that are broken. These are
 links to files or IDs that cannot be found.
+
+@node The Database
+@section @strong{TODO} The Database
+
+Org-roam is backed by a Sqlite database.
+
+@defopt org-roam-db-update-method
+
+Method to update the Org-roam database.
+
+@code{'immediate}: Update the database immediately upon file changes.
+
+@code{'idle-timer}: Updates the database if dirty, if Emacs idles for
+@code{org-roam-db-update-idle-seconds}.
+@end defopt
+
+@defopt org-roam-db-update-idle-seconds
+
+Number of idle seconds before triggering an Org-roam database update. This is
+only valid if @code{org-roam-db-update-method} is @code{'idle-timer}.
+@end defopt
 
 @node Inserting Links
 @chapter Inserting Links
@@ -900,56 +1109,128 @@ populate the Org-roam database. The link can then be inserted via
 An alternative mode of insertion is using Org-roam's @code{roam} links. Org-roam
 registers this link type, and interprets the path as follows:
 
-@table @asis
-@item @code{[[roam:title]]}
-links to an Org-roam file with title or alias ``title''
-@item @code{[[roam:*headline]]}
-links to the headline ``headline'' in the current Org-roam file
-@item @code{[[roam:title*headline]]}
-links to the headline ``headline'' in the Org-roam file with title or alias ``title''
-@end table
-
-@code{roam} links support auto-completion via @code{completion-at-point}: simply call
-@code{completion-at-point} within a roam link. Users of @code{company-mode} may want to
-prepend @code{company-capf} to the beginning of variable @code{company-backends}.
-
-To easily insert @code{roam} links, one may wish to use a package like @uref{https://github.com/emacsorphanage/key-chord/, key-chord}. In the following example, typing ``[['' will insert a stub @code{roam} link:
-
-@lisp
-(key-chord-define org-mode-map "[[" #'my/insert-roam-link)
-
-(defun my/insert-roam-link ()
-    "Inserts an Org-roam link."
-    (interactive)
-    (insert "[[roam:]]")
-    (backward-char 2))
-@end lisp
-
 @itemize
+ @item
+ @code{[[roam:title]]}links to an Org-roam file with title or alias ``title''
+
 @item
-User Option: org-roam-link-title-format
+ @code{[[roam:*headline]]}links to the headline ``headline'' in the current
+Org-roam file
+
+@item
+ @code{[[roam:title*headline]]}links to the headline ``headline'' in the Org-roam
+file with title or alias ``title''
+
+@end itemize
+
+@defopt org-roam-link-title-format
 
 To distinguish between org-roam links and regular links, one may choose to use
 special indicators for Org-roam links. Defaults to @code{"%s"}.
 
 If your version of Org is at least @code{9.2}, consider styling the link differently,
 by customizing the @code{org-roam-link}, and @code{org-roam-link-current} faces.
+@end defopt
 
-@item
-User Option: org-roam-completion-ignore-case
-
-When non-nil, the @code{roam} link completions are ignore case. For example,
-calling @code{completion-at-point} within @code{[[roam:fo]]} will present a completion
-for a file with title ``Foo''. Defaults to @code{t}.
-
-@item
-User Option: org-roam-link-auto-replace
+@defopt org-roam-link-auto-replace
 
 When non-nil, @code{roam} links will be replaced with @code{file} or @code{id} links when
 they are navigated to, and on file save, when a match is found. This is
 desirable to maintain compatibility with vanilla Org, but resolved links are
 harder to edit. Defaults to @code{t}.
+@end defopt
+
+@node Completions
+@chapter Completions
+
+Completions for Org-roam are provided via @code{completion-at-point}. Completion
+suggestions are implemented as separate functions. Org-roam installs all
+functions in @code{org-roam-completion-functions} to @code{completion-at-point-functions}.
+
+@defvar org-roam-completion-functions
+
+The list of functions to be used with @code{completion-at-point}.
+@end defvar
+
+@defopt org-roam-completion-ignore-case
+
+When non-nil, the @code{roam} link completions are ignore case. For example,
+calling @code{completion-at-point} within @code{[[roam:fo]]} will present a completion
+for a file with title ``Foo''. Defaults to @code{t}.
+@end defopt
+
+To use the completions from Org-roam with @code{company-mode}, prepend @code{company-capf}
+to variable @code{company-backends}.
+
+@menu
+* Link Completion::
+* Tag Completion::
+@end menu
+
+@node Link Completion
+@section Link Completion
+
+@code{roam} links support auto-completion via @code{completion-at-point}: simply call
+@code{M-x completion-at-point} within a roam link. That is, where the @code{|} character
+represents the cursor:
+
+@itemize
+@item
+@code{[[|]]}: completes for a file title
+
+@item
+@code{[[roam:]]}: completes for a file title
+
+@item
+@code{[[*|]]}: completes for a headline within this file
+
+@item
+@code{[[foo*|]]}: completes a headline within the file with title ``foo''
+
+@item
+@code{[[roam:foo*|]]} completes a headline within the file with title ``foo''
 @end itemize
+
+Completions account for the current input. For example, for @code{[[f|]]}, the
+completions (by default) only show for files with titles that start with ``f''.
+
+@defun org-roam-link-complete-at-point
+
+Do appropriate completion for the link at point.
+@end defun
+
+@menu
+* Link Completions Everywhere::
+@end menu
+
+@node Link Completions Everywhere
+@subsection Link Completions Everywhere
+
+Org-roam is able to provide completions from the current word at point, enabling
+as-you-type link completions. However, this is disabled by default: the author
+believes that linking should be a deliberate action and linking should be
+performed with great care.
+
+Setting @code{org-roam-completion-everywhere} to @code{t} will enable word-at-point
+completions.
+
+@defopt org-roam-completion-everywhere
+
+If non-nil, provide completions from the current word at point. That is, in
+the scenario @code{this is a sent|}, calling @code{completion-at-point} will show
+completions for titles that begin with ``sent''.
+@end defopt
+
+@node Tag Completion
+@section Tag Completion
+
+Org-roam facilitates the insertion of existing tags via @code{completion-at-point}.
+
+That is, suppose you have notes with tags ``foo'', and ``bar''. Now, in a note, if
+you're on a line beginning with @code{#+roam_tags:}, completions for these will
+appear as-you-type if they match.
+
+This functionality is implemented in @code{org-roam-complete-tags-at-point}.
 
 @node Navigating Around
 @chapter Navigating Around
@@ -967,9 +1248,7 @@ to your main files.
 In Org-roam, you can define the path to your index file by setting
 @code{org-roam-index-file}.
 
-@itemize
-@item
-Variable: org-roam-index-file
+@defvar org-roam-index-file
 
 Path to the Org-roam index file.
 
@@ -978,12 +1257,12 @@ path (absolute or relative to @code{org-roam-directory}) to the index file. If i
 is is a function, the function should return the path to the index file.
 Otherwise, the index is assumed to be a note in @code{org-roam-index} whose
 title is @code{"Index"}.
+@end defvar
 
-@item
-Function: org-roam-find-index
+@defun org-roam-find-index
 
 Opens the Index file in the current @code{org-roam-directory}.
-@end itemize
+@end defun
 
 @node Encryption
 @chapter Encryption
@@ -993,16 +1272,14 @@ GPG), which can be enabled for all new files by setting @code{org-roam-encrypt-f
 to @code{t}. When enabled, new files are created with the @code{.org.gpg} extension and
 decryption are handled automatically by EasyPG@.
 
-Note that Emacs will prompt for a password for encrypted files during
-cache updates if it requires reading the encrypted file. To reduce the
-number of password prompts, you may wish to cache the password.
+Note that Emacs will prompt for a password for encrypted files during cache
+updates if it requires reading the encrypted file. To reduce the number of
+password prompts, you may wish to cache the password.
 
-@itemize
-@item
-Variable: org-roam-encrypt-files
+@defopt org-roam-encrypt-files
 
-Whether to encrypt new files.  If true, create files with .org.gpg extension.
-@end itemize
+Whether to encrypt new files. If true, create files with .org.gpg extension.
+@end defopt
 
 @node Graphing
 @chapter Graphing
@@ -1013,9 +1290,7 @@ notes. This is done by performing SQL queries and generating images using
 
 The entry point to graph creation is @code{org-roam-graph}.
 
-@itemize
-@item
-Function: org-roam-graph & optional arg file node-query
+@defun org-roam-graph & optional arg file node-query
 
 Build and possibly display a graph for FILE from NODE-QUERY@.
 If FILE is nil, default to current buffer’s file name.
@@ -1024,41 +1299,50 @@ ARG may be any of the following values:
 @itemize
 @item
 @code{nil}       show the graph.
+
 @item
 @code{C-u}       show the graph for FILE@.
+
 @item
 @code{C-u N}     show the graph for FILE limiting nodes to N steps.
+
 @item
 @code{C-u C-u}   build the graph.
+
 @item
 @code{C-u -}     build the graph for FILE@.
+
 @item
 @code{C-u -N}    build the graph for FILE limiting nodes to N steps.
 @end itemize
+@end defun
 
-@item
-User Option: org-roam-graph-executable
+@defopt org-roam-graph-executable
 
-Path to the graphing executable (in this case, Graphviz). Set this if Org-roam is unable to find the Graphviz executable on your system.
+Path to the graphing executable (in this case, Graphviz). Set this if Org-roam
+is unable to find the Graphviz executable on your system.
 
 You may also choose to use @code{neato} in place of @code{dot}, which generates a more
 compact graph layout.
+@end defopt
 
-@item
-User Option: org-roam-graph-viewer
+@defopt org-roam-graph-viewer
 
-Org-roam defaults to using Firefox (located on PATH) to view the SVG, but you may choose to set it to:
+Org-roam defaults to using Firefox (located on PATH) to view the SVG, but you
+may choose to set it to:
 
-@enumerate
+@itemize
 @item
 A string, which is a path to the program used
+
 @item
 a function accepting a single argument: the graph file path.
-@end enumerate
+@end itemize
 
 @code{nil} uses @code{view-file} to view the graph.
 
-If you are using WSL2 and would like to open the graph in Windows, you can use the second option to set the browser and network file path:
+If you are using WSL2 and would like to open the graph in Windows, you can use
+the second option to set the browser and network file path:
 
 @lisp
 (setq org-roam-graph-viewer
@@ -1066,7 +1350,7 @@ If you are using WSL2 and would like to open the graph in Windows, you can use t
       (let ((org-roam-graph-viewer "/mnt/c/Program Files/Mozilla Firefox/firefox.exe"))
         (org-roam-graph--open (concat "file://///wsl$/Ubuntu" file)))))
 @end lisp
-@end itemize
+@end defopt
 
 @menu
 * Graph Options::
@@ -1076,42 +1360,40 @@ If you are using WSL2 and would like to open the graph in Windows, you can use t
 @node Graph Options
 @section Graph Options
 
-Graphviz provides many options for customizing the graph output, and Org-roam supports some of them. See @uref{https://graphviz.gitlab.io/_pages/doc/info/attrs.html} for customizable options.
+Graphviz provides many options for customizing the graph output, and Org-roam
+supports some of them. See @uref{https://graphviz.gitlab.io/_pages/doc/info/attrs.html}
+for customizable options.
 
-@itemize
-@item
-User Option: org-roam-graph-extra-config
+@defopt org-roam-graph-extra-config
 
 Extra options passed to graphviz for the digraph (The ``G'' attributes).
 Example: @code{'~(("rankdir" . "LR"))}
+@end defopt
 
-@item
-User Option: org-roam-graph-node-extra-config
+@defopt org-roam-graph-node-extra-config
 
 Extra options for nodes in the graphviz output (The ``N'' attributes).
 Example: @code{'(("color" . "skyblue"))}
+@end defopt
 
-@item
-User Option: org-roam-graph-edge-extra-config
+@defopt org-roam-graph-edge-extra-config
 
 Extra options for edges in the graphviz output (The ``E'' attributes).
 Example: @code{'(("dir" . "back"))}
+@end defopt
 
-@item
-User Option: org-roam-graph-edge-cites-extra-config
+@defopt org-roam-graph-edge-cites-extra-config
 
 Extra options for citation edges in the graphviz output.
 Example: @code{'(("color" . "red"))}
-@end itemize
+@end defopt
 
 @node Excluding Nodes and Edges
 @section Excluding Nodes and Edges
 
 One may want to exclude certain files to declutter the graph.
 
-@itemize
-@item
-User Option: org-roam-graph-exclude-matcher
+@defopt org-roam-graph-exclude-matcher
 
 Matcher for excluding nodes from the generated graph. Any nodes and links for
 file paths matching this string is excluded from the graph.
@@ -1120,7 +1402,7 @@ If value is a string, the string is the only matcher.
 
 If value is a list, all file paths matching any of the strings
 are excluded.
-@end itemize
+@end defopt
 
 @example
 (setq org-roam-graph-exclude-matcher '("private" "dailies"))
@@ -1128,8 +1410,8 @@ are excluded.
 
 This setting excludes all files whose path contain ``private'' or ``dailies''.
 
-@node Org-roam Completion System
-@chapter Org-roam Completion System
+@node Minibuffer Completion
+@chapter Minibuffer Completion
 
 Org-roam allows customization of which minibuffer completion system to use for
 its interactive commands. The default setting uses Emacs' standard
@@ -1154,23 +1436,20 @@ Other options include @code{'ido}, and @code{'ivy}.
 @node Roam Protocol
 @chapter Roam Protocol
 
+Org-roam extends @code{org-protocol} with 2 protocols: the @code{roam-file} and @code{roam-ref}
+protocols.
+
 @menu
-* _::
 * Installation: Installation (1). 
 * The roam-file protocol::
 * The roam-ref protocol::
 @end menu
 
-@node _
-@section _ :ignore:
-
-Org-roam extending @code{org-protocol} with 2 protocols: the @code{roam-file}
-and @code{roam-ref} protocol.
-
 @node Installation (1)
 @section Installation
 
-To enable Org-roam's protocol extensions, you have to add the following to your init file:
+To enable Org-roam's protocol extensions, you have to add the following to your
+init file:
 
 @lisp
 (require 'org-roam-protocol)
@@ -1181,7 +1460,8 @@ The instructions for setting up @code{org-protocol} are reproduced below.
 We will also need to create a desktop application for @code{emacsclient}. The
 instructions for various platforms are shown below.
 
-For Linux users, create a desktop application in @code{~/.local/share/applications/org-protocol.desktop}:
+For Linux users, create a desktop application in
+@code{~/.local/share/applications/org-protocol.desktop}:
 
 @example
 [Desktop Entry]
@@ -1200,9 +1480,9 @@ running in your shell:
 xdg-mime default org-protocol.desktop x-scheme-handler/org-protocol
 @end example
 
-To disable the ``confirm'' prompt in Chrome, you can also make Chrome
-show a checkbox to tick, so that the @code{Org-Protocol Client} app will be used
-without confirmation. To do this, run in a shell:
+To disable the ``confirm'' prompt in Chrome, you can also make Chrome show a
+checkbox to tick, so that the @code{Org-Protocol Client} app will be used without
+confirmation. To do this, run in a shell:
 
 @example
 sudo mkdir -p /etc/opt/chrome/policies/managed/
@@ -1223,51 +1503,60 @@ See @uref{https://www.chromium.org/administrators/linux-quick-start, here} for m
 For MacOS, one solution is to use @uref{https://github.com/sveinbjornt/Platypus, Platypus}. Here are the instructions for
 setting up with Platypus and Chrome:
 
-@enumerate
+@itemize
 @item
 Install and launch Platypus (with @uref{https://brew.sh/, Homebrew}):
-@end enumerate
+@end itemize
 
 @example
 brew cask install platypus
 @end example
 
-@enumerate
+@itemize
 @item
 Create a script @code{launch_emacs.sh}:
-@end enumerate
+@end itemize
 
 @example
 #!/usr/bin/env bash
 /usr/local/bin/emacsclient --no-wait $1
 @end example
 
-@enumerate
+@itemize
 @item
 Create a Platypus app with the following settings:
-@end enumerate
+@end itemize
 
-@example
-| Setting                        | Value                     |
-|--------------------------------+---------------------------|
-| App Name                       | "OrgProtocol"             |
-| Script Type                    | "env" · "/usr/bin/env"    |
-| Script Path                    | "path/to/launch-emacs.sh" |
-| Interface                      | None                      |
-| Accept dropped items           | true                      |
-| Remain running after execution | false                     |
-@end example
+@multitable {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaa}
+@headitem Setting
+@tab Value
+@item App Name
+@tab ``OrgProtocol''
+@item Script Type
+@tab ``env'' · ``/usr/bin/env''
+@item Script Path
+@tab ``path/to/launch-emacs.sh''
+@item Interface
+@tab None
+@item Accept dropped items
+@tab true
+@item Remain running after execution
+@tab false
+@end multitable
 
 
 Inside @code{Settings}:
 
-@example
-| Setting                        | Value          |
-|--------------------------------+----------------|
-| Accept dropped files           | true           |
-| Register as URI scheme handler | true           |
-| Protocol                       | "org-protocol" |
-@end example
+@multitable {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa} {aaaaaaaaaaaaaa}
+@headitem Setting
+@tab Value
+@item Accept dropped files
+@tab true
+@item Register as URI scheme handler
+@tab true
+@item Protocol
+@tab ``org-protocol''
+@end multitable
 
 To disable the ``confirm'' prompt in Chrome, you can also make Chrome
 show a checkbox to tick, so that the @code{OrgProtocol} app will be used
@@ -1303,13 +1592,15 @@ REGEDIT4
 @@="\"C:\\Windows\\System32\\wsl.exe\" emacsclient \"%1\""
 @end example
 
-The above will forward the protocol to WSL@. If you run Emacs natively on Windows, replace the last line with:
+The above will forward the protocol to WSL@. If you run Emacs natively on
+Windows, replace the last line with:
 
 @example
 @@="\"c:\\path\\to\\emacs\\bin\\emacsclientw.exe\"  \"%1\""
 @end example
 
-After executing the .reg file, the protocol is registered and you can delete the file.
+After executing the .reg file, the protocol is registered and you can delete the
+file.
 
 @node The roam-file protocol
 @section The roam-file protocol
@@ -1321,7 +1612,7 @@ in the generated graph.
 @node The roam-ref protocol
 @section The roam-ref protocol
 
-This protocol finds or creates a new note with a given @code{roam_key} (see @ref{Anatomy of an Org-roam File}):
+This protocol finds or creates a new note with a given @code{roam_key} (see @ref{Files}):
 
 @image{images/roam-ref,,,,gif}
 
@@ -1329,10 +1620,12 @@ To use this, create the following @uref{https://en.wikipedia.org/wiki/Bookmarkle
 
 @example
 javascript:location.href =
-'org-protocol://roam-ref?template=r&ref='
-+ encodeURIComponent(location.href)
-+ '&title='
-+ encodeURIComponent(document.title)
+    'org-protocol://roam-ref?template=r&ref='
+    + encodeURIComponent(location.href)
+    + '&title='
+    + encodeURIComponent(document.title)
+    + '&body='
+    + encodeURIComponent(window.getSelection())
 @end example
 
 or as a keybinding in @code{qutebrowser} in , using the @code{config.py} file (see
@@ -1346,8 +1639,142 @@ where @code{template} is the template key for a template in
 @code{org-roam-capture-ref-templates} (see @ref{The Templating System}). These templates
 should contain a @code{#+roam_key: $@{ref@}} in it.
 
-@node Daily Notes
-@chapter @strong{TODO} Daily Notes
+@node Daily-notes
+@chapter Daily-notes
+
+Org-roam provides journaling capabilities akin to
+@ref{Org-journal} with @code{org-roam-dailies}.
+
+@menu
+* Configuration::
+* Capturing and finding daily-notes::
+* Navigation::
+@end menu
+
+@node Configuration
+@section Configuration
+
+For @code{org-roam-dailies} to work, you need to define two variables:
+
+@defvar @code{org-roam-dailies-directory}
+
+Path to daily-notes.
+@end defvar
+
+@defvar @code{org-roam-dailies-capture-templates}
+
+Capture templates for daily-notes in Org-roam.
+@end defvar
+
+Here is a sane default configuration:
+
+@lisp
+(setq org-roam-dailies-directory "daily/")
+
+(setq org-roam-dailies-capture-templates
+      '(("d" "default" entry
+         #'org-roam-capture--get-point
+         "* %?"
+         :file-name "daily/%<%Y-%m-%d>"
+         :head "#+title: %<%Y-%m-%d>\n\n")))
+@end lisp
+
+Make sure that @code{org-roam-dailies-directory} appears in @code{:file-name} for your
+notes to be recognized as daily-notes. You can have different templates placing
+their notes in different directories, but the one in
+@code{org-roam-dailies-directory} will be considered as the main one in commands.
+
+See @ref{The Templating System} for creating new
+templates. @code{org-roam-dailies} provides an extra @code{:olp} option which allows
+specifying the outline-path to a heading:
+
+@lisp
+(setq org-roam-dailies-capture-templates
+      '(("l" "lab" entry
+         #'org-roam-capture--get-point
+         "* %?"
+         :file-name "daily/%<%Y-%m-%d>"
+         :head "#+title: %<%Y-%m-%d>\n"
+         :olp ("Lab notes"))
+
+        ("j" "journal" entry
+         #'org-roam-capture--get-point
+         "* %?"
+         :file-name "daily/%<%Y-%m-%d>"
+         :head "#+title: %<%Y-%m-%d>\n"
+         :olp ("Journal"))))
+@end lisp
+
+The template @code{l} will put its notes under the heading ‘Lab notes’, and the
+template @code{j} will put its notes under the heading ‘Journal’.
+
+@node Capturing and finding daily-notes
+@section Capturing and finding daily-notes
+
+@defun @code{org-roam-dailies-capture-today} &optional goto
+
+Create an entry in the daily note for today.
+
+When @code{goto} is non-nil, go the note without creating an entry.
+@end defun
+
+@defun @code{org-roam-dailies-find-today}
+
+Find the daily note for today, creating it if necessary.
+@end defun
+
+There are variants of those commands for @code{-yesterday} and @code{-tomorrow}:
+
+@defun @code{org-roam-dailies-capture-yesterday} n &optional goto
+
+Create an entry in the daily note for yesteday.
+
+With numeric argument @code{n}, use the daily note @code{n} days in the past.
+@end defun
+
+@defun @code{org-roam-dailies-find-yesterday}
+
+With numeric argument N, use the daily-note N days in the future.
+@end defun
+
+There are also commands which allow you to use Emacs’s @code{calendar} to find the date
+
+@defun @code{org-roam-dailies-capture-date}
+
+Create an entry in the daily note for a date using the calendar.
+
+Prefer past dates, unless @code{prefer-future} is non-nil.
+
+With a 'C-u' prefix or when @code{goto} is non-nil, go the note without
+creating an entry.
+@end defun
+
+@defun @code{org-roam-dailies-find-date}
+
+Find the daily note for a date using the calendar, creating it if necessary.
+
+Prefer past dates, unless @code{prefer-future} is non-nil.
+@end defun
+
+@node Navigation
+@section Navigation
+
+You can navigate between daily-notes:
+
+@defun @code{org-roam-dailies-find-directory}
+
+Find and open @code{org-roam-dailies-directory}.
+@end defun
+
+@defun @code{org-roam-dailies-find-previous-note}
+
+When in an daily-note, find the previous one.
+@end defun
+
+@defun @code{org-roam-dailies-find-next-note}
+
+When in an daily-note, find the next one.
+@end defun
 
 @node Diagnosing and Repairing Files
 @chapter Diagnosing and Repairing Files
@@ -1357,17 +1784,17 @@ Org-roam provides a utility for diagnosing and repairing problematic files via
 Org-roam file. To run the check only for the current file, run @code{C-u M-x
 org-roam-doctor}, but note that this may take some time.
 
-@itemize
-@item
-Function: org-roam-doctor &optional this-buffer
+@defun org-roam-doctor &optional this-buffer
 
 Perform a check on Org-roam files to ensure cleanliness. If THIS-BUFFER, run
 the check only for the current buffer.
-@end itemize
+@end defun
 
-The checks run are defined in @code{org-roam-doctor--checkers}. Each checker is an
-instance of @code{org-roam-doctor-checker}. To define a checker, use
-@code{make-org-roam-doctor-checker}. Here is a sample definition:
+The checks run are defined in @code{org-roam-doctor--checkers}. By default, there are
+checkers for broken links and invalid @samp{#+roam_*} properties.
+
+Each checker is an instance of @code{org-roam-doctor-checker}. To define a checker,
+use @code{make-org-roam-doctor-checker}. Here is a sample definition:
 
 @lisp
 (make-org-roam-doctor-checker
@@ -1379,10 +1806,10 @@ instance of @code{org-roam-doctor-checker}. To define a checker, use
 @end lisp
 
 The @code{:name} property is the name of the function run. The function takes in the
-Org parse tree, and returns a list of @code{(point error-message)}. @code{:description} is a
-short description of what the checker does. @code{:actions} is an alist containing
-elements of the form @code{(char . (prompt . function))}. These actions are defined per
-checker, to perform autofixes for the errors. For each error detected,
+Org parse tree, and returns a list of @code{(point error-message)}. @code{:description} is
+a short description of what the checker does. @code{:actions} is an alist containing
+elements of the form @code{(char . (prompt . function))}. These actions are defined
+per checker, to perform autofixes for the errors. For each error detected,
 @code{org-roam-doctor} will move the point to the current error, and pop-up a help
 window displaying the error message, as well as the list of actions that can be
 taken provided in @code{:actions}.
@@ -1422,7 +1849,8 @@ unlinked references within encrypted files.
 @section Garbage Collection
 
 During the cache-build process, Org-roam generates a lot of in-memory
-data-structures (such as the Org file's AST), which are discarded after use. These structures are garbage collected at regular intervals (see @ref{Garbage Collection,info:elisp#Garbage Collection,,elisp,}).
+data-structures (such as the Org file's AST), which are discarded after use.
+These structures are garbage collected at regular intervals (see @ref{Garbage Collection,info:elisp#Garbage Collection,,elisp,}).
 
 Org-roam provides the option @code{org-roam-db-gc-threshold} to temporarily change
 the threshold value for GC to be triggered during these memory-intensive
@@ -1444,36 +1872,43 @@ operations. To reduce the number of garbage collection processes, one may set
 @node Note-taking Workflows
 @section Note-taking Workflows
 
-@table @asis
-@item Books
 @itemize
+ @item
+ Books@itemize
 @item
 @uref{https://www.goodreads.com/book/show/34507927-how-to-take-smart-notes, How To Take Smart Notes}
 @end itemize
-@item Articles
-@itemize
+
+@item
+ Articles@itemize
 @item
 @uref{https://www.lesswrong.com/posts/NfdHG6oHBJ8Qxc26s/the-zettelkasten-method-1, The Zettelkasten Method - LessWrong 2.0}
+
 @item
 @uref{https://reddit.com/r/RoamResearch/comments/eho7de/building_a_second_brain_in_roamand_why_you_might, Building a Second Brain in Roam@dots{}And Why You Might Want To : RoamResearch}
+
 @item
 @uref{https://www.nateliason.com/blog/roam, Roam Research: Why I Love It and How I Use It - Nat Eliason}
+
 @item
 @uref{https://twitter.com/adam_keesling/status/1196864424725774336?s=20, Adam Keesling's Twitter Thread}
+
 @item
 @uref{https://blog.jethro.dev/posts/how_to_take_smart_notes_org/, How To Take Smart Notes With Org-mode · Jethro Kuan}
 @end itemize
-@item Threads
-@itemize
+
+@item
+ Threads@itemize
 @item
 @uref{https://news.ycombinator.com/item?id=22473209, Ask HN: How to Take Good Notes}
 @end itemize
-@item Videos
-@itemize
+
+@item
+ Videos@itemize
 @item
 @uref{https://www.youtube.com/watch?v=RvWic15iXjk, How to Use Roam to Outline a New Article in Under 20 Minutes}
 @end itemize
-@end table
+@end itemize
 
 @node Ecosystem
 @section Ecosystem
@@ -1489,9 +1924,14 @@ operations. To reduce the number of garbage collection processes, one may set
 @node Browsing History with winner-mode
 @subsection Browsing History with winner-mode
 
-@code{winner-mode} is a global minor mode that allows one to undo and redo changes in the window configuration. It is included with GNU Emacs since version 20.
+@code{winner-mode} is a global minor mode that allows one to undo and redo changes in
+the window configuration. It is included with GNU Emacs since version 20.
 
-@code{winner-mode} can be used as a simple version of browser history for Org-roam. Each click through org-roam links (from both Org files and the backlinks buffer) causes changes in window configuration, which can be undone and redone using @code{winner-mode}. To use @code{winner-mode}, simply enable it, and bind the appropriate interactive functions:
+@code{winner-mode} can be used as a simple version of browser history for Org-roam.
+Each click through org-roam links (from both Org files and the backlinks buffer)
+causes changes in window configuration, which can be undone and redone using
+@code{winner-mode}. To use @code{winner-mode}, simply enable it, and bind the appropriate
+interactive functions:
 
 @lisp
 (winner-mode +1)
@@ -1529,16 +1969,15 @@ versions of a tracked Org-roam note.
   (deft-directory "/path/to/org-roam-files/"))
 @end lisp
 
-If the title of the Org file is not the first line, you might not get
-nice titles. You may choose to patch this to use @code{org-roam}'s
-functionality. Here I'm using
-@uref{https://github.com/raxod502/el-patch, el-patch}:
+If the title of the Org file is not the first line, you might not get nice
+titles. You may choose to patch this to use @code{org-roam}'s functionality. Here I'm
+using @uref{https://github.com/raxod502/el-patch, el-patch}:
 
 @lisp
 (use-package el-patch
   :straight (:host github
-                   :repo "raxod502/el-patch"
-                   :branch "develop"))
+             :repo "raxod502/el-patch"
+             :branch "develop"))
 
 (eval-when-compile
   (require 'el-patch))
@@ -1557,20 +1996,19 @@ used as title."
                        (if begin
                            (funcall deft-parse-title-function
                                     (substring contents begin (match-end 0))))))
-                   (org-roam--get-title-or-slug file))))
+                   (org-roam-db--get-title file))))
 @end lisp
 
-The Deft interface can slow down quickly when the number of files get
-huge. @uref{https://github.com/hasu/notdeft, Notdeft} is a fork of Deft
-that uses an external search engine and indexer.
+The Deft interface can slow down quickly when the number of files get huge.
+@uref{https://github.com/hasu/notdeft, Notdeft} is a fork of Deft that uses an external search engine and indexer.
 
 @node Org-journal
 @subsection Org-journal
 
-@uref{https://github.com/bastibe/org-journal, Org-journal} is a more
-powerful alternative to the simple function @code{org-roam-dailies-today}. It
-provides better journaling capabilities, and a nice calendar interface
-to see all dated entries.
+@uref{https://github.com/bastibe/org-journal, Org-journal} provides journaling capabilities to Org-mode. A lot of its
+functionalities have been incorporated into Org-roam under the name
+@ref{Daily-notes, , @code{org-roam-dailies}}. It remains a good tool if you want to isolate your verbose
+journal entries from the ideas you would write on a scratchpad.
 
 @lisp
 (use-package org-journal
@@ -1579,7 +2017,7 @@ to see all dated entries.
   :custom
   (org-journal-date-prefix "#+title: ")
   (org-journal-file-format "%Y-%m-%d.org")
-  (org-journal-dir "/path/to/org-roam-files/")
+  (org-journal-dir "/path/to/journal/files/")
   (org-journal-date-format "%A, %d %B %Y"))
 @end lisp
 
@@ -1652,6 +2090,10 @@ tight integration between
 @code{org-roam}. This helps you manage your bibliographic notes under
 @code{org-roam}.
 
+For example, though helm-bibtex provides the ability to visit notes for
+bibliographic entries, org-roam-bibtex extends it with the ability to visit the
+file with the right @samp{#+roam_key}.
+
 @node Spaced Repetition
 @unnumberedsubsubsec Spaced Repetition
 
@@ -1683,14 +2125,16 @@ contain:
          (org-roam-db-location . "./org-roam.db"))))
 @end lisp
 
-All files within that directory will be treated as their own separate
-set of Org-roam files. Remember to run @code{org-roam-db-build-cache} from a
-file within that directory, at least once.
+All files within that directory will be treated as their own separate set of
+Org-roam files. Remember to run @code{org-roam-db-build-cache} from a file within
+that directory, at least once.
 
 @node How do I migrate from Roam Research?
 @section How do I migrate from Roam Research?
 
-Fabio has produced a command-line tool that converts markdown files exported from Roam Research into Org-roam compatible markdown. More instructions are provided @uref{https://github.com/fabioberger/roam-migration, in the repository}.
+Fabio has produced a command-line tool that converts markdown files exported
+from Roam Research into Org-roam compatible markdown. More instructions are
+provided @uref{https://github.com/fabioberger/roam-migration, in the repository}.
 
 @node How do I create a note whose title already matches one of the candidates?
 @section How do I create a note whose title already matches one of the candidates?
@@ -1701,12 +2145,35 @@ This situation arises when, for example, one would like to create a note titled
 The solution is dependent on the mini-buffer completion framework in use. Here
 are the solutions:
 
-@table @asis
-@item Ivy
-call @code{ivy-immediate-done}, typically bound to @code{C-M-j}. Alternatively, set @code{ivy-use-selectable-prompt} to @code{t}, so that ``bar'' is now selectable.
-@item Helm
-Org-roam should provide a selectable ``[?] bar'' candidate at the top of the candidate list.
-@end table
+@itemize
+ @item
+ Ivycall @code{ivy-immediate-done}, typically bound to @code{C-M-j}. Alternatively,
+set @code{ivy-use-selectable-prompt} to @code{t}, so that ``bar'' is now selectable.
+
+@item
+ HelmOrg-roam should provide a selectable ``[?] bar'' candidate at the top of
+the candidate list.
+@end itemize
+
+@node Keystroke Index
+@appendix Keystroke Index
+
+@printindex ky
+
+@node Command Index
+@appendix Command Index
+
+@printindex cp
+
+@node Function Index
+@appendix Function Index
+
+@printindex fn
+
+@node Variable Index
+@appendix Variable Index
+
+@printindex vr
 
 Emacs 28.0.50 (Org mode 9.4)
 @bye

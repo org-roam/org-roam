@@ -5,7 +5,7 @@
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
-;; Version: 1.2.2
+;; Version: 1.2.3
 ;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (s "1.12.0") (org "9.3") (emacsql "3.0.0") (emacsql-sqlite3 "1.0.2"))
 
 ;; This file is NOT part of GNU Emacs.
@@ -79,7 +79,7 @@
   :group 'org
   :prefix "org-roam-"
   :link '(url-link :tag "Github" "https://github.com/org-roam/org-roam")
-  :link '(url-link :tag "Online Manual" "https://www.orgroam.com/manual/"))
+  :link '(url-link :tag "Online Manual" "https://www.orgroam.com/manual.html"))
 
 (defcustom org-roam-directory (expand-file-name "~/org-roam/")
   "Default path to Org-roam files.
@@ -112,11 +112,6 @@ ensure that."
   "Function called when visiting files in Org-roam commands.
 If nil, `find-file' is used."
   :type 'function
-  :group 'org-roam)
-
-(defcustom org-roam-update-db-idle-seconds 2
-  "Number of idle seconds before triggering an Org-roam database update."
-  :type 'integer
   :group 'org-roam)
 
 (defcustom org-roam-include-type-in-ref-path-completions nil
@@ -309,9 +304,6 @@ descriptive warnings when certain operations fail (e.g. parsing).")
            "]"))
   "Matches a typed link in double brackets.")
 
-(defvar org-roam--file-update-timer nil
-  "Timer for updating the database on file changes.")
-
 ;;;; Utilities
 (defun org-roam--plist-to-alist (plist)
   "Return an alist of the property-value pairs in PLIST."
@@ -374,13 +366,14 @@ Like `file-name-extension', but does not strip version number."
 If FILE is not specified, use the current buffer's file-path."
   (when-let ((path (or file
                        org-roam-file-name
-                       (buffer-file-name))))
-      (save-match-data
-        (and
-         (org-roam--org-file-p path)
-         (not (and org-roam-file-exclude-regexp
-                   (string-match-p org-roam-file-exclude-regexp path)))
-         (f-descendant-of-p path (expand-file-name org-roam-directory))))))
+                       (-> (buffer-base-buffer)
+                           (buffer-file-name)))))
+    (save-match-data
+      (and
+       (org-roam--org-file-p path)
+       (not (and org-roam-file-exclude-regexp
+                 (string-match-p org-roam-file-exclude-regexp path)))
+       (f-descendant-of-p path (expand-file-name org-roam-directory))))))
 
 (defun org-roam--shell-command-files (cmd)
   "Run CMD in the shell and return a list of files. If no files are found, an empty list is returned."
@@ -694,7 +687,7 @@ If NESTED, return the first successful result from SOURCES."
              (setq coll (nconc coll res))
            (setq coll res)
            (cl-return))))
-     coll)))
+     (-uniq coll))))
 
 (defun org-roam--extract-tags-all-directories (file)
   "Extract tags from using the directory path FILE.
@@ -745,11 +738,12 @@ Tags are obtained via:
    path is considered a tag.
 2. The key #+roam_tags."
   (let* ((file (or file (buffer-file-name (buffer-base-buffer))))
-         (tags (mapcan (lambda (source)
-                         (funcall (intern (concat "org-roam--extract-tags-"
-                                                  (symbol-name source)))
-                                  file))
-                       org-roam-tag-sources)))
+         (tags (-uniq
+                (mapcan (lambda (source)
+                          (funcall (intern (concat "org-roam--extract-tags-"
+                                                   (symbol-name source)))
+                                   file))
+                        org-roam-tag-sources))))
     (pcase org-roam-tag-sort
       ('nil tags)
       ((pred booleanp) (cl-sort tags 'string-lessp :key 'downcase))
@@ -803,11 +797,6 @@ Each ref is returned as a cons of its type and its key."
       (file-relative-name (expand-file-name org-roam-directory))
       (file-name-sans-extension)))
 
-(defun org-roam--get-title-or-slug (path)
-  "Convert `PATH' to the file title, if it exists.  Else, return the path."
-  (or (org-roam-db--get-titles path)
-      (org-roam--path-to-slug path)))
-
 (defun org-roam--title-to-slug (title)
   "Convert TITLE to a filename-suitable slug."
   (cl-flet* ((nonspacing-mark-p (char)
@@ -824,10 +813,11 @@ Each ref is returned as a cons of its type and its key."
            (slug (-reduce-from #'cl-replace (strip-nonspacing-marks title) pairs)))
       (downcase slug))))
 
-(defun org-roam-format-link (target &optional description type)
+(defun org-roam-format-link (target &optional description type link-type)
   "Formats an org link for a given file TARGET, link DESCRIPTION and link TYPE.
-TYPE defaults to \"file\".
-Here, we also check if there is an ID for the file."
+TYPE defaults to \"file\". LINK-TYPE is the type of file link to
+be generated. Here, we also check if there is an ID for the
+file."
   (setq type (or type "file"))
   (when-let ((id (and org-roam-prefer-id-links
                       (string-equal type "file")
@@ -838,7 +828,7 @@ Here, we also check if there is an ID for the file."
                                                target)))))
     (setq type "id" target id))
   (when (string-equal type "file")
-    (setq target (org-roam-link-get-path target)))
+    (setq target (org-roam-link-get-path target link-type)))
   (setq description
         (if (functionp org-roam-link-title-format)
             (funcall org-roam-link-title-format description type)
@@ -1013,24 +1003,18 @@ Return nil if the file does not exist."
   (and (boundp org-roam-backlinks-mode)
        org-roam-backlinks-mode))
 
-(defun org-roam--retrieve-link-destination (&optional pom)
-  "Retrieve the destination of the link at POM.
-The point-or-marker POM can either be a position in the current
-buffer or a marker."
-  (let ((pom (or pom (point))))
-    (org-with-point-at pom
-      (let* ((context (org-element-context))
-             (type (org-element-property :type context))
-             (dest (org-element-property :path context)))
-        (pcase type
-          ("id" (car (org-roam-id-find dest)))
-          (_ dest))))))
-
 (defun org-roam--backlink-to-current-p ()
-  "Return t if backlink is to the current Org-roam file."
-  (let ((current (buffer-file-name org-roam-buffer--current))
-        (backlink-dest (org-roam--retrieve-link-destination)))
-    (string= current backlink-dest)))
+  "Return t if the link at point is to the current Org-roam file."
+  (save-match-data
+    (let ((current-file (buffer-file-name org-roam-buffer--current))
+          (backlink-dest (save-excursion
+                           (let* ((context (org-element-context))
+                                  (type (org-element-property :type context))
+                                  (dest (org-element-property :path context)))
+                             (pcase type
+                               ("id" (org-roam-id-get-file dest))
+                               (_ dest))))))
+      (string= current-file backlink-dest))))
 
 (defun org-roam-open-at-point ()
   "Open an Org-roam link or visit the text previewed at point.
@@ -1295,7 +1279,7 @@ file."
     (org-roam--setup-title-auto-update)
     (add-hook 'post-command-hook #'org-roam-buffer--update-maybe nil t)
     (add-hook 'before-save-hook #'org-roam-link--replace-link-on-save nil t)
-    (add-hook 'after-save-hook #'org-roam-db--mark-dirty nil t)
+    (add-hook 'after-save-hook #'org-roam-db-update nil t)
     (dolist (fn org-roam-completion-functions)
       (add-hook 'completion-at-point-functions fn nil t))
     (org-roam-buffer--update-maybe :redisplay t)))
@@ -1306,24 +1290,24 @@ file."
              (org-roam--org-roam-file-p file))
     (org-roam-db--clear-file (expand-file-name file))))
 
-(defun org-roam--get-link-replacement (old-path new-path old-desc new-desc)
+(defun org-roam--get-link-replacement (old-path new-path &optional old-desc new-desc)
   "Create replacement text for link at point if OLD-PATH is a match.
 Will update link to NEW-PATH. If OLD-DESC is set, and is not the
 same as the link description, it is assumed that the user has
 modified the description, and the description will not be
 updated. Else, update with NEW-DESC."
-  (when-let ((link (org-element-lineage (org-element-context) '(link) t)))
-    (let ((type (org-element-property :type link))
-          (path (org-element-property :path link)))
+  (let (type path link-type label new-label)
+    (when-let ((link (org-element-lineage (org-element-context) '(link) t)))
+      (setq type (org-element-property :type link)
+            path (org-element-property :path link))
       (when (and (string-equal (expand-file-name path) old-path)
                  (org-in-regexp org-link-bracket-re 1))
-        (let* ((label (if (match-end 2)
-                          (match-string-no-properties 2)
-                        (org-link-unescape (match-string-no-properties 1))))
-               (new-label (if (string-equal label old-desc)
-                              new-desc
-                            label)))
-          (org-roam-format-link new-path new-label type))))))
+        (setq link-type (when (file-name-absolute-p path) 'absolute)
+              label (if (match-end 2)
+                        (match-string-no-properties 2)
+                      (org-link-unescape (match-string-no-properties 1))))
+        (setq new-label (if (string-equal label old-desc) new-desc label))
+        (org-roam-format-link new-path new-label type link-type)))))
 
 (defun org-roam--replace-link (old-path new-path &optional old-desc new-desc)
   "Replace Org-roam file links with path OLD-PATH to path NEW-PATH.
@@ -1331,13 +1315,10 @@ If OLD-DESC is passed, and is not the same as the link
 description, it is assumed that the user has modified the
 description, and the description will not be updated. Else,
 update with NEW-DESC."
-  (save-excursion
-    (goto-char (point-min))
-    (while (re-search-forward org-link-any-re nil t)
-      (when-let ((new-link (save-match-data
-                             (org-roam--get-link-replacement
-                              old-path new-path old-desc new-desc))))
-        (replace-match new-link)))))
+  (org-with-point-at 1
+    (while (re-search-forward org-link-bracket-re nil t)
+      (when-let ((link (save-match-data (org-roam--get-link-replacement old-path new-path old-desc new-desc))))
+        (replace-match link)))))
 
 (defun org-roam--fix-relative-links (old-path)
   "Fix file-relative links in current buffer.
@@ -1421,10 +1402,10 @@ To be added to `org-roam-title-change-hook'."
       (when (string-match-p old-slug file-name)
         (let* ((new-slug (funcall org-roam-title-to-slug-function new-title))
                (new-file-name (replace-regexp-in-string old-slug new-slug file-name)))
-          (unless (string-match-p file-name new-file-name)
+          (unless (string-equal file-name new-file-name)
             (rename-file file-name new-file-name)
             (set-visited-file-name new-file-name t t)
-            (org-roam-db--mark-dirty)
+            (org-roam-db-update)
             (org-roam-message "File moved to %S" (abbreviate-file-name new-file-name))))))))
 
 (defun org-roam--rename-file-advice (old-file new-file-or-dir &rest _args)
@@ -1432,49 +1413,53 @@ To be added to `org-roam-title-change-hook'."
 When NEW-FILE-OR-DIR is a directory, we use it to compute the new file path."
   (let ((new-file (if (directory-name-p new-file-or-dir)
                       (expand-file-name (file-name-nondirectory old-file) new-file-or-dir)
-                    new-file-or-dir)))
+                    new-file-or-dir))
+        files-affected
+        new-buffer)
+    (setq new-file (expand-file-name new-file))
+    (setq old-file (expand-file-name old-file))
     (when (and (not (auto-save-file-name-p old-file))
                (not (auto-save-file-name-p new-file))
                (not (backup-file-name-p old-file))
                (not (backup-file-name-p new-file))
                (org-roam--org-roam-file-p old-file))
       (org-roam-db--ensure-built)
-      (let* ((old-path (expand-file-name old-file))
-             (new-path (expand-file-name new-file))
-             (new-buffer (or (find-buffer-visiting new-path)
-                             (find-file-noselect new-path)))
-             (files-affected (org-roam-db-query [:select :distinct [source]
-                                                 :from links
-                                                 :where (= dest $s1)]
-                                                old-path)))
-        ;; Remove database entries for old-file.org
-        (org-roam-db--clear-file old-file)
-        ;; Replace links from old-file.org -> new-file.org in all Org-roam files with these links
-        (mapc (lambda (file)
-                (setq file (if (string-equal (expand-file-name (car file)) old-path)
-                               new-path
-                             (car file)))
-                (with-current-buffer (or (find-buffer-visiting file)
-                                         (find-file-noselect file))
-                  (org-roam--replace-link old-path new-path)
-                  (save-buffer)
-                  (org-roam-db--update-file)))
-              files-affected)
-        ;; If the new path is in a different directory, relative links
-        ;; will break. Fix all file-relative links:
-        (unless (string= (file-name-directory old-path)
-                         (file-name-directory new-path))
-          (with-current-buffer new-buffer
-            (org-roam--fix-relative-links old-path)
-            (save-buffer)))
-        (when (org-roam--org-roam-file-p new-file)
-          (org-roam-db--update-file new-path))))))
+      (setq new-buffer (or (find-buffer-visiting new-file)
+                           (find-file-noselect new-file)))
+      (setq files-affected (org-roam-db-query [:select :distinct [source]
+                                               :from links
+                                               :where (= dest $s1)]
+                                              old-file))
+      ;; Remove database entries for old-file.org
+      (org-roam-db--clear-file old-file)
+      ;; Replace links from old-file.org -> new-file.org in all Org-roam files with these links
+      (mapc (lambda (file)
+              (setq file (if (string-equal (car file) old-file)
+                             new-file
+                           (car file)))
+              (with-current-buffer (or (find-buffer-visiting file)
+                                       (find-file-noselect file))
+                (org-roam--replace-link old-file new-file)
+                (save-buffer)
+                (org-roam-db--update-file)))
+            files-affected)
+      ;; If the new path is in a different directory, relative links
+      ;; will break. Fix all file-relative links:
+      (unless (string= (file-name-directory old-file)
+                       (file-name-directory new-file))
+        (with-current-buffer new-buffer
+          (org-roam--fix-relative-links old-file)
+          (save-buffer)))
+      (when (org-roam--org-roam-file-p new-file)
+        (org-roam-db--update-file new-file)))))
 
 (defun org-roam--id-new-advice (&rest _args)
   "Update the database if a new Org ID is created."
   (when (and org-roam-enable-headline-linking
-             (org-roam--org-roam-file-p))
-    (org-roam-db--mark-dirty)))
+             (org-roam--org-roam-file-p)
+             (not (eq org-roam-db-update-method 'immediate))
+             (not (org-roam-capture-p)))
+    (org-roam-db-update)))
 
 ;;;###autoload
 (define-minor-mode org-roam-mode
@@ -1509,22 +1494,28 @@ M-x info for more information at Org-roam > Installation > Post-Installation Tas
     (add-hook 'find-file-hook #'org-roam--find-file-hook-function)
     (add-hook 'kill-emacs-hook #'org-roam-db--close-all)
     (add-hook 'org-open-at-point-functions #'org-roam-open-id-at-point)
-    (unless org-roam--file-update-timer
-      (setq org-roam--file-update-timer (run-with-idle-timer org-roam-update-db-idle-seconds t #'org-roam-db-update-cache)))
+    (when (and (not org-roam-db-file-update-timer)
+               (eq org-roam-db-update-method 'idle-timer))
+        (setq org-roam-db-file-update-timer (run-with-idle-timer org-roam-db-update-idle-seconds t #'org-roam-db-update-cache-on-timer)))
     (advice-add 'rename-file :after #'org-roam--rename-file-advice)
     (advice-add 'delete-file :before #'org-roam--delete-file-advice)
     (advice-add 'org-id-new :after #'org-roam--id-new-advice)
     (when (fboundp 'org-link-set-parameters)
       (org-link-set-parameters "file" :face 'org-roam--file-link-face)
       (org-link-set-parameters "id" :face 'org-roam--id-link-face))
+    (dolist (buf (org-roam--get-roam-buffers))
+      (with-current-buffer buf
+        (add-hook 'post-command-hook #'org-roam-buffer--update-maybe nil t)
+        (add-hook 'before-save-hook #'org-roam-link--replace-link-on-save nil t)
+        (add-hook 'after-save-hook #'org-roam-db-update nil t)))
     (org-roam-db-build-cache))
    (t
     (setq org-execute-file-search-functions (delete 'org-roam--execute-file-row-col org-execute-file-search-functions))
     (remove-hook 'find-file-hook #'org-roam--find-file-hook-function)
     (remove-hook 'kill-emacs-hook #'org-roam-db--close-all)
     (remove-hook 'org-open-at-point-functions #'org-roam-open-id-at-point)
-    (when org-roam--file-update-timer
-      (cancel-timer org-roam--file-update-timer))
+    (when org-roam-db-file-update-timer
+      (cancel-timer org-roam-db-file-update-timer))
     (advice-remove 'rename-file #'org-roam--rename-file-advice)
     (advice-remove 'delete-file #'org-roam--delete-file-advice)
     (advice-remove 'org-id-new #'org-roam--id-new-advice)
@@ -1537,7 +1528,7 @@ M-x info for more information at Org-roam > Installation > Post-Installation Tas
       (with-current-buffer buf
         (remove-hook 'post-command-hook #'org-roam-buffer--update-maybe t)
         (remove-hook 'before-save-hook #'org-roam-link--replace-link-on-save t)
-        (remove-hook 'after-save-hook #'org-roam-db--mark-dirty t))))))
+        (remove-hook 'after-save-hook #'org-roam-db-update t))))))
 
 ;;; Interactive Commands
 ;;;###autoload
@@ -1788,7 +1779,7 @@ Return added tag."
   (interactive)
   (let* ((roam-buffers (org-roam--get-roam-buffers))
          (names-and-buffers (mapcar (lambda (buffer)
-                                      (cons (or (org-roam--get-title-or-slug
+                                      (cons (or (org-roam-db--get-title
                                                  (buffer-file-name buffer))
                                                 (buffer-name buffer))
                                             buffer))
@@ -1821,12 +1812,17 @@ means that the results can be noisy, and may not truly indicate
 an unlinked reference.
 
 Users are encouraged to think hard about whether items should be
-linked, lest the network graph get too crowded."
+linked, lest the network graph get too crowded.
+
+Requires a version of Ripgrep with PCRE2 support installed, with
+the executable 'rg' in variable `exec-path'."
   (interactive)
   (unless (org-roam--org-roam-file-p)
     (user-error "Not in org-roam file"))
   (if (not (executable-find "rg"))
       (error "Cannot find the ripgrep executable \"rg\". Check that it is installed and available on `exec-path'")
+    (when (string-match "PCRE2 is not available" (shell-command-to-string "rg --pcre2-version"))
+      (error "\"rg\" must be compiled with PCRE2 support"))
     (let* ((titles (org-roam--extract-titles))
            (rg-command (concat "rg -o --vimgrep -P -i "
                                (string-join (mapcar (lambda (glob) (concat "-g " glob))
@@ -1866,20 +1862,22 @@ linked, lest the network graph get too crowded."
                   (let ((rowcol (concat row ":" col)))
                     (insert "- "
                             (org-link-make-string (concat "file:" file "::" rowcol)
-                                                       (format "[%s] %s" rowcol (org-roam--get-title-or-slug file))))
+                                                  (format "[%s] %s" rowcol (or (org-roam-db--get-title file)
+                                                                               file))))
                     (when (executable-find "sed") ; insert line contents when sed is available
                       (insert " :: "
                               (shell-command-to-string
                                (concat "sed -n "
                                        row
                                        "p "
-                                       file))))
+                                       "\""
+                                       file
+                                       "\""))))
                     (insert "\n")))))))
         (read-only-mode +1)
         (dolist (title titles)
           (highlight-phrase (downcase title) 'bold-italic))
         (goto-char (point-min))))))
-
 
 ;;;###autoload
 (defun org-roam-version (&optional message)

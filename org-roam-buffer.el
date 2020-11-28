@@ -5,7 +5,7 @@
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
-;; Version: 1.2.2
+;; Version: 1.2.3
 ;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (s "1.12.0") (org "9.3") (emacsql "3.0.0") (emacsql-sqlite3 "1.0.2"))
 
 ;; This file is NOT part of GNU Emacs.
@@ -47,9 +47,10 @@
 (defvar org-roam--org-link-bracket-typed-re)
 
 (declare-function org-roam-db--ensure-built   "org-roam-db")
+(declare-function org-roam-db--get-title      "org-roam-db")
+(declare-function org-roam-db-has-file-p      "org-roam-db")
 (declare-function org-roam--extract-refs      "org-roam")
 (declare-function org-roam--extract-titles    "org-roam")
-(declare-function org-roam--get-title-or-slug "org-roam")
 (declare-function org-roam--get-backlinks     "org-roam")
 (declare-function org-roam-backlinks-mode     "org-roam")
 (declare-function org-roam-mode               "org-roam")
@@ -116,7 +117,7 @@ For example: (setq org-roam-buffer-window-parameters '((no-other-window . t)))"
 
 (defun org-roam-buffer--insert-title ()
   "Insert the org-roam-buffer title."
-  (insert (propertize (org-roam--get-title-or-slug
+  (insert (propertize (org-roam-db--get-title
                        (buffer-file-name org-roam-buffer--current))
                       'font-lock-face
                       'org-document-title)))
@@ -164,7 +165,7 @@ ORIG-PATH is the path where the CONTENT originated."
                   (bls (cdr group)))
               (insert (format "** %s\n"
                               (org-roam-format-link file-from
-                                                    (org-roam--get-title-or-slug file-from)
+                                                    (org-roam-db--get-title file-from)
                                                     "file")))
               (dolist (backlink bls)
                 (pcase-let ((`(,file-from _ ,props) backlink))
@@ -195,7 +196,7 @@ ORIG-PATH is the path where the CONTENT originated."
             (setq props (seq-sort-by (lambda (p) (plist-get p :point)) #'< props))
             (insert (format "** %s\n"
                             (org-roam-format-link file-from
-                                                  (org-roam--get-title-or-slug file-from)
+                                                  (org-roam-db--get-title file-from)
                                                   "file")))
             (dolist (prop props)
               (insert "*** "
@@ -251,7 +252,8 @@ This needs to be quick or infrequent, because this is run at
     (when (and (or redisplay
                    (not (eq org-roam-buffer--current buffer)))
                (eq 'visible (org-roam-buffer--visibility))
-               (buffer-file-name buffer))
+               (buffer-file-name buffer)
+               (org-roam-db-has-file-p (buffer-file-name buffer)))
       (setq org-roam-buffer--current buffer)
       (org-roam-buffer-update))))
 

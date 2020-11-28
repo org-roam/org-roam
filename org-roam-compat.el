@@ -5,7 +5,7 @@
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
-;; Version: 1.2.2
+;; Version: 1.2.3
 ;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (s "1.12.0") (org "9.3") (emacsql "3.0.0") (emacsql-sqlite3 "1.0.2"))
 
 ;; This file is NOT part of GNU Emacs.
@@ -75,10 +75,16 @@
   "org-roam 1.1.0")
 (define-obsolete-function-alias 'org-roam--capture 'org-roam-capture--capture
   "org-roam 1.1.0")
-(define-obsolete-function-alias 'org-roam-db--maybe-update 'org-roam-db--update-maybe
-  "org-roam 1.1.0")
 (define-obsolete-function-alias 'org-roam-db--clear 'org-roam-db-clear
   "org-roam 1.2.0")
+(define-obsolete-function-alias 'org-roam-dailies-today 'org-roam-dailies-find-today
+  "org-roam 1.2.2")
+(define-obsolete-function-alias 'org-roam-dailies-yesterday 'org-roam-dailies-find-yesterday
+  "org-roam 1.2.2")
+(define-obsolete-function-alias 'org-roam-dailies-tomorrow 'org-roam-dailies-find-tomorrow
+  "org-roam 1.2.2")
+(define-obsolete-function-alias 'org-roam-dailies-date 'org-roam-dailies-find-date
+  "org-roam 1.2.2")
 
 ;;;; Variables
 (define-obsolete-variable-alias 'org-roam-graphviz-extra-options
@@ -95,6 +101,9 @@
   'org-roam-dailies-capture-templates "org-roam 1.0.0")
 (define-obsolete-variable-alias 'org-roam-date-filename-format
   'org-roam-dailies-capture-templates "org-roam 1.0.0")
+(define-obsolete-variable-alias 'org-roam-update-db-idle-seconds
+  'org-roam-db-update-idle-seconds "org-roam 1.2.2")
+
 (make-obsolete-variable 'org-roam-buffer-no-delete-other-windows
   'org-roam-buffer-window-parameters "org-roam 1.1.1")
 
