@@ -137,7 +137,7 @@ using a powerful templating system.
 A slip-box requires a method for quickly capturing ideas. These are called
 *fleeting notes*: they are simple reminders of information or ideas that will
 need to be processed later on, or trashed. This is typically accomplished using
-~org-capture~ (see info:org#capture), or using Org-roam's daily notes
+~org-capture~ (see info:org#Capture), or using Org-roam's daily notes
 functionality (see [[*Daily-notes][Daily-notes]]). This provides a central inbox for collecting
 thoughts, to be processed later into permanent notes.
 
