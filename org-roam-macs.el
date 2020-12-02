@@ -52,6 +52,33 @@
         (nconc new-lst (list separator it)))
       new-lst)))
 
+(defmacro org-roam--with-file (file &rest body)
+  "Execute BODY within a FILE and save it.
+      Closes the FILE if the FILE is not yet visited.
+  existing-buf in org-roam--handle-file-condition."
+  `(org-roam--handle-file ,file (with-current-buffer (or existing-buf
+                                                        (find-file-noselect ,file))
+                               ,@body
+                               (save-buffer))))
+
+(defmacro org-roam--handle-file (file &rest body)
+  "Handle FILE after executing BODY.
+      Closes the FILE if the FILE is not yet visited."
+  `(org-roam--handle-file-condition ,file 't ,@body))
+
+(defmacro org-roam--handle-file-condition (file condition &rest body)
+  "Handle FILE after executing BODY.
+      Closes the FILE if the FILE is not yet visited and if CONDITION is p."
+  (declare (indent 1) (debug t))
+  `(let* ((existing-buf (find-buffer-visiting ,file))
+          (res     ,@body))
+     ;; find-buffer-visiting needs to be recomputed because it was created by
+     ;; @body
+     (unless (and existing-buf
+                  ,condition)
+       (kill-buffer (find-buffer-visiting ,file)))
+     res))
+
 (defmacro org-roam--with-temp-buffer (file &rest body)
   "Execute BODY within a temp buffer.
 Like `with-temp-buffer', but propagates `org-roam-directory'.

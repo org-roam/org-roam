@@ -1382,10 +1382,11 @@ To be added to `org-roam-title-change-hook'."
                                              :where (= dest $s1)]
                                             current-path)))
     (dolist (file files-affected)
-      (with-current-buffer (or (find-buffer-visiting (car file))
-                               (find-file-noselect (car file)))
-        (org-roam--replace-link current-path current-path old-title new-title)
-        (save-buffer)))))
+      (org-roam--handle-file (car file)
+        (with-current-buffer (or (find-buffer-visiting (car file))
+                                 (find-file-noselect (car file)))
+          (org-roam--replace-link current-path current-path old-title new-title)
+          (save-buffer))))))
 
 (defun org-roam--update-file-name-on-title-change (old-title new-title)
   "Update the file name on title change.
@@ -1414,8 +1415,7 @@ When NEW-FILE-OR-DIR is a directory, we use it to compute the new file path."
   (let ((new-file (if (directory-name-p new-file-or-dir)
                       (expand-file-name (file-name-nondirectory old-file) new-file-or-dir)
                     new-file-or-dir))
-        files-affected
-        new-buffer)
+        files-affected)
     (setq new-file (expand-file-name new-file))
     (setq old-file (expand-file-name old-file))
     (when (and (not (auto-save-file-name-p old-file))
@@ -1424,8 +1424,6 @@ When NEW-FILE-OR-DIR is a directory, we use it to compute the new file path."
                (not (backup-file-name-p new-file))
                (org-roam--org-roam-file-p old-file))
       (org-roam-db--ensure-built)
-      (setq new-buffer (or (find-buffer-visiting new-file)
-                           (find-file-noselect new-file)))
       (setq files-affected (org-roam-db-query [:select :distinct [source]
                                                :from links
                                                :where (= dest $s1)]
@@ -1437,19 +1435,22 @@ When NEW-FILE-OR-DIR is a directory, we use it to compute the new file path."
               (setq file (if (string-equal (car file) old-file)
                              new-file
                            (car file)))
-              (with-current-buffer (or (find-buffer-visiting file)
-                                       (find-file-noselect file))
-                (org-roam--replace-link old-file new-file)
-                (save-buffer)
-                (org-roam-db--update-file)))
+              (org-roam--handle-file file
+                (with-current-buffer (or (find-buffer-visiting file)
+                                         (find-file-noselect file))
+                  (org-roam--replace-link old-file new-file)
+                  (save-buffer)
+                  (org-roam-db--update-file))))
             files-affected)
       ;; If the new path is in a different directory, relative links
       ;; will break. Fix all file-relative links:
       (unless (string= (file-name-directory old-file)
                        (file-name-directory new-file))
-        (with-current-buffer new-buffer
-          (org-roam--fix-relative-links old-file)
-          (save-buffer)))
+        (org-roam--handle-file new-file
+          (with-current-buffer (or (find-buffer-visiting new-file)
+                                 (find-file-noselect new-file))
+            (org-roam--fix-relative-links old-file)
+            (save-buffer))))
       (when (org-roam--org-roam-file-p new-file)
         (org-roam-db--update-file new-file)))))
 
