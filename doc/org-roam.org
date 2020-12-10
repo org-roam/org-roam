@@ -1314,7 +1314,7 @@ You can navigate between daily-notes:
 
 Org-roam provides a utility for diagnosing and repairing problematic files via
 ~org-roam-doctor~. By default, ~org-roam-doctor~ runs the check on the current
-Org-roam file. To run the check only for the current file, run ~C-u M-x
+Org-roam file. To run the check only for all Org-roam files, run ~C-u M-x
 org-roam-doctor~, but note that this may take some time.
 
 - Function: org-roam-doctor &optional this-buffer
