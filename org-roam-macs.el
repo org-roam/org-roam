@@ -54,7 +54,7 @@
 
 (defmacro org-roam--with-file (file &rest body)
   "Execute BODY within a FILE and save it.
-      Closes the FILE if the FILE is not yet visited.
+      Keeps the FILE if the FILE is currently visited.
   existing-buf in org-roam--handle-file-condition."
   `(org-roam--handle-file ,file (with-current-buffer (or existing-buf
                                                         (find-file-noselect ,file))
@@ -63,19 +63,19 @@
 
 (defmacro org-roam--handle-file (file &rest body)
   "Handle FILE after executing BODY.
-      Closes the FILE if the FILE is not yet visited."
+      Keeps the FILE if the FILE is currently visited."
   `(org-roam--handle-file-condition ,file 't ,@body))
 
 (defmacro org-roam--handle-file-condition (file condition &rest body)
   "Handle FILE after executing BODY.
-      Closes the FILE if the FILE is not yet visited and if CONDITION is p."
+      Keeps the FILE if the FILE is currently visited or if CONDITION is p."
   (declare (indent 1) (debug t))
   `(let* ((existing-buf (find-buffer-visiting ,file))
           (res     ,@body))
      ;; find-buffer-visiting needs to be recomputed because it was created by
      ;; @body
-     (unless (and existing-buf
-                  ,condition)
+     (unless (or existing-buf
+                 ,condition)
        (kill-buffer (find-buffer-visiting ,file)))
      res))
 
