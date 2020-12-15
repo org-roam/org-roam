@@ -9,7 +9,8 @@
 ### Fixed
 - [#1281](https://github.com/org-roam/org-roam/pull/1281) fixed idle-timer not instantiated on `org-roam-mode`
 - [#1308](https://github.com/org-roam/org-roam/pull/1308) fixed file renames corrupting database
-- [#1325](https://github.com/org-roam/org-roam/pull/1325) make titles and tags extracted unique per note 
+- [#1325](https://github.com/org-roam/org-roam/pull/1325) make titles and tags extracted unique per note
+- [#1327](https://github.com/org-roam/org-roam/pull/1327) preserve existing link description during automatic replacement
 
 ## 1.2.3 (13-11-2020)
 
@@ -26,7 +27,7 @@ Org-roam-dailies has also been revamped to include new features, see [this video
 - [#1264](https://github.com/org-roam/org-roam/pull/1264) add `org-roam-db-update-method` to control when the cache is rebuilt.
 
 ### Changed
-- [#1264](https://github.com/org-roam/org-roam/pull/1264) renamed `org-roam-update-db-idle-seconds` to `org-roam-db-idle-idle-seconds` 
+- [#1264](https://github.com/org-roam/org-roam/pull/1264) renamed `org-roam-update-db-idle-seconds` to `org-roam-db-idle-idle-seconds`
 
 ### Fixed
 - [#1074](https://github.com/org-roam/org-roam/issues/1074) fix `org-roam--extract-links` to handle content boundaries.
@@ -70,7 +71,7 @@ This change requires you to set `org-roam-directory` to the resolved path of a f
 - [#974](https://github.com/org-roam/org-roam/pull/974) Protect region targeted by `org-roam-insert`
 - [#994](https://github.com/org-roam/org-roam/pull/994) Simplify org-roam-store-link
 - [#1062](https://github.com/org-roam/org-roam/pull/1062) Variable `org-roam-completions-everywhere` allows for completions everywhere from word at point
-- [#910](https://github.com/org-roam/org-roam/pull/910), [#1105](https://github.com/org-roam/org-roam/pull/1105) Support fuzzy links of the form [[roam:Title]], [[roam:*Headline]] and [[roam:Title*Headline]]
+- [#910](https://github.com/org-roam/org-roam/pull/910), [#1105](https://github.com/org-roam/org-roam/pull/1105) Support fuzzy links of the form `[[roam:Title]]`, `[[roam:*Headline]]` and `[[roam:Title*Headline]]`
 
 ### Bugfixes
 
