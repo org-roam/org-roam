@@ -94,40 +94,35 @@ noabbrev  Absolute path, no abbreviation of home directory."
 If FILE, return outline headings for passed FILE instead.
 If WITH-MARKER, return a cons cell of (headline . marker).
 If USE-STACK, include the parent paths as well."
-  (org-roam--handle-file file
-    (let* ((buf (or (and file
-                         (or (find-buffer-visiting file)
-                             (find-file-noselect file)))
-                    (current-buffer)))
-           (outline-level-fn outline-level)
+  (org-roam-with-file file 'keep
+    (let* ((outline-level-fn outline-level)
            (path-separator "/")
            (stack-level 0)
            stack cands name level marker)
-      (with-current-buffer buf
-        (save-excursion
-          (goto-char (point-min))
-          (while (re-search-forward org-complex-heading-regexp nil t)
-            (save-excursion
-              (setq name (substring-no-properties (or (match-string 4) "")))
-              (setq marker (point-marker))
-              (when use-stack
-                (goto-char (match-beginning 0))
-                (setq level (funcall outline-level-fn))
-                ;; Update stack.  The empty entry guards against incorrect
-                ;; headline hierarchies, e.g. a level 3 headline
-                ;; immediately following a level 1 entry.
-                (while (<= level stack-level)
-                  (pop stack)
-                  (cl-decf stack-level))
-                (while (> level stack-level)
-                  (push name stack)
-                  (cl-incf stack-level))
-                (setq name (mapconcat #'identity
-                                      (reverse stack)
-                                      path-separator)))
-              (push (if with-marker
-                        (cons name marker)
-                      name) cands)))))
+      (save-excursion
+        (goto-char (point-min))
+        (while (re-search-forward org-complex-heading-regexp nil t)
+          (save-excursion
+            (setq name (substring-no-properties (or (match-string 4) "")))
+            (setq marker (point-marker))
+            (when use-stack
+              (goto-char (match-beginning 0))
+              (setq level (funcall outline-level-fn))
+              ;; Update stack.  The empty entry guards against incorrect
+              ;; headline hierarchies, e.g. a level 3 headline
+              ;; immediately following a level 1 entry.
+              (while (<= level stack-level)
+                (pop stack)
+                (cl-decf stack-level))
+              (while (> level stack-level)
+                (push name stack)
+                (cl-incf stack-level))
+              (setq name (mapconcat #'identity
+                                    (reverse stack)
+                                    path-separator)))
+            (push (if with-marker
+                      (cons name marker)
+                    name) cands))))
       (nreverse cands))))
 
 (defun org-roam-link--get-file-from-title (title &optional no-interactive)
@@ -148,17 +143,13 @@ When NO-INTERACTIVE, return nil if there are multiple options."
 If FILE, get headline from FILE instead.
 If there is no corresponding headline, return nil."
   (save-excursion
-    (org-roam--handle-file file
-      (with-current-buffer (or (and file
-                                    (or (find-buffer-visiting file)
-                                        (find-file-noselect file)))
-                               (current-buffer))
-        (let ((headlines (org-roam-link--get-headlines file 'with-markers)))
-          (when-let ((marker (cdr (assoc-string headline headlines))))
-            (goto-char marker)
-            (cons marker
-                  (when org-roam-link-auto-replace
-                    (org-id-get-create)))))))))
+    (org-roam-with-file file 'keep
+      (let ((headlines (org-roam-link--get-headlines file 'with-markers)))
+        (when-let ((marker (cdr (assoc-string headline headlines))))
+          (goto-char marker)
+          (cons marker
+                (when org-roam-link-auto-replace
+                  (org-id-get-create))))))))
 
 ;;; Path-related functions
 (defun org-roam-link-get-path (path &optional type)

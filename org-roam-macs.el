@@ -52,30 +52,20 @@
         (nconc new-lst (list separator it)))
       new-lst)))
 
-(defmacro org-roam--with-file (file &rest body)
-  "Execute BODY within a FILE and save it.
-      Keeps the FILE if the FILE is currently visited.
-  existing-buf in org-roam--handle-file-condition."
-  `(org-roam--handle-file ,file (with-current-buffer (or existing-buf
-                                                        (find-file-noselect ,file))
-                               ,@body
-                               (save-buffer))))
-
-(defmacro org-roam--handle-file (file &rest body)
-  "Handle FILE after executing BODY.
-      Keeps the FILE if the FILE is currently visited."
-  `(org-roam--handle-file-condition ,file 't ,@body))
-
-(defmacro org-roam--handle-file-condition (file condition &rest body)
-  "Handle FILE after executing BODY.
-      Keeps the FILE if the FILE is currently visited or if CONDITION is p."
-  (declare (indent 1) (debug t))
+(defmacro org-roam-with-file (file keep-file-p &rest body)
+  "Execute BODY within FILE.
+If KEEP-FILE-P or FILE is already visited, do not kill the
+buffer."
+  (declare (indent 2) (debug t))
   `(let* ((existing-buf (find-buffer-visiting ,file))
-          (res     ,@body))
-     ;; find-buffer-visiting needs to be recomputed because it was created by
-     ;; @body
-     (unless (or existing-buf
-                 ,condition)
+          (buf (or existing-buf (find-file-noselect ,file)))
+          (keep-buf-p (or existing-buf ,keep-file-p))
+          res)
+     (with-current-buffer buf
+       (setq res (progn ,@body))
+       (unless keep-buf-p
+         (save-buffer)))
+     (unless (and keep-buf-p (find-buffer-visiting ,file))
        (kill-buffer (find-buffer-visiting ,file)))
      res))
 
