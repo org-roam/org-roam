@@ -206,7 +206,7 @@ marker is a marker to the headline, if applicable.
 desc is either the the description of the link under point, or
 the target of LINK (title or heading content)."
   (let ((context (org-element-context))
-        path mkr link-type desc loc)
+        mkr link-type desc loc)
     (pcase (org-element-lineage context '(link) t)
       (`nil (error "Not at an Org link"))
       (link
@@ -270,7 +270,8 @@ DESC is the link description."
       (condition-case nil
           (pcase-let ((`(,link-type ,loc ,desc _) (org-roam-link--get-location)))
             (when (and link-type loc)
-              (org-roam-link--replace-link link-type loc desc)))))))
+              (org-roam-link--replace-link link-type loc desc)))
+        (error nil)))))
 
 (defun org-roam-link--replace-link-on-save ()
   "Hook to replace all roam links on save."
