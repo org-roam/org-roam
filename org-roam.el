@@ -845,8 +845,8 @@ file."
 
 (defun org-roam--get-title-path-completions ()
   "Return an alist for completion.
-The car is the displayed title for completion, and the cdr is the
-to the file."
+The car is the displayed title for completion, and the cdr is a
+plist containing the path and title for the file."
   (let* ((rows (org-roam-db-query [:select [files:file titles:title tags:tags files:meta] :from titles
                                    :left :join tags
                                    :on (= titles:file tags:file)
