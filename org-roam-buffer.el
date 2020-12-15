@@ -218,6 +218,7 @@ ORIG-PATH is the path where the CONTENT originated."
 
 (defun org-roam-buffer-update ()
   "Update the `org-roam-buffer'."
+  (interactive)
   (org-roam-db--ensure-built)
   (let* ((source-org-roam-directory org-roam-directory))
     (with-current-buffer org-roam-buffer
