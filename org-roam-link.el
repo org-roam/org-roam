@@ -71,9 +71,12 @@ noabbrev  Absolute path, no abbreviation of home directory."
 (org-link-set-parameters "roam"
                          :follow #'org-roam-link-follow-link)
 
-(defun org-roam-link-follow-link (path)
-  "Navigates to location specified by PATH."
-  (pcase-let ((`(,link-type ,loc ,desc ,mkr) (org-roam-link--get-location path t)))
+(defun org-roam-link-follow-link (_path)
+  "Navigates to location in Org-roam link.
+This function is called by Org when following links of the type
+`roam'. While the path is passed, assume that the cursor is on
+the link."
+  (pcase-let ((`(,link-type ,loc ,desc ,mkr) (org-roam-link--get-location)))
     (when (and org-roam-link-auto-replace loc desc)
       (org-roam-link--replace-link link-type loc desc))
     (pcase link-type
@@ -191,8 +194,8 @@ star-idx is the index of the asterisk, if any."
                        (t 'title+headline))))
       (list type title headline star-index))))
 
-(defun org-roam-link--get-location (link &optional use-existing-p)
-  "Return the location of Org-roam fuzzy LINK.
+(defun org-roam-link--get-location ()
+  "Return the location of the Org-roam fuzzy link at point.
 The location is returned as a list containing (link-type loc desc marker).
 nil is returned if there is no matching location.
 
@@ -200,52 +203,50 @@ link-type is either \"file\" or \"id\".
 loc is the target location: e.g. a file path, or an id.
 marker is a marker to the headline, if applicable.
 
-desc is either the target of LINK (title or heading content), or,
-if USE-EXISTING-P is non-nil, the description of the link under
-point in the current buffer."
-  (let (mkr link-type desc loc)
-    (pcase-let ((`(,type ,title ,headline _) (org-roam-link--split-path link)))
-      (pcase type
-        ('title+headline
-         (let ((file (org-roam-link--get-file-from-title title)))
-           (if (not file)
-               (org-roam-message "Cannot find matching file")
-             (setq mkr (org-roam-link--get-id-from-headline headline file))
-             (pcase mkr
-               (`(,marker . ,target-id)
-                (setq mkr marker
-                      loc target-id
-                      link-type "id"
-                      desc headline))
-               (_ (org-roam-message "cannot find matching id"))))))
-        ('title
-         (setq loc (org-roam-link--get-file-from-title title)
-               desc title
-               link-type "file"))
-        ('headline
-         (setq mkr (org-roam-link--get-id-from-headline headline))
-         (pcase mkr
-           (`(,marker . ,target-id)
-            (setq mkr marker
-                  loc target-id
-                  desc headline
-                  link-type "id"))
-           (_ (org-roam-message "Cannot find matching headline")))))
-      ;; Why default to not fetch from current buffer? So that it's
-      ;; not surprising from the call site when this function looks at
-      ;; the current buffer.
-      (when use-existing-p
-        ;; Favor existing description over description fetched
-        ;; from the link target, to achieve this:
-        ;; [[roam:Abc][def]] -> [[file:path/to/abc.org][def]]
-        ;; [[roam:Abc]] -> [[file:path/to/abc.org][Abc]]
-        (let* ((elem (org-element-context))
-               (begin (org-element-property :contents-begin elem))
-               (end (org-element-property :contents-end elem)))
-          ;; make sure elem is actually a link
-          (when (and (eq (org-element-type elem) 'link) begin end)
-            (setq desc (buffer-substring-no-properties begin end)))))
-      (list link-type loc desc mkr))))
+desc is either the the description of the link under point, or
+the target of LINK (title or heading content)."
+  (let ((context (org-element-context))
+        path mkr link-type desc loc)
+    (pcase (org-element-lineage context '(link) t)
+      (`nil (error "Not at an Org link"))
+      (link
+       (if (not (string-equal "roam" (org-element-property :type link)))
+           (error "Not at Org-roam link")
+         (setq desc (and (org-element-property :contents-begin link)
+                         (org-element-property :contents-end link)
+                         (buffer-substring-no-properties
+                          (org-element-property :contents-begin link)
+                          (org-element-property :contents-end link))))
+         (pcase-let ((`(,type ,title ,headline _) (org-roam-link--split-path
+                                                   (org-element-property :path link))))
+           (pcase type
+             ('title+headline
+              (let ((file (org-roam-link--get-file-from-title title)))
+                (if (not file)
+                    (org-roam-message "Cannot find matching file")
+                  (setq mkr (org-roam-link--get-id-from-headline headline file))
+                  (pcase mkr
+                    (`(,marker . ,target-id)
+                     (progn
+                       (setq mkr marker
+                             loc target-id
+                             desc (or desc headline)
+                             link-type "id")))
+                    (_ (org-roam-message "Cannot find matching id"))))))
+             ('title
+              (setq loc (org-roam-link--get-file-from-title title)
+                    link-type "file"
+                    desc (or desc title)))
+             ('headline
+              (setq mkr (org-roam-link--get-id-from-headline headline))
+              (pcase mkr
+                (`(,marker . ,target-id)
+                 (setq mkr marker
+                       loc target-id
+                       link-type "id"
+                       desc (or desc headline)))
+                (_ (org-roam-message "Cannot find matching headline")))))))))
+    (list link-type loc desc mkr)))
 
 ;;; Conversion Functions
 (defun org-roam-link--replace-link (link-type loc &optional desc)
@@ -266,14 +267,10 @@ DESC is the link description."
   (save-excursion
     (goto-char (point-min))
     (while (re-search-forward org-link-bracket-re nil t)
-      (let ((context (org-element-context)))
-        (pcase (org-element-lineage context '(link) t)
-          (`nil nil)
-          (link
-           (when (string-equal "roam" (org-element-property :type link))
-             (pcase-let ((`(,link-type ,loc ,desc _) (org-roam-link--get-location (org-element-property :path link) t)))
-               (when (and link-type loc)
-                 (org-roam-link--replace-link link-type loc desc))))))))))
+      (condition-case nil
+          (pcase-let ((`(,link-type ,loc ,desc _) (org-roam-link--get-location)))
+            (when (and link-type loc)
+              (org-roam-link--replace-link link-type loc desc)))))))
 
 (defun org-roam-link--replace-link-on-save ()
   "Hook to replace all roam links on save."
