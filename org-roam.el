@@ -877,7 +877,7 @@ whose title is 'Index'."
                                      `((functionp stringp)
                                        ,wrong-type))))))
     (if (f-relative-p index)
-        (concat (expand-file-name org-roam-directory) path)
+        (expand-file-name index org-roam-directory)
       index)))
 
 ;;;; dealing with file-wide properties
