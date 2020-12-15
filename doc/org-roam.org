@@ -358,9 +358,17 @@ nothing right now, since there are no notes in the directory. Entering the title
 of the note you wish to create, and pressing ~RET~ should begin the note
 creation process. This process uses ~org-capture~'s templating system, and can
 be customized (see [[*The Templating System][The Templating System]]). Using the default template, pressing
-~C-c C-c~ finishes the note capture. Running ~M-x org-roam-find-file~ again
-should show the note you have created, and selecting that entry will bring you
-to that note.
+~C-c C-c~ finishes the note capture.
+
+By default, Org-roam updates the cache asynchronously in the background to
+avoid getting in the way of writing. Org-roam queues updates to the files,
+waits for you to be idle for 2 seconds, and then automatically triggers
+updating the cache. After the cache has been updated, running ~M-x
+org-roam-find-file~ again should show the note you have created, and selecting
+that entry will bring you to that note. One can customize the waiting time by
+setting ~org-roam-db-update-idle-seconds~; or change the cache update to be
+triggered immediately after buffer save by setting ~org-roam-db-update-method~
+to ~'immediate~.
 
 Org-roam makes it easy to create notes, and link them together. To link notes
 together, we call ~M-x org-roam-insert~. This brings up a prompt with a list of
