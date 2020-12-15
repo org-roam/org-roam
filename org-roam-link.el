@@ -97,15 +97,11 @@ the link."
 If FILE, return outline headings for passed FILE instead.
 If WITH-MARKER, return a cons cell of (headline . marker).
 If USE-STACK, include the parent paths as well."
-  (let* ((buf (or (and file
-                       (or (find-buffer-visiting file)
-                           (find-file-noselect file)))
-                  (current-buffer)))
-         (outline-level-fn outline-level)
-         (path-separator "/")
-         (stack-level 0)
-         stack cands name level marker)
-    (with-current-buffer buf
+  (org-roam-with-file file 'keep
+    (let* ((outline-level-fn outline-level)
+           (path-separator "/")
+           (stack-level 0)
+           stack cands name level marker)
       (save-excursion
         (goto-char (point-min))
         (while (re-search-forward org-complex-heading-regexp nil t)
@@ -129,8 +125,8 @@ If USE-STACK, include the parent paths as well."
                                     path-separator)))
             (push (if with-marker
                       (cons name marker)
-                    name) cands)))))
-    (nreverse cands)))
+                    name) cands))))
+      (nreverse cands))))
 
 (defun org-roam-link--get-file-from-title (title &optional no-interactive)
   "Return the file path corresponding to TITLE.
@@ -150,10 +146,7 @@ When NO-INTERACTIVE, return nil if there are multiple options."
 If FILE, get headline from FILE instead.
 If there is no corresponding headline, return nil."
   (save-excursion
-    (with-current-buffer (or (and file
-                                  (or (find-buffer-visiting file)
-                                      (find-file-noselect file)))
-                             (current-buffer))
+    (org-roam-with-file file 'keep
       (let ((headlines (org-roam-link--get-headlines file 'with-markers)))
         (when-let ((marker (cdr (assoc-string headline headlines))))
           (goto-char marker)
