@@ -868,17 +868,14 @@ plist containing the path and title for the file."
 The path to the index can be defined in `org-roam-index-file'.
 Otherwise, it is assumed to be a note in `org-roam-directory'
 whose title is 'Index'."
-  (let* ((index org-roam-index-file)
-         (path (pcase index
-                 ((pred functionp) (funcall index))
-                 ((pred stringp) index)
-                 ('nil (user-error "You need to set `org-roam-index-file' before you can jump to it"))
-                 (wrong-type (signal 'wrong-type-argument
-                                     `((functionp stringp)
-                                       ,wrong-type))))))
-    (if (f-relative-p index)
-        (expand-file-name index org-roam-directory)
-      index)))
+  (let ((path (pcase org-roam-index-file
+                ((pred functionp) (funcall org-roam-index-file))
+                ((pred stringp) org-roam-index-file)
+                ('nil (user-error "You need to set `org-roam-index-file' before you can jump to it"))
+                (wrong-type (signal 'wrong-type-argument
+                                    `((functionp stringp)
+                                      ,wrong-type))))))
+    (expand-file-name path org-roam-directory)))
 
 ;;;; dealing with file-wide properties
 (defun org-roam--set-global-prop (name value)
