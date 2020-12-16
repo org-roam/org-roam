@@ -365,7 +365,7 @@ avoid getting in the way of writing. Org-roam queues updates to the files,
 waits for you to be idle for 2 seconds, and then automatically triggers
 updating the cache. After the cache has been updated, running ~M-x
 org-roam-find-file~ again should show the note you have created, and selecting
-that entry will bring you to that note. One can customize the waiting time by
+that entry will bring you to that note [fn:1]. One can customize the waiting time by
 setting ~org-roam-db-update-idle-seconds~; or change the cache update to be
 triggered immediately after buffer save by setting ~org-roam-db-update-method~
 to ~'immediate~.
@@ -1667,6 +1667,9 @@ are the solutions:
 :END:
 
 * Footnotes
+
+[fn:1] Depending on your completion framework, you may need to press TAB to
+see the list.
 [fn:roam] To understand more about Roam, a collection of links are available in [[*Note-taking Workflows][Note-taking Workflows]].
  
 # Local Variables:
