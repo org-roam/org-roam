@@ -11,6 +11,7 @@
 - [#1308](https://github.com/org-roam/org-roam/pull/1308) fixed file renames corrupting database
 - [#1325](https://github.com/org-roam/org-roam/pull/1325) make titles and tags extracted unique per note
 - [#1327](https://github.com/org-roam/org-roam/pull/1327) preserve existing link description during automatic replacement
+- [#1346](https://github.com/org-roam/org-roam/pull/1346) prevent malformed path to `org-roam-index-file`
 
 ## 1.2.3 (13-11-2020)
 
