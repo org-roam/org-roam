@@ -324,7 +324,7 @@ using a powerful templating system.
 A slip-box requires a method for quickly capturing ideas. These are called
 @strong{fleeting notes}: they are simple reminders of information or ideas that will
 need to be processed later on, or trashed. This is typically accomplished using
-@code{org-capture} (see @ref{capture,,,org,}), or using Org-roam's daily notes
+@code{org-capture} (see @ref{Capture,,,org,}), or using Org-roam's daily notes
 functionality (see @ref{Daily-notes}). This provides a central inbox for collecting
 thoughts, to be processed later into permanent notes.
 
@@ -585,9 +585,17 @@ nothing right now, since there are no notes in the directory. Entering the title
 of the note you wish to create, and pressing @code{RET} should begin the note
 creation process. This process uses @code{org-capture}'s templating system, and can
 be customized (see @ref{The Templating System}). Using the default template, pressing
-@code{C-c C-c} finishes the note capture. Running @code{M-x org-roam-find-file} again
-should show the note you have created, and selecting that entry will bring you
-to that note.
+@code{C-c C-c} finishes the note capture.
+
+By default, Org-roam updates the cache asynchronously in the background to
+avoid getting in the way of writing. Org-roam queues updates to the files,
+waits for you to be idle for 2 seconds, and then automatically triggers
+updating the cache. After the cache has been updated, running @code{M-x
+org-roam-find-file} again should show the note you have created, and selecting
+that entry will bring you to that note. One can customize the waiting time by
+setting @code{org-roam-db-update-idle-seconds}; or change the cache update to be
+triggered immediately after buffer save by setting @code{org-roam-db-update-method}
+to @code{'immediate}.
 
 Org-roam makes it easy to create notes, and link them together. To link notes
 together, we call @code{M-x org-roam-insert}. This brings up a prompt with a list of
@@ -1781,7 +1789,7 @@ When in an daily-note, find the next one.
 
 Org-roam provides a utility for diagnosing and repairing problematic files via
 @code{org-roam-doctor}. By default, @code{org-roam-doctor} runs the check on the current
-Org-roam file. To run the check only for the current file, run @code{C-u M-x
+Org-roam file. To run the check only for all Org-roam files, run @code{C-u M-x
 org-roam-doctor}, but note that this may take some time.
 
 @defun org-roam-doctor &optional this-buffer
@@ -2175,5 +2183,5 @@ the candidate list.
 
 @printindex vr
 
-Emacs 28.0.50 (Org mode 9.4)
+Emacs 28.0.50 (Org mode 9.5)
 @bye

@@ -461,7 +461,7 @@ Next: <a href="#Permanent-notes" accesskey="n" rel="next">Permanent notes</a>, U
 <p>A slip-box requires a method for quickly capturing ideas. These are called
 <strong>fleeting notes</strong>: they are simple reminders of information or ideas that will
 need to be processed later on, or trashed. This is typically accomplished using
-<code>org-capture</code> (see <a href="http://www.gnu.org/software/emacs/manual/html_mono/org.html#capture">(org)capture</a>), or using Org-roam&rsquo;s daily notes
+<code>org-capture</code> (see <a href="http://www.gnu.org/software/emacs/manual/html_mono/org.html#Capture">(org)Capture</a>), or using Org-roam&rsquo;s daily notes
 functionality (see <a href="#Daily_002dnotes">Daily-notes</a>). This provides a central inbox for collecting
 thoughts, to be processed later into permanent notes.
 </p>
@@ -757,9 +757,17 @@ nothing right now, since there are no notes in the directory. Entering the title
 of the note you wish to create, and pressing <code>RET</code> should begin the note
 creation process. This process uses <code>org-capture</code>&rsquo;s templating system, and can
 be customized (see <a href="#The-Templating-System">The Templating System</a>). Using the default template, pressing
-<code>C-c C-c</code> finishes the note capture. Running <code>M-x org-roam-find-file</code> again
-should show the note you have created, and selecting that entry will bring you
-to that note.
+<code>C-c C-c</code> finishes the note capture.
+</p>
+<p>By default, Org-roam updates the cache asynchronously in the background to
+avoid getting in the way of writing. Org-roam queues updates to the files,
+waits for you to be idle for 2 seconds, and then automatically triggers
+updating the cache. After the cache has been updated, running <code>M-x
+org-roam-find-file</code> again should show the note you have created, and selecting
+that entry will bring you to that note. One can customize the waiting time by
+setting <code>org-roam-db-update-idle-seconds</code>; or change the cache update to be
+triggered immediately after buffer save by setting <code>org-roam-db-update-method</code>
+to <code>'immediate</code>.
 </p>
 <p>Org-roam makes it easy to create notes, and link them together. To link notes
 together, we call <code>M-x org-roam-insert</code>. This brings up a prompt with a list of
@@ -2180,7 +2188,7 @@ Next: <a href="#Finding-Unlinked-References" accesskey="n" rel="next">Finding Un
 
 <p>Org-roam provides a utility for diagnosing and repairing problematic files via
 <code>org-roam-doctor</code>. By default, <code>org-roam-doctor</code> runs the check on the current
-Org-roam file. To run the check only for the current file, run <code>C-u M-x
+Org-roam file. To run the check only for all Org-roam files, run <code>C-u M-x
 org-roam-doctor</code>, but note that this may take some time.
 </p>
 <dl>
@@ -2788,7 +2796,7 @@ Previous: <a href="#Function-Index" accesskey="p" rel="prev">Function Index</a>,
  &nbsp; 
 </td></tr></table>
 
-<p>Emacs 28.0.50 (Org mode 9.4)
+<p>Emacs 28.0.50 (Org mode 9.5)
 </p><div class="footnote">
 <hr>
 <h4 class="footnotes-heading">Footnotes</h4>
