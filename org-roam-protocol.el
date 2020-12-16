@@ -80,6 +80,7 @@ It opens or creates a note with the given ref.
     (let* ((org-roam-capture-templates org-roam-capture-ref-templates)
            (org-roam-capture--context 'ref)
            (org-roam-capture--info decoded-alist)
+           (org-capture-link-is-already-stored t)
            (template (cdr (assoc 'template decoded-alist))))
       (raise-frame)
       (org-roam-capture--capture nil template)
