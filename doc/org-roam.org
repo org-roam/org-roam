@@ -365,10 +365,10 @@ avoid getting in the way of writing. Org-roam queues updates to the files,
 waits for you to be idle for 2 seconds, and then automatically triggers
 updating the cache. After the cache has been updated, running ~M-x
 org-roam-find-file~ again should show the note you have created, and selecting
-that entry will bring you to that note [fn:1]. One can customize the waiting time by
-setting ~org-roam-db-update-idle-seconds~; or change the cache update to be
-triggered immediately after buffer save by setting ~org-roam-db-update-method~
-to ~'immediate~.
+that entry will bring you to that note [fn:1]. One can customize the waiting
+time by setting ~org-roam-db-update-idle-seconds~; or change the cache update
+to be triggered immediately after buffer save by setting
+~org-roam-db-update-method~ to ~'immediate~.
 
 Org-roam makes it easy to create notes, and link them together. To link notes
 together, we call ~M-x org-roam-insert~. This brings up a prompt with a list of
