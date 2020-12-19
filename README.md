@@ -13,6 +13,17 @@ Org-roam borrows principles from the Zettelkasten method, providing a solution
 for non-hierarchical note-taking. It should also work as a plug-and-play
 solution for anyone already using Org-mode for their personal wiki.
 
+- **Private and Secure**: Edit your personal wiki completely offline, entirely
+  in your control. Encrypt your notes with GPG. Take lasting notes in
+  plain-text.
+- **Networked Thought**: Connect notes and thoughts together with ease using
+  backlinks. Discover surprising and previously unseen connections in your notes
+  with the built-in graph visualization.
+- **Extensible and Powerful**: Leverage Emacs' fantastic text-editing interface,
+  and the mature Emacs and Org-mode ecosystem of packages.
+- **Free and Open Source**: Org-roam is licensed under the GNU General Public
+  License version 3 or later.
+
 <p align="center">
   <img src="https://www.orgroam.com/img/screenshot.png" alt="Org-roam Screenshot" width="738">
 </p>
