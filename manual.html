@@ -764,10 +764,10 @@ avoid getting in the way of writing. Org-roam queues updates to the files,
 waits for you to be idle for 2 seconds, and then automatically triggers
 updating the cache. After the cache has been updated, running <code>M-x
 org-roam-find-file</code> again should show the note you have created, and selecting
-that entry will bring you to that note. One can customize the waiting time by
-setting <code>org-roam-db-update-idle-seconds</code>; or change the cache update to be
-triggered immediately after buffer save by setting <code>org-roam-db-update-method</code>
-to <code>'immediate</code>.
+that entry will bring you to that note <a name="DOCF2" href="#FOOT2"><sup>2</sup></a>. One can customize the waiting
+time by setting <code>org-roam-db-update-idle-seconds</code>; or change the cache update
+to be triggered immediately after buffer save by setting
+<code>org-roam-db-update-method</code> to <code>'immediate</code>.
 </p>
 <p>Org-roam makes it easy to create notes, and link them together. To link notes
 together, we call <code>M-x org-roam-insert</code>. This brings up a prompt with a list of
@@ -2803,6 +2803,9 @@ Previous: <a href="#Function-Index" accesskey="p" rel="prev">Function Index</a>,
 
 <h3><a name="FOOT1" href="#DOCF1">(1)</a></h3>
 <p>To understand more about Roam, a collection of links are available in <a href="#Note_002dtaking-Workflows">Note-taking Workflows</a>.</p>
+<h3><a name="FOOT2" href="#DOCF2">(2)</a></h3>
+<p>Depending on your completion framework, you may need to press TAB to
+see the list.</p>
 </div>
 <hr>
 
