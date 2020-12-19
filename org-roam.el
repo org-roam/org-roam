@@ -528,12 +528,11 @@ Use external shell commands if defined in `org-roam-list-files-commands'."
       res)))
 
 (defun org-roam--extract-global-props-keyword (keywords)
-  "Extract PROPS from the keywords in the current Org buffer."
+  "Extract KEYWORDS from the current Org buffer."
   (let (ret)
     (pcase-dolist (`(,key . ,values) (org-roam--collect-keywords keywords))
-      (dolist (value values)
-        (push (cons key value) ret)))
-    ret))
+      (dolist (value values ret)
+        (push (cons key value) ret)))))
 
 (defun org-roam--extract-global-props (props)
   "Extract PROPS from the current Org buffer.
