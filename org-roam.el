@@ -882,20 +882,19 @@ whose title is 'Index'."
   "Set a file property called NAME to VALUE.
 
 If the property is already set, it's value is replaced."
-  (save-excursion
-    (widen)
-    (goto-char (point-min))
-    (if (re-search-forward (concat "^#\\+" name ": \\(.*\\)") (point-max) t)
-        (replace-match (concat "#+" name ": " value) 'fixedcase)
-      (while (and (not (eobp))
-                  (looking-at "^[#:]"))
-        (if (save-excursion (end-of-line) (eobp))
-            (progn
-              (end-of-line)
-              (insert "\n"))
-          (forward-line)
-          (beginning-of-line)))
-      (insert "#+" name ": " value "\n"))))
+  (org-with-point-at 1
+    (let ((case-fold-search t))
+      (if (re-search-forward (concat "^#\\+" name ":\\(.*\\)") (point-max) t)
+          (replace-match (concat " " value) 'fixedcase nil nil 1)
+        (while (and (not (eobp))
+                    (looking-at "^[#:]"))
+          (if (save-excursion (end-of-line) (eobp))
+              (progn
+                (end-of-line)
+                (insert "\n"))
+            (forward-line)
+            (beginning-of-line)))
+        (insert "#+" name ": " value "\n")))))
 
 ;;;; org-roam-find-ref
 (defun org-roam--get-ref-path-completions (&optional arg filter)
@@ -1708,7 +1707,7 @@ Return added alias."
     (when (string-empty-p alias)
       (user-error "Alias can't be empty"))
     (org-roam--set-global-prop
-     "ROAM_ALIAS"
+     "roam_alias"
      (combine-and-quote-strings
       (seq-uniq (cons alias
                       (org-roam--extract-titles-alias)))))
@@ -1723,7 +1722,7 @@ Return added alias."
   (if-let ((aliases (org-roam--extract-titles-alias)))
       (let ((alias (completing-read "Alias: " aliases nil 'require-match)))
         (org-roam--set-global-prop
-         "ROAM_ALIAS"
+         "roam_alias"
          (combine-and-quote-strings (delete alias aliases)))
         (org-roam-db--update-file (buffer-file-name (buffer-base-buffer))))
     (user-error "No aliases to delete")))
@@ -1741,7 +1740,7 @@ Return added tag."
     (when (string-empty-p tag)
       (user-error "Tag can't be empty"))
     (org-roam--set-global-prop
-     "ROAM_TAGS"
+     "roam_tags"
      (combine-and-quote-strings (seq-uniq (cons tag existing-tags))))
     (org-roam-db--insert-tags 'update)
     tag))
@@ -1754,7 +1753,7 @@ Return added tag."
             (tags (org-roam--extract-tags-prop file)))
       (let ((tag (completing-read "Tag: " tags nil 'require-match)))
         (org-roam--set-global-prop
-         "ROAM_TAGS"
+         "roam_tags"
          (combine-and-quote-strings (delete tag tags)))
         (org-roam-db--insert-tags 'update))
     (user-error "No tag to delete")))
