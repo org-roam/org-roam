@@ -52,23 +52,6 @@
         (nconc new-lst (list separator it)))
       new-lst)))
 
-(defun org-roam--merge-alist (alist)
-  "Merge elements of ALIST with the same key.
-Keys that appear again later take precedence. For example, in this alist:
-
-\(org-roam--merge-alist \\='((a 1) (b 2) (a 3)))
-  => \\='((a 3) (b 2))
-
-merge (a 1) and (a 3), preferring (a 3).
-
-The function returns the new ALIST."
-  (let (rtn)
-    (dolist (e alist rtn)
-      (if (not (assoc (car e) rtn))
-          (push e rtn)
-        (setq rtn (assq-delete-all  (car e) rtn))
-        (push e rtn)))))
-
 (defmacro org-roam-with-file (file keep-file-p &rest body)
   "Execute BODY within FILE.
 If KEEP-FILE-P or FILE is already visited, do not kill the

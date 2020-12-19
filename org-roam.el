@@ -513,7 +513,7 @@ Use external shell commands if defined in `org-roam-list-files-commands'."
           (push (cons prop v) ret))))))
 
 (defun org-roam--collect-keywords (keywords)
-  "Collect all Org keywords in the current buffer."
+  "Collect all Org KEYWORDS in the current buffer."
   (if (functionp 'org-collect-keywords)
       (org-collect-keywords keywords)
     (let ((buf (org-element-parse-buffer))
@@ -539,10 +539,9 @@ Use external shell commands if defined in `org-roam-list-files-commands'."
   "Extract PROPS from the current Org buffer.
 Props are extracted from both the file-level property drawer (if
 any), and Org keywords. Org keywords take precedence."
-  (org-roam--merge-alist
-   (append
-    (org-roam--extract-global-props-drawer props)
-    (org-roam--extract-global-props-keyword props))))
+  (append
+   (org-roam--extract-global-props-keyword props)
+   (org-roam--extract-global-props-drawer props)))
 
 
 (defun org-roam--get-outline-path ()
