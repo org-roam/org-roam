@@ -1,9 +1,6 @@
-<div align="center">
-
 # Org-roam [![GitHub Release][release-badge]][release] [![MELPA][melpa-badge]][melpa] [![License GPL 3][gpl3-badge]][gpl3]
  
 <img src="https://www.orgroam.com/img/logo.svg" align="right" alt="Org-roam Logo" width="240">
-</div>
 
 Org-roam is a plain-text knowledge management system. It brings some of
 [Roam's][roamresearch] more powerful features into the [Org-mode][org]
