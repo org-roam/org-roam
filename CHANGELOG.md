@@ -5,6 +5,7 @@
 - [#1270](https://github.com/org-roam/org-roam/pull/1270) capture: create OLP if it does not exist. Removes need for OLP setup in `:head`.
 
 ### Changed
+- [#1352](https://github.com/org-roam/org-roam/pull/1352) prefer lower-case for roam_tag and roam_alias in interactive commands
 
 ### Fixed
 - [#1281](https://github.com/org-roam/org-roam/pull/1281) fixed idle-timer not instantiated on `org-roam-mode`
@@ -13,6 +14,7 @@
 - [#1327](https://github.com/org-roam/org-roam/pull/1327) preserve existing link description during automatic replacement
 - [#1346](https://github.com/org-roam/org-roam/pull/1346) prevent malformed path to `org-roam-index-file`
 - [#1347](https://github.com/org-roam/org-roam/pull/1347) allow use of `%a` element in regular Org-roam captures
+- [#1352](https://github.com/org-roam/org-roam/pull/1352) fixed org-roam-{tag/alias}-{add/delete} altering the original case of the Org property
 
 ## 1.2.3 (13-11-2020)
 
