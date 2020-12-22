@@ -41,10 +41,10 @@
 (defvar org-roam-directory)
 (defvar org-roam-mode)
 (defvar org-roam-title-to-slug-function)
+(defvar org-roam-file-extensions)
 
 (declare-function  org-roam--get-title-path-completions "org-roam")
 (declare-function  org-roam--get-ref-path-completions   "org-roam")
-(declare-function  org-roam--file-path-from-id          "org-roam")
 (declare-function  org-roam--find-file                  "org-roam")
 (declare-function  org-roam-format-link                "org-roam")
 (declare-function  org-roam-mode                        "org-roam")
@@ -388,6 +388,17 @@ The file is saved if the original value of :no-save is not t and
     (with-current-buffer (org-capture-get :buffer)
       (save-buffer)))))
 
+(defun org-roam-capture--get-file-path (basename)
+  "Return path for Org-roam file with BASENAME."
+  (let* ((ext (or (car org-roam-file-extensions)
+                  "org"))
+         (file (concat basename "." ext)))
+    (expand-file-name
+     (if org-roam-encrypt-files
+         (concat file ".gpg")
+       file)
+     org-roam-directory)))
+
 (defun org-roam-capture--new-file ()
   "Return the path to the new file during an Org-roam capture.
 
@@ -413,16 +424,13 @@ the file if the original value of :no-save is not t and
                          (user-error "Template needs to specify `:file-name'")))
          (new-id (s-trim (org-roam-capture--fill-template
                           name-templ)))
-         (file-path (org-roam--file-path-from-id new-id))
+         (file-path (org-roam-capture--get-file-path new-id))
          (roam-head (or (org-roam-capture--get :head)
                         ""))
          (org-template (org-capture-get :template))
          (roam-template (concat roam-head org-template)))
     (unless (or (file-exists-p file-path)
-                (cl-some (lambda (buffer)
-                           (string= (buffer-file-name buffer)
-                                    file-path))
-                         (buffer-list)))
+                (find-buffer-visiting file-path))
       (make-directory (file-name-directory file-path) t)
       (org-roam-capture--put :orig-no-save (org-capture-get :no-save)
                              :new-file t)

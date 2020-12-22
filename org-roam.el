@@ -982,17 +982,6 @@ Return nil if the file does not exist."
                  (org-roam--org-roam-file-p (buffer-file-name it)))
             (buffer-list)))
 
-(defun org-roam--file-path-from-id (id)
-  "Return path for Org-roam file with ID."
-  (let* ((ext (or (car org-roam-file-extensions)
-                  "org"))
-         (file (concat id "." ext)))
-    (expand-file-name
-     (if org-roam-encrypt-files
-         (concat file ".gpg")
-       file)
-     org-roam-directory)))
-
 ;;; org-roam-backlinks-mode
 (define-minor-mode org-roam-backlinks-mode
   "Minor mode for the `org-roam-buffer'.
