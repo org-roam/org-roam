@@ -41,6 +41,7 @@
 (defvar org-roam-directory)
 (defvar org-roam-mode)
 (defvar org-roam-title-to-slug-function)
+(defvar org-roam-file-extensions)
 
 (declare-function  org-roam--get-title-path-completions "org-roam")
 (declare-function  org-roam--get-ref-path-completions   "org-roam")
