@@ -1623,7 +1623,7 @@ If DESCRIPTION is provided, use this as the link label.  See
                (_ (when (region-active-p)
                     (setq beg (set-marker (make-marker) (region-beginning)))
                     (setq end (set-marker (make-marker) (region-end)))
-                    (setq region-text (buffer-substring-no-properties beg end))))
+                    (setq region-text (org-link-display-format (buffer-substring-no-properties beg end)))))
                (completions (--> (or completions
                                      (org-roam--get-title-path-completions))
                                  (if filter-fn
