@@ -598,7 +598,7 @@ GOTO and KEYS argument have the same functionality as
 (defun org-roam-capture-select-template (templates &optional keys)
   "Prompt user to select a template for `org-roam-capture'.
 Argument TEMPLATES: org-roam-capture templates to be populated (`org-roam-capture-templates').
-Argument KEYS see `org-capture'"
+Argument KEYS: see `org-capture'."
   (interactive)
   (let ((org-capture-templates (mapcar #'org-roam-capture--convert-template templates)))
     (if keys
