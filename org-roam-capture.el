@@ -595,6 +595,19 @@ GOTO and KEYS argument have the same functionality as
         (org-capture goto keys)
       (funcall-interactively org-roam-capture-function))))
 
+(defun org-roam-capture-select-template (templates &optional keys)
+  "Prompt user to select a template for org-roam-capture."
+  (interactive)
+  (let ((org-capture-templates (mapcar #'org-roam-capture--convert-template templates)))
+    (if keys
+        (or (assoc keys org-capture-templates)
+            (error "No capture template referred to by \"%s\" keys" keys))
+      (org-mks org-capture-templates
+               "Select a capture template for org-roam\n========================="
+               "Template key: "
+               '(("C" "Customize org-roam-capture-templates")
+	         ("q" "Abort"))))))
+
 ;;;###autoload
 (defun org-roam-capture (&optional goto keys)
   "Launches an `org-capture' process for a new or existing note.
@@ -602,20 +615,27 @@ This uses the templates defined at `org-roam-capture-templates'.
 Arguments GOTO and KEYS see `org-capture'."
   (interactive "P")
   (unless org-roam-mode (org-roam-mode))
-  (let* ((completions (org-roam--get-title-path-completions))
-         (title-with-keys (org-roam-completion--completing-read "File: "
-                                                                completions))
-         (res (cdr (assoc title-with-keys completions)))
-         (title (or (plist-get res :title) title-with-keys))
-         (file-path (plist-get res :path)))
-    (let ((org-roam-capture--info (list (cons 'title title)
-                                        (cons 'slug (funcall org-roam-title-to-slug-function title))
-                                        (cons 'file file-path)))
-          (org-roam-capture--context 'capture))
-      (condition-case err
-          (org-roam-capture--capture goto keys)
-        (error (user-error "%s.  Please adjust `org-roam-capture-templates'"
-                           (error-message-string err)))))))
+  (let* ((entry (org-roam-capture-select-template org-roam-capture-templates keys)))
+    (cond
+     ((equal entry "C")
+      (customize-variable 'org-roam-capture-templates))
+     ((equal entry "q")
+      (user-error "Abort"))
+     (t
+      (let* ((completions (org-roam--get-title-path-completions))
+             (title-with-keys (org-roam-completion--completing-read "File: "
+                                                                    completions))
+             (res (cdr (assoc title-with-keys completions)))
+             (title (or (plist-get res :title) title-with-keys))
+             (file-path (plist-get res :path)))
+        (let ((org-roam-capture--info (list (cons 'title title)
+                                            (cons 'slug (funcall org-roam-title-to-slug-function title))
+                                            (cons 'file file-path)))
+              (org-roam-capture--context 'capture))
+          (condition-case err
+              (org-roam-capture--capture goto (car entry))
+            (error (user-error "%s.  Please adjust `org-roam-capture-templates'"
+                               (error-message-string err))))))))))
 
 (provide 'org-roam-capture)
 
