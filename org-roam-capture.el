@@ -596,9 +596,10 @@ GOTO and KEYS argument have the same functionality as
       (funcall-interactively org-roam-capture-function))))
 
 (defun org-roam-capture-select-template (templates &optional keys)
-  "Prompt user to select a template for `org-roam-capture'.
-Argument TEMPLATES: org-roam-capture templates to be populated
-(`org-roam-capture-templates'). Argument KEYS: see `org-capture'."
+  "Prompt the user to select a template for `org-roam-capture'.
+Argument TEMPLATES: org-roam templates to be populated. Typically this
+should be `org-roam-capture-templates', but custom templates can be provided if
+needed. Argument KEYS: see `org-capture'."
   (interactive)
   (let ((org-capture-templates (mapcar #'org-roam-capture--convert-template templates)))
     (if keys
