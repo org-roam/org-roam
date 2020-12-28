@@ -1472,12 +1472,9 @@ Otherwise, doesn't update link description unless old description matches link d
           (const :tag "Do not Update link unless old description matches link description." nil))
   :group 'org-roam)
 
-(defun org-roam-sync-link-with-title-name ()
-  "Sync the link description of other Org-roam files.
-Iterate over all Org-roam files that have link description of
-OLD-TITLE, and replace the link descriptions with the NEW-TITLE
-if applicable."
-
+(defun org-roam-sync-title-to-backlinks ()
+  "Sync the title of current buffer to backlinks."
+  (interactive)
   (let* ((current-path (buffer-file-name))
          (current-id (org-roam-get-file-id))
          (new-title (car (org-roam--extract-titles)))
@@ -1505,6 +1502,21 @@ To be added to `org-roam-title-change-hook'."
     (dolist (file files-affected)
       (org-roam-with-file (car file) nil
                           (org-roam--replace-link (list :path current-path :id current-id) (list :path current-path :id current-id) old-title new-title)))))
+
+(defun org-roam-sync-title-to-file-name ()
+  "Sync the title of current buffer to file name."
+  (interactive)
+    (let* ((file (buffer-file-name (buffer-base-buffer)))
+           (file-name (file-name-nondirectory file))
+           (file-extension (or (file-name-extension file)
+                               file-name))) ;when there isn't any sans extension
+      (let* ((new-slug (funcall org-roam-title-to-slug-function (car (org-roam--extract-titles))))
+               (new-file-name (concat new-slug file-extension)))
+          (unless (string-equal file-name new-file-name)
+            (rename-file file-name new-file-name)
+            (set-visited-file-name new-file-name t t)
+            (org-roam-db-update)
+            (org-roam-message "File moved to %S" (abbreviate-file-name new-file-name))))))
 
 (defun org-roam--update-file-name-on-title-change (old-title new-title)
   "Update the file name on title change.
