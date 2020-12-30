@@ -66,6 +66,8 @@ Kills the buffer if KEEP-BUF-P is nil, and FILE is not yet visited."
                      (find-file-noselect ,file)))) ; Else, visit FILE and return buffer
           res)
      (with-current-buffer buf
+       (unless new-buf
+           (save-buffer))
        (setq res (progn ,@body))
        (unless (and new-buf (not ,keep-buf-p))
          (save-buffer)))
