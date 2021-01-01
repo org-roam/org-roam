@@ -504,31 +504,45 @@ Use external shell commands if defined in `org-roam-list-files-commands'."
   (org-roam--list-files (expand-file-name org-roam-directory)))
 
 ;;;; Org extraction functions
+(defun org-roam--extract-global-props-drawer (props)
+  "Extract PROPS from the file-level property drawer in Org."
+  (let (ret)
+    (org-with-point-at 1
+      (dolist (prop props ret)
+        (when-let ((v (org-entry-get (point) prop)))
+          (push (cons prop v) ret))))))
+
+(defun org-roam--collect-keywords (keywords)
+  "Collect all Org KEYWORDS in the current buffer."
+  (if (functionp 'org-collect-keywords)
+      (org-collect-keywords keywords)
+    (let ((buf (org-element-parse-buffer))
+          res)
+      (dolist (k keywords)
+        (let ((p (org-element-map buf 'keyword
+                   (lambda (kw)
+                     (when (string-equal (org-element-property :key kw) k)
+                       (org-element-property :value kw)))
+                   :first-match nil)))
+          (push (cons k p) res)))
+      res)))
+
+(defun org-roam--extract-global-props-keyword (keywords)
+  "Extract KEYWORDS from the current Org buffer."
+  (let (ret)
+    (pcase-dolist (`(,key . ,values) (org-roam--collect-keywords keywords))
+      (dolist (value values)
+        (push (cons key value) ret)))
+    ret))
+
 (defun org-roam--extract-global-props (props)
-  "Extract PROPS from the current org buffer."
-  (let ((collected
-         ;; Collect the raw props first
-         ;; It'll be returned in the form of
-         ;; (("PROP" "value" ...) ("PROP2" "value" ...))
-         (if (functionp 'org-collect-keywords)
-             (org-collect-keywords props)
-           (let ((buf (org-element-parse-buffer))
-                 res)
-             (dolist (prop props)
-               (let ((p (org-element-map buf 'keyword
-                          (lambda (kw)
-                            (when (string-equal (org-element-property :key kw) prop)
-                              (org-element-property :value kw)))
-                          :first-match nil)))
-                 (push (cons prop p) res)))
-             res))))
-    ;; convert (("TITLE" "a" "b") ("Another" "c"))
-    ;; to (("TITLE" . "a") ("TITLE" . "b") ("Another" . "c"))
-    (let (ret)
-      (pcase-dolist (`(,key . ,values) collected)
-        (dolist (value values)
-          (push (cons key value) ret)))
-      ret)))
+  "Extract PROPS from the current Org buffer.
+Props are extracted from both the file-level property drawer (if
+any), and Org keywords. Org keywords take precedence."
+  (append
+   (org-roam--extract-global-props-keyword props)
+   (org-roam--extract-global-props-drawer props)))
+
 
 (defun org-roam--get-outline-path ()
   "Return the outline path to the current entry.
@@ -882,20 +896,19 @@ whose title is 'Index'."
   "Set a file property called NAME to VALUE.
 
 If the property is already set, it's value is replaced."
-  (save-excursion
-    (widen)
-    (goto-char (point-min))
-    (if (re-search-forward (concat "^#\\+" name ": \\(.*\\)") (point-max) t)
-        (replace-match (concat "#+" name ": " value) 'fixedcase)
-      (while (and (not (eobp))
-                  (looking-at "^[#:]"))
-        (if (save-excursion (end-of-line) (eobp))
-            (progn
-              (end-of-line)
-              (insert "\n"))
-          (forward-line)
-          (beginning-of-line)))
-      (insert "#+" name ": " value "\n"))))
+  (org-with-point-at 1
+    (let ((case-fold-search t))
+      (if (re-search-forward (concat "^#\\+" name ":\\(.*\\)") (point-max) t)
+          (replace-match (concat " " value) 'fixedcase nil nil 1)
+        (while (and (not (eobp))
+                    (looking-at "^[#:]"))
+          (if (save-excursion (end-of-line) (eobp))
+              (progn
+                (end-of-line)
+                (insert "\n"))
+            (forward-line)
+            (beginning-of-line)))
+        (insert "#+" name ": " value "\n")))))
 
 ;;;; org-roam-find-ref
 (defun org-roam--get-ref-path-completions (&optional arg filter)
@@ -968,17 +981,6 @@ Return nil if the file does not exist."
                  (buffer-file-name it)
                  (org-roam--org-roam-file-p (buffer-file-name it)))
             (buffer-list)))
-
-(defun org-roam--file-path-from-id (id)
-  "Return path for Org-roam file with ID."
-  (let* ((ext (or (car org-roam-file-extensions)
-                  "org"))
-         (file (concat id "." ext)))
-    (expand-file-name
-     (if org-roam-encrypt-files
-         (concat file ".gpg")
-       file)
-     org-roam-directory)))
 
 ;;; org-roam-backlinks-mode
 (define-minor-mode org-roam-backlinks-mode
@@ -1621,7 +1623,7 @@ If DESCRIPTION is provided, use this as the link label.  See
                (_ (when (region-active-p)
                     (setq beg (set-marker (make-marker) (region-beginning)))
                     (setq end (set-marker (make-marker) (region-end)))
-                    (setq region-text (buffer-substring-no-properties beg end))))
+                    (setq region-text (org-link-display-format (buffer-substring-no-properties beg end)))))
                (completions (--> (or completions
                                      (org-roam--get-title-path-completions))
                                  (if filter-fn
@@ -1708,7 +1710,7 @@ Return added alias."
     (when (string-empty-p alias)
       (user-error "Alias can't be empty"))
     (org-roam--set-global-prop
-     "ROAM_ALIAS"
+     "roam_alias"
      (combine-and-quote-strings
       (seq-uniq (cons alias
                       (org-roam--extract-titles-alias)))))
@@ -1723,7 +1725,7 @@ Return added alias."
   (if-let ((aliases (org-roam--extract-titles-alias)))
       (let ((alias (completing-read "Alias: " aliases nil 'require-match)))
         (org-roam--set-global-prop
-         "ROAM_ALIAS"
+         "roam_alias"
          (combine-and-quote-strings (delete alias aliases)))
         (org-roam-db--update-file (buffer-file-name (buffer-base-buffer))))
     (user-error "No aliases to delete")))
@@ -1741,7 +1743,7 @@ Return added tag."
     (when (string-empty-p tag)
       (user-error "Tag can't be empty"))
     (org-roam--set-global-prop
-     "ROAM_TAGS"
+     "roam_tags"
      (combine-and-quote-strings (seq-uniq (cons tag existing-tags))))
     (org-roam-db--insert-tags 'update)
     tag))
@@ -1754,7 +1756,7 @@ Return added tag."
             (tags (org-roam--extract-tags-prop file)))
       (let ((tag (completing-read "Tag: " tags nil 'require-match)))
         (org-roam--set-global-prop
-         "ROAM_TAGS"
+         "roam_tags"
          (combine-and-quote-strings (delete tag tags)))
         (org-roam-db--insert-tags 'update))
     (user-error "No tag to delete")))

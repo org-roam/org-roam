@@ -43,7 +43,6 @@
 (defvar org-roam-mode)
 (defvar org-roam-directory)
 (declare-function org-roam--org-file-p        "org-roam")
-(declare-function org-roam--file-path-from-id "org-roam")
 (declare-function org-roam--find-file         "org-roam")
 (declare-function org-roam-mode               "org-roam")
 
