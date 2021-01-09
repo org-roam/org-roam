@@ -52,21 +52,26 @@
         (nconc new-lst (list separator it)))
       new-lst)))
 
-(defmacro org-roam-with-file (file keep-file-p &rest body)
+(defmacro org-roam-with-file (file keep-buf-p &rest body)
   "Execute BODY within FILE.
-If KEEP-FILE-P or FILE is already visited, do not kill the
-buffer."
+If FILE is nil, execute BODY in the current buffer.
+Kills the buffer if KEEP-BUF-P is nil, and FILE is not yet visited."
   (declare (indent 2) (debug t))
-  `(let* ((existing-buf (find-buffer-visiting ,file))
-          (buf (or existing-buf (find-file-noselect ,file)))
-          (keep-buf-p (or existing-buf ,keep-file-p))
+  `(let* (new-buf
+          (buf (or (and (not ,file)
+                        (current-buffer)) ;If FILE is nil, use current buffer
+                   (find-buffer-visiting ,file) ; If FILE is already visited, find buffer
+                   (progn
+                     (setq new-buf t)
+                     (find-file-noselect ,file)))) ; Else, visit FILE and return buffer
           res)
      (with-current-buffer buf
        (setq res (progn ,@body))
-       (unless keep-buf-p
+       (unless (and new-buf (not ,keep-buf-p))
          (save-buffer)))
-     (unless (and keep-buf-p (find-buffer-visiting ,file))
-       (kill-buffer (find-buffer-visiting ,file)))
+     (if (and new-buf (not ,keep-buf-p))
+       (when (find-buffer-visiting ,file)
+         (kill-buffer (find-buffer-visiting ,file))))
      res))
 
 (defmacro org-roam--with-temp-buffer (file &rest body)
