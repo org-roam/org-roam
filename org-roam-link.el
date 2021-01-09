@@ -97,7 +97,7 @@ the link."
 If FILE, return outline headings for passed FILE instead.
 If WITH-MARKER, return a cons cell of (headline . marker).
 If USE-STACK, include the parent paths as well."
-  (org-roam-with-file file 'keep
+  (org-roam-with-file file (when with-marker 'keep)
     (let* ((outline-level-fn outline-level)
            (path-separator "/")
            (stack-level 0)
@@ -128,6 +128,7 @@ If USE-STACK, include the parent paths as well."
                     name) cands))))
       (nreverse cands))))
 
+
 (defun org-roam-link--get-file-from-title (title &optional no-interactive)
   "Return the file path corresponding to TITLE.
 When NO-INTERACTIVE, return nil if there are multiple options."
@@ -142,8 +143,8 @@ When NO-INTERACTIVE, return nil if there are multiple options."
          (completing-read "Select file: " files))))))
 
 (defun org-roam-link--get-id-from-headline (headline &optional file)
-  "Return (marker . id) correspondng to HEADLINE.
-If FILE, get headline from FILE instead.
+  "Return (marker . id) correspondng to HEADLINE in FILE.
+If FILE is nil, get ID from current buffer.
 If there is no corresponding headline, return nil."
   (save-excursion
     (org-roam-with-file file 'keep
