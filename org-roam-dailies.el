@@ -301,6 +301,8 @@ negative, find note N days in the past."
                             (string= (buffer-file-name (buffer-base-buffer)) candidate))
                           dailies))
          note)
+      (unless position
+        (user-error "Can't find current note file - have you saved it yet?"))
       (pcase n
         ((pred (natnump))
          (when (eq position (- (length dailies) 1))
