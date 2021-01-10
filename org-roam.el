@@ -779,6 +779,14 @@ backlinks."
          "website")
         (t type)))
 
+(defun org-roam--split-ref (ref)
+  "Processes REF into its type and path.
+Returns a cons cell of type and path if ref is a valid ref."
+  (save-match-data
+    (when (string-match org-link-plain-re ref)
+      (cons (org-roam--collate-types (match-string 1 ref))
+            (match-string 2 ref)))))
+
 (defun org-roam--extract-refs ()
   "Extract all refs (ROAM_KEY statements) from the current buffer.
 
@@ -787,17 +795,13 @@ Each ref is returned as a cons of its type and its key."
     (pcase-dolist
         (`(,_ . ,roam-key)
          (org-roam--extract-global-props '("ROAM_KEY")))
-      (let (type path)
-        (pcase roam-key
+      (pcase roam-key
           ('nil nil)
           ((pred string-empty-p)
            (user-error "Org property #+roam_key cannot be empty"))
           (ref
-           (when (string-match org-link-plain-re ref)
-             (setq type (org-roam--collate-types (match-string 1 ref))
-                   path (match-string 2 ref)))))
-        (when (and type path)
-          (push (cons type path) refs))))
+           (when-let ((r (org-roam--split-ref ref)))
+             (push r refs)))))
     refs))
 
 (defun org-roam--extract-ref ()
