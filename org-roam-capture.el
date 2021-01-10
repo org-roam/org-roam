@@ -543,7 +543,7 @@ This function is used solely in Org-roam's capture templates: see
                               (or (org-roam-capture--get-ref-path type path)
                                   (org-roam-capture--new-file)))
                              (_ (user-error "%s is not a valid ref" ref)))
-                         (error "ref not found in `org-roam-capture--info'")))
+                         (error "Ref not found in `org-roam-capture--info'")))
                       (_ (error "Invalid org-roam-capture-context")))))
     (org-capture-put :template
       (org-roam-capture--fill-template (org-capture-get :template)))
