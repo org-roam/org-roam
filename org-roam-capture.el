@@ -32,6 +32,7 @@
 ;;;; Library Requires
 (require 'org-capture)
 (require 'org-roam-macs)
+(require 'org-roam-db)
 (require 'dash)
 (require 's)
 (require 'cl-lib)
