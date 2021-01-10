@@ -32,6 +32,7 @@
 ;;;; Library Requires
 (require 'org-capture)
 (require 'org-roam-macs)
+(require 'org-roam-db)
 (require 'dash)
 (require 's)
 (require 'cl-lib)
@@ -47,6 +48,7 @@
 (declare-function  org-roam--get-ref-path-completions   "org-roam")
 (declare-function  org-roam--find-file                  "org-roam")
 (declare-function  org-roam-format-link                "org-roam")
+(declare-function  org-roam--split-ref                 "org-roam")
 (declare-function  org-roam-mode                        "org-roam")
 (declare-function  org-roam-completion--completing-read "org-roam-completion")
 
@@ -405,7 +407,7 @@ The file is saved if the original value of :no-save is not t and
 This function reads the file-name attribute of the currently
 active Org-roam template.
 
-If the file path already exists, it throw an error.
+If the file path already exists, throw an error.
 
 Else, to insert the header content in the file, `org-capture'
 prepends the `:head' property of the Org-roam capture template.
@@ -429,8 +431,13 @@ the file if the original value of :no-save is not t and
                         ""))
          (org-template (org-capture-get :template))
          (roam-template (concat roam-head org-template)))
-    (unless (or (file-exists-p file-path)
-                (find-buffer-visiting file-path))
+    (if (or (file-exists-p file-path)
+            (find-buffer-visiting file-path))
+      (lwarn '(org-roam) :warning
+             "Attempted to recreate existing file: %s.
+This can happen when your org-roam db is not in sync with your notes.
+Using existing file..."
+             file-path)
       (make-directory (file-name-directory file-path) t)
       (org-roam-capture--put :orig-no-save (org-capture-get :no-save)
                              :new-file t)
@@ -446,9 +453,9 @@ the file if the original value of :no-save is not t and
          (org-capture-put :template org-template))
         (_
          (org-capture-put :template roam-template
-           :type 'plain)))
+                          :type 'plain)))
       (org-capture-put :no-save t))
-    file-path))
+      file-path))
 
 (defun org-roam-capture-find-or-create-olp (olp)
   "Return a marker pointing to the entry at OLP in the current buffer.
@@ -494,6 +501,16 @@ you can catch it with `condition-case'."
              end (save-excursion (org-end-of-subtree t t))))
      (point-marker))))
 
+(defun org-roam-capture--get-ref-path (type path)
+  "Get the file path to the ref with TYPE and PATH."
+  (caar (org-roam-db-query
+         [:select [file]
+          :from refs
+          :where (= type $s1)
+          :and (= ref $s2)
+          :limit 1]
+         type path)))
+
 (defun org-roam-capture--get-point ()
   "Return exact point to file for org-capture-template.
 The file to use is dependent on the context:
@@ -520,11 +537,13 @@ This function is used solely in Org-roam's capture templates: see
                        (org-capture-put :default-time (cdr (assoc 'time org-roam-capture--info)))
                        (org-roam-capture--new-file))
                       ('ref
-                       (let ((completions (org-roam--get-ref-path-completions))
-                             (ref (cdr (assoc 'ref org-roam-capture--info))))
-                         (if-let ((pl (cdr (assoc ref completions))))
-                             (plist-get pl :path)
-                           (org-roam-capture--new-file))))
+                       (if-let ((ref (cdr (assoc 'ref org-roam-capture--info))))
+                           (pcase (org-roam--split-ref )
+                             (`(,type . ,path)
+                              (or (org-roam-capture--get-ref-path type path)
+                                  (org-roam-capture--new-file)))
+                             (_ (user-error "%s is not a valid ref" ref)))
+                         (error "Ref not found in `org-roam-capture--info'")))
                       (_ (error "Invalid org-roam-capture-context")))))
     (org-capture-put :template
       (org-roam-capture--fill-template (org-capture-get :template)))
