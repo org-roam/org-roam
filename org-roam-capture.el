@@ -538,7 +538,7 @@ This function is used solely in Org-roam's capture templates: see
                        (org-roam-capture--new-file))
                       ('ref
                        (if-let ((ref (cdr (assoc 'ref org-roam-capture--info))))
-                           (pcase (org-roam--split-ref )
+                           (pcase (org-roam--split-ref ref)
                              (`(,type . ,path)
                               (or (org-roam-capture--get-ref-path type path)
                                   (org-roam-capture--new-file)))
