@@ -168,7 +168,7 @@ ORIG-PATH is the path where the CONTENT originated."
                                                     "file")))
               (dolist (backlink bls)
                 (pcase-let ((`(,file-from _ ,props) backlink))
-                  (insert (if-let ((content (concat "=> " (plist-get props :content))))
+                  (insert (if-let ((content (concat "> " (plist-get props :content))))
                               (propertize (org-roam-buffer-expand-links content file-from)
                                           'help-echo "mouse-1: visit backlinked note"
                                           'file-from file-from
@@ -207,7 +207,7 @@ ORIG-PATH is the path where the CONTENT originated."
                       "\n"
                       (if-let ((content (plist-get prop :content)))
                           (propertize
-                           (concat "=> " (s-trim (s-replace "\n" " " (org-roam-buffer-expand-links content file-from))))
+                           (concat "> " (s-trim (s-replace "\n" " " (org-roam-buffer-expand-links content file-from))))
                            'help-echo "mouse-1: visit backlinked note"
                            'file-from file-from
                            'file-from-point (plist-get prop :point))
