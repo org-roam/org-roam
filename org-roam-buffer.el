@@ -64,11 +64,13 @@ Valid values are
  * left,
  * right,
  * top,
- * bottom."
+ * bottom,
+ * a function returning one of the above."
   :type '(choice (const left)
                  (const right)
                  (const top)
-                 (const bottom))
+                 (const bottom)
+                 function)
   :group 'org-roam)
 
 (defcustom org-roam-buffer-width 0.33
@@ -291,16 +293,21 @@ Valid states are 'visible, 'exists and 'none."
        ((< (window-height) h)
         (enlarge-window (- h (window-height))))))))
 
+(defun org-roam-buffer--check-position (position)
+  "Check that `POSITION is valid, warn and return `'right' otherwise."
+  (if (member position '(right left top bottom))
+      position
+    (let ((text-quoting-style 'grave))
+      (lwarn '(org-roam) :error
+             "Invalid org-roam-buffer-position: %s. Defaulting to \\='right"
+             org-roam-buffer-position))
+    'right))
+
 (defun org-roam-buffer--get-create ()
   "Set up the `org-roam' buffer at `org-roam-buffer-position'."
-  (let ((position
-         (if (member org-roam-buffer-position '(right left top bottom))
-             org-roam-buffer-position
-           (let ((text-quoting-style 'grave))
-             (lwarn '(org-roam) :error
-                    "Invalid org-roam-buffer-position: %s. Defaulting to \\='right"
-                    org-roam-buffer-position))
-           'right)))
+  (let ((position (if (functionp org-roam-buffer-position)
+                      (org-roam-buffer--check-position (funcall org-roam-buffer-position))
+                    (org-roam-buffer--check-position org-roam-buffer-position))))
     (save-selected-window
       (-> (get-buffer-create org-roam-buffer)
           (display-buffer-in-side-window
