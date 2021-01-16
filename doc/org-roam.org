@@ -1093,7 +1093,7 @@ setting up with Platypus and Chrome:
 1. Install and launch Platypus (with [[https://brew.sh/][Homebrew]]):
 
 #+BEGIN_SRC bash
-brew cask install platypus
+brew install --cask platypus
 #+END_SRC
 
 2. Create a script ~launch_emacs.sh~:

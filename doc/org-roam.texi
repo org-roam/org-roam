@@ -1518,7 +1518,7 @@ Install and launch Platypus (with @uref{https://brew.sh/, Homebrew}):
 @end itemize
 
 @example
-brew cask install platypus
+brew install --cask platypus
 @end example
 
 @itemize
