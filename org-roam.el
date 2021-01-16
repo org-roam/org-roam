@@ -602,17 +602,8 @@ it as FILE-PATH."
           (goto-char (org-element-property :begin link))
           (let* ((type (org-roam--collate-types (org-element-property :type link)))
                  (path (org-element-property :path link))
-                 (element (org-element-at-point))
-                 (begin (or (org-element-property :contents-begin element)
-                            (org-element-property :begin element)))
-                 (end (or (org-element-property :contents-end element)
-                          (org-element-property :end element)))
-                 (content (or (org-element-property :raw-value element)
-                              (when (and begin end)
-                                (string-trim (buffer-substring-no-properties begin end)))))
                  (properties (list :outline (org-roam--get-outline-path)
-                                   :content content
-                                   :point begin))
+                                   :point (point)))
                  (names (pcase type
                           ("id"
                            (when-let ((file-path (org-roam-id-get-file path)))
