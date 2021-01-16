@@ -98,6 +98,13 @@ Has an effect if and only if `org-roam-buffer-position' is `top' or `bottom'."
   :type 'hook
   :group 'org-roam)
 
+(defcustom org-roam-buffer-preview-function #'org-roam-buffer--preview
+  "Function to obtain preview contents for a given link.
+The function takes in two arguments, the FILE containing the
+link, and the POINT of the link."
+  :type 'function
+  :group 'org-roam)
+
 (defcustom org-roam-buffer-window-parameters nil
   "Additional window parameters for the `org-roam-buffer' side window.
 For example: (setq org-roam-buffer-window-parameters '((no-other-window . t)))"
@@ -123,6 +130,16 @@ For example: (setq org-roam-buffer-window-parameters '((no-other-window . t)))"
                        (buffer-file-name org-roam-buffer--current))
                       'font-lock-face
                       'org-document-title)))
+
+(defun org-roam-buffer--preview (file point)
+  "Get preview content for FILE at POINT."
+  (org-roam--with-temp-buffer file
+    (goto-char point)
+    (let ((elem (org-element-at-point)))
+      (or (org-element-property :raw-value elem)
+          (when-let ((begin (org-element-property :begin elem))
+                     (end (org-element-property :end elem)))
+            (string-trim (buffer-substring-no-properties begin end)))))))
 
 (defun org-roam-buffer--pluralize (string number)
   "Conditionally pluralize STRING if NUMBER is above 1."
@@ -171,7 +188,7 @@ ORIG-PATH is the path where the CONTENT originated."
                                                     "file")))
               (dolist (backlink bls)
                 (pcase-let ((`(,file-from _ ,props) backlink))
-                  (insert (if-let ((content (plist-get props :content)))
+                  (insert (if-let ((content (funcall org-roam-buffer-preview-function file-from (plist-get props :point))))
                               (propertize (org-roam-buffer-expand-links content file-from)
                                           'help-echo "mouse-1: visit backlinked note"
                                           'file-from file-from
@@ -208,7 +225,7 @@ ORIG-PATH is the path where the CONTENT originated."
                               (org-roam-buffer-expand-links file-from))
                         "Top")
                       "\n"
-                      (if-let ((content (plist-get prop :content)))
+                      (if-let ((content (funcall org-roam-buffer-preview-function file-from (plist-get prop :point))))
                           (propertize
                            (s-trim (s-replace "\n" " " (org-roam-buffer-expand-links content file-from)))
                            'help-echo "mouse-1: visit backlinked note"
