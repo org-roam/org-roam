@@ -401,13 +401,14 @@ The file is saved if the original value of :no-save is not t and
        file)
      org-roam-directory)))
 
-(defun org-roam-capture--new-file ()
-  "Return the path to the new file during an Org-roam capture.
+(defun org-roam-capture--new-file (&optional allow-existing-file-p)
+  "Return the path to file during an Org-roam capture.
 
 This function reads the file-name attribute of the currently
 active Org-roam template.
 
-If the file path already exists, throw an error.
+If the file path already exists, and not ALLOW-EXISTING-FILE-P,
+raise a warning.
 
 Else, to insert the header content in the file, `org-capture'
 prepends the `:head' property of the Org-roam capture template.
@@ -416,9 +417,7 @@ To prevent the creation of a new file if the capture process is
 aborted, we do the following:
 
 1. Save the original value of the capture template's :no-save.
-
 2. Set the capture template's :no-save to t.
-
 3. Add a function on `org-capture-before-finalize-hook' that saves
 the file if the original value of :no-save is not t and
 `org-note-abort' is not t."
@@ -433,11 +432,11 @@ the file if the original value of :no-save is not t and
          (roam-template (concat roam-head org-template)))
     (if (or (file-exists-p file-path)
             (find-buffer-visiting file-path))
-      (lwarn '(org-roam) :warning
-             "Attempted to recreate existing file: %s.
+        (unless allow-existing-file-p
+          (lwarn '(org-roam) :warning
+                 "Attempted to recreate existing file: %s.
 This can happen when your org-roam db is not in sync with your notes.
-Using existing file..."
-             file-path)
+Using existing file..." file-path))
       (make-directory (file-name-directory file-path) t)
       (org-roam-capture--put :orig-no-save (org-capture-get :no-save)
                              :new-file t)
@@ -455,7 +454,7 @@ Using existing file..."
          (org-capture-put :template roam-template
                           :type 'plain)))
       (org-capture-put :no-save t))
-      file-path))
+    file-path))
 
 (defun org-roam-capture-find-or-create-olp (olp)
   "Return a marker pointing to the entry at OLP in the current buffer.
@@ -535,7 +534,7 @@ This function is used solely in Org-roam's capture templates: see
                        (org-roam-capture--new-file))
                       ('dailies
                        (org-capture-put :default-time (cdr (assoc 'time org-roam-capture--info)))
-                       (org-roam-capture--new-file))
+                       (org-roam-capture--new-file 'allow-existing))
                       ('ref
                        (if-let ((ref (cdr (assoc 'ref org-roam-capture--info))))
                            (pcase (org-roam--split-ref ref)
@@ -546,7 +545,7 @@ This function is used solely in Org-roam's capture templates: see
                          (error "Ref not found in `org-roam-capture--info'")))
                       (_ (error "Invalid org-roam-capture-context")))))
     (org-capture-put :template
-      (org-roam-capture--fill-template (org-capture-get :template)))
+                     (org-roam-capture--fill-template (org-capture-get :template)))
     (org-roam-capture--put :file-path file-path
                            :finalize (or (org-capture-get :finalize)
                                          (org-roam-capture--get :finalize)))
