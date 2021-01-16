@@ -36,6 +36,8 @@
 (require 's)
 (require 'f)
 (require 'ol)
+(require 'org-element)
+(require 'org-roam-macs)
 
 (defvar org-roam-directory)
 (defvar org-link-frame-setup)
