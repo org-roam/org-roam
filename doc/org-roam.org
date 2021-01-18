@@ -1087,41 +1087,40 @@ make the new policy take effect.
 See [[https://www.chromium.org/administrators/linux-quick-start][here]] for more info on the ~/etc/opt/chrome/policies/managed~ directory and
 [[https://cloud.google.com/docs/chrome-enterprise/policies/?policy=ExternalProtocolDialogShowAlwaysOpenCheckbox][here]] for information on the ~ExternalProtocolDialogShowAlwaysOpenCheckbox~ policy.
 
-For MacOS, one solution is to use [[https://github.com/sveinbjornt/Platypus][Platypus]]. Here are the instructions for
-setting up with Platypus and Chrome:
+For MacOS, we need to create our own application.
 
-1. Install and launch Platypus (with [[https://brew.sh/][Homebrew]]):
+1. Launch Script Editor
+2. Use the following script, paying attention to the path to ~emacsclient~:
 
-#+BEGIN_SRC bash
-brew install --cask platypus
-#+END_SRC
+#+begin_src emacs-lisp
+  on open location this_URL
+      set EC to "/usr/local/bin/emacsclient --no-wait "
+      set filePath to quoted form of this_URL
+      do shell script EC & filePath
+      tell application "Emacs" to activate
+  end open location
+#+end_src
 
-2. Create a script ~launch_emacs.sh~:
+3. Save the script in ~/Applications/OrgProtocolClient.app~, changing the script type to
+   "Application", rather than "Script".
+4. Edit ~/Applications/OrgProtocolClient.app/Contents/Info.plist~, adding the
+   following before the last ~</dict>~ tag:
 
-#+BEGIN_SRC bash
-#!/usr/bin/env bash
-/usr/local/bin/emacsclient --no-wait $1
-#+END_SRC
+#+begin_src text
+  <key>CFBundleURLTypes</key>
+  <array>
+    <dict>
+      <key>CFBundleURLName</key>
+      <string>org-protocol handler</string>
+      <key>CFBundleURLSchemes</key>
+      <array>
+        <string>org-protocol</string>
+      </array>
+    </dict>
+  </array>
+#+end_src
 
-3. Create a Platypus app with the following settings:
-
-| Setting                        | Value                     |
-|--------------------------------+---------------------------|
-| App Name                       | "OrgProtocol"             |
-| Script Type                    | "env" · "/usr/bin/env"    |
-| Script Path                    | "path/to/launch-emacs.sh" |
-| Interface                      | None                      |
-| Accept dropped items           | true                      |
-| Remain running after execution | false                     |
-
-
-Inside ~Settings~:
-
-| Setting                        | Value          |
-|--------------------------------+----------------|
-| Accept dropped files           | true           |
-| Register as URI scheme handler | true           |
-| Protocol                       | "org-protocol" |
+5. Save the file, and run the ~OrgProtocolClient.app~ to register the protocol.
 
 To disable the "confirm" prompt in Chrome, you can also make Chrome
 show a checkbox to tick, so that the ~OrgProtocol~ app will be used

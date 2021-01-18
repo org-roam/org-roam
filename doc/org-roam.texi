@@ -1509,63 +1509,53 @@ make the new policy take effect.
 See @uref{https://www.chromium.org/administrators/linux-quick-start, here} for more info on the @code{/etc/opt/chrome/policies/managed} directory and
 @uref{https://cloud.google.com/docs/chrome-enterprise/policies/?policy=ExternalProtocolDialogShowAlwaysOpenCheckbox, here} for information on the @code{ExternalProtocolDialogShowAlwaysOpenCheckbox} policy.
 
-For MacOS, one solution is to use @uref{https://github.com/sveinbjornt/Platypus, Platypus}. Here are the instructions for
-setting up with Platypus and Chrome:
+For MacOS, we need to create our own application.
 
 @itemize
 @item
-Install and launch Platypus (with @uref{https://brew.sh/, Homebrew}):
+Launch Script Editor
+
+@item
+Use the following script, paying attention to the path to @code{emacsclient}:
+@end itemize
+
+@lisp
+on open location this_URL
+    set EC to "/usr/local/bin/emacsclient --no-wait "
+    set filePath to quoted form of this_URL
+    do shell script EC & filePath
+    tell application "Emacs" to activate
+end open location
+@end lisp
+
+@itemize
+@item
+Save the script in @code{/Applications/OrgProtocolClient.app}, changing the script type to
+``Application'', rather than ``Script''.
+
+@item
+Edit @code{/Applications/OrgProtocolClient.app/Contents/Info.plist}, adding the
+following before the last @code{</dict>} tag:
 @end itemize
 
 @example
-brew install --cask platypus
+<key>CFBundleURLTypes</key>
+<array>
+  <dict>
+    <key>CFBundleURLName</key>
+    <string>org-protocol handler</string>
+    <key>CFBundleURLSchemes</key>
+    <array>
+      <string>org-protocol</string>
+    </array>
+  </dict>
+</array>
 @end example
 
 @itemize
 @item
-Create a script @code{launch_emacs.sh}:
+Save the file, and run the @code{OrgProtocolClient.app} to register the protocol.
 @end itemize
-
-@example
-#!/usr/bin/env bash
-/usr/local/bin/emacsclient --no-wait $1
-@end example
-
-@itemize
-@item
-Create a Platypus app with the following settings:
-@end itemize
-
-@multitable {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa} {aaaaaaaaaaaaaaaaaaaaaaaaa}
-@headitem Setting
-@tab Value
-@item App Name
-@tab ``OrgProtocol''
-@item Script Type
-@tab ``env'' · ``/usr/bin/env''
-@item Script Path
-@tab ``path/to/launch-emacs.sh''
-@item Interface
-@tab None
-@item Accept dropped items
-@tab true
-@item Remain running after execution
-@tab false
-@end multitable
-
-
-Inside @code{Settings}:
-
-@multitable {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa} {aaaaaaaaaaaaaa}
-@headitem Setting
-@tab Value
-@item Accept dropped files
-@tab true
-@item Register as URI scheme handler
-@tab true
-@item Protocol
-@tab ``org-protocol''
-@end multitable
 
 To disable the ``confirm'' prompt in Chrome, you can also make Chrome
 show a checkbox to tick, so that the @code{OrgProtocol} app will be used
