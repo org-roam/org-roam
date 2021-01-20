@@ -1,18 +1,51 @@
 # Changelog
+## 1.2.4 (TBD)
 
-## 1.2.3 (TBD)
+### Added
+- [#1270](https://github.com/org-roam/org-roam/pull/1270) capture: create OLP if it does not exist. Removes need for OLP setup in `:head`.
+- [#1353](https://github.com/org-roam/org-roam/pull/1353) support file-level property drawers
 
-### Features
+### Changed
+- [#1352](https://github.com/org-roam/org-roam/pull/1352) prefer lower-case for roam_tag and roam_alias in interactive commands
 
-- [#1183](https://github.com/org-roam/org-roam/pull/1183) add interactive functions for managing aliases and tags in Org-roam file, namely `org-roam-alias-add`, `org-roam-alias-delete`, `org-roam-tag-add`, and `org-roam-tag-delete`.
+### Fixed
+- [#1281](https://github.com/org-roam/org-roam/pull/1281) fixed idle-timer not instantiated on `org-roam-mode`
+- [#1308](https://github.com/org-roam/org-roam/pull/1308) fixed file renames corrupting database
+- [#1325](https://github.com/org-roam/org-roam/pull/1325) make titles and tags extracted unique per note
+- [#1327](https://github.com/org-roam/org-roam/pull/1327) preserve existing link description during automatic replacement
+- [#1346](https://github.com/org-roam/org-roam/pull/1346) prevent malformed path to `org-roam-index-file`
+- [#1347](https://github.com/org-roam/org-roam/pull/1347) allow use of `%a` element in regular Org-roam captures
+- [#1352](https://github.com/org-roam/org-roam/pull/1352) fixed org-roam-{tag/alias}-{add/delete} altering the original case of the Org property
+- [#1374](https://github.com/org-roam/org-roam/pull/1374) fix headline completions erroring out
+- [#1375](https://github.com/org-roam/org-roam/pull/1375) fix org-roam-protocol to use existing ref file 
 
-### Bugfixes
+## 1.2.3 (13-11-2020)
 
+Primarily a stabilization and bug-fix release.
+
+Org-roam-dailies has also been revamped to include new features, see [this video](https://www.youtube.com/watch?v=1q9x2aZCJJ4) for a quick overview.
+
+### Added
+- [#978](https://github.com/org-roam/org-roam/pull/978) Revamp org-roam-dailies
+- [#1183](https://github.com/org-roam/org-roam/pull/1183) Interactive functions for managing aliases and tags in Org-roam file, namely `org-roam-alias-add`, `org-roam-alias-delete`, `org-roam-tag-add`, and `org-roam-tag-delete`.
+- [#1215](https://github.com/org-roam/org-roam/pull/1215) Multiple `ROAM_KEY` keywords can now be specified in one file. This allows bibliographical entries to share the same note file.
+- [#1238](https://github.com/org-roam/org-roam/pull/1238) Add `org-roam-prefer-id-links` variable to select linking method
+- [#1239](https://github.com/org-roam/org-roam/pull/1239) Allow `org-roam-protocol` to capture the webpage's selection, and add a toggle for storing the links to the pages
+- [#1264](https://github.com/org-roam/org-roam/pull/1264) add `org-roam-db-update-method` to control when the cache is rebuilt.
+
+### Changed
+- [#1264](https://github.com/org-roam/org-roam/pull/1264) renamed `org-roam-update-db-idle-seconds` to `org-roam-db-idle-idle-seconds`
+
+### Fixed
 - [#1074](https://github.com/org-roam/org-roam/issues/1074) fix `org-roam--extract-links` to handle content boundaries.
 - [#1193](https://github.com/org-roam/org-roam/issues/1193) fix `org-roam-db-build-cache` by not killing temporary buffer in `org-roam--extract-links`.
 - [#1195](https://github.com/org-roam/org-roam/issues/1195) fix ID face showing as invalid if within Org ID files, but not Org-roam's.
 - [#1199](https://github.com/org-roam/org-roam/issues/1199) make Org-roam link insertions respect `org-roam-link-title-format` everywhere.
 - [#1201](https://github.com/org-roam/org-roam/issues/1201) fix `org-roam-db-build-cache` failing in scenarios involving duplicate IDs and deleted files.
+- [#1226](https://github.com/org-roam/org-roam/issues/1226) only update relative path of file links
+- [#1232](https://github.com/org-roam/org-roam/issues/1232) fix incorrect title extractions from narrowed buffers
+- [#1233](https://github.com/org-roam/org-roam/issues/1233) fixes bug where descriptive file links become plain links during update for relative paths
+- [#1252](https://github.com/org-roam/org-roam/issues/1252) respect original link type during automatic replacement
 
 ## 1.2.2 (06-10-2020)
 
@@ -45,7 +78,7 @@ This change requires you to set `org-roam-directory` to the resolved path of a f
 - [#974](https://github.com/org-roam/org-roam/pull/974) Protect region targeted by `org-roam-insert`
 - [#994](https://github.com/org-roam/org-roam/pull/994) Simplify org-roam-store-link
 - [#1062](https://github.com/org-roam/org-roam/pull/1062) Variable `org-roam-completions-everywhere` allows for completions everywhere from word at point
-- [#910](https://github.com/org-roam/org-roam/pull/910), [#1105](https://github.com/org-roam/org-roam/pull/1105) Support fuzzy links of the form [[roam:Title]], [[roam:*Headline]] and [[roam:Title*Headline]]
+- [#910](https://github.com/org-roam/org-roam/pull/910), [#1105](https://github.com/org-roam/org-roam/pull/1105) Support fuzzy links of the form `[[roam:Title]]`, `[[roam:*Headline]]` and `[[roam:Title*Headline]]`
 
 ### Bugfixes
 

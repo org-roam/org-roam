@@ -6,7 +6,7 @@
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
-;; Version: 1.2.2
+;; Version: 1.2.3
 ;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (s "1.12.0") (org "9.3") (emacsql "3.0.0") (emacsql-sqlite3 "1.0.2"))
 
 ;; This file is NOT part of GNU Emacs.
@@ -36,6 +36,10 @@
 
 (require 'ol)
 (require 'org-roam-compat)
+(require 'org-roam-macs)
+(require 'org-roam-db)
+
+(require 'org-element)
 
 (defvar org-roam-completion-ignore-case)
 (defvar org-roam-directory)
@@ -67,18 +71,21 @@ noabbrev  Absolute path, no abbreviation of home directory."
 (org-link-set-parameters "roam"
                          :follow #'org-roam-link-follow-link)
 
-(defun org-roam-link-follow-link (path)
-  "Navigates to location specified by PATH."
-  (pcase-let ((`(,link-type ,loc ,desc ,mkr) (org-roam-link--get-location path)))
+(defun org-roam-link-follow-link (_path)
+  "Navigates to location in Org-roam link.
+This function is called by Org when following links of the type
+`roam'. While the path is passed, assume that the cursor is on
+the link."
+  (pcase-let ((`(,link-type ,loc ,desc ,mkr) (org-roam-link--get-location)))
     (when (and org-roam-link-auto-replace loc desc)
       (org-roam-link--replace-link link-type loc desc))
     (pcase link-type
-          ("file"
-           (if loc
-               (org-roam--find-file loc)
-             (org-roam-find-file desc nil nil t)))
-          ("id"
-           (org-goto-marker-or-bmk mkr)))))
+      ("file"
+       (if loc
+           (org-roam--find-file loc)
+         (org-roam-find-file desc nil nil t)))
+      ("id"
+       (org-goto-marker-or-bmk mkr)))))
 
 ;;; Retrieval Functions
 (defun org-roam-link--get-titles ()
@@ -90,15 +97,11 @@ noabbrev  Absolute path, no abbreviation of home directory."
 If FILE, return outline headings for passed FILE instead.
 If WITH-MARKER, return a cons cell of (headline . marker).
 If USE-STACK, include the parent paths as well."
-  (let* ((buf (or (and file
-                       (or (find-buffer-visiting file)
-                           (find-file-noselect file)))
-                  (current-buffer)))
-         (outline-level-fn outline-level)
-         (path-separator "/")
-         (stack-level 0)
-         stack cands name level marker)
-    (with-current-buffer buf
+  (org-roam-with-file file (when with-marker 'keep)
+    (let* ((outline-level-fn outline-level)
+           (path-separator "/")
+           (stack-level 0)
+           stack cands name level marker)
       (save-excursion
         (goto-char (point-min))
         (while (re-search-forward org-complex-heading-regexp nil t)
@@ -122,8 +125,9 @@ If USE-STACK, include the parent paths as well."
                                     path-separator)))
             (push (if with-marker
                       (cons name marker)
-                    name) cands)))))
-    (nreverse cands)))
+                    name) cands))))
+      (nreverse cands))))
+
 
 (defun org-roam-link--get-file-from-title (title &optional no-interactive)
   "Return the file path corresponding to TITLE.
@@ -139,14 +143,11 @@ When NO-INTERACTIVE, return nil if there are multiple options."
          (completing-read "Select file: " files))))))
 
 (defun org-roam-link--get-id-from-headline (headline &optional file)
-  "Return (marker . id) correspondng to HEADLINE.
-If FILE, get headline from FILE instead.
+  "Return (marker . id) correspondng to HEADLINE in FILE.
+If FILE is nil, get ID from current buffer.
 If there is no corresponding headline, return nil."
   (save-excursion
-    (with-current-buffer (or (and file
-                                  (or (find-buffer-visiting file)
-                                      (find-file-noselect file)))
-                             (current-buffer))
+    (org-roam-with-file file 'keep
       (let ((headlines (org-roam-link--get-headlines file 'with-markers)))
         (when-let ((marker (cdr (assoc-string headline headlines))))
           (goto-char marker)
@@ -155,11 +156,11 @@ If there is no corresponding headline, return nil."
                   (org-id-get-create))))))))
 
 ;;; Path-related functions
-(defun org-roam-link-get-path (path)
+(defun org-roam-link-get-path (path &optional type)
   "Return the PATH of the link to use.
-Respect `org-link-file-path-type', see the variable documentation for details.
-If DIR is passed, use DIR as the default directory."
-  (pcase org-roam-link-file-path-type
+If TYPE is non-nil, create a link of TYPE. Otherwise, respect
+`org-link-file-path-type'."
+  (pcase (or type org-roam-link-file-path-type)
       ('absolute
        (abbreviate-file-name (expand-file-name path)))
       ('noabbrev
@@ -187,43 +188,59 @@ star-idx is the index of the asterisk, if any."
                        (t 'title+headline))))
       (list type title headline star-index))))
 
-(defun org-roam-link--get-location (link)
-  "Return the location of Org-roam fuzzy LINK.
+(defun org-roam-link--get-location ()
+  "Return the location of the Org-roam fuzzy link at point.
 The location is returned as a list containing (link-type loc desc marker).
 nil is returned if there is no matching location.
 
 link-type is either \"file\" or \"id\".
 loc is the target location: e.g. a file path, or an id.
-marker is a marker to the headline, if applicable."
-  (let (mkr link-type desc loc)
-    (pcase-let ((`(,type ,title ,headline _) (org-roam-link--split-path link)))
-      (pcase type
-        ('title+headline
-         (let ((file (org-roam-link--get-file-from-title title)))
-           (if (not file)
-               (org-roam-message "Cannot find matching file")
-             (setq mkr (org-roam-link--get-id-from-headline headline file))
-             (pcase mkr
-               (`(,marker . ,target-id)
-                (setq mkr marker
-                      loc target-id
-                      link-type "id"
-                      desc headline))
-               (_ (org-roam-message "cannot find matching id"))))))
-        ('title
-         (setq loc (org-roam-link--get-file-from-title title)
-               desc title
-               link-type "file"))
-        ('headline
-         (setq mkr (org-roam-link--get-id-from-headline headline))
-         (pcase mkr
-           (`(,marker . ,target-id)
-            (setq mkr marker
-                  loc target-id
-                  desc headline
-                  link-type "id"))
-           (_ (org-roam-message "Cannot find matching headline")))))
-      (list link-type loc desc mkr))))
+marker is a marker to the headline, if applicable.
+
+desc is either the the description of the link under point, or
+the target of LINK (title or heading content)."
+  (let ((context (org-element-context))
+        mkr link-type desc loc)
+    (pcase (org-element-lineage context '(link) t)
+      (`nil (error "Not at an Org link"))
+      (link
+       (if (not (string-equal "roam" (org-element-property :type link)))
+           (error "Not at Org-roam link")
+         (setq desc (and (org-element-property :contents-begin link)
+                         (org-element-property :contents-end link)
+                         (buffer-substring-no-properties
+                          (org-element-property :contents-begin link)
+                          (org-element-property :contents-end link))))
+         (pcase-let ((`(,type ,title ,headline _) (org-roam-link--split-path
+                                                   (org-element-property :path link))))
+           (pcase type
+             ('title+headline
+              (let ((file (org-roam-link--get-file-from-title title)))
+                (if (not file)
+                    (org-roam-message "Cannot find matching file")
+                  (setq mkr (org-roam-link--get-id-from-headline headline file))
+                  (pcase mkr
+                    (`(,marker . ,target-id)
+                     (progn
+                       (setq mkr marker
+                             loc target-id
+                             desc (or desc headline)
+                             link-type "id")))
+                    (_ (org-roam-message "Cannot find matching id"))))))
+             ('title
+              (setq loc (org-roam-link--get-file-from-title title)
+                    link-type "file"
+                    desc (or desc title)))
+             ('headline
+              (setq mkr (org-roam-link--get-id-from-headline headline))
+              (pcase mkr
+                (`(,marker . ,target-id)
+                 (setq mkr marker
+                       loc target-id
+                       link-type "id"
+                       desc (or desc headline)))
+                (_ (org-roam-message "Cannot find matching headline")))))))))
+    (list link-type loc desc mkr)))
 
 ;;; Conversion Functions
 (defun org-roam-link--replace-link (link-type loc &optional desc)
@@ -244,14 +261,11 @@ DESC is the link description."
   (save-excursion
     (goto-char (point-min))
     (while (re-search-forward org-link-bracket-re nil t)
-      (let ((context (org-element-context)))
-          (pcase (org-element-lineage context '(link) t)
-            (`nil nil)
-            (link
-             (when (string-equal "roam" (org-element-property :type link))
-               (pcase-let ((`(,link-type ,loc ,desc _) (org-roam-link--get-location (org-element-property :path link))))
-                 (when (and link-type loc)
-                   (org-roam-link--replace-link link-type loc desc))))))))))
+      (condition-case nil
+          (pcase-let ((`(,link-type ,loc ,desc _) (org-roam-link--get-location)))
+            (when (and link-type loc)
+              (org-roam-link--replace-link link-type loc desc)))
+        (error nil)))))
 
 (defun org-roam-link--replace-link-on-save ()
   "Hook to replace all roam links on save."

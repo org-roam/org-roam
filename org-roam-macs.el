@@ -5,7 +5,7 @@
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
-;; Version: 1.2.2
+;; Version: 1.2.3
 ;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (s "1.12.0") (org "9.3") (emacsql "3.0.0") (emacsql-sqlite3 "1.0.2"))
 
 ;; This file is NOT part of GNU Emacs.
@@ -34,8 +34,14 @@
 ;;; Code:
 ;;;; Library Requires
 (require 'dash)
+(require 's)
 
 (defvar org-roam-verbose)
+
+;; This is necessary to ensure all dependents on this module see
+;; `org-mode-hook' and `org-inhibit-startup' as dynamic variables,
+;; regardless of whether Org is loaded before their compilation.
+(require 'org)
 
 ;;;; Utility Functions
 (defun org-roam--list-interleave (lst separator)
@@ -45,6 +51,28 @@
       (dolist (it lst)
         (nconc new-lst (list separator it)))
       new-lst)))
+
+(defmacro org-roam-with-file (file keep-buf-p &rest body)
+  "Execute BODY within FILE.
+If FILE is nil, execute BODY in the current buffer.
+Kills the buffer if KEEP-BUF-P is nil, and FILE is not yet visited."
+  (declare (indent 2) (debug t))
+  `(let* (new-buf
+          (buf (or (and (not ,file)
+                        (current-buffer)) ;If FILE is nil, use current buffer
+                   (find-buffer-visiting ,file) ; If FILE is already visited, find buffer
+                   (progn
+                     (setq new-buf t)
+                     (find-file-noselect ,file)))) ; Else, visit FILE and return buffer
+          res)
+     (with-current-buffer buf
+       (setq res (progn ,@body))
+       (unless (and new-buf (not ,keep-buf-p))
+         (save-buffer)))
+     (if (and new-buf (not ,keep-buf-p))
+       (when (find-buffer-visiting ,file)
+         (kill-buffer (find-buffer-visiting ,file))))
+     res))
 
 (defmacro org-roam--with-temp-buffer (file &rest body)
   "Execute BODY within a temp buffer.
@@ -60,7 +88,8 @@ If FILE, set `org-roam-temp-file-name' to file and insert its contents."
            (org-mode)
            (when ,file
              (insert-file-contents ,file)
-             (setq-local org-roam-file-name ,file))
+             (setq-local org-roam-file-name ,file)
+             (setq-local default-directory (file-name-directory ,file)))
            ,@body)))))
 
 (defun org-roam-message (format-string &rest args)

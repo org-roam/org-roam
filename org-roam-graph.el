@@ -5,7 +5,7 @@
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
-;; Version: 1.2.2
+;; Version: 1.2.3
 ;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (s "1.12.0") (org "9.3") (emacsql "3.0.0") (emacsql-sqlite3 "1.0.2"))
 
 ;; This file is NOT part of GNU Emacs.
@@ -32,7 +32,8 @@
 ;;; Code:
 (require 'xml) ;xml-escape-string
 (require 's)   ;s-truncate, s-replace
-(require 'org-roam-macs)
+(eval-and-compile
+  (require 'org-roam-macs))
 (require 'org-roam-db)
 
 ;;;; Declarations
@@ -169,15 +170,15 @@ into a digraph."
     (let* ((nodes (org-roam-db-query node-query))
            (edges-query
             `[:with selected :as [:select [file] :from ,node-query]
-              :select :distinct [to from] :from links
-              :where (and (in to selected) (in from selected))])
+              :select :distinct [dest source] :from links
+              :where (and (in dest selected) (in source selected))])
            (edges-cites-query
             `[:with selected :as [:select [file] :from ,node-query]
-              :select :distinct [file from]
-              :from links :inner :join refs :on (and (= links:to refs:ref)
+              :select :distinct [file source]
+              :from links :inner :join refs :on (and (= links:dest refs:ref)
                                                      (= links:type "cite")
                                                      (= refs:type "cite"))
-              :where (and (in file selected) (in from selected))])
+              :where (and (in file selected) (in source selected))])
            (edges       (org-roam-db-query edges-query))
            (edges-cites (org-roam-db-query edges-cites-query)))
       (insert "digraph \"org-roam\" {\n")

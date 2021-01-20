@@ -5,7 +5,7 @@
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
-;; Version: 1.2.2
+;; Version: 1.2.3
 ;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (s "1.12.0") (org "9.3") (emacsql "3.0.0") (emacsql-sqlite3 "1.0.2"))
 
 ;; This file is NOT part of GNU Emacs.
@@ -32,6 +32,7 @@
 ;;;; Library Requires
 (require 'org-capture)
 (require 'org-roam-macs)
+(require 'org-roam-db)
 (require 'dash)
 (require 's)
 (require 'cl-lib)
@@ -41,11 +42,13 @@
 (defvar org-roam-directory)
 (defvar org-roam-mode)
 (defvar org-roam-title-to-slug-function)
+(defvar org-roam-file-extensions)
+
 (declare-function  org-roam--get-title-path-completions "org-roam")
 (declare-function  org-roam--get-ref-path-completions   "org-roam")
-(declare-function  org-roam--file-path-from-id          "org-roam")
 (declare-function  org-roam--find-file                  "org-roam")
 (declare-function  org-roam-format-link                "org-roam")
+(declare-function  org-roam--split-ref                 "org-roam")
 (declare-function  org-roam-mode                        "org-roam")
 (declare-function  org-roam-completion--completing-read "org-roam-completion")
 
@@ -74,11 +77,11 @@ note with the given `ref'.")
 (defvar org-roam-capture-additional-template-props nil
   "Additional props to be added to the Org-roam template.")
 
-(defconst org-roam-capture--template-keywords '(:file-name :head)
+(defconst org-roam-capture--template-keywords '(:file-name :head :olp)
   "Keywords used in `org-roam-capture-templates' specific to Org-roam.")
 
 (defcustom org-roam-capture-templates
-  '(("d" "default" plain (function org-roam-capture--get-point)
+  `(("d" "default" plain (function org-roam-capture--get-point)
      "%?"
      :file-name "%<%Y%m%d%H%M%S>-${slug}"
      :head "#+title: ${title}\n"
@@ -218,10 +221,10 @@ Template string   :\n%v")
                  ((const :format "%v " :kill-buffer) (const t))))))
 
 (defcustom org-roam-capture-ref-templates
-  '(("r" "ref" plain (function org-roam-capture--get-point)
+  '(("r" "ref" plain #'org-roam-capture--get-point
      "%?"
      :file-name "${slug}"
-     :head "#+title: ${title}\n#+roam_key: ${ref}\n"
+     :head "#+title: ${title}\n#+roam_key: ${ref}"
      :unnarrowed t))
   "The Org-roam templates used during a capture from the roam-ref protocol.
 Details on how to specify for the template is given in `org-roam-capture-templates'."
@@ -387,13 +390,25 @@ The file is saved if the original value of :no-save is not t and
     (with-current-buffer (org-capture-get :buffer)
       (save-buffer)))))
 
-(defun org-roam-capture--new-file ()
-  "Return the path to the new file during an Org-roam capture.
+(defun org-roam-capture--get-file-path (basename)
+  "Return path for Org-roam file with BASENAME."
+  (let* ((ext (or (car org-roam-file-extensions)
+                  "org"))
+         (file (concat basename "." ext)))
+    (expand-file-name
+     (if org-roam-encrypt-files
+         (concat file ".gpg")
+       file)
+     org-roam-directory)))
+
+(defun org-roam-capture--new-file (&optional allow-existing-file-p)
+  "Return the path to file during an Org-roam capture.
 
 This function reads the file-name attribute of the currently
 active Org-roam template.
 
-If the file path already exists, it throw an error.
+If the file path already exists, and not ALLOW-EXISTING-FILE-P,
+raise a warning.
 
 Else, to insert the header content in the file, `org-capture'
 prepends the `:head' property of the Org-roam capture template.
@@ -402,33 +417,98 @@ To prevent the creation of a new file if the capture process is
 aborted, we do the following:
 
 1. Save the original value of the capture template's :no-save.
-
 2. Set the capture template's :no-save to t.
-
 3. Add a function on `org-capture-before-finalize-hook' that saves
 the file if the original value of :no-save is not t and
 `org-note-abort' is not t."
-  (let* ((name-templ (org-roam-capture--get :file-name))
+  (let* ((name-templ (or (org-roam-capture--get :file-name)
+                         (user-error "Template needs to specify `:file-name'")))
          (new-id (s-trim (org-roam-capture--fill-template
                           name-templ)))
-         (file-path (org-roam--file-path-from-id new-id))
-         (roam-head (org-roam-capture--get :head))
+         (file-path (org-roam-capture--get-file-path new-id))
+         (roam-head (or (org-roam-capture--get :head)
+                        ""))
          (org-template (org-capture-get :template))
          (roam-template (concat roam-head org-template)))
-    (unless (file-exists-p file-path)
+    (if (or (file-exists-p file-path)
+            (find-buffer-visiting file-path))
+        (unless allow-existing-file-p
+          (lwarn '(org-roam) :warning
+                 "Attempted to recreate existing file: %s.
+This can happen when your org-roam db is not in sync with your notes.
+Using existing file..." file-path))
       (make-directory (file-name-directory file-path) t)
       (org-roam-capture--put :orig-no-save (org-capture-get :no-save)
                              :new-file t)
-      (org-capture-put :template
-                       ;; Fixes org-capture-place-plain-text throwing 'invalid search bound'
-                       ;; when both :unnarowed t and "%?" is missing from the template string;
-                       ;; may become unnecessary when the upstream bug is fixed
-                       (if (s-contains-p "%?" roam-template)
-                           roam-template
-                         (concat roam-template "%?"))
-                       :type 'plain
-                       :no-save t))
+      (pcase org-roam-capture--context
+        ('dailies
+         ;; Populate the header of the daily file before capture to prevent it
+         ;; from appearing in the buffer-restriction
+         (save-window-excursion
+           (find-file file-path)
+           (insert (substring (org-capture-fill-template (concat roam-head "*"))
+                              0 -2))
+           (set-buffer-modified-p nil))
+         (org-capture-put :template org-template))
+        (_
+         (org-capture-put :template roam-template
+                          :type 'plain)))
+      (org-capture-put :no-save t))
     file-path))
+
+(defun org-roam-capture-find-or-create-olp (olp)
+  "Return a marker pointing to the entry at OLP in the current buffer.
+If OLP does not exist, create it. If anything goes wrong, throw
+an error, and if you need to do something based on this error,
+you can catch it with `condition-case'."
+  (let* ((level 1)
+         (lmin 1)
+         (lmax 1)
+         (start (point-min))
+         (end (point-max))
+         found flevel)
+    (unless (derived-mode-p 'org-mode)
+      (error "Buffer %s needs to be in Org mode" (current-buffer)))
+    (org-with-wide-buffer
+     (goto-char start)
+     (dolist (heading olp)
+       (let ((re (format org-complex-heading-regexp-format
+                         (regexp-quote heading)))
+             (cnt 0))
+         (while (re-search-forward re end t)
+           (setq level (- (match-end 1) (match-beginning 1)))
+           (when (and (>= level lmin) (<= level lmax))
+             (setq found (match-beginning 0) flevel level cnt (1+ cnt))))
+         (when (> cnt 1)
+           (error "Heading not unique on level %d: %s" lmax heading))
+         (when (= cnt 0)
+           ;; Create heading if it doesn't exist
+           (goto-char end)
+           (unless (bolp) (newline))
+           (org-insert-heading nil nil t)
+           (unless (= lmax 1) (org-do-demote))
+           (insert heading)
+           (setq end (point))
+           (goto-char start)
+           (while (re-search-forward re end t)
+             (setq level (- (match-end 1) (match-beginning 1)))
+             (when (and (>= level lmin) (<= level lmax))
+               (setq found (match-beginning 0) flevel level cnt (1+ cnt))))))
+       (goto-char found)
+       (setq lmin (1+ flevel) lmax (+ lmin (if org-odd-levels-only 1 0)))
+       (setq start found
+             end (save-excursion (org-end-of-subtree t t))))
+     (point-marker))))
+
+(defun org-roam-capture--get-ref-path (type path)
+  "Get the file path to the ref with TYPE and PATH."
+  (caar (org-roam-db-query
+         [:select [file]
+          :from refs
+          :where (= type $s1)
+          :and (= ref $s2)
+          :limit 1]
+         type path)))
 
 (defun org-roam-capture--get-point ()
   "Return exact point to file for org-capture-template.
@@ -446,32 +526,45 @@ If there is no file with that ref, a file with that ref is created.
 
 This function is used solely in Org-roam's capture templates: see
 `org-roam-capture-templates'."
-  (let ((file-path (pcase org-roam-capture--context
-                     ('capture
-                      (or (cdr (assoc 'file org-roam-capture--info))
-                          (org-roam-capture--new-file)))
-                     ('title
-                      (org-roam-capture--new-file))
-                     ('dailies
-                      (org-capture-put :default-time (cdr (assoc 'time org-roam-capture--info)))
-                      (org-roam-capture--new-file))
-                     ('ref
-                      (let ((completions (org-roam--get-ref-path-completions))
-                            (ref (cdr (assoc 'ref org-roam-capture--info))))
-                        (if-let ((pl (cdr (assoc ref completions))))
-                            (plist-get pl :path)
-                          (org-roam-capture--new-file))))
-                     (_ (error "Invalid org-roam-capture-context")))))
+  (let* ((file-path (pcase org-roam-capture--context
+                      ('capture
+                       (or (cdr (assoc 'file org-roam-capture--info))
+                           (org-roam-capture--new-file)))
+                      ('title
+                       (org-roam-capture--new-file))
+                      ('dailies
+                       (org-capture-put :default-time (cdr (assoc 'time org-roam-capture--info)))
+                       (org-roam-capture--new-file 'allow-existing))
+                      ('ref
+                       (if-let ((ref (cdr (assoc 'ref org-roam-capture--info))))
+                           (pcase (org-roam--split-ref ref)
+                             (`(,type . ,path)
+                              (or (org-roam-capture--get-ref-path type path)
+                                  (org-roam-capture--new-file)))
+                             (_ (user-error "%s is not a valid ref" ref)))
+                         (error "Ref not found in `org-roam-capture--info'")))
+                      (_ (error "Invalid org-roam-capture-context")))))
     (org-capture-put :template
                      (org-roam-capture--fill-template (org-capture-get :template)))
-    (org-roam-capture--put :file-path file-path)
+    (org-roam-capture--put :file-path file-path
+                           :finalize (or (org-capture-get :finalize)
+                                         (org-roam-capture--get :finalize)))
     (while org-roam-capture-additional-template-props
       (let ((prop (pop org-roam-capture-additional-template-props))
             (val (pop org-roam-capture-additional-template-props)))
         (org-roam-capture--put prop val)))
     (set-buffer (org-capture-target-buffer file-path))
     (widen)
-    (goto-char (point-max))))
+    (if-let* ((olp (org-roam-capture--get :olp)))
+        (condition-case err
+            (when-let ((marker (org-roam-capture-find-or-create-olp olp)))
+              (goto-char marker)
+              (set-marker marker nil))
+          (error
+           (when (org-roam-capture--get :new-file)
+             (kill-buffer))
+           (signal (car err) (cdr err))))
+      (goto-char (point-max)))))
 
 (defun org-roam-capture--convert-template (template)
   "Convert TEMPLATE from Org-roam syntax to `org-capture-templates' syntax."

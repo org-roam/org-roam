@@ -4,7 +4,7 @@
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
-;; Version: 1.2.2
+;; Version: 1.2.3
 ;; Package-Requires: ((emacs "26.1") (org "9.3"))
 
 ;; This file is NOT part of GNU Emacs.
@@ -39,6 +39,11 @@
 (require 'org-roam)
 (require 'ol) ;; for org-link-decode
 
+(defcustom org-roam-protocol-store-links nil
+  "Whether to store links when capturing websites with `org-roam-protocol'."
+  :type 'boolean
+  :group 'org-roam)
+
 ;;;; Functions
 (defun org-roam-protocol-open-ref (info)
   "Process an org-protocol://roam-ref?ref= style url with INFO.
@@ -46,7 +51,7 @@
 It opens or creates a note with the given ref.
 
   javascript:location.href = \\='org-protocol://roam-ref?template=r&ref=\\='+ \\
-        encodeURIComponent(location.href) + \\='&title=\\=' \\
+        encodeURIComponent(location.href) + \\='&title=\\=' + \\
         encodeURIComponent(document.title) + \\='&body=\\=' + \\
         encodeURIComponent(window.getSelection())"
   (when-let* ((alist (org-roam--plist-to-alist info))
@@ -58,9 +63,24 @@ It opens or creates a note with the given ref.
       (error "No ref key provided"))
     (when-let ((title (cdr (assoc 'title decoded-alist))))
       (push (cons 'slug (funcall org-roam-title-to-slug-function title)) decoded-alist))
+    (let-alist decoded-alist
+      (let* ((ref (org-protocol-sanitize-uri .ref))
+             (type (and (string-match org-link-plain-re ref)
+                        (match-string 1 ref)))
+             (title (or .title ""))
+             (body (or .body ""))
+             (orglink
+              (org-link-make-string ref (or (org-string-nw-p title) ref))))
+        (when org-roam-protocol-store-links
+          (push (list ref title) org-stored-links)
+          (org-link-store-props :type type
+                                :link ref
+                                :annotation orglink
+                                :initial body))))
     (let* ((org-roam-capture-templates org-roam-capture-ref-templates)
            (org-roam-capture--context 'ref)
            (org-roam-capture--info decoded-alist)
+           (org-capture-link-is-already-stored t)
            (template (cdr (assoc 'template decoded-alist))))
       (raise-frame)
       (org-roam-capture--capture nil template)

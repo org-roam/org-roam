@@ -5,7 +5,7 @@
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
-;; Version: 1.2.2
+;; Version: 1.2.3
 ;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (s "1.12.0") (org "9.3") (emacsql "3.0.0") (emacsql-sqlite3 "1.0.2"))
 
 ;; This file is NOT part of GNU Emacs.
@@ -36,6 +36,8 @@
 (require 's)
 (require 'f)
 (require 'ol)
+(require 'org-element)
+(require 'org-roam-macs)
 
 (defvar org-roam-directory)
 (defvar org-link-frame-setup)
@@ -47,9 +49,10 @@
 (defvar org-roam--org-link-bracket-typed-re)
 
 (declare-function org-roam-db--ensure-built   "org-roam-db")
-(declare-function org-roam--extract-ref       "org-roam")
+(declare-function org-roam-db--get-title      "org-roam-db")
+(declare-function org-roam-db-has-file-p      "org-roam-db")
+(declare-function org-roam--extract-refs      "org-roam")
 (declare-function org-roam--extract-titles    "org-roam")
-(declare-function org-roam--get-title-or-slug "org-roam")
 (declare-function org-roam--get-backlinks     "org-roam")
 (declare-function org-roam-backlinks-mode     "org-roam")
 (declare-function org-roam-mode               "org-roam")
@@ -63,11 +66,13 @@ Valid values are
  * left,
  * right,
  * top,
- * bottom."
+ * bottom,
+ * a function returning one of the above."
   :type '(choice (const left)
                  (const right)
                  (const top)
-                 (const bottom))
+                 (const bottom)
+                 function)
   :group 'org-roam)
 
 (defcustom org-roam-buffer-width 0.33
@@ -95,6 +100,13 @@ Has an effect if and only if `org-roam-buffer-position' is `top' or `bottom'."
   :type 'hook
   :group 'org-roam)
 
+(defcustom org-roam-buffer-preview-function #'org-roam-buffer--preview
+  "Function to obtain preview contents for a given link.
+The function takes in two arguments, the FILE containing the
+link, and the POINT of the link."
+  :type 'function
+  :group 'org-roam)
+
 (defcustom org-roam-buffer-window-parameters nil
   "Additional window parameters for the `org-roam-buffer' side window.
 For example: (setq org-roam-buffer-window-parameters '((no-other-window . t)))"
@@ -116,10 +128,20 @@ For example: (setq org-roam-buffer-window-parameters '((no-other-window . t)))"
 
 (defun org-roam-buffer--insert-title ()
   "Insert the org-roam-buffer title."
-  (insert (propertize (org-roam--get-title-or-slug
+  (insert (propertize (org-roam-db--get-title
                        (buffer-file-name org-roam-buffer--current))
                       'font-lock-face
                       'org-document-title)))
+
+(defun org-roam-buffer--preview (file point)
+  "Get preview content for FILE at POINT."
+  (org-roam--with-temp-buffer file
+    (goto-char point)
+    (let ((elem (org-element-at-point)))
+      (or (org-element-property :raw-value elem)
+          (when-let ((begin (org-element-property :begin elem))
+                     (end (org-element-property :end elem)))
+            (string-trim (buffer-substring-no-properties begin end)))))))
 
 (defun org-roam-buffer--pluralize (string number)
   "Conditionally pluralize STRING if NUMBER is above 1."
@@ -149,10 +171,11 @@ ORIG-PATH is the path where the CONTENT originated."
 
 (defun org-roam-buffer--insert-ref-links ()
   "Insert ref backlinks for the current buffer."
-  (when-let ((path (cdr (with-temp-buffer
-                          (insert-buffer-substring org-roam-buffer--current)
-                          (org-roam--extract-ref)))))
-    (if-let* ((key-backlinks (org-roam--get-backlinks path))
+  (when-let* ((refs (with-temp-buffer
+                      (insert-buffer-substring org-roam-buffer--current)
+                      (org-roam--extract-refs)))
+              (paths (mapcar #'cdr refs)))
+    (if-let* ((key-backlinks (mapcan #'org-roam--get-backlinks paths))
               (grouped-backlinks (--group-by (nth 0 it) key-backlinks)))
         (progn
           (insert (let ((l (length key-backlinks)))
@@ -163,60 +186,60 @@ ORIG-PATH is the path where the CONTENT originated."
                   (bls (cdr group)))
               (insert (format "** %s\n"
                               (org-roam-format-link file-from
-                                                     (org-roam--get-title-or-slug file-from)
-                                                     "file")))
+                                                    (org-roam-db--get-title file-from)
+                                                    "file")))
               (dolist (backlink bls)
                 (pcase-let ((`(,file-from _ ,props) backlink))
-                  (insert (propertize (org-roam-buffer-expand-links (plist-get props :content) file-from)
-                           'help-echo "mouse-1: visit backlinked note"
-                           'file-from file-from
-                           'file-from-point (plist-get props :point)))
-                  (insert "\n\n"))))))
+                  (insert (if-let ((content (funcall org-roam-buffer-preview-function file-from (plist-get props :point))))
+                              (propertize (org-roam-buffer-expand-links content file-from)
+                                          'help-echo "mouse-1: visit backlinked note"
+                                          'file-from file-from
+                                          'file-from-point (plist-get props :point))
+                            "")
+                          "\n\n"))))))
       (insert "\n\n* No ref backlinks!"))))
 
 (defun org-roam-buffer--insert-backlinks ()
   "Insert the org-roam-buffer backlinks string for the current buffer."
-  (if-let* ((file-path (buffer-file-name org-roam-buffer--current))
-            (titles (with-current-buffer org-roam-buffer--current
-                      (org-roam--extract-titles)))
-            (backlinks (org-roam--get-backlinks (push file-path titles)))
-            (grouped-backlinks (--group-by (nth 0 it) backlinks)))
-      (progn
-        (insert (let ((l (length backlinks)))
-                     (format "\n\n* %d %s\n"
-                             l (org-roam-buffer--pluralize "Backlink" l))))
-        (dolist (group grouped-backlinks)
-          (let ((file-from (car group))
-                (bls (mapcar (lambda (row)
-                                 (nth 2 row)) (cdr group))))
+  (let (props file-from)
+    (if-let* ((file-path (buffer-file-name org-roam-buffer--current))
+              (titles (with-current-buffer org-roam-buffer--current
+                        (org-roam--extract-titles)))
+              (backlinks (org-roam--get-backlinks (push file-path titles)))
+              (grouped-backlinks (--group-by (nth 0 it) backlinks)))
+        (progn
+          (insert (let ((l (length backlinks)))
+                    (format "\n\n* %d %s\n"
+                            l (org-roam-buffer--pluralize "Backlink" l))))
+          (dolist (group grouped-backlinks)
+            (setq file-from (car group))
+            (setq props (mapcar (lambda (row) (nth 2 row)) (cdr group)))
+            (setq props (seq-sort-by (lambda (p) (plist-get p :point)) #'< props))
             (insert (format "** %s\n"
                             (org-roam-format-link file-from
-                                                   (org-roam--get-title-or-slug file-from)
-                                                   "file")))
-            ;; Sort backlinks according to time of occurrence in buffer
-            (setq bls (seq-sort-by (lambda (bl)
-                                     (plist-get bl :point))
-                                   #'<
-                                   bls))
-            (dolist (props bls)
+                                                  (org-roam-db--get-title file-from)
+                                                  "file")))
+            (dolist (prop props)
               (insert "*** "
-                      (if-let ((outline (plist-get props :outline)))
+                      (if-let ((outline (plist-get prop :outline)))
                           (-> outline
                               (string-join " > ")
                               (org-roam-buffer-expand-links file-from))
                         "Top")
                       "\n"
-                      (propertize
-                       (s-trim (s-replace "\n" " "
-                                          (org-roam-buffer-expand-links (plist-get props :content) file-from)))
-                       'help-echo "mouse-1: visit backlinked note"
-                       'file-from file-from
-                       'file-from-point (plist-get props :point))
-                      "\n\n")))))
-    (insert "\n\n* No backlinks!")))
+                      (if-let ((content (funcall org-roam-buffer-preview-function file-from (plist-get prop :point))))
+                          (propertize
+                           (s-trim (s-replace "\n" " " (org-roam-buffer-expand-links content file-from)))
+                           'help-echo "mouse-1: visit backlinked note"
+                           'file-from file-from
+                           'file-from-point (plist-get prop :point))
+                        "")
+                      "\n\n"))))
+      (insert "\n\n* No backlinks!"))))
 
 (defun org-roam-buffer-update ()
   "Update the `org-roam-buffer'."
+  (interactive)
   (org-roam-db--ensure-built)
   (let* ((source-org-roam-directory org-roam-directory))
     (with-current-buffer org-roam-buffer
@@ -251,7 +274,8 @@ This needs to be quick or infrequent, because this is run at
     (when (and (or redisplay
                    (not (eq org-roam-buffer--current buffer)))
                (eq 'visible (org-roam-buffer--visibility))
-               (buffer-file-name buffer))
+               (buffer-file-name buffer)
+               (org-roam-db-has-file-p (buffer-file-name buffer)))
       (setq org-roam-buffer--current buffer)
       (org-roam-buffer-update))))
 
@@ -290,14 +314,9 @@ Valid states are 'visible, 'exists and 'none."
 
 (defun org-roam-buffer--get-create ()
   "Set up the `org-roam' buffer at `org-roam-buffer-position'."
-  (let ((position
-         (if (member org-roam-buffer-position '(right left top bottom))
-             org-roam-buffer-position
-           (let ((text-quoting-style 'grave))
-             (lwarn '(org-roam) :error
-                    "Invalid org-roam-buffer-position: %s. Defaulting to \\='right"
-                    org-roam-buffer-position))
-           'right)))
+  (let ((position (if (functionp org-roam-buffer-position)
+                      (funcall org-roam-buffer-position)
+                    org-roam-buffer-position)))
     (save-selected-window
       (-> (get-buffer-create org-roam-buffer)
           (display-buffer-in-side-window
