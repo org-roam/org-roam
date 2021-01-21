@@ -851,29 +851,20 @@ file."
           (format org-roam-link-title-format description)))
   (org-link-make-string (concat type ":" target) description))
 
-(defun org-roam--prepend-tag-string (str tags)
-  "Prepend TAGS to STR."
-  (concat
-   (when tags
-     (propertize (format "(%s) " (s-join org-roam-tag-separator tags))
-                 'face 'org-roam-tag))
-   str))
-
-(defun org-roam--append-tag-string (str tags)
-  "Append TAGS to STR."
-  (concat
-   str
-   (when tags
-     (propertize (format " (%s)" (s-join org-roam-tag-separator tags))
-                 'face 'org-roam-tag))))
-
 (defun org-roam--add-tag-string (str tags)
   "Add TAGS to STR.
 
-Either prepends or appends TAGS to STR, depending on the value of `org-roam-file-completion-tag-position'."
+Depending on the value of `org-roam-file-completion-tag-position', this function
+prepends TAGS to STR, appends TAGS to STR or omits TAGS from STR."
   (pcase org-roam-file-completion-tag-position
-    ('prepend (org-roam--prepend-tag-string str tags))
-    ('append (org-roam--append-tag-string str tags))
+    ('prepend (concat
+               (when tags (propertize (format "(%s) " (s-join org-roam-tag-separator tags))
+                                      'face 'org-roam-tag))
+               str))
+    ('append (concat
+              str
+              (when tags (propertize (format " (%s)" (s-join org-roam-tag-separator tags))
+                                     'face 'org-roam-tag))))
     ('omit str)))
 
 
