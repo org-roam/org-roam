@@ -1454,7 +1454,7 @@ respectively."
   (add-hook 'after-save-hook #'org-roam--handle-title-change nil t))
 
 (defun org-roam-get-file-id ()
-  "Get the file id of a file."
+  "Get the file id of the file in the current buffer."
   (org-with-point-at (point-min)
     (when-let ((before-first-heading (= 0 (org-outline-level))))
       (org-entry-get nil "ID"))))
@@ -1487,7 +1487,9 @@ Otherwise, doesn't update link description unless old description matches link d
                                             current-path)))
     (dolist (file files-affected)
       (org-roam-with-file (car file) nil
-        (org-roam--replace-link (list :path current-path :id current-id) (list :path current-path :id current-id) new-title new-title org-roam-sync-update-method)))))
+        (org-roam--replace-link (list :path current-path :id current-id)
+                                (list :path current-path :id current-id)
+                                new-title new-title org-roam-sync-update-method)))))
 
 (defun org-roam--update-links-on-title-change (old-title new-title)
   "Update the link description of other Org-roam files.
