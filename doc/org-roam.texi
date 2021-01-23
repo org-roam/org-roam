@@ -598,6 +598,12 @@ time by setting @code{org-roam-db-update-idle-seconds}; or change the cache upda
 to be triggered immediately after buffer save by setting
 @code{org-roam-db-update-method} to @code{'immediate}.
 
+For experienced @code{org-capture} users, the behavior of @code{M-x org-roam-find-file} 
+may seem unfamiliar: after finishing a capture with @code{C-c C-c}, you are returned  
+not to the original buffer from which you called @code{M-x org-roam-find-file}, but 
+to a buffer pointing to the note you just created. For the usual @code{org-capture} 
+behavior you can call @code{M-x org-roam-capture} instead of @code{M-x org-roam-find-file}. 
+
 Org-roam makes it easy to create notes, and link them together. To link notes
 together, we call @code{M-x org-roam-insert}. This brings up a prompt with a list of
 title for existing notes. Selecting an existing entry will create and insert a
