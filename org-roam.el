@@ -268,6 +268,13 @@ The currently supported symbols are:
            (symbol)))
   :group 'org-roam)
 
+(defcustom org-roam-file-completion-tag-position 'prepend
+  "Prepend, append, or omit tags from the file titles during completion."
+  :type '(choice (const :tag "Prepend" prepend)
+                 (const :tag "Append" append)
+                 (const :tag "Omit" omit))
+  :group 'org-roam)
+
 (defcustom org-roam-enable-headline-linking t
   "Enable linking to headlines, which includes automatic :ID: creation and scanning of :ID:s for org-roam database."
   :type 'boolean
@@ -844,13 +851,22 @@ file."
           (format org-roam-link-title-format description)))
   (org-link-make-string (concat type ":" target) description))
 
-(defun org-roam--prepend-tag-string (str tags)
-  "Prepend TAGS to STR."
-  (concat
-   (when tags
-     (propertize (format "(%s) " (s-join org-roam-tag-separator tags))
-                 'face 'org-roam-tag))
-   str))
+(defun org-roam--add-tag-string (str tags)
+  "Add TAGS to STR.
+
+Depending on the value of `org-roam-file-completion-tag-position', this function
+prepends TAGS to STR, appends TAGS to STR or omits TAGS from STR."
+  (pcase org-roam-file-completion-tag-position
+    ('prepend (concat
+               (when tags (propertize (format "(%s) " (s-join org-roam-tag-separator tags))
+                                      'face 'org-roam-tag))
+               str))
+    ('append (concat
+              str
+              (when tags (propertize (format " (%s)" (s-join org-roam-tag-separator tags))
+                                     'face 'org-roam-tag))))
+    ('omit str)))
+
 
 (defun org-roam--get-title-path-completions ()
   "Return an alist for completion.
@@ -868,7 +884,7 @@ plist containing the path and title for the file."
                             rows))
     (dolist (row rows completions)
       (pcase-let ((`(,file-path ,title ,tags) row))
-        (let ((k (org-roam--prepend-tag-string title tags))
+        (let ((k (org-roam--add-tag-string title tags))
               (v (list :path file-path :title title)))
           (push (cons k v) completions))))))
 
@@ -951,8 +967,8 @@ FILTER can either be a string or a function:
                        (concat
                         (when org-roam-include-type-in-ref-path-completions
                           (format "{%s} " type))
-                        (org-roam--prepend-tag-string (format "%s (%s)" title ref)
-                                                      tags))
+                        (org-roam--add-tag-string (format "%s (%s)" title ref)
+                                                  tags))
                      ref))
                 (v (list :path file-path :type type :ref ref)))
             (push (cons k v) completions)))))))
