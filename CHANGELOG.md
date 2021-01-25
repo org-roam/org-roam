@@ -5,6 +5,7 @@
 - [#1396](https://github.com/org-roam/org-roam/pull/1396) add option to choose between prepending, appending, and omitting `roam_tags` in file completion
 - [#1270](https://github.com/org-roam/org-roam/pull/1270) capture: create OLP if it does not exist. Removes need for OLP setup in `:head`.
 - [#1353](https://github.com/org-roam/org-roam/pull/1353) support file-level property drawers
+- add `org-roam-menu`, a transient menu for common commands
 
 ### Changed
 - [#1352](https://github.com/org-roam/org-roam/pull/1352) prefer lower-case for roam_tag and roam_alias in interactive commands

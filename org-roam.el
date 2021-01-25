@@ -6,7 +6,7 @@
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
 ;; Version: 1.2.3
-;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (s "1.12.0") (org "9.3") (emacsql "3.0.0") (emacsql-sqlite3 "1.0.2"))
+;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (s "1.12.0") (org "9.3") (emacsql "3.0.0") (emacsql-sqlite3 "1.0.2") (transient "0.2.0"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -64,6 +64,7 @@
 (require 'org-roam-doctor)
 (require 'org-roam-graph)
 (require 'org-roam-link)
+(require 'org-roam-transient)
 
 ;;;; Declarations
 ;; From org-ref-core.el
