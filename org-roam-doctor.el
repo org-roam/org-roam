@@ -53,7 +53,6 @@
 (declare-function org-roam--get-roam-buffers "org-roam")
 (declare-function org-roam--list-all-files "org-roam")
 (declare-function org-roam--org-roam-file-p "org-roam")
-(declare-function org-roam--str-to-list "org-roam")
 (declare-function org-roam-mode "org-roam")
 
 (defvar org-roam-verbose)
@@ -122,7 +121,7 @@ AST is the org-element parse tree."
         (when (string-collate-equalp (org-element-property :key kw) "roam_tags" nil t)
           (let ((tags (org-element-property :value kw)))
             (condition-case nil
-                (org-roam--str-to-list tags)
+                (split-string-and-unquote tags)
               (error
                (push
                 `(,(org-element-property :begin kw)
@@ -142,7 +141,7 @@ AST is the org-element parse tree."
         (when (string-collate-equalp (org-element-property :key kw) "roam_alias" nil t)
           (let ((aliases (org-element-property :value kw)))
             (condition-case nil
-              (org-roam--str-to-list aliases)
+              (split-string-and-unquote aliases)
               (error
                (push
                 `(,(org-element-property :begin kw)

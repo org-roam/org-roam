@@ -321,30 +321,6 @@ descriptive warnings when certain operations fail (e.g. parsing).")
         (push (cons prop val) res)))
     res))
 
-(defun org-roam--str-to-list (str)
-  "Transform string STR into a list of strings.
-If STR is nil, return nil.
-
-This function can throw an error if STR is not a string, or if
-str is malformed (e.g. missing a closing quote). Callers of this
-function are expected to catch the error."
-  (when str
-    (unless (stringp str)
-      (signal 'wrong-type-argument `(stringp ,str)))
-    (let* ((str (org-trim str))
-           (format-str ":dummy '(%s)") ;The :dummy key is discarded in the `lst' var below.
-           (items (cdar (org-babel-parse-header-arguments (format format-str str)))))
-      (mapcar (lambda (item)
-                (cond
-                 ((stringp item)
-                  item)
-                 ((symbolp item)
-                  (symbol-name item))
-                 ((numberp item)
-                  (number-to-string item))
-                 (t
-                  (signal 'wrong-type-argument `((stringp numberp symbolp) ,item))))) items))))
-
 (defun org-roam--url-p (path)
   "Check if PATH is a URL.
 Assume the protocol is not present in PATH; e.g. URL `https://google.com' is
@@ -661,7 +637,7 @@ Reads from the \"roam_alias\" property."
   (let* ((prop (org-roam--extract-global-props '("ROAM_ALIAS")))
          (aliases (cdr (assoc "ROAM_ALIAS" prop))))
     (condition-case nil
-        (org-roam--str-to-list aliases)
+        (split-string-and-unquote aliases)
       (error
        (progn
          (lwarn '(org-roam) :error
@@ -727,7 +703,7 @@ tag."
   "Extract tags from the current buffer's \"#roam_tags\" global property."
   (let* ((prop (cdr (assoc "ROAM_TAGS" (org-roam--extract-global-props '("ROAM_TAGS"))))))
     (condition-case nil
-        (org-roam--str-to-list prop)
+        (split-string-and-unquote prop)
       (error
        (progn
          (lwarn '(org-roam) :error
