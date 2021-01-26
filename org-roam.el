@@ -635,7 +635,8 @@ If FILE-PATH is nil, use the current file."
   "Return the aliases from the current buffer.
 Reads from the \"roam_alias\" property."
   (let* ((prop (org-roam--extract-global-props '("ROAM_ALIAS")))
-         (aliases (cdr (assoc "ROAM_ALIAS" prop))))
+         (aliases (or (cdr (assoc "ROAM_ALIAS" prop))
+                      "")))
     (condition-case nil
         (split-string-and-unquote aliases)
       (error
@@ -701,7 +702,8 @@ tag."
 
 (defun org-roam--extract-tags-prop (_file)
   "Extract tags from the current buffer's \"#roam_tags\" global property."
-  (let* ((prop (cdr (assoc "ROAM_TAGS" (org-roam--extract-global-props '("ROAM_TAGS"))))))
+  (let* ((prop (or (cdr (assoc "ROAM_TAGS" (org-roam--extract-global-props '("ROAM_TAGS"))))
+                   "")))
     (condition-case nil
         (split-string-and-unquote prop)
       (error
