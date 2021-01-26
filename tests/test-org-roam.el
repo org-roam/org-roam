@@ -52,25 +52,6 @@
   (delete-file org-roam-db-location)
   (org-roam-db--close))
 
-(describe "org-roam--str-to-list"
-  (it "nil"
-    (expect (org-roam--str-to-list nil)
-            :to-be
-            nil))
-  (it "\"multi word\" prop 123"
-    (expect (org-roam--str-to-list "\"multi word\" prop 123")
-            :to-equal
-            '("multi word" "prop" "123")))
-  (it "prop \"multi word\" 123"
-    (expect (org-roam--str-to-list "\"multi word\" prop 123")
-            :to-equal
-            '("multi word" "prop" "123")))
-  (it "errors on bad input"
-    (expect (org-roam--str-to-list 1)
-            :to-throw)
-    (expect (org-roam--str-to-list "\"hello")
-            :to-throw)))
-
 (describe "Ref extraction"
   (before-all
     (test-org-roam--init))
