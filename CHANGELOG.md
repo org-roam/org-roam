@@ -20,6 +20,7 @@
 - [#1374](https://github.com/org-roam/org-roam/pull/1374) fix headline completions erroring out
 - [#1375](https://github.com/org-roam/org-roam/pull/1375) fix org-roam-protocol to use existing ref file 
 - [#1403](https://github.com/org-roam/org-roam/issues/1403) fixed inconsistency between how we write and read props like alias and tags
+- [#1409](https://github.com/org-roam/org-roam/issues/1398) prevent inclusion of non-org-roam files in `org-roam-dailies--list-files`
 
 ## 1.2.3 (13-11-2020)
 

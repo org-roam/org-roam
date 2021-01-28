@@ -42,6 +42,7 @@
 ;;;; Declarations
 (defvar org-roam-mode)
 (defvar org-roam-directory)
+(defvar org-roam-file-extensions)
 (declare-function org-roam--org-file-p        "org-roam")
 (declare-function org-roam--find-file         "org-roam")
 (declare-function org-roam-mode               "org-roam")
@@ -277,13 +278,14 @@ Prefer past dates, unless PREFER-FUTURE is non-nil."
 (defun org-roam-dailies--list-files (&rest extra-files)
   "List all files in `org-roam-dailies-directory'.
 EXTRA-FILES can be used to append extra files to the list."
-  (let ((dir (org-roam-dailies-directory--get-absolute-path)))
+  (let ((dir (org-roam-dailies-directory--get-absolute-path))
+	(regexp (rx-to-string `(and "." (or ,@org-roam-file-extensions)))))
     (append (--remove (let ((file (file-name-nondirectory it)))
                         (when (or (auto-save-file-name-p file)
                                   (backup-file-name-p file)
                                   (string-match "^\\." file))
                           it))
-                      (directory-files-recursively dir ""))
+                      (directory-files-recursively dir regexp))
             extra-files)))
 
 (defun org-roam-dailies-find-next-note (&optional n)
