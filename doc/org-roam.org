@@ -841,10 +841,13 @@ to variable ~company-backends~.
 represents the cursor:
 
 - ~[[|]]~: completes for a file title
-- ~[[roam:]]~: completes for a file title
+- ~[[roam:|]]~: completes for a file title
 - ~[[*|]]~: completes for a headline within this file
 - ~[[foo*|]]~: completes a headline within the file with title "foo"
 - ~[[roam:foo*|]]~ completes a headline within the file with title "foo"
+
+If you don't see the literal display of your links like the above examples,
+call ~M-x org-toggle-link-display~
 
 Completions account for the current input. For example, for ~[[f|]]~, the
 completions (by default) only show for files with titles that start with "f".
