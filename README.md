@@ -18,8 +18,8 @@ solution for anyone already using Org-mode for their personal wiki.
   with the built-in graph visualization.
 - **Extensible and Powerful**: Leverage Emacs' fantastic text-editing interface,
   and the mature Emacs and Org-mode ecosystem of packages.
-- **Free and Open Source**: Org-roam is licensed under the GNU General Public
-  License version 3 or later.
+- **[Freedom-respecting](https://www.fsf.org/about/what-is-free-software) and Open Source**: Org-roam is licensed under the GNU General Public
+  License version 3 or later, protecting your right to use, modify, share, and contribute to the software.
 
 <p align="center">
   <img src="https://www.orgroam.com/img/screenshot.png" alt="Org-roam Screenshot" width="738">
