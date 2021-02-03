@@ -1689,13 +1689,15 @@ command will offer you to create one."
         (org-roam-find-file "Index")))))
 
 ;;;###autoload
-(defun org-roam-alias-add ()
-  "Add an alias to Org-roam file.
+(defun org-roam-alias-add (&optional alias)
+  "Add an ALIAS to Org-roam file.
+
+When ALIAS is nil, it is read interactively.
 
 Return added alias."
   (interactive)
   (unless org-roam-mode (org-roam-mode))
-  (let ((alias (read-string "Alias: " )))
+  (let ((alias (or alias (read-string "Alias: " ))))
     (when (string-empty-p alias)
       (user-error "Alias can't be empty"))
     (org-roam--set-global-prop
@@ -1707,26 +1709,33 @@ Return added alias."
     alias))
 
 ;;;###autoload
-(defun org-roam-alias-delete ()
-  "Delete an alias from Org-roam file."
+(defun org-roam-alias-delete (&optional alias)
+  "Delete an ALIAS from Org-roam file.
+
+When ALIAS is nil, it is read interactively from the list of
+existing aliases."
   (interactive)
   (unless org-roam-mode (org-roam-mode))
   (if-let ((aliases (org-roam--extract-titles-alias)))
-      (let ((alias (completing-read "Alias: " aliases nil 'require-match)))
+      (let ((alias (or alias
+                       (completing-read "Alias: " aliases nil 'require-match))))
         (org-roam--set-global-prop
          "roam_alias"
          (combine-and-quote-strings (delete alias aliases)))
         (org-roam-db--update-file (buffer-file-name (buffer-base-buffer))))
-    (user-error "No aliases to delete")))
+    ;; error only during interactive usage
+    (unless alias
+      (user-error "No aliases to delete"))))
 
-(defun org-roam-tag-add ()
-  "Add a tag to Org-roam file.
+(defun org-roam-tag-add (&optional tag)
+  "Add a TAG to Org-roam file.
+
+When TAG is nil, it is read interactively.
 
 Return added tag."
   (interactive)
   (unless org-roam-mode (org-roam-mode))
-  (let* ((all-tags (org-roam-db--get-tags))
-         (tag (completing-read "Tag: " all-tags))
+  (let* ((tag (or tag (completing-read "Tag: " (org-roam-db--get-tags))))
          (file (buffer-file-name (buffer-base-buffer)))
          (existing-tags (org-roam--extract-tags-prop file)))
     (when (string-empty-p tag)
@@ -1737,18 +1746,23 @@ Return added tag."
     (org-roam-db--insert-tags 'update)
     tag))
 
-(defun org-roam-tag-delete ()
-  "Delete a tag from Org-roam file."
+(defun org-roam-tag-delete (&optional tag)
+  "Delete a TAG from Org-roam file.
+
+When TAG is nil, it is read interactively from the list of
+existing tags."
   (interactive)
   (unless org-roam-mode (org-roam-mode))
   (if-let* ((file (buffer-file-name (buffer-base-buffer)))
             (tags (org-roam--extract-tags-prop file)))
-      (let ((tag (completing-read "Tag: " tags nil 'require-match)))
+      (let ((tag (or tag (completing-read "Tag: " tags nil 'require-match))))
         (org-roam--set-global-prop
          "roam_tags"
          (combine-and-quote-strings (delete tag tags)))
         (org-roam-db--insert-tags 'update))
-    (user-error "No tag to delete")))
+    ;; error only during interactive usage
+    (unless tag
+      (user-error "No tag to delete"))))
 
 ;;;###autoload
 (defun org-roam-switch-to-buffer ()
