@@ -1341,6 +1341,15 @@ file."
              (org-roam--org-roam-file-p file))
     (org-roam-db--clear-file (expand-file-name file))))
 
+(defun org-roam--link-description-read (choices)
+  "Present a prompt with CHOICES for new link description."
+  (save-restriction
+  (save-excursion
+    (switch-to-buffer (current-buffer))
+    (goto-char (match-end 2))
+    (recenter (1- (max 1 scroll-margin)))
+    (org-roam-completion--completing-read "Select description:" choices))))
+
 (defun org-roam--get-link-description (old-desc new-desc)
   "Get replacement text for link description using OLD-DESC and NEW-DESC.
 They are link descriptions generated from file info.
@@ -1356,18 +1365,13 @@ UPDATE-METHOD specifies how the links are replaced."
                           (list label new-desc)
                         (list label old-desc new-desc))))
          (save-excursion
-           (goto-char (match-end 2))
-           (recenter (1- (max 1 scroll-margin)))
-           (org-roam-completion--completing-read "Select description:" choices))))
+           (org-roam--link-description-read choices))))
       ('force new-desc)
       ('query-unless-match
        (if (string-equal label old-desc)
            new-desc
          (let ((choices (list label old-desc new-desc)))
-           (save-excursion
-             (goto-char (match-end 2))
-             (recenter (1- (max 1 scroll-margin)))
-             (org-roam-completion--completing-read "Select description:" choices)))))
+           (org-roam--link-description-read choices))))
        (_ (if (string-equal label old-desc) new-desc label)))))
 
 (defun org-roam--get-link-replacement (old-info new-info &optional old-desc new-desc)
