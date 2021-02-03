@@ -1508,8 +1508,9 @@ To be added to `org-roam-title-change-hook'."
   (interactive)
   (let* ((file (buffer-file-name (buffer-base-buffer)))
          (file-name (file-name-nondirectory file))
-         (file-extension (or (file-name-extension file)
-                             file-name))) ;when there isn't any sans extension
+         (file-extension (if-let ((extension (file-name-extension file)))
+                             (concat "." extension)
+                           file-name))) ;when there isn't any sans extension
     (let* ((new-slug (funcall org-roam-title-to-slug-function (car (org-roam--extract-titles))))
            (new-file-name (concat new-slug file-extension)))
       (unless (string-equal file-name new-file-name)
