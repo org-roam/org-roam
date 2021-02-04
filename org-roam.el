@@ -1583,10 +1583,10 @@ To be added to `org-roam-title-change-hook'."
 (defun org-roam--rename-file-advice (old-file new-file-or-dir &rest _args)
   "Rename backlinks of OLD-FILE to refer to NEW-FILE-OR-DIR.
 When NEW-FILE-OR-DIR is a directory, we use it to compute the new file path."
-  (let* ((new-file (if (directory-name-p new-file-or-dir)
-                       (expand-file-name (file-name-nondirectory old-file) new-file-or-dir)
-                     new-file-or-dir))
-         files-affected)
+  (let ((new-file (if (directory-name-p new-file-or-dir)
+                      (expand-file-name (file-name-nondirectory old-file) new-file-or-dir)
+                    new-file-or-dir))
+        files-affected)
     (setq new-file (expand-file-name new-file))
     (setq old-file (expand-file-name old-file))
     (when (and (not (auto-save-file-name-p old-file))
