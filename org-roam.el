@@ -1342,24 +1342,26 @@ file."
     (org-roam-db--clear-file (expand-file-name file))))
 
 (defun org-roam--link-description-read (choices)
-  "Present a prompt with CHOICES for new link description."
+  "Present a prompt with CHOICES for new link description.
+Returns 'nil if selected choice is the first element in CHOICES."
   (save-restriction
   (save-excursion
     (switch-to-buffer (current-buffer))
     (goto-char (match-end 2))
     (recenter (1- (max 1 scroll-margin)))
-    (org-roam-completion--completing-read "Select description:" choices))))
+    (let ((choice (org-roam-completion--completing-read "Select choices:" choices)))
+    (cond
+      ((string-equal choice (car choices)) 'nil)
+      ('t choice))))))
 
 (defun org-roam--get-link-description (old-desc new-desc)
-  "Get replacement text for link description using OLD-DESC and NEW-DESC.
-They are link descriptions generated from file info.
-Actual link description is compared against OLD-DESC and
-UPDATE-METHOD specifies how the links are replaced."
+  "Get replacement text for current link description by comparing it with OLD-DESC and NEW-DESC.
+Returns 'nil if link description is not changed."
   (let  ((label (if (match-end 2)
                     (match-string-no-properties 2)
                   (org-link-unescape (match-string-no-properties 1)))))
     (pcase org-roam-sync-update-method
-      ('no-update label)
+      ('no-update 'nil)
       ('query
        (let ((choices (if (string-equal label old-desc)
                           (list label new-desc)
@@ -1372,7 +1374,7 @@ UPDATE-METHOD specifies how the links are replaced."
            new-desc
          (let ((choices (list label old-desc new-desc)))
            (org-roam--link-description-read choices))))
-       (_ (if (string-equal label old-desc) new-desc label)))))
+       (_ (if (string-equal label old-desc) new-desc 'nil)))))
 
 (defun org-roam--get-link-replacement (old-info new-info &optional old-desc new-desc)
   "Create replacement text for link at point if OLD-INFO is a match.
