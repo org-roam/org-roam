@@ -1176,6 +1176,166 @@ This function hooks into `org-open-at-point' via
             (t
              nil)))))
 
+;;;; Propogate change to backlinks
+(defcustom org-roam-sync-update-method 'query-unless-match
+  "Update method used to sync file information with backlinks.
+
+Valid values are:
+ 'no-update                 Don't update.
+ 'query                     Ask before updating link.
+ 'force                     Update link without asking.
+ 'query-unless-match        Ask if the old description doesn't
+                            match the link description.
+ 'nil                       Update when old description matches
+                            link description."
+  :type '(choice
+          (const :tag "Do not update." 'no-update)
+          (const :tag "Ask before updating link." 'query)
+          (const :tag "Update link without asking." 'force)
+          (const :tag "Ask if the old description doesn't match
+                       the link description." 'query-unless-match)
+          (const :tag "Update when the old description matches
+                       the link description." 'nil))
+  :group 'org-roam)
+
+(defun org-roam-sync-title-to-backlinks ()
+  "Sync the title of current buffer to backlinks."
+  (interactive)
+  (let* ((current-path (buffer-file-name))
+         (current-id (org-roam-get-file-id))
+         (new-title (car (org-roam--extract-titles)))
+         (files-affected (org-roam-db-query [:select :distinct [source]
+                                             :from links
+                                             :where (= dest $s1)]
+                                            current-path)))
+    (dolist (file files-affected)
+      (org-roam-with-file (car file) nil
+        (org-roam--replace-link (list :path current-path :id current-id)
+                                (list :path current-path :id current-id)
+                                new-title new-title)))))
+
+(defun org-roam-sync-title-to-file-name ()
+  "Sync the title of current buffer to file name."
+  (interactive)
+  (let* ((file (buffer-file-name (buffer-base-buffer)))
+         (file-name (file-name-nondirectory file))
+         (file-extension (if-let ((extension (file-name-extension file)))
+                             (concat "." extension)
+                           file-name))) ;when there isn't any sans extension
+    (let* ((new-slug (funcall org-roam-title-to-slug-function (car (org-roam--extract-titles))))
+           (new-file-name (concat new-slug file-extension)))
+      (unless (string-equal file-name new-file-name)
+        (rename-file file-name new-file-name)
+        (set-visited-file-name new-file-name t t)
+        (setq-local org-roam-current-title (car (org-roam--extract-titles)))
+        (org-roam-sync-title-to-backlinks)
+        (org-roam-db-update)
+        (org-roam-message "File moved to %S" (abbreviate-file-name new-file-name))))))
+
+(defun org-roam--link-description-read (choices)
+  "Present a prompt with CHOICES for new link description.
+Returns 'nil if selected choice is the first element in CHOICES."
+  (save-restriction
+  (save-excursion
+    (switch-to-buffer (current-buffer))
+    (goto-char (match-end 2))
+    (recenter (1- (max 1 scroll-margin)))
+    (let ((choice (org-roam-completion--completing-read "Select choices:" choices)))
+    (cond
+      ((string-equal choice (car choices)) 'nil)
+      ('t choice))))))
+
+(defun org-roam--get-link-description ()
+  "Get link description for matched link."
+  (if (match-end 2)
+  (match-string-no-properties 2)
+  (org-link-unescape (match-string-no-properties 1))))
+
+(defun org-roam--get-link-description-replacement (old-desc new-desc)
+  "Get replacement description for matched link based on OLD-DESC and NEW-DESC.
+Returns 'nil if link description is not changed."
+  (let  ((label (org-roam--get-link-description)))
+    (pcase org-roam-sync-update-method
+      ('no-update 'nil)
+      ('query
+       (let ((choices (if (string-equal label old-desc)
+                          (list label new-desc)
+                        (list label old-desc new-desc))))
+         (save-excursion
+           (org-roam--link-description-read choices))))
+      ('force new-desc)
+      ('query-unless-match
+       (if (string-equal label old-desc)
+           new-desc
+         (let ((choices (list label old-desc new-desc)))
+           (org-roam--link-description-read choices))))
+       (_ (if (string-equal label old-desc) new-desc 'nil)))))
+
+(defun org-roam--get-link-replacement (old-info new-info &optional old-desc new-desc)
+  "Create replacement text for link at point if OLD-INFO is a match.
+Will update link to NEW-INFO. If OLD-DESC is set, and is not the
+same as the link description, it is assumed that the user has
+modified the description, and the description will not be
+updated. Else, update with NEW-DESC."
+  (save-match-data
+    (when-let ((link (org-element-lineage (org-element-context) '(link) t))
+               (type (org-element-property :type link)))
+      (pcase type
+        ("id"
+         (let ((old-id (plist-get old-info :id))
+               (new-id (plist-get new-info :id))
+               (id (org-element-property :path link)))
+           (when (and (string-equal id old-id)
+                      (org-in-regexp org-link-bracket-re 1))
+             (cond
+              ((and old-desc new-desc)
+               (when-let ((new-label (org-roam--get-link-description-replacement old-desc new-desc)))
+                 (org-roam-format-link new-id new-label type)))
+              ((not (string-equal new-id old-id))
+               (org-roam-format-link new-id (org-roam--get-link-description) type))))))
+        ("file"
+         (let* ((old-path (plist-get old-info :path))
+                (new-path (plist-get new-info :path))
+                (path (org-element-property :path link))
+                (link-type (when (file-name-absolute-p path) 'absolute)))
+           (when (and (string-equal (expand-file-name path) old-path)
+                      (org-in-regexp org-link-bracket-re 1))
+             (cond
+              ((and old-desc new-desc)
+               (when-let ((new-label (org-roam--get-link-description-replacement old-desc new-desc)))
+                 (org-roam-format-link new-path new-label type link-type)))
+              ((not (string-equal new-path old-path))
+               (org-roam-format-link new-path (org-roam--get-link-description) type)))
+             )))))))
+
+(defun org-roam--replace-link (old-info new-info &optional old-desc new-desc)
+  "Replace Org-roam file links with path OLD-INFO to path NEW-INFO.
+If OLD-DESC is passed, and is not the same as the link
+description, it is assumed that the user has modified the
+description, and the description will not be updated. Else,
+update with NEW-DESC."
+  (org-with-point-at 1
+    (while (re-search-forward org-link-bracket-re nil t)
+      (when-let ((link (org-roam--get-link-replacement old-info new-info
+                                                       old-desc new-desc)))
+        (replace-match link)))))
+
+(defun org-roam--fix-relative-links (old-path)
+  "Fix file-relative links in current buffer.
+File relative links are assumed to originate from OLD-PATH. The
+replaced links are made relative to the current buffer."
+  (org-with-point-at 1
+    (let (link new-link type path)
+      (while (re-search-forward org-link-bracket-re nil t)
+        (when (setq link (save-match-data (org-element-lineage (org-element-context) '(link) t)))
+          (setq type (org-element-property :type link))
+          (setq path (org-element-property :path link))
+          (when (and (string= type "file")
+                     (f-relative-p path))
+            (setq new-link
+                  (concat type ":" (org-roam-link-get-path (expand-file-name path (file-name-directory old-path)))))
+            (replace-match new-link nil t nil 1)))))))
+
 ;;; Completion at point
 (defcustom org-roam-completion-everywhere nil
   "If non-nil, provide completions from the current word at point."
@@ -1341,110 +1501,6 @@ file."
              (org-roam--org-roam-file-p file))
     (org-roam-db--clear-file (expand-file-name file))))
 
-(defun org-roam--link-description-read (choices)
-  "Present a prompt with CHOICES for new link description.
-Returns 'nil if selected choice is the first element in CHOICES."
-  (save-restriction
-  (save-excursion
-    (switch-to-buffer (current-buffer))
-    (goto-char (match-end 2))
-    (recenter (1- (max 1 scroll-margin)))
-    (let ((choice (org-roam-completion--completing-read "Select choices:" choices)))
-    (cond
-      ((string-equal choice (car choices)) 'nil)
-      ('t choice))))))
-
-(defun org-roam--get-link-description ()
-  "Get link description for matched link."
-  (if (match-end 2)
-  (match-string-no-properties 2)
-  (org-link-unescape (match-string-no-properties 1))))
-
-(defun org-roam--get-link-description-replacement (old-desc new-desc)
-  "Get replacement text for current link description.
-Returns 'nil if link description is not changed."
-  (let  ((label (org-roam--get-link-description)))
-    (pcase org-roam-sync-update-method
-      ('no-update 'nil)
-      ('query
-       (let ((choices (if (string-equal label old-desc)
-                          (list label new-desc)
-                        (list label old-desc new-desc))))
-         (save-excursion
-           (org-roam--link-description-read choices))))
-      ('force new-desc)
-      ('query-unless-match
-       (if (string-equal label old-desc)
-           new-desc
-         (let ((choices (list label old-desc new-desc)))
-           (org-roam--link-description-read choices))))
-       (_ (if (string-equal label old-desc) new-desc 'nil)))))
-
-(defun org-roam--get-link-replacement (old-info new-info &optional old-desc new-desc)
-  "Create replacement text for link at point if OLD-INFO is a match.
-Will update link to NEW-INFO. If OLD-DESC is set, and is not the
-same as the link description, it is assumed that the user has
-modified the description, and the description will not be
-updated. Else, update with NEW-DESC."
-  (save-match-data
-    (when-let ((link (org-element-lineage (org-element-context) '(link) t))
-               (type (org-element-property :type link)))
-      (pcase type
-        ("id"
-         (let ((old-id (plist-get old-info :id))
-               (new-id (plist-get new-info :id))
-               (id (org-element-property :path link)))
-           (when (and (string-equal id old-id)
-                      (org-in-regexp org-link-bracket-re 1))
-             (cond
-              ((and old-desc new-desc)
-               (when-let ((new-label (org-roam--get-link-description-replacement old-desc new-desc)))
-                 (org-roam-format-link new-id new-label type)))
-              ((not (string-equal new-id old-id))
-               (org-roam-format-link new-id (org-roam--get-link-description) type))))))
-        ("file"
-         (let* ((old-path (plist-get old-info :path))
-                (new-path (plist-get new-info :path))
-                (path (org-element-property :path link))
-                (link-type (when (file-name-absolute-p path) 'absolute)))
-           (when (and (string-equal (expand-file-name path) old-path)
-                      (org-in-regexp org-link-bracket-re 1))
-             (cond
-              ((and old-desc new-desc)
-               (when-let ((new-label (org-roam--get-link-description-replacement old-desc new-desc)))
-                 (org-roam-format-link new-path new-label type link-type)))
-              ((not (string-equal new-path old-path))
-               (org-roam-format-link new-path (org-roam--get-link-description) type)))
-             )))))))
-
-(defun org-roam--replace-link (old-info new-info &optional old-desc new-desc)
-  "Replace Org-roam file links with path OLD-INFO to path NEW-INFO.
-If OLD-DESC is passed, and is not the same as the link
-description, it is assumed that the user has modified the
-description, and the description will not be updated. Else,
-update with NEW-DESC."
-  (org-with-point-at 1
-    (while (re-search-forward org-link-bracket-re nil t)
-      (when-let ((link (org-roam--get-link-replacement old-info new-info
-                                                       old-desc new-desc)))
-        (replace-match link)))))
-
-(defun org-roam--fix-relative-links (old-path)
-  "Fix file-relative links in current buffer.
-File relative links are assumed to originate from OLD-PATH. The
-replaced links are made relative to the current buffer."
-  (org-with-point-at 1
-    (let (link new-link type path)
-      (while (re-search-forward org-link-bracket-re nil t)
-        (when (setq link (save-match-data (org-element-lineage (org-element-context) '(link) t)))
-          (setq type (org-element-property :type link))
-          (setq path (org-element-property :path link))
-          (when (and (string= type "file")
-                     (f-relative-p path))
-            (setq new-link
-                  (concat type ":" (org-roam-link-get-path (expand-file-name path (file-name-directory old-path)))))
-            (replace-match new-link nil t nil 1)))))))
-
 (defcustom org-roam-rename-file-on-title-change t
   "If non-nil, alter the filename on title change.
 The new title is converted into a slug using
@@ -1484,29 +1540,7 @@ respectively."
     (when-let ((before-first-heading (= 0 (org-outline-level))))
       (org-entry-get nil "ID"))))
 
-(defcustom org-roam-sync-update-method 'query-unless-match
-  "Update method used to sync file information with backlinks.
-
-Valid values are:
- 'no-update                 Don't update.
- 'query                     Ask before updating link.
- 'force                     Update link without asking.
- 'query-unless-match        Ask if the old description doesn't
-                            match the link description.
- 'nil                       Update when old description matches
-                            link description."
-  :type '(choice
-          (const :tag "Do not update." 'no-update)
-          (const :tag "Ask before updating link." 'query)
-          (const :tag "Update link without asking." 'force)
-          (const :tag "Ask if the old description doesn't match
-                       the link description." 'query-unless-match)
-          (const :tag "Update when the old description matches
-                       the link description." 'nil))
-  :group 'org-roam)
-
 (defun org-roam--update-links-on-title-change (old-title new-title)
-
   "Update the link description of other Org-roam files.
 Iterate over all Org-roam files that have link description of
 OLD-TITLE, and replace the link descriptions with the NEW-TITLE
@@ -1545,40 +1579,6 @@ To be added to `org-roam-title-change-hook'."
             (set-visited-file-name new-file-name t t)
             (org-roam-db-update)
             (org-roam-message "File moved to %S" (abbreviate-file-name new-file-name))))))))
-
-(defun org-roam-sync-title-to-backlinks ()
-  "Sync the title of current buffer to backlinks."
-  (interactive)
-  (let* ((current-path (buffer-file-name))
-         (current-id (org-roam-get-file-id))
-         (new-title (car (org-roam--extract-titles)))
-         (files-affected (org-roam-db-query [:select :distinct [source]
-                                             :from links
-                                             :where (= dest $s1)]
-                                            current-path)))
-    (dolist (file files-affected)
-      (org-roam-with-file (car file) nil
-        (org-roam--replace-link (list :path current-path :id current-id)
-                                (list :path current-path :id current-id)
-                                new-title new-title)))))
-
-(defun org-roam-sync-title-to-file-name ()
-  "Sync the title of current buffer to file name."
-  (interactive)
-  (let* ((file (buffer-file-name (buffer-base-buffer)))
-         (file-name (file-name-nondirectory file))
-         (file-extension (if-let ((extension (file-name-extension file)))
-                             (concat "." extension)
-                           file-name))) ;when there isn't any sans extension
-    (let* ((new-slug (funcall org-roam-title-to-slug-function (car (org-roam--extract-titles))))
-           (new-file-name (concat new-slug file-extension)))
-      (unless (string-equal file-name new-file-name)
-        (rename-file file-name new-file-name)
-        (set-visited-file-name new-file-name t t)
-        (setq-local org-roam-current-title (car (org-roam--extract-titles)))
-        (org-roam-sync-title-to-backlinks)
-        (org-roam-db-update)
-        (org-roam-message "File moved to %S" (abbreviate-file-name new-file-name))))))
 
 (defun org-roam--rename-file-advice (old-file new-file-or-dir &rest _args)
   "Rename backlinks of OLD-FILE to refer to NEW-FILE-OR-DIR.
