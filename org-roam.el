@@ -1354,12 +1354,16 @@ Returns 'nil if selected choice is the first element in CHOICES."
       ((string-equal choice (car choices)) 'nil)
       ('t choice))))))
 
-(defun org-roam--get-link-description (old-desc new-desc)
-  "Get replacement text for current link description by comparing it with OLD-DESC and NEW-DESC.
+(defun org-roam--get-link-description ()
+  "Get link description for matched link."
+  (if (match-end 2)
+  (match-string-no-properties 2)
+  (org-link-unescape (match-string-no-properties 1))))
+
+(defun org-roam--get-link-description-replacement (old-desc new-desc)
+  "Get replacement text for current link description.
 Returns 'nil if link description is not changed."
-  (let  ((label (if (match-end 2)
-                    (match-string-no-properties 2)
-                  (org-link-unescape (match-string-no-properties 1)))))
+  (let  ((label (org-roam--get-link-description)))
     (pcase org-roam-sync-update-method
       ('no-update 'nil)
       ('query
@@ -1392,17 +1396,26 @@ updated. Else, update with NEW-DESC."
                (id (org-element-property :path link)))
            (when (and (string-equal id old-id)
                       (org-in-regexp org-link-bracket-re 1))
-             (when-let ((new-label (org-roam--get-link-description old-desc new-desc)))
-               (org-roam-format-link new-id new-label type)))))
+             (cond
+              ((and old-desc new-desc)
+               (when-let ((new-label (org-roam--get-link-description-replacement old-desc new-desc)))
+                 (org-roam-format-link new-id new-label type)))
+              ((not (string-equal new-id old-id))
+               (org-roam-format-link new-id (org-roam--get-link-description) type))))))
         ("file"
          (let* ((old-path (plist-get old-info :path))
-               (new-path (plist-get new-info :path))
-               (path (org-element-property :path link))
-               (link-type (when (file-name-absolute-p path) 'absolute)))
+                (new-path (plist-get new-info :path))
+                (path (org-element-property :path link))
+                (link-type (when (file-name-absolute-p path) 'absolute)))
            (when (and (string-equal (expand-file-name path) old-path)
                       (org-in-regexp org-link-bracket-re 1))
-             (when-let ((new-label (org-roam--get-link-description old-desc new-desc)))
-               (org-roam-format-link new-path new-label type link-type)))))))))
+             (cond
+              ((and old-desc new-desc)
+               (when-let ((new-label (org-roam--get-link-description-replacement old-desc new-desc)))
+                 (org-roam-format-link new-path new-label type link-type)))
+              ((not (string-equal new-path old-path))
+               (org-roam-format-link new-path (org-roam--get-link-description) type)))
+             )))))))
 
 (defun org-roam--replace-link (old-info new-info &optional old-desc new-desc)
   "Replace Org-roam file links with path OLD-INFO to path NEW-INFO.
