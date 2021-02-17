@@ -1,7 +1,7 @@
 #+title: Org-roam User Manual
 #+author: Jethro Kuan
 #+email: jethrokuan95@gmail.com
-#+date: 2020-2020
+#+date: 2020-2022
 #+language: en
 
 #+texinfo_deffn: t
@@ -1272,7 +1272,7 @@ template ~j~ will put its notes under the heading ‘Journal’.
 
   Create an entry in the daily note for today.
 
-  When ~goto~ is non-nil, go the note without creating an entry.
+  When ~goto~ is non-nil, go to the note without creating an entry.
 
 - Function: ~org-roam-dailies-find-today~
 
@@ -1298,7 +1298,7 @@ There are also commands which allow you to use Emacs’s ~calendar~ to find the 
 
   Prefer past dates, unless ~prefer-future~ is non-nil.
   
-  With a 'C-u' prefix or when ~goto~ is non-nil, go the note without
+  With a 'C-u' prefix or when ~goto~ is non-nil, go to the note without
   creating an entry.
 
 - Function: ~org-roam-dailies-find-date~
