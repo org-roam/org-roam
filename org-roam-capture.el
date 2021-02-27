@@ -5,8 +5,8 @@
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
-;; Version: 1.2.3
-;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (s "1.12.0") (org "9.3") (emacsql "3.0.0") (emacsql-sqlite3 "1.0.2"))
+;; Version: 2.0.0
+;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (s "1.12.0") (org "9.4") (emacsql "3.0.0") (emacsql-sqlite3 "1.0.2") (magit-section "2.90.1"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -31,8 +31,10 @@
 ;;; Code:
 ;;;; Library Requires
 (require 'org-capture)
-(require 'org-roam-macs)
+(eval-when-compile
+  (require 'org-roam-macs))
 (require 'org-roam-db)
+(require 'org-roam-structs)
 (require 'dash)
 (require 's)
 (require 'cl-lib)
@@ -40,17 +42,8 @@
 ;; Declarations
 (defvar org-roam-encrypt-files)
 (defvar org-roam-directory)
-(defvar org-roam-mode)
 (defvar org-roam-title-to-slug-function)
 (defvar org-roam-file-extensions)
-
-(declare-function  org-roam--get-title-path-completions "org-roam")
-(declare-function  org-roam--get-ref-path-completions   "org-roam")
-(declare-function  org-roam--find-file                  "org-roam")
-(declare-function  org-roam-format-link                "org-roam")
-(declare-function  org-roam--split-ref                 "org-roam")
-(declare-function  org-roam-mode                        "org-roam")
-(declare-function  org-roam-completion--completing-read "org-roam-completion")
 
 (defvar org-roam-capture--file-path nil
   "The file path for the Org-roam capture.
@@ -168,58 +161,6 @@ Template string   :\n%v")
                           ((const :format "%v " :table-line-pos) (string))
                           ((const :format "%v " :kill-buffer) (const t))))))))
 
-(defcustom org-roam-capture-immediate-template
-  (append (car org-roam-capture-templates) '(:immediate-finish t))
-  "Capture template to use for immediate captures in Org-roam.
-This is a single template, so do not enclose it into a list.
-See `org-roam-capture-templates' for details on templates."
-  :group 'org-roam
-  ;; Adapted from `org-capture-templates'
-  :type
-  '(list :tag "Template entry"
-         :value ("d" "default" plain (function org-roam-capture--get-point)
-                 "%?"
-                 :file-name "%<%Y%m%d%H%M%S>-${slug}"
-                 :head "#+title: ${title}\n"
-                 :unnarrowed t
-                 :immediate-finish t)
-         (string :tag "Keys              ")
-         (string :tag "Description       ")
-         (const :format "" plain)
-         (const :format "" (function org-roam-capture--get-point))
-         (choice :tag "Template          "
-                 (string :tag "String"
-                         :format "String:\n            \
-Template string   :\n%v")
-                 (list :tag "File"
-                       (const :format "" file)
-                       (file :tag "Template file     "))
-                 (list :tag "Function"
-                       (const :format "" function)
-                       (function :tag "Template function ")))
-         (const :format "File name format  :" :file-name)
-         (string :format " %v" :value "#+title: ${title}\n")
-         (const :format "Header format     :" :head)
-         (string :format "\n%v" :value "%<%Y%m%d%H%M%S>-${slug}")
-         (const :format "" :unnarrowed) (const :format "" t)
-         (const :format "" :immediate-finish) (const :format "" t)
-         (plist :inline t
-                :tag "Options"
-                ;; Give the most common options as checkboxes
-                :options
-                (((const :format "%v " :prepend) (const t))
-                 ((const :format "%v " :jump-to-captured) (const t))
-                 ((const :format "%v " :empty-lines) (const 1))
-                 ((const :format "%v " :empty-lines-before) (const 1))
-                 ((const :format "%v " :empty-lines-after) (const 1))
-                 ((const :format "%v " :clock-in) (const t))
-                 ((const :format "%v " :clock-keep) (const t))
-                 ((const :format "%v " :clock-resume) (const t))
-                 ((const :format "%v " :time-prompt) (const t))
-                 ((const :format "%v " :tree-type) (const week))
-                 ((const :format "%v " :table-line-pos) (string))
-                 ((const :format "%v " :kill-buffer) (const t))))))
-
 (defcustom org-roam-capture-ref-templates
   '(("r" "ref" plain #'org-roam-capture--get-point
      "%?"
@@ -328,7 +269,7 @@ the capture)."
       (pcase finalize
         ('find-file
          (when-let ((file-path (org-roam-capture--get :file-path)))
-           (org-roam--find-file file-path)
+           (find-file file-path)
            (run-hooks 'org-roam-capture-after-find-file-hook)))
         ('insert-link
          (when-let* ((mkr (org-roam-capture--get :insert-at))
@@ -535,14 +476,14 @@ This function is used solely in Org-roam's capture templates: see
                       ('dailies
                        (org-capture-put :default-time (cdr (assoc 'time org-roam-capture--info)))
                        (org-roam-capture--new-file 'allow-existing))
-                      ('ref
-                       (if-let ((ref (cdr (assoc 'ref org-roam-capture--info))))
-                           (pcase (org-roam--split-ref ref)
-                             (`(,type . ,path)
-                              (or (org-roam-capture--get-ref-path type path)
-                                  (org-roam-capture--new-file)))
-                             (_ (user-error "%s is not a valid ref" ref)))
-                         (error "Ref not found in `org-roam-capture--info'")))
+                      ;; ('ref
+                      ;;  (if-let ((ref (cdr (assoc 'ref org-roam-capture--info))))
+                      ;;      (pcase (org-roam--split-ref ref)
+                      ;;        (`(,type . ,path)
+                      ;;         (or (org-roam-capture--get-ref-path type path)
+                      ;;             (org-roam-capture--new-file)))
+                      ;;        (_ (user-error "%s is not a valid ref" ref)))
+                      ;;    (error "Ref not found in `org-roam-capture--info'")))
                       (_ (error "Invalid org-roam-capture-context")))))
     (org-capture-put :template
                      (org-roam-capture--fill-template (org-capture-get :template)))
@@ -619,21 +560,17 @@ GOTO and KEYS argument have the same functionality as
 This uses the templates defined at `org-roam-capture-templates'.
 Arguments GOTO and KEYS see `org-capture'."
   (interactive "P")
-  (unless org-roam-mode (org-roam-mode))
-  (let* ((completions (org-roam--get-title-path-completions))
-         (title-with-keys (org-roam-completion--completing-read "File: "
-                                                                completions))
-         (res (cdr (assoc title-with-keys completions)))
-         (title (or (plist-get res :title) title-with-keys))
-         (file-path (plist-get res :path)))
-    (let ((org-roam-capture--info (list (cons 'title title)
-                                        (cons 'slug (funcall org-roam-title-to-slug-function title))
-                                        (cons 'file file-path)))
-          (org-roam-capture--context 'capture))
-      (condition-case err
-          (org-roam-capture--capture goto keys)
-        (error (user-error "%s.  Please adjust `org-roam-capture-templates'"
-                           (error-message-string err)))))))
+  (let ((node (org-roam-node-read)))
+    (if (org-roam-node-id node)
+        (let ((org-roam-capture--info (list (cons 'title (org-roam-node-title node))
+                                            (cons 'slug (funcall org-roam-title-to-slug-function
+                                                                 (org-roam-node-title node)))
+                                            (cons 'file (org-roam-node-file node))))
+              (org-roam-capture--context 'capture))
+          (condition-case err
+              (org-roam-capture--capture goto keys)
+            (error (user-error "%s.  Please adjust `org-roam-capture-templates'"
+                               (error-message-string err))))))))
 
 (provide 'org-roam-capture)
 

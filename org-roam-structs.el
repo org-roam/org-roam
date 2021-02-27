@@ -1,4 +1,4 @@
-;;; org-roam-completion.el --- Completion features -*- coding: utf-8; lexical-binding: t; -*-
+;;; org-roam-structs.el --- Structs used in Org-roam -*- coding: utf-8; lexical-binding: t; -*-
 
 ;; Copyright © 2020 Jethro Kuan <jethrokuan95@gmail.com>
 
@@ -27,31 +27,28 @@
 
 ;;; Commentary:
 ;;
-;; This library provides completion for org-roam.
+;; This library is an attempt at injecting Roam functionality into Org-mode.
+;; This is achieved primarily through building caches for forward links,
+;; backward links, and file titles.
+;;
+;;
 ;;; Code:
-;;;; Library Requires
 (require 'cl-lib)
-(require 's)
 
-(defvar helm-pattern)
-(declare-function helm "ext:helm")
-(declare-function helm-make-source "ext:helm-source" (name class &rest args) t)
+(cl-defstruct (org-roam-node (:constructor org-roam-node-create)
+                             (:copier nil))
+  id file level point todo priority scheduled deadline title
+  tags aliases refs)
 
-(defcustom org-roam-completion-system 'default
-  "The completion system to be used by `org-roam'."
-  :type '(radio
-          (const :tag "Default" default)
-          (const :tag "Ido" ido)
-          (const :tag "Ivy" ivy)
-          (const :tag "Helm" helm)
-          (function :tag "Custom function"))
-  :group 'org-roam)
+(cl-defstruct (org-roam-backlink (:constructor org-roam-backlink-create)
+                                 (:copier nil))
+  source-node target-node
+  point properties)
 
-(defcustom org-roam-completion-ignore-case t
-  "Whether to ignore case in Org-roam `completion-at-point' completions."
-  :group 'org-roam
-  :type 'boolean)
+(cl-defstruct (org-roam-reflink (:constructor org-roam-reflink-create)
+                                (:copier nil))
+  source-node ref
+  point properties)
 
-(provide 'org-roam-completion)
-
-;;; org-roam-completion.el ends here
+(provide 'org-roam-structs)
+;;; org-roam-structs.el ends here

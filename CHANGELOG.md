@@ -1,15 +1,19 @@
 # Changelog
+
 ## 1.2.4 (TBD)
 
 ### Added
+
 - [#1396](https://github.com/org-roam/org-roam/pull/1396) add option to choose between prepending, appending, and omitting `roam_tags` in file completion
 - [#1270](https://github.com/org-roam/org-roam/pull/1270) capture: create OLP if it does not exist. Removes need for OLP setup in `:head`.
 - [#1353](https://github.com/org-roam/org-roam/pull/1353) support file-level property drawers
 
 ### Changed
+
 - [#1352](https://github.com/org-roam/org-roam/pull/1352) prefer lower-case for roam_tag and roam_alias in interactive commands
 
 ### Fixed
+
 - [#1281](https://github.com/org-roam/org-roam/pull/1281) fixed idle-timer not instantiated on `org-roam-mode`
 - [#1308](https://github.com/org-roam/org-roam/pull/1308) fixed file renames corrupting database
 - [#1325](https://github.com/org-roam/org-roam/pull/1325) make titles and tags extracted unique per note
@@ -18,7 +22,7 @@
 - [#1347](https://github.com/org-roam/org-roam/pull/1347) allow use of `%a` element in regular Org-roam captures
 - [#1352](https://github.com/org-roam/org-roam/pull/1352) fixed org-roam-{tag/alias}-{add/delete} altering the original case of the Org property
 - [#1374](https://github.com/org-roam/org-roam/pull/1374) fix headline completions erroring out
-- [#1375](https://github.com/org-roam/org-roam/pull/1375) fix org-roam-protocol to use existing ref file 
+- [#1375](https://github.com/org-roam/org-roam/pull/1375) fix org-roam-protocol to use existing ref file
 - [#1403](https://github.com/org-roam/org-roam/issues/1403) fixed inconsistency between how we write and read props like alias and tags
 - [#1409](https://github.com/org-roam/org-roam/issues/1398) prevent inclusion of non-org-roam files in `org-roam-dailies--list-files`
 
@@ -29,6 +33,7 @@ Primarily a stabilization and bug-fix release.
 Org-roam-dailies has also been revamped to include new features, see [this video](https://www.youtube.com/watch?v=1q9x2aZCJJ4) for a quick overview.
 
 ### Added
+
 - [#978](https://github.com/org-roam/org-roam/pull/978) Revamp org-roam-dailies
 - [#1183](https://github.com/org-roam/org-roam/pull/1183) Interactive functions for managing aliases and tags in Org-roam file, namely `org-roam-alias-add`, `org-roam-alias-delete`, `org-roam-tag-add`, and `org-roam-tag-delete`.
 - [#1215](https://github.com/org-roam/org-roam/pull/1215) Multiple `ROAM_KEY` keywords can now be specified in one file. This allows bibliographical entries to share the same note file.
@@ -37,9 +42,11 @@ Org-roam-dailies has also been revamped to include new features, see [this video
 - [#1264](https://github.com/org-roam/org-roam/pull/1264) add `org-roam-db-update-method` to control when the cache is rebuilt.
 
 ### Changed
+
 - [#1264](https://github.com/org-roam/org-roam/pull/1264) renamed `org-roam-update-db-idle-seconds` to `org-roam-db-idle-idle-seconds`
 
 ### Fixed
+
 - [#1074](https://github.com/org-roam/org-roam/issues/1074) fix `org-roam--extract-links` to handle content boundaries.
 - [#1193](https://github.com/org-roam/org-roam/issues/1193) fix `org-roam-db-build-cache` by not killing temporary buffer in `org-roam--extract-links`.
 - [#1195](https://github.com/org-roam/org-roam/issues/1195) fix ID face showing as invalid if within Org ID files, but not Org-roam's.

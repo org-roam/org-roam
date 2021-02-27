@@ -5,8 +5,8 @@
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
 ;; URL: https://github.com/jethrokuan/org-roam
 ;; Keywords: org-mode, roam, convenience
-;; Version: 1.2.3
-;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (s "1.12.0") (org "9.3") (emacsql "3.0.0") (emacsql-sqlite3 "1.0.2"))
+;; Version: 2.0.0
+;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (s "1.12.0") (org "9.4") (emacsql "3.0.0") (emacsql-sqlite3 "1.0.2") (magit-section "2.90.1"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -47,16 +47,17 @@
 (require 'org-element)
 (require 's)
 (require 'dash)
-(require 'org-roam-macs)
+(eval-when-compile
+  (require 'org-roam-macs))
+(require 'org-roam-node)
 
-(declare-function org-roam-insert "org-roam")
+(defvar org-roam-mode-map)
+
 (declare-function org-roam--get-roam-buffers "org-roam")
 (declare-function org-roam--list-all-files "org-roam")
 (declare-function org-roam--org-roam-file-p "org-roam")
-(declare-function org-roam-mode "org-roam")
 
 (defvar org-roam-verbose)
-(defvar org-roam-mode)
 
 (defcustom org-roam-doctor-inhibit-startup t
   "Inhibit `org-mode' startup when processing files with `org-doctor'.
@@ -78,79 +79,7 @@ processing multiple files"
     :name 'org-roam-doctor-broken-links
     :description "Fix broken links."
     :actions '(("d" . ("Unlink" . org-roam-doctor--remove-link))
-               ("r" . ("Replace link" . org-roam-doctor--replace-link))
-               ("R" . ("Replace link (keep label)" . org-roam-doctor--replace-link-keep-label))))
-   (make-org-roam-doctor-checker
-    :name 'org-roam-doctor-check-roam-props
-    :description "Check #+roam_* properties.")
-   (make-org-roam-doctor-checker
-    :name 'org-roam-doctor-check-tags
-    :description "Check #+roam_tags.")
-   (make-org-roam-doctor-checker
-    :name 'org-roam-doctor-check-alias
-    :description "Check #+roam_alias.")))
-
-(defconst org-roam-doctor--supported-roam-properties
-  '("roam_tags" "roam_alias" "roam_key")
-  "List of supported Org-roam properties.")
-
-(defun org-roam-doctor-check-roam-props (ast)
-  "Checker for detecting invalid #+roam_* properties.
-AST is the org-element parse tree."
-  (let (reports)
-    (org-element-map ast 'keyword
-      (lambda (kw)
-        (let ((key (org-element-property :key kw)))
-          (when (and (string-prefix-p "ROAM_" key t)
-                     (not (member (downcase key) org-roam-doctor--supported-roam-properties)))
-            (push
-             `(,(org-element-property :begin kw)
-               ,(concat "Possible mispelled key: "
-                        (prin1-to-string key)
-                        "\nOrg-roam supports the following keys: "
-                        (s-join ", " org-roam-doctor--supported-roam-properties)))
-             reports)))))
-    reports))
-
-(defun org-roam-doctor-check-tags (ast)
-  "Checker for detecting invalid #+roam_tags.
-AST is the org-element parse tree."
-  (let (reports)
-    (org-element-map ast 'keyword
-      (lambda (kw)
-        (when (string-collate-equalp (org-element-property :key kw) "roam_tags" nil t)
-          (let ((tags (org-element-property :value kw)))
-            (condition-case nil
-                (split-string-and-unquote tags)
-              (error
-               (push
-                `(,(org-element-property :begin kw)
-                  ,(concat "Unable to parse tags: "
-                           tags
-                           (when (s-contains? "," tags)
-                             "\nCheck that your tags are not comma-separated.")))
-                reports)))))))
-    reports))
-
-(defun org-roam-doctor-check-alias (ast)
-  "Checker for detecting invalid #+roam_alias.
-AST is the org-element parse tree."
-  (let (reports)
-    (org-element-map ast 'keyword
-      (lambda (kw)
-        (when (string-collate-equalp (org-element-property :key kw) "roam_alias" nil t)
-          (let ((aliases (org-element-property :value kw)))
-            (condition-case nil
-              (split-string-and-unquote aliases)
-              (error
-               (push
-                `(,(org-element-property :begin kw)
-                  ,(concat "Unable to parse aliases: "
-                           aliases
-                           (when (s-contains? "," aliases)
-                             "\nCheck that your aliases are not comma-separated.")))
-                reports)))))))
-    reports))
+               ("r" . ("Replace link" . org-roam-doctor--replace-link))))))
 
 (defun org-roam-doctor-broken-links (ast)
   "Checker for detecting broken links.
@@ -158,18 +87,12 @@ AST is the org-element parse tree."
   (let (reports)
     (org-element-map ast 'link
       (lambda (l)
-        (when (equal "file" (org-element-property :type l))
-          (let ((file (org-element-property :path l)))
-            (or (file-exists-p file)
-                (file-remote-p file)
-                (push
-                 `(,(org-element-property :begin l)
-                   ,(format (if (org-element-lineage l '(link))
-                                "Link to non-existent image file \"%s\"\
- in link description"
-                              "Link to non-existent local file \"%s\"")
-                            file))
-                 reports))))))
+        (when (equal "id" (org-element-property :type l))
+          (let ((id (org-element-property :path l)))
+            (unless (org-id-find id)
+              (push `(,(org-element-property :begin l)
+                      ,(format "Broken id link \"%s\"" id))
+                    reports))))))
     reports))
 
 (defun org-roam-doctor--check (buffer checkers)
@@ -221,25 +144,7 @@ CHECKERS is the list of checkers used."
       (condition-case nil
           (save-excursion
             (replace-match "")
-            (org-roam-insert))
-        (quit (progn
-                (replace-buffer-contents orig)
-                (goto-char p)))))))
-
-(defun org-roam-doctor--replace-link-keep-label ()
-  "Replace the current link with a new link, keeping the current link's label."
-  (save-match-data
-    (unless (org-in-regexp org-link-bracket-re 1)
-      (user-error "No link at point"))
-    (let ((orig (buffer-string))
-          (p (point)))
-      (condition-case nil
-          (save-excursion
-            (let ((label (if (match-end 2)
-                             (match-string-no-properties 2)
-                           (org-link-unescape (match-string-no-properties 1)))))
-              (replace-match "")
-              (org-roam-insert nil nil label)))
+            (org-roam-node-insert))
         (quit (progn
                 (replace-buffer-contents orig)
                 (goto-char p)))))))
@@ -258,7 +163,7 @@ CHECKERS is the list of checkers used."
 (defun org-roam-doctor--resolve (msg checker)
   "Resolve an error.
 MSG is the error that was found, which is displayed in a help buffer.
-CHECKER is a org-roam-doctor checker instance."
+CHECKER is a `org-roam-doctor' checker instance."
   (let ((actions (org-roam-doctor-checker-actions checker))
         c)
     (push '("e" . ("Edit" . org-roam-doctor--recursive-edit)) actions)
@@ -291,12 +196,11 @@ CHECKER is a org-roam-doctor checker instance."
   "Perform a check on the current buffer to ensure cleanliness.
 If CHECKALL, run the check for all Org-roam files."
   (interactive "P")
-  (unless org-roam-mode (org-roam-mode))
   (let ((files (if checkall
-                  (org-roam--list-all-files)
-                (unless (org-roam--org-roam-file-p)
-                  (user-error "Not in an org-roam file"))
-                `(,(buffer-file-name)))))
+                   (org-roam--list-all-files)
+                 (unless (org-roam--org-roam-file-p)
+                   (user-error "Not in an org-roam file"))
+                 `(,(buffer-file-name)))))
     (org-roam-doctor-start files org-roam-doctor--checkers)))
 
 (defun org-roam-doctor-start (files checkers)
@@ -304,6 +208,7 @@ If CHECKALL, run the check for all Org-roam files."
   (save-window-excursion
     (let ((existing-buffers (org-roam--get-roam-buffers))
           (org-inhibit-startup org-roam-doctor-inhibit-startup))
+      (org-id-update-id-locations)
       (dolist (f files)
         (let ((buf (find-file-noselect f)))
           (org-roam-doctor--check buf checkers)

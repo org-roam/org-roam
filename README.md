@@ -1,5 +1,5 @@
 # Org-roam [![GitHub Release][release-badge]][release] [![MELPA][melpa-badge]][melpa] [![License GPL 3][gpl3-badge]][gpl3]
- 
+
 <img src="https://www.orgroam.com/img/logo.svg" align="right" alt="Org-roam Logo" width="240">
 
 Org-roam is a plain-text knowledge management system. It brings some of
@@ -53,8 +53,7 @@ Here's a sample configuration with `use-package`:
                ("C-c n f" . org-roam-find-file)
                ("C-c n g" . org-roam-graph))
               :map org-mode-map
-              (("C-c n i" . org-roam-insert))
-              (("C-c n I" . org-roam-insert-immediate))))
+              (("C-c n i" . org-roam-insert))))
 ```
 
 Org-roam requires sqlite to function. Org-roam optionally uses Graphviz for

@@ -5,8 +5,8 @@
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
-;; Version: 1.2.3
-;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (s "1.12.0") (org "9.3") (emacsql "3.0.0") (emacsql-sqlite3 "1.0.2"))
+;; Version: 2.0.0
+;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (s "1.12.0") (org "9.4") (emacsql "3.0.0") (emacsql-sqlite3 "1.0.2") (magit-section "2.90.1"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -34,78 +34,7 @@
 ;;;; Library Requires
 
 ;;; Obsolete aliases (remove after next major release)
-;;;; Functions
-(define-obsolete-function-alias 'org-roam--capture-get-point 'org-roam-capture--get-point
-  "org-roam 1.0.0")
-(define-obsolete-function-alias 'org-roam-build-cache 'org-roam-db-build-cache
-  "org-roam 1.0.0")
-(define-obsolete-function-alias 'org-roam-sql         'org-roam-db-query
-  "org-roam 1.0.0")
-(define-obsolete-function-alias 'org-roam--db-clear   'org-roam-db--clear
-  "org-roam 1.0.0")
-(define-obsolete-function-alias 'org-roam-show-graph  'org-roam-graph-show
-  "org-roam 1.0.0")
-(define-obsolete-function-alias 'org-roam--maybe-update-buffer
-  'org-roam-buffer--update-maybe "org-roam 1.0.0")
-(define-obsolete-function-alias 'org-roam--current-visibility
-  'org-roam-buffer--visibility "org-roam 1.0.0")
-(define-obsolete-function-alias 'org-roam-update         'org-roam-buffer-update
-  "org-roam 1.0.0")
-(define-obsolete-function-alias 'org-roam--set-width     'org-roam-buffer--set-width
-  "org-roam 1.0.0")
-(define-obsolete-function-alias 'org-roam--set-height    'org-roam-buffer--set-height
-  "org-roam 1.0.0")
-(define-obsolete-function-alias 'org-roam--set-up-buffer 'org-roam-buffer--get-create
-  "org-roam 1.0.0")
-(define-obsolete-function-alias 'org-roam-today 'org-roam-dailies-today
-  "org-roam 1.0.0")
-(define-obsolete-function-alias 'org-roam-tomorrow 'org-roam-dailies-tomorrow
-  "org-roam 1.0.0")
-(define-obsolete-function-alias 'org-roam-yesterday 'org-roam-dailies-yesterday
-  "org-roam 1.0.0")
-(define-obsolete-function-alias 'org-roam-date 'org-roam-dailies-date
-  "org-roam 1.0.0")
-(define-obsolete-function-alias 'org-roam-graph-show  'org-roam-graph
-  "org-roam 1.0.0")
-(define-obsolete-function-alias 'org-roam-graph-build 'org-roam-graph
-  "org-roam 1.0.0")
-(define-obsolete-function-alias 'org-roam-find-index 'org-roam-jump-to-index
-  "org-roam 1.1.0")
-(define-obsolete-function-alias 'org-roam--pluralize 'org-roam-buffer--pluralize
-  "org-roam 1.1.0")
-(define-obsolete-function-alias 'org-roam--capture 'org-roam-capture--capture
-  "org-roam 1.1.0")
-(define-obsolete-function-alias 'org-roam-db--clear 'org-roam-db-clear
-  "org-roam 1.2.0")
-(define-obsolete-function-alias 'org-roam-dailies-today 'org-roam-dailies-find-today
-  "org-roam 1.2.2")
-(define-obsolete-function-alias 'org-roam-dailies-yesterday 'org-roam-dailies-find-yesterday
-  "org-roam 1.2.2")
-(define-obsolete-function-alias 'org-roam-dailies-tomorrow 'org-roam-dailies-find-tomorrow
-  "org-roam 1.2.2")
-(define-obsolete-function-alias 'org-roam-dailies-date 'org-roam-dailies-find-date
-  "org-roam 1.2.2")
-
-;;;; Variables
-(define-obsolete-variable-alias 'org-roam-graphviz-extra-options
-  'org-roam-graph-extra-config "org-roam 1.0.0")
-(define-obsolete-variable-alias 'org-roam-grapher-extra-options
-  'org-roam-graph-extra-config "org-roam 1.0.0")
-(define-obsolete-variable-alias 'org-roam-graph-node-shape
-  'org-roam-graph-node-extra-config "org-roam 1.0.0")
-(define-obsolete-variable-alias 'org-roam--db-connection
-  'org-roam-db--connection "org-roam 1.0.0")
-(define-obsolete-variable-alias 'org-roam--current-buffer
-  'org-roam-buffer--current "org-roam 1.0.0")
-(define-obsolete-variable-alias 'org-roam-date-title-format
-  'org-roam-dailies-capture-templates "org-roam 1.0.0")
-(define-obsolete-variable-alias 'org-roam-date-filename-format
-  'org-roam-dailies-capture-templates "org-roam 1.0.0")
-(define-obsolete-variable-alias 'org-roam-update-db-idle-seconds
-  'org-roam-db-update-idle-seconds "org-roam 1.2.2")
-
-(make-obsolete-variable 'org-roam-buffer-no-delete-other-windows
-  'org-roam-buffer-window-parameters "org-roam 1.1.1")
+;;; Obsolete functions
 
 (provide 'org-roam-compat)
 
