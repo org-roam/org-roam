@@ -72,11 +72,11 @@ It opens or creates a note with the given ref.
              (orglink
               (org-link-make-string ref (or (org-string-nw-p title) ref))))
         (when org-roam-protocol-store-links
-          (push (list ref title) org-stored-links)
-          (org-link-store-props :type type
-                                :link ref
-                                :annotation orglink
-                                :initial body))))
+          (push (list ref title) org-stored-links))
+        (org-link-store-props :type type
+                              :link ref
+                              :annotation orglink
+                              :initial body)))
     (let* ((org-roam-capture-templates org-roam-capture-ref-templates)
            (org-roam-capture--context 'ref)
            (org-roam-capture--info decoded-alist)
