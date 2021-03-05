@@ -1,3 +1,0 @@
-#+title: Tagless File
-
-This file has no tags, and should not yield any tags on extracting via ~#+roam_tags~.

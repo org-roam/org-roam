@@ -148,20 +148,10 @@ Function should return a filename string based on title."
   :type 'function
   :group 'org-roam)
 
-(defcustom org-roam-file-completion-tag-position 'prepend
-  "Prepend, append, or omit tags from the file titles during completion."
-  :type '(choice (const :tag "Prepend" prepend)
-                 (const :tag "Append" append)
-                 (const :tag "Omit" omit))
-  :group 'org-roam)
-
 (defcustom org-roam-verbose t
   "Echo messages that are not errors."
   :type 'boolean
   :group 'org-roam)
-
-(defvar org-roam-completion-functions nil
-  "List of functions to be used with `completion-at-point' for Org-roam.")
 
 ;;;; Faces
 (defface org-roam-shielded
@@ -363,7 +353,6 @@ Use external shell commands if defined in `org-roam-list-files-commands'."
       (puthash node-id (cons tag (gethash node-id ht)) ht))
     ht))
 
-;;;; org-roam-find-ref
 (defun org-roam--get-roam-buffers ()
   "Return a list of buffers that are Org-roam files."
   (--filter (and (with-current-buffer it (derived-mode-p 'org-mode))
@@ -371,13 +360,6 @@ Use external shell commands if defined in `org-roam-list-files-commands'."
                  (org-roam--org-roam-file-p (buffer-file-name it)))
             (buffer-list)))
 
-;;; Completion at point
-(defcustom org-roam-completion-everywhere nil
-  "If non-nil, provide completions from the current word at point."
-  :group 'org-roam
-  :type 'boolean)
-
-;;;; Tags completion
 (defun org-roam--get-titles ()
   "Return all titles and aliases in the Org-roam database."
   (let* ((titles (mapcar #'car (org-roam-db-query [:select title :from nodes])))
@@ -385,40 +367,7 @@ Use external shell commands if defined in `org-roam-list-files-commands'."
          (completions (append titles aliases)))
     completions))
 
-(defun org-roam-complete-everywhere ()
-  "`completion-at-point' function for word at point.
-This is active when `org-roam-completion-everywhere' is non-nil."
-  (let ((end (point))
-        (start (point))
-        (exit-fn (lambda (&rest _) nil))
-        collection)
-    (when (and org-roam-completion-everywhere
-               (thing-at-point 'word))
-      (let ((bounds (bounds-of-thing-at-point 'word)))
-        (setq start (car bounds)
-              end (cdr bounds)
-              collection #'org-roam--get-titles
-              exit-fn (lambda (str _status)
-                        (delete-char (- (length str)))
-                        (insert "[[roam:" str "]]")))))
-    (when collection
-      (let ((prefix (buffer-substring-no-properties start end)))
-        (list start end
-              (if (functionp collection)
-                  (completion-table-case-fold
-                   (completion-table-dynamic
-                    (lambda (_)
-                      (cl-remove-if (apply-partially #'string= prefix)
-                                    (funcall collection))))
-                   (not org-roam-completion-ignore-case))
-                collection)
-              :exit-function exit-fn)))))
-
-(add-to-list 'org-roam-completion-functions #'org-roam-complete-everywhere)
-(add-to-list 'org-roam-completion-functions #'org-roam-link-complete-at-point)
-
-;;; Org-roam-mode
-;;; Org-roam entry point
+;;; Org-roam setup and teardown
 (defun org-roam-setup ()
   "Setup Org-roam."
   (interactive)
@@ -481,13 +430,6 @@ OLD-FILE is cleared from the database, and NEW-FILE-OR-DIR is added."
       (org-roam-db-clear-file old-file))
     (when (org-roam--org-roam-file-p new-file)
       (org-roam-db-update-file new-file))))
-
-;;; Interactive Commands
-;;;###autoload
-(defun org-roam-find-directory ()
-  "Find and open `org-roam-directory'."
-  (interactive)
-  (find-file org-roam-directory))
 
 (provide 'org-roam)
 ;;; org-roam.el ends here

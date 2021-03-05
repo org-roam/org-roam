@@ -27,30 +27,81 @@
 
 ;;; Commentary:
 ;;
-;; This library provides completion for org-roam.
+;; This library provides completion-at-point for org-roam.
 ;;; Code:
-;;;; Library Requires
 (require 'cl-lib)
-(require 's)
-
-(defvar helm-pattern)
-(declare-function helm "ext:helm")
-(declare-function helm-make-source "ext:helm-source" (name class &rest args) t)
-
-(defcustom org-roam-completion-system 'default
-  "The completion system to be used by `org-roam'."
-  :type '(radio
-          (const :tag "Default" default)
-          (const :tag "Ido" ido)
-          (const :tag "Ivy" ivy)
-          (const :tag "Helm" helm)
-          (function :tag "Custom function"))
-  :group 'org-roam)
 
 (defcustom org-roam-completion-ignore-case t
   "Whether to ignore case in Org-roam `completion-at-point' completions."
   :group 'org-roam
   :type 'boolean)
+
+(defvar org-roam-completion-functions (list #'org-roam-complete-link-at-point
+                                            #'org-roam-complete-everywhere)
+  "List of functions to be used with `completion-at-point' for Org-roam.")
+
+(defun org-roam-complete-everywhere ()
+  "`completion-at-point' function for word at point.
+This is active when `org-roam-completion-everywhere' is non-nil."
+  (let ((end (point))
+        (start (point))
+        (exit-fn (lambda (&rest _) nil))
+        collection)
+    (when (thing-at-point 'word)
+      (let ((bounds (bounds-of-thing-at-point 'word)))
+        (setq start (car bounds)
+              end (cdr bounds)
+              collection #'org-roam--get-titles
+              exit-fn (lambda (str _status)
+                        (delete-char (- (length str)))
+                        (insert "[[roam:" str "]]")))))
+    (when collection
+      (let ((prefix (buffer-substring-no-properties start end)))
+        (list start end
+              (if (functionp collection)
+                  (completion-table-case-fold
+                   (completion-table-dynamic
+                    (lambda (_)
+                      (cl-remove-if (apply-partially #'string= prefix)
+                                    (funcall collection))))
+                   (not org-roam-completion-ignore-case))
+                collection)
+              :exit-function exit-fn)))))
+
+(defun org-roam-complete-link-at-point ()
+  "Do appropriate completion for the link at point."
+  (let ((end (point))
+        (start (point))
+        collection path)
+    (when (org-in-regexp org-link-bracket-re 1)
+      (setq start (match-beginning 1)
+            end (match-end 1))
+      (let ((context (org-element-context)))
+        (pcase (org-element-lineage context '(link) t)
+          (`nil nil)
+          (link
+           (setq link-type (org-element-property :type link)
+                 path (org-element-property :path link))
+           (when (member link-type '("roam" "fuzzy"))
+             (when (string= link-type "roam") (setq start (+ start (length "roam:"))))
+             (setq collection #'org-roam-link--get-nodes))))))
+    (when collection
+      (let ((prefix (buffer-substring-no-properties start end)))
+        (list start end
+              (if (functionp collection)
+                  (completion-table-case-fold
+                   (completion-table-dynamic
+                    (lambda (_)
+                      (cl-remove-if (apply-partially #'string= prefix)
+                                    (funcall collection))))
+                   (not org-roam-completion-ignore-case))
+                collection)
+              :exit-function
+              (lambda (str &rest _)
+                (delete-char (- 0 (length str)))
+                (insert (concat (unless (string= link-type "roam") "roam:")
+                                str))
+                (forward-char 2)))))))
 
 (provide 'org-roam-completion)
 

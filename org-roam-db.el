@@ -401,62 +401,6 @@ If UPDATE-P is non-nil, first remove the file in the database."
       (puthash (car row) (cadr row) ht))
     ht))
 
-(defun org-roam-db--connected-component (file)
-  "Return all files reachable from/connected to FILE, including the file itself.
-If the file does not have any connections, nil is returned."
-  (let* ((query "WITH RECURSIVE
-                   links_of(file, link) AS
-                     (WITH filelinks AS (SELECT * FROM links WHERE NOT \"type\" = '\"cite\"'),
-                           citelinks AS (SELECT * FROM links
-                                                  JOIN refs ON links.\"dest\" = refs.\"ref\"
-                                                            AND links.\"type\" = '\"cite\"')
-                      SELECT \"source\", \"dest\" FROM filelinks UNION
-                      SELECT \"dest\", \"source\" FROM filelinks UNION
-                      SELECT \"file\", \"source\" FROM citelinks UNION
-                      SELECT \"dest\", \"file\" FROM citelinks),
-                   connected_component(file) AS
-                     (SELECT link FROM links_of WHERE file = $s1
-                      UNION
-                      SELECT link FROM links_of JOIN connected_component USING(file))
-                   SELECT * FROM connected_component;")
-         (files (mapcar 'car-safe (emacsql (org-roam-db) query file))))
-    files))
-
-(defun org-roam-db--links-with-max-distance (file max-distance)
-  "Return all files connected to FILE in at most MAX-DISTANCE steps.
-This includes the file itself. If the file does not have any
-connections, nil is returned."
-  (let* ((query "WITH RECURSIVE
-                   links_of(file, link) AS
-                     (WITH filelinks AS (SELECT * FROM links WHERE NOT \"type\" = '\"cite\"'),
-                           citelinks AS (SELECT * FROM links
-                                                  JOIN refs ON links.\"dest\" = refs.\"ref\"
-                                                            AND links.\"type\" = '\"cite\"')
-                      SELECT \"source\", \"dest\" FROM filelinks UNION
-                      SELECT \"dest\", \"source\" FROM filelinks UNION
-                      SELECT \"file\", \"source\" FROM citelinks UNION
-                      SELECT \"source\", \"file\" FROM citelinks),
-                   -- Links are traversed in a breadth-first search.  In order to calculate the
-                   -- distance of nodes and to avoid following cyclic links, the visited nodes
-                   -- are tracked in 'trace'.
-                   connected_component(file, trace) AS
-                     (VALUES($s1, json_array($s1))
-                      UNION
-                      SELECT lo.link,
-                        json_insert(cc.trace, '$[' || json_array_length(cc.trace) || ']', lo.link)
-                      FROM
-                      connected_component AS cc JOIN links_of AS lo USING(file)
-                      WHERE (
-                        -- Avoid cycles by only visiting each file once.
-                        (SELECT count(*) FROM json_each(cc.trace) WHERE json_each.value == lo.link) == 0
-                        -- Note: BFS is cut off early here.
-                        AND json_array_length(cc.trace) < ($s2 + 1)))
-                   SELECT DISTINCT file, min(json_array_length(trace)) AS distance
-                   FROM connected_component GROUP BY file ORDER BY distance;")
-         ;; In principle the distance would be available in the second column.
-         (files (mapcar 'car-safe (emacsql (org-roam-db) query file max-distance))))
-    files))
-
 (defun org-roam-db--file-hash (&optional file-path)
   "Compute the hash of FILE-PATH, a file or current buffer."
   (if file-path

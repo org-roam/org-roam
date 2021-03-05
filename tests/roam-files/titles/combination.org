@@ -1,4 +1,0 @@
-#+title: TITLE PROP
-#+roam_alias: "roam" "alias"
-
-* Headline
