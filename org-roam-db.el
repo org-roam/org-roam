@@ -384,7 +384,7 @@ If UPDATE-P is non-nil, first remove the file in the database."
           source)
       (save-excursion
         (while (and (not (setq source (org-id-get)))
-                    (not (= (point) (point-min))))
+                    (not (bobp)))
           (org-up-heading-or-point-min)))
       (when source
         (org-roam-db-query
