@@ -528,7 +528,9 @@ install-info /path/to/my/info/files/org-roam.info /path/to/my/info/files/dir
 @section Post-Installation Tasks
 
 Org-roam requires @code{sqlite3} to be located on @code{exec-path}. Please ensure that
-@code{sqlite3} is installed appropriately on your operating system. You can verify
+@code{sqlite3} is installed appropriately on your operating system. You can verify @footnote{Two easy ways to evaluate elisp: 1) Place the cursor after the closing
+paren and run @samp{M-x eval-last-sexp RET} or 2) Press @samp{C-c C-c} with your cursor in
+an Org file code block (like @samp{#+BEGIN_SRC emacs-lisp}).}
 that this is the case by executing:
 
 @lisp
