@@ -1484,6 +1484,9 @@ file with the right =#+roam_key=.
 [[https://www.leonrische.me/fc/index.html][Org-fc]] is a spaced repetition system that scales well with a large number of
 files. Other alternatives include [[https://orgmode.org/worg/org-contrib/org-drill.html][org-drill]], and [[https://github.com/abo-abo/pamparam][pamparam]].
 
+To use Anki for spaced repetition, [[https://github.com/louietan/anki-editor][anki-editor]] allows you to write your cards in
+Org-mode, and sync your cards to Anki via [[https://github.com/FooSoft/anki-connect#installation][anki-connect]].
+
 * FAQ
 ** How do I have more than one Org-roam directory?
 

@@ -2044,6 +2044,9 @@ file with the right @samp{#+roam_key}.
 @uref{https://www.leonrische.me/fc/index.html, Org-fc} is a spaced repetition system that scales well with a large number of
 files. Other alternatives include @uref{https://orgmode.org/worg/org-contrib/org-drill.html, org-drill}, and @uref{https://github.com/abo-abo/pamparam, pamparam}.
 
+To use Anki for spaced repetition, @uref{https://github.com/louietan/anki-editor, anki-editor} allows you to write your cards in
+Org-mode, and sync your cards to Anki via @uref{https://github.com/FooSoft/anki-connect#installation, anki-connect}.
+
 @node FAQ
 @chapter FAQ
 
