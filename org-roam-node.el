@@ -168,10 +168,11 @@ is the `org-roam-node'."
                                                               :tags (gethash id tags-table))))
                        (cons (propertize alias 'node node) node)))))
 
-(defun org-roam-node-read (&optional initial-input filter-fn)
+(defun org-roam-node-read (&optional initial-input filter-fn require-match)
   "Read and return an `org-roam-node'.
 INITIAL-INPUT is the initial prompt value.
-FILTER-FN is a function applied to the completion list."
+FILTER-FN is a function applied to the completion list.
+If REQUIRE-MATCH, require returning a match."
   (let* ((nodes (org-roam-node--completions))
          (nodes (funcall (or filter-fn #'identity) nodes))
          (node (completing-read "Node: "
@@ -181,7 +182,7 @@ FILTER-FN is a function applied to the completion list."
                                         (annotation-function . org-roam-node--annotation)
                                         (category . org-roam-node))
                                     (complete-with-action action nodes string pred)))
-                                nil nil initial-input)))
+                                 nil require-match initial-input)))
     (or (cdr (assoc node nodes))
         (org-roam-node-create :title node))))
 
