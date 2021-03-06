@@ -135,13 +135,14 @@ For example: (setq org-roam-buffer-window-parameters '((no-other-window . t)))"
 
 (defun org-roam-buffer--preview (file point)
   "Get preview content for FILE at POINT."
-  (org-roam--with-temp-buffer file
-    (goto-char point)
-    (let ((elem (org-element-at-point)))
-      (or (org-element-property :raw-value elem)
-          (when-let ((begin (org-element-property :begin elem))
-                     (end (org-element-property :end elem)))
-            (string-trim (buffer-substring-no-properties begin end)))))))
+  (save-excursion
+    (org-roam--with-temp-buffer file
+      (goto-char point)
+      (let ((elem (org-element-at-point)))
+        (or (org-element-property :raw-value elem)
+            (when-let ((begin (org-element-property :begin elem))
+                       (end (org-element-property :end elem)))
+              (string-trim (buffer-substring-no-properties begin end))))))))
 
 (defun org-roam-buffer--pluralize (string number)
   "Conditionally pluralize STRING if NUMBER is above 1."
