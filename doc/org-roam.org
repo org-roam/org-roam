@@ -483,8 +483,6 @@ Capture:
 
 Navigation:
 - Find or create a node
--
-
 
 * TODO The Org-mode Ecosystem
 * TODO Frequently Asked Questions
@@ -1162,7 +1160,7 @@ template ~j~ will put its notes under the heading ‘Journal’.
 
   Create an entry in the daily note for today.
 
-  When ~goto~ is non-nil, go the note without creating an entry.
+  When ~goto~ is non-nil, go to the note without creating an entry.
 
 - Function: ~org-roam-dailies-find-today~
 
@@ -1558,7 +1556,6 @@ see the list.
 # eval: (require 'ol-info)
 # eval: (require 'ox-texinfo+ nil t)
 # eval: (auto-fill-mode +1)
-# before-save-hook: org-make-toc
 # after-save-hook: (lambda nil (progn (require 'ox-texinfo nil t) (org-texinfo-export-to-info)))
 # indent-tabs-mode: nil
 # org-src-preserve-indentation: nil

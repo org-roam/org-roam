@@ -804,6 +804,14 @@ Ref:
 Add ref to node
 @end itemize
 
+Capture:
+
+Navigation:
+@itemize
+@item
+Find or create a node
+@end itemize
+
 @node The Org-mode Ecosystem
 @chapter @strong{TODO} The Org-mode Ecosystem
 
@@ -1659,7 +1667,7 @@ template @code{j} will put its notes under the heading ‘Journal’.
 
 Create an entry in the daily note for today.
 
-When @code{goto} is non-nil, go the note without creating an entry.
+When @code{goto} is non-nil, go to the note without creating an entry.
 @end defun
 
 @defun @code{org-roam-dailies-find-today}
@@ -1925,22 +1933,6 @@ using @uref{https://github.com/raxod502/el-patch, el-patch}:
 
 (eval-when-compile
   (require 'el-patch))
-
-(use-package deft
-  ;; same as above...
-  :config/el-patch
-  (defun deft-parse-title (file contents)
-    "Parse the given FILE and CONTENTS and determine the title.
-If `deft-use-filename-as-title' is nil, the title is taken to
-be the first non-empty line of the FILE.  Else the base name of the FILE is
-used as title."
-    (el-patch-swap (if deft-use-filename-as-title
-                       (deft-base-filename file)
-                     (let ((begin (string-match "^.+$" contents)))
-                       (if begin
-                           (funcall deft-parse-title-function
-                                    (substring contents begin (match-end 0))))))
-                   (org-roam-db--get-title file))))
 @end lisp
 
 The Deft interface can slow down quickly when the number of files get huge.
