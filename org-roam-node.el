@@ -182,7 +182,7 @@ If REQUIRE-MATCH, require returning a match."
                                         (annotation-function . org-roam-node--annotation)
                                         (category . org-roam-node))
                                     (complete-with-action action nodes string pred)))
-                                 nil require-match initial-input)))
+                                nil require-match initial-input)))
     (or (cdr (assoc node nodes))
         (org-roam-node-create :title node))))
 

@@ -70,3 +70,6 @@
        (delete-region
         (and (org-back-to-heading t) (point))
         (min (1+ (buffer-size)) (org-end-of-subtree t t) (point)))))))
+
+(provide 'org-roam-refile)
+;;; org-roam-refile.el ends here
