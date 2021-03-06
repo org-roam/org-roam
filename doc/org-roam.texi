@@ -1143,7 +1143,7 @@ represents the cursor:
 @code{[[|]]}: completes for a file title
 
 @item
-@code{[[roam:]]}: completes for a file title
+@code{[[roam:|]]}: completes for a file title
 
 @item
 @code{[[*|]]}: completes for a headline within this file
@@ -1154,6 +1154,9 @@ represents the cursor:
 @item
 @code{[[roam:foo*|]]} completes a headline within the file with title ``foo''
 @end itemize
+
+If you don't see the literal display of your links like the above examples,
+call @code{M-x org-toggle-link-display}
 
 Completions account for the current input. For example, for @code{[[f|]]}, the
 completions (by default) only show for files with titles that start with ``f''.
