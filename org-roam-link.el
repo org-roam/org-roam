@@ -133,40 +133,7 @@ in the file."
        (completing-read "Select node: " nodes)))))
 
 ;;; Completion
-(defun org-roam-link-complete-at-point ()
-  "Do appropriate completion for the link at point."
-  (let ((end (point))
-        (start (point))
-        collection path)
-    (when (org-in-regexp org-link-bracket-re 1)
-      (setq start (match-beginning 1)
-            end (match-end 1))
-      (let ((context (org-element-context)))
-        (pcase (org-element-lineage context '(link) t)
-          (`nil nil)
-          (link
-           (setq link-type (org-element-property :type link)
-                 path (org-element-property :path link))
-           (when (member link-type '("roam" "fuzzy"))
-             (when (string= link-type "roam") (setq start (+ start (length "roam:"))))
-             (setq collection #'org-roam-link--get-nodes))))))
-    (when collection
-      (let ((prefix (buffer-substring-no-properties start end)))
-        (list start end
-              (if (functionp collection)
-                  (completion-table-case-fold
-                   (completion-table-dynamic
-                    (lambda (_)
-                      (cl-remove-if (apply-partially #'string= prefix)
-                                    (funcall collection))))
-                   (not org-roam-completion-ignore-case))
-                collection)
-              :exit-function
-              (lambda (str &rest _)
-                (delete-char (- 0 (length str)))
-                (insert (concat (unless (string= link-type "roam") "roam:")
-                                str))
-                (forward-char 2)))))))
+
 
 (provide 'org-roam-link)
 ;;; org-roam-link.el ends here

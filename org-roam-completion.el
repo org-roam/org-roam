@@ -36,18 +36,24 @@
   :group 'org-roam
   :type 'boolean)
 
+(defcustom org-roam-completion-everywhere nil
+  "When non-nil, provide link completion matching outside of Org links.")
+
 (defvar org-roam-completion-functions (list #'org-roam-complete-link-at-point
                                             #'org-roam-complete-everywhere)
   "List of functions to be used with `completion-at-point' for Org-roam.")
 
 (defun org-roam-complete-everywhere ()
-  "`completion-at-point' function for word at point.
-This is active when `org-roam-completion-everywhere' is non-nil."
+  "Provides completions for links for any word at point.
+This is a `completion-at-point' function, and is active when
+`org-roam-completion-everywhere' is non-nil."
   (let ((end (point))
         (start (point))
         (exit-fn (lambda (&rest _) nil))
         collection)
-    (when (thing-at-point 'word)
+    (when (and org-roam-completion-everywhere
+               (thing-at-point 'word)
+               (not (save-match-data (org-in-regexp org-link-any-re))))
       (let ((bounds (bounds-of-thing-at-point 'word)))
         (setq start (car bounds)
               end (cdr bounds)
