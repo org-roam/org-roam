@@ -69,8 +69,7 @@ Kills the buffer if KEEP-BUF-P is nil, and FILE is not yet visited."
        (unless new-buf
            (save-buffer))
        (setq res (progn ,@body))
-       (unless (and new-buf (not ,keep-buf-p))
-         (save-buffer)))
+       (save-buffer))
      (if (and new-buf (not ,keep-buf-p))
        (when (find-buffer-visiting ,file)
          (kill-buffer (find-buffer-visiting ,file))))
