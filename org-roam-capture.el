@@ -259,34 +259,31 @@ the capture)."
 
 (defun org-roam-capture--finalize ()
   "Finalize the `org-roam-capture' process."
-  (let* ((finalize (org-roam-capture--get :finalize))
-         ;; In case any regions were shielded before, unshield them
-         (region (when-let ((region (org-roam-capture--get :region)))
-                   (org-roam-unshield-region (car region) (cdr region))))
-         (beg (car region))
-         (end (cdr region)))
-    (unless org-note-abort
-      (pcase finalize
-        ('find-file
-         (when-let ((file-path (org-roam-capture--get :file-path)))
-           (find-file file-path)
-           (run-hooks 'org-roam-capture-after-find-file-hook)))
-        ('insert-link
-         (when-let* ((mkr (org-roam-capture--get :insert-at))
-                     (buf (marker-buffer mkr)))
-           (with-current-buffer buf
-             (when region
-               (delete-region (car region) (cdr region)))
-             (let ((path (org-roam-capture--get :file-path))
-                   (type (org-roam-capture--get :link-type))
-                   (desc (org-roam-capture--get :link-description)))
-               (if (eq (point) (marker-position mkr))
-                   (insert (org-roam-format-link path desc type))
-                 (org-with-point-at mkr
-                   (insert (org-roam-format-link path desc type))))))))))
+  (let ((region (org-roam-capture--get :region)))
     (when region
-      (set-marker beg nil)
-      (set-marker end nil))
+      (org-roam-unshield-region (car region) (cdr region)))
+    (unless org-note-abort
+      (let* ((capture-buf (org-capture-get :buffer))
+             (pos (org-capture-get :exact-position))
+             (id (with-current-buffer capture-buf
+                   (org-with-point-at pos
+                     (org-id-get-create)))))
+        (pcase (org-roam-capture--get :finalize)
+          ('find-file
+           (switch-to-buffer capture-buf))
+          ('insert-link
+           (when-let* ((mkr (org-roam-capture--get :insert-at))
+                       (buf (marker-buffer mkr)))
+             (with-current-buffer buf
+               (when region
+                 (delete-region (car region) (cdr region)))
+               (let ((path (org-roam-capture--get :file-path))
+                     (desc (org-roam-capture--get :link-description)))
+                 (org-with-point-at mkr
+                   (insert (org-link-make-string (concat "id:" id) desc))))
+               (when region
+                 (set-marker (car region) nil)
+                 (set-marker (cdr region) nil))))))))
     (org-roam-capture--save-file-maybe)
     (remove-hook 'org-capture-after-finalize-hook #'org-roam-capture--finalize)))
 
@@ -527,12 +524,6 @@ This function is used solely in Org-roam's capture templates: see
            (push key (if custom org-roam-plist options))))
        (append converted options `(:org-roam ,org-roam-plist))))
     (_ (user-error "Invalid capture template format: %s" template))))
-
-(defcustom org-roam-capture-after-find-file-hook nil
-  "Hook that is run right after an Org-roam capture process is finalized.
-Suitable for moving point."
-  :group 'org-roam
-  :type 'hook)
 
 (defcustom org-roam-capture-function #'org-capture
   "Function that is invoked to start the `org-capture' process."
