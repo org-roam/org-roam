@@ -77,6 +77,7 @@ General Public License for more details.
 * Building Extensions::
 * The Org-mode Ecosystem::
 * Frequently Asked Questions::
+* Developer's Guide to Org-roam::
 * The Templating System::
 * Concepts and Configuration::
 * Inserting Links::
@@ -128,6 +129,10 @@ Node Properties
 Building Extensions
 
 * Public Interface::
+
+Developer's Guide to Org-roam
+
+* Org-roam's Design Principles::
 
 The Templating System
 
@@ -819,6 +824,54 @@ Find or create a node
 
 @node Frequently Asked Questions
 @chapter @strong{TODO} Frequently Asked Questions
+
+@node Developer's Guide to Org-roam
+@chapter @strong{TODO} Developer's Guide to Org-roam
+
+@menu
+* Org-roam's Design Principles::
+@end menu
+
+@node Org-roam's Design Principles
+@section Org-roam's Design Principles
+
+Org-roam is primarily motivated by the need for a dual representation. We
+(humans) love operating in a plain-text environment. The syntax rules of
+Org-mode are simple and fit snugly within our brain. This also allows us to use
+the tools and packages we love to explore and edit our notes. Org-mode is simply
+the most powerful plain-text format available, with support for images, @LaTeX{},
+TODO planning and much more.
+
+But this plain-text format is simply ill-suited for exploration of these notes:
+plain-text is simply not amenable for answering large-scale, complex queries
+(e.g. how many tasks do I have that are due by next week?). Interfaces such as
+Org-agenda slow to a crawl when the number of files becomes unwieldy, which
+can quickly become the case.
+
+At its core, Org-roam provides a database abstraction layer, providing a dual
+representation of what's already available in plain-text. This allows us
+(humans) to continue working with plain-text, while programs can utilize the
+database layer to perform complex queries. These capabilities include, but are
+not limited to:
+
+@itemize
+@item
+link graph traversal and visualization
+
+@item
+Instantaneous SQL-like queries on headlines
+@itemize
+@item
+What are my TODOs, scheduled for X, or due by Y@?
+@end itemize
+@end itemize
+
+All of these functionality is powered by this database abstraction layer. Hence,
+at its core Org-roam's primary goal is to provide a resilient dual
+representation that is cheap to maintain, easy to understand, and is as
+up-to-date as it possibly can. Org-roam also then exposes an API to this
+database abstraction layer for users who would like to perform programmatic
+queries on their Org files.
 
 @node The Templating System
 @chapter The Templating System

@@ -486,6 +486,38 @@ Navigation:
 
 * TODO The Org-mode Ecosystem
 * TODO Frequently Asked Questions
+* TODO Developer's Guide to Org-roam
+** Org-roam's Design Principles
+
+Org-roam is primarily motivated by the need for a dual representation. We
+(humans) love operating in a plain-text environment. The syntax rules of
+Org-mode are simple and fit snugly within our brain. This also allows us to use
+the tools and packages we love to explore and edit our notes. Org-mode is simply
+the most powerful plain-text format available, with support for images, LaTeX,
+TODO planning and much more.
+
+But this plain-text format is simply ill-suited for exploration of these notes:
+plain-text is simply not amenable for answering large-scale, complex queries
+(e.g. how many tasks do I have that are due by next week?). Interfaces such as
+Org-agenda slow to a crawl when the number of files becomes unwieldy, which
+can quickly become the case.
+
+At its core, Org-roam provides a database abstraction layer, providing a dual
+representation of what's already available in plain-text. This allows us
+(humans) to continue working with plain-text, while programs can utilize the
+database layer to perform complex queries. These capabilities include, but are
+not limited to:
+
+- link graph traversal and visualization
+- Instantaneous SQL-like queries on headlines
+  - What are my TODOs, scheduled for X, or due by Y?
+
+All of these functionality is powered by this database abstraction layer. Hence,
+at its core Org-roam's primary goal is to provide a resilient dual
+representation that is cheap to maintain, easy to understand, and is as
+up-to-date as it possibly can. Org-roam also then exposes an API to this
+database abstraction layer for users who would like to perform programmatic
+queries on their Org files.
 * The Templating System
 
 Rather than creating blank files on ~org-roam-insert~ and ~org-roam-find-file~,
