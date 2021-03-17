@@ -130,9 +130,7 @@ SQL can be either the emacsql vector representation, or a string."
 (defconst org-roam-db--table-schemata
   '((files
      [(file :unique :primary-key)
-      (hash :not-null)
-      atime
-      mtime])
+      (hash :not-null)])
 
     (nodes
      [(id :primary-key :not-null)
@@ -231,14 +229,11 @@ If FILE is nil, clear the current buffer."
   "Update the files table for the current buffer.
 If UPDATE-P is non-nil, first remove the file in the database."
   (let* ((file (buffer-file-name))
-         (attr (file-attributes file))
-         (atime (file-attribute-access-time attr))
-         (mtime (file-attribute-modification-time attr))
          (hash (org-roam-db--file-hash)))
     (org-roam-db-query
      [:insert :into files
       :values $v1]
-     (list (vector file hash atime mtime)))))
+     (list (vector file hash)))))
 
 (defun org-roam-db-get-scheduled-time ()
   "Return the scheduled time at point in ISO8601 format."
