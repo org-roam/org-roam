@@ -161,12 +161,13 @@ is the `org-roam-node'."
                                              :left-join nodes
                                              :on (= aliases:node-id nodes:id)]))
              collect (pcase-let* ((`(,file ,pos ,alias ,title ,id) row)
+                                  (fname (file-name-nondirectory file))
                                   (node (org-roam-node-create :id id
                                                               :file file
-                                                              :title title
+                                                              :title (or title fname)
                                                               :point pos
                                                               :tags (gethash id tags-table))))
-                       (cons (propertize alias 'node node) node)))))
+                       (cons (propertize (or alias fname) 'node node) node)))))
 
 (defun org-roam-node-read (&optional initial-input filter-fn require-match)
   "Read and return an `org-roam-node'.
