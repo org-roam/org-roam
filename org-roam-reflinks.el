@@ -32,13 +32,13 @@
 ;;; Code:
 ;;;; Library Requires
 (require 'magit-section)
+(require 'org-roam-db)
 (require 'org-roam-structs)
 
 (defvar org-roam-mode-sections)
 (defvar org-roam-mode-map)
 
-;;; Section
-;;;; Definition
+(declare-function org-roam-node-insert-section "org-roam-node")
 
 ;;; Functions
 (cl-defmethod org-roam-populate ((reflink org-roam-reflink))

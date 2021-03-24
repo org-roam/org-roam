@@ -194,8 +194,7 @@ Like `file-name-extension', but does not strip version number."
   "Return t if FILE is part of Org-roam system, nil otherwise.
 If FILE is not specified, use the current buffer's file-path."
   (when-let ((path (or file
-                       (-> (buffer-base-buffer)
-                           (buffer-file-name)))))
+                       (buffer-base-buffer (buffer-file-name)))))
     (save-match-data
       (and
        (org-roam--org-file-p path)
@@ -334,13 +333,6 @@ Use external shell commands if defined in `org-roam-list-files-commands'."
 (defun org-roam--list-all-files ()
   "Return a list of all Org-roam files within `org-roam-directory'."
   (org-roam--list-files (expand-file-name org-roam-directory)))
-
-;;;; Title/Path/Slug conversion
-(defun org-roam--path-to-slug (path)
-  "Return a slug from PATH."
-  (-> path
-      (file-relative-name (expand-file-name org-roam-directory))
-      (file-name-sans-extension)))
 
 (defun org-roam--title-to-slug (title)
   "Convert TITLE to a filename-suitable slug."

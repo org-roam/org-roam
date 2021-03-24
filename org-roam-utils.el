@@ -61,16 +61,21 @@
         (nconc new-lst (list separator it)))
       new-lst)))
 
+(defun org-roam-up-heading-or-point-min ()
+  "Fixed version of Org's `org-up-heading-or-point-min'."
+  (when (ignore-errors (org-back-to-heading t))
+    (let ((p (point)))
+      (if (< 1 (funcall outline-level))
+          (progn
+            (org-up-heading-safe)
+            (when (= (point) p)
+              (goto-char (point-min))))
+        (unless (= (point) (point-min)) (goto-char (point-min)))))))
+
 (defun org-roam-message (format-string &rest args)
   "Pass FORMAT-STRING and ARGS to `message' when `org-roam-verbose' is t."
   (when org-roam-verbose
     (apply #'message `(,(concat "(org-roam) " format-string) ,@args))))
-
-(defun org-roam-string-quote (str)
-  "Quote STR."
-  (->> str
-       (s-replace "\\" "\\\\")
-       (s-replace "\"" "\\\"")))
 
 (defun org-roam-set-header-line-format (string)
   "Set the header-line using STRING.

@@ -31,13 +31,17 @@
 ;;; Code:
 (require 'cl-lib)
 
+(declare-function org-roam--get-titles "org-roam")
+
 (defcustom org-roam-completion-ignore-case t
   "Whether to ignore case in Org-roam `completion-at-point' completions."
   :group 'org-roam
   :type 'boolean)
 
 (defcustom org-roam-completion-everywhere nil
-  "When non-nil, provide link completion matching outside of Org links.")
+  "When non-nil, provide link completion matching outside of Org links."
+  :group 'org-roam
+  :type 'boolean)
 
 (defvar org-roam-completion-functions (list #'org-roam-complete-link-at-point
                                             #'org-roam-complete-everywhere)
@@ -78,7 +82,7 @@ This is a `completion-at-point' function, and is active when
   "Do appropriate completion for the link at point."
   (let ((end (point))
         (start (point))
-        collection path)
+        collection link-type)
     (when (org-in-regexp org-link-bracket-re 1)
       (setq start (match-beginning 1)
             end (match-end 1))
@@ -86,11 +90,10 @@ This is a `completion-at-point' function, and is active when
         (pcase (org-element-lineage context '(link) t)
           (`nil nil)
           (link
-           (setq link-type (org-element-property :type link)
-                 path (org-element-property :path link))
-           (when (member link-type '("roam" "fuzzy"))
-             (when (string= link-type "roam") (setq start (+ start (length "roam:"))))
-             (setq collection #'org-roam-link--get-nodes))))))
+           (let ((link-type (org-element-property :type link)))
+             (when (member link-type '("roam" "fuzzy"))
+               (when (string= link-type "roam") (setq start (+ start (length "roam:"))))
+               (setq collection #'org-roam--get-titles)))))))
     (when collection
       (let ((prefix (buffer-substring-no-properties start end)))
         (list start end

@@ -110,12 +110,6 @@ in the file."
              (cdr (assoc choice matches #'string-equal))))))))))
 
 ;;; Retrieval Functions
-(defun org-roam-link--get-nodes ()
-  "Return all node title and aliases."
-  (append
-   (mapcar #'car (org-roam-db-query [:select [title] :from nodes]))
-   (mapcar #'car (org-roam-db-query [:select [alias] :from aliases]))))
-
 (defun org-roam-link--get-node-from-title (title)
   "Return the node id for a given TITLE."
   (let ((nodes (seq-uniq

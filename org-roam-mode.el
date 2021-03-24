@@ -37,6 +37,7 @@
 (defvar org-roam-directory)
 
 (declare-function org-roam--org-file-p "org-roam")
+(declare-function org-roam-node-at-point "org-roam-node")
 
 ;;; Faces
 (defface org-roam-header-line

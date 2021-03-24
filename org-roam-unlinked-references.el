@@ -37,6 +37,8 @@
 (defvar org-roam-file-extensions)
 (defvar org-roam-directory)
 
+(declare-function org-roam--list-files-search-globs "org-roam")
+
 ;;; Section
 ;;;; Faces
 

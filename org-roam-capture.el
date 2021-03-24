@@ -304,13 +304,14 @@ of var is prompted for via `completing-read'.
 
 Next, it expands the remaining template string using
 `org-capture-fill-template'."
-  (-> str
-      (s-format (lambda (key)
-                  (or (s--aget org-roam-capture--info key)
-                      (when-let ((val (completing-read (format "%s: " key) nil)))
-                        (push (cons key val) org-roam-capture--info)
-                        val))) nil)
-      (org-capture-fill-template)))
+  (org-capture-fill-template
+   (s-format str
+             (lambda (key)
+               (or (s--aget org-roam-capture--info key)
+                   (when-let ((val (completing-read (format "%s: " key) nil)))
+                     (push (cons key val) org-roam-capture--info)
+                     val)))
+             nil)))
 
 (defun org-roam-capture--save-file-maybe ()
   "Save the file conditionally.

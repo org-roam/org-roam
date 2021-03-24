@@ -33,6 +33,8 @@
 ;;
 ;;; Code:
 ;;;; Library Requires
+(require 'org-roam-db)
+
 (defun org-roam-ref--completions ()
   "Return an alist for ref completion.
 The car is the ref, and the cdr is the corresponding node for the ref."

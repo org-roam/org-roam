@@ -139,8 +139,7 @@ Template string   :\n%v")
 
 If FILE is not specified, use the current buffer's file-path."
   (when-let ((path (or file
-                       (-> (buffer-base-buffer)
-                           (buffer-file-name))))
+                       (buffer-base-buffer (buffer-file-name))))
              (directory (org-roam-dailies-directory--get-absolute-path)))
     (setq path (expand-file-name path))
     (save-match-data
@@ -231,13 +230,11 @@ future."
 
 Return (MONTH DAY YEAR)."
   (let ((file (or file
-                  (-> (buffer-base-buffer)
-                      (buffer-file-name)))))
+                  (buffer-base-buffer (buffer-file-name)))))
     (cl-destructuring-bind (_ _ _ d m y _ _ _)
-        (-> file
-            (file-name-nondirectory)
-            (file-name-sans-extension)
-            (org-parse-time-string))
+        (org-parse-time-string
+         (file-name-sans-extension
+          (file-name-nondirectory file)))
       (list m d y))))
 
 (defun org-roam-dailies-calendar--date-to-time (date)
