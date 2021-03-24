@@ -161,6 +161,18 @@ This face is used on the region target by `org-roam-insertion'
 during an `org-roam-capture'."
   :group 'org-roam-faces)
 
+;;;; ID Utilities
+(defun org-roam-id-at-point ()
+  "Return the ID at point, if any.
+Recursively traverses up the headline tree to find the
+first encapsulating ID."
+  (let (source)
+    (org-with-wide-buffer
+     (while (and (not (setq source (org-id-get)))
+                 (not (bobp)))
+       (org-roam-up-heading-or-point-min)))
+    source))
+
 ;;;; File functions and predicates
 (defun org-roam--file-name-extension (filename)
   "Return file name extension for FILENAME.

@@ -37,6 +37,7 @@
 (eval-when-compile
   (require 'org-roam-macs))
 
+(declare-function org-roam-id-at-point "org-roam")
 (defvar org-roam-mode-sections)
 
 ;;; Section
@@ -117,12 +118,8 @@ nodes."
 If ASSERT, throw an error."
   (if-let ((node (magit-section-case
                    (org-roam-node-section (oref it node))
-                   (t (let (id)
-                        (org-with-wide-buffer
-                         (while (and (not (setq id (org-id-get)))
-                                     (not (bobp)))
-                           (org-up-heading-or-point-min))
-                         (org-roam-populate (org-roam-node-create :id id))))))))
+                   (t (when-let ((id (org-roam-id-at-point)))
+                        (org-roam-populate (org-roam-node-create :id id)))))))
       node
     (when assert
       (user-error "No node at point"))))

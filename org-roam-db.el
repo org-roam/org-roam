@@ -47,6 +47,7 @@
 (defvar org-roam-verbose)
 (defvar org-agenda-files)
 
+(declare-function org-roam-id-at-point                "org-roam")
 (declare-function org-roam--org-roam-file-p                "org-roam")
 (declare-function org-roam--list-all-files                 "org-roam")
 (declare-function org-roam-node-at-point                    "org-roam-node")
@@ -235,6 +236,17 @@ If UPDATE-P is non-nil, first remove the file in the database."
       :values $v1]
      (list (vector file hash)))))
 
+(defun org-roam-id-at-point ()
+  "Return the ID at point, if any.
+Recursively traverses up the headline tree to find the
+first encapsulating ID."
+  (let (source)
+    (org-with-wide-buffer
+     (while (and (not (setq source (org-id-get)))
+                 (not (bobp)))
+       (org-roam-up-heading-or-point-min)))
+    source))
+
 (defun org-roam-db-get-scheduled-time ()
   "Return the scheduled time at point in ISO8601 format."
   (when-let ((time (org-get-scheduled-time (point))))
@@ -376,11 +388,7 @@ If UPDATE-P is non-nil, first remove the file in the database."
           (type (org-element-property :type link))
           (dest (org-element-property :path link))
           (properties (list :outline (org-get-outline-path)))
-          source)
-      (save-excursion
-        (while (and (not (setq source (org-id-get)))
-                    (not (bobp)))
-          (org-up-heading-or-point-min)))
+          (source (org-roam-id-at-point)))
       (when source
         (org-roam-db-query
          [:insert :into links
