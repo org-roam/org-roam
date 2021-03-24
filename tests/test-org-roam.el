@@ -23,31 +23,16 @@
 
 (require 'buttercup)
 (require 'org-roam)
-(require 'dash)
 
-(defvar test-org-roam-directory (expand-file-name "tests/roam-files")
-  "Directory containing org-roam test org files.")
-
-(defun test-org-roam--init ()
-  "."
-  (let ((original-dir test-org-roam-directory)
-        (new-dir (expand-file-name (make-temp-name "org-roam") temporary-file-directory)))
-    (copy-directory original-dir new-dir)
-    (setq org-roam-directory new-dir)
-    (org-roam-setup)))
-
-(defun test-org-roam--teardown ()
-  "."
-  (org-roam-teardown)
-  (delete-file org-roam-db-location)
-  (org-roam-db--close))
-
-(describe "test files for org-roam-db-sync"
+(describe "org-roam-db-sync"
   (before-all
-    (test-org-roam--init))
+    (setq org-roam-directory (expand-file-name "tests/roam-files")
+          org-roam-db-location (expand-file-name "org-roam.db" temporary-file-directory))
+    (org-roam-setup))
 
   (after-all
-    (test-org-roam--teardown))
+    (org-roam-teardown)
+    (delete-file org-roam-db-location))
 
   (it "has the correct number of files"
     (expect (caar (org-roam-db-query [:select (funcall count) :from files]))

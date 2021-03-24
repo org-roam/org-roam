@@ -416,7 +416,7 @@ first encapsulating ID."
 
 ;;;;; Updating
 (defun org-roam-db-sync (&optional force)
-  "Build the cache for `org-roam-directory'.
+  "Synchronize the cache state with the current Org files on-disk.
 If FORCE, force a rebuild of the cache from scratch."
   (interactive "P")
   (when force (delete-file org-roam-db-location))
