@@ -128,7 +128,7 @@ plain-text, Org-mode file. In the same way one would maintain a paper slip-box,
 Org-roam makes it easy to create new zettels, pre-filling boilerplate content
 using a powerful templating system.
 
-** Fleeting notes
+*Fleeting notes*
 
 A slip-box requires a method for quickly capturing ideas. These are called
 *fleeting notes*: they are simple reminders of information or ideas that will
@@ -137,7 +137,7 @@ need to be processed later on, or trashed. This is typically accomplished using
 functionality (see [[*Daily-notes][Daily-notes]]). This provides a central inbox for collecting
 thoughts, to be processed later into permanent notes.
 
-** Permanent notes
+*Permanent notes*
 
 Permanent notes are further split into two categories: *literature notes* and
 *concept notes*. Literature notes can be brief annotations on a particular
@@ -145,6 +145,9 @@ source (e.g. book, website or paper), that you'd like to access later on.
 Concept notes require much more care in authoring: they need to be
 self-explanatory and detailed. Org-roam's templating system supports the
 addition of different templates to facilitate the creation of these notes.
+
+For further reading on the Zettelkasten method, "How to Take Smart Notes" by
+Sonke Ahrens is a decent guide.
 
 * Installation
 
@@ -208,7 +211,7 @@ using Apt:
 
 Org-roam will then be autoloaded into Emacs.
 
-** Installing from the Git Repository
+** Installing from Source
 
 You may install Org-roam directly from the repository on [[https://github.com/org-roam/org-roam][GitHub]] if you like.
 This will give you access to the latest version hours or days before it appears
@@ -290,25 +293,23 @@ install-info /path/to/my/info/files/org-roam.info /path/to/my/info/files/dir
 
 ** Post-Installation Tasks
 
-Org-roam requires ~sqlite3~ to be located on ~exec-path~. Please ensure that
-~sqlite3~ is installed appropriately on your operating system. You can verify [fn:2]
-that this is the case by executing:
+Org-roam requires ~sqlite3~ to be locatable by Emacs (i.e. on ~exec-path~).
+Please ensure that ~sqlite3~ is installed appropriately on your operating
+system. You can verify that this is the case by executing [fn:2]:
 
 #+BEGIN_SRC emacs-lisp
   (executable-find "sqlite3")
 #+END_SRC
 
 If you have ~sqlite3~ installed, and ~executable-find~ still reports ~nil~, then
-it is likely that the path to the executable is not a member of the Emacs
-variable ~exec-path~. You may rectify this by manually adding the path within
-your Emacs configuration:
+the path to the executable is not a member of the Emacs variable ~exec-path~.
+Rectify this by manually adding the path within your Emacs configuration:
 
 #+BEGIN_SRC emacs-lisp
   (add-to-list 'exec-path "path/to/sqlite3")
 #+END_SRC
 
 * Getting Started
-
 ** The Org-roam Node
 
 We first begin with some terminology we'll use throughout the manual. We term
@@ -348,9 +349,9 @@ Org-roam caches all other links in the documents for external use.
 
 ** Setting up Org-roam
 
-Org-roam's primary capability comes from its aggressive caching: it crawls all
-files within ~org-roam-directory~, keeping a cache of all its links and nodes,
-and making sure that the cache is consistent.
+Org-roam's capabilities stem from its aggressive caching: it crawls all files
+within ~org-roam-directory~, keeping a cache of all its links and nodes, while
+making sure that the cache is consistent.
 
 To first start using Org-roam, one needs to pick a location to store the
 Org-roam files. The directory that will contain your notes is specified by the
@@ -377,38 +378,42 @@ To build the cache manually, one can run ~M-x org-roam-db-build-cache~. Cache
 builds may take a while the first time, but is often instantaneous in subsequent
 runs because it only reprocesses modified files.
 
-** TODO Creating New Notes
+** TODO Creating and Linking Nodes
 
-Let us now create our first node. Call ~M-x org-roam-find-file~. This shows a
-list of titles for nodes that reside in ~org-roam-directory~. It should show
-nothing right now, since there are no notes in the directory. Entering the title
-of the note you wish to create, and pressing ~RET~ should begin the note
+Org-roam makes it easy to create notes and link them together. There are 2 main
+functions for creating nodes:
+
+- ~org-roam-node-insert~: creates a node if it does not exist, and inserts a
+  link to the node at point.
+- ~org-roam-node-find~: creates a node if it does not exist, and visits the
+  node.
+
+Let's first try ~org-roam-node-find~. Calling ~M-x org-roam-node-find~ will
+show a list of titles for nodes that reside in ~org-roam-directory~. It should
+show nothing right now, since there are no notes in the directory. Enter the
+title of the note you wish to create, and press ~RET~. This begins the note
 creation process. This process uses ~org-capture~'s templating system, and can
 be customized (see [[*The Templating System][The Templating System]]). Using the default template, pressing
 ~C-c C-c~ finishes the note capture.
 
-For experienced ~org-capture~ users, the behavior of ~M-x org-roam-find-file~ 
-may seem unfamiliar: after finishing a capture with ~C-c C-c~, you are returned  
-not to the original buffer from which you called ~M-x org-roam-find-file~, but 
-to a buffer pointing to the note you just created. For the usual ~org-capture~ 
-behavior you can call ~M-x org-roam-capture~ instead of ~M-x org-roam-find-file~. 
+Now that we have a node, we can try inserting a link to the node using ~M-x
+org-roam-node-insert~. This brings up the list of nodes, which should contain
+the node you just created. Selecting the node will insert an ~id:~ link to the
+node. If you instead entered a title that does not exist, you will once again be
+brought through the node creation process. To enable link auto-completion,
+see [[id:70083bfd-d1e3-42b9-bf83-5b05708791c0][Completion]].
 
-Org-roam makes it easy to create notes, and link them together. To link notes
-together, we call ~M-x org-roam-insert~. This brings up a prompt with a list of
-title for existing notes. Selecting an existing entry will create and insert a
-link to the current file. Entering a non-existent title will create a new note
-with that title. Good usage of Org-roam requires liberally linking files: this
-facilitates building up a dense graph of inter-connected notes.
+# For experienced ~org-capture~ users, the behavior of ~M-x org-roam-find-file~
+# may seem unfamiliar: after finishing a capture with ~C-c C-c~, you are returned
+# not to the original buffer from which you called ~M-x org-roam-find-file~, but
+# to a buffer pointing to the note you just created. For the usual ~org-capture~
+# behavior you can call ~M-x org-roam-capture~ instead of ~M-x org-roam-find-file~.
 
-Org-roam provides an interface to view backlinks. It shows backlinks for the
-currently active Org-roam note, along with some surrounding context. To toggle
-the visibility of this buffer, call ~M-x org-roam~.
+* TODO Viewing the links
 
-For a visual representation of the notes and their connections, Org-roam also
-provides graphing capabilities, using Graphviz. It generates graphs with notes
-as nodes, and links between them as edges. The generated graph can be used to
-navigate to the files, but this requires some additional setup (see [[*Roam
-Protocol][Roam Protocol]]).
+Org-roam provides an interface to view relationships with other notes
+(backlinks, reference links, unlinked references etc.). To pop up this info
+buffer, call ~M-x org-roam-buffer~.
 
 * TODO Node Properties
 ** TODO Standard Org properties
@@ -446,6 +451,9 @@ key and a URL at the same time.
 * TODO The Org-roam Buffer
 * TODO Styling Org-roam
 * TODO Completion
+:PROPERTIES:
+:ID:       70083bfd-d1e3-42b9-bf83-5b05708791c0
+:END:
 * TODO Encryption
 * TODO Org-roam protocol
 * TODO Diagnosing and Repair

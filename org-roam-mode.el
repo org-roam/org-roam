@@ -152,24 +152,24 @@ which visits the thing at point."
 (defun org-roam-buffer ()
   "Launch an Org-roam buffer for the current node at point."
   (interactive)
-  (unless (org-roam--org-file-p (buffer-file-name (buffer-base-buffer)))
-    (user-error "Not in Org-roam file"))
-  (let ((file (buffer-file-name))
-        (buffer (get-buffer-create
-                 (concat "org-roam: "
-                         (file-relative-name (buffer-file-name) org-roam-directory))))
-        (node (org-roam-node-at-point)))
-    (with-current-buffer buffer
-      (let ((inhibit-read-only t))
-        (erase-buffer)
-        (org-roam-mode)
-        (org-roam-set-header-line-format
-         (org-roam-node-title node))
-        (magit-insert-section (demo-buffer)
-          (magit-insert-heading)
-          (dolist (fn org-roam-mode-sections)
-            (funcall fn :node node :file file)))))
-    (switch-to-buffer-other-window buffer)))
+  (if-let ((node (org-roam-node-at-point)))
+      (progn
+        (let ((file (buffer-file-name (buffer-base-buffer)))
+              (buffer (get-buffer-create
+                       (concat "org-roam: "
+                               (file-relative-name (buffer-file-name) org-roam-directory)))))
+          (with-current-buffer buffer
+            (let ((inhibit-read-only t))
+              (erase-buffer)
+              (org-roam-mode)
+              (org-roam-set-header-line-format
+               (org-roam-node-title node))
+              (magit-insert-section (demo-buffer)
+                (magit-insert-heading)
+                (dolist (fn org-roam-mode-sections)
+                  (funcall fn :node node :file file)))))
+          (switch-to-buffer-other-window buffer)))
+    (user-error "No node at point")))
 
 (provide 'org-roam-mode)
 ;;; org-roam-mode.el ends here
