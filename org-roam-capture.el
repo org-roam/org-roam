@@ -267,7 +267,8 @@ the capture)."
              (pos (org-capture-get :exact-position))
              (id (with-current-buffer capture-buf
                    (org-with-point-at pos
-                     (org-id-get-create)))))
+                     (org-id-get-create)
+                     (org-set-property "ROAM_REFS" (org-roam-capture--get :ref))))))
         (pcase (org-roam-capture--get :finalize)
           ('find-file
            (switch-to-buffer capture-buf))
@@ -487,7 +488,8 @@ This function is used solely in Org-roam's capture templates: see
                      (org-roam-capture--fill-template (org-capture-get :template)))
     (org-roam-capture--put :file-path file-path
                            :finalize (or (org-capture-get :finalize)
-                                         (org-roam-capture--get :finalize)))
+                                         (org-roam-capture--get :finalize))
+                           :ref (cdr (assoc 'ref org-roam-capture--info)))
     (while org-roam-capture-additional-template-props
       (let ((prop (pop org-roam-capture-additional-template-props))
             (val (pop org-roam-capture-additional-template-props)))
