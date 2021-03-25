@@ -278,19 +278,19 @@ first encapsulating ID."
   "Insert the file-level node into the Org-roam cache."
   (org-with-point-at 1
     (when-let ((id (org-id-get)))
-      (let ((file (buffer-file-name (buffer-base-buffer)))
-            (title (or (cadr (assoc "TITLE" (org-collect-keywords '("title"))
-                                    #'string-equal))
-                       (file-relative-name file org-roam-directory)))
-            (pos (point))
-            (todo nil)
-            (priority nil)
-            (scheduled nil)
-            (deadline nil)
-            (level 0)
-            (aliases (org-entry-get (point) "ROAM_ALIASES"))
-            (tags org-file-tags)
-            (refs (org-entry-get (point) "ROAM_REFS")))
+      (let* ((file (buffer-file-name (buffer-base-buffer)))
+             (title (or (cadr (assoc "TITLE" (org-collect-keywords '("title"))
+                                     #'string-equal))
+                        (file-relative-name file org-roam-directory)))
+             (pos (point))
+             (todo nil)
+             (priority nil)
+             (scheduled nil)
+             (deadline nil)
+             (level 0)
+             (aliases (org-entry-get (point) "ROAM_ALIASES"))
+             (tags org-file-tags)
+             (refs (org-entry-get (point) "ROAM_REFS")))
         (org-roam-db-query
          [:insert :into nodes
           :values $v1]
