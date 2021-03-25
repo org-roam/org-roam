@@ -70,7 +70,7 @@
           (org-up-heading-safe)
           (when (= (point) p)
             (goto-char (point-min))))
-        (unless (bobp) (goto-char (point-min))))))
+      (unless (bobp) (goto-char (point-min))))))
 
 (defun org-roam-message (format-string &rest args)
   "Pass FORMAT-STRING and ARGS to `message' when `org-roam-verbose' is t."
