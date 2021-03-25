@@ -278,8 +278,9 @@ first encapsulating ID."
   (org-with-point-at 1
     (when-let ((id (org-id-get)))
       (let ((file (buffer-file-name (buffer-base-buffer)))
-            (title (cadr (assoc "TITLE" (org-collect-keywords '("title"))
-                                #'string-equal)))
+            (title (or (cadr (assoc "TITLE" (org-collect-keywords '("title"))
+                                    #'string-equal))
+                       (file-relative-name file org-roam-directory)))
             (pos (point))
             (todo nil)
             (priority nil)
