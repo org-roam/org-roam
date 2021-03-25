@@ -116,7 +116,7 @@ This is the ROW within FILE."
        (end-of-line)
        (point)))))
 
-(cl-defun org-roam-unlinked-references-insert-section (&key node file)
+(defun org-roam-unlinked-references-insert-section (node)
   "Render unlinked references for NODE.
 References from FILE are excluded."
   (when (and (executable-find "rg")
@@ -145,7 +145,7 @@ References from FILE are excluded."
                     col (string-to-number (match-string 3 line))
                     match (match-string 4 line))
               (when (and match
-                         (not (f-equal-p file f))
+                         (not (f-equal-p (org-roam-node-file node) f))
                          (member (downcase match) (mapcar #'downcase titles)))
                 (magit-insert-section section (org-roam-grep-section)
                   (oset section file f)

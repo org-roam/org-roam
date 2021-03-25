@@ -154,20 +154,18 @@ which visits the thing at point."
   (interactive)
   (if-let ((node (org-roam-node-at-point)))
       (progn
-        (let ((file (buffer-file-name (buffer-base-buffer)))
-              (buffer (get-buffer-create
+        (let ((buffer (get-buffer-create
                        (concat "org-roam: "
                                (file-relative-name (buffer-file-name) org-roam-directory)))))
           (with-current-buffer buffer
             (let ((inhibit-read-only t))
               (erase-buffer)
               (org-roam-mode)
-              (org-roam-set-header-line-format
-               (org-roam-node-title node))
-              (magit-insert-section (demo-buffer)
+              (org-roam-set-header-line-format (org-roam-node-title node))
+              (magit-insert-section (org-roam)
                 (magit-insert-heading)
                 (dolist (fn org-roam-mode-sections)
-                  (funcall fn :node node :file file)))))
+                  (funcall fn node)))))
           (switch-to-buffer-other-window buffer)))
     (user-error "No node at point")))
 

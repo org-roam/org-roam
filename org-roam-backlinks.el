@@ -76,7 +76,7 @@ Sorts by title."
            (org-roam-node-title (org-roam-backlink-source-node b))))
 
 ;;; Section inserter
-(cl-defun org-roam-backlinks-insert-section (&key node _file)
+(defun org-roam-backlinks-insert-section (node)
   "Insert backlinks section for NODE."
   (let* ((backlinks (seq-sort #'org-roam-backlinks-sort (org-roam-backlinks-get node))))
     (magit-insert-section (org-roam-backlinks)

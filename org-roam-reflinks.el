@@ -74,7 +74,7 @@ Sorts by title."
            (org-roam-node-title (org-roam-reflink-source-node b))))
 
 ;;; Section inserter
-(cl-defun org-roam-reflinks-insert-section (&key node _file)
+(defun org-roam-reflinks-insert-section (node)
   "Insert reflinks section for NODE."
   (when (org-roam-node-refs node)
     (let* ((reflinks (seq-sort #'org-roam-reflinks-sort (org-roam-reflinks-get node))))
