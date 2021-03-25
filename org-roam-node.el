@@ -119,9 +119,9 @@ nodes."
   "Get preview content for FILE at POINT."
   (save-excursion
     (org-roam-with-temp-buffer file
-      (ignore org-roam-directory) ; NOTE: to silence the byte-compiler, should it be better put in the macro
-                                  ; itself to prevent any warnings in other places where `org-roam-directory'
-                                  ; is not actually referenced in the code?
+      ;; NOTE: to silence the byte-compiler; should it be better put in the macro itself to prevent any
+      ;; warnings in other places where `org-roam-directory' is not actually referenced in the code?
+      (ignore org-roam-directory)
       (goto-char point)
       (let* ((elem (org-element-at-point))
              (begin (org-element-property :begin elem))
