@@ -112,6 +112,13 @@ This is a `completion-at-point' function, and is active when
                                 str))
                 (forward-char 2)))))))
 
+(defun org-roam--register-completion-functions ()
+  "."
+  (dolist (fn org-roam-completion-functions)
+    (add-hook 'completion-at-point-functions fn nil t)))
+
+(add-hook 'org-roam-find-file-hook #'org-roam--register-completion-functions)
+
 (provide 'org-roam-completion)
 
 ;;; org-roam-completion.el ends here

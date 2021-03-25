@@ -372,6 +372,9 @@ Use external shell commands if defined in `org-roam-list-files-commands'."
     completions))
 
 ;;; Org-roam setup and teardown
+(defvar org-roam-find-file-hook nil
+  "Hook run when an Org-roam file is visited.")
+
 (defun org-roam-setup ()
   "Setup Org-roam."
   (interactive)
@@ -381,7 +384,7 @@ Use external shell commands if defined in `org-roam-list-files-commands'."
     (lwarn '(org-roam) :error "Cannot find executable 'sqlite3'. \
 Ensure it is installed and can be found within `exec-path'. \
 M-x info for more information at Org-roam > Installation > Post-Installation Tasks."))
-  (add-hook 'find-file-hook #'org-roam--find-file-hook-function)
+  (add-hook 'find-file-hook #'org-roam--file-setup)
   (add-hook 'kill-emacs-hook #'org-roam-db--close-all)
   (advice-add 'rename-file :after #'org-roam--rename-file-advice)
   (advice-add 'delete-file :before #'org-roam--delete-file-advice)
@@ -390,7 +393,7 @@ M-x info for more information at Org-roam > Installation > Post-Installation Tas
 (defun org-roam-teardown ()
   "Teardown Org-roam."
   (interactive)
-  (remove-hook 'find-file-hook #'org-roam--find-file-hook-function)
+  (remove-hook 'find-file-hook #'org-roam--file-setup)
   (remove-hook 'kill-emacs-hook #'org-roam-db--close-all)
   (advice-remove 'rename-file #'org-roam--rename-file-advice)
   (advice-remove 'delete-file #'org-roam--delete-file-advice)
@@ -401,14 +404,10 @@ M-x info for more information at Org-roam > Installation > Post-Installation Tas
       (remove-hook 'after-save-hook #'org-roam-db-update-file t))))
 
 ;;; Hooks and advices
-(defun org-roam--find-file-hook-function ()
-  "Setup automatic database update."
+(defun org-roam--file-setup ()
+  "Setup an Org-roam file."
   (when (org-roam--org-roam-file-p)
-    (setq org-roam-last-window (get-buffer-window))
-    (run-hooks 'org-roam-file-setup-hook) ; Run user hooks
-    (add-hook 'after-save-hook #'org-roam-db-update-file nil t)
-    (dolist (fn org-roam-completion-functions)
-      (add-hook 'completion-at-point-functions fn nil t))))
+    (run-hooks 'org-roam-find-file-hook)))
 
 (defun org-roam--delete-file-advice (file &optional _trash)
   "Maintain cache consistency when file deletes.

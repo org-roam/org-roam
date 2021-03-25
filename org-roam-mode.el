@@ -35,6 +35,7 @@
 (require 'org-roam-utils)
 
 (defvar org-roam-directory)
+(defvar org-roam-find-file-hook)
 
 (declare-function org-roam--org-file-p "org-roam")
 (declare-function org-roam-node-at-point "org-roam-node")
@@ -120,10 +121,6 @@ and `:slant'."
   :group 'org-roam-faces)
 
 ;;; Variables
-;; TODO: make defcustom
-(defvar org-roam-last-window nil
-  "Last window `org-roam' was called from.")
-
 (defvar org-roam-mode-sections nil
   "List of functions that insert sections for Org-roam.")
 
@@ -168,6 +165,68 @@ which visits the thing at point."
                   (funcall fn node)))))
           (switch-to-buffer-other-window buffer)))
     (user-error "No node at point")))
+
+;;; Persistent buffer
+(defvar org-roam-current-node nil
+  "The current node at point.")
+
+(defvar org-roam-buffer "*org-roam*"
+  "The persistent Org-roam buffer name.")
+
+(defun org-roam-buffer--post-command-h ()
+  "Reconstructs `org-roam-buffer'.
+This needs to be quick or infrequent, because this is run at
+`post-command-hook'.  If REDISPLAY, force an update of
+`org-roam-buffer'."
+  (when (get-buffer-window org-roam-buffer)
+    (when-let ((node (org-roam-node-at-point)))
+      (unless (equal node org-roam-current-node)
+        (setq org-roam-current-node node)
+        (org-roam-buffer-persistent-redisplay)))))
+
+(define-inline org-roam-buffer--visibility ()
+  "Return whether the current visibility state of the org-roam buffer.
+Valid states are 'visible, 'exists and 'none."
+  (declare (side-effect-free t))
+  (inline-quote
+   (cond
+    ((get-buffer-window org-roam-buffer) 'visible)
+    ((get-buffer org-roam-buffer) 'exists)
+    (t 'none))))
+
+(defun org-roam-buffer-toggle ()
+  "Toggle display of the `org-roam-buffer'."
+  (interactive)
+  (pcase (org-roam-buffer--visibility)
+    ('visible
+     (progn
+       (delete-window (get-buffer-window org-roam-buffer))
+       (remove-hook 'post-command-hook #'org-roam-buffer--post-command-h)))
+    ((or 'exists 'none)
+     (progn
+       (display-buffer (get-buffer-create org-roam-buffer))
+       (setq org-roam-current-node (org-roam-node-at-point))
+       (org-roam-buffer-persistent-redisplay)))))
+
+(defun org-roam-buffer-persistent-redisplay ()
+  "Recompute contents of the persistent Org-roam buffer.
+Has no effect when `org-roam-current-node' is nil."
+  (when org-roam-current-node
+    (with-current-buffer (get-buffer-create org-roam-buffer)
+      (let ((inhibit-read-only t))
+        (erase-buffer)
+        (org-roam-mode)
+        (org-roam-set-header-line-format (org-roam-node-title org-roam-current-node))
+        (magit-insert-section (org-roam)
+          (magit-insert-heading)
+          (dolist (fn org-roam-mode-sections)
+            (funcall fn org-roam-current-node)))))))
+
+(defun org-roam-buffer--redisplay ()
+  "."
+  (add-hook 'post-command-hook #'org-roam-buffer--post-command-h nil t))
+
+(add-hook 'org-roam-find-file-hook #'org-roam-buffer--redisplay)
 
 (provide 'org-roam-mode)
 ;;; org-roam-mode.el ends here

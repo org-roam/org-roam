@@ -44,6 +44,7 @@
 (require 'org-roam-structs)
 
 (defvar org-roam-directory)
+(defvar org-roam-find-file-hook)
 (defvar org-roam-verbose)
 (defvar org-agenda-files)
 
@@ -462,6 +463,12 @@ If the file exists, update the cache with information."
                  #'org-roam-db-insert-refs))
           (org-roam-db-map-links
            (list #'org-roam-db-insert-link)))))))
+
+(defun org-roam-db--update-on-save-h ()
+  "."
+  (add-hook 'after-save-hook #'org-roam-db-update-file nil t))
+
+(add-to-list 'org-roam-find-file-hook #'org-roam-db--update-on-save-h)
 
 ;; Diagnostic Interactives
 (defun org-roam-db-diagnose-node ()
