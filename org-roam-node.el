@@ -34,11 +34,22 @@
 (require 'magit-section)
 (require 'org-roam-structs)
 (require 'org-roam-mode)
+(require 'org-roam-capture)
 (eval-when-compile
   (require 'org-roam-macs))
 
-(declare-function org-roam-id-at-point "org-roam")
+(declare-function org-roam-id-at-point "org-roam" ())
+(declare-function org-roam--tags-table "org-roam" ())
+(declare-function org-roam-file-at-point "org-roam-unlinked-references" (&optional assert))
+
+(defvar org-roam-directory)
 (defvar org-roam-mode-sections)
+(defvar org-roam-capture-additional-template-props)
+(defvar org-roam-title-to-slug-function)
+
+(declare-function org-element-property "org-element" (property element))
+;; alternatively,
+;; (require 'org-element)
 
 ;;; Section
 ;;;; Definition
@@ -225,7 +236,7 @@ PROPERTIES contains properties about the link."
     (magit-insert-section section (org-roam-preview-section)
       (pcase-let ((`(,begin ,end ,s) (org-roam-node-preview (org-roam-node-file source-node)
                                                             point)))
-        (insert (org-fontify-like-in-org-mode s) "\n")
+        (insert (org-roam-fontify-like-in-org-mode s) "\n")
         (oset section file (org-roam-node-file source-node))
         (oset section begin begin)
         (oset section end end)))))
@@ -299,7 +310,8 @@ window instead."
   (let ((random-row (seq-random-elt (org-roam-db-query [:select [id file pos] :from nodes]))))
     (org-roam-node-visit (org-roam-node-create :id (nth 0 random-row)
                                                :file (nth 1 random-row)
-                                               :point (nth 2 random-row)))))
+                                               :point (nth 2 random-row))
+                         other-window)))
 
 
 (provide 'org-roam-node)
