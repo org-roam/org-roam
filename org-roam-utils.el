@@ -80,7 +80,8 @@
 (defvar org-ref-buffer-hacked)
 
 (defun org-roam-fontify-like-in-org-mode (s)
-  "Like `org-fontify-like-in-org-mode', but supports `org-ref'."
+  "Fontify string S like in Org mode.
+Like `org-fontify-like-in-org-mode', but supports `org-ref'."
   ;; NOTE: pretend that the temporary buffer created by `org-fontify-like-in-org-mode' to
   ;; fontify a `cite:' reference has been hacked by org-ref, whatever that means;
   ;;
