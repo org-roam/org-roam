@@ -47,9 +47,6 @@
 (defvar org-roam-capture-additional-template-props)
 (defvar org-roam-title-to-slug-function)
 
-;;  external dependencies
-(defvar org-ref-buffer-hacked)
-
 (declare-function org-element-property "org-element" (property element))
 ;; alternatively,
 ;; (require 'org-element)
@@ -119,9 +116,6 @@ nodes."
   "Get preview content for FILE at POINT."
   (save-excursion
     (org-roam-with-temp-buffer file
-      ;; NOTE: to silence the byte-compiler; should it be better put in the macro itself to prevent any
-      ;; warnings in other places where `org-roam-directory' is not actually referenced in the code?
-      (ignore org-roam-directory)
       (goto-char point)
       (let* ((elem (org-element-at-point))
              (begin (org-element-property :begin elem))
@@ -242,33 +236,7 @@ PROPERTIES contains properties about the link."
     (magit-insert-section section (org-roam-preview-section)
       (pcase-let ((`(,begin ,end ,s) (org-roam-node-preview (org-roam-node-file source-node)
                                                             point)))
-        ;; NOTE: pretend that the temporary buffer created by `org-fontify-like-in-org-mode' to
-        ;; fontify a `cite:' reference has been hacked by org-ref, whatever that means;
-        ;;
-        ;; `org-ref-cite-link-face-fn', which is used to supply a face for `cite:' links, calls
-        ;; `hack-dir-local-variables' rationalizing that `bibtex-completion' would throw some warnings
-        ;; otherwise.  This doesn't seem to be the case and calling this function just before
-        ;; `org-font-lock-ensure' (alias of `font-lock-ensure') actually instead of fixing the alleged
-        ;; warnings messes the things so badly that `font-lock-ensure' crashes with error and doesn't let
-        ;; org-roam to proceed further. I don't know what's happening there exactly but disabling this hackery
-        ;; fixes the crashing.  Fortunately, org-ref provides the `org-ref-buffer-hacked' switch, which we use
-        ;; here to make it believe that the buffer was hacked.
-        ;;
-        ;; This is a workaround for `cite:' links and does not have any effect on other ref types.
-        ;;
-        ;; `org-ref-buffer-hacked' is a buffer-local variable, therefore we inline
-        ;; `org-fontify-like-in-org-mode' here
-        ;;
-        ;; (insert (org-fontify-like-in-org-mode s) "\n")
-        ;;
-        (insert
-         (with-temp-buffer
-           (insert s)
-           (let ((org-ref-buffer-hacked t))
-             (org-mode)
-             (org-font-lock-ensure)
-             (buffer-string)))
-         "\n")
+        (insert (org-roam-fontify-like-in-org-mode s) "\n")
         (oset section file (org-roam-node-file source-node))
         (oset section begin begin)
         (oset section end end)))))
