@@ -87,6 +87,13 @@ it aligns with the text area."
                       string)))
 
 ;;; Shielding regions
+(defface org-roam-shielded
+  '((t :inherit (warning)))
+  "Face for regions that are shielded (marked as read-only).
+This face is used on the region target by org-roam-insertion
+during an `org-roam-capture'."
+  :group 'org-roam-faces)
+
 (defun org-roam-shield-region (beg end)
   "Shield region against modifications.
 BEG and END are markers for the beginning and end regions.
