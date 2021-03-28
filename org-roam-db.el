@@ -235,17 +235,6 @@ If UPDATE-P is non-nil, first remove the file in the database."
       :values $v1]
      (list (vector file hash)))))
 
-(defun org-roam-id-at-point ()
-  "Return the ID at point, if any.
-Recursively traverses up the headline tree to find the
-first encapsulating ID."
-  (let (source)
-    (org-with-wide-buffer
-     (while (and (not (setq source (org-id-get)))
-                 (not (bobp)))
-       (org-roam-up-heading-or-point-min)))
-    source))
-
 (defun org-roam-db-get-scheduled-time ()
   "Return the scheduled time at point in ISO8601 format."
   (when-let ((time (org-get-scheduled-time (point))))

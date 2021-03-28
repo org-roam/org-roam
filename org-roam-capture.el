@@ -276,8 +276,7 @@ the capture)."
              (with-current-buffer buf
                (when region
                  (delete-region (car region) (cdr region)))
-               (let ((path (org-roam-capture--get :file-path))
-                     (desc (org-roam-capture--get :link-description)))
+               (let ((desc (org-roam-capture--get :link-description)))
                  (org-with-point-at mkr
                    (insert (org-link-make-string (concat "id:" id) desc))))
                (when region

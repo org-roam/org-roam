@@ -1018,7 +1018,7 @@ in the file."
            (message "No matches."))
           ((= 1 (length matches))
            (car matches))
-          (_
+          (t
            ;; TODO: need to fix UX somehow
            (let ((choice (completing-read "Choose node:" matches nil t)))
              (cdr (assoc choice matches #'string-equal))))))))))

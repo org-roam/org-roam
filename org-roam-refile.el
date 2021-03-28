@@ -30,6 +30,8 @@
 ;; Org-roam refile allows you to refile notes to your nodes.
 ;;
 ;;; Code:
+(defvar org-auto-align-tags)
+(defvar org-loop-over-headlines-in-active-region)
 
 (defun org-roam-refile ()
   "Refile to node."
