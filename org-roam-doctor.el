@@ -49,7 +49,7 @@
 (require 'dash)
 (eval-when-compile
   (require 'org-roam-macs))
-(require 'org-roam-node)
+(require 'org-roam)
 
 (defvar org-roam-mode-map)
 
