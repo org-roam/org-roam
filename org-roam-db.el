@@ -41,8 +41,6 @@
   ;; For `org-with-wide-buffer'
   (require 'org-macs))
 
-(require 'org-roam-structs)
-
 (defvar org-roam-directory)
 (defvar org-roam-find-file-hook)
 (defvar org-roam-verbose)
