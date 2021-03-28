@@ -48,10 +48,10 @@
 (defvar org-roam-verbose)
 (defvar org-agenda-files)
 
-(declare-function org-roam-id-at-point                "org-roam")
-(declare-function org-roam--org-roam-file-p                "org-roam")
-(declare-function org-roam--list-all-files                 "org-roam")
-(declare-function org-roam-node-at-point                    "org-roam-node")
+(declare-function org-roam-id-at-point "org-roam")
+(declare-function org-roam--org-roam-file-p "org-roam")
+(declare-function org-roam--list-all-files "org-roam")
+(declare-function org-roam-node-at-point "org-roam")
 
 ;;;; Options
 (defcustom org-roam-db-location (expand-file-name "org-roam.db" user-emacs-directory)

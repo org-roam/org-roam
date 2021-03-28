@@ -953,7 +953,8 @@ References from FILE are excluded."
                                               (truncate-string-to-width (file-name-base f) 15 nil nil "...")
                                               row col) 'font-lock-face 'org-roam-dim)
                           " "
-                          (org-roam-fontify-like-in-org-mode (org-roam-unlinked-references-preview-line f row))
+                          (org-roam-fontify-like-in-org-mode
+                           (org-roam-unlinked-references-preview-line f row))
                           "\n"))))))
         (insert ?\n)))))
 

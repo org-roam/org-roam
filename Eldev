@@ -17,7 +17,7 @@
 
 (with-eval-after-load 'elisp-lint
   ;; We will byte-compile with Eldev.
-  (setf elisp-lint-ignored-validators '("package-lint" "fill-column" "byte-compile")
+  (setf elisp-lint-ignored-validators '("package-lint" "fill-column")
         enable-local-variables        :all))
 
 ;; Teach linter how to properly indent emacsql vectors

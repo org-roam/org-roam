@@ -38,7 +38,7 @@
 (defvar org-roam-find-file-hook)
 
 (declare-function org-roam--org-file-p "org-roam")
-(declare-function org-roam-node-at-point "org-roam-node")
+(declare-function org-roam-node-at-point "org-roam")
 
 ;;; Faces
 (defface org-roam-header-line
