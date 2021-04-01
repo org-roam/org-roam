@@ -490,7 +490,7 @@ nodes."
     node))
 
 (defcustom org-roam-node-display-template
-  "${tags:10}   ${title:48}"
+  "${title:48}   ${tags:10}"
   "Configures display formatting for Org-roam node."
     :group 'org-roam
     :type  'string)
@@ -498,10 +498,8 @@ nodes."
 (defun org-roam-node--format-entry (node width)
   "Formats NODE for display in the results list.
 WIDTH is the width of the results list."
-    (let* ((format
-            (org-roam--process-display-format org-roam-node-display-template)))
-      (s-format
-       (car format)
+    (let ((format (org-roam--process-display-format org-roam-node-display-template)))
+      (s-format (car format)
        (lambda (field)
          (let* ((field (split-string field ":"))
                 (field-name (car field))
@@ -511,6 +509,9 @@ WIDTH is the width of the results list."
            (when (and (equal field-name "tags")
                       field-value)
              (setq field-value (string-join field-value " ")))
+           (when (and (equal field-name "file")
+                      field-value)
+             (setq field-value (file-relative-name field-value org-roam-directory)))
            (if (not field-width)
                field-value
              (setq field-width (string-to-number field-width))
@@ -582,8 +583,10 @@ is the `org-roam-node'."
                                                               :file file
                                                               :title title
                                                               :point pos
-                                                              :tags (gethash id tags-table))))
-                       (cons (propertize alias
+                                                              :tags (gethash id tags-table)))
+                                  (tag-str (string-join (mapcar (lambda (s) (concat "#" s))
+                                                                (org-roam-node-tags node)) " ")))
+                       (cons (propertize (concat tag-str " " alias)
                                          'node node
                                          'display (org-roam-node--format-entry node (1- (frame-width)))) node)))))
 
