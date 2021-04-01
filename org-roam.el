@@ -64,7 +64,6 @@
 (defvar org-ref-cite-types)
 (declare-function org-ref-split-and-strip-string "ext:org-ref-utils" (string))
 ;; From org-id.el
-(defvar org-id-link-to-org-use-id)
 (declare-function org-id-find-id-in-file "ext:org-id" (id file &optional markerp))
 
 (defgroup org-roam nil
@@ -495,6 +494,12 @@ nodes."
     :group 'org-roam
     :type  'string)
 
+(defun org-roam--tags-to-str (tags)
+  "Convert list of TAGS into a string."
+  (string-join
+   (mapcar (lambda (s) (concat "#" s)) tags)
+   " "))
+
 (defun org-roam-node--format-entry (node width)
   "Formats NODE for display in the results list.
 WIDTH is the width of the results list."
@@ -508,7 +513,7 @@ WIDTH is the width of the results list."
                 (field-value (or (funcall getter node) "")))
            (when (and (equal field-name "tags")
                       field-value)
-             (setq field-value (string-join field-value " ")))
+             (setq field-value (org-roam--tags-to-str field-value)))
            (when (and (equal field-name "file")
                       field-value)
              (setq field-value (file-relative-name field-value org-roam-directory)))
@@ -584,11 +589,11 @@ is the `org-roam-node'."
                                                               :title title
                                                               :point pos
                                                               :tags (gethash id tags-table)))
-                                  (tag-str (string-join (mapcar (lambda (s) (concat "#" s))
-                                                                (org-roam-node-tags node)) " ")))
+                                  (tag-str (org-roam--tags-to-str (org-roam-node-tags node))))
                        (cons (propertize (concat tag-str " " alias)
                                          'node node
-                                         'display (org-roam-node--format-entry node (1- (frame-width)))) node)))))
+                                         'display (org-roam-node--format-entry node (1- (frame-width))))
+                             node)))))
 
 (defun org-roam-node-read (&optional initial-input filter-fn require-match)
   "Read and return an `org-roam-node'.
