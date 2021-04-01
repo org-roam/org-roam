@@ -489,6 +489,38 @@ nodes."
             (org-roam-node-aliases node) alias-info))
     node))
 
+(defcustom org-roam-node-display-template
+  "${tags:10}   ${title:48}"
+  "Configures display formatting for Org-roam node."
+    :group 'org-roam
+    :type  'string)
+
+(defun org-roam-node--format-entry (node width)
+  "Formats NODE for display in the results list.
+WIDTH is the width of the results list."
+    (let* ((format
+            (org-roam--process-display-format org-roam-node-display-template)))
+      (s-format
+       (car format)
+       (lambda (field)
+         (let* ((field (split-string field ":"))
+                (field-name (car field))
+                (field-width (cadr field))
+                (getter (intern (concat "org-roam-node-" field-name)))
+                (field-value (or (funcall getter node) "")))
+           (when (and (equal field-name "tags")
+                      field-value)
+             (setq field-value (string-join field-value " ")))
+           (if (not field-width)
+               field-value
+             (setq field-width (string-to-number field-width))
+             (truncate-string-to-width
+              field-value
+              (if (> field-width 0)
+                  field-width
+                (- width (cdr format)))
+              0 ?\s)))))))
+
 (defun org-roam-node-preview (file point)
   "Get preview content for FILE at POINT."
   (save-excursion
@@ -551,7 +583,9 @@ is the `org-roam-node'."
                                                               :title title
                                                               :point pos
                                                               :tags (gethash id tags-table))))
-                       (cons (propertize alias 'node node) node)))))
+                       (cons (propertize alias
+                                         'node node
+                                         'display (org-roam-node--format-entry node (1- (frame-width)))) node)))))
 
 (defun org-roam-node-read (&optional initial-input filter-fn require-match)
   "Read and return an `org-roam-node'.

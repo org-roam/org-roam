@@ -141,6 +141,22 @@ BEG and END are markers for the beginning and end regions."
                                              read-only t)
                             (marker-buffer beg))))
 
+;;; Formatting
+(defun org-roam--process-display-format (format)
+  "Pre-calculate minimal widths needed by the FORMAT string."
+  (let* ((fields-width 0)
+         (string-width
+          (string-width
+           (s-format format
+                     (lambda (field)
+                       (setq fields-width
+                             (+ fields-width
+                                (string-to-number
+                                 (or (cadr (split-string field ":"))
+                                     ""))))
+                       "")))))
+    (cons format (+ fields-width string-width))))
+
 ;;; Diagnostics
 ;;;###autoload
 (defun org-roam-version (&optional message)
