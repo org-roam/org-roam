@@ -256,32 +256,42 @@ the capture)."
 
 (advice-add 'org-capture-finalize :before #'org-roam-capture--update-plist)
 
+(cl-defun org-roam-capture--finalize-find-file (&key id)
+  "Visit the buffer after Org-capture is done.
+This function is to be called in the org-capture finalization process."
+  (switch-to-buffer (org-capture-get :buffer)))
+
+(cl-defun org-roam-capture--finalize-insert-link (&key id)
+  (when-let* ((mkr (org-roam-capture--get :insert-at))
+              (buf (marker-buffer mkr)))
+    (with-current-buffer buf
+      (when-let ((region (org-roam-capture--get :region)))
+        (org-roam-unshield-region (car region) (cdr region))
+        (delete-region (car region) (cdr region))
+        (set-marker (car region) nil)
+        (set-marker (cdr region) nil))
+      (let ((desc (org-roam-capture--get :link-description)))
+        (org-with-point-at mkr
+          (insert (org-link-make-string (concat "id:" id) desc)))))))
+
+(defun org-roam-capture--finalize-create-id ()
+  "Get ID for newly captured information."
+  (let ((buf (org-capture-get :buffer))
+        (pos (org-capture-get :exact-position)))
+    (with-current-buffer buf
+      (org-with-point-at pos
+        (org-id-get-create)))))
+
 (defun org-roam-capture--finalize ()
   "Finalize the `org-roam-capture' process."
   (let ((region (org-roam-capture--get :region)))
     (when region
       (org-roam-unshield-region (car region) (cdr region)))
     (unless org-note-abort
-      (let* ((capture-buf (org-capture-get :buffer))
-             (pos (org-capture-get :exact-position))
-             (id (with-current-buffer capture-buf
-                   (org-with-point-at pos
-                     (org-id-get-create)))))
-        (pcase (org-roam-capture--get :finalize)
-          ('find-file
-           (switch-to-buffer capture-buf))
-          ('insert-link
-           (when-let* ((mkr (org-roam-capture--get :insert-at))
-                       (buf (marker-buffer mkr)))
-             (with-current-buffer buf
-               (when region
-                 (delete-region (car region) (cdr region)))
-               (let ((desc (org-roam-capture--get :link-description)))
-                 (org-with-point-at mkr
-                   (insert (org-link-make-string (concat "id:" id) desc))))
-               (when region
-                 (set-marker (car region) nil)
-                 (set-marker (cdr region) nil))))))))
+      (let ((id (org-roam-capture--finalize-create-id)))
+        (funcall (intern (concat "org-roam-capture--finalize-"
+                                 (symbol-name (org-roam-capture--get :finalize))))
+                 :id id)))
     (org-roam-capture--save-file-maybe)
     (remove-hook 'org-capture-after-finalize-hook #'org-roam-capture--finalize)))
 
