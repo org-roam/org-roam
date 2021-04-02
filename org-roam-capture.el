@@ -308,8 +308,7 @@ Next, it expands the remaining template string using
                (or (s--aget org-roam-capture--info key)
                    (when-let ((val (completing-read (format "%s: " key) nil)))
                      (push (cons key val) org-roam-capture--info)
-                     val)))
-             nil)))
+                     val))))))
 
 (defun org-roam-capture--save-file-maybe ()
   "Save the file conditionally.
@@ -524,25 +523,15 @@ This function is used solely in Org-roam's capture templates: see
        (append converted options `(:org-roam ,org-roam-plist))))
     (_ (user-error "Invalid capture template format: %s" template))))
 
-(defcustom org-roam-capture-function #'org-capture
-  "Function that is invoked to start the `org-capture' process."
-  :group 'org-roam
-  :type 'function)
-
-(defun org-roam-capture--capture (&optional goto keys)
-  "Create a new file, and return the path to the edited file.
-The templates are defined at `org-roam-capture-templates'.  The
-GOTO and KEYS argument have the same functionality as
-`org-capture'."
-  (let* ((org-capture-templates (mapcar #'org-roam-capture--convert-template org-roam-capture-templates))
-         (one-template-p (= (length org-capture-templates) 1))
-         org-capture-templates-contexts)
+(cl-defun org-roam-capture--capture (&key goto keys info context)
+  (let* ((org-capture-templates
+          (mapcar #'org-roam-capture--convert-template org-roam-capture-templates))
+         (org-roam-capture--info info)
+         (org-roam-capture--context context)
+         (one-template-p (= (length org-capture-templates) 1)))
     (when one-template-p
       (setq keys (caar org-capture-templates)))
-    (if (or one-template-p
-            (eq org-roam-capture-function 'org-capture))
-        (org-capture goto keys)
-      (funcall-interactively org-roam-capture-function))))
+    (org-capture goto keys)))
 
 ;;;###autoload
 (defun org-roam-capture (&optional goto keys)
@@ -551,16 +540,17 @@ This uses the templates defined at `org-roam-capture-templates'.
 Arguments GOTO and KEYS see `org-capture'."
   (interactive "P")
   (let ((node (org-roam-node-read)))
+    ;; TODO: fix this
     (if (org-roam-node-id node)
-        (let ((org-roam-capture--info (list (cons 'title (org-roam-node-title node))
-                                            (cons 'slug (funcall org-roam-title-to-slug-function
+        (condition-case err
+            (org-roam-capture--capture goto keys
+                                       :info `((title . ,(org-roam-node-title node))
+                                               (slug . ,(funcall org-roam-title-to-slug-function
                                                                  (org-roam-node-title node)))
-                                            (cons 'file (org-roam-node-file node))))
-              (org-roam-capture--context 'capture))
-          (condition-case err
-              (org-roam-capture--capture goto keys)
-            (error (user-error "%s.  Please adjust `org-roam-capture-templates'"
-                               (error-message-string err))))))))
+                                               (file . ,(org-roam-node-file node)))
+                                       :context 'capture)
+          (error (user-error "%s.  Please adjust `org-roam-capture-templates'"
+                             (error-message-string err)))))))
 
 (provide 'org-roam-capture)
 

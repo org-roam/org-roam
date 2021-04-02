@@ -491,8 +491,8 @@ nodes."
 (defcustom org-roam-node-display-template
   "${title:48}   ${tags:10}"
   "Configures display formatting for Org-roam node."
-    :group 'org-roam
-    :type  'string)
+  :group 'org-roam
+  :type  'string)
 
 (defun org-roam--tags-to-str (tags)
   "Convert list of TAGS into a string."
@@ -503,29 +503,29 @@ nodes."
 (defun org-roam-node--format-entry (node width)
   "Formats NODE for display in the results list.
 WIDTH is the width of the results list."
-    (let ((format (org-roam--process-display-format org-roam-node-display-template)))
-      (s-format (car format)
-       (lambda (field)
-         (let* ((field (split-string field ":"))
-                (field-name (car field))
-                (field-width (cadr field))
-                (getter (intern (concat "org-roam-node-" field-name)))
-                (field-value (or (funcall getter node) "")))
-           (when (and (equal field-name "tags")
-                      field-value)
-             (setq field-value (org-roam--tags-to-str field-value)))
-           (when (and (equal field-name "file")
-                      field-value)
-             (setq field-value (file-relative-name field-value org-roam-directory)))
-           (if (not field-width)
-               field-value
-             (setq field-width (string-to-number field-width))
-             (truncate-string-to-width
-              field-value
-              (if (> field-width 0)
-                  field-width
-                (- width (cdr format)))
-              0 ?\s)))))))
+  (let ((format (org-roam--process-display-format org-roam-node-display-template)))
+    (s-format (car format)
+              (lambda (field)
+                (let* ((field (split-string field ":"))
+                       (field-name (car field))
+                       (field-width (cadr field))
+                       (getter (intern (concat "org-roam-node-" field-name)))
+                       (field-value (or (funcall getter node) "")))
+                  (when (and (equal field-name "tags")
+                             field-value)
+                    (setq field-value (org-roam--tags-to-str field-value)))
+                  (when (and (equal field-name "file")
+                             field-value)
+                    (setq field-value (file-relative-name field-value org-roam-directory)))
+                  (if (not field-width)
+                      field-value
+                    (setq field-width (string-to-number field-width))
+                    (truncate-string-to-width
+                     field-value
+                     (if (> field-width 0)
+                         field-width
+                       (- width (cdr format)))
+                     0 ?\s)))))))
 
 (defun org-roam-node-preview (file point)
   "Get preview content for FILE at POINT."
@@ -670,12 +670,10 @@ If OTHER-WINDOW, visit the NODE in another window."
   (let ((node (org-roam-node-read initial-input filter-fn)))
     (if (org-roam-node-file node)
         (org-roam-node-visit node other-window)
-      (let ((org-roam-capture--info `((title . ,(org-roam-node-title node))
-                                      (slug  . ,(funcall org-roam-title-to-slug-function
-                                                         (org-roam-node-title node)))))
-            (org-roam-capture--context 'title))
-        (setq org-roam-capture-additional-template-props (list :finalize 'find-file))
-        (org-roam-capture--capture)))))
+      (setq org-roam-capture-additional-template-props (list :finalize 'find-file))
+      (org-roam-capture--capture :info `((title . ,(org-roam-node-title node))
+                                         (slug  . ,(funcall org-roam-title-to-slug-function (org-roam-node-title node))))
+                                 :context 'title))))
 
 (defun org-roam-node-insert (&optional filter-fn)
   "Find an Org-roam file, and insert a relative org link to it at point.
@@ -705,17 +703,15 @@ which takes as its argument an alist of path-completions."
                 (insert (org-link-make-string
                          (concat "id:" (org-roam-node-id node))
                          description)))
-            (let ((org-roam-capture--info
-                   `((title . ,(org-roam-node-title node))
-                     (slug . ,(funcall org-roam-title-to-slug-function (org-roam-node-title node)))))
-                  (org-roam-capture--context 'title))
-              (setq org-roam-capture-additional-template-props
-                    (list :region (when (and beg end)
-                                    (cons beg end))
-                          :insert-at (point-marker)
-                          :link-description description
-                          :finalize 'insert-link))
-              (org-roam-capture--capture)))))
+            (setq org-roam-capture-additional-template-props
+                  (list :region (when (and beg end)
+                                  (cons beg end))
+                        :insert-at (point-marker)
+                        :link-description description
+                        :finalize 'insert-link))
+            (org-roam-capture--capture :info `((title . ,(org-roam-node-title node))
+                                               (slug . ,(funcall org-roam-title-to-slug-function (org-roam-node-title node))))
+                                       :context 'title))))
     (deactivate-mark)))
 
 ;;;###autoload
