@@ -40,6 +40,8 @@
   (require 'org-roam-macs)
   ;; For `org-with-wide-buffer'
   (require 'org-macs))
+(require 'org)
+(require 'ol)
 
 (defvar org-roam-directory)
 (defvar org-roam-find-file-hook)
