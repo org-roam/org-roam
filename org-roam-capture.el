@@ -42,7 +42,6 @@
 (defvar org-roam-encrypt-files)
 (defvar org-roam-directory)
 (defvar org-roam-title-to-slug-function)
-(defvar org-roam-file-extensions)
 
 (defvar org-roam-capture--file-path nil
   "The file path for the Org-roam capture.
@@ -75,7 +74,7 @@ note with the given `ref'.")
 (defcustom org-roam-capture-templates
   `(("d" "default" plain (function org-roam-capture--get-point)
      "%?"
-     :file-name "%<%Y%m%d%H%M%S>-${slug}"
+     :file-name "%<%Y%m%d%H%M%S>-${slug}.org"
      :head "#+title: ${title}\n"
      :unnarrowed t))
   "Capture templates for Org-roam.
@@ -336,17 +335,6 @@ The file is saved if the original value of :no-save is not t and
     (with-current-buffer (org-capture-get :buffer)
       (save-buffer)))))
 
-(defun org-roam-capture--get-file-path (basename)
-  "Return path for Org-roam file with BASENAME."
-  (let* ((ext (or (car org-roam-file-extensions)
-                  "org"))
-         (file (concat basename "." ext)))
-    (expand-file-name
-     (if org-roam-encrypt-files
-         (concat file ".gpg")
-       file)
-     org-roam-directory)))
-
 (defun org-roam-capture--new-file (&optional allow-existing-file-p)
   "Return the path to file during an Org-roam capture.
 
@@ -369,11 +357,9 @@ the file if the original value of :no-save is not t and
 `org-note-abort' is not t."
   (let* ((name-templ (or (org-roam-capture--get :file-name)
                          (user-error "Template needs to specify `:file-name'")))
-         (new-id (s-trim (org-roam-capture--fill-template
-                          name-templ)))
-         (file-path (org-roam-capture--get-file-path new-id))
-         (roam-head (or (org-roam-capture--get :head)
-                        ""))
+         (rel-filename (s-trim (org-roam-capture--fill-template name-templ)))
+         (file-path (expand-file-name rel-filename org-roam-directory))
+         (roam-head (or (org-roam-capture--get :head) ""))
          (org-template (org-capture-get :template))
          (roam-template (concat roam-head org-template)))
     (if (or (file-exists-p file-path)
