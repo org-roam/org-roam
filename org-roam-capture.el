@@ -39,7 +39,6 @@
 (require 'cl-lib)
 
 ;; Declarations
-(defvar org-roam-encrypt-files)
 (defvar org-roam-directory)
 (defvar org-roam-title-to-slug-function)
 

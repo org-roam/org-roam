@@ -85,11 +85,6 @@ All Org files, at any level of nesting, are considered part of the Org-roam."
   :type 'directory
   :group 'org-roam)
 
-(defcustom org-roam-encrypt-files nil
-  "Whether to encrypt new files.  If true, create files with .gpg extension."
-  :type 'boolean
-  :group 'org-roam)
-
 (defcustom org-roam-file-extensions '("org")
   "Detected file extensions to include in the Org-roam ecosystem.
 The first item in the list is used as the default file extension.
@@ -143,14 +138,6 @@ Function should return a filename string based on title."
   "Echo messages that are not errors."
   :type 'boolean
   :group 'org-roam)
-
-;;;; Faces
-(defface org-roam-shielded
-  '((t :inherit (warning org-link)))
-  "Face for Org-roam links that are shielded.
-This face is used on the region target by `org-roam-insertion'
-during an `org-roam-capture'."
-  :group 'org-roam-faces)
 
 ;;;; ID Utilities
 (defun org-roam-id-at-point ()
