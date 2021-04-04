@@ -234,6 +234,15 @@ Function should return a filename string based on title."
   :type 'function
   :group 'org-roam)
 
+(defcustom org-roam-slug--preserve-chars-from-normalization
+  '(;; For Japanese charecters
+    12441 ; U+3099 COMBINING KATAKANA-HIRAGANA VOICED SOUND MARK
+    12442 ; U+309A COMBINING KATAKANA-HIRAGANA SEMI-VOICED SOUND MARK
+    )
+  "Characters to preserve from Unicode normalization for slug."
+  :type '(repeat character)
+  :group 'org-roam)
+
 (defcustom org-roam-title-sources '((title headline) alias)
   "The list of sources from which to retrieve a note title.
 Each element in the list is either:
@@ -794,7 +803,8 @@ Each ref is returned as a cons of its type and its key."
 (defun org-roam--title-to-slug (title)
   "Convert TITLE to a filename-suitable slug."
   (cl-flet* ((nonspacing-mark-p (char)
-                                (eq 'Mn (get-char-code-property char 'general-category)))
+                                (and (eq 'Mn (get-char-code-property char 'general-category))
+                                     (not (memq char org-roam-slug-preserve-chars-from-normalization))))
              (strip-nonspacing-marks (s)
                                      (ucs-normalize-NFC-string
                                       (apply #'string (seq-remove #'nonspacing-mark-p
