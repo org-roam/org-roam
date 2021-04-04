@@ -796,8 +796,9 @@ Each ref is returned as a cons of its type and its key."
   (cl-flet* ((nonspacing-mark-p (char)
                                 (eq 'Mn (get-char-code-property char 'general-category)))
              (strip-nonspacing-marks (s)
-                                     (apply #'string (seq-remove #'nonspacing-mark-p
-                                                                 (ucs-normalize-NFD-string s))))
+                                     (ucs-normalize-NFC-string
+                                      (apply #'string (seq-remove #'nonspacing-mark-p
+                                                                  (ucs-normalize-NFD-string s)))))
              (cl-replace (title pair)
                          (replace-regexp-in-string (car pair) (cdr pair) title)))
     (let* ((pairs `(("[^[:alnum:][:digit:]]" . "_")  ;; convert anything not alphanumeric
