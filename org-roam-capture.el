@@ -42,10 +42,6 @@
 (defvar org-roam-directory)
 (defvar org-roam-title-to-slug-function)
 
-(defvar org-roam-capture--file-path nil
-  "The file path for the Org-roam capture.
-This variable is set during the Org-roam capture process.")
-
 (defvar org-roam-capture--info nil
   "An alist of additional information passed to the Org-roam template.
 This variable is populated dynamically, and is only non-nil
