@@ -542,9 +542,9 @@ Arguments GOTO and KEYS see `org-capture'."
   (interactive "P")
   (let ((node (org-roam-node-read)))
     ;; TODO: fix this
-    (if (org-roam-node-id node)
+    (if (not (org-roam-node-id node))
         (condition-case err
-            (org-roam-capture--capture goto keys
+            (org-roam-capture--capture :goto goto :keys keys
                                        :info `((title . ,(org-roam-node-title node))
                                                (slug . ,(funcall org-roam-title-to-slug-function
                                                                  (org-roam-node-title node)))
