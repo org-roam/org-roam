@@ -252,10 +252,14 @@ the capture)."
 
 (cl-defun org-roam-capture--finalize-find-file (&key id)
   "Visit the buffer after Org-capture is done.
-This function is to be called in the org-capture finalization process."
+This function is to be called in the org-capture finalization process.
+ID is unused."
   (switch-to-buffer (org-capture-get :buffer)))
 
 (cl-defun org-roam-capture--finalize-insert-link (&key id)
+  "Inserts the link into the buffer where org-capture was called.
+ID is the Org id of the newly captured content.
+This function is to be called in the org-capture finalization process."
   (when-let* ((mkr (org-roam-capture--get :insert-at))
               (buf (marker-buffer mkr)))
     (with-current-buffer buf
@@ -264,9 +268,9 @@ This function is to be called in the org-capture finalization process."
         (delete-region (car region) (cdr region))
         (set-marker (car region) nil)
         (set-marker (cdr region) nil))
-      (let ((desc (org-roam-capture--get :link-description)))
-        (org-with-point-at mkr
-          (insert (org-link-make-string (concat "id:" id) desc)))))))
+      (org-with-point-at mkr
+        (insert (org-link-make-string (concat "id:" id)
+                                      (desc (org-roam-capture--get :link-description))))))))
 
 (defun org-roam-capture--finalize-create-id ()
   "Get ID for newly captured information."
@@ -517,6 +521,10 @@ This function is used solely in Org-roam's capture templates: see
     (_ (user-error "Invalid capture template format: %s" template))))
 
 (cl-defun org-roam-capture--capture (&key goto keys info context)
+  "Main entry point.
+GOTO and KEYS correspond to `org-capture' arguments.
+INFO is an alist for filling up Org-roam's capture templates.
+CONTEXT is the context of the call. TODO fix this"
   (let* ((org-capture-templates
           (mapcar #'org-roam-capture--convert-template org-roam-capture-templates))
          (org-roam-capture--info info)

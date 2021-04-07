@@ -688,9 +688,10 @@ If OTHER-WINDOW, visit the NODE in another window."
     (if (org-roam-node-file node)
         (org-roam-node-visit node other-window)
       (setq org-roam-capture-additional-template-props (list :finalize 'find-file))
-      (org-roam-capture--capture :info `((title . ,(org-roam-node-title node))
-                                         (slug  . ,(funcall org-roam-title-to-slug-function (org-roam-node-title node))))
-                                 :context 'title))))
+      (org-roam-capture--capture
+       :info `((title . ,(org-roam-node-title node))
+               (slug  . ,(funcall org-roam-title-to-slug-function (org-roam-node-title node))))
+       :context 'title))))
 
 (defun org-roam-node-insert (&optional filter-fn)
   "Find an Org-roam file, and insert a relative org link to it at point.
@@ -726,9 +727,10 @@ which takes as its argument an alist of path-completions."
                         :insert-at (point-marker)
                         :link-description description
                         :finalize 'insert-link))
-            (org-roam-capture--capture :info `((title . ,(org-roam-node-title node))
-                                               (slug . ,(funcall org-roam-title-to-slug-function (org-roam-node-title node))))
-                                       :context 'title))))
+            (org-roam-capture--capture
+             :info `((title . ,(org-roam-node-title node))
+                     (slug . ,(funcall org-roam-title-to-slug-function (org-roam-node-title node))))
+             :context 'title))))
     (deactivate-mark)))
 
 ;;;###autoload
