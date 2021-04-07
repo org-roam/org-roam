@@ -259,7 +259,7 @@ ID is unused."
 (cl-defun org-roam-capture--finalize-insert-link (&key id)
   "Insert a link to ID into the buffer where Org-capture was called.
 ID is the Org id of the newly captured content.
-This function is to be called in the org-capture finalization process."
+This function is to be called in the Org-capture finalization process."
   (when-let* ((mkr (org-roam-capture--get :insert-at))
               (buf (marker-buffer mkr)))
     (with-current-buffer buf
