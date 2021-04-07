@@ -154,7 +154,7 @@ When GOTO is non-nil, go the note without creating an entry."
                                       (if goto (list (car it)) it)))
         (org-roam-capture--info (list (cons 'time time)))
         (org-roam-capture--context 'dailies))
-    (org-roam-capture--capture (when goto '(4))
+    (org-roam-capture--capture :goto (when goto '(4))
                                :info (list (cons 'time time))
                                :context 'dailies)))
 

@@ -278,11 +278,13 @@ This function is to be called in the org-capture finalization process."
 
 (defun org-roam-capture--finalize ()
   "Finalize the `org-roam-capture' process."
-  (let ((region (org-roam-capture--get :region)))
+  (let ((region (org-roam-capture--get :region))
+        id)
     (when region
       (org-roam-unshield-region (car region) (cdr region)))
     (unless org-note-abort
-      (let ((id (org-roam-capture--finalize-create-id)))
+      (setq id (org-roam-capture--finalize-create-id))
+      (when-let ((finalize (org-roam-capture--get :finalize)))
         (funcall (intern (concat "org-roam-capture--finalize-"
                                  (symbol-name (org-roam-capture--get :finalize))))
                  :id id)))
@@ -514,7 +516,7 @@ This function is used solely in Org-roam's capture templates: see
        (append converted options `(:org-roam ,org-roam-plist))))
     (_ (user-error "Invalid capture template format: %s" template))))
 
-(cl-defun org-roam-capture--capture (&optional goto &key keys info context)
+(cl-defun org-roam-capture--capture (&key goto keys info context)
   (let* ((org-capture-templates
           (mapcar #'org-roam-capture--convert-template org-roam-capture-templates))
          (org-roam-capture--info info)
@@ -522,7 +524,6 @@ This function is used solely in Org-roam's capture templates: see
          (one-template-p (= (length org-capture-templates) 1)))
     (when one-template-p
       (setq keys (caar org-capture-templates)))
-    (setq org-roam-capture-additional-template-props (list :finalize 'find-file))
     (org-capture goto keys)))
 
 ;;;###autoload
