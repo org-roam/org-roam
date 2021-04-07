@@ -252,12 +252,12 @@ the capture)."
 
 (cl-defun org-roam-capture--finalize-find-file (&key id)
   "Visit the buffer after Org-capture is done.
-This function is to be called in the org-capture finalization process.
+This function is to be called in the Org-capture finalization process.
 ID is unused."
   (switch-to-buffer (org-capture-get :buffer)))
 
 (cl-defun org-roam-capture--finalize-insert-link (&key id)
-  "Inserts the link into the buffer where org-capture was called.
+  "Insert a link to ID into the buffer where Org-capture was called.
 ID is the Org id of the newly captured content.
 This function is to be called in the org-capture finalization process."
   (when-let* ((mkr (org-roam-capture--get :insert-at))
