@@ -270,7 +270,7 @@ This function is to be called in the Org-capture finalization process."
         (set-marker (cdr region) nil))
       (org-with-point-at mkr
         (insert (org-link-make-string (concat "id:" id)
-                                      (desc (org-roam-capture--get :link-description))))))))
+                                      (org-roam-capture--get :link-description)))))))
 
 (defun org-roam-capture--finalize-create-id ()
   "Get ID for newly captured information."
