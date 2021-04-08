@@ -541,17 +541,13 @@ This uses the templates defined at `org-roam-capture-templates'.
 Arguments GOTO and KEYS see `org-capture'."
   (interactive "P")
   (let ((node (org-roam-node-read)))
-    ;; TODO: fix this
-    (if (org-roam-node-id node)
-        (condition-case err
-            (org-roam-capture--capture goto keys
-                                       :info `((title . ,(org-roam-node-title node))
-                                               (slug . ,(funcall org-roam-title-to-slug-function
-                                                                 (org-roam-node-title node)))
-                                               (file . ,(org-roam-node-file node)))
-                                       :context 'capture)
-          (error (user-error "%s.  Please adjust `org-roam-capture-templates'"
-                             (error-message-string err)))))))
+    (org-roam-capture--capture :goto goto
+                               :keys keys
+                               :info `((title . ,(org-roam-node-title node))
+                                       (slug . ,(funcall org-roam-title-to-slug-function
+                                                         (org-roam-node-title node)))
+                                       (file . ,(org-roam-node-file node)))
+                               :context 'capture)))
 
 (provide 'org-roam-capture)
 
