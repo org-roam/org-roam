@@ -77,14 +77,14 @@ It opens or creates a note with the given ref.
         (org-link-store-props :type type
                               :link ref
                               :annotation orglink
-                              :initial body))
-      (raise-frame)
-      (org-roam-capture--capture
-       :keys (cdr (assoc 'template decoded-alist))
-       :info decoded-alist
-       :props (list :ref ref)
-       :templates org-roam-capture-ref-templates)))
-  nil)
+                              :initial body)
+        (raise-frame)
+        (org-roam-capture--capture
+         :keys (cdr (assoc 'template decoded-alist))
+         :info decoded-alist
+         :props (list :ref ref)
+         :templates org-roam-capture-ref-templates)))
+    nil))
 
 (defun org-roam-protocol-open-file (info)
   "This handler simply opens the file with emacsclient.

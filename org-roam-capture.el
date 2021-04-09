@@ -149,11 +149,14 @@ This function is to be called in the Org-capture finalization process."
   "Add REF to the newly captured item."
   (let ((buf (org-capture-get :buffer))
         (pos (org-capture-get :exact-position))
-        orig-ref)
+        ref-lst)
     (with-current-buffer buf
       (org-with-point-at pos
-        (setq orig-ref (split-string-and-unquote (org-entry-get (point) "ROAM_REFS")))
-        (org-set-property "ROAM_REFS" (combine-and-quote-strings (cl-pushnew orig-ref ref)))))))
+        (setq ref-lst (org-entry-get (point) "ROAM_REFS"))
+        (setq ref-lst (if ref-lst
+                          (cl-pushnew ref-lst ref)
+                          (list ref)))
+        (org-set-property "ROAM_REFS" (combine-and-quote-strings ref-lst))))))
 
 (defun org-roam-capture--finalize ()
   "Finalize the `org-roam-capture' process."
@@ -305,23 +308,20 @@ you can catch it with `condition-case'."
   "Return exact point to file for org-capture-template.
 This function is used solely in Org-roam's capture templates: see
 `org-roam-capture-templates'."
-  (let* ((file-path
-          (cond ((assoc 'file org-roam-capture--info)
-                 (cdr (assoc 'file org-roam-capture--info)))
-                ((assoc 'ref org-roam-capture--info)
-                 (let ((ref (cdr (assoc 'ref org-roam-capture--info))))
-                   (if-let ((file ((caar (org-roam-db-query
-                                          [:select [file]
-                                           :from refs
-                                           :where (= ref $s1)
-                                           :limit 1]
-                                          ref)))))
-                       file
-                     (user-error "No such ref \"%s\"" ref))))
-                (t
-                 (when-let ((time (cdr (assoc 'time org-roam-capture--info))))
-                   (org-capture-put :default-time time))
-                 (org-roam-capture--new-file)))))
+  (when-let ((time (cdr (assoc 'time org-roam-capture--info))))
+    (org-capture-put :default-time time))
+  (let ((file-path
+         (cond ((assoc 'file org-roam-capture--info)
+                (cdr (assoc 'file org-roam-capture--info)))
+               ((assoc 'ref org-roam-capture--info)
+                (let ((ref (cdr (assoc 'ref org-roam-capture--info))))
+                  (or (caar (org-roam-db-query [:select [file]
+                                                :from refs
+                                                :where (= ref $s1)
+                                                :limit 1] ref))
+                      (org-roam-capture--new-file))))
+               (t
+                (org-roam-capture--new-file)))))
     (org-capture-put :template
                      (org-roam-capture--fill-template (org-capture-get :template)))
     (org-roam-capture--put :file-path file-path
@@ -330,7 +330,7 @@ This function is used solely in Org-roam's capture templates: see
     (set-buffer (org-capture-target-buffer file-path))
     (widen)
     (if-let* ((olp (org-roam-capture--get :olp)))
-        (condition-case errg
+        (condition-case err
             (when-let ((marker (org-roam-capture-find-or-create-olp olp)))
               (goto-char marker)
               (set-marker marker nil))
