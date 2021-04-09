@@ -154,8 +154,8 @@ This function is to be called in the Org-capture finalization process."
       (org-with-point-at pos
         (setq ref-lst (org-entry-get (point) "ROAM_REFS"))
         (setq ref-lst (if ref-lst
-                          (cl-pushnew ref-lst ref)
-                          (list ref)))
+                          (cl-pushnew (split-string-and-unquote ref-lst) ref)
+                        (list ref)))
         (org-set-property "ROAM_REFS" (combine-and-quote-strings ref-lst))))))
 
 (defun org-roam-capture--finalize ()
@@ -378,7 +378,7 @@ TEMPLATES is a list of org-roam templates."
          (mapcar (lambda (t)
                    (org-roam-capture--convert-template t props))
                  (or templates org-roam-capture-templates)))
-         (org-roam-capture--info info))
+        (org-roam-capture--info info))
     (when (and (not keys)
                (= (length org-capture-templates) 1))
       (setq keys (caar org-capture-templates)))
