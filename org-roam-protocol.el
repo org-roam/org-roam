@@ -82,6 +82,7 @@ It opens or creates a note with the given ref.
            (org-capture-link-is-already-stored t)
            (template (cdr (assoc 'template decoded-alist))))
       (raise-frame)
+      ;; TODO: FIX
       (org-roam-capture--capture nil template)
       (org-roam-message "Item captured.")))
   nil)

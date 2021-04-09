@@ -687,10 +687,10 @@ If OTHER-WINDOW, visit the NODE in another window."
   (let ((node (org-roam-node-read initial-input filter-fn)))
     (if (org-roam-node-file node)
         (org-roam-node-visit node other-window)
-      (setq org-roam-capture-additional-template-props (list :finalize 'find-file))
       (org-roam-capture--capture
        :info `((title . ,(org-roam-node-title node))
-               (slug  . ,(funcall org-roam-title-to-slug-function (org-roam-node-title node))))))))
+               (slug  . ,(funcall org-roam-title-to-slug-function (org-roam-node-title node))))
+       :props (list :finalize 'find-file)))))
 
 (defun org-roam-node-insert (&optional filter-fn)
   "Find an Org-roam file, and insert a relative org link to it at point.
@@ -720,15 +720,14 @@ which takes as its argument an alist of path-completions."
                 (insert (org-link-make-string
                          (concat "id:" (org-roam-node-id node))
                          description)))
-            (setq org-roam-capture-additional-template-props
-                  (list :region (when (and beg end)
-                                  (cons beg end))
-                        :insert-at (point-marker)
-                        :link-description description
-                        :finalize 'insert-link))
             (org-roam-capture--capture
              :info `((title . ,(org-roam-node-title node))
-                     (slug . ,(funcall org-roam-title-to-slug-function (org-roam-node-title node))))))))
+                     (slug . ,(funcall org-roam-title-to-slug-function (org-roam-node-title node))))
+             :props (list :region (when (and beg end)
+                                    (cons beg end))
+                          :insert-at (point-marker)
+                          :link-description description
+                          :finalize 'insert-link)))))
     (deactivate-mark)))
 
 ;;;###autoload

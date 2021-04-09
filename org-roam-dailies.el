@@ -61,67 +61,15 @@
   :type 'hook)
 
 (defcustom org-roam-dailies-capture-templates
-  `(("d" "default" entry (function org-roam-capture--get-point)
-     "* %?"
-     :file-name ,(concat org-roam-dailies-directory "%<%Y-%m-%d>")
+  '((:key "d"
+     :desc "default"
+     :body "* %?"
+     :file-path ,(concat org-roam-dailies-directory "%<%Y-%m-%d>")
      :head "#+title: %<%Y-%m-%d>\n"))
   "Capture templates for daily-notes in Org-roam."
   :group 'org-roam
-  ;; Adapted from `org-capture-templates'
   :type
-  `(repeat
-    (choice :value ("d" "default" plain (function org-roam-capture--get-point)
-                    "%?"
-                    :file-name ,(concat org-roam-dailies-directory
-                                        "%<%Y-%m-%d>")
-                    :head "#+title: %<%Y-%m-%d>\n"
-                    :unnarrowed t)
-            (list :tag "Multikey description"
-                  (string :tag "Keys       ")
-                  (string :tag "Description"))
-            (list :tag "Template entry"
-                  (string :tag "Keys              ")
-                  (string :tag "Description       ")
-                  (choice :tag "Type              "
-                          (const :tag "Plain" plain)
-                          (const :tag "Entry (for creating headlines)" entry))
-                  (const :format "" #'org-roam-capture--get-point)
-                  (choice :tag "Template          "
-                          (string :tag "String"
-                                  :format "String:\n            \
-Template string   :\n%v")
-                          (list :tag "File"
-                                (const :format "" file)
-                                (file :tag "Template file     "))
-                          (list :tag "Function"
-                                (const :format "" function)
-                                (function :tag "Template function ")))
-                  (const :format "File name format  :" :file-name)
-                  (string :format " %v" :value ,(concat org-roam-dailies-directory
-                                                        "%<%Y-%m-%d>"))
-                  (const :format "Header format     :" :head)
-                  (string :format " %v" :value "#+title: ${title}\n")
-                  (plist :inline t
-                         :tag "Options"
-                         ;; Give the most common options as checkboxes
-                         :options
-                         (((const :tag "Outline path" :olp)
-                           (repeat :tag "Headings"
-                                   (string :tag "Heading")))
-                          ((const :format "%v " :unnarrowed) (const t))
-                          ((const :format "%v " :prepend) (const t))
-                          ((const :format "%v " :immediate-finish) (const t))
-                          ((const :format "%v " :jump-to-captured) (const t))
-                          ((const :format "%v " :empty-lines) (const 1))
-                          ((const :format "%v " :empty-lines-before) (const 1))
-                          ((const :format "%v " :empty-lines-after) (const 1))
-                          ((const :format "%v " :clock-in) (const t))
-                          ((const :format "%v " :clock-keep) (const t))
-                          ((const :format "%v " :clock-resume) (const t))
-                          ((const :format "%v " :time-prompt) (const t))
-                          ((const :format "%v " :tree-type) (const week))
-                          ((const :format "%v " :table-line-pos) (string))
-                          ((const :format "%v " :kill-buffer) (const t))))))))
+  '(repeat plist))
 
 ;;;; Utilities
 (defun org-roam-dailies-directory--get-absolute-path ()
