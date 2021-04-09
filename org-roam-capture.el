@@ -51,12 +51,12 @@ during the Org-roam capture process.")
   "Keywords used in `org-roam-capture-templates' specific to Org-roam.")
 
 (defcustom org-roam-capture-templates
-  '((:key "d"
-     :desc "default"
-     :body "%?"
-     :file-path "%<%Y%m%d%H%M%S>-${slug}.org"
-     :head "#+title: ${title}\n"
-     :unnarrowed t))
+  (list (list :key "d"
+              :desc "default"
+              :body "%?"
+              :file-path "%<%Y%m%d%H%M%S>-${slug}.org"
+              :head "#+title: ${title}\n"
+              :unnarrowed t))
   "Capture templates for Org-roam.
 
 TODO: Document this"
@@ -65,12 +65,12 @@ TODO: Document this"
   )
 
 (defcustom org-roam-capture-ref-templates
-  '((:key "r"
-     :desc "ref"
-     :body "%?"
-     :file-path "${slug}.org"
-     :head "#+title: ${title}\n#+roam_key: ${ref}" ;TODO: auto insert ref instead
-     :unnarrowed t))
+  '(list (list :key "r"
+               :desc "ref"
+               :body "%?"
+               :file-path "${slug}.org"
+               :head "#+title: ${title}\n#+roam_key: ${ref}" ;TODO: auto insert ref instead
+               :unnarrowed t))
   "The Org-roam templates used during a capture from the roam-ref protocol.
 Details on how to specify for the template is given in `org-roam-capture-templates'."
   :group 'org-roam
