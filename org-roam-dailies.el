@@ -64,7 +64,7 @@
   (list (list :key "d"
               :desc "default"
               :body "* %?"
-              :file-path ,(concat org-roam-dailies-directory "%<%Y-%m-%d>")
+              :file-path (concat org-roam-dailies-directory "%<%Y-%m-%d>")
               :head "#+title: %<%Y-%m-%d>\n"))
   "Capture templates for daily-notes in Org-roam."
   :group 'org-roam
