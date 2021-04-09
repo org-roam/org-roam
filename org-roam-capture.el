@@ -47,19 +47,6 @@
 This variable is populated dynamically, and is only non-nil
 during the Org-roam capture process.")
 
-(defvar org-roam-capture--context nil
-  "A symbol, that reflects the context for obtaining the exact point in a file.
-This variable is populated dynamically, and is only active during
-an Org-roam capture process.
-
-The `title' context is used in `org-roam-insert' and
-`org-roam-find-file', where the capture process is triggered upon
-trying to create a new file without that `title'.
-
-The `ref' context is used by `org-roam-protocol', where the
-capture process is triggered upon trying to find or create a new
-note with the given `ref'.")
-
 (defvar org-roam-capture-additional-template-props nil
   "Additional props to be added to the Org-roam template.")
 
@@ -336,14 +323,11 @@ The file is saved if the original value of :no-save is not t and
     (with-current-buffer (org-capture-get :buffer)
       (save-buffer)))))
 
-(defun org-roam-capture--new-file (&optional allow-existing-file-p)
+(defun org-roam-capture--new-file ()
   "Return the path to file during an Org-roam capture.
 
 This function reads the file-name attribute of the currently
 active Org-roam template.
-
-If the file path already exists, and not ALLOW-EXISTING-FILE-P,
-raise a warning.
 
 Else, to insert the header content in the file, `org-capture'
 prepends the `:head' property of the Org-roam capture template.
@@ -365,27 +349,11 @@ the file if the original value of :no-save is not t and
          (roam-template (concat roam-head org-template)))
     (if (or (file-exists-p file-path)
             (find-buffer-visiting file-path))
-        (unless allow-existing-file-p
-          (lwarn '(org-roam) :warning
-                 "Attempted to recreate existing file: %s.
-This can happen when your org-roam db is not in sync with your notes.
-Using existing file..." file-path))
       (make-directory (file-name-directory file-path) t)
       (org-roam-capture--put :orig-no-save (org-capture-get :no-save)
                              :new-file t)
-      (pcase org-roam-capture--context
-        ('dailies
-         ;; Populate the header of the daily file before capture to prevent it
-         ;; from appearing in the buffer-restriction
-         (save-window-excursion
-           (find-file file-path)
-           (insert (substring (org-capture-fill-template (concat roam-head "*"))
-                              0 -2))
-           (set-buffer-modified-p nil))
-         (org-capture-put :template org-template))
-        (_
-         (org-capture-put :template roam-template
-                          :type 'plain)))
+      (org-capture-put :template roam-template
+                       :type 'plain)
       (org-capture-put :no-save t))
     file-path))
 
@@ -445,38 +413,25 @@ you can catch it with `condition-case'."
 
 (defun org-roam-capture--get-point ()
   "Return exact point to file for org-capture-template.
-The file to use is dependent on the context:
-
-If the search is via title, it is assumed that the file does not
-yet exist, and Org-roam will attempt to create new file.
-
-If the search is via daily notes, 'time will be passed via
-`org-roam-capture--info'. This is used to alter the default time
-in `org-capture-templates'.
-
-If the search is via ref, it is matched against the Org-roam database.
-If there is no file with that ref, a file with that ref is created.
-
 This function is used solely in Org-roam's capture templates: see
 `org-roam-capture-templates'."
-  (let* ((file-path (pcase org-roam-capture--context
-                      ('capture
-                       (or (cdr (assoc 'file org-roam-capture--info))
-                           (org-roam-capture--new-file)))
-                      ('title
-                       (org-roam-capture--new-file))
-                      ('dailies
-                       (org-capture-put :default-time (cdr (assoc 'time org-roam-capture--info)))
-                       (org-roam-capture--new-file 'allow-existing))
-                      ;; ('ref
-                      ;;  (if-let ((ref (cdr (assoc 'ref org-roam-capture--info))))
-                      ;;      (pcase (org-roam--split-ref ref)
-                      ;;        (`(,type . ,path)
-                      ;;         (or (org-roam-capture--get-ref-path type path)
-                      ;;             (org-roam-capture--new-file)))
-                      ;;        (_ (user-error "%s is not a valid ref" ref)))
-                      ;;    (error "Ref not found in `org-roam-capture--info'")))
-                      (_ (error "Invalid org-roam-capture-context")))))
+  (let* ((file-path
+          (cond ((assoc 'file org-roam-capture--info)
+                 (cdr (assoc 'file org-roam-capture--info)))
+                ((assoc 'ref org-roam-capture--info)
+                 (let ((ref (cdr (assoc 'ref org-roam-capture--info))))
+                   (if-let ((file ((caar (org-roam-db-query
+                                          [:select [file]
+                                           :from refs
+                                           :where (= ref $s1)
+                                           :limit 1]
+                                          ref)))))
+                       file
+                   (user-error "No such ref \"%s\"" ref))))
+                (t
+                 (when-let ((time (cdr (assoc 'time org-roam-capture--info))))
+                   (org-capture-put :default-time time))
+                 (org-roam-capture--new-file)))))
     (org-capture-put :template
                      (org-roam-capture--fill-template (org-capture-get :template)))
     (org-roam-capture--put :file-path file-path
@@ -520,15 +475,13 @@ This function is used solely in Org-roam's capture templates: see
        (append converted options `(:org-roam ,org-roam-plist))))
     (_ (user-error "Invalid capture template format: %s" template))))
 
-(cl-defun org-roam-capture--capture (&key goto keys info context)
+(cl-defun org-roam-capture--capture (&key goto keys info)
   "Main entry point.
 GOTO and KEYS correspond to `org-capture' arguments.
-INFO is an alist for filling up Org-roam's capture templates.
-CONTEXT is the context of the call. TODO fix this"
+INFO is an alist for filling up Org-roam's capture templates."
   (let* ((org-capture-templates
           (mapcar #'org-roam-capture--convert-template org-roam-capture-templates))
          (org-roam-capture--info info)
-         (org-roam-capture--context context)
          (one-template-p (= (length org-capture-templates) 1)))
     (when one-template-p
       (setq keys (caar org-capture-templates)))
@@ -546,8 +499,7 @@ Arguments GOTO and KEYS see `org-capture'."
                                :info `((title . ,(org-roam-node-title node))
                                        (slug . ,(funcall org-roam-title-to-slug-function
                                                          (org-roam-node-title node)))
-                                       (file . ,(org-roam-node-file node)))
-                               :context 'capture)))
+                                       (file . ,(org-roam-node-file node))))))
 
 (provide 'org-roam-capture)
 
