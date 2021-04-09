@@ -65,12 +65,12 @@ TODO: Document this"
   )
 
 (defcustom org-roam-capture-ref-templates
-  '(list (list :key "r"
-               :desc "ref"
-               :body "%?"
-               :file-path "${slug}.org"
-               :head "#+title: ${title}\n#+roam_key: ${ref}" ;TODO: auto insert ref instead
-               :unnarrowed t))
+  (list (list :key "r"
+              :desc "ref"
+              :body "%?"
+              :file-path "${slug}.org"
+              :head "#+title: ${title}"
+              :unnarrowed t))
   "The Org-roam templates used during a capture from the roam-ref protocol.
 Details on how to specify for the template is given in `org-roam-capture-templates'."
   :group 'org-roam
@@ -145,6 +145,16 @@ This function is to be called in the Org-capture finalization process."
       (org-with-point-at pos
         (org-id-get-create)))))
 
+(defun org-roam-capture--add-ref (ref)
+  "Add REF to the newly captured item."
+  (let ((buf (org-capture-get :buffer))
+        (pos (org-capture-get :exact-position))
+        orig-ref)
+    (with-current-buffer buf
+      (org-with-point-at pos
+        (setq orig-ref (split-string-and-unquote (org-entry-get (point) "ROAM_REFS")))
+        (org-set-property "ROAM_REFS" (combine-and-quote-strings (cl-pushnew orig-ref ref)))))))
+
 (defun org-roam-capture--finalize ()
   "Finalize the `org-roam-capture' process."
   (let ((region (org-roam-capture--get :region))
@@ -153,6 +163,8 @@ This function is to be called in the Org-capture finalization process."
       (org-roam-unshield-region (car region) (cdr region)))
     (unless org-note-abort
       (setq id (org-roam-capture--finalize-create-id))
+      (when-let ((ref (org-roam-capture--get :ref)))
+        (org-roam-capture--add-ref ref))
       (when-let ((finalize (org-roam-capture--get :finalize)))
         (funcall (intern (concat "org-roam-capture--finalize-"
                                  (symbol-name (org-roam-capture--get :finalize))))
@@ -356,18 +368,19 @@ properties to be added to the template."
             options
             (list :org-roam org-roam-plist))))
 
-(cl-defun org-roam-capture--capture (&key goto keys info props)
+(cl-defun org-roam-capture--capture (&key goto keys info props templates)
   "Main entry point.
 GOTO and KEYS correspond to `org-capture' arguments.
 INFO is an alist for filling up Org-roam's capture templates.
-PROPS is a plist containing additional Org-roam properties for each template."
-  (let* ((org-capture-templates
-          (mapcar (lambda (t)
-                    (org-roam-capture--convert-template t props))
-                  org-roam-capture-templates))
-         (org-roam-capture--info info)
-         (one-template-p (= (length org-capture-templates) 1)))
-    (when one-template-p
+PROPS is a plist containing additional Org-roam properties for each template.
+TEMPLATES is a list of org-roam templates."
+  (let ((org-capture-templates
+         (mapcar (lambda (t)
+                   (org-roam-capture--convert-template t props))
+                 (or templates org-roam-capture-templates)))
+         (org-roam-capture--info info))
+    (when (and (not keys)
+               (= (length org-capture-templates) 1))
       (setq keys (caar org-capture-templates)))
     (org-capture goto keys)))
 

@@ -70,21 +70,20 @@ It opens or creates a note with the given ref.
              (title (or .title ""))
              (body (or .body ""))
              (orglink
-              (org-link-make-string ref (or (org-string-nw-p title) ref))))
+              (org-link-make-string ref (or (org-string-nw-p title) ref)))
+             (org-capture-link-is-already-stored t))
         (when org-roam-protocol-store-links
           (push (list ref title) org-stored-links))
         (org-link-store-props :type type
                               :link ref
                               :annotation orglink
-                              :initial body)))
-    (let* ((org-roam-capture-templates org-roam-capture-ref-templates)
-           (org-roam-capture--info decoded-alist)
-           (org-capture-link-is-already-stored t)
-           (template (cdr (assoc 'template decoded-alist))))
+                              :initial body))
       (raise-frame)
-      ;; TODO: FIX
-      (org-roam-capture--capture nil template)
-      (org-roam-message "Item captured.")))
+      (org-roam-capture--capture
+       :keys (cdr (assoc 'template decoded-alist))
+       :info decoded-alist
+       :props (list :ref ref)
+       :templates org-roam-capture-ref-templates)))
   nil)
 
 (defun org-roam-protocol-open-file (info)
