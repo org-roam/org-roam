@@ -1240,7 +1240,7 @@ Returns 'nil if selected choice is the first element in CHOICES."
     (switch-to-buffer (current-buffer))
     (goto-char (match-end 2))
     (recenter (1- (max 1 scroll-margin)))
-    (let ((choice (org-roam-completion--completing-read "Select choices:" choices)))
+    (let ((choice (org-roam-completion--completing-read "Select choices: " (mapcar (lambda (x) (list x)) choices))))
     (cond
       ((string-equal choice (car choices)) 'nil)
       ('t choice))))))
@@ -1261,8 +1261,7 @@ Returns 'nil if link description is not changed."
        (let ((choices (if (string-equal label old-desc)
                           (list label new-desc)
                         (list label old-desc new-desc))))
-         (save-excursion
-           (org-roam--link-description-read choices))))
+           (org-roam--link-description-read choices)))
       ('force new-desc)
       ('query-unless-match
        (if (string-equal label old-desc)
