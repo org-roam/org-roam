@@ -227,7 +227,7 @@ the file if the original value of :no-save is not t and
          (roam-template (concat roam-head org-template)))
     (if (or (file-exists-p file-path)
             (find-buffer-visiting file-path))
-      (make-directory (file-name-directory file-path) t)
+        (make-directory (file-name-directory file-path) t)
       (org-roam-capture--put :orig-no-save (org-capture-get :no-save)
                              :new-file t)
       (org-capture-put :template roam-template
@@ -305,7 +305,7 @@ This function is used solely in Org-roam's capture templates: see
                                            :limit 1]
                                           ref)))))
                        file
-                   (user-error "No such ref \"%s\"" ref))))
+                     (user-error "No such ref \"%s\"" ref))))
                 (t
                  (when-let ((time (cdr (assoc 'time org-roam-capture--info))))
                    (org-capture-put :default-time time))
@@ -333,11 +333,11 @@ This function is used solely in Org-roam's capture templates: see
 PROPS is a plist containing additional Org-roam specific
 properties to be added to the template."
   (let* ((key (or (plist-get template :key)
-                  (user-error "template has no :key")))
+                  (user-error "Template has no :key")))
          (desc (or (plist-get template :desc)
-                   (user-error "template has no :desc")))
+                   (user-error "Template has no :desc")))
          (body (or (plist-get template :body)
-                   (user-error "template has no :body")))
+                   (user-error "Template has no :body")))
          (rest (org-plist-delete template :key))
          (rest (org-plist-delete rest :desc))
          (rest (org-plist-delete rest :body))
