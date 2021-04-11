@@ -99,6 +99,7 @@ If FILE is not specified, use the current buffer's file-path."
 
 When GOTO is non-nil, go the note without creating an entry."
   (org-roam-capture- :goto (when goto '(4))
+                     :info (list :node (org-roam-node-create))
                      :templates org-roam-dailies-capture-templates
                      :props (list :default-time time)))
 
