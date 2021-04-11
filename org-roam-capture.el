@@ -313,11 +313,11 @@ This function is used solely in Org-roam's capture templates: see
                                                :where (= ref $s1)
                                                :limit 1]
                                               (plist-get org-roam-capture--info :ref)))
-                    (org-roam-capture--new-file)))
+                     (org-roam-capture--new-file)))
                 ((org-roam-node-file node)
                  (org-roam-node-file node))
-               (t
-                (org-roam-capture--new-file)))))
+                (t
+                 (org-roam-capture--new-file)))))
     (org-capture-put :template
                      (org-roam-capture--fill-template (org-capture-get :template)))
     (org-roam-capture--put :file-path file-path
