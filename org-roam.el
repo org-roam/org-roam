@@ -448,6 +448,10 @@ OLD-FILE is cleared from the database, and NEW-FILE-OR-DIR is added."
   id file level point todo priority scheduled deadline title
   tags aliases refs)
 
+(cl-defmethod org-roam-node-slug ((node org-roam-node))
+  "Return the slug of NODE."
+  (funcall org-roam-title-to-slug-function (org-roam-node-title node)))
+
 (defvar org-roam-node-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map org-roam-mode-map)
@@ -688,7 +692,7 @@ If OTHER-WINDOW, visit the NODE in another window."
     (if (org-roam-node-file node)
         (org-roam-node-visit node other-window)
       (org-roam-capture-
-       :info `(:title ,(org-roam-node-title node))
+       :info (list :node node)
        :props '(:finalize find-file)))))
 
 (defun org-roam-node-insert (&optional filter-fn)
@@ -720,7 +724,7 @@ which takes as its argument an alist of path-completions."
                          (concat "id:" (org-roam-node-id node))
                          description)))
             (org-roam-capture-
-             :info `(:title ,(org-roam-node-title node))
+             :info (list :node node)
              :props (list :region (when (and beg end)
                                     (cons beg end))
                           :insert-at (point-marker)

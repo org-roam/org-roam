@@ -40,7 +40,6 @@
 
 ;; Declarations
 (defvar org-roam-directory)
-(defvar org-roam-title-to-slug-function)
 
 (defvar org-roam-capture--info nil
   "A property-list of additional information passed to the Org-roam template.
@@ -186,21 +185,17 @@ This function is to be called in the Org-capture finalization process."
   "Expand the template STR, returning the string.
 This is an extension of org-capture's template expansion.
 
-First, it expands ${var} occurrences in STR, using `org-roam-capture--info'.
-If there is a ${var} with no matching var in the alist, the value
-of var is prompted for via `completing-read'.
-
-Next, it expands the remaining template string using
-`org-capture-fill-template'."
-  (org-capture-fill-template
-   (s-format str
-             (lambda (key)
-               (let ((plist-key (intern (concat ":" key))))
-                 (or (plist-get org-roam-capture--info plist-key)
-                     (when-let ((val (completing-read (format "%s: " key) nil)))
-                       (setq org-roam-capture--info
-                             (plist-put org-roam-capture--info plist-key val))
-                       val)))))))
+First, it expands ${var} occurrences in STR, using the node in
+`org-roam-capture--info'. Next, it expands the remaining template
+string using `org-capture-fill-template'."
+  (let ((node (plist-get org-roam-capture--info :node)))
+    (org-capture-fill-template
+     (s-format str
+               (lambda (key)
+                 (let ((fn (intern (concat "org-roam-node-" key))))
+                   (if (fboundp fn)
+                       (funcall fn node)
+                     (completing-read (format "%s: " key) nil))))))))
 
 (defun org-roam-capture--save-file-maybe ()
   "Save the file conditionally.
@@ -310,18 +305,17 @@ you can catch it with `condition-case'."
   "Return exact point to file for org-capture-template.
 This function is used solely in Org-roam's capture templates: see
 `org-roam-capture-templates'."
-  (when-let ((time (plist-get org-roam-capture--info :time)))
-    (org-capture-put :default-time time))
-  (let ((file-path
-         (cond ((plist-get org-roam-capture--info :file)
-                (plist-get org-roam-capture--info :file))
-               ((plist-get org-roam-capture--info :ref)
-                (or (caar (org-roam-db-query [:select [file]
-                                              :from refs
-                                              :where (= ref $s1)
-                                              :limit 1]
-                                             (plist-get org-roam-capture--info :ref)))
+  (let* ((node (plist-get org-roam-capture--info :node))
+         (file-path
+          (cond ((plist-get org-roam-capture--info :ref)
+                 (or (caar (org-roam-db-query [:select [file]
+                                               :from refs
+                                               :where (= ref $s1)
+                                               :limit 1]
+                                              (plist-get org-roam-capture--info :ref)))
                     (org-roam-capture--new-file)))
+                ((org-roam-node-file node)
+                 (org-roam-node-file node))
                (t
                 (org-roam-capture--new-file)))))
     (org-capture-put :template
@@ -383,9 +377,6 @@ TEMPLATES is a list of org-roam templates."
           (mapcar (lambda (t)
                     (org-roam-capture--convert-template t props))
                   (or templates org-roam-capture-templates)))
-         (info (plist-put info :slug
-                          (funcall org-roam-title-to-slug-function
-                                   (plist-get info :title))))
          (org-roam-capture--info info))
     (when (and (not keys)
                (= (length org-capture-templates) 1))
@@ -401,8 +392,7 @@ Arguments GOTO and KEYS see `org-capture'."
   (let ((node (org-roam-node-read)))
     (org-roam-capture- :goto goto
                        :keys keys
-                       :info (list :title (org-roam-node-title node)
-                                   :file (org-roam-node-file node))
+                       :info (list :node node)
                        :props '(:immediate-finish nil))))
 
 (provide 'org-roam-capture)

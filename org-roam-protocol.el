@@ -77,8 +77,10 @@ It opens or creates a note with the given ref.
   (raise-frame)
   (org-roam-capture-
    :keys (plist-get info :template)
-   :info info
-   :props `(:ref ,(plist-get info :ref))
+   :info (list :node (org-roam-node-create :title (plist-get info :title))
+               :ref (plist-get info :ref)
+               :body (plist-get info :body))
+   :props (list :ref (plist-get info :ref))
    :templates org-roam-capture-ref-templates)
   nil)
 

@@ -98,13 +98,9 @@ If FILE is not specified, use the current buffer's file-path."
   "Capture an entry in a daily-note for TIME, creating it if necessary.
 
 When GOTO is non-nil, go the note without creating an entry."
-  (let ((org-roam-capture-templates (--> org-roam-dailies-capture-templates
-                                      (if goto (list (car it)) it)))
-        (org-roam-capture--info (list (cons 'time time)))
-        (org-roam-capture--context 'dailies))
-    (org-roam-capture- :goto (when goto '(4))
-                       :info (list (cons 'time time))
-                       :context 'dailies)))
+  (org-roam-capture- :goto (when goto '(4))
+                     :templates org-roam-dailies-capture-templates
+                     :props (list :default-time time)))
 
 ;;;; Commands
 ;;; Today
