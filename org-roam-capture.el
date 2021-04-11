@@ -395,12 +395,12 @@ Arguments GOTO and KEYS see `org-capture'."
   (interactive "P")
   (let ((node (org-roam-node-read)))
     (org-roam-capture- :goto goto
-                               :keys keys
-                               :info `((title . ,(org-roam-node-title node))
-                                       (slug . ,(funcall org-roam-title-to-slug-function
-                                                         (org-roam-node-title node)))
-                                       (file . ,(org-roam-node-file node)))
-                               :props '(:immediate-finish nil))))
+                       :keys keys
+                       :info `((title . ,(org-roam-node-title node))
+                               (slug . ,(funcall org-roam-title-to-slug-function
+                                                 (org-roam-node-title node)))
+                               (file . ,(org-roam-node-file node)))
+                       :props '(:immediate-finish nil))))
 
 (provide 'org-roam-capture)
 
