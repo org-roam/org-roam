@@ -41,6 +41,10 @@
 ;; Declarations
 (defvar org-roam-directory)
 
+(defvar org-roam-capture--node nil
+  "The node passed during an Org-roam capture. This variable is populated dynamically, and is only non-nil
+during the Org-roam capture process.")
+
 (defvar org-roam-capture--info nil
   "A property-list of additional information passed to the Org-roam template.
 This variable is populated dynamically, and is only non-nil
@@ -188,14 +192,13 @@ This is an extension of org-capture's template expansion.
 First, it expands ${var} occurrences in STR, using the node in
 `org-roam-capture--info'. Next, it expands the remaining template
 string using `org-capture-fill-template'."
-  (let ((node (plist-get org-roam-capture--info :node)))
-    (org-capture-fill-template
-     (s-format str
-               (lambda (key)
-                 (let ((fn (intern (concat "org-roam-node-" key))))
-                   (if (fboundp fn)
-                       (funcall fn node)
-                     (completing-read (format "%s: " key) nil))))))))
+  (org-capture-fill-template
+   (s-format str
+             (lambda (key)
+               (let ((fn (intern (concat "org-roam-node-" key))))
+                 (if (fboundp fn)
+                     (funcall fn org-roam-capture--node)
+                   (completing-read (format "%s: " key) nil)))))))
 
 (defun org-roam-capture--save-file-maybe ()
   "Save the file conditionally.
@@ -305,8 +308,7 @@ you can catch it with `condition-case'."
   "Return exact point to file for org-capture-template.
 This function is used solely in Org-roam's capture templates: see
 `org-roam-capture-templates'."
-  (let* ((node (plist-get org-roam-capture--info :node))
-         (file-path
+  (let* ((file-path
           (cond ((plist-get org-roam-capture--info :ref)
                  (or (caar (org-roam-db-query [:select [file]
                                                :from refs
@@ -314,8 +316,8 @@ This function is used solely in Org-roam's capture templates: see
                                                :limit 1]
                                               (plist-get org-roam-capture--info :ref)))
                      (org-roam-capture--new-file)))
-                ((org-roam-node-file node)
-                 (org-roam-node-file node))
+                ((org-roam-node-file org-roam-capture--node)
+                 (org-roam-node-file org-roam-capture--node))
                 (t
                  (org-roam-capture--new-file)))))
     (org-capture-put :template
@@ -367,16 +369,18 @@ properties to be added to the template."
             (list :org-roam org-roam-plist))))
 
 ;;;###autoload
-(cl-defun org-roam-capture- (&key goto keys info props templates)
+(cl-defun org-roam-capture- (&key goto keys node info props templates)
   "Main entry point.
 GOTO and KEYS correspond to `org-capture' arguments.
 INFO is an alist for filling up Org-roam's capture templates.
+NODE is an `org-roam-node' construct containing information about the node.
 PROPS is a plist containing additional Org-roam properties for each template.
 TEMPLATES is a list of org-roam templates."
   (let* ((org-capture-templates
           (mapcar (lambda (t)
                     (org-roam-capture--convert-template t props))
                   (or templates org-roam-capture-templates)))
+         (org-roam-capture--node node)
          (org-roam-capture--info info))
     (when (and (not keys)
                (= (length org-capture-templates) 1))
@@ -392,7 +396,7 @@ Arguments GOTO and KEYS see `org-capture'."
   (let ((node (org-roam-node-read)))
     (org-roam-capture- :goto goto
                        :keys keys
-                       :info (list :node node)
+                       :node node
                        :props '(:immediate-finish nil))))
 
 (provide 'org-roam-capture)

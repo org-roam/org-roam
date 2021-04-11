@@ -692,7 +692,7 @@ If OTHER-WINDOW, visit the NODE in another window."
     (if (org-roam-node-file node)
         (org-roam-node-visit node other-window)
       (org-roam-capture-
-       :info (list :node node)
+       :node node
        :props '(:finalize find-file)))))
 
 (defun org-roam-node-insert (&optional filter-fn)
@@ -724,7 +724,7 @@ which takes as its argument an alist of path-completions."
                          (concat "id:" (org-roam-node-id node))
                          description)))
             (org-roam-capture-
-             :info (list :node node)
+             :node node
              :props (list :region (when (and beg end)
                                     (cons beg end))
                           :insert-at (point-marker)
