@@ -688,9 +688,8 @@ If OTHER-WINDOW, visit the NODE in another window."
     (if (org-roam-node-file node)
         (org-roam-node-visit node other-window)
       (org-roam-capture-
-       :info `((title . ,(org-roam-node-title node))
-               (slug  . ,(funcall org-roam-title-to-slug-function (org-roam-node-title node))))
-       :props (list :finalize 'find-file)))))
+       :info `(:title ,(org-roam-node-title node))
+       :props '(:finalize find-file)))))
 
 (defun org-roam-node-insert (&optional filter-fn)
   "Find an Org-roam file, and insert a relative org link to it at point.
@@ -721,8 +720,7 @@ which takes as its argument an alist of path-completions."
                          (concat "id:" (org-roam-node-id node))
                          description)))
             (org-roam-capture-
-             :info `((title . ,(org-roam-node-title node))
-                     (slug . ,(funcall org-roam-title-to-slug-function (org-roam-node-title node))))
+             :info `(:title ,(org-roam-node-title node))
              :props (list :region (when (and beg end)
                                     (cons beg end))
                           :insert-at (point-marker)
