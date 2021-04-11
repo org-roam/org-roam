@@ -569,7 +569,7 @@ the default template, reproduced below.
 3. ~plain~ text is inserted. Other options include Org headings via
    ~entry~.
 4. ~(function org-roam--capture-get-point)~ should not be changed.
-5. ~"%?"~ is the template inserted on each call to ~org-roam-capture--capture~.
+5. ~"%?"~ is the template inserted on each call to ~org-roam-capture-~.
    This template means don't insert any content, but place the cursor here.
 6. ~:file-name~ is the file-name template for a new note, if it doesn't yet
    exist. This creates a file at path that looks like

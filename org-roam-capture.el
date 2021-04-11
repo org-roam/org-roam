@@ -353,7 +353,8 @@ properties to be added to the template."
          (rest (org-plist-delete template :key))
          (rest (org-plist-delete rest :desc))
          (rest (org-plist-delete rest :body))
-         (org-roam-plist props)
+         (rest (append rest props))
+         org-roam-plist
          options)
     (while rest
       (let* ((key (pop rest))
@@ -362,13 +363,15 @@ properties to be added to the template."
         (when (and custom
                    (not val))
           (user-error "Invalid capture template format: %s\nkey %s cannot be nil" template key))
-        (push val (if custom org-roam-plist options))
-        (push key (if custom org-roam-plist options))))
+        (if custom
+            (setq org-roam-plist (plist-put org-roam-plist key val))
+          (setq options (plist-put options key val)))))
     (append `(,key ,desc plain #'org-roam-capture--get-point ,body)
             options
             (list :org-roam org-roam-plist))))
 
-(cl-defun org-roam-capture--capture (&key goto keys info props templates)
+;;;###autoload
+(cl-defun org-roam-capture- (&key goto keys info props templates)
   "Main entry point.
 GOTO and KEYS correspond to `org-capture' arguments.
 INFO is an alist for filling up Org-roam's capture templates.
@@ -391,12 +394,13 @@ This uses the templates defined at `org-roam-capture-templates'.
 Arguments GOTO and KEYS see `org-capture'."
   (interactive "P")
   (let ((node (org-roam-node-read)))
-    (org-roam-capture--capture :goto goto
+    (org-roam-capture- :goto goto
                                :keys keys
                                :info `((title . ,(org-roam-node-title node))
                                        (slug . ,(funcall org-roam-title-to-slug-function
                                                          (org-roam-node-title node)))
-                                       (file . ,(org-roam-node-file node))))))
+                                       (file . ,(org-roam-node-file node)))
+                               :props '(:immediate-finish nil))))
 
 (provide 'org-roam-capture)
 

@@ -938,7 +938,7 @@ The template is given a description of @code{"default"}.
 @code{(function org-roam--capture-get-point)} should not be changed.
 
 @item
-@code{"%?"} is the template inserted on each call to @code{org-roam-capture--capture}.
+@code{"%?"} is the template inserted on each call to @code{org-roam-capture-}.
 This template means don't insert any content, but place the cursor here.
 
 @item

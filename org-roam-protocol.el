@@ -79,7 +79,7 @@ It opens or creates a note with the given ref.
                               :annotation orglink
                               :initial body)
         (raise-frame)
-        (org-roam-capture--capture
+        (org-roam-capture-
          :keys (cdr (assoc 'template decoded-alist))
          :info decoded-alist
          :props (list :ref ref)
