@@ -64,8 +64,8 @@
   (list (list :key "d"
               :desc "default"
               :body "* %?"
-              :file-path (concat org-roam-dailies-directory "%<%Y-%m-%d>")
-              :head "#+title: %<%Y-%m-%d>\n"))
+              :if-new `(file+head ,(concat org-roam-dailies-directory "%<%Y-%m-%d>.org")
+                                  "#+title: %<%Y-%m-%d>\n")))
   "Capture templates for daily-notes in Org-roam."
   :group 'org-roam
   :type
@@ -99,7 +99,7 @@ If FILE is not specified, use the current buffer's file-path."
 
 When GOTO is non-nil, go the note without creating an entry."
   (org-roam-capture- :goto (when goto '(4))
-                     :info (list :node (org-roam-node-create))
+                     :node (org-roam-node-create)
                      :templates org-roam-dailies-capture-templates
                      :props (list :default-time time)))
 

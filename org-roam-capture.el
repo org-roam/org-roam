@@ -50,15 +50,15 @@ during the Org-roam capture process.")
 This variable is populated dynamically, and is only non-nil
 during the Org-roam capture process.")
 
-(defconst org-roam-capture--template-keywords '(:file-path :head :olp)
+(defconst org-roam-capture--template-keywords '(:if-new)
   "Keywords used in `org-roam-capture-templates' specific to Org-roam.")
 
 (defcustom org-roam-capture-templates
   (list (list :key "d"
               :desc "default"
               :body "%?"
-              :file-path "%<%Y%m%d%H%M%S>-${slug}.org"
-              :head "#+title: ${title}\n"
+              :if-new '(file+head "%<%Y%m%d%H%M%S>-${slug}.org"
+                                  "#+title: ${title}\n")
               :unnarrowed t))
   "Capture templates for Org-roam.
 
@@ -71,8 +71,8 @@ TODO: Document this"
   (list (list :key "r"
               :desc "ref"
               :body "%?"
-              :file-path "${slug}.org"
-              :head "#+title: ${title}"
+              :if-new '(file+head "${slug}.org"
+                                  "#+title: ${title}")
               :unnarrowed t))
   "The Org-roam templates used during a capture from the roam-ref protocol.
 Details on how to specify for the template is given in `org-roam-capture-templates'."
@@ -175,7 +175,6 @@ This function is to be called in the Org-capture finalization process."
         (funcall (intern (concat "org-roam-capture--finalize-"
                                  (symbol-name (org-roam-capture--get :finalize))))
                  :id id)))
-    (org-roam-capture--save-file-maybe)
     (remove-hook 'org-capture-after-finalize-hook #'org-roam-capture--finalize)))
 
 (defun org-roam-capture--install-finalize ()
@@ -200,55 +199,36 @@ string using `org-capture-fill-template'."
                      (funcall fn org-roam-capture--node)
                    (completing-read (format "%s: " key) nil)))))))
 
-(defun org-roam-capture--save-file-maybe ()
-  "Save the file conditionally.
-The file is saved if the original value of :no-save is not t and
-`org-note-abort' is not t. It is added to
-`org-capture-after-finalize-hook'."
-  (cond
-   ((and (org-roam-capture--get :new-file)
-         org-note-abort)
-    (with-current-buffer (org-capture-get :buffer)
-      (set-buffer-modified-p nil)
-      (kill-buffer)))
-   ((and (not (org-roam-capture--get :orig-no-save))
-         (not org-note-abort))
-    (with-current-buffer (org-capture-get :buffer)
-      (save-buffer)))))
-
-(defun org-roam-capture--new-file ()
-  "Return the path to file during an Org-roam capture.
-
-This function reads the file-name attribute of the currently
-active Org-roam template.
-
-Else, to insert the header content in the file, `org-capture'
-prepends the `:head' property of the Org-roam capture template.
-
-To prevent the creation of a new file if the capture process is
-aborted, we do the following:
-
-1. Save the original value of the capture template's :no-save.
-2. Set the capture template's :no-save to t.
-3. Add a function on `org-capture-before-finalize-hook' that saves
-the file if the original value of :no-save is not t and
-`org-note-abort' is not t."
-  (let* ((name-templ (or (org-roam-capture--get :file-path)
-                         (user-error "Template needs to specify `:file-path'")))
-         (rel-filename (s-trim (org-roam-capture--fill-template name-templ)))
-         (file-path (expand-file-name rel-filename org-roam-directory))
-         (roam-head (or (org-roam-capture--get :head) ""))
-         (org-template (org-capture-get :template))
-         (roam-template (concat roam-head org-template)))
-    (if (or (file-exists-p file-path)
-            (find-buffer-visiting file-path))
-        (make-directory (file-name-directory file-path) t)
-      (org-roam-capture--put :orig-no-save (org-capture-get :no-save)
-                             :new-file t)
-      (org-capture-put :template roam-template
-                       :type 'plain)
-      (org-capture-put :no-save t))
-    file-path))
+(defun org-roam-capture--set-target-location (&optional target)
+  "Find TARGET buffer and position."
+  (pcase (or target
+             (org-roam-capture--get :if-new)
+             (user-error "Template needs to specify `:if-new'"))
+    (`(file ,path)
+     (setq path (expand-file-name
+                 (s-trim (org-roam-capture--fill-template path))
+                 org-roam-directory))
+     (set-buffer (org-capture-target-buffer path))
+     (widen))
+    (`(file+olp ,path ,olp)
+     (setq path (expand-file-name
+                 (s-trim (org-roam-capture--fill-template path))
+                 org-roam-directory))
+     (set-buffer (org-capture-target-buffer path))
+     (let ((m (org-roam-capture-find-or-create-olp olp)))
+       (goto-char m))
+     (widen))
+    (`(file+head ,path ,head)
+     (setq path (expand-file-name
+                 (s-trim (org-roam-capture--fill-template path))
+                 org-roam-directory))
+     (let ((exists-p (file-exists-p path)))
+       (set-buffer (org-capture-target-buffer path))
+       (unless exists-p
+         (insert (org-roam-capture--fill-template head))))
+     (widen))
+    ;; TODO: support node
+    ))
 
 (defun org-roam-capture-find-or-create-olp (olp)
   "Return a marker pointing to the entry at OLP in the current buffer.
@@ -294,49 +274,44 @@ you can catch it with `condition-case'."
              end (save-excursion (org-end-of-subtree t t))))
      (point-marker))))
 
-(defun org-roam-capture--get-ref-path (type path)
-  "Get the file path to the ref with TYPE and PATH."
-  (caar (org-roam-db-query
-         [:select [file]
-          :from refs
-          :where (= type $s1)
-          :and (= ref $s2)
-          :limit 1]
-         type path)))
+(defun org-roam-capture--get-ref-path (ref)
+  (save-match-data
+    (when (string-match org-link-plain-re ref)
+      (let ((type (match-string 1 ref))
+            (path (match-string 2 ref)))
+        (car (org-roam-db-query
+              [:select [nodes:file pos]
+               :from refs
+               :left-join nodes
+               :on (= refs:node-id nodes:id)
+               :where (= refs:type $s1)
+               :and (= refs:ref $s2)
+               :limit 1]
+              type path))))))
 
 (defun org-roam-capture--get-point ()
   "Return exact point to file for org-capture-template.
 This function is used solely in Org-roam's capture templates: see
 `org-roam-capture-templates'."
-  (let* ((file-path
-          (cond ((plist-get org-roam-capture--info :ref)
-                 (or (caar (org-roam-db-query [:select [file]
-                                               :from refs
-                                               :where (= ref $s1)
-                                               :limit 1]
-                                              (plist-get org-roam-capture--info :ref)))
-                     (org-roam-capture--new-file)))
-                ((org-roam-node-file org-roam-capture--node)
-                 (org-roam-node-file org-roam-capture--node))
-                (t
-                 (org-roam-capture--new-file)))))
-    (org-capture-put :template
-                     (org-roam-capture--fill-template (org-capture-get :template)))
-    (org-roam-capture--put :file-path file-path
-                           :finalize (or (org-capture-get :finalize)
-                                         (org-roam-capture--get :finalize)))
-    (set-buffer (org-capture-target-buffer file-path))
-    (widen)
-    (if-let* ((olp (org-roam-capture--get :olp)))
-        (condition-case err
-            (when-let ((marker (org-roam-capture-find-or-create-olp olp)))
-              (goto-char marker)
-              (set-marker marker nil))
-          (error
-           (when (org-roam-capture--get :new-file)
-             (kill-buffer))
-           (signal (car err) (cdr err))))
-      (goto-char (point-max)))))
+  (cond ((plist-get org-roam-capture--info :ref)
+         (if-let ((file-pos (org-roam-capture--get-ref-path
+                             (plist-get org-roam-capture--info :ref))))
+             (progn
+               (set-buffer (org-capture-target-buffer (car file-pos)))
+               (goto-char (cdr file-pos))
+               (widen))
+           (org-roam-capture--set-target-location)))
+        ((and (org-roam-node-file org-roam-capture--node)
+              (org-roam-node-point org-roam-capture--node))
+         (set-buffer (org-capture-target-buffer (org-roam-node-file org-roam-capture--node)))
+         (goto-char (org-roam-node-point org-roam-capture--node))
+         (org-end-of-subtree))
+        (t
+         (org-roam-capture--set-target-location)))
+  (org-capture-put :template
+                   (org-roam-capture--fill-template (org-capture-get :template)))
+  (org-roam-capture--put :finalize (or (org-capture-get :finalize)
+                                       (org-roam-capture--get :finalize))))
 
 (defun org-roam-capture--convert-template (template &optional props)
   "Convert TEMPLATE from Org-roam syntax to `org-capture-templates' syntax.
