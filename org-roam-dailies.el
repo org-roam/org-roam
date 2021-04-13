@@ -271,7 +271,6 @@ creating an entry."
 
 (defun org-roam-dailies-find-date (&optional prefer-future)
   "Find the daily-note for a date using the calendar, creating it if necessary.
-
 Prefer past dates, unless PREFER-FUTURE is non-nil."
   (interactive)
   (org-roam-dailies-capture-date t prefer-future))

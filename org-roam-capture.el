@@ -63,11 +63,11 @@ during the Org-roam capture process.")
 
 Each entry is a list with the following items:
 
-keys         The keys that will select the template, as a string, characters only,
-             for example \"a\" for a template to be selected with a single key, or \"bt\"
-             for selection with two keys. When using several keys, keys using the same prefix
-             must be together in the list and preceded by a 2-element entry
-             explaining the prefix key, for example:
+keys        The keys that will select the template, as a string, characters only,
+            for example \"a\" for a template to be selected with a single key, or \"bt\"
+            for selection with two keys. When using several keys, keys using the same prefix
+            must be together in the list and preceded by a 2-element entry
+            explaining the prefix key, for example:
 
                    (\"b\" \"Templates for marking stuff to buy\")
 
@@ -118,12 +118,13 @@ the following options:
        inserted into the file.
 
    (file+olp \"path/to/file\" '(\"h1\" \"h2\"))
-       The file will be created, prescribed an ID. The OLP (h1, h2) will be created,
-       and the point placed after.
+       The file will be created, prescribed an ID. The OLP (h1, h2) will be
+       created, and the point placed after.
 
    (file+head+olp \"path/to/file\" \"head content\" '(\"h1\" \"h2\"))
-       The file will be created, prescribed an ID. Head content will be inserted at the
-       start of the file. The OLP (h1, h2) will be created, and the point placed after.
+       The file will be created, prescribed an ID. Head content will be
+       inserted at the start of the file. The OLP (h1, h2) will be created,
+       and the point placed after.
 
 The rest of the entry is a property list of additional options.  Recognized
 properties are:
@@ -198,7 +199,7 @@ be replaced with content and expanded:
               introduced with %[pathname] are expanded this way.  Since this
               happens after expanding non-interactive %-escapes, those can
               be used to fill the expression.
-  %<...>      The result of format-time-string on the ... format specification.
+  %<...>      The result of `format-time-string' on the ... format specification.
   %t          Time stamp, date only.  The time stamp is the current time,
               except when called from agendas with `\\[org-agenda-capture]' or
               with `org-capture-use-agenda-date' set.
@@ -268,7 +269,7 @@ the string value.
 
 Org-roam templates are NOT compatible with regular Org capture:
 they rely on additional hacks and hooks to achieve the
-streamlined user experience in Org-roam. "
+streamlined user experience in Org-roam."
   :group 'org-roam
   :type '(repeat
           (choice (list :tag "Multikey description"
