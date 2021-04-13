@@ -71,15 +71,15 @@ keys         The keys that will select the template, as a string, characters onl
 
                    (\"b\" \"Templates for marking stuff to buy\")
 
-            The \"C\" key is used by default for quick access to the customization of the template
-            variable. But if you want to use that key for a template, you can.
+            The \"C\" key is used by default for quick access to the customization of
+            the template variable. But if you want to use that key for a template, you can.
 
 description   A short string describing the template, which will be shown during selection.
 
 type       The type of entry. Valid types are:
                entry       an Org node, with a headline.  Will be filed
                            as the child of the target entry or as a
-                           top-level entry.  Its default template is:
+                           top level entry.  Its default template is:
                              \"* %?\n %a\"
                item        a plain list item, will be placed in the
                            first plain list at the target location.
@@ -270,64 +270,63 @@ Org-roam templates are NOT compatible with regular Org capture:
 they rely on additional hacks and hooks to achieve the
 streamlined user experience in Org-roam. "
   :group 'org-roam
-  :type
-  '(repeat
-    (choice (list :tag "Multikey description"
-                  (string :tag "Keys       ")
-                  (string :tag "Description"))
-            (list :tag "Template entry"
-                  (string :tag "Keys           ")
-                  (string :tag "Description    ")
-                  (choice :tag "Capture Type   " :value entry
-                          (const :tag "Org entry" entry)
-                          (const :tag "Plain list item" item)
-                          (const :tag "Checkbox item" checkitem)
-                          (const :tag "Plain text" plain)
-                          (const :tag "Table line" table-line))
-                  (choice :tag "Template       "
-                          (string)
-                          (list :tag "File"
-                                (const :format "" file)
-                                (file :tag "Template file"))
-                          (list :tag "Function"
-                                (const :format "" function)
-                                (function :tag "Template function")))
-                  (plist :inline t
-                         ;; Give the most common options as checkboxes
-                         :options (((const :format "%v " :if-new)
-                                           (choice :tag "Node location"
-                                                   (list :tag "File"
-                                                         (const :format "" file)
-                                                         (string :tag "  File"))
-                                                   (list :tag "File & Head Content"
-                                                         (const :format "" file+head)
-                                                         (string :tag "  File")
-                                                         (string :tag "  Head Content"))
-                                                   (list :tag "File & Outline path"
-                                                         (const :format "" file+olp)
-                                                         (string :tag "  File")
-                                                         (list :tag "Outline path"
-                                                               (repeat string :tag "Headline")))
-                                                   (list :tag "File & Head Content & Outline path"
-                                                         (const :format "" file+head+olp)
-                                                         (string :tag "  File")
-                                                         (string :tag "  Head Content")
-                                                         (list :tag "Outline path"
-                                                               (repeat string :tag "Headline")))))
-                                   ((const :format "%v " :prepend) (const t))
-                                   ((const :format "%v " :immediate-finish) (const t))
-                                   ((const :format "%v " :jump-to-captured) (const t))
-                                   ((const :format "%v " :empty-lines) (const 1))
-                                   ((const :format "%v " :empty-lines-before) (const 1))
-                                   ((const :format "%v " :empty-lines-after) (const 1))
-                                   ((const :format "%v " :clock-in) (const t))
-                                   ((const :format "%v " :clock-keep) (const t))
-                                   ((const :format "%v " :clock-resume) (const t))
-                                   ((const :format "%v " :time-prompt) (const t))
-                                   ((const :format "%v " :tree-type) (const week))
-                                   ((const :format "%v " :unnarrowed) (const t))
-                                   ((const :format "%v " :table-line-pos) (string))
-                                   ((const :format "%v " :kill-buffer) (const t))))))))
+  :type '(repeat
+          (choice (list :tag "Multikey description"
+                        (string :tag "Keys       ")
+                        (string :tag "Description"))
+                  (list :tag "Template entry"
+                        (string :tag "Keys           ")
+                        (string :tag "Description    ")
+                        (choice :tag "Capture Type   " :value entry
+                                (const :tag "Org entry" entry)
+                                (const :tag "Plain list item" item)
+                                (const :tag "Checkbox item" checkitem)
+                                (const :tag "Plain text" plain)
+                                (const :tag "Table line" table-line))
+                        (choice :tag "Template       "
+                                (string)
+                                (list :tag "File"
+                                      (const :format "" file)
+                                      (file :tag "Template file"))
+                                (list :tag "Function"
+                                      (const :format "" function)
+                                      (function :tag "Template function")))
+                        (plist :inline t
+                               ;; Give the most common options as checkboxes
+                               :options (((const :format "%v " :if-new)
+                                          (choice :tag "Node location"
+                                                  (list :tag "File"
+                                                        (const :format "" file)
+                                                        (string :tag "  File"))
+                                                  (list :tag "File & Head Content"
+                                                        (const :format "" file+head)
+                                                        (string :tag "  File")
+                                                        (string :tag "  Head Content"))
+                                                  (list :tag "File & Outline path"
+                                                        (const :format "" file+olp)
+                                                        (string :tag "  File")
+                                                        (list :tag "Outline path"
+                                                              (repeat string :tag "Headline")))
+                                                  (list :tag "File & Head Content & Outline path"
+                                                        (const :format "" file+head+olp)
+                                                        (string :tag "  File")
+                                                        (string :tag "  Head Content")
+                                                        (list :tag "Outline path"
+                                                              (repeat string :tag "Headline")))))
+                                         ((const :format "%v " :prepend) (const t))
+                                         ((const :format "%v " :immediate-finish) (const t))
+                                         ((const :format "%v " :jump-to-captured) (const t))
+                                         ((const :format "%v " :empty-lines) (const 1))
+                                         ((const :format "%v " :empty-lines-before) (const 1))
+                                         ((const :format "%v " :empty-lines-after) (const 1))
+                                         ((const :format "%v " :clock-in) (const t))
+                                         ((const :format "%v " :clock-keep) (const t))
+                                         ((const :format "%v " :clock-resume) (const t))
+                                         ((const :format "%v " :time-prompt) (const t))
+                                         ((const :format "%v " :tree-type) (const week))
+                                         ((const :format "%v " :unnarrowed) (const t))
+                                         ((const :format "%v " :table-line-pos) (string))
+                                         ((const :format "%v " :kill-buffer) (const t))))))))
 
 (defcustom org-roam-capture-ref-templates
   '(("r" "ref" plain "%?"
@@ -337,64 +336,63 @@ streamlined user experience in Org-roam. "
   "The Org-roam templates used during a capture from the roam-ref protocol.
 See `org-roam-capture-templates' for the template documentation."
   :group 'org-roam
-  :type
-  '(repeat
-    (choice (list :tag "Multikey description"
-                  (string :tag "Keys       ")
-                  (string :tag "Description"))
-            (list :tag "Template entry"
-                  (string :tag "Keys           ")
-                  (string :tag "Description    ")
-                  (choice :tag "Capture Type   " :value entry
-                          (const :tag "Org entry" entry)
-                          (const :tag "Plain list item" item)
-                          (const :tag "Checkbox item" checkitem)
-                          (const :tag "Plain text" plain)
-                          (const :tag "Table line" table-line))
-                  (choice :tag "Template       "
-                          (string)
-                          (list :tag "File"
-                                (const :format "" file)
-                                (file :tag "Template file"))
-                          (list :tag "Function"
-                                (const :format "" function)
-                                (function :tag "Template function")))
-                  (plist :inline t
-                         ;; Give the most common options as checkboxes
-                         :options (((const :format "%v " :if-new)
-                                           (choice :tag "Node location"
-                                                   (list :tag "File"
-                                                         (const :format "" file)
-                                                         (string :tag "  File"))
-                                                   (list :tag "File & Head Content"
-                                                         (const :format "" file+head)
-                                                         (string :tag "  File")
-                                                         (string :tag "  Head Content"))
-                                                   (list :tag "File & Outline path"
-                                                         (const :format "" file+olp)
-                                                         (string :tag "  File")
-                                                         (list :tag "Outline path"
-                                                               (repeat string :tag "Headline")))
-                                                   (list :tag "File & Head Content & Outline path"
-                                                         (const :format "" file+head+olp)
-                                                         (string :tag "  File")
-                                                         (string :tag "  Head Content")
-                                                         (list :tag "Outline path"
-                                                               (repeat string :tag "Headline")))))
-                                   ((const :format "%v " :prepend) (const t))
-                                   ((const :format "%v " :immediate-finish) (const t))
-                                   ((const :format "%v " :jump-to-captured) (const t))
-                                   ((const :format "%v " :empty-lines) (const 1))
-                                   ((const :format "%v " :empty-lines-before) (const 1))
-                                   ((const :format "%v " :empty-lines-after) (const 1))
-                                   ((const :format "%v " :clock-in) (const t))
-                                   ((const :format "%v " :clock-keep) (const t))
-                                   ((const :format "%v " :clock-resume) (const t))
-                                   ((const :format "%v " :time-prompt) (const t))
-                                   ((const :format "%v " :tree-type) (const week))
-                                   ((const :format "%v " :unnarrowed) (const t))
-                                   ((const :format "%v " :table-line-pos) (string))
-                                   ((const :format "%v " :kill-buffer) (const t))))))))
+  :type '(repeat
+          (choice (list :tag "Multikey description"
+                        (string :tag "Keys       ")
+                        (string :tag "Description"))
+                  (list :tag "Template entry"
+                        (string :tag "Keys           ")
+                        (string :tag "Description    ")
+                        (choice :tag "Capture Type   " :value entry
+                                (const :tag "Org entry" entry)
+                                (const :tag "Plain list item" item)
+                                (const :tag "Checkbox item" checkitem)
+                                (const :tag "Plain text" plain)
+                                (const :tag "Table line" table-line))
+                        (choice :tag "Template       "
+                                (string)
+                                (list :tag "File"
+                                      (const :format "" file)
+                                      (file :tag "Template file"))
+                                (list :tag "Function"
+                                      (const :format "" function)
+                                      (function :tag "Template function")))
+                        (plist :inline t
+                               ;; Give the most common options as checkboxes
+                               :options (((const :format "%v " :if-new)
+                                          (choice :tag "Node location"
+                                                  (list :tag "File"
+                                                        (const :format "" file)
+                                                        (string :tag "  File"))
+                                                  (list :tag "File & Head Content"
+                                                        (const :format "" file+head)
+                                                        (string :tag "  File")
+                                                        (string :tag "  Head Content"))
+                                                  (list :tag "File & Outline path"
+                                                        (const :format "" file+olp)
+                                                        (string :tag "  File")
+                                                        (list :tag "Outline path"
+                                                              (repeat string :tag "Headline")))
+                                                  (list :tag "File & Head Content & Outline path"
+                                                        (const :format "" file+head+olp)
+                                                        (string :tag "  File")
+                                                        (string :tag "  Head Content")
+                                                        (list :tag "Outline path"
+                                                              (repeat string :tag "Headline")))))
+                                         ((const :format "%v " :prepend) (const t))
+                                         ((const :format "%v " :immediate-finish) (const t))
+                                         ((const :format "%v " :jump-to-captured) (const t))
+                                         ((const :format "%v " :empty-lines) (const 1))
+                                         ((const :format "%v " :empty-lines-before) (const 1))
+                                         ((const :format "%v " :empty-lines-after) (const 1))
+                                         ((const :format "%v " :clock-in) (const t))
+                                         ((const :format "%v " :clock-keep) (const t))
+                                         ((const :format "%v " :clock-resume) (const t))
+                                         ((const :format "%v " :time-prompt) (const t))
+                                         ((const :format "%v " :tree-type) (const week))
+                                         ((const :format "%v " :unnarrowed) (const t))
+                                         ((const :format "%v " :table-line-pos) (string))
+                                         ((const :format "%v " :kill-buffer) (const t))))))))
 
 (defun org-roam-capture-p ()
   "Return t if the current capture process is an Org-roam capture.
