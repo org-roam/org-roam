@@ -42,7 +42,8 @@
 (defvar org-roam-directory)
 
 (defvar org-roam-capture--node nil
-  "The node passed during an Org-roam capture. This variable is populated dynamically, and is only non-nil
+  "The node passed during an Org-roam capture.
+This variable is populated dynamically, and is only non-nil
 during the Org-roam capture process.")
 
 (defvar org-roam-capture--info nil
@@ -50,7 +51,7 @@ during the Org-roam capture process.")
 This variable is populated dynamically, and is only non-nil
 during the Org-roam capture process.")
 
-(defconst org-roam-capture--template-keywords '(:if-new)
+(defconst org-roam-capture--template-keywords '(:if-new :id :link-description :call-location)
   "Keywords used in `org-roam-capture-templates' specific to Org-roam.")
 
 (defcustom org-roam-capture-templates
@@ -133,18 +134,18 @@ This function is to be called in the Org-capture finalization process."
         (set-marker (car region) nil)
         (set-marker (cdr region) nil))
       (org-with-point-at mkr
-        (insert (org-link-make-string (org-roam-capture--get :id)
+        (insert (org-link-make-string (concat "id:" (org-roam-capture--get :id))
                                       (org-roam-capture--get :link-description)))))))
 
 (defun org-roam-capture--add-ref ()
   "Add REF to the newly captured item."
   (when-let ((ref (org-roam-capture--get :ref)))
     (let ((ref-lst (org-entry-get (point) "ROAM_REFS")))n
-    (setq ref-lst (if ref-lst
-                      (cl-pushnew (split-string-and-unquote ref-lst) ref)
-                    (list ref)))
-    (org-set-property "ROAM_REFS" (combine-and-quote-strings ref-lst)))
-      (org-roam-capture--add-ref ref)))
+         (setq ref-lst (if ref-lst
+                           (cl-pushnew (split-string-and-unquote ref-lst) ref)
+                         (list ref)))
+         (org-set-property "ROAM_REFS" (combine-and-quote-strings ref-lst)))
+    (org-roam-capture--add-ref ref)))
 
 (defun org-roam-capture--finalize ()
   "Finalize the `org-roam-capture' process."
@@ -164,8 +165,9 @@ This function is to be called in the Org-capture finalization process."
 (add-hook 'org-capture-prepare-finalize-hook #'org-roam-capture--install-finalize)
 
 (defun org-roam-capture--fill-template (str &optional org-capture-p)
-  "Expand the template STR, returning the expanded template. It expands ${var} occurrences in STR.
-When ORG-CAPTURE-P, also run Org-capture's template expansion."
+  "Expand the template STR, returning the expanded template.
+It expands ${var} occurrences in STR. When ORG-CAPTURE-P, also
+run Org-capture's template expansion."
   (funcall (if org-capture-p #'org-capture-fill-template #'identity)
            (s-format str
                      (lambda (key)
@@ -258,6 +260,7 @@ you can catch it with `condition-case'."
      (point-marker))))
 
 (defun org-roam-capture--get-ref-path (ref)
+  "Return the file and point of reference REF."
   (save-match-data
     (when (string-match org-link-plain-re ref)
       (let ((type (match-string 1 ref))
@@ -331,7 +334,9 @@ INFO is an alist for filling up Org-roam's capture templates.
 NODE is an `org-roam-node' construct containing information about the node.
 PROPS is a plist containing additional Org-roam properties for each template.
 TEMPLATES is a list of org-roam templates."
-  (let* ((org-capture-templates
+  (let* ((m (point-marker))
+         (props (plist-put props :call-location m))
+         (org-capture-templates
           (mapcar (lambda (t)
                     (org-roam-capture--convert-template t props))
                   (or templates org-roam-capture-templates)))
