@@ -29,6 +29,7 @@
 ;;
 ;; This library provides capture functionality for org-roam
 ;;; Code:
+;;;
 ;;;; Library Requires
 (require 'org-capture)
 (eval-when-compile

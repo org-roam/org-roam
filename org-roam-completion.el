@@ -27,7 +27,16 @@
 
 ;;; Commentary:
 ;;
-;; This library provides completion-at-point for org-roam.
+;; This library provides completion-at-point functions for Org-roam.
+;;
+;; The two main functions provided to capf are:
+;;
+;;    `org-roam-complete-link-at-point' provides completions to nodes
+;;    within link brackets
+;;
+;;    `org-roam-complete-everywhere' provides completions for nodes everywhere,
+;;    matching the symbol at point
+;;
 ;;; Code:
 (require 'cl-lib)
 

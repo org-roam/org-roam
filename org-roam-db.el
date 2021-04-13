@@ -27,7 +27,7 @@
 
 ;;; Commentary:
 ;;
-;; This library is provides the underlying database api to org-roam
+;; This library provides the underlying database api to org-roam.
 ;;
 ;;; Code:
 ;;;; Library Requires
