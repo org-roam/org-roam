@@ -40,177 +40,362 @@
 
 ;; Declarations
 (defvar org-roam-directory)
-(defvar org-roam-title-to-slug-function)
 
-(defvar org-roam-capture--info nil
-  "An alist of additional information passed to the Org-roam template.
+(defvar org-roam-capture--node nil
+  "The node passed during an Org-roam capture.
 This variable is populated dynamically, and is only non-nil
 during the Org-roam capture process.")
 
-(defvar org-roam-capture--context nil
-  "A symbol, that reflects the context for obtaining the exact point in a file.
-This variable is populated dynamically, and is only active during
-an Org-roam capture process.
+(defvar org-roam-capture--info nil
+  "A property-list of additional information passed to the Org-roam template.
+This variable is populated dynamically, and is only non-nil
+during the Org-roam capture process.")
 
-The `title' context is used in `org-roam-insert' and
-`org-roam-find-file', where the capture process is triggered upon
-trying to create a new file without that `title'.
-
-The `ref' context is used by `org-roam-protocol', where the
-capture process is triggered upon trying to find or create a new
-note with the given `ref'.")
-
-(defvar org-roam-capture-additional-template-props nil
-  "Additional props to be added to the Org-roam template.")
-
-(defconst org-roam-capture--template-keywords '(:file-name :head :olp)
+(defconst org-roam-capture--template-keywords '(:if-new :id :link-description :call-location)
   "Keywords used in `org-roam-capture-templates' specific to Org-roam.")
 
 (defcustom org-roam-capture-templates
-  `(("d" "default" plain (function org-roam-capture--get-point)
-     "%?"
-     :file-name "%<%Y%m%d%H%M%S>-${slug}.org"
-     :head "#+title: ${title}\n"
+  '(("d" "default" plain "%?"
+     :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
+                        "#+title: ${title}\n")
      :unnarrowed t))
-  "Capture templates for Org-roam.
-The Org-roam capture-templates  builds on the default behaviours of
-`org-capture-templates' by expanding them in 3 areas:
+  "Templates for the creation of new entries within Org-roam.
 
-1. Template-expansion capabilities are extended with additional
-   custom syntax. See `org-roam-capture--fill-template' for more
-   details.
+Each entry is a list with the following items:
 
-2. The `:file-name' key is added, which defines the naming format
-   to use when creating new notes. This file-name is relative to
-   `org-roam-directory', and is without the file-extension.
+keys   The keys that will select the template, as a string, characters only, for
+       example \"a\" for a template to be selected with a single key, or
+       \"bt\" for selection with two keys. When using several keys, keys
+       using the same prefix must be together in the list and preceded by a
+       2-element entry explaining the prefix key, for example:
 
-3. The `:head' key is added, which contains the template that is
-   inserted upon the creation of a new file. This is where you
-   your note metadata should go.
+                   (\"b\" \"Templates for marking stuff to buy\")
 
-Each template should have the following structure:
+       The \"C\" key is used by default for quick access to the customization of
+       the template variable. But if you want to use that key for a template,
+       you can.
 
-\(KEY DESCRIPTION `plain' `(function org-roam-capture--get-point)'
-  TEMPLATE
-  `:file-name' FILENAME-FORMAT
-  `:head' HEADER-FORMAT
-  `:unnarrowed t'
-  OPTIONS-PLIST)
+description   A short string describing the template, which will be shown
+              during selection.
 
-The elements of a template-entry and their placement are the same
-as in `org-capture-templates', except that the entry type must
-always be the symbol `plain', and that the target must always be
-the list `(function org-roam-capture--get-point)'.
+type       The type of entry. Valid types are:
+               entry       an Org node, with a headline.  Will be filed
+                           as the child of the target entry or as a
+                           top level entry.  Its default template is:
+                             \"* %?\n %a\"
+               item        a plain list item, will be placed in the
+                           first plain list at the target location.
+                           Its default template is:
+                             \"- %?\"
+               checkitem   a checkbox item.  This differs from the
+                           plain list item only in so far as it uses a
+                           different default template.  Its default
+                           template is:
+                             \"- [ ] %?\"
+               table-line  a new line in the first table at target location.
+                           Its default template is:
+                             \"| %? |\"
+               plain       text to be inserted as it is.
 
-Org-roam requires the plist elements `:file-name' and `:head' to
-be present, and it’s recommended that `:unnarrowed' be set to t."
+template     The template for creating the capture item.
+             If it is an empty string or nil, a default template based on
+             the entry type will be used (see the \"type\" section above).
+             Instead of a string, this may also be one of:
+
+                 (file \"/path/to/template-file\")
+                 (function function-returning-the-template)
+
+             in order to get a template from a file, or dynamically
+             from a function.
+
+The template contains a compulsory :if-new property. This determines the
+location of the new node. The :if-new property contains a list, supporting
+the following options:
+
+   (file \"path/to/file\")
+       The file will be created, and prescribed an ID.
+
+   (file+head \"path/to/file\" \"head content\")
+       The file will be created, prescribed an ID, and head content will be
+       inserted into the file.
+
+   (file+olp \"path/to/file\" '(\"h1\" \"h2\"))
+       The file will be created, prescribed an ID. The OLP (h1, h2) will be
+       created, and the point placed after.
+
+   (file+head+olp \"path/to/file\" \"head content\" '(\"h1\" \"h2\"))
+       The file will be created, prescribed an ID. Head content will be
+       inserted at the start of the file. The OLP (h1, h2) will be created,
+       and the point placed after.
+
+The rest of the entry is a property list of additional options.  Recognized
+properties are:
+
+ :prepend            Normally newly captured information will be appended at
+                     the target location (last child, last table line,
+                     last list item...).  Setting this property will
+                     change that.
+
+ :immediate-finish   When set, do not offer to edit the information, just
+                     file it away immediately.  This makes sense if the
+                     template only needs information that can be added
+                     automatically.
+
+ :jump-to-captured   When set, jump to the captured entry when finished.
+
+ :empty-lines        Set this to the number of lines that should be inserted
+                     before and after the new item.  Default 0, only common
+                     other value is 1.
+
+ :empty-lines-before Set this to the number of lines that should be inserted
+                     before the new item.  Overrides :empty-lines for the
+                     number lines inserted before.
+
+ :empty-lines-after  Set this to the number of lines that should be inserted
+                     after the new item.  Overrides :empty-lines for the
+                     number of lines inserted after.
+
+ :clock-in           Start the clock in this item.
+
+ :clock-keep         Keep the clock running when filing the captured entry.
+
+ :clock-resume       Start the interrupted clock when finishing the capture.
+                     Note that :clock-keep has precedence over :clock-resume.
+                     When setting both to t, the current clock will run and
+                     the previous one will not be resumed.
+
+ :time-prompt        Prompt for a date/time to be used for date/week trees
+                     and when filling the template.
+
+ :tree-type          When `week', make a week tree instead of the month-day
+                     tree.  When `month', make a month tree instead of the
+                     month-day tree.
+
+ :unnarrowed         Do not narrow the target buffer, simply show the
+                     full buffer.  Default is to narrow it so that you
+                     only see the new stuff.
+
+ :table-line-pos     Specification of the location in the table where the
+                     new line should be inserted.  It should be a string like
+                     \"II-3\", meaning that the new line should become the
+                     third line before the second horizontal separator line.
+
+ :kill-buffer        If the target file was not yet visited by a buffer when
+                     capture was invoked, kill the buffer again after capture
+                     is finalized.
+
+ :no-save            Do not save the target file after finishing the capture.
+
+The template defines the text to be inserted.  Often this is an
+Org mode entry (so the first line should start with a star) that
+will be filed as a child of the target headline.  It can also be
+freely formatted text.  Furthermore, the following %-escapes will
+be replaced with content and expanded:
+
+  %[pathname] Insert the contents of the file given by
+              `pathname'.  These placeholders are expanded at the very
+              beginning of the process so they can be used to extend the
+              current template.
+  %(sexp)     Evaluate elisp `(sexp)' and replace it with the results.
+              Only placeholders pre-existing within the template, or
+              introduced with %[pathname] are expanded this way.  Since this
+              happens after expanding non-interactive %-escapes, those can
+              be used to fill the expression.
+  %<...>      The result of `format-time-string' on the ... format specification.
+  %t          Time stamp, date only.  The time stamp is the current time,
+              except when called from agendas with `\\[org-agenda-capture]' or
+              with `org-capture-use-agenda-date' set.
+  %T          Time stamp as above, with date and time.
+  %u, %U      Like the above, but inactive time stamps.
+  %i          Initial content, copied from the active region.  If
+              there is text before %i on the same line, such as
+              indentation, and %i is not inside a %(sexp), that prefix
+              will be added before every line in the inserted text.
+  %a          Annotation, normally the link created with `org-store-link'.
+  %A          Like %a, but prompt for the description part.
+  %l          Like %a, but only insert the literal link.
+  %L          Like %l, but without brackets (the link content itself).
+  %c          Current kill ring head.
+  %x          Content of the X clipboard.
+  %k          Title of currently clocked task.
+  %K          Link to currently clocked task.
+  %n          User name (taken from the variable `user-full-name').
+  %f          File visited by current buffer when `org-capture' was called.
+  %F          Full path of the file or directory visited by current buffer.
+  %:keyword   Specific information for certain link types, see below.
+  %^g         Prompt for tags, with completion on tags in target file.
+  %^G         Prompt for tags, with completion on all tags in all agenda files.
+  %^t         Like %t, but prompt for date.  Similarly %^T, %^u, %^U.
+              You may define a prompt like: %^{Please specify birthday}t.
+              The default date is that of %t, see above.
+  %^C         Interactive selection of which kill or clip to use.
+  %^L         Like %^C, but insert as link.
+  %^{prop}p   Prompt the user for a value for property `prop'.
+              A default value can be specified like this:
+              %^{prop|default}p.
+  %^{prompt}  Prompt the user for a string and replace this sequence with it.
+              A default value and a completion table can be specified like this:
+              %^{prompt|default|completion2|completion3|...}.
+  %?          After completing the template, position cursor here.
+  %\\1 ... %\\N Insert the text entered at the nth %^{prompt}, where N
+              is a number, starting from 1.
+
+Apart from these general escapes, you can access information specific to
+the link type that is created.  For example, calling `org-capture' in emails
+or in Gnus will record the author and the subject of the message, which you
+can access with \"%:from\" and \"%:subject\", respectively.  Here is a
+complete list of what is recorded for each link type.
+
+Link type               |  Available information
+------------------------+------------------------------------------------------
+bbdb                    |  %:type %:name %:company
+vm, wl, mh, mew, rmail, |  %:type %:subject %:message-id
+gnus                    |  %:from %:fromname %:fromaddress
+                        |  %:to   %:toname   %:toaddress
+                        |  %:fromto (either \"to NAME\" or \"from NAME\")
+                        |  %:date %:date-timestamp (as active timestamp)
+                        |  %:date-timestamp-inactive (as inactive timestamp)
+gnus                    |  %:group, for messages also all email fields
+eww, w3, w3m            |  %:type %:url
+info                    |  %:type %:file %:node
+calendar                |  %:type %:date
+
+When you need to insert a literal percent sign in the template,
+you can escape ambiguous cases with a backward slash, e.g., \\%i.
+
+In addition to all of the above, Org-roam supports additional
+substitutions within its templates. \"${foo}\" will look for the
+foo property in the Org-roam node (see the `org-roam-node'). If
+the property does not exist, the user will be prompted to fill in
+the string value.
+
+Org-roam templates are NOT compatible with regular Org capture:
+they rely on additional hacks and hooks to achieve the
+streamlined user experience in Org-roam."
   :group 'org-roam
-  ;; Adapted from `org-capture-templates'
-  :type
-  '(repeat
-    (choice :value ("d" "default" plain (function org-roam-capture--get-point)
-                    "%?"
-                    :file-name "%<%Y%m%d%H%M%S>-${slug}"
-                    :head "#+title: ${title}\n"
-                    :unnarrowed t)
-            (list :tag "Multikey description"
-                  (string :tag "Keys       ")
-                  (string :tag "Description"))
-            (list :tag "Template entry"
-                  (string :tag "Keys              ")
-                  (string :tag "Description       ")
-                  (const :format "" plain)
-                  (const :format "" (function org-roam-capture--get-point))
-                  (choice :tag "Template          "
-                          (string :tag "String"
-                                  :format "String:\n            \
-Template string   :\n%v")
-                          (list :tag "File"
-                                (const :format "" file)
-                                (file :tag "Template file     "))
-                          (list :tag "Function"
-                                (const :format "" function)
-                                (function :tag "Template function ")))
-                  (const :format "File name format  :" :file-name)
-                  (string :format " %v" :value "#+title: ${title}\n")
-                  (const :format "Header format     :" :head)
-                  (string :format "\n%v" :value "%<%Y%m%d%H%M%S>-${slug}")
-                  (const :format "" :unnarrowed) (const :format "" t)
-                  (plist :inline t
-                         :tag "Options"
-                         ;; Give the most common options as checkboxes
-                         :options
-                         (((const :format "%v " :prepend) (const t))
-                          ((const :format "%v " :immediate-finish) (const t))
-                          ((const :format "%v " :jump-to-captured) (const t))
-                          ((const :format "%v " :empty-lines) (const 1))
-                          ((const :format "%v " :empty-lines-before) (const 1))
-                          ((const :format "%v " :empty-lines-after) (const 1))
-                          ((const :format "%v " :clock-in) (const t))
-                          ((const :format "%v " :clock-keep) (const t))
-                          ((const :format "%v " :clock-resume) (const t))
-                          ((const :format "%v " :time-prompt) (const t))
-                          ((const :format "%v " :tree-type) (const week))
-                          ((const :format "%v " :table-line-pos) (string))
-                          ((const :format "%v " :kill-buffer) (const t))))))))
+  :type '(repeat
+          (choice (list :tag "Multikey description"
+                        (string :tag "Keys       ")
+                        (string :tag "Description"))
+                  (list :tag "Template entry"
+                        (string :tag "Keys           ")
+                        (string :tag "Description    ")
+                        (choice :tag "Capture Type   " :value entry
+                                (const :tag "Org entry" entry)
+                                (const :tag "Plain list item" item)
+                                (const :tag "Checkbox item" checkitem)
+                                (const :tag "Plain text" plain)
+                                (const :tag "Table line" table-line))
+                        (choice :tag "Template       "
+                                (string)
+                                (list :tag "File"
+                                      (const :format "" file)
+                                      (file :tag "Template file"))
+                                (list :tag "Function"
+                                      (const :format "" function)
+                                      (function :tag "Template function")))
+                        (plist :inline t
+                               ;; Give the most common options as checkboxes
+                               :options (((const :format "%v " :if-new)
+                                          (choice :tag "Node location"
+                                                  (list :tag "File"
+                                                        (const :format "" file)
+                                                        (string :tag "  File"))
+                                                  (list :tag "File & Head Content"
+                                                        (const :format "" file+head)
+                                                        (string :tag "  File")
+                                                        (string :tag "  Head Content"))
+                                                  (list :tag "File & Outline path"
+                                                        (const :format "" file+olp)
+                                                        (string :tag "  File")
+                                                        (list :tag "Outline path"
+                                                              (repeat string :tag "Headline")))
+                                                  (list :tag "File & Head Content & Outline path"
+                                                        (const :format "" file+head+olp)
+                                                        (string :tag "  File")
+                                                        (string :tag "  Head Content")
+                                                        (list :tag "Outline path"
+                                                              (repeat string :tag "Headline")))))
+                                         ((const :format "%v " :prepend) (const t))
+                                         ((const :format "%v " :immediate-finish) (const t))
+                                         ((const :format "%v " :jump-to-captured) (const t))
+                                         ((const :format "%v " :empty-lines) (const 1))
+                                         ((const :format "%v " :empty-lines-before) (const 1))
+                                         ((const :format "%v " :empty-lines-after) (const 1))
+                                         ((const :format "%v " :clock-in) (const t))
+                                         ((const :format "%v " :clock-keep) (const t))
+                                         ((const :format "%v " :clock-resume) (const t))
+                                         ((const :format "%v " :time-prompt) (const t))
+                                         ((const :format "%v " :tree-type) (const week))
+                                         ((const :format "%v " :unnarrowed) (const t))
+                                         ((const :format "%v " :table-line-pos) (string))
+                                         ((const :format "%v " :kill-buffer) (const t))))))))
 
 (defcustom org-roam-capture-ref-templates
-  '(("r" "ref" plain #'org-roam-capture--get-point
-     "%?"
-     :file-name "${slug}"
-     :head "#+title: ${title}\n#+roam_key: ${ref}"
+  '(("r" "ref" plain "%?"
+     :if-new (file+head "${slug}.org"
+                        "#+title: ${title}")
      :unnarrowed t))
   "The Org-roam templates used during a capture from the roam-ref protocol.
-Details on how to specify for the template is given in `org-roam-capture-templates'."
+See `org-roam-capture-templates' for the template documentation."
   :group 'org-roam
-  ;; Adapted from `org-capture-templates'
-  :type
-  '(repeat
-    (choice :value ("d" "default" plain (function org-roam-capture--get-point)
-                    "%?"
-                    :file-name "${slug}"
-                    :head "#+title: ${title}\n#+roam_key: ${ref}\n"
-                    :unnarrowed t)
-            (list :tag "Multikey description"
-                  (string :tag "Keys       ")
-                  (string :tag "Description"))
-            (list :tag "Template entry"
-                  (string :tag "Keys              ")
-                  (string :tag "Description       ")
-                  (const :format "" plain)
-                  (const :format "" (function org-roam-capture--get-point))
-                  (choice :tag "Template          "
-                          (string :tag "String"
-                                  :format "String:\n            \
-Template string   :\n%v")
-                          (list :tag "File"
-                                (const :format "" file)
-                                (file :tag "Template file     "))
-                          (list :tag "Function"
-                                (const :format "" function)
-                                (function :tag "Template function ")))
-                  (const :format "File name format  :" :file-name)
-                  (string :format " %v" :value "#+title: ${title}\n")
-                  (const :format "Header format     :" :head)
-                  (string :format "\n%v" :value "%<%Y%m%d%H%M%S>-${slug}")
-                  (const :format "" :unnarrowed) (const :format "" t)
-                  (plist :inline t
-                         :tag "Options"
-                         ;; Give the most common options as checkboxes
-                         :options
-                         (((const :format "%v " :prepend) (const t))
-                          ((const :format "%v " :immediate-finish) (const t))
-                          ((const :format "%v " :jump-to-captured) (const t))
-                          ((const :format "%v " :empty-lines) (const 1))
-                          ((const :format "%v " :empty-lines-before) (const 1))
-                          ((const :format "%v " :empty-lines-after) (const 1))
-                          ((const :format "%v " :clock-in) (const t))
-                          ((const :format "%v " :clock-keep) (const t))
-                          ((const :format "%v " :clock-resume) (const t))
-                          ((const :format "%v " :time-prompt) (const t))
-                          ((const :format "%v " :tree-type) (const week))
-                          ((const :format "%v " :table-line-pos) (string))
-                          ((const :format "%v " :kill-buffer) (const t))))))))
+  :type '(repeat
+          (choice (list :tag "Multikey description"
+                        (string :tag "Keys       ")
+                        (string :tag "Description"))
+                  (list :tag "Template entry"
+                        (string :tag "Keys           ")
+                        (string :tag "Description    ")
+                        (choice :tag "Capture Type   " :value entry
+                                (const :tag "Org entry" entry)
+                                (const :tag "Plain list item" item)
+                                (const :tag "Checkbox item" checkitem)
+                                (const :tag "Plain text" plain)
+                                (const :tag "Table line" table-line))
+                        (choice :tag "Template       "
+                                (string)
+                                (list :tag "File"
+                                      (const :format "" file)
+                                      (file :tag "Template file"))
+                                (list :tag "Function"
+                                      (const :format "" function)
+                                      (function :tag "Template function")))
+                        (plist :inline t
+                               ;; Give the most common options as checkboxes
+                               :options (((const :format "%v " :if-new)
+                                          (choice :tag "Node location"
+                                                  (list :tag "File"
+                                                        (const :format "" file)
+                                                        (string :tag "  File"))
+                                                  (list :tag "File & Head Content"
+                                                        (const :format "" file+head)
+                                                        (string :tag "  File")
+                                                        (string :tag "  Head Content"))
+                                                  (list :tag "File & Outline path"
+                                                        (const :format "" file+olp)
+                                                        (string :tag "  File")
+                                                        (list :tag "Outline path"
+                                                              (repeat string :tag "Headline")))
+                                                  (list :tag "File & Head Content & Outline path"
+                                                        (const :format "" file+head+olp)
+                                                        (string :tag "  File")
+                                                        (string :tag "  Head Content")
+                                                        (list :tag "Outline path"
+                                                              (repeat string :tag "Headline")))))
+                                         ((const :format "%v " :prepend) (const t))
+                                         ((const :format "%v " :immediate-finish) (const t))
+                                         ((const :format "%v " :jump-to-captured) (const t))
+                                         ((const :format "%v " :empty-lines) (const 1))
+                                         ((const :format "%v " :empty-lines-before) (const 1))
+                                         ((const :format "%v " :empty-lines-after) (const 1))
+                                         ((const :format "%v " :clock-in) (const t))
+                                         ((const :format "%v " :clock-keep) (const t))
+                                         ((const :format "%v " :clock-resume) (const t))
+                                         ((const :format "%v " :time-prompt) (const t))
+                                         ((const :format "%v " :tree-type) (const week))
+                                         ((const :format "%v " :unnarrowed) (const t))
+                                         ((const :format "%v " :table-line-pos) (string))
+                                         ((const :format "%v " :kill-buffer) (const t))))))))
 
 (defun org-roam-capture-p ()
   "Return t if the current capture process is an Org-roam capture.
@@ -250,17 +435,17 @@ the capture)."
 
 (advice-add 'org-capture-finalize :before #'org-roam-capture--update-plist)
 
-(cl-defun org-roam-capture--finalize-find-file (&key id)
+(defun org-roam-capture--finalize-find-file ()
   "Visit the buffer after Org-capture is done.
 This function is to be called in the Org-capture finalization process.
 ID is unused."
   (switch-to-buffer (org-capture-get :buffer)))
 
-(cl-defun org-roam-capture--finalize-insert-link (&key id)
+(defun org-roam-capture--finalize-insert-link ()
   "Insert a link to ID into the buffer where Org-capture was called.
 ID is the Org id of the newly captured content.
 This function is to be called in the Org-capture finalization process."
-  (when-let* ((mkr (org-roam-capture--get :insert-at))
+  (when-let* ((mkr (org-roam-capture--get :call-location))
               (buf (marker-buffer mkr)))
     (with-current-buffer buf
       (when-let ((region (org-roam-capture--get :region)))
@@ -269,31 +454,28 @@ This function is to be called in the Org-capture finalization process."
         (set-marker (car region) nil)
         (set-marker (cdr region) nil))
       (org-with-point-at mkr
-        (insert (org-link-make-string (concat "id:" id)
+        (insert (org-link-make-string (concat "id:" (org-roam-capture--get :id))
                                       (org-roam-capture--get :link-description)))))))
 
-(defun org-roam-capture--finalize-create-id ()
-  "Get ID for newly captured information."
-  (let ((buf (org-capture-get :buffer))
-        (pos (org-capture-get :exact-position)))
-    (with-current-buffer buf
-      (org-with-point-at pos
-        (org-id-get-create)))))
+(defun org-roam-capture--add-ref ()
+  "Add REF to the newly captured item."
+  (when-let ((ref (org-roam-capture--get :ref)))
+    (let ((ref-lst (org-entry-get (point) "ROAM_REFS")))n
+         (setq ref-lst (if ref-lst
+                           (cl-pushnew (split-string-and-unquote ref-lst) ref)
+                         (list ref)))
+         (org-set-property "ROAM_REFS" (combine-and-quote-strings ref-lst)))
+    (org-roam-capture--add-ref ref)))
 
 (defun org-roam-capture--finalize ()
   "Finalize the `org-roam-capture' process."
-  (let ((region (org-roam-capture--get :region))
-        id)
-    (when region
-      (org-roam-unshield-region (car region) (cdr region)))
-    (unless org-note-abort
-      (setq id (org-roam-capture--finalize-create-id))
-      (when-let ((finalize (org-roam-capture--get :finalize)))
-        (funcall (intern (concat "org-roam-capture--finalize-"
-                                 (symbol-name (org-roam-capture--get :finalize))))
-                 :id id)))
-    (org-roam-capture--save-file-maybe)
-    (remove-hook 'org-capture-after-finalize-hook #'org-roam-capture--finalize)))
+  (when-let ((region (org-roam-capture--get :region)))
+    (org-roam-unshield-region (car region) (cdr region)))
+  (unless org-note-abort
+    (when-let ((finalize (org-roam-capture--get :finalize)))
+      (funcall (intern (concat "org-roam-capture--finalize-"
+                               (symbol-name (org-roam-capture--get :finalize)))))))
+  (remove-hook 'org-capture-after-finalize-hook #'org-roam-capture--finalize))
 
 (defun org-roam-capture--install-finalize ()
   "Install `org-roam-capture--finalize' if the capture is an Org-roam capture."
@@ -302,92 +484,72 @@ This function is to be called in the Org-capture finalization process."
 
 (add-hook 'org-capture-prepare-finalize-hook #'org-roam-capture--install-finalize)
 
-(defun org-roam-capture--fill-template (str)
-  "Expand the template STR, returning the string.
-This is an extension of org-capture's template expansion.
+(defun org-roam-capture--fill-template (str &optional org-capture-p)
+  "Expand the template STR, returning the expanded template.
+It expands ${var} occurrences in STR. When ORG-CAPTURE-P, also
+run Org-capture's template expansion."
+  (funcall (if org-capture-p #'org-capture-fill-template #'identity)
+           (s-format str
+                     (lambda (key)
+                       (let ((fn (intern (concat "org-roam-node-" key))))
+                         (if (fboundp fn)
+                             (funcall fn org-roam-capture--node)
+                           (completing-read (format "%s: " key) nil)))))))
 
-First, it expands ${var} occurrences in STR, using `org-roam-capture--info'.
-If there is a ${var} with no matching var in the alist, the value
-of var is prompted for via `completing-read'.
-
-Next, it expands the remaining template string using
-`org-capture-fill-template'."
-  (org-capture-fill-template
-   (s-format str
-             (lambda (key)
-               (or (s--aget org-roam-capture--info key)
-                   (when-let ((val (completing-read (format "%s: " key) nil)))
-                     (push (cons key val) org-roam-capture--info)
-                     val))))))
-
-(defun org-roam-capture--save-file-maybe ()
-  "Save the file conditionally.
-The file is saved if the original value of :no-save is not t and
-`org-note-abort' is not t. It is added to
-`org-capture-after-finalize-hook'."
-  (cond
-   ((and (org-roam-capture--get :new-file)
-         org-note-abort)
-    (with-current-buffer (org-capture-get :buffer)
-      (set-buffer-modified-p nil)
-      (kill-buffer)))
-   ((and (not (org-roam-capture--get :orig-no-save))
-         (not org-note-abort))
-    (with-current-buffer (org-capture-get :buffer)
-      (save-buffer)))))
-
-(defun org-roam-capture--new-file (&optional allow-existing-file-p)
-  "Return the path to file during an Org-roam capture.
-
-This function reads the file-name attribute of the currently
-active Org-roam template.
-
-If the file path already exists, and not ALLOW-EXISTING-FILE-P,
-raise a warning.
-
-Else, to insert the header content in the file, `org-capture'
-prepends the `:head' property of the Org-roam capture template.
-
-To prevent the creation of a new file if the capture process is
-aborted, we do the following:
-
-1. Save the original value of the capture template's :no-save.
-2. Set the capture template's :no-save to t.
-3. Add a function on `org-capture-before-finalize-hook' that saves
-the file if the original value of :no-save is not t and
-`org-note-abort' is not t."
-  (let* ((name-templ (or (org-roam-capture--get :file-name)
-                         (user-error "Template needs to specify `:file-name'")))
-         (rel-filename (s-trim (org-roam-capture--fill-template name-templ)))
-         (file-path (expand-file-name rel-filename org-roam-directory))
-         (roam-head (or (org-roam-capture--get :head) ""))
-         (org-template (org-capture-get :template))
-         (roam-template (concat roam-head org-template)))
-    (if (or (file-exists-p file-path)
-            (find-buffer-visiting file-path))
-        (unless allow-existing-file-p
-          (lwarn '(org-roam) :warning
-                 "Attempted to recreate existing file: %s.
-This can happen when your org-roam db is not in sync with your notes.
-Using existing file..." file-path))
-      (make-directory (file-name-directory file-path) t)
-      (org-roam-capture--put :orig-no-save (org-capture-get :no-save)
-                             :new-file t)
-      (pcase org-roam-capture--context
-        ('dailies
-         ;; Populate the header of the daily file before capture to prevent it
-         ;; from appearing in the buffer-restriction
-         (save-window-excursion
-           (find-file file-path)
-           (insert (substring (org-capture-fill-template (concat roam-head "*"))
-                              0 -2))
-           (set-buffer-modified-p nil))
-         (org-capture-put :template org-template))
-        (_
-         (org-capture-put :template roam-template
-                          :type 'plain)))
-      (org-capture-put :no-save t))
-    file-path))
+(defun org-roam-capture--goto-location ()
+  "Initialize the buffer, and goto the location of the new capture.
+Return the ID of the location."
+  (let (id)
+    (pcase (or (org-roam-capture--get :if-new)
+               (user-error "Template needs to specify `:if-new'"))
+      (`(file ,path)
+       (setq path (expand-file-name
+                   (s-trim (org-roam-capture--fill-template path t))
+                   org-roam-directory))
+       (set-buffer (org-capture-target-buffer path))
+       (widen)
+       (org-roam-capture--add-ref)
+       (setq id (org-id-get-create)))
+      (`(file+olp ,path ,olp)
+       (setq path (expand-file-name
+                   (s-trim (org-roam-capture--fill-template path t))
+                   org-roam-directory))
+       (set-buffer (org-capture-target-buffer path))
+       (org-with-point-at 1
+         (org-roam-capture--add-ref)
+         (setq id (org-id-get-create)))
+       (let ((m (org-roam-capture-find-or-create-olp olp)))
+         (goto-char m))
+       (widen))
+      (`(file+head ,path ,head)
+       (setq path (expand-file-name
+                   (s-trim (org-roam-capture--fill-template path t))
+                   org-roam-directory))
+       (let ((exists-p (file-exists-p path)))
+         (set-buffer (org-capture-target-buffer path))
+         (unless exists-p
+           (insert (org-roam-capture--fill-template head t))))
+       (widen)
+       (org-with-point-at 1
+         (org-roam-capture--add-ref)
+         (setq id (org-id-get-create))))
+      (`(file+head+olp ,path ,head ,olp)
+       (setq path (expand-file-name
+                   (s-trim (org-roam-capture--fill-template path t))
+                   org-roam-directory))
+       (widen)
+       (let ((exists-p (file-exists-p path)))
+         (set-buffer (org-capture-target-buffer path))
+         (unless exists-p
+           (insert (org-roam-capture--fill-template head t))))
+       (org-with-point-at 1
+         (org-roam-capture--add-ref)
+         (setq id (org-id-get-create)))
+       (let ((m (org-roam-capture-find-or-create-olp olp)))
+         (goto-char m)))
+      ;; TODO: support node
+      )
+    id))
 
 (defun org-roam-capture-find-or-create-olp (olp)
   "Return a marker pointing to the entry at OLP in the current buffer.
@@ -431,83 +593,61 @@ you can catch it with `condition-case'."
        (setq lmin (1+ flevel) lmax (+ lmin (if org-odd-levels-only 1 0)))
        (setq start found
              end (save-excursion (org-end-of-subtree t t))))
-     (point-marker))))
+     (copy-marker end))))
 
-(defun org-roam-capture--get-ref-path (type path)
-  "Get the file path to the ref with TYPE and PATH."
-  (caar (org-roam-db-query
-         [:select [file]
-          :from refs
-          :where (= type $s1)
-          :and (= ref $s2)
-          :limit 1]
-         type path)))
+(defun org-roam-capture--get-ref-path (ref)
+  "Return the file and point of reference REF."
+  (save-match-data
+    (when (string-match org-link-plain-re ref)
+      (let ((type (match-string 1 ref))
+            (path (match-string 2 ref)))
+        (car (org-roam-db-query
+              [:select [nodes:file pos]
+               :from refs
+               :left-join nodes
+               :on (= refs:node-id nodes:id)
+               :where (= refs:type $s1)
+               :and (= refs:ref $s2)
+               :limit 1]
+              type path))))))
 
 (defun org-roam-capture--get-point ()
   "Return exact point to file for org-capture-template.
-The file to use is dependent on the context:
-
-If the search is via title, it is assumed that the file does not
-yet exist, and Org-roam will attempt to create new file.
-
-If the search is via daily notes, 'time will be passed via
-`org-roam-capture--info'. This is used to alter the default time
-in `org-capture-templates'.
-
-If the search is via ref, it is matched against the Org-roam database.
-If there is no file with that ref, a file with that ref is created.
-
 This function is used solely in Org-roam's capture templates: see
 `org-roam-capture-templates'."
-  (let* ((file-path (pcase org-roam-capture--context
-                      ('capture
-                       (or (cdr (assoc 'file org-roam-capture--info))
-                           (org-roam-capture--new-file)))
-                      ('title
-                       (org-roam-capture--new-file))
-                      ('dailies
-                       (org-capture-put :default-time (cdr (assoc 'time org-roam-capture--info)))
-                       (org-roam-capture--new-file 'allow-existing))
-                      ;; ('ref
-                      ;;  (if-let ((ref (cdr (assoc 'ref org-roam-capture--info))))
-                      ;;      (pcase (org-roam--split-ref ref)
-                      ;;        (`(,type . ,path)
-                      ;;         (or (org-roam-capture--get-ref-path type path)
-                      ;;             (org-roam-capture--new-file)))
-                      ;;        (_ (user-error "%s is not a valid ref" ref)))
-                      ;;    (error "Ref not found in `org-roam-capture--info'")))
-                      (_ (error "Invalid org-roam-capture-context")))))
+  (let ((id (cond ((plist-get org-roam-capture--info :ref)
+                   (if-let ((file-pos (org-roam-capture--get-ref-path
+                                       (plist-get org-roam-capture--info :ref))))
+                       (progn
+                         (set-buffer (org-capture-target-buffer (car file-pos)))
+                         (goto-char (cdr file-pos))
+                         (widen))
+                     (org-roam-capture--goto-location)))
+                  ((and (org-roam-node-file org-roam-capture--node)
+                        (org-roam-node-point org-roam-capture--node))
+                   (set-buffer (org-capture-target-buffer (org-roam-node-file org-roam-capture--node)))
+                   (goto-char (org-roam-node-point org-roam-capture--node))
+                   (widen)
+                   (org-end-of-subtree t t)
+                   (org-roam-node-id org-roam-capture--node))
+                  (t
+                   (org-roam-capture--goto-location)))))
     (org-capture-put :template
                      (org-roam-capture--fill-template (org-capture-get :template)))
-    (org-roam-capture--put :file-path file-path
-                           :finalize (or (org-capture-get :finalize)
-                                         (org-roam-capture--get :finalize)))
-    (while org-roam-capture-additional-template-props
-      (let ((prop (pop org-roam-capture-additional-template-props))
-            (val (pop org-roam-capture-additional-template-props)))
-        (org-roam-capture--put prop val)))
-    (set-buffer (org-capture-target-buffer file-path))
-    (widen)
-    (if-let* ((olp (org-roam-capture--get :olp)))
-        (condition-case err
-            (when-let ((marker (org-roam-capture-find-or-create-olp olp)))
-              (goto-char marker)
-              (set-marker marker nil))
-          (error
-           (when (org-roam-capture--get :new-file)
-             (kill-buffer))
-           (signal (car err) (cdr err))))
-      (goto-char (point-max)))))
+    (org-roam-capture--put :id id)
+    (org-roam-capture--put :finalize (or (org-capture-get :finalize)
+                                         (org-roam-capture--get :finalize)))))
 
-(defun org-roam-capture--convert-template (template)
-  "Convert TEMPLATE from Org-roam syntax to `org-capture-templates' syntax."
+(defun org-roam-capture--convert-template (template &optional props)
+  "Convert TEMPLATE from Org-roam syntax to `org-capture-templates' syntax.
+PROPS is a plist containing additional Org-roam specific
+properties to be added to the template."
   (pcase template
-    (`(,_key ,_description) template)
-    (`(,key ,description ,type ,target . ,rest)
-     (let ((converted `(,key ,description ,type ,target
-                             ,(unless (keywordp (car rest)) (pop rest))))
-           org-roam-plist
-           options)
+    (`(,key ,desc)
+     template)
+    (`(,key ,desc ,type ,body . ,rest)
+     (setq rest (append rest props))
+     (let (org-roam-plist options)
        (while rest
          (let* ((key (pop rest))
                 (val (pop rest))
@@ -515,22 +655,33 @@ This function is used solely in Org-roam's capture templates: see
            (when (and custom
                       (not val))
              (user-error "Invalid capture template format: %s\nkey %s cannot be nil" template key))
-           (push val (if custom org-roam-plist options))
-           (push key (if custom org-roam-plist options))))
-       (append converted options `(:org-roam ,org-roam-plist))))
-    (_ (user-error "Invalid capture template format: %s" template))))
+           (if custom
+               (setq org-roam-plist (plist-put org-roam-plist key val))
+             (setq options (plist-put options key val)))))
+       (append `(,key ,desc ,type #'org-roam-capture--get-point ,body)
+               options
+               (list :org-roam org-roam-plist))))
+    (_
+     (signal 'invalid-template template))))
 
-(cl-defun org-roam-capture--capture (&key goto keys info context)
+;;;###autoload
+(cl-defun org-roam-capture- (&key goto keys node info props templates)
   "Main entry point.
 GOTO and KEYS correspond to `org-capture' arguments.
 INFO is an alist for filling up Org-roam's capture templates.
-CONTEXT is the context of the call. TODO fix this"
-  (let* ((org-capture-templates
-          (mapcar #'org-roam-capture--convert-template org-roam-capture-templates))
-         (org-roam-capture--info info)
-         (org-roam-capture--context context)
-         (one-template-p (= (length org-capture-templates) 1)))
-    (when one-template-p
+NODE is an `org-roam-node' construct containing information about the node.
+PROPS is a plist containing additional Org-roam properties for each template.
+TEMPLATES is a list of org-roam templates."
+  (let* ((m (point-marker))
+         (props (plist-put props :call-location m))
+         (org-capture-templates
+          (mapcar (lambda (t)
+                    (org-roam-capture--convert-template t props))
+                  (or templates org-roam-capture-templates)))
+         (org-roam-capture--node node)
+         (org-roam-capture--info info))
+    (when (and (not keys)
+               (= (length org-capture-templates) 1))
       (setq keys (caar org-capture-templates)))
     (org-capture goto keys)))
 
@@ -541,13 +692,10 @@ This uses the templates defined at `org-roam-capture-templates'.
 Arguments GOTO and KEYS see `org-capture'."
   (interactive "P")
   (let ((node (org-roam-node-read)))
-    (org-roam-capture--capture :goto goto
-                               :keys keys
-                               :info `((title . ,(org-roam-node-title node))
-                                       (slug . ,(funcall org-roam-title-to-slug-function
-                                                         (org-roam-node-title node)))
-                                       (file . ,(org-roam-node-file node)))
-                               :context 'capture)))
+    (org-roam-capture- :goto goto
+                       :keys keys
+                       :node node
+                       :props '(:immediate-finish nil))))
 
 (provide 'org-roam-capture)
 

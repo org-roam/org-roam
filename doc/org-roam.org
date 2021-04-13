@@ -569,7 +569,7 @@ the default template, reproduced below.
 3. ~plain~ text is inserted. Other options include Org headings via
    ~entry~.
 4. ~(function org-roam--capture-get-point)~ should not be changed.
-5. ~"%?"~ is the template inserted on each call to ~org-roam-capture--capture~.
+5. ~"%?"~ is the template inserted on each call to ~org-roam-capture-~.
    This template means don't insert any content, but place the cursor here.
 6. ~:file-name~ is the file-name template for a new note, if it doesn't yet
    exist. This creates a file at path that looks like
@@ -1540,8 +1540,8 @@ variable using directory-local variables. This is what ~.dir-locals.el~ may
 contain:
 
 #+BEGIN_SRC emacs-lisp
-    ((nil . ((org-roam-directory . ".")
-             (org-roam-db-location . "./org-roam.db"))))
+  ((nil . ((org-roam-directory . (expand-file-name "."))
+           (org-roam-db-location . (expand-file-name "./org-roam.db")))))
 #+END_SRC
 
 All files within that directory will be treated as their own separate set of

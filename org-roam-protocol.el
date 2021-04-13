@@ -37,6 +37,8 @@
 ;;; Code:
 (require 'org-protocol)
 (require 'org-roam)
+(eval-when-compile
+  (require 'org-roam-macs))
 (require 'ol) ;; for org-link-decode
 
 (defcustom org-roam-protocol-store-links nil
@@ -54,37 +56,32 @@ It opens or creates a note with the given ref.
         encodeURIComponent(location.href) + \\='&title=\\=' + \\
         encodeURIComponent(document.title) + \\='&body=\\=' + \\
         encodeURIComponent(window.getSelection())"
-  (when-let* ((alist (org-roam--plist-to-alist info))
-              (decoded-alist (mapcar (lambda (k.v)
-                                       (let ((key (car k.v))
-                                             (val (cdr k.v)))
-                                         (cons key (org-link-decode val)))) alist)))
-    (unless (assoc 'ref decoded-alist)
-      (error "No ref key provided"))
-    (when-let ((title (cdr (assoc 'title decoded-alist))))
-      (push (cons 'slug (funcall org-roam-title-to-slug-function title)) decoded-alist))
-    (let-alist decoded-alist
-      (let* ((ref (org-protocol-sanitize-uri .ref))
-             (type (and (string-match org-link-plain-re ref)
-                        (match-string 1 ref)))
-             (title (or .title ""))
-             (body (or .body ""))
-             (orglink
-              (org-link-make-string ref (or (org-string-nw-p title) ref))))
-        (when org-roam-protocol-store-links
-          (push (list ref title) org-stored-links))
-        (org-link-store-props :type type
-                              :link ref
-                              :annotation orglink
-                              :initial body)))
-    (let* ((org-roam-capture-templates org-roam-capture-ref-templates)
-           (org-roam-capture--context 'ref)
-           (org-roam-capture--info decoded-alist)
-           (org-capture-link-is-already-stored t)
-           (template (cdr (assoc 'template decoded-alist))))
-      (raise-frame)
-      (org-roam-capture--capture nil template)
-      (org-roam-message "Item captured.")))
+  (unless (plist-get info :ref)
+    (user-error "No ref key provided"))
+  (org-roam-plist-map! (lambda (k v)
+                         (when (equal k :ref)
+                           (setq v (org-protocol-sanitize-uri v)))
+                         (org-link-decode v)) info)
+  (when org-roam-protocol-store-links
+    (push (list (plist-get info :ref)
+                (plist-get info :title)) org-stored-links))
+  (org-link-store-props :type (and (string-match org-link-plain-re
+                                                 (plist-get info :ref))
+                                   (match-string 1 (plist-get info :ref)))
+                        :link (plist-get info :ref)
+                        :annotation (org-link-make-string (plist-get info :ref)
+                                                          (or (plist-get info :title)
+                                                              (plist-get info :ref)))
+                        :initial (or (plist-get info :body)
+                                     ""))
+  (raise-frame)
+  (org-roam-capture-
+   :keys (plist-get info :template)
+   :info (list :node (org-roam-node-create :title (plist-get info :title))
+               :ref (plist-get info :ref)
+               :body (plist-get info :body))
+   :props (list :ref (plist-get info :ref))
+   :templates org-roam-capture-ref-templates)
   nil)
 
 (defun org-roam-protocol-open-file (info)

@@ -61,67 +61,70 @@
   :type 'hook)
 
 (defcustom org-roam-dailies-capture-templates
-  `(("d" "default" entry (function org-roam-capture--get-point)
+  '(("d" "default" entry
      "* %?"
-     :file-name ,(concat org-roam-dailies-directory "%<%Y-%m-%d>")
-     :head "#+title: %<%Y-%m-%d>\n"))
-  "Capture templates for daily-notes in Org-roam."
+     :if-new `(file+head ,(concat org-roam-dailies-directory "%<%Y-%m-%d>.org")
+                         "#+title: %<%Y-%m-%d>\n")))
+  "Capture templates for daily-notes in Org-roam.
+See `org-roam-capture-templates' for the template documentation."
   :group 'org-roam
-  ;; Adapted from `org-capture-templates'
-  :type
-  `(repeat
-    (choice :value ("d" "default" plain (function org-roam-capture--get-point)
-                    "%?"
-                    :file-name ,(concat org-roam-dailies-directory
-                                        "%<%Y-%m-%d>")
-                    :head "#+title: %<%Y-%m-%d>\n"
-                    :unnarrowed t)
-            (list :tag "Multikey description"
-                  (string :tag "Keys       ")
-                  (string :tag "Description"))
-            (list :tag "Template entry"
-                  (string :tag "Keys              ")
-                  (string :tag "Description       ")
-                  (choice :tag "Type              "
-                          (const :tag "Plain" plain)
-                          (const :tag "Entry (for creating headlines)" entry))
-                  (const :format "" #'org-roam-capture--get-point)
-                  (choice :tag "Template          "
-                          (string :tag "String"
-                                  :format "String:\n            \
-Template string   :\n%v")
-                          (list :tag "File"
-                                (const :format "" file)
-                                (file :tag "Template file     "))
-                          (list :tag "Function"
-                                (const :format "" function)
-                                (function :tag "Template function ")))
-                  (const :format "File name format  :" :file-name)
-                  (string :format " %v" :value ,(concat org-roam-dailies-directory
-                                                        "%<%Y-%m-%d>"))
-                  (const :format "Header format     :" :head)
-                  (string :format " %v" :value "#+title: ${title}\n")
-                  (plist :inline t
-                         :tag "Options"
-                         ;; Give the most common options as checkboxes
-                         :options
-                         (((const :tag "Outline path" :olp)
-                           (repeat :tag "Headings"
-                                   (string :tag "Heading")))
-                          ((const :format "%v " :unnarrowed) (const t))
-                          ((const :format "%v " :prepend) (const t))
-                          ((const :format "%v " :immediate-finish) (const t))
-                          ((const :format "%v " :jump-to-captured) (const t))
-                          ((const :format "%v " :empty-lines) (const 1))
-                          ((const :format "%v " :empty-lines-before) (const 1))
-                          ((const :format "%v " :empty-lines-after) (const 1))
-                          ((const :format "%v " :clock-in) (const t))
-                          ((const :format "%v " :clock-keep) (const t))
-                          ((const :format "%v " :clock-resume) (const t))
-                          ((const :format "%v " :time-prompt) (const t))
-                          ((const :format "%v " :tree-type) (const week))
-                          ((const :format "%v " :table-line-pos) (string))
-                          ((const :format "%v " :kill-buffer) (const t))))))))
+  :type '(repeat
+          (choice (list :tag "Multikey description"
+                        (string :tag "Keys       ")
+                        (string :tag "Description"))
+                  (list :tag "Template entry"
+                        (string :tag "Keys           ")
+                        (string :tag "Description    ")
+                        (choice :tag "Capture Type   " :value entry
+                                (const :tag "Org entry" entry)
+                                (const :tag "Plain list item" item)
+                                (const :tag "Checkbox item" checkitem)
+                                (const :tag "Plain text" plain)
+                                (const :tag "Table line" table-line))
+                        (choice :tag "Template       "
+                                (string)
+                                (list :tag "File"
+                                      (const :format "" file)
+                                      (file :tag "Template file"))
+                                (list :tag "Function"
+                                      (const :format "" function)
+                                      (function :tag "Template function")))
+                        (plist :inline t
+                               ;; Give the most common options as checkboxes
+                               :options (((const :format "%v " :if-new)
+                                          (choice :tag "Node location"
+                                                  (list :tag "File"
+                                                        (const :format "" file)
+                                                        (string :tag "  File"))
+                                                  (list :tag "File & Head Content"
+                                                        (const :format "" file+head)
+                                                        (string :tag "  File")
+                                                        (string :tag "  Head Content"))
+                                                  (list :tag "File & Outline path"
+                                                        (const :format "" file+olp)
+                                                        (string :tag "  File")
+                                                        (list :tag "Outline path"
+                                                              (repeat string :tag "Headline")))
+                                                  (list :tag "File & Head Content & Outline path"
+                                                        (const :format "" file+head+olp)
+                                                        (string :tag "  File")
+                                                        (string :tag "  Head Content")
+                                                        (list :tag "Outline path"
+                                                              (repeat string :tag "Headline")))))
+                                         ((const :format "%v " :prepend) (const t))
+                                         ((const :format "%v " :immediate-finish) (const t))
+                                         ((const :format "%v " :jump-to-captured) (const t))
+                                         ((const :format "%v " :empty-lines) (const 1))
+                                         ((const :format "%v " :empty-lines-before) (const 1))
+                                         ((const :format "%v " :empty-lines-after) (const 1))
+                                         ((const :format "%v " :clock-in) (const t))
+                                         ((const :format "%v " :clock-keep) (const t))
+                                         ((const :format "%v " :clock-resume) (const t))
+                                         ((const :format "%v " :time-prompt) (const t))
+                                         ((const :format "%v " :tree-type) (const week))
+                                         ((const :format "%v " :unnarrowed) (const t))
+                                         ((const :format "%v " :table-line-pos) (string))
+                                         ((const :format "%v " :kill-buffer) (const t))))))))
 
 ;;;; Utilities
 (defun org-roam-dailies-directory--get-absolute-path ()
@@ -150,13 +153,10 @@ If FILE is not specified, use the current buffer's file-path."
   "Capture an entry in a daily-note for TIME, creating it if necessary.
 
 When GOTO is non-nil, go the note without creating an entry."
-  (let ((org-roam-capture-templates (--> org-roam-dailies-capture-templates
-                                      (if goto (list (car it)) it)))
-        (org-roam-capture--info (list (cons 'time time)))
-        (org-roam-capture--context 'dailies))
-    (org-roam-capture--capture :goto (when goto '(4))
-                               :info (list (cons 'time time))
-                               :context 'dailies)))
+  (org-roam-capture- :goto (when goto '(4))
+                     :node (org-roam-node-create)
+                     :templates org-roam-dailies-capture-templates
+                     :props (list :default-time time)))
 
 ;;;; Commands
 ;;; Today
@@ -271,7 +271,6 @@ creating an entry."
 
 (defun org-roam-dailies-find-date (&optional prefer-future)
   "Find the daily-note for a date using the calendar, creating it if necessary.
-
 Prefer past dates, unless PREFER-FUTURE is non-nil."
   (interactive)
   (org-roam-dailies-capture-date t prefer-future))

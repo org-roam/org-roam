@@ -30,6 +30,18 @@
 ;; This library implements macros used throughout org-roam.
 ;;
 ;;; Code:
+(defmacro org-roam-plist-map! (fn plist)
+  "Map FN over PLIST, modifying it in-place."
+  (declare (indent 1))
+  (let ((plist-var (make-symbol "plist"))
+        (k (make-symbol "k"))
+        (v (make-symbol "v")))
+    `(let ((,plist-var (copy-sequence ,plist)))
+       (while ,plist-var
+         (setq ,k (pop ,plist-var))
+         (setq ,v (pop ,plist-var))
+         (setq ,plist (plist-put ,plist ,k (funcall ,fn ,k ,v)))))))
+
 (defmacro org-roam-with-file (file keep-buf-p &rest body)
   "Execute BODY within FILE.
 If FILE is nil, execute BODY in the current buffer.
