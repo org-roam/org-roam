@@ -174,7 +174,7 @@ run Org-capture's template expansion."
                        (let ((fn (intern (concat "org-roam-node-" key))))
                          (if (fboundp fn)
                              (funcall fn org-roam-capture--node)
-                           p(completing-read (format "%s: " key) nil)))))))
+                           (completing-read (format "%s: " key) nil)))))))
 
 (defun org-roam-capture--goto-location ()
   "Initialize the buffer, and goto the location of the new capture.
