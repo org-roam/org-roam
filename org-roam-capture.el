@@ -179,41 +179,57 @@ run Org-capture's template expansion."
 (defun org-roam-capture--goto-location ()
   "Initialize the buffer, and goto the location of the new capture.
 Return the ID of the location."
-  (pcase (or (org-roam-capture--get :if-new)
-             (user-error "Template needs to specify `:if-new'"))
-    (`(file ,path)
-     (setq path (expand-file-name
-                 (s-trim (org-roam-capture--fill-template path t))
-                 org-roam-directory))
-     (set-buffer (org-capture-target-buffer path))
-     (widen)
-     (org-roam-capture--add-ref)
-     (org-id-get-create))
-    (`(file+olp ,path ,olp)
-     (setq path (expand-file-name
-                 (s-trim (org-roam-capture--fill-template path t))
-                 org-roam-directory))
-     (set-buffer (org-capture-target-buffer path))
-     (let ((m (org-roam-capture-find-or-create-olp olp)))
-       (goto-char m))
-     (widen)
-     (org-with-point-at 1
-       (org-roam-capture--add-ref)
-       (org-id-get-create)))
-    (`(file+head ,path ,head)
-     (setq path (expand-file-name
-                 (s-trim (org-roam-capture--fill-template path t))
-                 org-roam-directory))
-     (let ((exists-p (file-exists-p path)))
+  (let (id)
+    (pcase (or (org-roam-capture--get :if-new)
+               (user-error "Template needs to specify `:if-new'"))
+      (`(file ,path)
+       (setq path (expand-file-name
+                   (s-trim (org-roam-capture--fill-template path t))
+                   org-roam-directory))
        (set-buffer (org-capture-target-buffer path))
-       (unless exists-p
-         (insert (org-roam-capture--fill-template head t))))
-     (widen)
-     (org-with-point-at 1
+       (widen)
        (org-roam-capture--add-ref)
-       (org-id-get-create)))
-    ;; TODO: support node
-    ))
+       (setq id (org-id-get-create)))
+      (`(file+olp ,path ,olp)
+       (setq path (expand-file-name
+                   (s-trim (org-roam-capture--fill-template path t))
+                   org-roam-directory))
+       (set-buffer (org-capture-target-buffer path))
+       (org-with-point-at 1
+         (org-roam-capture--add-ref)
+         (setq id (org-id-get-create)))
+       (let ((m (org-roam-capture-find-or-create-olp olp)))
+         (goto-char m))
+       (widen))
+      (`(file+head ,path ,head)
+       (setq path (expand-file-name
+                   (s-trim (org-roam-capture--fill-template path t))
+                   org-roam-directory))
+       (let ((exists-p (file-exists-p path)))
+         (set-buffer (org-capture-target-buffer path))
+         (unless exists-p
+           (insert (org-roam-capture--fill-template head t))))
+       (widen)
+       (org-with-point-at 1
+         (org-roam-capture--add-ref)
+         (setq id (org-id-get-create))))
+      (`(file+head+olp ,path ,head ,olp)
+       (setq path (expand-file-name
+                   (s-trim (org-roam-capture--fill-template path t))
+                   org-roam-directory))
+       (widen)
+       (let ((exists-p (file-exists-p path)))
+         (set-buffer (org-capture-target-buffer path))
+         (unless exists-p
+           (insert (org-roam-capture--fill-template head t))))
+       (org-with-point-at 1
+         (org-roam-capture--add-ref)
+         (setq id (org-id-get-create)))
+       (let ((m (org-roam-capture-find-or-create-olp olp)))
+         (goto-char m)))
+      ;; TODO: support node
+      )
+    id))
 
 (defun org-roam-capture-find-or-create-olp (olp)
   "Return a marker pointing to the entry at OLP in the current buffer.
@@ -257,7 +273,7 @@ you can catch it with `condition-case'."
        (setq lmin (1+ flevel) lmax (+ lmin (if org-odd-levels-only 1 0)))
        (setq start found
              end (save-excursion (org-end-of-subtree t t))))
-     (point-marker))))
+     (copy-marker end))))
 
 (defun org-roam-capture--get-ref-path (ref)
   "Return the file and point of reference REF."
