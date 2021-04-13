@@ -114,17 +114,17 @@ the capture)."
 
 (advice-add 'org-capture-finalize :before #'org-roam-capture--update-plist)
 
-(cl-defun org-roam-capture--finalize-find-file (&key id)
+(defun org-roam-capture--finalize-find-file ()
   "Visit the buffer after Org-capture is done.
 This function is to be called in the Org-capture finalization process.
 ID is unused."
   (switch-to-buffer (org-capture-get :buffer)))
 
-(cl-defun org-roam-capture--finalize-insert-link (&key id)
+(defun org-roam-capture--finalize-insert-link ()
   "Insert a link to ID into the buffer where Org-capture was called.
 ID is the Org id of the newly captured content.
 This function is to be called in the Org-capture finalization process."
-  (when-let* ((mkr (org-roam-capture--get :insert-at))
+  (when-let* ((mkr (org-roam-capture--get :call-location))
               (buf (marker-buffer mkr)))
     (with-current-buffer buf
       (when-let ((region (org-roam-capture--get :region)))
@@ -133,7 +133,7 @@ This function is to be called in the Org-capture finalization process."
         (set-marker (car region) nil)
         (set-marker (cdr region) nil))
       (org-with-point-at mkr
-        (insert (org-link-make-string (concat "id:" id)
+        (insert (org-link-make-string (org-roam-capture--get :id)
                                       (org-roam-capture--get :link-description)))))))
 
 (defun org-roam-capture--add-ref ()
@@ -151,11 +151,9 @@ This function is to be called in the Org-capture finalization process."
   (when-let ((region (org-roam-capture--get :region)))
     (org-roam-unshield-region (car region) (cdr region)))
   (unless org-note-abort
-
     (when-let ((finalize (org-roam-capture--get :finalize)))
       (funcall (intern (concat "org-roam-capture--finalize-"
-                               (symbol-name (org-roam-capture--get :finalize))))
-               :id (org-roam-capture--get :id))))
+                               (symbol-name (org-roam-capture--get :finalize)))))))
   (remove-hook 'org-capture-after-finalize-hook #'org-roam-capture--finalize))
 
 (defun org-roam-capture--install-finalize ()
