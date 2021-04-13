@@ -199,10 +199,9 @@ string using `org-capture-fill-template'."
                      (funcall fn org-roam-capture--node)
                    (completing-read (format "%s: " key) nil)))))))
 
-(defun org-roam-capture--set-target-location (&optional target)
-  "Find TARGET buffer and position."
-  (pcase (or target
-             (org-roam-capture--get :if-new)
+(defun org-roam-capture--goto-location ()
+  "Initialize the buffer, and goto the location of the new capture."
+  (pcase (or (org-roam-capture--get :if-new)
              (user-error "Template needs to specify `:if-new'"))
     (`(file ,path)
      (setq path (expand-file-name
@@ -300,14 +299,14 @@ This function is used solely in Org-roam's capture templates: see
                (set-buffer (org-capture-target-buffer (car file-pos)))
                (goto-char (cdr file-pos))
                (widen))
-           (org-roam-capture--set-target-location)))
+           (org-roam-capture--goto-location)))
         ((and (org-roam-node-file org-roam-capture--node)
               (org-roam-node-point org-roam-capture--node))
          (set-buffer (org-capture-target-buffer (org-roam-node-file org-roam-capture--node)))
          (goto-char (org-roam-node-point org-roam-capture--node))
          (org-end-of-subtree))
         (t
-         (org-roam-capture--set-target-location)))
+         (org-roam-capture--goto-location)))
   (org-capture-put :template
                    (org-roam-capture--fill-template (org-capture-get :template)))
   (org-roam-capture--put :finalize (or (org-capture-get :finalize)
