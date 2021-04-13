@@ -63,18 +63,20 @@ during the Org-roam capture process.")
 
 Each entry is a list with the following items:
 
-keys        The keys that will select the template, as a string, characters only,
-            for example \"a\" for a template to be selected with a single key, or \"bt\"
-            for selection with two keys. When using several keys, keys using the same prefix
-            must be together in the list and preceded by a 2-element entry
-            explaining the prefix key, for example:
+keys   The keys that will select the template, as a string, characters only, for
+       example \"a\" for a template to be selected with a single key, or
+       \"bt\" for selection with two keys. When using several keys, keys
+       using the same prefix must be together in the list and preceded by a
+       2-element entry explaining the prefix key, for example:
 
                    (\"b\" \"Templates for marking stuff to buy\")
 
-            The \"C\" key is used by default for quick access to the customization of
-            the template variable. But if you want to use that key for a template, you can.
+       The \"C\" key is used by default for quick access to the customization of
+       the template variable. But if you want to use that key for a template,
+       you can.
 
-description   A short string describing the template, which will be shown during selection.
+description   A short string describing the template, which will be shown
+              during selection.
 
 type       The type of entry. Valid types are:
                entry       an Org node, with a headline.  Will be filed
@@ -218,7 +220,7 @@ be replaced with content and expanded:
   %k          Title of currently clocked task.
   %K          Link to currently clocked task.
   %n          User name (taken from the variable `user-full-name').
-  %f          File visited by current buffer when org-capture was called.
+  %f          File visited by current buffer when `org-capture' was called.
   %F          Full path of the file or directory visited by current buffer.
   %:keyword   Specific information for certain link types, see below.
   %^g         Prompt for tags, with completion on tags in target file.
