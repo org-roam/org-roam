@@ -61,11 +61,10 @@
   :type 'hook)
 
 (defcustom org-roam-dailies-capture-templates
-  (list (list :key "d"
-              :desc "default"
-              :body "* %?"
-              :if-new `(file+head ,(concat org-roam-dailies-directory "%<%Y-%m-%d>.org")
-                                  "#+title: %<%Y-%m-%d>\n")))
+  '(("d" "default" entry
+     "* %?"
+     :if-new `(file+head ,(concat org-roam-dailies-directory "%<%Y-%m-%d>.org")
+                         "#+title: %<%Y-%m-%d>\n")))
   "Capture templates for daily-notes in Org-roam."
   :group 'org-roam
   :type

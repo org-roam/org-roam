@@ -54,12 +54,10 @@ during the Org-roam capture process.")
   "Keywords used in `org-roam-capture-templates' specific to Org-roam.")
 
 (defcustom org-roam-capture-templates
-  (list (list :key "d"
-              :desc "default"
-              :body "%?"
-              :if-new '(file+head "%<%Y%m%d%H%M%S>-${slug}.org"
-                                  "#+title: ${title}\n")
-              :unnarrowed t))
+  '(("d" "default" plain "%?"
+     :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
+                        "#+title: ${title}\n")
+     :unnarrowed t))
   "Capture templates for Org-roam.
 
 TODO: Document this"
@@ -68,12 +66,10 @@ TODO: Document this"
   )
 
 (defcustom org-roam-capture-ref-templates
-  (list (list :key "r"
-              :desc "ref"
-              :body "%?"
-              :if-new '(file+head "${slug}.org"
-                                  "#+title: ${title}")
-              :unnarrowed t))
+  '(("r" "ref" plain "%?"
+     :if-new (file+head "${slug}.org"
+                        "#+title: ${title}")
+     :unnarrowed t))
   "The Org-roam templates used during a capture from the roam-ref protocol.
 Details on how to specify for the template is given in `org-roam-capture-templates'."
   :group 'org-roam
@@ -140,42 +136,27 @@ This function is to be called in the Org-capture finalization process."
         (insert (org-link-make-string (concat "id:" id)
                                       (org-roam-capture--get :link-description)))))))
 
-(defun org-roam-capture--finalize-create-id ()
-  "Get ID for newly captured information."
-  (let ((buf (org-capture-get :buffer))
-        (pos (org-capture-get :exact-position)))
-    (with-current-buffer buf
-      (org-with-point-at pos
-        (org-id-get-create)))))
-
-(defun org-roam-capture--add-ref (ref)
+(defun org-roam-capture--add-ref ()
   "Add REF to the newly captured item."
-  (let ((buf (org-capture-get :buffer))
-        (pos (org-capture-get :exact-position))
-        ref-lst)
-    (with-current-buffer buf
-      (org-with-point-at pos
-        (setq ref-lst (org-entry-get (point) "ROAM_REFS"))
-        (setq ref-lst (if ref-lst
-                          (cl-pushnew (split-string-and-unquote ref-lst) ref)
-                        (list ref)))
-        (org-set-property "ROAM_REFS" (combine-and-quote-strings ref-lst))))))
+  (when-let ((ref (org-roam-capture--get :ref)))
+    (let ((ref-lst (org-entry-get (point) "ROAM_REFS")))n
+    (setq ref-lst (if ref-lst
+                      (cl-pushnew (split-string-and-unquote ref-lst) ref)
+                    (list ref)))
+    (org-set-property "ROAM_REFS" (combine-and-quote-strings ref-lst)))
+      (org-roam-capture--add-ref ref)))
 
 (defun org-roam-capture--finalize ()
   "Finalize the `org-roam-capture' process."
-  (let ((region (org-roam-capture--get :region))
-        id)
-    (when region
-      (org-roam-unshield-region (car region) (cdr region)))
-    (unless org-note-abort
-      (setq id (org-roam-capture--finalize-create-id))
-      (when-let ((ref (org-roam-capture--get :ref)))
-        (org-roam-capture--add-ref ref))
-      (when-let ((finalize (org-roam-capture--get :finalize)))
-        (funcall (intern (concat "org-roam-capture--finalize-"
-                                 (symbol-name (org-roam-capture--get :finalize))))
-                 :id id)))
-    (remove-hook 'org-capture-after-finalize-hook #'org-roam-capture--finalize)))
+  (when-let ((region (org-roam-capture--get :region)))
+    (org-roam-unshield-region (car region) (cdr region)))
+  (unless org-note-abort
+
+    (when-let ((finalize (org-roam-capture--get :finalize)))
+      (funcall (intern (concat "org-roam-capture--finalize-"
+                               (symbol-name (org-roam-capture--get :finalize))))
+               :id (org-roam-capture--get :id))))
+  (remove-hook 'org-capture-after-finalize-hook #'org-roam-capture--finalize))
 
 (defun org-roam-capture--install-finalize ()
   "Install `org-roam-capture--finalize' if the capture is an Org-roam capture."
@@ -184,48 +165,53 @@ This function is to be called in the Org-capture finalization process."
 
 (add-hook 'org-capture-prepare-finalize-hook #'org-roam-capture--install-finalize)
 
-(defun org-roam-capture--fill-template (str)
-  "Expand the template STR, returning the string.
-This is an extension of org-capture's template expansion.
-
-First, it expands ${var} occurrences in STR, using the node in
-`org-roam-capture--info'. Next, it expands the remaining template
-string using `org-capture-fill-template'."
-  (org-capture-fill-template
-   (s-format str
-             (lambda (key)
-               (let ((fn (intern (concat "org-roam-node-" key))))
-                 (if (fboundp fn)
-                     (funcall fn org-roam-capture--node)
-                   (completing-read (format "%s: " key) nil)))))))
+(defun org-roam-capture--fill-template (str &optional org-capture-p)
+  "Expand the template STR, returning the expanded template. It expands ${var} occurrences in STR.
+When ORG-CAPTURE-P, also run Org-capture's template expansion."
+  (funcall (if org-capture-p #'org-capture-fill-template #'identity)
+           (s-format str
+                     (lambda (key)
+                       (let ((fn (intern (concat "org-roam-node-" key))))
+                         (if (fboundp fn)
+                             (funcall fn org-roam-capture--node)
+                           p(completing-read (format "%s: " key) nil)))))))
 
 (defun org-roam-capture--goto-location ()
-  "Initialize the buffer, and goto the location of the new capture."
+  "Initialize the buffer, and goto the location of the new capture.
+Return the ID of the location."
   (pcase (or (org-roam-capture--get :if-new)
              (user-error "Template needs to specify `:if-new'"))
     (`(file ,path)
      (setq path (expand-file-name
-                 (s-trim (org-roam-capture--fill-template path))
+                 (s-trim (org-roam-capture--fill-template path t))
                  org-roam-directory))
      (set-buffer (org-capture-target-buffer path))
-     (widen))
+     (widen)
+     (org-roam-capture--add-ref)
+     (org-id-get-create))
     (`(file+olp ,path ,olp)
      (setq path (expand-file-name
-                 (s-trim (org-roam-capture--fill-template path))
+                 (s-trim (org-roam-capture--fill-template path t))
                  org-roam-directory))
      (set-buffer (org-capture-target-buffer path))
      (let ((m (org-roam-capture-find-or-create-olp olp)))
        (goto-char m))
-     (widen))
+     (widen)
+     (org-with-point-at 1
+       (org-roam-capture--add-ref)
+       (org-id-get-create)))
     (`(file+head ,path ,head)
      (setq path (expand-file-name
-                 (s-trim (org-roam-capture--fill-template path))
+                 (s-trim (org-roam-capture--fill-template path t))
                  org-roam-directory))
      (let ((exists-p (file-exists-p path)))
        (set-buffer (org-capture-target-buffer path))
        (unless exists-p
-         (insert (org-roam-capture--fill-template head))))
-     (widen))
+         (insert (org-roam-capture--fill-template head t))))
+     (widen)
+     (org-with-point-at 1
+       (org-roam-capture--add-ref)
+       (org-id-get-create)))
     ;; TODO: support node
     ))
 
@@ -292,55 +278,52 @@ you can catch it with `condition-case'."
   "Return exact point to file for org-capture-template.
 This function is used solely in Org-roam's capture templates: see
 `org-roam-capture-templates'."
-  (cond ((plist-get org-roam-capture--info :ref)
-         (if-let ((file-pos (org-roam-capture--get-ref-path
-                             (plist-get org-roam-capture--info :ref))))
-             (progn
-               (set-buffer (org-capture-target-buffer (car file-pos)))
-               (goto-char (cdr file-pos))
-               (widen))
-           (org-roam-capture--goto-location)))
-        ((and (org-roam-node-file org-roam-capture--node)
-              (org-roam-node-point org-roam-capture--node))
-         (set-buffer (org-capture-target-buffer (org-roam-node-file org-roam-capture--node)))
-         (goto-char (org-roam-node-point org-roam-capture--node))
-         (org-end-of-subtree))
-        (t
-         (org-roam-capture--goto-location)))
-  (org-capture-put :template
-                   (org-roam-capture--fill-template (org-capture-get :template)))
-  (org-roam-capture--put :finalize (or (org-capture-get :finalize)
-                                       (org-roam-capture--get :finalize))))
+  (let ((id (cond ((plist-get org-roam-capture--info :ref)
+                   (if-let ((file-pos (org-roam-capture--get-ref-path
+                                       (plist-get org-roam-capture--info :ref))))
+                       (progn
+                         (set-buffer (org-capture-target-buffer (car file-pos)))
+                         (goto-char (cdr file-pos))
+                         (widen))
+                     (org-roam-capture--goto-location)))
+                  ((and (org-roam-node-file org-roam-capture--node)
+                        (org-roam-node-point org-roam-capture--node))
+                   (set-buffer (org-capture-target-buffer (org-roam-node-file org-roam-capture--node)))
+                   (goto-char (org-roam-node-point org-roam-capture--node))
+                   (widen)
+                   (org-end-of-subtree t t)
+                   (org-roam-node-id org-roam-capture--node))
+                  (t
+                   (org-roam-capture--goto-location)))))
+    (org-capture-put :template
+                     (org-roam-capture--fill-template (org-capture-get :template)))
+    (org-roam-capture--put :id id)
+    (org-roam-capture--put :finalize (or (org-capture-get :finalize)
+                                         (org-roam-capture--get :finalize)))))
 
 (defun org-roam-capture--convert-template (template &optional props)
   "Convert TEMPLATE from Org-roam syntax to `org-capture-templates' syntax.
 PROPS is a plist containing additional Org-roam specific
 properties to be added to the template."
-  (let* ((key (or (plist-get template :key)
-                  (user-error "Template has no :key")))
-         (desc (or (plist-get template :desc)
-                   (user-error "Template has no :desc")))
-         (body (or (plist-get template :body)
-                   (user-error "Template has no :body")))
-         (rest (org-plist-delete template :key))
-         (rest (org-plist-delete rest :desc))
-         (rest (org-plist-delete rest :body))
-         (rest (append rest props))
-         org-roam-plist
-         options)
-    (while rest
-      (let* ((key (pop rest))
-             (val (pop rest))
-             (custom (member key org-roam-capture--template-keywords)))
-        (when (and custom
-                   (not val))
-          (user-error "Invalid capture template format: %s\nkey %s cannot be nil" template key))
-        (if custom
-            (setq org-roam-plist (plist-put org-roam-plist key val))
-          (setq options (plist-put options key val)))))
-    (append `(,key ,desc plain #'org-roam-capture--get-point ,body)
-            options
-            (list :org-roam org-roam-plist))))
+  (pcase template
+    (`(,key ,desc ,type ,body . ,rest)
+     (setq rest (append rest props))
+     (let (org-roam-plist options)
+       (while rest
+         (let* ((key (pop rest))
+                (val (pop rest))
+                (custom (member key org-roam-capture--template-keywords)))
+           (when (and custom
+                      (not val))
+             (user-error "Invalid capture template format: %s\nkey %s cannot be nil" template key))
+           (if custom
+               (setq org-roam-plist (plist-put org-roam-plist key val))
+             (setq options (plist-put options key val)))))
+       (append `(,key ,desc ,type #'org-roam-capture--get-point ,body)
+               options
+               (list :org-roam org-roam-plist))))
+    (_
+     (signal 'invalid-template template))))
 
 ;;;###autoload
 (cl-defun org-roam-capture- (&key goto keys node info props templates)
