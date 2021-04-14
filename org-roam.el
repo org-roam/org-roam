@@ -610,10 +610,11 @@ is the `org-roam-node'."
                                                               :title title
                                                               :point pos
                                                               :tags (gethash id tags-table)))
+                                  (candidate-main (org-roam-node--format-entry node (1- (frame-width))))
                                   (tag-str (org-roam--tags-to-str (org-roam-node-tags node))))
-                       (cons (propertize (concat tag-str " " alias)
-                                         'node node
-                                         'display (org-roam-node--format-entry node (1- (frame-width))))
+                       (cons (concat (propertize tag-str 'invisible t)
+                                     candidate-main
+                                     (propertize alias 'invisible t))
                              node)))))
 
 (defun org-roam-node-read (&optional initial-input filter-fn require-match)
