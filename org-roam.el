@@ -612,9 +612,9 @@ is the `org-roam-node'."
                                                               :tags (gethash id tags-table)))
                                   (candidate-main (org-roam-node--format-entry node (1- (frame-width))))
                                   (tag-str (org-roam--tags-to-str (org-roam-node-tags node))))
-                       (cons (concat (propertize tag-str 'invisible t)
+                       (cons (concat (propertize tag-str 'node node 'invisible t)
                                      (propertize candidate-main 'node node)
-                                     (propertize alias 'invisible t))
+                                     (propertize alias 'node node 'invisible t))
                              node)))))
 
 (defun org-roam-node-read (&optional initial-input filter-fn require-match)
