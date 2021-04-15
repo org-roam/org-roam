@@ -613,7 +613,7 @@ is the `org-roam-node'."
                                   (candidate-main (org-roam-node--format-entry node (1- (frame-width))))
                                   (tag-str (org-roam--tags-to-str (org-roam-node-tags node))))
                        (cons (concat (propertize tag-str 'invisible t)
-                                     candidate-main
+                                     (propertize candidate-main 'node node)
                                      (propertize alias 'invisible t))
                              node)))))
 
