@@ -128,12 +128,6 @@ method symbol as a cons cell. For example: '(find (rg . \"/path/to/rg\"))."
   :type '(set (const :tag "find" find)
               (const :tag "rg" rg)))
 
-(defcustom org-roam-title-to-slug-function #'org-roam--title-to-slug
-  "Function to be used in converting a title to the filename slug.
-Function should return a filename string based on title."
-  :type 'function
-  :group 'org-roam)
-
 (defcustom org-roam-slug-trim-chars
   '(;; Combining Diacritical Marks https://www.unicode.org/charts/PDF/U0300.pdf
     768 ; U+0300 COMBINING GRAVE ACCENT
@@ -341,23 +335,6 @@ Use external shell commands if defined in `org-roam-list-files-commands'."
   "Return a list of all Org-roam files within `org-roam-directory'."
   (org-roam--list-files (expand-file-name org-roam-directory)))
 
-(defun org-roam--title-to-slug (title)
-  "Convert TITLE to a filename-suitable slug."
-  (cl-flet* ((nonspacing-mark-p (char)
-                                (memq char org-roam-slug-trim-chars))
-             (strip-nonspacing-marks (s)
-                                     (ucs-normalize-NFC-string
-                                      (apply #'string (seq-remove #'nonspacing-mark-p
-                                                                  (ucs-normalize-NFD-string s)))))
-             (cl-replace (title pair)
-                         (replace-regexp-in-string (car pair) (cdr pair) title)))
-    (let* ((pairs `(("[^[:alnum:][:digit:]]" . "_")  ;; convert anything not alphanumeric
-                    ("__*" . "_")  ;; remove sequential underscores
-                    ("^_" . "")  ;; remove starting underscore
-                    ("_$" . "")))  ;; remove ending underscore
-           (slug (-reduce-from #'cl-replace (strip-nonspacing-marks title) pairs)))
-      (downcase slug))))
-
 (defun org-roam--tags-table ()
   "Return a hash table of node ID to list of tags."
   (let ((ht (make-hash-table :test #'equal)))
@@ -450,7 +427,21 @@ OLD-FILE is cleared from the database, and NEW-FILE-OR-DIR is added."
 
 (cl-defmethod org-roam-node-slug ((node org-roam-node))
   "Return the slug of NODE."
-  (funcall org-roam-title-to-slug-function (org-roam-node-title node)))
+  (let ((title (org-roam-node-title node)))
+    (cl-flet* ((nonspacing-mark-p (char)
+                                  (memq char org-roam-slug-trim-chars))
+               (strip-nonspacing-marks (s)
+                                       (ucs-normalize-NFC-string
+                                        (apply #'string (seq-remove #'nonspacing-mark-p
+                                                                    (ucs-normalize-NFD-string s)))))
+               (cl-replace (title pair)
+                           (replace-regexp-in-string (car pair) (cdr pair) title)))
+      (let* ((pairs `(("[^[:alnum:][:digit:]]" . "_")  ;; convert anything not alphanumeric
+                      ("__*" . "_")  ;; remove sequential underscores
+                      ("^_" . "")  ;; remove starting underscore
+                      ("_$" . "")))  ;; remove ending underscore
+             (slug (-reduce-from #'cl-replace (strip-nonspacing-marks title) pairs)))
+        (downcase slug)))))
 
 (defvar org-roam-node-map
   (let ((map (make-sparse-keymap)))
