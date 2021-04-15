@@ -608,6 +608,10 @@ is the `org-roam-node'."
                                      (propertize alias 'invisible t))
                              node)))))
 
+(defcustom org-roam-node-annotation-function #'org-roam-node--annotation
+  "The function used to return annotations in the minibuffer for Org-roam nodes.
+This function takes a single argument NODE, which is an `org-roam-node' construct.")
+
 (defun org-roam-node-read (&optional initial-input filter-fn require-match)
   "Read and return an `org-roam-node'.
 INITIAL-INPUT is the initial prompt value.
@@ -615,26 +619,24 @@ FILTER-FN is a function applied to the completion list.
 If REQUIRE-MATCH, require returning a match."
   (let* ((nodes (org-roam-node--completions))
          (nodes (funcall (or filter-fn #'identity) nodes))
-         (node (completing-read "Node: "
-                                (lambda (string pred action)
-                                  (if (eq action 'metadata)
-                                      '(metadata
-                                        (annotation-function . org-roam-node--annotation)
-                                        (category . org-roam-node))
-                                    (complete-with-action action nodes string pred)))
-                                nil require-match initial-input)))
+         (node (completing-read
+                "Node: "
+                (lambda (string pred action)
+                  (if (eq action 'metadata)
+                      '(metadata
+                        (annotation-function . (lambda (title)
+                                                 (funcall org-roam-node-annotation-function
+                                                          (get-text-property 0 'node node-title))))
+                        (category . org-roam-node))
+                    (complete-with-action action nodes string pred)))
+                nil require-match initial-input)))
     (or (cdr (assoc node nodes))
         (org-roam-node-create :title node))))
 
-(defun org-roam-node--annotation (_node-title)
-  "?"
-  ;; TODO: think about what to do with this
-  ""
-  ;; (let* ((node (get-text-property 0 'node node-title))
-  ;;        (tags (org-roam-node-tags node)))
-  ;;   (when tags
-  ;;     (format " (%s)" (string-join tags ", "))))
-  )
+(defun org-roam-node--annotation (_node)
+  "Dummy function.
+Returns empty string for annotations."
+  "")
 
 (defun org-roam-preview-visit (file point &optional other-window)
   "Visit FILE at POINT.
