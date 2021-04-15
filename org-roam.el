@@ -626,7 +626,7 @@ If REQUIRE-MATCH, require returning a match."
                       '(metadata
                         (annotation-function . (lambda (title)
                                                  (funcall org-roam-node-annotation-function
-                                                          (get-text-property 0 'node node-title))))
+                                                          (get-text-property 0 'node title))))
                         (category . org-roam-node))
                     (complete-with-action action nodes string pred)))
                 nil require-match initial-input)))
