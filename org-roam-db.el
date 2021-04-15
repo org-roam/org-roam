@@ -279,8 +279,8 @@ If UPDATE-P is non-nil, first remove the file in the database."
              (level 0)
              (aliases (org-entry-get (point) "ROAM_ALIASES"))
              (tags (or org-file-tags
-                       (list (cadr (assoc "FILETAGS" (org-collect-keywords '("filetags"))
-                                    #'string-equal)))))
+                       (cdr (assoc "FILETAGS" (org-collect-keywords '("filetags"))
+                                    #'string-equal))))
              (refs (org-entry-get (point) "ROAM_REFS")))
         (org-roam-db-query
          [:insert :into nodes
