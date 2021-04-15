@@ -626,12 +626,15 @@ If REQUIRE-MATCH, require returning a match."
     (or (cdr (assoc node nodes))
         (org-roam-node-create :title node))))
 
-(defun org-roam-node--annotation (node-title)
-  "Return the annotation string for a NODE-TITLE."
-  (let* ((node (get-text-property 0 'node node-title))
-         (tags (org-roam-node-tags node)))
-    (when tags
-      (format " (%s)" (string-join tags ", ")))))
+(defun org-roam-node--annotation (_node-title)
+  "?"
+  ;; TODO: think about what to do with this
+  ""
+  ;; (let* ((node (get-text-property 0 'node node-title))
+  ;;        (tags (org-roam-node-tags node)))
+  ;;   (when tags
+  ;;     (format " (%s)" (string-join tags ", "))))
+  )
 
 (defun org-roam-preview-visit (file point &optional other-window)
   "Visit FILE at POINT.
