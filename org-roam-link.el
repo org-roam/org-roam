@@ -318,7 +318,7 @@ DESC is the link description."
                                 (if headline-only-p 1 0)))
                 (insert (concat (unless (string= link-type "roam") "roam:")
                                 (when headline-only-p "*")
-                                str))))))))
+                                (org-link-escape str)))))))))
 
 (provide 'org-roam-link)
 ;;; org-roam-link.el ends here
