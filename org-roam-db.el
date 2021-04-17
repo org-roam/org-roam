@@ -266,53 +266,54 @@ If UPDATE-P is non-nil, first remove the file in the database."
 (defun org-roam-db-insert-file-node ()
   "Insert the file-level node into the Org-roam cache."
   (org-with-point-at 1
-    (when-let ((id (org-id-get)))
-      (let* ((file (buffer-file-name (buffer-base-buffer)))
-             (title (or (cadr (assoc "TITLE" (org-collect-keywords '("title"))
-                                     #'string-equal))
-                        (file-relative-name file org-roam-directory)))
-             (pos (point))
-             (todo nil)
-             (priority nil)
-             (scheduled nil)
-             (deadline nil)
-             (level 0)
-             (aliases (org-entry-get (point) "ROAM_ALIASES"))
-             (tags org-file-tags)
-             (refs (org-entry-get (point) "ROAM_REFS")))
-        (org-roam-db-query
-         [:insert :into nodes
-          :values $v1]
-         (vector id file level pos todo priority
-                 scheduled deadline title))
-        (when tags
+    (when (= (org-outline-level) 0)
+      (when-let ((id (org-id-get)))
+        (let* ((file (buffer-file-name (buffer-base-buffer)))
+               (title (or (cadr (assoc "TITLE" (org-collect-keywords '("title"))
+                                       #'string-equal))
+                          (file-relative-name file org-roam-directory)))
+               (pos (point))
+               (todo nil)
+               (priority nil)
+               (scheduled nil)
+               (deadline nil)
+               (level 0)
+               (aliases (org-entry-get (point) "ROAM_ALIASES"))
+               (tags org-file-tags)
+               (refs (org-entry-get (point) "ROAM_REFS")))
           (org-roam-db-query
-           [:insert :into tags
+           [:insert :into nodes
             :values $v1]
-           (mapcar (lambda (tag)
-                     (vector file id (substring-no-properties tag)))
-                   tags)))
-        (when aliases
-          (org-roam-db-query
-           [:insert :into aliases
-            :values $v1]
-           (mapcar (lambda (alias)
-                     (vector file id alias))
-                   (split-string-and-unquote aliases))))
-        (when refs
-          (setq refs (split-string-and-unquote refs))
-          (let (rows)
-            (dolist (ref refs)
-              (if (string-match org-link-plain-re ref)
-                  (progn
-                    (push (vector file id (match-string 2 ref) (match-string 1 ref)) rows))
-                (lwarn '(org-roam) :warning
-                       "%s:%s\tInvalid ref %s, skipping..." (buffer-file-name) (point) ref)))
-            (when rows
-              (org-roam-db-query
-               [:insert :into refs
-                :values $v1]
-               rows))))))))
+           (vector id file level pos todo priority
+                   scheduled deadline title))
+          (when tags
+            (org-roam-db-query
+             [:insert :into tags
+              :values $v1]
+             (mapcar (lambda (tag)
+                       (vector file id (substring-no-properties tag)))
+                     tags)))
+          (when aliases
+            (org-roam-db-query
+             [:insert :into aliases
+              :values $v1]
+             (mapcar (lambda (alias)
+                       (vector file id alias))
+                     (split-string-and-unquote aliases))))
+          (when refs
+            (setq refs (split-string-and-unquote refs))
+            (let (rows)
+              (dolist (ref refs)
+                (if (string-match org-link-plain-re ref)
+                    (progn
+                      (push (vector file id (match-string 2 ref) (match-string 1 ref)) rows))
+                  (lwarn '(org-roam) :warning
+                         "%s:%s\tInvalid ref %s, skipping..." (buffer-file-name) (point) ref)))
+              (when rows
+                (org-roam-db-query
+                 [:insert :into refs
+                  :values $v1]
+                 rows)))))))))
 
 (defun org-roam-db-insert-node-data ()
   "Insert node data for headline at point into the Org-roam cache."
