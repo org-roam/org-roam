@@ -673,8 +673,7 @@ INFO is an alist for filling up Org-roam's capture templates.
 NODE is an `org-roam-node' construct containing information about the node.
 PROPS is a plist containing additional Org-roam properties for each template.
 TEMPLATES is a list of org-roam templates."
-  (let* ((m (point-marker))
-         (props (plist-put props :call-location m))
+  (let* ((props (plist-put props :call-location (point-marker)))
          (org-capture-templates
           (mapcar (lambda (t)
                     (org-roam-capture--convert-template t props))
