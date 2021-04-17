@@ -350,33 +350,32 @@ Org-roam caches all other links in the documents for external use.
 ** Setting up Org-roam
 
 Org-roam's capabilities stem from its aggressive caching: it crawls all files
-within ~org-roam-directory~, keeping a cache of all its links and nodes, while
-making sure that the cache is consistent.
+within ~org-roam-directory~, and maintains a cache of all links and nodes.
 
-To first start using Org-roam, one needs to pick a location to store the
-Org-roam files. The directory that will contain your notes is specified by the
-variable ~org-roam-directory~. Org-roam searches recursively within
-~org-roam-directory~ for notes. This variable needs to be set before any calls
-to Org-roam functions. For this tutorial, create an empty directory, and set
-~org-roam-directory~:
+To start using Org-roam, pick a location to store the Org-roam files. The
+directory that will contain your notes is specified by the variable
+~org-roam-directory~. Org-roam searches recursively within ~org-roam-directory~
+for notes. This variable needs to be set before any calls to Org-roam functions.
+
+For this tutorial, create an empty directory, and set ~org-roam-directory~:
 
 #+BEGIN_SRC emacs-lisp
 (make-directory "~/org-roam")
 (setq org-roam-directory "~/org-roam")
 #+END_SRC
 
-Next, we need to setup Org-roam to maintain cache consistency. This is achieved
-by running ~M-x org-roam-setup~. To ensure that Org-roam is available on
-startup, one can place this in their Emacs configuration:
+Next, we setup Org-roam to run functions on file changes to maintain cache
+consistency. This is achieved by running ~M-x org-roam-setup~. To ensure that
+Org-roam is available on startup, place this in your Emacs configuration:
 
 #+begin_src emacs-lisp
   (require 'org-roam)
   (org-roam-setup)
 #+end_src
 
-To build the cache manually, one can run ~M-x org-roam-db-build-cache~. Cache
-builds may take a while the first time, but is often instantaneous in subsequent
-runs because it only reprocesses modified files.
+To build the cache manually, run ~M-x org-roam-db-build-cache~. Cache builds may
+take a while the first time, but subsequent builds are often instantaneous
+because they only reprocess modified files.
 
 ** TODO Creating and Linking Nodes
 
@@ -400,8 +399,10 @@ Now that we have a node, we can try inserting a link to the node using ~M-x
 org-roam-node-insert~. This brings up the list of nodes, which should contain
 the node you just created. Selecting the node will insert an ~id:~ link to the
 node. If you instead entered a title that does not exist, you will once again be
-brought through the node creation process. To enable link auto-completion,
-see [[id:70083bfd-d1e3-42b9-bf83-5b05708791c0][Completion]].
+brought through the node creation process.
+
+One can also conveniently insert links via the completion-at-point functions
+Org-roam provides (see [[id:70083bfd-d1e3-42b9-bf83-5b05708791c0][Completion]]).
 
 # For experienced ~org-capture~ users, the behavior of ~M-x org-roam-find-file~
 # may seem unfamiliar: after finishing a capture with ~C-c C-c~, you are returned
@@ -412,13 +413,67 @@ see [[id:70083bfd-d1e3-42b9-bf83-5b05708791c0][Completion]].
 * TODO Viewing the links
 
 Org-roam provides an interface to view relationships with other notes
-(backlinks, reference links, unlinked references etc.). To pop up this info
+(backlinks, reference links, unlinked references etc.). There are two main
+functions to use here:
+
+- ~org-roam-buffer~: Launch an Org-roam buffer for the current node at point.
+- ~org-roam-buffer-toggle~: Launch an Org-roam buffer that tracks the node
+  currently at point. This means that the content of the buffer changes as the
+  point is moved, if necessary.
+
+Use ~org-roam-buffer-toggle~ when you want wish for the Org-roam buffer to
 buffer, call ~M-x org-roam-buffer~.
+
+** Configuring what is displayed in the buffer
+
+There are currently 3 provided widget types:
+
+- Backlinks :: View (preview of) nodes that link to this node
+- Reference Links :: Nodes that reference this node (see [[id:57c1f991-be38-4fab-b27d-60227047f3b7][Refs]])
+- Unlinked references :: View nodes that contain text that match the nodes
+  title/alias but are not linked
+
+To configure what sections are displayed in the buffer, set ~org-roam-mode-sections~.
+
+#+begin_src emacs-lisp
+  (setq org-roam-mode-sections
+        (list #'org-roam-backlinks-insert-section
+              #'org-roam-reflinks-insert-section
+              ;; #'org-roam-unlinked-references-insert-section
+              ))
+#+end_src
+
+Note that computing unlinked references may be slow, and you might want to turn
+that off by default.
+
+** Configuring the Org-roam buffer display
+
+Org-roam does not control how the pop-up buffer is displayed: this is left to
+the user. The author's recommended configuration is as follows:
+
+#+begin_src emacs-lisp
+  (add-to-list 'display-buffer-alist
+               '(("\\*org-roam\\*"
+                  (display-buffer-in-direction)
+                  (direction . right)
+                  (window-width . 0.33)
+                  (window-height . fit-window-to-buffer))))
+#+end_src
+
+Crucially, the window is a regular window (not a side-window), and this allows
+for predictable navigation:
+
+- ~RET~ navigates to thing-at-point in the current window, replacing the
+  Org-roam buffer.
+- ~C-u RET~ navigates to thing-at-point in the other window.
 
 * TODO Node Properties
 ** TODO Standard Org properties
 ** TODO Aliases
 ** TODO Refs
+:PROPERTIES:
+:ID:       57c1f991-be38-4fab-b27d-60227047f3b7
+:END:
 Refs are unique identifiers for files. For example, a note for a website may
 contain a ref:
 
