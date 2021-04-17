@@ -603,9 +603,10 @@ is the `org-roam-node'."
                                                               :tags (gethash id tags-table)))
                                   (candidate-main (org-roam-node--format-entry node (1- (frame-width))))
                                   (tag-str (org-roam--tags-to-str (org-roam-node-tags node))))
-                       (cons (concat (propertize tag-str 'invisible t)
-                                     candidate-main
-                                     (propertize alias 'invisible t))
+                       (cons (propertize (concat (propertize tag-str 'invisible t)
+                                                 candidate-main
+                                                 (propertize alias 'invisible t))
+                                         'node node)
                              node)))))
 
 (defcustom org-roam-node-annotation-function #'org-roam-node--annotation
