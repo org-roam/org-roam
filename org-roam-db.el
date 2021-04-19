@@ -443,6 +443,7 @@ If the file exists, update the cache with information."
     (unless (string= content-hash db-hash)
       (org-roam-with-file file-path nil
         (save-excursion
+          (org-set-regexps-and-options 'tags-only)
           (org-roam-db-clear-file)
           (org-roam-db-insert-file)
           (org-roam-db-insert-file-node)
