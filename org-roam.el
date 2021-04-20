@@ -586,9 +586,9 @@ instead."
 (defun org-roam-node-from-id (id)
   "Return an `org-roam-node' for the node containing ID.
 Return nil if a node with ID does not exist."
-  (when (org-roam-db-query [:select (funcall count) :from nodes
-                            :where (= id $s1)]
-                           id)
+  (when (> (caar (org-roam-db-query [:select (funcall count) :from nodes
+                                     :where (= id $s1)]
+                                    id)) 0)
     (org-roam-populate (org-roam-node-create :id id))))
 
 (defun org-roam-node-from-title-or-alias (s)
@@ -1063,39 +1063,13 @@ the link."
        (let* ((title (org-element-property :path link))
               (node (org-roam-node-from-title-or-alias title)))
          (when org-roam-link-auto-replace
-           (org-roam-link--replace-link (org-roam-node-id node) path))
+           (save-excursion
+             (save-match-data
+               (org-in-regexp org-link-bracket-re 1)
+               (replace-match (org-link-make-string
+                               (concat "id:" (org-roam-node-id node))
+                               title)))))
          (org-id-goto (org-roam-node-id node)))))))
-
-(defun org-roam-link--replace-link (id &optional desc)
-  "Replace link at point with a vanilla Org link.
-LINK-TYPE is the Org link type, typically \"file\" or \"id\".
-ID is id for the Org-roam node.
-DESC is the link description."
-  (save-excursion
-    (save-match-data
-      (unless (org-in-regexp org-link-bracket-re 1)
-        (user-error "No link at point"))
-      (replace-match "")
-      (insert (org-link-make-string
-               (concat "id:" id)
-               desc)))))
-
-;;; Retrieval Functions
-(defun org-roam-link--get-node-from-title (title)
-  "Return the node id for a given TITLE."
-  (let ((nodes (seq-uniq
-                (append
-                 (mapcar #'car (org-roam-db-query [:select [id] :from nodes
-                                                   :where (= title $s1)]
-                                                  title))
-                 (mapcar #'car (org-roam-db-query [:select [node-id] :from aliases
-                                                   :where (= node-id $s1)]
-                                                  title))))))
-    (pcase nodes
-      ('nil nil)
-      (`(,node) node)
-      (_
-       (completing-read "Select node: " nodes)))))
 
 (provide 'org-roam)
 ;;; org-roam.el ends here

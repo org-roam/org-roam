@@ -99,10 +99,10 @@ This is a `completion-at-point' function, and is active when
         (pcase (org-element-lineage context '(link) t)
           (`nil nil)
           (link
-           (let ((link-type (org-element-property :type link)))
-             (when (member link-type '("roam" "fuzzy"))
+           (setq link-type (org-element-property :type link))
+           (when (member link-type '("roam" "fuzzy"))
                (when (string= link-type "roam") (setq start (+ start (length "roam:"))))
-               (setq collection #'org-roam--get-titles)))))))
+               (setq collection #'org-roam--get-titles))))))
     (when collection
       (let ((prefix (buffer-substring-no-properties start end)))
         (list start end
