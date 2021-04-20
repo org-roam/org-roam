@@ -101,8 +101,8 @@ This is a `completion-at-point' function, and is active when
           (link
            (setq link-type (org-element-property :type link))
            (when (member link-type '("roam" "fuzzy"))
-               (when (string= link-type "roam") (setq start (+ start (length "roam:"))))
-               (setq collection #'org-roam--get-titles))))))
+             (when (string= link-type "roam") (setq start (+ start (length "roam:"))))
+             (setq collection #'org-roam--get-titles))))))
     (when collection
       (let ((prefix (buffer-substring-no-properties start end)))
         (list start end
