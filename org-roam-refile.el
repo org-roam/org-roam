@@ -33,6 +33,47 @@
 (defvar org-auto-align-tags)
 (defvar org-loop-over-headlines-in-active-region)
 
+(defun org-roam-demote-entire-buffer ()
+  "Convert an org buffer with any top-level content to a single node.
+
+All headings are demoted one level.
+
+The #+title: keyword is converted into a level-1 heading and deleted.
+
+Any top-level properties drawers are incorporated into the new heading.
+"
+  (interactive)
+  (if (org-before-first-heading-p)
+      (org-with-point-at 1
+        (org-map-entries 'org-do-demote)
+        (insert (concat "* "
+                        (nth 1
+                             (assoc "TITLE"
+                                    (org-collect-keywords '("TITLE"))))
+                        "\n"))
+        ;; remove the title: line but DO NOT add to kill ring
+        (let ((case-fold-search t))
+          (re-search-forward "^#\\+title:")
+          (delete-region (point) (line-end-position))))))
+
+(defun org-roam-kill-empty-buffer ()
+  "If the source buffer has been emptied, kill it.
+
+If the buffer is associated with a file, delete the file.
+
+If the buffer is associated with an in-process capture operation, abort the operation.
+"
+  (if (eq (buffer-size) 0)
+      (progn
+        (if (buffer-file-name)
+            (delete-file (buffer-file-name)))
+        (set-buffer-modified-p nil)
+        (if (and org-capture-mode
+                 (buffer-base-buffer (current-buffer)))
+            (org-capture-kill)
+          (kill-this-buffer))
+        )))
+
 (defun org-roam-refile ()
   "Refile to node."
   (interactive)
@@ -48,7 +89,9 @@
         (progn
           (org-kill-new (buffer-substring region-start region-end))
           (org-save-markers-in-region region-start region-end))
-      (org-copy-subtree 1 nil t))
+      (progn
+        (org-roam-demote-entire-buffer)
+        (org-copy-subtree 1 nil t)))
     (with-current-buffer nbuf
       (org-with-wide-buffer
        (goto-char (org-roam-node-point node))
@@ -71,7 +114,9 @@
       (org-preserve-local-variables
        (delete-region
         (and (org-back-to-heading t) (point))
-        (min (1+ (buffer-size)) (org-end-of-subtree t t) (point)))))))
+        (min (1+ (buffer-size)) (org-end-of-subtree t t) (point)))))
+    (org-roam-kill-empty-buffer)
+    ))
 
 (provide 'org-roam-refile)
 ;;; org-roam-refile.el ends here
