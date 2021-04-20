@@ -583,6 +583,35 @@ instead."
                  #'switch-to-buffer-other-window
                #'pop-to-buffer-same-window) buf)))
 
+(defun org-roam-node-from-id (id)
+  "Return an `org-roam-node' for the node containing ID.
+Return nil if a node with ID does not exist."
+  (when (org-roam-db-query [:select (funcall count) :from nodes
+                            :where (= id $s1)]
+                           id)
+    (org-roam-populate (org-roam-node-create :id id))))
+
+(defun org-roam-node-from-title-or-alias (s)
+  "Return an `org-roam-node' for the node with title or alias S.
+Return nil if the node does not exist.
+Throw an error if multiple choices exist."
+  (let ((matches (seq-uniq
+                  (append
+                   (org-roam-db-query [:select [id] :from nodes
+                                       :where (= title $s1)]
+                                      s)
+                   (org-roam-db-query [:select [node-id] :from aliases
+                                       :left :join nodes :on (= nodes:id aliases:node-id)
+                                       :where (= aliases:node-id $s1)]
+                                      s)))))
+    (cond
+     ((seq-empty-p matches)
+      nil)
+     ((= 1 (length matches))
+      (org-roam-populate (org-roam-node-create :id (caar matches))))
+     (t
+      (user-error "Multiple nodes exist with title or alias \"%s\"" s)))))
+
 (defun org-roam-node--completions ()
   "Return an alist for node completion.
 The car is the displayed title or alias for the node, and the cdr
@@ -1026,10 +1055,16 @@ References from FILE are excluded."
 This function is called by Org when following links of the type
 `roam'. While the path is passed, assume that the cursor is on
 the link."
-  (pcase-let ((`(,id ,file ,pos) (org-roam-link-locate)))
-    (when org-roam-link-auto-replace
-      (org-roam-link--replace-link id path))
-    (org-id-goto id)))
+  (pcase (org-element-lineage (org-element-context) '(link) t)
+    ('nil (error "Not at Org link"))
+    (link
+     (if (not (string-equal "roam" (org-element-property :type link)))
+         (error "Not at an Org-roam link")
+       (let* ((title (org-element-property :path link))
+              (node (org-roam-node-from-title-or-alias title)))
+         (when org-roam-link-auto-replace
+           (org-roam-link--replace-link (org-roam-node-id node) path))
+         (org-id-goto (org-roam-node-id node)))))))
 
 (defun org-roam-link--replace-link (id &optional desc)
   "Replace link at point with a vanilla Org link.
@@ -1044,38 +1079,6 @@ DESC is the link description."
       (insert (org-link-make-string
                (concat "id:" id)
                desc)))))
-
-(defun org-roam-link-locate ()
-  "Return the location of the roam link at point.
-This is a list of three items: the node id, the file, and point
-in the file."
-  (let ((context (org-element-context))
-        path matches)
-    (pcase (org-element-lineage context '(link) t)
-      ('nil (error "Not at Org link"))
-      (link
-       (if (not (string-equal "roam" (org-element-property :type link)))
-           (error "Not at an Org-roam link")
-         (setq path (org-element-property :path link))
-         (setq matches (seq-uniq
-                        (append
-                         (org-roam-db-query [:select [id file pos] :from nodes
-                                             :where (= title $s1)]
-                                            path)
-                         (org-roam-db-query [:select [node-id aliases:file nodes:pos] :from aliases
-                                             :left :join nodes :on (= nodes:id aliases:node-id)
-                                             :where (= aliases:node-id $s1)]
-                                            path))))
-         (cond
-          ((seq-empty-p matches)
-           ;; TODO: prompt to capture new note.
-           (message "No matches."))
-          ((= 1 (length matches))
-           (car matches))
-          (t
-           ;; TODO: need to fix UX somehow
-           (let ((choice (completing-read "Choose node:" matches nil t)))
-             (cdr (assoc choice matches #'string-equal))))))))))
 
 ;;; Retrieval Functions
 (defun org-roam-link--get-node-from-title (title)

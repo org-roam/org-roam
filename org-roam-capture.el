@@ -548,8 +548,15 @@ Return the ID of the location."
          (setq id (org-id-get-create)))
        (let ((m (org-roam-capture-find-or-create-olp olp)))
          (goto-char m)))
-      ;; TODO: support node
-      )
+      (`(node ,title-or-id)
+       ;; first try to get ID, then try to get title/alias
+       (let ((node (or (org-roam-node-from-id title-or-id)
+                       (org-roam-node-from-title-or-alias title-or-id)
+                       (user-error "No node with title or id \"%s\" title-or-id"))))
+         (set-buffer (org-capture-target-buffer (org-roam-node-file node)))
+         (goto-char (org-roam-node-point node))
+         (org-end-of-subtree t t)
+         (setq id (org-roam-node-id node)))))
     id))
 
 (defun org-roam-capture-find-or-create-olp (olp)
