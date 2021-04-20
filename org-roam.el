@@ -771,6 +771,46 @@ window instead."
                                                :point (nth 2 random-row))
                          other-window)))
 
+;;;; Properties
+(defun org-roam-add-property (s prop)
+  "Add S to property PROP."
+  (let* ((p (org-entry-get (point) prop))
+         (lst (when p (split-string-and-unquote p)))
+         (lst (if (memq s lst) lst (cons s lst))))
+    (org-set-property prop (combine-and-quote-strings lst))))
+
+(defun org-roam-remove-property (prop)
+  "Prompt to remove an item from PROP."
+  (let* ((p (org-entry-get (point) prop))
+         (lst (when p (split-string-and-unquote p)))
+         (prop-to-remove (completing-read "Remove: " lst))
+         (lst (delete prop-to-remove lst)))
+    (if lst
+        (org-set-property prop (combine-and-quote-strings lst))
+      (org-delete-property prop))))
+
+;;;; Aliases
+(defun org-roam-alias-add (alias)
+  "Add ALIAS to the node at point."
+  (interactive "sAlias: ")
+  (org-roam-add-property alias "ROAM_ALIASES"))
+
+(defun org-roam-alias-remove ()
+  "Remove an alias from the node at point."
+  (interactive)
+  (org-roam-remove-property "ROAM_ALIASES"))
+
+;;;; Refs
+(defun org-roam-ref-add (ref)
+  "Add REF to the node at point."
+  (interactive "sRef: ")
+  (org-roam-add-property ref "ROAM_REFS"))
+
+(defun org-roam-ref-remove ()
+  "Remove a ref from the node at point."
+  (interactive)
+  (org-roam-remove-property "ROAM_REFS"))
+
 ;;;; Backlinks
 (cl-defstruct (org-roam-backlink (:constructor org-roam-backlink-create)
                                  (:copier nil))

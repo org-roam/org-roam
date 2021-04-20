@@ -79,7 +79,6 @@ It opens or creates a note with the given ref.
    :node (org-roam-node-create :title (plist-get info :title))
    :info (list :ref (plist-get info :ref)
                :body (plist-get info :body))
-   :props (list :ref (plist-get info :ref))
    :templates org-roam-capture-ref-templates)
   nil)
 

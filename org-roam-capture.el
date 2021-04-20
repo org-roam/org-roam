@@ -40,6 +40,8 @@
 (require 'cl-lib)
 
 ;; Declarations
+(declare-function org-roam-ref-add "org-roam" (ref))
+
 (defvar org-roam-directory)
 
 (defvar org-roam-capture--node nil
@@ -458,16 +460,6 @@ This function is to be called in the Org-capture finalization process."
         (insert (org-link-make-string (concat "id:" (org-roam-capture--get :id))
                                       (org-roam-capture--get :link-description)))))))
 
-(defun org-roam-capture--add-ref ()
-  "Add REF to the newly captured item."
-  (when-let ((ref (org-roam-capture--get :ref)))
-    (let ((ref-lst (org-entry-get (point) "ROAM_REFS")))n
-         (setq ref-lst (if ref-lst
-                           (cl-pushnew (split-string-and-unquote ref-lst) ref)
-                         (list ref)))
-         (org-set-property "ROAM_REFS" (combine-and-quote-strings ref-lst)))
-    (org-roam-capture--add-ref ref)))
-
 (defun org-roam-capture--finalize ()
   "Finalize the `org-roam-capture' process."
   (when-let ((region (org-roam-capture--get :region)))
@@ -500,7 +492,7 @@ run Org-capture's template expansion."
 (defun org-roam-capture--goto-location ()
   "Initialize the buffer, and goto the location of the new capture.
 Return the ID of the location."
-  (let (id)
+  (let (p)
     (pcase (or (org-roam-capture--get :if-new)
                (user-error "Template needs to specify `:if-new'"))
       (`(file ,path)
@@ -509,16 +501,13 @@ Return the ID of the location."
                    org-roam-directory))
        (set-buffer (org-capture-target-buffer path))
        (widen)
-       (org-roam-capture--add-ref)
-       (setq id (org-id-get-create)))
+       (setq p (point)))
       (`(file+olp ,path ,olp)
        (setq path (expand-file-name
                    (s-trim (org-roam-capture--fill-template path t))
                    org-roam-directory))
        (set-buffer (org-capture-target-buffer path))
-       (org-with-point-at 1
-         (org-roam-capture--add-ref)
-         (setq id (org-id-get-create)))
+       (setq p (point-min))
        (let ((m (org-roam-capture-find-or-create-olp olp)))
          (goto-char m))
        (widen))
@@ -531,9 +520,7 @@ Return the ID of the location."
          (unless exists-p
            (insert (org-roam-capture--fill-template head t))))
        (widen)
-       (org-with-point-at 1
-         (org-roam-capture--add-ref)
-         (setq id (org-id-get-create))))
+       (setq p (point-min)))
       (`(file+head+olp ,path ,head ,olp)
        (setq path (expand-file-name
                    (s-trim (org-roam-capture--fill-template path t))
@@ -543,9 +530,7 @@ Return the ID of the location."
          (set-buffer (org-capture-target-buffer path))
          (unless exists-p
            (insert (org-roam-capture--fill-template head t))))
-       (org-with-point-at 1
-         (org-roam-capture--add-ref)
-         (setq id (org-id-get-create)))
+       (setq p (point-min))
        (let ((m (org-roam-capture-find-or-create-olp olp)))
          (goto-char m)))
       (`(node ,title-or-id)
@@ -555,9 +540,14 @@ Return the ID of the location."
                        (user-error "No node with title or id \"%s\" title-or-id"))))
          (set-buffer (org-capture-target-buffer (org-roam-node-file node)))
          (goto-char (org-roam-node-point node))
+         (setq p (org-roam-node-point node))
          (org-end-of-subtree t t)
          (setq id (org-roam-node-id node)))))
-    id))
+    (save-excursion
+      (goto-char p)
+      (when-let ((ref (plist-get org-roam-capture--info :ref)))
+        (org-roam-ref-add ref))
+      (org-id-get-create))))
 
 (defun org-roam-capture-find-or-create-olp (olp)
   "Return a marker pointing to the entry at OLP in the current buffer.

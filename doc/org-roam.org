@@ -467,41 +467,83 @@ for predictable navigation:
   Org-roam buffer.
 - ~C-u RET~ navigates to thing-at-point in the other window.
 
-* TODO Node Properties
-** TODO Standard Org properties
-** TODO Aliases
-** TODO Refs
-:PROPERTIES:
-:ID:       57c1f991-be38-4fab-b27d-60227047f3b7
-:END:
-Refs are unique identifiers for files. For example, a note for a website may
-contain a ref:
+* Node Properties
+** Standard Org properties
 
-#+BEGIN_SRC org
-  #+title: Google
-  #+roam_key: https://www.google.com/
-#+END_SRC
+Org-roam caches most of the standard Org properties. The full list now includes:
 
-These keys allow references to the key to show up in the backlinks buffer. For
-instance, with the example above, if another file then links to
-https://www.google.com, that will show up as a “Ref Backlink”.
+- outline level
+- todo state
+- priority
+- scheduled
+- deadline
+- tags
+
+** Titles and Aliases
+
+Each node has a single title. For file nodes, this is specified with the
+`#+title` property for the file. For headline nodes, this is the main text.
+
+Nodes can also have multiple aliases. Aliases allow searching for nodes via an
+alternative name. For example, one may want to assign a well-known acronym (AI)
+to a node titled "Artificial Intelligence".
+
+To assign an alias to a node, add the "ROAM_ALIASES" property to the node:
+
+#+begin_src org
+  ,* Artificial Intelligence
+  :PROPERTIES:
+  :ROAM_ALIASES: AI
+  :END:
+#+end_src
+
+Alternatively, Org-roam provides some functions to add or remove aliases.
+
+- Function: org-roam-alias-add alias
+
+  Add ALIAS to the node at point. When called interactively, prompt for the
+  alias to add.
+
+- Function: org-roam-alias-remove
+
+  Remove an alias from the node at point.
+
+** Refs
+
+Refs are unique identifiers for nodes. These keys allow references to the key to
+show up in the Org-roam buffer. For example, a node for a website may use the URL
+as the ref, and a node for a paper may use an Org-ref citation key.
+
+To add a ref, add to the "ROAM_REFS" property as follows:
+
+#+begin_src org
+  ,* Google
+  :PROPERTIES:
+  :ROAM_REFS: https://www.google.com/
+  :END:
+#+end_src
+
+With the above example, if another node links to https://www.google.com/, it
+will show up as a “reference backlink”.
 
 These keys also come in useful for when taking website notes, using the
  ~roam-ref~ protocol (see [[*Roam Protocol][Roam Protocol]]).
 
-[[https://github.com/jkitchin/org-ref][org-ref]] citation keys can also be used as refs:
-
-#+BEGIN_SRC org
-  #+title: Neural Ordinary Differential Equations
-  #+roam_key: cite:chen18_neural_ordin_differ_equat
-#+END_SRC
-
-#+CAPTION: org-ref-citelink
-[[file:images/org-ref-citelink.png]]
-
-You may assign multiple refs to a single file, for example when you want
+You may assign multiple refs to a single node, for example when you want
 multiple papers in a series to share the same note, or an article has a citation
 key and a URL at the same time.
+
+Org-roam also provides some functions to add or remove refs.
+
+- Function: org-roam-ref-add ref
+
+  Add REF to the node at point. When called interactively, prompt for the
+  ref to add.
+
+- Function: org-roam-ref-remove
+
+  Remove a ref from the node at point.
+
 
 * TODO The Org-roam Buffer
 * TODO Styling Org-roam
