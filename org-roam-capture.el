@@ -484,10 +484,16 @@ run Org-capture's template expansion."
   (funcall (if org-capture-p #'org-capture-fill-template #'identity)
            (s-format str
                      (lambda (key)
-                       (let ((fn (intern (concat "org-roam-node-" key))))
-                         (if (fboundp fn)
-                             (funcall fn org-roam-capture--node)
-                           (completing-read (format "%s: " key) nil)))))))
+                       (let ((fn (intern (concat "org-roam-node-" key)))
+                             (ksym (intern (concat ":" key))))
+                         (cond
+                          ((fboundp fn)
+                           (funcall fn org-roam-capture--node))
+                          ((plist-get org-roam-capture--info ksym)
+                           (plist-get org-roam-capture--info ksym))
+                          (t (let ((r (completing-read (format "%s: " key) nil)))
+                               (plist-put org-roam-capture--info ksym r)
+                               r))))))))
 
 (defun org-roam-capture--goto-location ()
   "Initialize the buffer, and goto the location of the new capture.
