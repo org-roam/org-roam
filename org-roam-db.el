@@ -425,12 +425,18 @@ If FORCE, force a rebuild of the cache from scratch."
                          contents-hash)
           (push file modified-files)))
       (remhash file current-files))
-    (dolist-with-progress-reporter (file (hash-table-keys current-files))
-        "Clearing removed files..."
-      (org-roam-db-clear-file file))
-    (dolist-with-progress-reporter (file modified-files)
-        "Processing modified files..."
-      (org-roam-db-update-file file))))
+    (if (fboundp 'dolist-with-progress-reporter)
+        (dolist-with-progress-reporter (file (hash-table-keys current-files))
+            "Clearing removed files..."
+          (org-roam-db-clear-file file))
+      (dolist (file (hash-table-keys current-files))
+        (org-roam-db-clear-file file)))
+    (if (fboundp 'dolist-with-progress-reporter)
+        (dolist-with-progress-reporter (file modified-files)
+            "Processing modified files..."
+          (org-roam-db-update-file file))
+      (dolist (file modified-files)
+        (org-roam-db-update-file file)))))
 
 (defun org-roam-db-update-file (&optional file-path)
   "Update Org-roam cache for FILE-PATH.
