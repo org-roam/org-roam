@@ -335,7 +335,7 @@ streamlined user experience in Org-roam."
                                          ((const :format "%v " :kill-buffer) (const t))))))))
 
 (defvar org-roam-capture-new-node-hook (list #'org-roam-capture--insert-ref)
-  "Normal-mode hooks (list of functions) run when a new Org-roam node is created.
+  "Normal-mode hooks run when a new Org-roam node is created.
 The current point is the point of the new node.
 The hooks must not move the point.")
 
