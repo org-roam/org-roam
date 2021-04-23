@@ -39,6 +39,7 @@
 ;;
 ;;; Code:
 (require 'cl-lib)
+(require 'org-element)
 
 (declare-function org-roam--get-titles "org-roam")
 

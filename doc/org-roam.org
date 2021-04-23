@@ -544,8 +544,37 @@ Org-roam also provides some functions to add or remove refs.
 
   Remove a ref from the node at point.
 
-
 * TODO The Org-roam Buffer
+
+The Org-roam buffer displays relationships between nodes. To show the
+relationship between the current node at point with other nodes, call ~M-x
+org-roam-buffer~.
+
+- Function: org-roam-buffer
+
+  Launch an Org-roam buffer for the current node at point.
+
+To bring up a buffer that tracks the current node at point, call ~M-x
+org-roam-buffer-toggle~.
+
+- Function: org-roam-buffer-toggle
+
+  Toggle display of the ~org-roam-buffer~.
+
+** TODO Navigating the Org-roam Buffer
+
+The Org-roam buffer uses ~magit-section~, making the typical ~magit-section~
+keybindings available. Here are several of the more useful ones:
+
+- ~M-{N}~: ~magit-section-show-level-{N}-all~
+- ~n~: ~magit-section-forward~
+-~<TAB>~: ~magit-section-toggle~
+- ~<RET>~: ~org-roam-visit-thing~
+
+~org-roam-visit-thing~ visits the item at point.
+
+** TODO Customizing the Org-roam Buffer
+
 * TODO Styling Org-roam
 * TODO Completion
 :PROPERTIES:

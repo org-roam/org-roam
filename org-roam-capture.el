@@ -407,7 +407,7 @@ See `org-roam-capture-templates' for the template documentation."
 
 (defun org-roam-capture-p ()
   "Return t if the current capture process is an Org-roam capture.
-This function is to only be called when org-capture-plist is
+This function is to only be called when `org-capture-plist' is
 valid for the capture (i.e. initialization, and finalization of
 the capture)."
   (plist-get org-capture-plist :org-roam))
@@ -558,8 +558,7 @@ Return the ID of the location."
          (set-buffer (org-capture-target-buffer (org-roam-node-file node)))
          (goto-char (org-roam-node-point node))
          (setq p (org-roam-node-point node))
-         (org-end-of-subtree t t)
-         (setq id (org-roam-node-id node)))))
+         (org-end-of-subtree t t))))
     (save-excursion
       (goto-char p)
       (run-hooks 'org-roam-capture-new-node-hook)
@@ -690,8 +689,8 @@ PROPS is a plist containing additional Org-roam properties for each template.
 TEMPLATES is a list of org-roam templates."
   (let* ((props (plist-put props :call-location (point-marker)))
          (org-capture-templates
-          (mapcar (lambda (t)
-                    (org-roam-capture--convert-template t props))
+          (mapcar (lambda (template)
+                    (org-roam-capture--convert-template template props))
                   (or templates org-roam-capture-templates)))
          (org-roam-capture--node node)
          (org-roam-capture--info info))

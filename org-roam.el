@@ -641,7 +641,9 @@ is the `org-roam-node'."
 
 (defcustom org-roam-node-annotation-function #'org-roam-node--annotation
   "The function used to return annotations in the minibuffer for Org-roam nodes.
-This function takes a single argument NODE, which is an `org-roam-node' construct.")
+This function takes a single argument NODE, which is an `org-roam-node' construct."
+  :group 'org-roam
+  :type 'function)
 
 (defun org-roam-node-read (&optional initial-input filter-fn require-match)
   "Read and return an `org-roam-node'.
@@ -812,55 +814,6 @@ window instead."
   (interactive)
   (org-roam-remove-property "ROAM_REFS"))
 
-;;;; Backlinks
-(cl-defstruct (org-roam-backlink (:constructor org-roam-backlink-create)
-                                 (:copier nil))
-  source-node target-node
-  point properties)
-
-(cl-defmethod org-roam-populate ((backlink org-roam-backlink))
-  "Populate BACKLINK from database."
-  (setf (org-roam-backlink-source-node backlink)
-        (org-roam-populate (org-roam-backlink-source-node backlink))
-        (org-roam-backlink-target-node backlink)
-        (org-roam-populate (org-roam-backlink-target-node backlink)))
-  backlink)
-
-(defun org-roam-backlinks-get (node)
-  "Return the backlinks for NODE."
-  (let ((backlinks (org-roam-db-query
-                    [:select [source dest pos properties]
-                     :from links
-                     :where (= dest $s1)
-                     :and (= type "id")]
-                    (org-roam-node-id node))))
-    (cl-loop for backlink in backlinks
-             collect (pcase-let ((`(,source-id ,dest-id ,pos ,properties) backlink))
-                       (org-roam-populate
-                        (org-roam-backlink-create
-                         :source-node (org-roam-node-create :id source-id)
-                         :target-node (org-roam-node-create :id dest-id)
-                         :point pos
-                         :properties properties))))))
-
-(defun org-roam-backlinks-sort (a b)
-  "Default sorting function for backlinks A and B.
-Sorts by title."
-  (string< (org-roam-node-title (org-roam-backlink-source-node a))
-           (org-roam-node-title (org-roam-backlink-source-node b))))
-
-(defun org-roam-backlinks-insert-section (node)
-  "Insert backlinks section for NODE."
-  (let* ((backlinks (seq-sort #'org-roam-backlinks-sort (org-roam-backlinks-get node))))
-    (magit-insert-section (org-roam-backlinks)
-      (magit-insert-heading "Backlinks:")
-      (dolist (backlink backlinks)
-        (org-roam-node-insert-section
-         :source-node (org-roam-backlink-source-node backlink)
-         :point (org-roam-backlink-point backlink)
-         :properties (org-roam-backlink-properties backlink)))
-      (insert ?\n))))
-
 ;;;; Refs
 (defun org-roam-ref--completions ()
   "Return an alist for ref completion.
@@ -916,172 +869,6 @@ FILTER-FN is applied to the ref list to filter out candidates."
     (find-file (org-roam-node-file node))
     (goto-char (org-roam-node-point node))))
 
-;;;; Reflinks
-(cl-defstruct (org-roam-reflink (:constructor org-roam-reflink-create)
-                                (:copier nil))
-  source-node ref
-  point properties)
-
-(cl-defmethod org-roam-populate ((reflink org-roam-reflink))
-  "Populate REFLINK from database."
-  (setf (org-roam-reflink-source-node reflink)
-        (org-roam-populate (org-roam-reflink-source-node reflink)))
-  reflink)
-
-(defun org-roam-reflinks-get (node)
-  "Return the reflinks for NODE."
-  (let ((refs (org-roam-db-query [:select [ref] :from refs
-                                  :where (= node-id $s1)]
-                                 (org-roam-node-id node)))
-        links)
-    (pcase-dolist (`(,ref) refs)
-      (pcase-dolist (`(,source-id ,pos ,properties) (org-roam-db-query
-                                                     [:select [source pos properties]
-                                                      :from links
-                                                      :where (= dest $s1)]
-                                                     ref))
-        (push (org-roam-populate
-               (org-roam-reflink-create
-                :source-node (org-roam-node-create :id source-id)
-                :ref ref
-                :point pos
-                :properties properties)) links)))
-    links))
-
-(defun org-roam-reflinks-sort (a b)
-  "Default sorting function for reflinks A and B.
-Sorts by title."
-  (string< (org-roam-node-title (org-roam-reflink-source-node a))
-           (org-roam-node-title (org-roam-reflink-source-node b))))
-
-(defun org-roam-reflinks-insert-section (node)
-  "Insert reflinks section for NODE."
-  (when (org-roam-node-refs node)
-    (let* ((reflinks (seq-sort #'org-roam-reflinks-sort (org-roam-reflinks-get node))))
-      (magit-insert-section (org-roam-reflinks)
-        (magit-insert-heading "Reflinks:")
-        (dolist (reflink reflinks)
-          (org-roam-node-insert-section
-           :source-node (org-roam-reflink-source-node reflink)
-           :point (org-roam-reflink-point reflink)
-           :properties (org-roam-reflink-properties reflink)))
-        (insert ?\n)))))
-
-;;;; Unlinked references
-(defvar org-roam-grep-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map org-roam-mode-map)
-    (define-key map [remap org-roam-visit-thing] 'org-roam-file-visit)
-    map)
-  "Keymap for Org-roam grep result sections.")
-
-(defclass org-roam-grep-section (magit-section)
-  ((keymap :initform org-roam-grep-map)
-   (file :initform nil)
-   (row :initform nil)
-   (col :initform nil)))
-
-(defun org-roam-file-at-point (&optional assert)
-  "Return the file at point.
-If ASSERT, throw an error."
-  (if-let ((file (magit-section-case
-                   (org-roam-node-section (org-roam-node-file (oref it node)))
-                   (org-roam-grep-section (oref it file))
-                   (org-roam-olp-section (oref it file))
-                   (org-roam-preview-section (oref it file)))))
-      file
-    (when assert
-      (user-error "No file at point"))))
-
-(defun org-roam-file-visit (file &optional other-window row col)
-  "Visits FILE.
-With a prefix argument OTHER-WINDOW, display the buffer in
-another window instead.
-If ROW, move to the row, and if COL move to the COL."
-  (interactive (list (org-roam-file-at-point t)
-                     current-prefix-arg
-                     (oref (magit-current-section) row)
-                     (oref (magit-current-section) col)))
-  (let ((buf (find-file-noselect file)))
-    (with-current-buffer buf
-      (widen)
-      (goto-char (point-min))
-      (when row
-        (forward-line (1- row)))
-      (when col
-        (forward-char (1- col))))
-    (funcall (if other-window
-                 #'switch-to-buffer-other-window
-               #'pop-to-buffer-same-window) buf)))
-
-(defvar org-roam-unlinked-references-result-re
-  (rx (group (one-or-more anything))
-      ":"
-      (group (one-or-more digit))
-      ":"
-      (group (one-or-more digit))
-      ":"
-      (group (zero-or-more anything)))
-  "Regex for the return result of a ripgrep query.")
-
-(defun org-roam-unlinked-references-preview-line (file row)
-  "Return the preview line from FILE.
-This is the ROW within FILE."
-  (with-temp-buffer
-    (insert-file-contents-literally file)
-    (forward-line (1- row))
-    (buffer-substring-no-properties
-     (save-excursion
-       (beginning-of-line)
-       (point))
-     (save-excursion
-       (end-of-line)
-       (point)))))
-
-(defun org-roam-unlinked-references-insert-section (node)
-  "Render unlinked references for NODE.
-References from FILE are excluded."
-  (when (and (executable-find "rg")
-             (not (string-match "PCRE2 is not available"
-                                (shell-command-to-string "rg --pcre2-version"))))
-    (let* ((titles (cons (org-roam-node-title node)
-                         (org-roam-node-aliases node)))
-           (rg-command (concat "rg -o --vimgrep -P -i "
-                               (string-join (mapcar (lambda (glob) (concat "-g " glob))
-                                                    (org-roam--list-files-search-globs
-                                                     org-roam-file-extensions)) " ")
-                               (format " '\\[([^[]]++|(?R))*\\]%s' "
-                                       (mapconcat (lambda (title)
-                                                    (format "|(\\b%s\\b)" (shell-quote-argument title)))
-                                                  titles ""))
-                               org-roam-directory))
-           (results (split-string (shell-command-to-string rg-command) "\n"))
-           f row col match)
-      (magit-insert-section (unlinked-references)
-        (magit-insert-heading "Unlinked References:")
-        (dolist (line results)
-          (save-match-data
-            (when (string-match org-roam-unlinked-references-result-re line)
-              (setq f (match-string 1 line)
-                    row (string-to-number (match-string 2 line))
-                    col (string-to-number (match-string 3 line))
-                    match (match-string 4 line))
-              (when (and match
-                         (not (f-equal-p (org-roam-node-file node) f))
-                         (member (downcase match) (mapcar #'downcase titles)))
-                (magit-insert-section section (org-roam-grep-section)
-                  (oset section file f)
-                  (oset section row row)
-                  (oset section col col)
-                  (insert (propertize (format "%s:%s:%s"
-                                              (truncate-string-to-width (file-name-base f) 15 nil nil "...")
-                                              row col) 'font-lock-face 'org-roam-dim)
-                          " "
-                          (org-roam-fontify-like-in-org-mode
-                           (org-roam-unlinked-references-preview-line f row))
-                          "\n"))))))
-        (insert ?\n)))))
-
 ;;;; roam: link
 (defcustom org-roam-link-auto-replace t
   "When non-nil, replace Org-roam's roam links with file or id links whenever possible."
@@ -1092,25 +879,40 @@ References from FILE are excluded."
 (org-link-set-parameters "roam" :follow #'org-roam-link-follow-link)
 
 (defun org-roam-link-follow-link (path)
-  "Navigates to roam: link with description PATH.
+  "Org-roam's roam: link navigation with description PATH.
 This function is called by Org when following links of the type
 `roam'. While the path is passed, assume that the cursor is on
 the link."
-  (pcase (org-element-lineage (org-element-context) '(link) t)
-    ('nil (error "Not at Org link"))
-    (link
-     (if (not (string-equal "roam" (org-element-property :type link)))
-         (error "Not at an Org-roam link")
-       (let* ((title (org-element-property :path link))
-              (node (org-roam-node-from-title-or-alias title)))
-         (when org-roam-link-auto-replace
-           (save-excursion
-             (save-match-data
-               (org-in-regexp org-link-bracket-re 1)
-               (replace-match (org-link-make-string
-                               (concat "id:" (org-roam-node-id node))
-                               title)))))
-         (org-id-goto (org-roam-node-id node)))))))
+  (let ((node (org-roam-node-from-title-or-alias path)))
+    (when org-roam-link-auto-replace
+      (save-excursion
+        (save-match-data
+          (org-in-regexp org-link-bracket-re 1)
+          (replace-match (org-link-make-string
+                          (concat "id:" (org-roam-node-id node))
+                          path)))))
+    (org-id-goto (org-roam-node-id node))))
+
+(defun org-roam-open-id-at-point ()
+  "Navigates to the ID at point.
+To be added to `org-open-at-point-functions'."
+  (let* ((context (org-element-context))
+         (type (org-element-property :type context))
+         (id (org-element-property :path context)))
+    (when (string= type "id")
+      (let ((node (org-roam-populate (org-roam-node-create :id id))))
+        (cond
+         ((org-roam-node-file node)
+          (org-mark-ring-push)
+          (org-roam-node-visit node)
+          t)
+         (t nil))))))
+
+(defun org-roam-open-id-with-org-roam-db-h ()
+  "."
+  (add-hook 'org-open-at-point-functions #'org-roam-open-id-at-point nil t))
+
+(add-hook 'org-roam-find-file-hook #'org-roam-open-id-with-org-roam-db-h)
 
 (provide 'org-roam)
 ;;; org-roam.el ends here

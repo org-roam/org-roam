@@ -42,9 +42,10 @@
   (require 'org-macs))
 (require 'org)
 (require 'ol)
+(require 'org-roam-utils)
 
-(defvar org-roam-directory)
 (defvar org-roam-find-file-hook)
+(defvar org-roam-directory)
 (defvar org-roam-verbose)
 (defvar org-agenda-files)
 
@@ -281,7 +282,7 @@ If UPDATE-P is non-nil, first remove the file in the database."
                (aliases (org-entry-get (point) "ROAM_ALIASES"))
                (tags org-file-tags)
                (refs (org-entry-get (point) "ROAM_REFS")))
-          (condition-case err
+          (condition-case nil
               (progn
                 (org-roam-db-query
                  [:insert :into nodes
@@ -333,7 +334,7 @@ If UPDATE-P is non-nil, first remove the file in the database."
            (scheduled (org-roam-db-get-scheduled-time))
            (deadline (org-roam-db-get-deadline-time))
            (title (nth 4 heading-components)))
-      (condition-case err
+      (condition-case nil
           (org-roam-db-query
            [:insert :into nodes
             :values $v1]

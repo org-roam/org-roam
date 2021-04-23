@@ -44,15 +44,6 @@
 (require 'org)
 
 ;;;; Utility Functions
-(defun org-roam--plist-to-alist (plist)
-  "Return an alist of the property-value pairs in PLIST."
-  (let (res)
-    (while plist
-      (let ((prop (intern (substring (symbol-name (pop plist)) 1 nil)))
-            (val (pop plist)))
-        (push (cons prop val) res)))
-    res))
-
 (defun org-roam--list-interleave (lst separator)
   "Interleaves elements in LST with SEPARATOR."
   (when lst
