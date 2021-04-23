@@ -608,32 +608,33 @@ you can catch it with `condition-case'."
              end (save-excursion (org-end-of-subtree t t))))
      (copy-marker end))))
 
-(defun org-roam-capture--get-ref-path (ref)
-  "Return the file and point of reference REF."
+(defun org-roam-capture--get-node-from-ref (ref)
+  "Return the node from reference REF."
   (save-match-data
     (when (string-match org-link-plain-re ref)
       (let ((type (match-string 1 ref))
             (path (match-string 2 ref)))
-        (car (org-roam-db-query
-              [:select [nodes:file pos]
-               :from refs
-               :left-join nodes
-               :on (= refs:node-id nodes:id)
-               :where (= refs:type $s1)
-               :and (= refs:ref $s2)
-               :limit 1]
-              type path))))))
+        (when-let ((id (caar (org-roam-db-query
+                              [:select [nodes:id]
+                               :from refs
+                               :left-join nodes
+                               :on (= refs:node-id nodes:id)
+                               :where (= refs:type $s1)
+                               :and (= refs:ref $s2)
+                               :limit 1]
+                              type path))))
+          (org-roam-populate (org-roam-node-create :id id)))))))
 
 (defun org-roam-capture--get-point ()
   "Return exact point to file for org-capture-template.
 This function is used solely in Org-roam's capture templates: see
 `org-roam-capture-templates'."
   (let ((id (cond ((plist-get org-roam-capture--info :ref)
-                   (if-let ((file-pos (org-roam-capture--get-ref-path
-                                       (plist-get org-roam-capture--info :ref))))
+                   (if-let ((node (org-roam-capture--get-node-from-ref
+                                   (plist-get org-roam-capture--info :ref))))
                        (progn
-                         (set-buffer (org-capture-target-buffer (car file-pos)))
-                         (goto-char (cadr file-pos))
+                         (set-buffer (org-capture-target-buffer (org-roam-node-file node)))
+                         (goto-char (org-roam-node-point node))
                          (widen)
                          (org-end-of-subtree t t))
                      (org-roam-capture--goto-location)))
