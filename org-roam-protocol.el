@@ -59,9 +59,10 @@ It opens or creates a note with the given ref.
   (unless (plist-get info :ref)
     (user-error "No ref key provided"))
   (org-roam-plist-map! (lambda (k v)
-                         (when (equal k :ref)
-                           (setq v (org-protocol-sanitize-uri v)))
-                         (org-link-decode v)) info)
+                         (org-link-decode
+                          (if (equal k :ref)
+                              (org-protocol-sanitize-uri v)
+                            v))) info)
   (when org-roam-protocol-store-links
     (push (list (plist-get info :ref)
                 (plist-get info :title)) org-stored-links))

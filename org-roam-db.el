@@ -42,9 +42,10 @@
   (require 'org-macs))
 (require 'org)
 (require 'ol)
+(require 'org-roam-utils)
 
-(defvar org-roam-directory)
 (defvar org-roam-find-file-hook)
+(defvar org-roam-directory)
 (defvar org-roam-verbose)
 (defvar org-agenda-files)
 
@@ -281,39 +282,45 @@ If UPDATE-P is non-nil, first remove the file in the database."
                (aliases (org-entry-get (point) "ROAM_ALIASES"))
                (tags org-file-tags)
                (refs (org-entry-get (point) "ROAM_REFS")))
-          (org-roam-db-query
-           [:insert :into nodes
-            :values $v1]
-           (vector id file level pos todo priority
-                   scheduled deadline title))
-          (when tags
-            (org-roam-db-query
-             [:insert :into tags
-              :values $v1]
-             (mapcar (lambda (tag)
-                       (vector file id (substring-no-properties tag)))
-                     tags)))
-          (when aliases
-            (org-roam-db-query
-             [:insert :into aliases
-              :values $v1]
-             (mapcar (lambda (alias)
-                       (vector file id alias))
-                     (split-string-and-unquote aliases))))
-          (when refs
-            (setq refs (split-string-and-unquote refs))
-            (let (rows)
-              (dolist (ref refs)
-                (if (string-match org-link-plain-re ref)
-                    (progn
-                      (push (vector file id (match-string 2 ref) (match-string 1 ref)) rows))
-                  (lwarn '(org-roam) :warning
-                         "%s:%s\tInvalid ref %s, skipping..." (buffer-file-name) (point) ref)))
-              (when rows
+          (condition-case nil
+              (progn
                 (org-roam-db-query
-                 [:insert :into refs
+                 [:insert :into nodes
                   :values $v1]
-                 rows)))))))))
+                 (vector id file level pos todo priority
+                         scheduled deadline title))
+                (when tags
+                  (org-roam-db-query
+                   [:insert :into tags
+                    :values $v1]
+                   (mapcar (lambda (tag)
+                             (vector file id (substring-no-properties tag)))
+                           tags)))
+                (when aliases
+                  (org-roam-db-query
+                   [:insert :into aliases
+                    :values $v1]
+                   (mapcar (lambda (alias)
+                             (vector file id alias))
+                           (split-string-and-unquote aliases))))
+                (when refs
+                  (setq refs (split-string-and-unquote refs))
+                  (let (rows)
+                    (dolist (ref refs)
+                      (if (string-match org-link-plain-re ref)
+                          (progn
+                            (push (vector file id (match-string 2 ref)
+                                          (match-string 1 ref)) rows))
+                        (lwarn '(org-roam) :warning
+                               "%s:%s\tInvalid ref %s, skipping..."
+                               (buffer-file-name) (point) ref)))
+                    (when rows
+                      (org-roam-db-query
+                       [:insert :into refs
+                        :values $v1]
+                       rows)))))
+            (t
+             (lwarn '(org-roam) :error "Duplicate ID %s, skipping..." id))))))))
 
 (defun org-roam-db-insert-node-data ()
   "Insert node data for headline at point into the Org-roam cache."
@@ -327,11 +334,15 @@ If UPDATE-P is non-nil, first remove the file in the database."
            (scheduled (org-roam-db-get-scheduled-time))
            (deadline (org-roam-db-get-deadline-time))
            (title (nth 4 heading-components)))
-      (org-roam-db-query
-       [:insert :into nodes
-        :values $v1]
-       (vector id file level pos todo priority
-               scheduled deadline title)))))
+      (condition-case nil
+          (org-roam-db-query
+           [:insert :into nodes
+            :values $v1]
+           (vector id file level pos todo priority
+                   scheduled deadline title))
+        (t
+         (lwarn '(org-roam) :error
+                "Duplicate ID %s, skipping..." id))))))
 
 (defun org-roam-db-insert-aliases ()
   "Insert aliases for node at point into Org-roam cache."
@@ -365,7 +376,7 @@ If UPDATE-P is non-nil, first remove the file in the database."
         (save-match-data
           (if (string-match org-link-plain-re ref)
               (progn
-                (push (vector file node-id (match-string 2 ref) (match-string 1 ref))  rows))
+                (push (vector file node-id (match-string 2 ref) (match-string 1 ref)) rows))
             (lwarn '(org-roam) :warning
                    "%s:%s\tInvalid ref %s, skipping..." (buffer-file-name) (point) ref))))
       (org-roam-db-query [:insert :into refs
