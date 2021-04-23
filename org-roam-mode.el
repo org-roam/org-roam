@@ -136,7 +136,7 @@ and `:slant'."
     (set-keymap-parent map magit-section-mode-map)
     (define-key map [C-return]  'org-roam-visit-thing)
     (define-key map (kbd "C-m") 'org-roam-visit-thing)
-    (define-key map (kbd "g") 'org-roam-buffer-render)
+    (define-key map [remap revert-buffer] 'org-roam-buffer-render)
     map)
   "Parent keymap for all keymaps of modes derived from `org-roam-mode'.")
 
