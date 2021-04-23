@@ -121,8 +121,14 @@ and `:slant'."
   :group 'org-roam-faces)
 
 ;;; Variables
-(defvar org-roam-mode-sections nil
-  "List of functions that insert sections for Org-roam.")
+(defvar org-roam-current-node nil
+  "The current node at point.")
+
+(defcustom org-roam-mode-sections (list #'org-roam-backlinks-section
+                                        #'org-roam-reflinks-section)
+  "List of functions that insert sections for Org-roam."
+  :group 'org-roam
+  :type '(repeat function))
 
 ;;; The mode
 (defvar org-roam-mode-map
@@ -130,6 +136,7 @@ and `:slant'."
     (set-keymap-parent map magit-section-mode-map)
     (define-key map [C-return]  'org-roam-visit-thing)
     (define-key map (kbd "C-m") 'org-roam-visit-thing)
+    (define-key map (kbd "g") 'org-roam-buffer-render)
     map)
   "Parent keymap for all keymaps of modes derived from `org-roam-mode'.")
 
@@ -146,6 +153,18 @@ which visits the thing at point."
   (interactive)
   (user-error "There is no thing at point that could be visited"))
 
+(defun org-roam-buffer-render ()
+  "Render the current node at point."
+  (interactive)
+  (when (derived-mode-p 'org-roam-mode)
+    (let ((inhibit-read-only t))
+      (erase-buffer)
+      (org-roam-set-header-line-format (org-roam-node-title org-roam-current-node))
+      (magit-insert-section (org-roam)
+        (magit-insert-heading)
+        (dolist (fn org-roam-mode-sections)
+          (funcall fn org-roam-current-node))))))
+
 (defun org-roam-buffer ()
   "Launch an Org-roam buffer for the current node at point."
   (interactive)
@@ -155,21 +174,13 @@ which visits the thing at point."
                        (concat "org-roam: "
                                (file-relative-name (buffer-file-name) org-roam-directory)))))
           (with-current-buffer buffer
-            (let ((inhibit-read-only t))
-              (erase-buffer)
-              (org-roam-mode)
-              (org-roam-set-header-line-format (org-roam-node-title node))
-              (magit-insert-section (org-roam)
-                (magit-insert-heading)
-                (dolist (fn org-roam-mode-sections)
-                  (funcall fn node)))))
+            (org-roam-mode)
+            (setq-local org-roam-current-node node)
+            (org-roam-buffer-render))
           (switch-to-buffer-other-window buffer)))
     (user-error "No node at point")))
 
 ;;; Persistent buffer
-(defvar org-roam-current-node nil
-  "The current node at point.")
-
 (defvar org-roam-buffer "*org-roam*"
   "The persistent Org-roam buffer name.")
 
@@ -266,9 +277,9 @@ Sorts by title."
   (string< (org-roam-node-title (org-roam-backlink-source-node a))
            (org-roam-node-title (org-roam-backlink-source-node b))))
 
-(defun org-roam-backlinks-insert-section (node)
-  "Insert backlinks section for NODE."
-  (let* ((backlinks (seq-sort #'org-roam-backlinks-sort (org-roam-backlinks-get node))))
+(defun org-roam-backlinks-section (node)
+  "The backlinks section for NODE."
+  (when-let ((backlinks (seq-sort #'org-roam-backlinks-sort (org-roam-backlinks-get node))))
     (magit-insert-section (org-roam-backlinks)
       (magit-insert-heading "Backlinks:")
       (dolist (backlink backlinks)
@@ -316,8 +327,8 @@ Sorts by title."
   (string< (org-roam-node-title (org-roam-reflink-source-node a))
            (org-roam-node-title (org-roam-reflink-source-node b))))
 
-(defun org-roam-reflinks-insert-section (node)
-  "Insert reflinks section for NODE."
+(defun org-roam-reflinks-section (node)
+  "The reflinks section for NODE."
   (when (org-roam-node-refs node)
     (let* ((reflinks (seq-sort #'org-roam-reflinks-sort (org-roam-reflinks-get node))))
       (magit-insert-section (org-roam-reflinks)
@@ -399,8 +410,8 @@ This is the ROW within FILE."
        (end-of-line)
        (point)))))
 
-(defun org-roam-unlinked-references-insert-section (node)
-  "Render unlinked references for NODE.
+(defun org-roam-unlinked-references-section (node)
+  "The unlinked references section for NODE.
 References from FILE are excluded."
   (when (and (executable-find "rg")
              (not (string-match "PCRE2 is not available"
