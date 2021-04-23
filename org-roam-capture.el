@@ -633,8 +633,9 @@ This function is used solely in Org-roam's capture templates: see
                                        (plist-get org-roam-capture--info :ref))))
                        (progn
                          (set-buffer (org-capture-target-buffer (car file-pos)))
-                         (goto-char (cdr file-pos))
-                         (widen))
+                         (goto-char (cadr file-pos))
+                         (widen)
+                         (org-end-of-subtree t t))
                      (org-roam-capture--goto-location)))
                   ((and (org-roam-node-file org-roam-capture--node)
                         (org-roam-node-point org-roam-capture--node))
