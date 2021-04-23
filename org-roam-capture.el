@@ -334,6 +334,11 @@ streamlined user experience in Org-roam."
                                          ((const :format "%v " :table-line-pos) (string))
                                          ((const :format "%v " :kill-buffer) (const t))))))))
 
+(defvar org-roam-capture-new-node-hook (list #'org-roam-capture--insert-ref)
+  "Normal-mode hooks (list of functions) run when a new Org-roam node is created.
+The current point is the point of the new node.
+The hooks must not move the point.")
+
 (defcustom org-roam-capture-ref-templates
   '(("r" "ref" plain "%?"
      :if-new (file+head "${slug}.org"
@@ -495,6 +500,11 @@ run Org-capture's template expansion."
                                (plist-put org-roam-capture--info ksym r)
                                r))))))))
 
+(defun org-roam-capture--insert-ref ()
+  "Insert the ref if any."
+  (when-let ((ref (plist-get org-roam-capture--info :ref)))
+    (org-roam-ref-add ref)))
+
 (defun org-roam-capture--goto-location ()
   "Initialize the buffer, and goto the location of the new capture.
 Return the ID of the location."
@@ -551,8 +561,7 @@ Return the ID of the location."
          (setq id (org-roam-node-id node)))))
     (save-excursion
       (goto-char p)
-      (when-let ((ref (plist-get org-roam-capture--info :ref)))
-        (org-roam-ref-add ref))
+      (run-hooks 'org-roam-capture-new-node-hook)
       (org-id-get-create))))
 
 (defun org-roam-capture-find-or-create-olp (olp)
