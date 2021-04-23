@@ -515,29 +515,30 @@ nodes."
 (defun org-roam-node--format-entry (node width)
   "Formats NODE for display in the results list.
 WIDTH is the width of the results list."
-  (let ((format (org-roam--process-display-format org-roam-node-display-template)))
-    (s-format (car format)
-              (lambda (field)
-                (let* ((field (split-string field ":"))
-                       (field-name (car field))
-                       (field-width (cadr field))
-                       (getter (intern (concat "org-roam-node-" field-name)))
-                       (field-value (or (funcall getter node) "")))
-                  (when (and (equal field-name "tags")
-                             field-value)
-                    (setq field-value (org-roam--tags-to-str field-value)))
-                  (when (and (equal field-name "file")
-                             field-value)
-                    (setq field-value (file-relative-name field-value org-roam-directory)))
-                  (if (not field-width)
-                      field-value
-                    (setq field-width (string-to-number field-width))
-                    (truncate-string-to-width
-                     field-value
-                     (if (> field-width 0)
-                         field-width
-                       (- width (cdr format)))
-                     0 ?\s)))))))
+  (let ((fmt (org-roam--process-display-format org-roam-node-display-template)))
+    (org-roam-format
+     (car fmt)
+     (lambda (field)
+       (let* ((field (split-string field ":"))
+              (field-name (car field))
+              (field-width (cadr field))
+              (getter (intern (concat "org-roam-node-" field-name)))
+              (field-value (or (funcall getter node) "")))
+         (when (and (equal field-name "tags")
+                    field-value)
+           (setq field-value (org-roam--tags-to-str field-value)))
+         (when (and (equal field-name "file")
+                    field-value)
+           (setq field-value (file-relative-name field-value org-roam-directory)))
+         (if (not field-width)
+             field-value
+           (setq field-width (string-to-number field-width))
+           (truncate-string-to-width
+            field-value
+            (if (> field-width 0)
+                field-width
+              (- width (cdr fmt)))
+            0 ?\s)))))))
 
 (defun org-roam-node-preview (file point)
   "Get preview content for FILE at POINT."

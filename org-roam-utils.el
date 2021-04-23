@@ -142,19 +142,42 @@ BEG and END are markers for the beginning and end regions."
                             (marker-buffer beg))))
 
 ;;; Formatting
+(defun org-roam-format (template replacer)
+  "Format TEMPLATE with the function REPLACER.
+REPLACER takes an argument of the format variable and optionally
+an extra argument which is the EXTRA value from the call to
+`org-roam-format'.
+Adapted from `s-format'."
+  (let ((saved-match-data (match-data)))
+    (unwind-protect
+        (replace-regexp-in-string
+         "\\${\\([^}]+\\)}"
+         (lambda (md)
+           (let ((var (match-string 1 md))
+                 (replacer-match-data (match-data)))
+             (unwind-protect
+                 (let ((v (progn
+                            (set-match-data saved-match-data)
+                            (funcall replacer var))))
+                   (if v (format "%s" v) (signal 'org-roam-format-resolve md)))
+               (set-match-data replacer-match-data)))) template
+         ;; Need literal to make sure it works
+         t t)
+      (set-match-data saved-match-data))))
+
 (defun org-roam--process-display-format (format)
   "Pre-calculate minimal widths needed by the FORMAT string."
   (let* ((fields-width 0)
          (string-width
           (string-width
-           (s-format format
-                     (lambda (field)
-                       (setq fields-width
-                             (+ fields-width
-                                (string-to-number
-                                 (or (cadr (split-string field ":"))
-                                     ""))))
-                       "")))))
+           (org-roam-format
+            format
+            (lambda (field)
+              (setq fields-width
+                    (+ fields-width
+                       (string-to-number
+                        (or (cadr (split-string field ":"))
+                            "")))))))))
     (cons format (+ fields-width string-width))))
 
 ;;; Diagnostics

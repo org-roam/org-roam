@@ -482,23 +482,24 @@ This function is to be called in the Org-capture finalization process."
 
 (add-hook 'org-capture-prepare-finalize-hook #'org-roam-capture--install-finalize)
 
-(defun org-roam-capture--fill-template (str &optional org-capture-p)
-  "Expand the template STR, returning the expanded template.
-It expands ${var} occurrences in STR. When ORG-CAPTURE-P, also
-run Org-capture's template expansion."
+(defun org-roam-capture--fill-template (template &optional org-capture-p)
+  "Expand TEMPLATE and return it.
+It expands ${var} occurrences in TEMPLATE. When ORG-CAPTURE-P,
+also run Org-capture's template expansion."
   (funcall (if org-capture-p #'org-capture-fill-template #'identity)
-           (s-format str
-                     (lambda (key)
-                       (let ((fn (intern (concat "org-roam-node-" key)))
-                             (ksym (intern (concat ":" key))))
-                         (cond
-                          ((fboundp fn)
-                           (funcall fn org-roam-capture--node))
-                          ((plist-get org-roam-capture--info ksym)
-                           (plist-get org-roam-capture--info ksym))
-                          (t (let ((r (completing-read (format "%s: " key) nil)))
-                               (plist-put org-roam-capture--info ksym r)
-                               r))))))))
+           (org-roam-format
+            template
+            (lambda (key)
+              (let ((fn (intern (concat "org-roam-node-" key)))
+                    (ksym (intern (concat ":" key))))
+                (cond
+                 ((fboundp fn)
+                  (funcall fn org-roam-capture--node))
+                 ((plist-get org-roam-capture--info ksym)
+                  (plist-get org-roam-capture--info ksym))
+                 (t (let ((r (completing-read (format "%s: " key) nil)))
+                      (plist-put org-roam-capture--info ksym r)
+                      r))))))))
 
 (defun org-roam-capture--insert-ref ()
   "Insert the ref if any."
