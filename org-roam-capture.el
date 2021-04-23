@@ -400,6 +400,16 @@ See `org-roam-capture-templates' for the template documentation."
                                          ((const :format "%v " :table-line-pos) (string))
                                          ((const :format "%v " :kill-buffer) (const t))))))))
 
+
+(defvar org-roam-capture-with-timestamp nil
+  "Record a CREATED timestamp with every new node at time of capture."
+  )
+(defvar org-roam-timestamp-field "CREATED")
+(defun org-roam--insert-created-timestamp ()
+  (org-entry-put nil org-roam-timestamp-field (format-time-string "[%Y-%m-%d %a %H:%M]"))
+)
+
+
 (defun org-roam-capture-p ()
   "Return t if the current capture process is an Org-roam capture.
 This function is to only be called when org-capture-plist is
@@ -553,7 +563,10 @@ Return the ID of the location."
       (goto-char p)
       (when-let ((ref (plist-get org-roam-capture--info :ref)))
         (org-roam-ref-add ref))
-      (org-id-get-create))))
+      (org-id-get-create)
+      (if org-roam-capture-with-timestamp
+          (org-roam--insert-created-timestamp))
+      )))
 
 (defun org-roam-capture-find-or-create-olp (olp)
   "Return a marker pointing to the entry at OLP in the current buffer.
