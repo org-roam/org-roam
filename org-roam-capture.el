@@ -36,7 +36,7 @@
   (require 'org-roam-macs))
 (require 'org-roam-db)
 (require 'dash)
-(require 's)
+(require 'subr-x)
 (require 'cl-lib)
 
 ;; Declarations
@@ -514,14 +514,14 @@ Return the ID of the location."
                (user-error "Template needs to specify `:if-new'"))
       (`(file ,path)
        (setq path (expand-file-name
-                   (s-trim (org-roam-capture--fill-template path t))
+                   (string-trim (org-roam-capture--fill-template path t))
                    org-roam-directory))
        (set-buffer (org-capture-target-buffer path))
        (widen)
        (setq p (point)))
       (`(file+olp ,path ,olp)
        (setq path (expand-file-name
-                   (s-trim (org-roam-capture--fill-template path t))
+                   (string-trim (org-roam-capture--fill-template path t))
                    org-roam-directory))
        (set-buffer (org-capture-target-buffer path))
        (setq p (point-min))
@@ -530,7 +530,7 @@ Return the ID of the location."
        (widen))
       (`(file+head ,path ,head)
        (setq path (expand-file-name
-                   (s-trim (org-roam-capture--fill-template path t))
+                   (string-trim (org-roam-capture--fill-template path t))
                    org-roam-directory))
        (let ((exists-p (file-exists-p path)))
          (set-buffer (org-capture-target-buffer path))
@@ -540,7 +540,7 @@ Return the ID of the location."
        (setq p (point-min)))
       (`(file+head+olp ,path ,head ,olp)
        (setq path (expand-file-name
-                   (s-trim (org-roam-capture--fill-template path t))
+                   (string-trim (org-roam-capture--fill-template path t))
                    org-roam-directory))
        (widen)
        (let ((exists-p (file-exists-p path)))
