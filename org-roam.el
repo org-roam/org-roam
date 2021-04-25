@@ -706,7 +706,8 @@ PROPERTIES contains properties about the link."
         (insert (org-roam-fontify-like-in-org-mode s) "\n")
         (oset section file (org-roam-node-file source-node))
         (oset section begin begin)
-        (oset section end end)))))
+        (oset section end end))
+      (insert ?\n))))
 
 ;;;###autoload
 (defun org-roam-node-find (&optional other-window initial-input filter-fn)
