@@ -500,7 +500,7 @@ nodes."
     node))
 
 (defcustom org-roam-node-display-template
-  "${title:48}   ${tags:10}"
+  "${title:*}    ${tags:10}"
   "Configures display formatting for Org-roam node."
   :group 'org-roam
   :type  'string)
