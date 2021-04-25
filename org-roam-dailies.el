@@ -62,7 +62,7 @@
 
 (defcustom org-roam-dailies-capture-templates
   `(("d" "default" entry
-    "* %?"
+     "* %?"
      :if-new (file+head ,(expand-file-name "%<%Y-%m-%d>.org" org-roam-dailies-directory)
                         "#+title: %<%Y-%m-%d>\n")))
   "Capture templates for daily-notes in Org-roam.
