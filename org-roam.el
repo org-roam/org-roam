@@ -627,14 +627,13 @@ is the `org-roam-node'."
              collect (pcase-let* ((`(,file ,pos ,alias ,title ,id) row)
                                   (node (org-roam-node-create :id id
                                                               :file file
-                                                              :title title
+                                                              :title alias
                                                               :point pos
                                                               :tags (gethash id tags-table)))
                                   (candidate-main (org-roam-node--format-entry node (1- (frame-width))))
                                   (tag-str (org-roam--tags-to-str (org-roam-node-tags node))))
                        (cons (propertize (concat (propertize tag-str 'invisible t)
-                                                 candidate-main
-                                                 (propertize alias 'invisible t))
+                                                 candidate-main)
                                          'node node)
                              node)))))
 
