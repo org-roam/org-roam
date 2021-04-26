@@ -6,7 +6,7 @@
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
 ;; Version: 2.0.0
-;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (s "1.12.0") (org "9.4") (emacsql "3.0.0") (emacsql-sqlite3 "1.0.2") (magit-section "2.90.1"))
+;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (org "9.4") (emacsql "3.0.0") (emacsql-sqlite3 "1.0.2") (magit-section "2.90.1"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -43,7 +43,6 @@
 (require 'dash)
 (require 'f)
 (require 'rx)
-(require 's)
 (require 'seq)
 (require 'magit-section)
 (eval-when-compile (require 'subr-x))
@@ -501,7 +500,7 @@ nodes."
     node))
 
 (defcustom org-roam-node-display-template
-  "${title:48}   ${tags:10}"
+  "${title:*}    ${tags:10}"
   "Configures display formatting for Org-roam node."
   :group 'org-roam
   :type  'string)
@@ -628,14 +627,13 @@ is the `org-roam-node'."
              collect (pcase-let* ((`(,file ,pos ,alias ,title ,id) row)
                                   (node (org-roam-node-create :id id
                                                               :file file
-                                                              :title title
+                                                              :title alias
                                                               :point pos
                                                               :tags (gethash id tags-table)))
                                   (candidate-main (org-roam-node--format-entry node (1- (frame-width))))
                                   (tag-str (org-roam--tags-to-str (org-roam-node-tags node))))
                        (cons (propertize (concat (propertize tag-str 'invisible t)
-                                                 candidate-main
-                                                 (propertize alias 'invisible t))
+                                                 candidate-main)
                                          'node node)
                              node)))))
 
@@ -708,7 +706,8 @@ PROPERTIES contains properties about the link."
         (insert (org-roam-fontify-like-in-org-mode s) "\n")
         (oset section file (org-roam-node-file source-node))
         (oset section begin begin)
-        (oset section end end)))))
+        (oset section end end))
+      (insert ?\n))))
 
 ;;;###autoload
 (defun org-roam-node-find (&optional other-window initial-input filter-fn)
