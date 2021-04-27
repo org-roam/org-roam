@@ -791,6 +791,25 @@ window instead."
         (org-set-property prop (combine-and-quote-strings lst))
       (org-delete-property prop))))
 
+(defun org-roam-set-keyword (key value)
+  "Set keyword KEY to VALUE.
+If the property is already set, it's value is replaced."
+  (org-with-point-at 1
+    (let ((case-fold-search t))
+      (if (re-search-forward (concat "^#\\+" key ":\\(.*\\)") (point-max) t)
+          (if (= (string-blank-p value) 0)
+              (kill-whole-line)
+            (replace-match (concat " " value) 'fixedcase nil nil 1))
+        (while (and (not (eobp))
+                    (looking-at "^[#:]"))
+          (if (save-excursion (end-of-line) (eobp))
+              (progn
+                (end-of-line)
+                (insert "\n"))
+            (forward-line)
+            (beginning-of-line)))
+        (insert "#+" key ": " value "\n")))))
+
 ;;;; Tags
 (defun org-roam-tag-completions ()
   "Return list of tags for completions within Org-roam."
@@ -812,10 +831,11 @@ window instead."
     (save-excursion
       (goto-char (org-roam-node-point node))
       (if (= (org-outline-level) 0)
-          (org-roam-add-property tag "ROAM_TAGS")
-        (let ((current-tags (org-get-tags)))
-          (cl-pushnew tag current-tags)
-          (org-set-tags current-tags))))))
+          (let ((current-tags (split-string (or (cadr (assoc "FILETAGS"
+                                                             (org-collect-keywords '("filetags"))))
+                                                ""))))
+            (org-roam-set-keyword "filetags" (string-join (seq-uniq (cons tag current-tags)) " ")))
+        (org-set-tags (seq-uniq (cons tag (org-get-tags))))))))
 
 (defun org-roam-tag-remove ()
   "Remove a tag to the node at point."
@@ -824,8 +844,13 @@ window instead."
     (save-excursion
       (goto-char (org-roam-node-point node))
       (if (= (org-outline-level) 0)
-          (org-roam-remove-property "ROAM_TAGS")
-        (let* ((current-tags (org-get-tags))
+          (let* ((current-tags (split-string (or (cadr (assoc "FILETAGS"
+                                                              (org-collect-keywords '("filetags"))))
+                                                 (user-error "No tag to remove"))))
+                 (tag (completing-read "Tag: " current-tags)))
+            (org-roam-set-keyword "filetags" (string-join (delete tag current-tags) " ")))
+        (let* ((current-tags (or (org-get-tags)
+                                 (user-error "No tag to remove")))
                (tag (completing-read "Tag: " current-tags)))
           (org-set-tags (delete tag current-tags)))))))
 
