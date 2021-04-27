@@ -308,7 +308,8 @@ If CHECKALL, run the check for all Org-roam files."
         (let ((buf (find-file-noselect f)))
           (org-roam-doctor--check buf checkers)
           (unless (memq buf existing-buffers)
-            (save-buffer buf)
+            (with-current-buffer buf
+              (save-buffer))
             (kill-buffer buf))))))
   (org-roam-message "Linting completed."))
 
