@@ -510,17 +510,14 @@ Alternatively, Org-roam provides some functions to add or remove aliases.
 
 ** Tags
 
-Tags for top-level (file) nodes are pulled from two sources:
+Tags for top-level (file) nodes are pulled from the variable ~org-file-tags~,
+which is set by the ~#+filetags~ keyword, as well as other tags the file may
+have inherited. Tags for headline level nodes are regular Org tags.
 
-- the ~ROAM_TAGS~ property in the ~PROPERTIES~ drawer
-- ~org-file-tags~, which is the list of tags that can be inherited by all
-  entries in the file. These are specified with the ~#+filetags~ keyword.
-
-The ~org-file-tags~ variable is designed towards tag inheritance. This is useful
-when you want all your headline nodes in your top-level file node to have the
-same tag. However, if you want the file node to have a tag that is not inherited
-by the headline nodes within the same file, you will have to use the ~ROAM_TAGS~
-property.
+Note that the ~#+filetags~ keyword results in tags being inherited by headers
+within the file. This makes it impossible for selective tag inheritance: i.e.
+either tag inheritance is turned off, or all headline nodes will inherit the
+tags from the file node. This is a design compromise of Org-roam.
 
 ** Refs
 
