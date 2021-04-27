@@ -280,7 +280,9 @@ If UPDATE-P is non-nil, first remove the file in the database."
                (deadline nil)
                (level 0)
                (aliases (org-entry-get (point) "ROAM_ALIASES"))
-               (tags org-file-tags)
+               (roam-tags (when-let ((rtags (org-entry-get (point) "ROAM_TAGS")))
+                            (split-string-and-unquote rtags)))
+               (tags (append roam-tags org-file-tags))
                (refs (org-entry-get (point) "ROAM_REFS")))
           (condition-case nil
               (progn

@@ -508,6 +508,20 @@ Alternatively, Org-roam provides some functions to add or remove aliases.
 
   Remove an alias from the node at point.
 
+** Tags
+
+Tags for top-level (file) nodes are pulled from two sources:
+
+- the ~ROAM_TAGS~ property in the ~PROPERTIES~ drawer
+- ~org-file-tags~, which is the list of tags that can be inherited by all
+  entries in the file. These are specified with the ~#+filetags~ keyword.
+
+The ~org-file-tags~ variable is designed towards tag inheritance. This is useful
+when you want all your headline nodes in your top-level file node to have the
+same tag. However, if you want the file node to have a tag that is not inherited
+by the headline nodes within the same file, you will have to use the ~ROAM_TAGS~
+property.
+
 ** Refs
 
 Refs are unique identifiers for nodes. These keys allow references to the key to
