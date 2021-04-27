@@ -802,7 +802,7 @@ window instead."
                                    (`(,tag . ,_)
                                     (list tag))
                                    (_ nil)))))
-    (append roam-tags org-tags)))
+    (seq-uniq (append roam-tags org-tags))))
 
 (defun org-roam-tag-add (tag)
   "Add a tag to the node at point."
