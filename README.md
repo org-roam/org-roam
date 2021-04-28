@@ -47,7 +47,7 @@ Here's a sample configuration with `use-package`:
       :hook
       (after-init . org-roam-mode)
       :custom
-      (org-roam-directory "/path/to/org-files/")
+      (org-roam-directory (file-truename "/path/to/org-files/"))
       :bind (:map org-roam-mode-map
               (("C-c n l" . org-roam)
                ("C-c n f" . org-roam-find-file)
@@ -55,6 +55,9 @@ Here's a sample configuration with `use-package`:
               :map org-mode-map
               (("C-c n i" . org-roam-insert))))
 ```
+
+The `file-truename` function is only necessary when you use symbolic links
+inside `org-roam-directory`: Org-roam does not resolve symbolic links.
 
 Org-roam requires sqlite to function. Org-roam optionally uses Graphviz for
 graph-related functionality. It is recommended to install PCRE-enabled ripgrep
