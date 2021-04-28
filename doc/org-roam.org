@@ -331,8 +331,11 @@ create an empty directory, and set ~org-roam-directory~:
 
 #+BEGIN_SRC emacs-lisp
 (make-directory "~/org-roam")
-(setq org-roam-directory "~/org-roam")
+(setq org-roam-directory (file-truename "~/org-roam"))
 #+END_SRC
+
+The ~file-truename~ function is only necessary when you use symbolic links
+inside ~org-roam-directory~: Org-roam does not resolve symbolic links.
 
 We encourage using a flat hierarchy for storing notes, but some prefer using
 folders for storing specific kinds of notes (e.g. websites, papers). This is
