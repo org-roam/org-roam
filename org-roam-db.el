@@ -270,9 +270,10 @@ If UPDATE-P is non-nil, first remove the file in the database."
     (when (= (org-outline-level) 0)
       (when-let ((id (org-id-get)))
         (let* ((file (buffer-file-name (buffer-base-buffer)))
-               (title (or (cadr (assoc "TITLE" (org-collect-keywords '("title"))
-                                       #'string-equal))
-                          (file-relative-name file org-roam-directory)))
+               (title (org-link-display-format
+                       (or (cadr (assoc "TITLE" (org-collect-keywords '("title"))
+                                        #'string-equal))
+                           (file-relative-name file org-roam-directory))))
                (pos (point))
                (todo nil)
                (priority nil)
@@ -333,7 +334,7 @@ If UPDATE-P is non-nil, first remove the file in the database."
            (level (nth 1 heading-components))
            (scheduled (org-roam-db-get-scheduled-time))
            (deadline (org-roam-db-get-deadline-time))
-           (title (nth 4 heading-components)))
+           (title (org-link-display-format (nth 4 heading-components))))
       (condition-case nil
           (org-roam-db-query
            [:insert :into nodes

@@ -791,29 +791,103 @@ window instead."
         (org-set-property prop (combine-and-quote-strings lst))
       (org-delete-property prop))))
 
+(defun org-roam-set-keyword (key value)
+  "Set keyword KEY to VALUE.
+If the property is already set, it's value is replaced."
+  (org-with-point-at 1
+    (let ((case-fold-search t))
+      (if (re-search-forward (concat "^#\\+" key ":\\(.*\\)") (point-max) t)
+          (if (= (string-blank-p value) 0)
+              (kill-whole-line)
+            (replace-match (concat " " value) 'fixedcase nil nil 1))
+        (while (and (not (eobp))
+                    (looking-at "^[#:]"))
+          (if (save-excursion (end-of-line) (eobp))
+              (progn
+                (end-of-line)
+                (insert "\n"))
+            (forward-line)
+            (beginning-of-line)))
+        (insert "#+" key ": " value "\n")))))
+
+;;;; Tags
+(defun org-roam-tag-completions ()
+  "Return list of tags for completions within Org-roam."
+  (let ((roam-tags (mapcar #'car (org-roam-db-query [:select :distinct [tag] :from tags])))
+        (org-tags (cl-loop for tagg in org-tag-alist
+                           nconc (pcase tagg
+                                   ('(:newline)
+                                    nil)
+                                   (`(,tag . ,_)
+                                    (list tag))
+                                   (_ nil)))))
+    (seq-uniq (append roam-tags org-tags))))
+
+(defun org-roam-tag-add (tag)
+  "Add a tag to the node at point."
+  (interactive
+   (list (completing-read "Tag: " (org-roam-tag-completions))))
+  (let ((node (org-roam-node-at-point 'assert)))
+    (save-excursion
+      (goto-char (org-roam-node-point node))
+      (if (= (org-outline-level) 0)
+          (let ((current-tags (split-string (or (cadr (assoc "FILETAGS"
+                                                             (org-collect-keywords '("filetags"))))
+                                                ""))))
+            (org-roam-set-keyword "filetags" (string-join (seq-uniq (cons tag current-tags)) " ")))
+        (org-set-tags (seq-uniq (cons tag (org-get-tags))))))))
+
+(defun org-roam-tag-remove ()
+  "Remove a tag to the node at point."
+  (interactive)
+  (let ((node (org-roam-node-at-point 'assert)))
+    (save-excursion
+      (goto-char (org-roam-node-point node))
+      (if (= (org-outline-level) 0)
+          (let* ((current-tags (split-string (or (cadr (assoc "FILETAGS"
+                                                              (org-collect-keywords '("filetags"))))
+                                                 (user-error "No tag to remove"))))
+                 (tag (completing-read "Tag: " current-tags)))
+            (org-roam-set-keyword "filetags" (string-join (delete tag current-tags) " ")))
+        (let* ((current-tags (or (org-get-tags)
+                                 (user-error "No tag to remove")))
+               (tag (completing-read "Tag: " current-tags)))
+          (org-set-tags (delete tag current-tags)))))))
+
 ;;;; Aliases
 (defun org-roam-alias-add (alias)
   "Add ALIAS to the node at point."
   (interactive "sAlias: ")
-  (org-roam-add-property alias "ROAM_ALIASES"))
+  (let ((node (org-roam-node-at-point 'assert)))
+    (save-excursion
+      (goto-char (org-roam-node-point node))
+      (org-roam-add-property alias "ROAM_ALIASES"))))
 
 (defun org-roam-alias-remove ()
   "Remove an alias from the node at point."
   (interactive)
-  (org-roam-remove-property "ROAM_ALIASES"))
+  (let ((node (org-roam-node-at-point 'assert)))
+    (save-excursion
+      (goto-char (org-roam-node-point node))
+      (org-roam-remove-property "ROAM_ALIASES"))))
 
 ;;;; Refs
 (defun org-roam-ref-add (ref)
   "Add REF to the node at point."
   (interactive "sRef: ")
-  (org-roam-add-property ref "ROAM_REFS"))
+  (let ((node (org-roam-node-at-point 'assert)))
+    (save-excursion
+      (goto-char (org-roam-node-point node))
+      (org-roam-add-property ref "ROAM_REFS"))))
 
 (defun org-roam-ref-remove ()
   "Remove a ref from the node at point."
   (interactive)
-  (org-roam-remove-property "ROAM_REFS"))
+  (let ((node (org-roam-node-at-point 'assert)))
+    (save-excursion
+      (goto-char (org-roam-node-point node))
+      (org-roam-remove-property "ROAM_REFS"))))
 
-;;;; Refs
 (defun org-roam-ref--completions ()
   "Return an alist for ref completion.
 The car is the ref, and the cdr is the corresponding node for the ref."

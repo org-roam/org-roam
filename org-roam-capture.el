@@ -468,7 +468,12 @@ This function is to be called in the Org-capture finalization process."
   "Finalize the `org-roam-capture' process."
   (when-let ((region (org-roam-capture--get :region)))
     (org-roam-unshield-region (car region) (cdr region)))
-  (unless org-note-abort
+  (if org-note-abort
+      (when-let ((new-file (org-roam-capture--get :new-file)))
+        (org-roam-message "Deleting file for aborted capture %s" new-file)
+        (when (find-buffer-visiting new-file)
+          (kill-buffer (find-buffer-visiting new-file)))
+        (delete-file new-file))
     (when-let ((finalize (org-roam-capture--get :finalize)))
       (funcall (intern (concat "org-roam-capture--finalize-"
                                (symbol-name (org-roam-capture--get :finalize)))))))
@@ -515,6 +520,8 @@ Return the ID of the location."
        (setq path (expand-file-name
                    (string-trim (org-roam-capture--fill-template path t))
                    org-roam-directory))
+       (unless (file-exists-p path)
+         (org-roam-capture--put :new-file path))
        (set-buffer (org-capture-target-buffer path))
        (widen)
        (setq p (point)))
@@ -523,6 +530,8 @@ Return the ID of the location."
                    (string-trim (org-roam-capture--fill-template path t))
                    org-roam-directory))
        (set-buffer (org-capture-target-buffer path))
+       (unless (file-exists-p path)
+         (org-roam-capture--put :new-file path))
        (setq p (point-min))
        (let ((m (org-roam-capture-find-or-create-olp olp)))
          (goto-char m))
@@ -531,10 +540,10 @@ Return the ID of the location."
        (setq path (expand-file-name
                    (string-trim (org-roam-capture--fill-template path t))
                    org-roam-directory))
-       (let ((exists-p (file-exists-p path)))
-         (set-buffer (org-capture-target-buffer path))
-         (unless exists-p
-           (insert (org-roam-capture--fill-template head t))))
+       (set-buffer (org-capture-target-buffer path))
+       (unless (file-exists-p path)
+         (org-roam-capture--put :new-file path)
+         (insert (org-roam-capture--fill-template head t)))
        (widen)
        (setq p (point-min)))
       (`(file+head+olp ,path ,head ,olp)
@@ -542,10 +551,10 @@ Return the ID of the location."
                    (string-trim (org-roam-capture--fill-template path t))
                    org-roam-directory))
        (widen)
-       (let ((exists-p (file-exists-p path)))
-         (set-buffer (org-capture-target-buffer path))
-         (unless exists-p
-           (insert (org-roam-capture--fill-template head t))))
+       (set-buffer (org-capture-target-buffer path))
+       (unless (file-exists-p path)
+         (org-roam-capture--put :new-file path)
+         (insert (org-roam-capture--fill-template head t)))
        (setq p (point-min))
        (let ((m (org-roam-capture-find-or-create-olp olp)))
          (goto-char m)))

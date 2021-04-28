@@ -361,8 +361,11 @@ For this tutorial, create an empty directory, and set ~org-roam-directory~:
 
 #+BEGIN_SRC emacs-lisp
 (make-directory "~/org-roam")
-(setq org-roam-directory "~/org-roam")
+(setq org-roam-directory (file-truename "~/org-roam"))
 #+END_SRC
+
+The ~file-truename~ function is only necessary when you use symbolic links
+inside ~org-roam-directory~: Org-roam does not resolve symbolic links.
 
 Next, we setup Org-roam to run functions on file changes to maintain cache
 consistency. This is achieved by running ~M-x org-roam-setup~. To ensure that
@@ -507,6 +510,17 @@ Alternatively, Org-roam provides some functions to add or remove aliases.
 - Function: org-roam-alias-remove
 
   Remove an alias from the node at point.
+
+** Tags
+
+Tags for top-level (file) nodes are pulled from the variable ~org-file-tags~,
+which is set by the ~#+filetags~ keyword, as well as other tags the file may
+have inherited. Tags for headline level nodes are regular Org tags.
+
+Note that the ~#+filetags~ keyword results in tags being inherited by headers
+within the file. This makes it impossible for selective tag inheritance: i.e.
+either tag inheritance is turned off, or all headline nodes will inherit the
+tags from the file node. This is a design compromise of Org-roam.
 
 ** Refs
 
