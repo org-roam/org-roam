@@ -554,7 +554,7 @@ Return the ID of the location."
        (set-buffer (org-capture-target-buffer path))
        (unless (file-exists-p path)
          (org-roam-capture--put :new-file path)
-           (insert (org-roam-capture--fill-template head t)))
+         (insert (org-roam-capture--fill-template head t)))
        (setq p (point-min))
        (let ((m (org-roam-capture-find-or-create-olp olp)))
          (goto-char m)))
