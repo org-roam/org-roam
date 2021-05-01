@@ -509,9 +509,7 @@ nodes."
 
 (defun org-roam--tags-to-str (tags)
   "Convert list of TAGS into a string."
-  (string-join
-   (mapcar (lambda (s) (concat "#" s)) tags)
-   " "))
+  (mapconcat (lambda (s) (concat "#" s)) tags " "))
 
 (defun org-roam-node--format-entry (node width)
   "Formats NODE for display in the results list.
@@ -698,8 +696,7 @@ POINT is the point in buffer for the link.
 PROPERTIES contains properties about the link."
   (magit-insert-section section (org-roam-node-section)
     (let ((outline (if-let ((outline (plist-get properties :outline)))
-                       (string-join (mapcar #'org-link-display-format outline)
-                                    " > ")
+                       (mapconcat #'org-link-display-format outline " > ")
                      "Top")))
       (insert (concat (propertize (org-roam-node-title source-node)
                                   'font-lock-face 'org-roam-title)
