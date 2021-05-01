@@ -421,7 +421,7 @@ OLD-FILE is cleared from the database, and NEW-FILE-OR-DIR is added."
 ;;;; Nodes
 (cl-defstruct (org-roam-node (:constructor org-roam-node-create)
                              (:copier nil))
-  id file level point todo priority scheduled deadline title
+  id file level point todo priority scheduled deadline title properties olp
   tags aliases refs)
 
 (cl-defmethod org-roam-node-slug ((node org-roam-node))
@@ -471,7 +471,7 @@ OLD-FILE is cleared from the database, and NEW-FILE-OR-DIR is added."
 Uses the ID, and fetches remaining details from the database.
 This can be quite costly: avoid, unless dealing with very few
 nodes."
-  (let ((node-info (car (org-roam-db-query [:select [file level pos todo priority scheduled deadline title]
+  (let ((node-info (car (org-roam-db-query [:select [file level pos todo priority scheduled deadline title properties olp]
                                             :from nodes
                                             :where (= id $s1)
                                             :limit 1]
@@ -485,7 +485,7 @@ nodes."
         (refs-info (mapcar #'car (org-roam-db-query [:select [ref] :from refs
                                                      :where (= node-id $s1)]
                                                     (org-roam-node-id node)))))
-    (pcase-let ((`(,file ,level ,pos ,todo ,priority ,scheduled ,deadline ,title) node-info))
+    (pcase-let ((`(,file ,level ,pos ,todo ,priority ,scheduled ,deadline ,title ,properties ,olp) node-info))
       (setf (org-roam-node-file node) file
             (org-roam-node-level node) level
             (org-roam-node-point node) pos
@@ -494,13 +494,15 @@ nodes."
             (org-roam-node-scheduled node) scheduled
             (org-roam-node-deadline node) deadline
             (org-roam-node-title node) title
+            (org-roam-node-properties node) properties
+            (org-roam-node-olp node) olp
             (org-roam-node-tags node) tag-info
             (org-roam-node-refs node) refs-info
             (org-roam-node-aliases node) alias-info))
     node))
 
 (defcustom org-roam-node-display-template
-  "${title:*}    ${tags:10}"
+  "${title:*} ${tags:10}"
   "Configures display formatting for Org-roam node."
   :group 'org-roam
   :type  'string)
@@ -529,6 +531,9 @@ WIDTH is the width of the results list."
          (when (and (equal field-name "file")
                     field-value)
            (setq field-value (file-relative-name field-value org-roam-directory)))
+         (when (and (equal field-name "olp")
+                    field-value)
+           (setq field-value (string-join field-value " > ")))
          (if (not field-width)
              field-value
            (setq field-width (string-to-number field-width))
@@ -618,17 +623,19 @@ The car is the displayed title or alias for the node, and the cdr
 is the `org-roam-node'."
   (let ((tags-table (org-roam--tags-table)))
     (cl-loop for row in (append
-                         (org-roam-db-query [:select [file pos title title id]
+                         (org-roam-db-query [:select [file pos title title id properties olp]
                                              :from nodes])
                          (org-roam-db-query [:select [nodes:file pos alias title node-id]
                                              :from aliases
                                              :left-join nodes
                                              :on (= aliases:node-id nodes:id)]))
-             collect (pcase-let* ((`(,file ,pos ,alias ,title ,id) row)
+             collect (pcase-let* ((`(,file ,pos ,alias ,title ,id ,properties ,olp) row)
                                   (node (org-roam-node-create :id id
                                                               :file file
                                                               :title alias
                                                               :point pos
+                                                              :properties properties
+                                                              :olp olp
                                                               :tags (gethash id tags-table)))
                                   (candidate-main (org-roam-node--format-entry node (1- (frame-width))))
                                   (tag-str (org-roam--tags-to-str (org-roam-node-tags node))))
