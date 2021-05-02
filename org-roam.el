@@ -472,7 +472,8 @@ OLD-FILE is cleared from the database, and NEW-FILE-OR-DIR is added."
 Uses the ID, and fetches remaining details from the database.
 This can be quite costly: avoid, unless dealing with very few
 nodes."
-  (let ((node-info (car (org-roam-db-query [:select [file level pos todo priority scheduled deadline title properties olp]
+  (let ((node-info (car (org-roam-db-query [:select [file level pos todo priority
+                                                     scheduled deadline title properties olp]
                                             :from nodes
                                             :where (= id $s1)
                                             :limit 1]
@@ -829,7 +830,7 @@ If the property is already set, it's value is replaced."
     (seq-uniq (append roam-tags org-tags))))
 
 (defun org-roam-tag-add (tag)
-  "Add a tag to the node at point."
+  "Add TAG to the node at point."
   (interactive
    (list (completing-read "Tag: " (org-roam-tag-completions))))
   (let ((node (org-roam-node-at-point 'assert)))

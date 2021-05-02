@@ -165,7 +165,7 @@ SQL can be either the emacsql vector representation, or a string."
 
     (tags
      ([(node-id :not-null)
-      tag]
+       tag]
       (:foreign-key [node-id] :references nodes [id] :on-delete :cascade)))
 
     (links
@@ -343,10 +343,10 @@ If UPDATE-P is non-nil, first remove the file in the database."
            (properties (org-entry-properties))
            (olp (org-get-outline-path)))
       (org-roam-db-query
-           [:insert :into nodes
-            :values $v1]
-           (vector id file level pos todo priority
-                   scheduled deadline title properties olp)))))
+       [:insert :into nodes
+        :values $v1]
+       (vector id file level pos todo priority
+               scheduled deadline title properties olp)))))
 
 (defun org-roam-db-insert-aliases ()
   "Insert aliases for node at point into Org-roam cache."
