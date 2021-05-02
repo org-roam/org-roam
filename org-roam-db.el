@@ -6,7 +6,7 @@
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
 ;; Version: 2.0.0
-;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (org "9.4") (emacsql "3.0.0") (emacsql-sqlite3 "1.0.2") (magit-section "2.90.1"))
+;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (org "9.4") (emacsql "3.0.0") (emacsql-sqlite "1.0.0") (magit-section "2.90.1"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -33,7 +33,7 @@
 ;;;; Library Requires
 (eval-when-compile (require 'subr-x))
 (require 'emacsql)
-(require 'emacsql-sqlite3)
+(require 'emacsql-sqlite)
 (require 'seq)
 
 (eval-and-compile
@@ -79,7 +79,7 @@ value like `most-positive-fixnum'."
   :type 'int
   :group 'org-roam)
 
-(defconst org-roam-db--version 13)
+(defconst org-roam-db--version 14)
 
 (defvar org-roam-db--connection (make-hash-table :test #'equal)
   "Database connection to Org-roam database.")
@@ -99,7 +99,7 @@ Performs a database upgrade when required."
                (emacsql-live-p (org-roam-db--get-connection)))
     (let ((init-db (not (file-exists-p org-roam-db-location))))
       (make-directory (file-name-directory org-roam-db-location) t)
-      (let ((conn (emacsql-sqlite3 org-roam-db-location)))
+      (let ((conn (emacsql-sqlite org-roam-db-location)))
         (set-process-query-on-exit-flag (emacsql-process conn) nil)
         (puthash (expand-file-name org-roam-directory)
                  conn
@@ -136,46 +136,47 @@ SQL can be either the emacsql vector representation, or a string."
       (hash :not-null)])
 
     (nodes
-     [(id :primary-key :not-null)
-      (file :not-null)
-      (level :not-null)
-      (pos :not-null)
-      todo
-      priority
-      (scheduled text)
-      (deadline text)
-      title
-      properties
-      olp]
-     (:foreign-key [file] :references files [file] :on-delete :cascade))
+     ([(id :not-null :primary-key)
+       (file :not-null)
+       (level :not-null)
+       (pos :not-null)
+       todo
+       priority
+       (scheduled text)
+       (deadline text)
+       title
+       properties
+       olp]
+      (:foreign-key [file] :references files [file] :on-delete :cascade)))
 
     (aliases
-     [(file :not-null)
-      (node-id :not-null)
-      alias]
-     (:foreign-key [node-id] :references nodes [id] :on-delete :cascade))
+     ([(node-id :not-null :primary-key)
+       alias]
+      (:foreign-key [node-id] :references nodes [id] :on-delete :cascade)))
 
     (refs
-     ([(file :not-null)
-       (node-id :not-null)
+     ([(node-id :not-null)
        (ref :not-null)
        (type :not-null)]
       (:foreign-key [node-id] :references nodes [id] :on-delete :cascade)))
 
     (tags
-     [(file :not-null)
-      (node-id :not-null)
+     ([(node-id :not-null)
       tag]
-     (:foreign-key [node-id] :references nodes [id] :on-delete :cascade))
+      (:foreign-key [node-id] :references nodes [id] :on-delete :cascade)))
 
     (links
-     [(file :not-null)
-      (pos :not-null)
-      (source :not-null)
-      (dest :not-null)
-      (type :not-null)
-      (properties :not-null)]
-     (:foreign-key [file] :references files [file] :on-delete :cascade))))
+     ([(pos :not-null)
+       (source :not-null)
+       (dest :not-null)
+       (type :not-null)
+       (properties :not-null)]
+      (:foreign-key [source] :references nodes [id] :on-delete :cascade)))))
+
+(defconst org-roam-db--table-indices
+  '((alias-node-id aliases [node-id])
+    (refs-node-id refs [node-id])
+    (tags-node-id tags [node-id])))
 
 (defun org-roam-db--init (db)
   "Initialize database DB with the correct schema and user version."
@@ -183,6 +184,8 @@ SQL can be either the emacsql vector representation, or a string."
     (emacsql db "PRAGMA foreign_keys = ON")
     (pcase-dolist (`(,table ,schema) org-roam-db--table-schemata)
       (emacsql db [:create-table $i1 $S2] table schema))
+    (pcase-dolist (`(,index-name ,table ,columns) org-roam-db--table-indices)
+      (emacsql db [:create-index $i1 :on $i2 $S3] index-name table columns))
     (emacsql db (format "PRAGMA user_version = %s" org-roam-db--version))))
 
 (defun org-roam-db--upgrade-maybe (db version)
@@ -224,10 +227,9 @@ the current `org-roam-directory'."
 This is equivalent to removing the node from the graph.
 If FILE is nil, clear the current buffer."
   (setq file (or file (buffer-file-name (buffer-base-buffer))))
-  (dolist (table (mapcar #'car org-roam-db--table-schemata))
-    (org-roam-db-query `[:delete :from ,table
-                         :where (= file $s1)]
-                       file)))
+  (org-roam-db-query [:delete :from files
+                      :where (= file $s1)]
+                     file))
 
 ;;;;; Updating tables
 (defun org-roam-db-insert-file ()
@@ -297,14 +299,14 @@ If UPDATE-P is non-nil, first remove the file in the database."
              [:insert :into tags
               :values $v1]
              (mapcar (lambda (tag)
-                       (vector file id (substring-no-properties tag)))
+                       (vector id (substring-no-properties tag)))
                      tags)))
           (when aliases
             (org-roam-db-query
              [:insert :into aliases
               :values $v1]
              (mapcar (lambda (alias)
-                       (vector file id alias))
+                       (vector id alias))
                      (split-string-and-unquote aliases))))
           (when refs
             (setq refs (split-string-and-unquote refs))
@@ -312,7 +314,7 @@ If UPDATE-P is non-nil, first remove the file in the database."
               (dolist (ref refs)
                 (if (string-match org-link-plain-re ref)
                     (progn
-                      (push (vector file id (match-string 2 ref)
+                      (push (vector id (match-string 2 ref)
                                     (match-string 1 ref)) rows))
                   (lwarn '(org-roam) :warning
                          "%s:%s\tInvalid ref %s, skipping..."
@@ -356,18 +358,16 @@ If UPDATE-P is non-nil, first remove the file in the database."
 
 (defun org-roam-db-insert-tags ()
   "Insert tags for node at point into Org-roam cache."
-  (when-let ((file (buffer-file-name (buffer-base-buffer)))
-             (node-id (org-id-get))
+  (when-let ((node-id (org-id-get))
              (tags (org-get-tags)))
     (org-roam-db-query [:insert :into tags
                         :values $v1]
                        (mapcar (lambda (tag)
-                                 (vector file node-id tag)) tags))))
+                                 (vector node-id tag)) tags))))
 
 (defun org-roam-db-insert-refs ()
   "Insert refs for node at point into Org-roam cache."
-  (when-let* ((file (buffer-file-name (buffer-base-buffer)))
-              (node-id (org-id-get))
+  (when-let* ((node-id (org-id-get))
               (refs (org-entry-get (point) "ROAM_REFS"))
               (refs (split-string-and-unquote refs)))
     (let (rows)
@@ -375,7 +375,7 @@ If UPDATE-P is non-nil, first remove the file in the database."
         (save-match-data
           (if (string-match org-link-plain-re ref)
               (progn
-                (push (vector file node-id (match-string 2 ref) (match-string 1 ref)) rows))
+                (push (vector node-id (match-string 2 ref) (match-string 1 ref)) rows))
             (lwarn '(org-roam) :warning
                    "%s:%s\tInvalid ref %s, skipping..." (buffer-file-name) (point) ref))))
       (org-roam-db-query [:insert :into refs
@@ -386,8 +386,7 @@ If UPDATE-P is non-nil, first remove the file in the database."
   "Insert link data for LINK at current point into the Org-roam cache."
   (save-excursion
     (goto-char (org-element-property :begin link))
-    (let ((file (buffer-file-name (buffer-base-buffer)))
-          (type (org-element-property :type link))
+    (let ((type (org-element-property :type link))
           (dest (org-element-property :path link))
           (properties (list :outline (org-get-outline-path)))
           (source (org-roam-id-at-point)))
@@ -395,7 +394,7 @@ If UPDATE-P is non-nil, first remove the file in the database."
         (org-roam-db-query
          [:insert :into links
           :values $v1]
-         (vector file (point) source dest type properties))))))
+         (vector (point) source dest type properties))))))
 
 ;;;;; Fetching
 (defun org-roam-db--get-current-files ()
