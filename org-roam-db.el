@@ -366,7 +366,7 @@ If UPDATE-P is non-nil, first remove the file in the database."
     (org-roam-db-query [:insert :into tags
                         :values $v1]
                        (mapcar (lambda (tag)
-                                 (vector node-id tag)) tags))))
+                                 (vector node-id (substring-no-properties tag))) tags))))
 
 (defun org-roam-db-insert-refs ()
   "Insert refs for node at point into Org-roam cache."
