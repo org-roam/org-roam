@@ -5,7 +5,7 @@
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
 ;; Version: 2.0.0
-;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (org "9.4") (emacsql "3.0.0") (emacsql-sqlite3 "1.0.2") (magit-section "2.90.1"))
+;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (org "9.4") (emacsql "3.0.0") (emacsql-sqlite "1.0.0") (magit-section "2.90.1"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -124,11 +124,12 @@ and `:slant'."
 (defvar org-roam-current-node nil
   "The current node at point.")
 
-(defcustom org-roam-mode-sections (list #'org-roam-backlinks-section
-                                        #'org-roam-reflinks-section)
-  "List of functions that insert sections for Org-roam."
+(defcustom org-roam-mode-section-functions (list #'org-roam-backlinks-section
+                                                 #'org-roam-reflinks-section)
+  "Functions which insert sections of the `org-roam-buffer'.
+Each function is called with one argument, which is the current org-roam node at point."
   :group 'org-roam
-  :type '(repeat function))
+  :type 'hook)
 
 ;;; The mode
 (defvar org-roam-mode-map
@@ -162,8 +163,7 @@ which visits the thing at point."
       (org-roam-set-header-line-format (org-roam-node-title org-roam-current-node))
       (magit-insert-section (org-roam)
         (magit-insert-heading)
-        (dolist (fn org-roam-mode-sections)
-          (funcall fn org-roam-current-node))))))
+        (run-hook-with-args 'org-roam-mode-section-functions org-roam-current-node)))))
 
 (defun org-roam-buffer ()
   "Launch an Org-roam buffer for the current node at point."
@@ -419,9 +419,9 @@ References from FILE are excluded."
     (let* ((titles (cons (org-roam-node-title node)
                          (org-roam-node-aliases node)))
            (rg-command (concat "rg -o --vimgrep -P -i "
-                               (string-join (mapcar (lambda (glob) (concat "-g " glob))
-                                                    (org-roam--list-files-search-globs
-                                                     org-roam-file-extensions)) " ")
+                               (mapconcat (lambda (glob) (concat "-g " glob))
+                                          (org-roam--list-files-search-globs org-roam-file-extensions)
+                                          " ")
                                (format " '\\[([^[]]++|(?R))*\\]%s' "
                                        (mapconcat (lambda (title)
                                                     (format "|(\\b%s\\b)" (shell-quote-argument title)))

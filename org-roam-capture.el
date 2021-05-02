@@ -6,7 +6,7 @@
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
 ;; Version: 2.0.0
-;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (s "1.12.0") (org "9.4") (emacsql "3.0.0") (emacsql-sqlite3 "1.0.2") (magit-section "2.90.1"))
+;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (org "9.4") (emacsql "3.0.0") (emacsql-sqlite "1.0.0") (magit-section "2.90.1"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -33,7 +33,8 @@
 ;;;; Library Requires
 (require 'org-capture)
 (eval-when-compile
-  (require 'org-roam-macs))
+  (require 'org-roam-macs)
+  (require 'org-macs))
 (require 'org-roam-db)
 (require 'dash)
 (require 'cl-lib)
@@ -569,8 +570,8 @@ Return the ID of the location."
          (org-end-of-subtree t t))))
     (save-excursion
       (goto-char p)
-      (run-hooks 'org-roam-capture-new-node-hook)
-      (org-id-get-create))))
+      (org-id-get-create)
+      (run-hooks 'org-roam-capture-new-node-hook))))
 
 (defun org-roam-capture-find-or-create-olp (olp)
   "Return a marker pointing to the entry at OLP in the current buffer.
