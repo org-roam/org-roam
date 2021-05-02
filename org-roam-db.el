@@ -129,7 +129,6 @@ SQL can be either the emacsql vector representation, or a string."
     (apply #'emacsql (org-roam-db) sql args)))
 
 ;;;; Schemata
-;; NOTE: Foreign key somehow doesn't work! Adding a file column to every table as a workaround.
 (defconst org-roam-db--table-schemata
   '((files
      [(file :unique :primary-key)
