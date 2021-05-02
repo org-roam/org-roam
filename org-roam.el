@@ -50,7 +50,8 @@
 ;;;; Features
 (require 'org-roam-compat)
 (eval-when-compile
-  (require 'org-roam-macs))
+  (require 'org-roam-macs)
+  (require 'org-macs))
 (require 'org-roam-utils)
 (require 'org-roam-mode)
 (require 'org-roam-completion)
@@ -68,7 +69,7 @@
 (defgroup org-roam nil
   "Roam Research replica in Org-mode."
   :group 'org
-  :prefix "org-roam-"
+  :prefix "org-roam-"n
   :link '(url-link :tag "Github" "https://github.com/org-roam/org-roam")
   :link '(url-link :tag "Online Manual" "https://www.orgroam.com/manual.html"))
 

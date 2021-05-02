@@ -33,7 +33,8 @@
 ;;;; Library Requires
 (require 'org-capture)
 (eval-when-compile
-  (require 'org-roam-macs))
+  (require 'org-roam-macs)
+  (require 'org-macs))
 (require 'org-roam-db)
 (require 'dash)
 (require 'cl-lib)
