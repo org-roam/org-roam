@@ -570,8 +570,8 @@ Return the ID of the location."
          (org-end-of-subtree t t))))
     (save-excursion
       (goto-char p)
-      (run-hooks 'org-roam-capture-new-node-hook)
-      (org-id-get-create))))
+      (org-id-get-create)
+      (run-hooks 'org-roam-capture-new-node-hook))))
 
 (defun org-roam-capture-find-or-create-olp (olp)
   "Return a marker pointing to the entry at OLP in the current buffer.

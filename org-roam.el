@@ -472,36 +472,37 @@ OLD-FILE is cleared from the database, and NEW-FILE-OR-DIR is added."
 Uses the ID, and fetches remaining details from the database.
 This can be quite costly: avoid, unless dealing with very few
 nodes."
-  (let ((node-info (car (org-roam-db-query [:select [file level pos todo priority
-                                                     scheduled deadline title properties olp]
-                                            :from nodes
-                                            :where (= id $s1)
-                                            :limit 1]
-                                           (org-roam-node-id node))))
-        (tag-info (mapcar #'car (org-roam-db-query [:select [tag] :from tags
-                                                    :where (= node-id $s1)]
-                                                   (org-roam-node-id node))))
-        (alias-info (mapcar #'car (org-roam-db-query [:select [alias] :from aliases
+  (when-let ((node-info (car (org-roam-db-query [:select [file level pos todo priority
+                                                          scheduled deadline title properties olp]
+                                                 :from nodes
+                                                 :where (= id $s1)
+                                                 :limit 1]
+                                                (org-roam-node-id node)))))
+    (let ((tag-info (mapcar #'car (org-roam-db-query [:select [tag] :from tags
                                                       :where (= node-id $s1)]
                                                      (org-roam-node-id node))))
-        (refs-info (mapcar #'car (org-roam-db-query [:select [ref] :from refs
-                                                     :where (= node-id $s1)]
-                                                    (org-roam-node-id node)))))
-    (pcase-let ((`(,file ,level ,pos ,todo ,priority ,scheduled ,deadline ,title ,properties ,olp) node-info))
-      (setf (org-roam-node-file node) file
-            (org-roam-node-level node) level
-            (org-roam-node-point node) pos
-            (org-roam-node-todo node) todo
-            (org-roam-node-priority node) priority
-            (org-roam-node-scheduled node) scheduled
-            (org-roam-node-deadline node) deadline
-            (org-roam-node-title node) title
-            (org-roam-node-properties node) properties
-            (org-roam-node-olp node) olp
-            (org-roam-node-tags node) tag-info
-            (org-roam-node-refs node) refs-info
-            (org-roam-node-aliases node) alias-info))
-    node))
+          (alias-info (mapcar #'car (org-roam-db-query [:select [alias] :from aliases
+                                                        :where (= node-id $s1)]
+                                                       (org-roam-node-id node))))
+          (refs-info (mapcar #'car (org-roam-db-query [:select [ref] :from refs
+                                                       :where (= node-id $s1)]
+                                                      (org-roam-node-id node)))))
+      (pcase-let ((`(,file ,level ,pos ,todo ,priority ,scheduled
+                           ,deadline ,title ,properties ,olp) node-info))
+        (setf (org-roam-node-file node) file
+              (org-roam-node-level node) level
+              (org-roam-node-point node) pos
+              (org-roam-node-todo node) todo
+              (org-roam-node-priority node) priority
+              (org-roam-node-scheduled node) scheduled
+              (org-roam-node-deadline node) deadline
+              (org-roam-node-title node) title
+              (org-roam-node-properties node) properties
+              (org-roam-node-olp node) olp
+              (org-roam-node-tags node) tag-info
+              (org-roam-node-refs node) refs-info
+              (org-roam-node-aliases node) alias-info))))
+  node)
 
 (defcustom org-roam-node-display-template
   "${title:*} ${tags:10}"
@@ -561,8 +562,15 @@ WIDTH is the width of the results list."
 If ASSERT, throw an error."
   (if-let ((node (magit-section-case
                    (org-roam-node-section (oref it node))
-                   (t (when-let ((id (org-roam-id-at-point)))
-                        (org-roam-populate (org-roam-node-create :id id)))))))
+                   (t (let (id)
+                        (org-with-wide-buffer
+                         (while (and (not (setq id (org-id-get)))
+                                     (not (bobp)))
+                           (org-roam-up-heading-or-point-min))
+                         (when id
+                           (org-roam-populate
+                            (org-roam-node-create :id id
+                                                  :point (point))))))))))
       node
     (when assert
       (user-error "No node at point"))))
