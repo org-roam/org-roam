@@ -156,20 +156,24 @@ Adapted from `s-format'."
          t t)
       (set-match-data saved-match-data))))
 
+(defvar org-roam--cached-display-format nil)
+
 (defun org-roam--process-display-format (format)
   "Pre-calculate minimal widths needed by the FORMAT string."
-  (let* ((fields-width 0)
-         (string-width
-          (string-width
-           (org-roam-format
-            format
-            (lambda (field)
-              (setq fields-width
-                    (+ fields-width
-                       (string-to-number
-                        (or (cadr (split-string field ":"))
-                            "")))))))))
-    (cons format (+ fields-width string-width))))
+  (or org-roam--cached-display-format
+      (setq org-roam--cached-display-format
+            (let* ((fields-width 0)
+                   (string-width
+                    (string-width
+                     (org-roam-format
+                      format
+                      (lambda (field)
+                        (setq fields-width
+                              (+ fields-width
+                                 (string-to-number
+                                  (or (cadr (split-string field ":"))
+                                      "")))))))))
+              (cons format (+ fields-width string-width))))))
 
 ;;; Diagnostics
 ;;;###autoload
