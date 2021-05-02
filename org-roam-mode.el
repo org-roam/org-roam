@@ -230,7 +230,7 @@ Has no effect when `org-roam-current-node' is nil."
         (org-roam-set-header-line-format (org-roam-node-title org-roam-current-node))
         (magit-insert-section (org-roam)
           (magit-insert-heading)
-          (dolist (fn org-roam-mode-sections)
+          (dolist (fn org-roam-mode-section-functions)
             (funcall fn org-roam-current-node)))))))
 
 (defun org-roam-buffer--redisplay ()
