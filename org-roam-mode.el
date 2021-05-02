@@ -419,9 +419,9 @@ References from FILE are excluded."
     (let* ((titles (cons (org-roam-node-title node)
                          (org-roam-node-aliases node)))
            (rg-command (concat "rg -o --vimgrep -P -i "
-                               (string-join (mapcar (lambda (glob) (concat "-g " glob))
-                                                    (org-roam--list-files-search-globs
-                                                     org-roam-file-extensions)) " ")
+                               (mapconcat (lambda (glob) (concat "-g " glob))
+                                          (org-roam--list-files-search-globs org-roam-file-extensions)
+                                          " ")
                                (format " '\\[([^[]]++|(?R))*\\]%s' "
                                        (mapconcat (lambda (title)
                                                     (format "|(\\b%s\\b)" (shell-quote-argument title)))
