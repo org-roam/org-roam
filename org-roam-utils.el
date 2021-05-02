@@ -158,9 +158,6 @@ Adapted from `s-format'."
 
 (defvar org-roam--cached-display-format nil)
 
-(defun org-roam--clear-cached-display-format ()
-  (setq org-roam--cached-display-format nil))
-
 (defun org-roam--process-display-format (format)
   "Pre-calculate minimal widths needed by the FORMAT string."
   (or org-roam--cached-display-format
