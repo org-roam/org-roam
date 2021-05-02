@@ -183,6 +183,8 @@ SQL can be either the emacsql vector representation, or a string."
     (emacsql db "PRAGMA foreign_keys = ON")
     (pcase-dolist (`(,table ,schema) org-roam-db--table-schemata)
       (emacsql db [:create-table $i1 $S2] table schema))
+    (emacsql db [:create-index nodes-id :on nodes [id]])
+    (emacsql db [:create-index aliases-id :on aliases [node-id]])
     (emacsql db (format "PRAGMA user_version = %s" org-roam-db--version))))
 
 (defun org-roam-db--upgrade-maybe (db version)
@@ -424,6 +426,10 @@ If FORCE, force a rebuild of the cache from scratch."
   (when force (delete-file org-roam-db-location))
   (org-roam-db--close) ;; Force a reconnect
   (org-roam-db) ;; To initialize the database, no-op if already initialized
+  (if force
+      (progn
+        (emacsql (org-roam-db) [:drop-index-if-exists nodes-id])
+        (emacsql (org-roam-db) [:drop-index-if-exists aliases-id])))
   (let* ((gc-cons-threshold org-roam-db-gc-threshold)
          (org-agenda-files nil)
          (org-roam-files (org-roam--list-all-files))
@@ -447,7 +453,11 @@ If FORCE, force a rebuild of the cache from scratch."
               "Processing modified files..."
             (org-roam-db-update-file file))
         (dolist (file modified-files)
-          (org-roam-db-update-file file))))))
+          (org-roam-db-update-file file)))))
+  (if force
+      (progn
+        (emacsql (org-roam-db) [:create-index nodes-id :on nodes [id]])
+        (emacsql (org-roam-db) [:create-index aliases-id :on aliases [node-id]]))))
 
 (defun org-roam-db-update-file (&optional file-path)
   "Update Org-roam cache for FILE-PATH.

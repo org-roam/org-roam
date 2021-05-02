@@ -621,6 +621,7 @@ Throw an error if multiple choices exist."
   "Return an alist for node completion.
 The car is the displayed title or alias for the node, and the cdr
 is the `org-roam-node'."
+  (org-roam--clear-cached-display-format)
   (let ((tags-table (org-roam--tags-table)))
     (cl-loop for row in (append
                          (org-roam-db-query [:select [file pos title title id properties olp]
