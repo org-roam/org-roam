@@ -47,16 +47,21 @@
 If FILE is nil, execute BODY in the current buffer.
 Kills the buffer if KEEP-BUF-P is nil, and FILE is not yet visited."
   (declare (indent 2) (debug t))
-  `(let* ((org-inhibit-startup t)
-          new-buf
+  `(let* (new-buf
           (buf (or (and (not ,file)
                         (current-buffer)) ;If FILE is nil, use current buffer
                    (find-buffer-visiting ,file) ; If FILE is already visited, find buffer
                    (progn
                      (setq new-buf t)
-                     (delay-mode-hooks (find-file-noselect ,file))))) ; Else, visit FILE and return buffer
+                     (find-file-noselect ,file nil t)))) ; Else, visit FILE and return buffer
           res)
      (with-current-buffer buf
+       (kill-local-variable 'buffer-file-coding-system)
+       (kill-local-variable 'find-file-literally)
+       (unless (equal major-mode 'org-mode)
+         (delay-mode-hooks
+           (let ((org-inhibit-startup t))
+             (org-mode))))
        (setq res (progn ,@body))
        (unless (and new-buf (not ,keep-buf-p))
          (save-buffer)))
