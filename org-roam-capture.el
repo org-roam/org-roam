@@ -122,11 +122,11 @@ the following options:
        The file will be created, prescribed an ID, and head content will be
        inserted into the file.
 
-   (file+olp \"path/to/file\" '(\"h1\" \"h2\"))
+   (file+olp \"path/to/file\" (\"h1\" \"h2\"))
        The file will be created, prescribed an ID. The OLP (h1, h2) will be
        created, and the point placed after.
 
-   (file+head+olp \"path/to/file\" \"head content\" '(\"h1\" \"h2\"))
+   (file+head+olp \"path/to/file\" \"head content\" (\"h1\" \"h2\"))
        The file will be created, prescribed an ID. Head content will be
        inserted at the start of the file. The OLP (h1, h2) will be created,
        and the point placed after.
