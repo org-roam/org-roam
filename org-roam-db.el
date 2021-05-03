@@ -79,7 +79,7 @@ value like `most-positive-fixnum'."
   :type 'int
   :group 'org-roam)
 
-(defconst org-roam-db--version 14)
+(defconst org-roam-db--version 15)
 (defconst org-roam--sqlite-available-p
   (with-demoted-errors "Org-roam initialization: %S"
     (emacsql-sqlite-ensure-binary)
@@ -153,7 +153,7 @@ SQL can be either the emacsql vector representation, or a string."
       (:foreign-key [file] :references files [file] :on-delete :cascade)))
 
     (aliases
-     ([(node-id :not-null :primary-key)
+     ([(node-id :not-null)
        alias]
       (:foreign-key [node-id] :references nodes [id] :on-delete :cascade)))
 
