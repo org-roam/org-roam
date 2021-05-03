@@ -614,8 +614,7 @@ Throw an error if multiple choices exist."
                                        :where (= title $s1)]
                                       s)
                    (org-roam-db-query [:select [node-id] :from aliases
-                                       :left :join nodes :on (= nodes:id aliases:node-id)
-                                       :where (= aliases:node-id $s1)]
+                                       :where (= alias $s1)]
                                       s)))))
     (cond
      ((seq-empty-p matches)
