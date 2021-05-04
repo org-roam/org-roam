@@ -388,6 +388,13 @@ M-x info for more information at Org-roam > Installation > Post-Installation Tas
     (with-current-buffer buf
       (remove-hook 'after-save-hook #'org-roam-db-update-file t))))
 
+(define-minor-mode org-roam-active-mode
+  "Set up hooks for org roam."
+  :global t
+  (if org-roam-active-mode
+      (org-roam-setup)
+    (org-roam-teardown)))
+
 ;;; Hooks and advices
 (defun org-roam--file-setup ()
   "Setup an Org-roam file."
