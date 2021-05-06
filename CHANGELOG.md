@@ -8,6 +8,7 @@
 
 ### Changed
 - [#1352](https://github.com/org-roam/org-roam/pull/1352) prefer lower-case for roam_tag and roam_alias in interactive commands
+- [#1513](https://github.com/org-roam/org-roam/pull/1513) replaced hardcoded "svg" with defcustom org-roam-graph-filetype 
 
 ### Fixed
 - [#1281](https://github.com/org-roam/org-roam/pull/1281) fixed idle-timer not instantiated on `org-roam-mode`
