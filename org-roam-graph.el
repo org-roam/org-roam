@@ -61,6 +61,12 @@ It may be one of the following:
   :type 'string
   :group 'org-roam)
 
+(defcustom org-roam-graph-filetype "svg"
+  "File type to generate when producing graphs."
+  :type 'string
+  :group 'org-roam)
+
+
 (defcustom org-roam-graph-extra-config nil
   "Extra options passed to graphviz.
 Example:
@@ -238,12 +244,12 @@ CALLBACK is passed the graph file as its sole argument."
                            :group :by file]))
          (graph      (org-roam-graph--dot node-query))
          (temp-dot   (make-temp-file "graph." nil ".dot" graph))
-         (temp-graph (make-temp-file "graph." nil ".pdf")))
+         (temp-graph (make-temp-file "graph." nil (concat "." org-roam-graph-filetype))))
     (org-roam-message "building graph")
     (make-process
      :name "*org-roam-graph--build-process*"
      :buffer "*org-roam-graph--build-process*"
-     :command `(,org-roam-graph-executable ,temp-dot "-Tpdf" "-o" ,temp-graph)
+     :command `(,org-roam-graph-executable ,temp-dot "-T" ,org-roam-graph-filetype "-o" ,temp-graph)
      :sentinel (when callback
                  (lambda (process _event)
                    (when (= 0 (process-exit-status process))
