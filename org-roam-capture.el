@@ -41,6 +41,8 @@
 
 ;; Declarations
 (declare-function org-roam-ref-add "org-roam" (ref))
+(declare-function org-datetree-find-date-create "org-datetree" (date &optional keep-restriction))
+(declare-function org-datetree-find-month-create (d &optional keep-restriction))
 
 (defvar org-roam-directory)
 
@@ -130,6 +132,11 @@ the following options:
        The file will be created, prescribed an ID. Head content will be
        inserted at the start of the file. The OLP (h1, h2) will be created,
        and the point placed after.
+
+   (file+datetree \"path/to/file\" day)
+       The file will be created, prescribed an ID. Head content will be
+       inserted at the start of the file. The datetree will be created,
+       available options are day, week, month.
 
 The rest of the entry is a property list of additional options.  Recognized
 properties are:
@@ -559,6 +566,52 @@ Return the ID of the location."
        (setq p (point-min))
        (let ((m (org-roam-capture-find-or-create-olp olp)))
          (goto-char m)))
+      (`(file+datetree ,path ,tree-type)
+       (setq path (expand-file-name
+                   (string-trim (org-roam-capture--fill-template path t))
+                   org-roam-directory))
+       (require 'org-datetree)
+       (widen)
+       (set-buffer (org-capture-target-buffer path))
+       (unless (file-exists-p path)
+         (org-roam-capture--put :new-file path))
+       (funcall
+        (pcase tree-type
+          (`week #'org-datetree-find-iso-week-create)
+          (`month #'org-datetree-find-month-create)
+          (_ #'org-datetree-find-date-create))
+        (calendar-gregorian-from-absolute
+         (cond
+          (org-overriding-default-time
+           ;; Use the overriding default time.
+           (time-to-days org-overriding-default-time))
+          ((org-capture-get :default-time)
+           (time-to-days (org-capture-get :default-time)))
+          ((org-capture-get :time-prompt)
+           ;; Prompt for date.  Bind `org-end-time-was-given' so
+           ;; that `org-read-date-analyze' handles the time range
+           ;; case and returns `prompt-time' with the start value.
+           (let* ((org-time-was-given nil)
+                  (org-end-time-was-given nil)
+                  (prompt-time (org-read-date
+                                nil t nil "Date for tree entry:")))
+             (org-capture-put
+              :default-time
+              (if (or org-time-was-given
+                      (= (time-to-days prompt-time) (org-today)))
+                  prompt-time
+                ;; Use 00:00 when no time is given for another
+                ;; date than today?
+                (apply #'encode-time 0 0
+                       org-extend-today-until
+                       (cl-cdddr (decode-time prompt-time)))))
+             (time-to-days prompt-time)))
+          (t
+           ;; Current date, possibly corrected for late night
+           ;; workers.
+           (org-today)))))
+       (org-end-of-subtree t t)
+       (setq p (point)))
       (`(node ,title-or-id)
        ;; first try to get ID, then try to get title/alias
        (let ((node (or (org-roam-node-from-id title-or-id)
