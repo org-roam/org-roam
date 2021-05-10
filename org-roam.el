@@ -259,7 +259,8 @@ Function should return a filename string based on title."
     )
   "Characters to trim from Unicode normalization for slug.
 
-By default, the characters are specified to remove Diacritical Marks from the Latin alphabet."
+By default, the characters are specified to remove Diacritical
+Marks from the Latin alphabet."
   :type '(repeat character)
   :group 'org-roam)
 
@@ -305,7 +306,9 @@ The currently supported symbols are:
   :group 'org-roam)
 
 (defcustom org-roam-enable-headline-linking t
-  "Enable linking to headlines, which includes automatic :ID: creation and scanning of :ID:s for org-roam database."
+  "Enable linking to headlines.
+This includes automatic :ID: creation and scanning of :ID:s for
+org-roam database."
   :type 'boolean
   :group 'org-roam)
 
