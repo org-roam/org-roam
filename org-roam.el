@@ -1009,6 +1009,13 @@ If BUFFER is not specified, use the current buffer."
   (--filter (org-roam--org-roam-buffer-p it)
             (buffer-list)))
 
+(defun org-roam--save-buffers (&optional ask update)
+  "Save all Org-roam buffers.
+When ASK is non-nil, ask whether the buffers should be saved.
+When UPDATE is non-nil, update the database after."
+  (save-some-buffers (not ask) #'org-roam--org-roam-buffer-p)
+  (when update (org-roam-db-update)))
+
 ;;; org-roam-backlinks-mode
 (define-minor-mode org-roam-backlinks-mode
   "Minor mode for the `org-roam-buffer'.
@@ -1398,8 +1405,6 @@ OLD-TITLE, and replace the link descriptions with the NEW-TITLE
 if applicable.
 
 To be added to `org-roam-title-change-hook'."
-  (when (save-some-buffers nil #'org-roam--org-roam-buffer-p)
-    (org-roam-db-update))
   (let* ((current-path (buffer-file-name (buffer-base-buffer)))
          (files-affected (org-roam-db-query [:select :distinct [source]
                                              :from links
@@ -1417,6 +1422,7 @@ current filename, the new slug is computed with NEW-TITLE, and
 that portion of the filename is renamed.
 
 To be added to `org-roam-title-change-hook'."
+  (org-roam--save-buffers)
   (when org-roam-rename-file-on-title-change
     (let* ((old-slug (funcall org-roam-title-to-slug-function old-title))
            (file (buffer-file-name (buffer-base-buffer)))
