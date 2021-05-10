@@ -811,7 +811,7 @@ If the property is already set, it's value is replaced."
   (org-with-point-at 1
     (let ((case-fold-search t))
       (if (re-search-forward (concat "^#\\+" key ":\\(.*\\)") (point-max) t)
-          (if (= (string-blank-p value) 0)
+          (if (string-blank-p value)
               (kill-whole-line)
             (replace-match (concat " " value) 'fixedcase nil nil 1))
         (while (and (not (eobp))
