@@ -387,16 +387,6 @@ If FILE is not specified, use the current buffer's file-path."
                  (string-match-p org-roam-file-exclude-regexp path)))
        (f-descendant-of-p path (expand-file-name org-roam-directory))))))
 
-(defun org-roam--org-roam-buffer-p (&optional buffer)
-  "Return t if BUFFER is accessing a part of Org-roam system.
-If BUFFER is not specified, use the current buffer."
-  (let* ((buffer (or buffer
-                    (current-buffer)))
-         (path (-> buffer
-                   (buffer-base-buffer)
-                   (buffer-file-name))))
-    (org-roam--org-roam-file-p path)))
-
 (defun org-roam--shell-command-files (cmd)
   "Run CMD in the shell and return a list of files. If no files are found, an empty list is returned."
   (--> cmd
@@ -1004,11 +994,19 @@ Return nil if the file does not exist."
               (file (plist-get (cdr (assoc ref completions)) :path)))
     (org-roam--find-file file)))
 
+(defun org-roam--org-roam-buffer-p (&optional buffer)
+  "Return t if BUFFER is accessing a part of Org-roam system.
+If BUFFER is not specified, use the current buffer."
+  (let ((buffer (or buffer (current-buffer)))
+        path)
+    (with-current-buffer buffer
+      (and (derived-mode-p 'org-mode)
+           (setq path (buffer-file-name (buffer-base-buffer)))
+           (org-roam--org-roam-file-p path)))))
+
 (defun org-roam--get-roam-buffers ()
   "Return a list of buffers that are Org-roam files."
-  (--filter (and (with-current-buffer it (derived-mode-p 'org-mode))
-                 (buffer-file-name it)
-                 (org-roam--org-roam-file-p (buffer-file-name it)))
+  (--filter (org-roam--org-roam-buffer-p it)
             (buffer-list)))
 
 ;;; org-roam-backlinks-mode
