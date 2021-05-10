@@ -1400,6 +1400,8 @@ OLD-TITLE, and replace the link descriptions with the NEW-TITLE
 if applicable.
 
 To be added to `org-roam-title-change-hook'."
+  (when (save-some-buffers nil #'org-roam--org-roam-buffer-p)
+    (org-roam-db-update))
   (let* ((current-path (buffer-file-name (buffer-base-buffer)))
          (files-affected (org-roam-db-query [:select :distinct [source]
                                              :from links
