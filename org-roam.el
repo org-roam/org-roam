@@ -387,6 +387,16 @@ If FILE is not specified, use the current buffer's file-path."
                  (string-match-p org-roam-file-exclude-regexp path)))
        (f-descendant-of-p path (expand-file-name org-roam-directory))))))
 
+(defun org-roam--org-roam-buffer-p (&optional buffer)
+  "Return t if BUFFER is accessing a part of Org-roam system.
+If BUFFER is not specified, use the current buffer."
+  (let* ((buffer (or buffer
+                    (current-buffer)))
+         (path (-> buffer
+                   (buffer-base-buffer)
+                   (buffer-file-name))))
+    (org-roam--org-roam-file-p path)))
+
 (defun org-roam--shell-command-files (cmd)
   "Run CMD in the shell and return a list of files. If no files are found, an empty list is returned."
   (--> cmd
