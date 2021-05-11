@@ -760,7 +760,9 @@ TEMPLATES is a list of org-roam templates."
     (when (and (not keys)
                (= (length org-capture-templates) 1))
       (setq keys (caar org-capture-templates)))
-    (org-capture goto keys)))
+    (org-capture goto keys)
+    (unless goto
+      (org-cycle-hide-drawers 'all))))
 
 ;;;###autoload
 (defun org-roam-capture (&optional goto keys)
