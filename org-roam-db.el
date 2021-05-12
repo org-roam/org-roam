@@ -234,6 +234,19 @@ If FILE is nil, clear the current buffer."
                       :where (= file $s1)]
                      file))
 
+;;;;; Protection against unique-ID errors
+(define-error 'emacsql-constraint "SQL constraint violation")
+(defun org-roam--protected-node-insert (query vec)
+  (catch 'sqlerror
+    (condition-case err
+        (org-roam-db-query query vec)
+      (emacsql-constraint
+       (throw 'sqlerror
+              (message "%s for %s (%s) in %s"
+                       (error-message-string err)
+                       (aref vec 8) (aref vec 0) (aref vec 1)
+                       ))))))
+
 ;;;;; Updating tables
 (defun org-roam-db-insert-file ()
   "Update the files table for the current buffer.
@@ -292,7 +305,7 @@ If UPDATE-P is non-nil, first remove the file in the database."
                (refs (org-entry-get (point) "ROAM_REFS"))
                (properties (org-entry-properties))
                (olp (org-get-outline-path)))
-          (org-roam-db-query
+          (org-roam--protected-node-insert
            [:insert :into nodes
             :values $v1]
            (vector id file level pos todo priority
@@ -342,7 +355,7 @@ If UPDATE-P is non-nil, first remove the file in the database."
            (title (org-link-display-format (nth 4 heading-components)))
            (properties (org-entry-properties))
            (olp (org-get-outline-path)))
-      (org-roam-db-query
+      (org-roam--protected-node-insert
        [:insert :into nodes
         :values $v1]
        (vector id file level pos todo priority
