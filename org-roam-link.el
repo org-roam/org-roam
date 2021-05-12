@@ -48,7 +48,7 @@
 (declare-function org-roam-format-link                  "org-roam")
 
 (defcustom org-roam-link-auto-replace t
-  "When non-nil, replace Org-roam's roam links with file or id links whenever possible."
+  "When non-nil, replace Org-roam's roam links with file/id equivalents."
   :group 'org-roam
   :type 'boolean)
 

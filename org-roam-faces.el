@@ -67,7 +67,7 @@ during an `org-roam-capture'."
 
 (defface org-roam-dailies-calendar-note
   '((t :inherit (org-roam-link) :underline nil))
-  "Face for dates with a daily-note in the calendar"
+  "Face for dates with a daily-note in the calendar."
   :group 'org-roam-faces)
 
 ;;; _

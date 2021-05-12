@@ -101,7 +101,8 @@ so that multi-directories are updated.")
   Update the database immediately upon file changes.
 
 `idle-timer'
-  Updates the database if dirty, if Emacs idles for `org-roam-db-update-idle-seconds'."
+  Updates the database if dirty, if Emacs idles for
+  `org-roam-db-update-idle-seconds'."
   :type '(choice (const :tag "idle-timer" idle-timer)
 		 (const :tag "immediate" immediate))
   :group 'org-roam)
