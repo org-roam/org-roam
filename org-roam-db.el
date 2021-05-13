@@ -237,15 +237,14 @@ If FILE is nil, clear the current buffer."
 ;;;;; Protection against unique-ID errors
 (define-error 'emacsql-constraint "SQL constraint violation")
 (defun org-roam--protected-node-insert (query vec)
-  (catch 'sqlerror
-    (condition-case err
-        (org-roam-db-query query vec)
-      (emacsql-constraint
-       (throw 'sqlerror
-              (message "%s for %s (%s) in %s"
-                       (error-message-string err)
-                       (aref vec 8) (aref vec 0) (aref vec 1)
-                       ))))))
+  (condition-case err
+      (org-roam-db-query query vec)
+    (emacsql-constraint
+     (lwarn 'org-roam :warning "%s for %s (%s) in %s"
+            (error-message-string err)
+            (aref vec 8) (aref vec 0) (aref vec 1)
+            )
+     nil)))
 
 ;;;;; Updating tables
 (defun org-roam-db-insert-file ()
