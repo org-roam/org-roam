@@ -749,6 +749,7 @@ tag."
 (defun org-roam--extract-tags-vanilla (_file)
   "Extract vanilla `org-mode' tags.
 This includes all tags used in the buffer."
+  (org-set-regexps-and-options 'tags-only)
   (-flatten (org-get-buffer-tags)))
 
 (defun org-roam--extract-tags (&optional file)
