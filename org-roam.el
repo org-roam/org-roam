@@ -153,7 +153,8 @@ method symbol as a cons cell. For example: '(find (rg . \"/path/to/rg\"))."
     )
   "Characters to trim from Unicode normalization for slug.
 
-By default, the characters are specified to remove Diacritical Marks from the Latin alphabet."
+By default, the characters are specified to remove Diacritical
+Marks from the Latin alphabet."
   :type '(repeat character)
   :group 'org-roam)
 
@@ -342,11 +343,19 @@ Use external shell commands if defined in `org-roam-list-files-commands'."
       (puthash node-id (cons tag (gethash node-id ht)) ht))
     ht))
 
+(defun org-roam--org-roam-buffer-p (&optional buffer)
+  "Return t if BUFFER is accessing a part of Org-roam system.
+If BUFFER is not specified, use the current buffer."
+  (let ((buffer (or buffer (current-buffer)))
+        path)
+    (with-current-buffer buffer
+      (and (derived-mode-p 'org-mode)
+           (setq path (buffer-file-name (buffer-base-buffer)))
+           (org-roam--org-roam-file-p path)))))
+
 (defun org-roam--get-roam-buffers ()
   "Return a list of buffers that are Org-roam files."
-  (--filter (and (with-current-buffer it (derived-mode-p 'org-mode))
-                 (buffer-file-name it)
-                 (org-roam--org-roam-file-p (buffer-file-name it)))
+  (--filter (org-roam--org-roam-buffer-p it)
             (buffer-list)))
 
 (defun org-roam--get-titles ()
