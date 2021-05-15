@@ -125,12 +125,22 @@ Performs a database upgrade when required."
   (org-roam-db--get-connection))
 
 ;;;; Entrypoint: (org-roam-db-query)
+(define-error 'emacsql-constraint "SQL constraint violation")
 (defun org-roam-db-query (sql &rest args)
   "Run SQL query on Org-roam database with ARGS.
 SQL can be either the emacsql vector representation, or a string."
   (if  (stringp sql)
       (emacsql (org-roam-db) (apply #'format sql args))
     (apply #'emacsql (org-roam-db) sql args)))
+
+(defun org-roam-db-query! (handler sql &rest args)
+  "Run SQL query on Org-roam database with ARGS.
+SQL can be either the emacsql vector representation, or a string.
+The query is expected to be able to fail, in this situation, run HANDLER."
+  (condition-case err
+      (org-roam-db-query sql args)
+    (emacsql-constraint
+     (funcall handler err))))
 
 ;;;; Schemata
 (defconst org-roam-db--table-schemata
@@ -234,18 +244,6 @@ If FILE is nil, clear the current buffer."
                       :where (= file $s1)]
                      file))
 
-;;;;; Protection against unique-ID errors
-(define-error 'emacsql-constraint "SQL constraint violation")
-(defun org-roam--protected-node-insert (query vec)
-  (condition-case err
-      (org-roam-db-query query vec)
-    (emacsql-constraint
-     (lwarn 'org-roam :warning "%s for %s (%s) in %s"
-            (error-message-string err)
-            (aref vec 8) (aref vec 0) (aref vec 1)
-            )
-     nil)))
-
 ;;;;; Updating tables
 (defun org-roam-db-insert-file ()
   "Update the files table for the current buffer.
@@ -304,7 +302,11 @@ If UPDATE-P is non-nil, first remove the file in the database."
                (refs (org-entry-get (point) "ROAM_REFS"))
                (properties (org-entry-properties))
                (olp (org-get-outline-path)))
-          (org-roam--protected-node-insert
+          (org-roam-db-query!
+           (lambda (err)
+             (lwarn 'org-roam :warning "%s for %s (%s) in %s"
+                    (error-message-string err)
+                    title id file))
            [:insert :into nodes
             :values $v1]
            (vector id file level pos todo priority
@@ -354,7 +356,11 @@ If UPDATE-P is non-nil, first remove the file in the database."
            (title (org-link-display-format (nth 4 heading-components)))
            (properties (org-entry-properties))
            (olp (org-get-outline-path)))
-      (org-roam--protected-node-insert
+      (org-roam-db-query!
+       (lambda (err)
+         (lwarn 'org-roam :warning "%s for %s (%s) in %s"
+                (error-message-string err)
+                title id file))
        [:insert :into nodes
         :values $v1]
        (vector id file level pos todo priority
