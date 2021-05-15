@@ -30,8 +30,69 @@
 ;; Org-roam refile allows you to refile notes to your nodes.
 ;;
 ;;; Code:
+(eval-when-compile
+  (require 'org-roam-macs)
+  (require 'org-macs))
+
 (defvar org-auto-align-tags)
 (defvar org-loop-over-headlines-in-active-region)
+
+(defun org-roam--file-keyword-get (keyword)
+  "Pull a keyword setting from the top of the file."
+  (nth 1
+     (assoc keyword
+            (org-collect-keywords (list keyword))))
+)
+
+(defun org-roam--file-keyword-kill (keyword)
+  "Erase a keyword setting line from the top of the file."
+  (let ((case-fold-search t))
+    (org-with-point-at 1
+      (when (re-search-forward (concat "^#\\+" keyword ":") nil t)
+        (beginning-of-line)
+        (delete-region (point) (line-end-position))
+        (delete-char 1))
+      )))
+
+(defun org-roam-demote-entire-buffer ()
+    "Convert an org buffer with any top-level content to a single node.
+
+All headings are demoted one level.
+
+The #+TITLE: keyword is converted into a level-1 heading and deleted.
+Any tags declared on #+FILETAGS: are transferred to tags on the new top heading.
+
+Any top-level properties drawers are incorporated into the new heading.
+"
+    (interactive)
+    (org-with-point-at 1
+      (org-map-entries 'org-do-demote)
+      (insert (concat "* "
+                      (org-roam--file-keyword-get "TITLE"))
+              "\n")
+      (org-back-to-heading)
+      (org-set-tags (org-roam--file-keyword-get "FILETAGS"))
+      (org-roam--file-keyword-kill "TITLE")
+      (org-roam--file-keyword-kill "FILETAGS")
+      ))
+
+(defun org-roam--kill-empty-buffer ()
+    "If the source buffer has been emptied, kill it.
+
+If the buffer is associated with a file, delete the file.
+
+If the buffer is associated with an in-process capture operation, abort the operation.
+"
+    (if (eq (buffer-size) 0)
+        (progn
+          (if (buffer-file-name)
+              (delete-file (buffer-file-name)))
+          (set-buffer-modified-p nil)
+          (if (and org-capture-mode
+                   (buffer-base-buffer (current-buffer)))
+              (org-capture-kill)
+            (kill-this-buffer))
+          )))
 
 (defun org-roam-refile ()
   "Refile to node."
@@ -44,11 +105,17 @@
          (nbuf (or (find-buffer-visiting file)
                    (find-file-noselect file)))
          level reversed)
+
     (if regionp
         (progn
           (org-kill-new (buffer-substring region-start region-end))
           (org-save-markers-in-region region-start region-end))
-      (org-copy-subtree 1 nil t))
+      (progn
+        (if (org-before-first-heading-p)
+            (org-roam-demote-entire-buffer))
+        (org-copy-subtree 1 nil t))
+      )
+
     (with-current-buffer nbuf
       (org-with-wide-buffer
        (goto-char (org-roam-node-point node))
@@ -71,7 +138,9 @@
       (org-preserve-local-variables
        (delete-region
         (and (org-back-to-heading t) (point))
-        (min (1+ (buffer-size)) (org-end-of-subtree t t) (point)))))))
+        (min (1+ (buffer-size)) (org-end-of-subtree t t) (point)))))
+    (org-roam-kill-empty-buffer)
+    ))
 
 (provide 'org-roam-refile)
 ;;; org-roam-refile.el ends here
