@@ -57,7 +57,7 @@
   "List of functions to be used with `completion-at-point' for Org-roam.")
 
 (defconst org-roam-bracket-completion-re
-  "\\[\\[\\([^z-a]*\\)]]"
+  "\\[\\[\\(\\(?:roam:\\)?\\)\\([^z-a]*\\)]]"
   "Regex for completion within link brackets.
 We use this as a substitute for `org-link-bracket-re', because
 `org-link-bracket-re' requires content within the brackets for a match.")
@@ -81,17 +81,11 @@ This is a `completion-at-point' function, and is active when
 
 (defun org-roam-complete-link-at-point ()
   "Do appropriate completion for the link at point."
-  (let (start end link-type)
+  (let (roam-p start end link-type)
     (when (org-in-regexp org-roam-bracket-completion-re 1)
-      (setq start (match-beginning 1)
-            end (match-end 1))
-      (let ((context (org-element-context)))
-        (pcase (org-element-lineage context '(link) t)
-          (`nil nil)
-          (link
-           (setq link-type (org-element-property :type link))
-           (when (member link-type '("roam" "fuzzy"))
-             (when (string= link-type "roam") (setq start (+ start (length "roam:"))))))))
+      (setq roam-p (not (string-blank-p (match-string 1)))
+            start (match-beginning 2)
+            end (match-end 2))
       (list start end
             (completion-table-dynamic
              (lambda (_)
@@ -99,7 +93,7 @@ This is a `completion-at-point' function, and is active when
             :exit-function
             (lambda (str &rest _)
               (delete-char (- 0 (length str)))
-              (insert (concat (unless (string= link-type "roam") "roam:")
+              (insert (concat (unless roam-p "roam:")
                               str))
               (forward-char 2))))))
 
