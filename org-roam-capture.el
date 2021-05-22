@@ -625,6 +625,9 @@ Return the ID of the location."
          (org-end-of-subtree t t))))
     (save-excursion
       (goto-char p)
+      (when-let* ((node org-roam-capture--node)
+                  (id (org-roam-node-id node)))
+        (org-entry-put p "ID" id))
       (prog1
           (org-id-get-create)
         (run-hooks 'org-roam-capture-new-node-hook)))))
