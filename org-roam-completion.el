@@ -56,43 +56,33 @@
                                             #'org-roam-complete-everywhere)
   "List of functions to be used with `completion-at-point' for Org-roam.")
 
+(defconst org-roam-bracket-completion-re
+  "\\[\\[\\([^z-a]*\\)]]"
+  "Regex for completion within link brackets.
+We use this as a substitute for `org-link-bracket-re', because
+`org-link-bracket-re' requires content within the brackets for a match.")
+
 (defun org-roam-complete-everywhere ()
   "Provides completions for links for any word at point.
 This is a `completion-at-point' function, and is active when
 `org-roam-completion-everywhere' is non-nil."
-  (let ((end (point))
-        (start (point))
-        (exit-fn (lambda (&rest _) nil))
-        collection)
-    (when (and org-roam-completion-everywhere
-               (thing-at-point 'word)
-               (not (save-match-data (org-in-regexp org-link-any-re))))
-      (let ((bounds (bounds-of-thing-at-point 'word)))
-        (setq start (car bounds)
-              end (cdr bounds)
-              collection #'org-roam--get-titles
-              exit-fn (lambda (str _status)
-                        (delete-char (- (length str)))
-                        (insert "[[roam:" str "]]")))))
-    (when collection
-      (let ((prefix (buffer-substring-no-properties start end)))
-        (list start end
-              (if (functionp collection)
-                  (completion-table-case-fold
-                   (completion-table-dynamic
-                    (lambda (_)
-                      (cl-remove-if (apply-partially #'string= prefix)
-                                    (funcall collection))))
-                   (not org-roam-completion-ignore-case))
-                collection)
-              :exit-function exit-fn)))))
+  (when (and org-roam-completion-everywhere
+             (thing-at-point 'word)
+             (not (save-match-data (org-in-regexp org-link-any-re))))
+    (let ((bounds (bounds-of-thing-at-point 'word)))
+      (list (car bounds) (cdr bounds)
+            (completion-table-dynamic
+             (lambda (_)
+               (funcall #'org-roam--get-titles)))
+            :exit-function
+            (lambda (str _status)
+              (delete-char (- (length str)))
+              (insert "[[roam:" str "]]"))))))
 
 (defun org-roam-complete-link-at-point ()
   "Do appropriate completion for the link at point."
-  (let ((end (point))
-        (start (point))
-        collection link-type)
-    (when (org-in-regexp org-link-bracket-re 1)
+  (let (start end link-type)
+    (when (org-in-regexp org-roam-bracket-completion-re 1)
       (setq start (match-beginning 1)
             end (match-end 1))
       (let ((context (org-element-context)))
@@ -101,30 +91,25 @@ This is a `completion-at-point' function, and is active when
           (link
            (setq link-type (org-element-property :type link))
            (when (member link-type '("roam" "fuzzy"))
-             (when (string= link-type "roam") (setq start (+ start (length "roam:"))))
-             (setq collection #'org-roam--get-titles))))))
-    (when collection
-      (let ((prefix (buffer-substring-no-properties start end)))
-        (list start end
-              (if (functionp collection)
-                  (completion-table-case-fold
-                   (completion-table-dynamic
-                    (lambda (_)
-                      (cl-remove-if (apply-partially #'string= prefix)
-                                    (funcall collection))))
-                   (not org-roam-completion-ignore-case))
-                collection)
-              :exit-function
-              (lambda (str &rest _)
-                (delete-char (- 0 (length str)))
-                (insert (concat (unless (string= link-type "roam") "roam:")
-                                str))
-                (forward-char 2)))))))
+             (when (string= link-type "roam") (setq start (+ start (length "roam:"))))))))
+      (list start end
+            (completion-table-dynamic
+             (lambda (_)
+               (funcall #'org-roam--get-titles)))
+            :exit-function
+            (lambda (str &rest _)
+              (delete-char (- 0 (length str)))
+              (insert (concat (unless (string= link-type "roam") "roam:")
+                              str))
+              (forward-char 2))))))
+
+(defun org-roam-complete-at-point ()
+  "."
+  (run-hook-with-args-until-success #'org-roam-completion-functions))
 
 (defun org-roam--register-completion-functions ()
   "."
-  (dolist (fn org-roam-completion-functions)
-    (add-hook 'completion-at-point-functions fn nil t)))
+  (add-hook 'completion-at-point-functions #'org-roam-complete-at-point nil t))
 
 (add-hook 'org-roam-find-file-hook #'org-roam--register-completion-functions)
 
