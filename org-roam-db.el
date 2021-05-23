@@ -79,7 +79,7 @@ value like `most-positive-fixnum'."
   :type 'int
   :group 'org-roam)
 
-(defconst org-roam-db--version 15)
+(defconst org-roam-db--version 16)
 (defconst org-roam--sqlite-available-p
   (with-demoted-errors "Org-roam initialization: %S"
     (emacsql-sqlite-ensure-binary)
@@ -146,7 +146,9 @@ The query is expected to be able to fail, in this situation, run HANDLER."
 (defconst org-roam-db--table-schemata
   '((files
      [(file :unique :primary-key)
-      (hash :not-null)])
+      (hash :not-null)
+      (atime :not-null)
+      (mtime :not-null)])
 
     (nodes
      ([(id :not-null :primary-key)
@@ -249,11 +251,14 @@ If FILE is nil, clear the current buffer."
   "Update the files table for the current buffer.
 If UPDATE-P is non-nil, first remove the file in the database."
   (let* ((file (buffer-file-name))
+         (attr (file-attributes file))
+         (atime (file-attribute-access-time attr))
+         (mtime (file-attribute-modification-time attr))
          (hash (org-roam-db--file-hash)))
     (org-roam-db-query
      [:insert :into files
       :values $v1]
-     (list (vector file hash)))))
+     (list (vector file hash atime mtime)))))
 
 (defun org-roam-db-get-scheduled-time ()
   "Return the scheduled time at point in ISO8601 format."
