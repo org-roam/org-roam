@@ -590,10 +590,53 @@ keybindings available. Here are several of the more useful ones:
 ** TODO Customizing the Org-roam Buffer
 
 * TODO Styling Org-roam
-* TODO Completion
+* Completion
 :PROPERTIES:
 :ID:       70083bfd-d1e3-42b9-bf83-5b05708791c0
 :END:
+
+Completions for Org-roam are provided via ~completion-at-point~. Org-roam
+currently provides completions in two scenarios:
+
+- When within an Org bracket link
+- Anywhere
+
+Completions are installed locally in all Org-roam files. To trigger completions,
+call ~M-x completion-at-point~. If using ~company-mode~, add ~company-capf~ to
+~company-backends~.
+
+Completions respect ~completion-styles~: the user is free to choose how
+candidates are matched. An example of a completion style that has grown in
+popularity is [[https://github.com/oantolin/orderless][orderless]].
+
+** Completing within Link Brackets
+
+Completions within link brackets are provided by
+~org-roam-complete-link-at-point~.
+
+The completion candidates are the titles and aliases for all Org-roam nodes.
+Upon choosing a candidate, a ~roam:Title~ link will be inserted, linking to node
+of choice.
+
+** Completing anywhere
+
+The same completions can be triggered anywhere for the symbol at point if not
+within a bracketed link. This is provided by ~org-roam-complete-everywhere~.
+Similarly, the completion candidates are the titles and aliases for all Org-roam
+nodes, and upon choosing a candidate a ~roam:Title~ link will be inserted
+linking to the node of choice.
+
+This is disable by default. To enable it, set ~org-roam-completion-everywhere~
+to ~t~:
+
+#+begin_src emacs-lisp
+(setq org-roam-completion-everywhere t)
+#+end_src
+
+- Variable: org-roam-completion-everywhere
+
+When non-nil, provide link completion matching outside of Org links.
+
 * TODO Encryption
 * TODO Org-roam protocol
 * TODO Diagnosing and Repair
@@ -882,73 +925,6 @@ registers this link type, and interprets the path as follows:
   they are navigated to, and on file save, when a match is found. This is
   desirable to maintain compatibility with vanilla Org, but resolved links are
   harder to edit. Defaults to ~t~.
-
-* Completions
-
-Completions for Org-roam are provided via ~completion-at-point~. Completion
-suggestions are implemented as separate functions. Org-roam installs all
-functions in ~org-roam-completion-functions~ to ~completion-at-point-functions~.
-
-- Variable: org-roam-completion-functions
-
-  The list of functions to be used with ~completion-at-point~.
-
-- User Option: org-roam-completion-ignore-case
-
-  When non-nil, the ~roam~ link completions are ignore case. For example,
-  calling ~completion-at-point~ within ~[[roam:fo]]~ will present a completion
-  for a file with title "Foo". Defaults to ~t~.
-
-To use the completions from Org-roam with ~company-mode~, prepend ~company-capf~
-to variable ~company-backends~.
-
-** Link Completion
-
-~roam~ links support auto-completion via ~completion-at-point~: simply call
-~M-x completion-at-point~ within a roam link. That is, where the ~|~ character
-represents the cursor:
-
-- ~[[|]]~: completes for a file title
-- ~[[roam:|]]~: completes for a file title
-- ~[[*|]]~: completes for a headline within this file
-- ~[[foo*|]]~: completes a headline within the file with title "foo"
-- ~[[roam:foo*|]]~ completes a headline within the file with title "foo"
-
-If you don't see the literal display of your links like the above examples,
-call ~M-x org-toggle-link-display~
-
-Completions account for the current input. For example, for ~[[f|]]~, the
-completions (by default) only show for files with titles that start with "f".
-
-- Function: org-roam-link-complete-at-point
-
-  Do appropriate completion for the link at point.
-
-*** Link Completions Everywhere
-
-Org-roam is able to provide completions from the current word at point, enabling
-as-you-type link completions. However, this is disabled by default: the author
-believes that linking should be a deliberate action and linking should be
-performed with great care.
-
-Setting ~org-roam-completion-everywhere~ to ~t~ will enable word-at-point
-completions.
-
-- User Option: org-roam-completion-everywhere
-
-  If non-nil, provide completions from the current word at point. That is, in
-  the scenario ~this is a sent|~, calling ~completion-at-point~ will show
-  completions for titles that begin with "sent".
-
-** Tag Completion
-
-Org-roam facilitates the insertion of existing tags via ~completion-at-point~.
-
-That is, suppose you have notes with tags "foo", and "bar". Now, in a note, if
-you're on a line beginning with ~#+roam_tags:~, completions for these will
-appear as-you-type if they match.
-
-This functionality is implemented in ~org-roam-complete-tags-at-point~.
 
 * Navigating Around
 ** Index File
