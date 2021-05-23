@@ -493,6 +493,7 @@ for predictable navigation:
   Org-roam buffer.
 - ~C-u RET~ navigates to thing-at-point in the other window.
 
+** TODO Styling the Org-roam buffer
 * Node Properties
 ** Standard Org properties
 
@@ -581,7 +582,6 @@ Org-roam also provides some functions to add or remove refs.
 
   Remove a ref from the node at point.
 
-* TODO Styling Org-roam
 * Completion
 :PROPERTIES:
 :ID:       70083bfd-d1e3-42b9-bf83-5b05708791c0
@@ -642,7 +642,181 @@ extension in your Org-roam capture templates. For example:
      :unnarrowed t)))
 #+end_src
 
-* TODO Org-roam protocol
+* Org-roam Protocol
+
+Org-roam provides extensions for capturing content from external applications
+such as the browser, via ~org-protocol~. Org-roam extends ~org-protocol~ with 2
+protocols: the ~roam-file~ and ~roam-ref~ protocols.
+
+** Installation
+
+To enable Org-roam's protocol extensions, simply add the following to your init
+file:
+
+#+BEGIN_SRC emacs-lisp
+(require 'org-roam-protocol)
+#+END_SRC
+
+We also need to set up ~org-protocol~: the instructions for setting up
+~org-protocol~ are reproduced below.
+
+We will also need to create a desktop application for ~emacsclient~. The
+instructions for various platforms are shown below.
+
+For Linux users, create a desktop application in
+~~/.local/share/applications/org-protocol.desktop~:
+
+#+begin_example
+[Desktop Entry]
+Name=Org-Protocol
+Exec=emacsclient %u
+Icon=emacs-icon
+Type=Application
+Terminal=false
+MimeType=x-scheme-handler/org-protocol
+#+end_example
+
+Associate ~org-protocol://~ links with the desktop application by
+running in your shell:
+
+#+BEGIN_SRC bash
+xdg-mime default org-protocol.desktop x-scheme-handler/org-protocol
+#+END_SRC
+
+To disable the "confirm" prompt in Chrome, you can also make Chrome show a
+checkbox to tick, so that the ~Org-Protocol Client~ app will be used without
+confirmation. To do this, run in a shell:
+
+#+BEGIN_SRC bash
+sudo mkdir -p /etc/opt/chrome/policies/managed/
+sudo tee /etc/opt/chrome/policies/managed/external_protocol_dialog.json >/dev/null <<'EOF'
+{
+  "ExternalProtocolDialogShowAlwaysOpenCheckbox": true
+}
+EOF
+sudo chmod 644 /etc/opt/chrome/policies/managed/external_protocol_dialog.json
+#+END_SRC
+
+and then restart Chrome (for example, by navigating to <chrome://restart>) to
+make the new policy take effect.
+
+See [[https://www.chromium.org/administrators/linux-quick-start][here]] for more info on the ~/etc/opt/chrome/policies/managed~ directory and
+[[https://cloud.google.com/docs/chrome-enterprise/policies/?policy=ExternalProtocolDialogShowAlwaysOpenCheckbox][here]] for information on the ~ExternalProtocolDialogShowAlwaysOpenCheckbox~ policy.
+
+For MacOS, we need to create our own application.
+
+1. Launch Script Editor
+2. Use the following script, paying attention to the path to ~emacsclient~:
+
+#+begin_src emacs-lisp
+  on open location this_URL
+      set EC to "/usr/local/bin/emacsclient --no-wait "
+      set filePath to quoted form of this_URL
+      do shell script EC & filePath
+      tell application "Emacs" to activate
+  end open location
+#+end_src
+
+3. Save the script in ~/Applications/OrgProtocolClient.app~, changing the script type to
+   "Application", rather than "Script".
+4. Edit ~/Applications/OrgProtocolClient.app/Contents/Info.plist~, adding the
+   following before the last ~</dict>~ tag:
+
+#+begin_src text
+  <key>CFBundleURLTypes</key>
+  <array>
+    <dict>
+      <key>CFBundleURLName</key>
+      <string>org-protocol handler</string>
+      <key>CFBundleURLSchemes</key>
+      <array>
+        <string>org-protocol</string>
+      </array>
+    </dict>
+  </array>
+#+end_src
+
+5. Save the file, and run the ~OrgProtocolClient.app~ to register the protocol.
+
+To disable the "confirm" prompt in Chrome, you can also make Chrome
+show a checkbox to tick, so that the ~OrgProtocol~ app will be used
+without confirmation. To do this, run in a shell:
+
+#+BEGIN_SRC bash
+defaults write com.google.Chrome ExternalProtocolDialogShowAlwaysOpenCheckbox -bool true
+#+END_SRC
+
+
+If you're using [[https://github.com/railwaycat/homebrew-emacsmacport][Emacs Mac Port]], it registered its `Emacs.app` as the default
+handler for the URL scheme `org-protocol`. To make ~OrgProtocol.app~
+the default handler instead, run:
+
+#+BEGIN_SRC bash
+defaults write com.apple.LaunchServices/com.apple.launchservices.secure LSHandlers -array-add \
+'{"LSHandlerPreferredVersions" = { "LSHandlerRoleAll" = "-"; }; LSHandlerRoleAll = "org.yourusername.OrgProtocol"; LSHandlerURLScheme = "org-protocol";}'
+#+END_SRC
+
+Then restart your computer.
+
+For Windows, create a temporary ~org-protocol.reg~ file:
+
+#+BEGIN_SRC text
+REGEDIT4
+
+[HKEY_CLASSES_ROOT\org-protocol]
+@="URL:Org Protocol"
+"URL Protocol"=""
+[HKEY_CLASSES_ROOT\org-protocol\shell]
+[HKEY_CLASSES_ROOT\org-protocol\shell\open]
+[HKEY_CLASSES_ROOT\org-protocol\shell\open\command]
+@="\"C:\\Windows\\System32\\wsl.exe\" emacsclient \"%1\""
+#+END_SRC
+
+The above will forward the protocol to WSL. If you run Emacs natively on
+Windows, replace the last line with:
+
+#+BEGIN_SRC text
+@="\"c:\\path\\to\\emacs\\bin\\emacsclientw.exe\"  \"%1\""
+#+END_SRC
+
+After executing the .reg file, the protocol is registered and you can delete the
+file.
+
+** The roam-file protocol
+
+This is a simple protocol that opens the path specified by the ~file~
+key (e.g. ~org-protocol://roam-file?file=/tmp/file.org~). This is used
+in the generated graph.
+
+** The roam-ref protocol
+
+This protocol finds or creates a new note with a given ~roam_key~:
+
+[[file:images/roam-ref.gif]]
+
+To use this, create the following [[https://en.wikipedia.org/wiki/Bookmarklet][bookmarklet]] in your browser:
+
+#+BEGIN_SRC javascript
+  javascript:location.href =
+      'org-protocol://roam-ref?template=r&ref='
+      + encodeURIComponent(location.href)
+      + '&title='
+      + encodeURIComponent(document.title)
+      + '&body='
+      + encodeURIComponent(window.getSelection())
+#+END_SRC
+
+or as a keybinding in ~qutebrowser~ in , using the ~config.py~ file (see
+[[https://github.com/qutebrowser/qutebrowser/blob/master/doc/help/configuring.asciidoc][Configuring qutebrowser]]):
+
+#+BEGIN_SRC python
+  config.bind("<Ctrl-r>", "open javascript:location.href='org-protocol://roam-ref?template=r&ref='+encodeURIComponent(location.href)+'&title='+encodeURIComponent(document.title)")
+#+END_SRC
+
+where ~template~ is the template key for a template in
+~org-roam-capture-ref-templates~ (see [[*The Templating System][The Templating System]]). These templates
+should contain a ~#+roam_key: ${ref}~ in it.
+
 * TODO Diagnosing and Repair
 * TODO Building Extensions
 ** TODO Public Interface
@@ -808,151 +982,6 @@ directly to provide its third argument to specify UTC.
        :unnarrowed t)
 #+END_SRC
 
-* Concepts and Configuration
-The number of configuration options is deliberately kept small, to keep the
-Org-roam codebase manageable. However, we attempt to accommodate as many usage
-styles as possible.
-
-All of Org-roam's customization options can be viewed via ~M-x customize-group
-org-roam~.
-
-** Directories and Files
-
-This section concerns the placement and creation of files.
-
-- Variable: org-roam-directory
-
-  This is the default path to Org-roam files. All Org files, at any level of
-  nesting, are considered part of the Org-roam.
-
-- Variable: org-roam-db-location
-
-  Location of the Org-roam database. If this is non-nil, the Org-roam sqlite
-  database is saved here.
-
-  It is the user’s responsibility to set this correctly, especially when used
-  with multiple Org-roam instances.
-
-- Variable: org-roam-file-exclude-regexp
-
-  Files matching this regular expression are excluded from the Org-roam.
-
-** The Org-roam Buffer
-
-The Org-roam buffer displays backlinks for the currently active Org-roam note.
-
-- User Option: org-roam-buffer
-
-  The name of the org-roam buffer. Defaults to ~*org-roam*~.
-
-- User Option: org-roam-buffer-position
-
-  The position of the Org-roam buffer side window. Valid values are ~'left~,
-  ~'right~, ~'top~, ~'bottom~.
-
-- User Option: org-roam-buffer-width
-
-  Width of ~org-roam-buffer~. Has an effect only if ~org-roam-buffer-position~ is
-  ~'left~ or ~'right~.
-
-- User Option: org-roam-buffer-height
-
-  Height of ~org-roam-buffer~. Has an effect only if ~org-roam-buffer-position~ is
-  ~'top~ or ~'bottom~.
-
-- User Option: org-roam-buffer-window-parameters
-
-  Additional window parameters for the org-roam-buffer side window.
-
-  For example one can prevent the window from being deleted when calling
-  ~delete-other-windows~, by setting it with the following:
-
-  ~(setq org-roam-buffer-window-parameters '((no-delete-other-windows . t)))~
-  
-** Org-roam Files
-
-Org-roam files are created and prefilled using Org-roam's templating
-system. The templating system is customizable (see [[*The Templating System][The Templating System]]).
-
-** Org-roam Faces
-
-Org-roam introduces several faces to distinguish links within the same buffer.
-These faces are enabled by default in Org-roam notes.
-
-- User Option: org-roam-link-use-custom-faces
-
-  When ~t~, use custom faces only inside Org-roam notes.
-  When ~everywhere~, the custom face is applied additionally to non Org-roam notes.
-  When ~nil~, do not use Org-roam's custom faces.
-
-The ~org-roam-link~ face is the face applied to links to other Org-roam files.
-This distinguishes internal links from external links (e.g. external web links).
-
-The ~org-roam-link-current~ face corresponds to links to the same file it is in.
-
-The ~org-roam-link-invalid~ face is applied to links that are broken. These are
-links to files or IDs that cannot be found.
-
-* Inserting Links
-
-The preferred mode of linking is via ~file~ links to files, and ~id~ links for
-headlines. This maintains the strongest compatibility with Org-mode, ensuring
-that the links still function without Org-roam, and work well exporting to other
-backends.
-
-~file~ links can be inserted via ~org-roam-insert~. Links to headlines can be
-inserted by navigating to the desired headline and calling ~org-store-link~.
-This will create an ID for the headline if it does not already exist, and
-populate the Org-roam database. The link can then be inserted via
-~org-insert-link~.
-
-An alternative mode of insertion is using Org-roam's ~roam~ links. Org-roam
-registers this link type, and interprets the path as follows:
-
-- ~[[roam:title]]~ :: links to an Org-roam file with title or alias "title"
-- ~[[roam:*headline]]~ :: links to the headline "headline" in the current
-  Org-roam file
-- ~[[roam:title*headline]]~ :: links to the headline "headline" in the Org-roam
-  file with title or alias "title"
-
-- User Option: org-roam-link-title-format
-
-  To distinguish between org-roam links and regular links, one may choose to use
-  special indicators for Org-roam links. Defaults to ~"%s"~.
-
-  If your version of Org is at least ~9.2~, consider styling the link differently,
-  by customizing the ~org-roam-link~, and ~org-roam-link-current~ faces.
-
-- User Option: org-roam-link-auto-replace
-
-  When non-nil, ~roam~ links will be replaced with ~file~ or ~id~ links when
-  they are navigated to, and on file save, when a match is found. This is
-  desirable to maintain compatibility with vanilla Org, but resolved links are
-  harder to edit. Defaults to ~t~.
-
-* Navigating Around
-** Index File
-
-As your collection grows, you might want to create an index where you keep links
-to your main files.
-
-In Org-roam, you can define the path to your index file by setting
-~org-roam-index-file~.
-
-- Variable: org-roam-index-file
-
-  Path to the Org-roam index file.
-
-  The path can be a string or a function. If it is a string, it should be the
-  path (absolute or relative to ~org-roam-directory~) to the index file. If it
-  is is a function, the function should return the path to the index file.
-  Otherwise, the index is assumed to be a note in ~org-roam-index~ whose
-  title is ~"Index"~.
-
-- Function: org-roam-find-index
-
-  Opens the Index file in the current ~org-roam-directory~.
-
 * Graphing
 
 Org-roam provides graphing capabilities to explore interconnections between
@@ -1069,179 +1098,6 @@ commands, set:
 #+END_SRC
 
 Other options include ~'ido~, and ~'ivy~.
-
-* Roam Protocol
-
-Org-roam extends ~org-protocol~ with 2 protocols: the ~roam-file~ and ~roam-ref~
-protocols.
-
-** Installation
-
-To enable Org-roam's protocol extensions, you have to add the following to your
-init file:
-
-#+BEGIN_SRC emacs-lisp
-(require 'org-roam-protocol)
-#+END_SRC
-
-The instructions for setting up ~org-protocol~ are reproduced below.
-
-We will also need to create a desktop application for ~emacsclient~. The
-instructions for various platforms are shown below.
-
-For Linux users, create a desktop application in
-~~/.local/share/applications/org-protocol.desktop~:
-
-#+begin_example
-[Desktop Entry]
-Name=Org-Protocol
-Exec=emacsclient %u
-Icon=emacs-icon
-Type=Application
-Terminal=false
-MimeType=x-scheme-handler/org-protocol
-#+end_example
-
-Associate ~org-protocol://~ links with the desktop application by
-running in your shell:
-
-#+BEGIN_SRC bash
-xdg-mime default org-protocol.desktop x-scheme-handler/org-protocol
-#+END_SRC
-
-To disable the "confirm" prompt in Chrome, you can also make Chrome show a
-checkbox to tick, so that the ~Org-Protocol Client~ app will be used without
-confirmation. To do this, run in a shell:
-
-#+BEGIN_SRC bash
-sudo mkdir -p /etc/opt/chrome/policies/managed/
-sudo tee /etc/opt/chrome/policies/managed/external_protocol_dialog.json >/dev/null <<'EOF'
-{
-  "ExternalProtocolDialogShowAlwaysOpenCheckbox": true
-}
-EOF
-sudo chmod 644 /etc/opt/chrome/policies/managed/external_protocol_dialog.json
-#+END_SRC
-
-and then restart Chrome (for example, by navigating to <chrome://restart>) to
-make the new policy take effect.
-
-See [[https://www.chromium.org/administrators/linux-quick-start][here]] for more info on the ~/etc/opt/chrome/policies/managed~ directory and
-[[https://cloud.google.com/docs/chrome-enterprise/policies/?policy=ExternalProtocolDialogShowAlwaysOpenCheckbox][here]] for information on the ~ExternalProtocolDialogShowAlwaysOpenCheckbox~ policy.
-
-For MacOS, we need to create our own application.
-
-1. Launch Script Editor
-2. Use the following script, paying attention to the path to ~emacsclient~:
-
-#+begin_src emacs-lisp
-  on open location this_URL
-      set EC to "/usr/local/bin/emacsclient --no-wait "
-      set filePath to quoted form of this_URL
-      do shell script EC & filePath
-      tell application "Emacs" to activate
-  end open location
-#+end_src
-
-3. Save the script in ~/Applications/OrgProtocolClient.app~, changing the script type to
-   "Application", rather than "Script".
-4. Edit ~/Applications/OrgProtocolClient.app/Contents/Info.plist~, adding the
-   following before the last ~</dict>~ tag:
-
-#+begin_src text
-  <key>CFBundleURLTypes</key>
-  <array>
-    <dict>
-      <key>CFBundleURLName</key>
-      <string>org-protocol handler</string>
-      <key>CFBundleURLSchemes</key>
-      <array>
-        <string>org-protocol</string>
-      </array>
-    </dict>
-  </array>
-#+end_src
-
-5. Save the file, and run the ~OrgProtocolClient.app~ to register the protocol.
-
-To disable the "confirm" prompt in Chrome, you can also make Chrome
-show a checkbox to tick, so that the ~OrgProtocol~ app will be used
-without confirmation. To do this, run in a shell:
-
-#+BEGIN_SRC bash
-defaults write com.google.Chrome ExternalProtocolDialogShowAlwaysOpenCheckbox -bool true
-#+END_SRC
-
-
-If you're using [[https://github.com/railwaycat/homebrew-emacsmacport][Emacs Mac Port]], it registered its `Emacs.app` as the default
-handler for the URL scheme `org-protocol`. To make ~OrgProtocol.app~
-the default handler instead, run:
-
-#+BEGIN_SRC bash
-defaults write com.apple.LaunchServices/com.apple.launchservices.secure LSHandlers -array-add \
-'{"LSHandlerPreferredVersions" = { "LSHandlerRoleAll" = "-"; }; LSHandlerRoleAll = "org.yourusername.OrgProtocol"; LSHandlerURLScheme = "org-protocol";}'
-#+END_SRC
-
-Then restart your computer.
-
-For Windows, create a temporary ~org-protocol.reg~ file:
-
-#+BEGIN_SRC text
-REGEDIT4
-
-[HKEY_CLASSES_ROOT\org-protocol]
-@="URL:Org Protocol"
-"URL Protocol"=""
-[HKEY_CLASSES_ROOT\org-protocol\shell]
-[HKEY_CLASSES_ROOT\org-protocol\shell\open]
-[HKEY_CLASSES_ROOT\org-protocol\shell\open\command]
-@="\"C:\\Windows\\System32\\wsl.exe\" emacsclient \"%1\""
-#+END_SRC
-
-The above will forward the protocol to WSL. If you run Emacs natively on
-Windows, replace the last line with:
-
-#+BEGIN_SRC text
-@="\"c:\\path\\to\\emacs\\bin\\emacsclientw.exe\"  \"%1\""
-#+END_SRC
-
-After executing the .reg file, the protocol is registered and you can delete the
-file.
-
-** The roam-file protocol
-
-This is a simple protocol that opens the path specified by the ~file~
-key (e.g. ~org-protocol://roam-file?file=/tmp/file.org~). This is used
-in the generated graph.
-
-** The roam-ref protocol
-
-This protocol finds or creates a new note with a given ~roam_key~:
-
-[[file:images/roam-ref.gif]]
-
-To use this, create the following [[https://en.wikipedia.org/wiki/Bookmarklet][bookmarklet]] in your browser:
-
-#+BEGIN_SRC javascript
-  javascript:location.href =
-      'org-protocol://roam-ref?template=r&ref='
-      + encodeURIComponent(location.href)
-      + '&title='
-      + encodeURIComponent(document.title)
-      + '&body='
-      + encodeURIComponent(window.getSelection())
-#+END_SRC
-
-or as a keybinding in ~qutebrowser~ in , using the ~config.py~ file (see
-[[https://github.com/qutebrowser/qutebrowser/blob/master/doc/help/configuring.asciidoc][Configuring qutebrowser]]):
-
-#+BEGIN_SRC python
-  config.bind("<Ctrl-r>", "open javascript:location.href='org-protocol://roam-ref?template=r&ref='+encodeURIComponent(location.href)+'&title='+encodeURIComponent(document.title)")
-#+END_SRC
-
-where ~template~ is the template key for a template in
-~org-roam-capture-ref-templates~ (see [[*The Templating System][The Templating System]]). These templates
-should contain a ~#+roam_key: ${ref}~ in it.
 
 * Daily-notes
 
@@ -1437,7 +1293,7 @@ operations. To reduce the number of garbage collection processes, one may set
 :END:
 
 #+BEGIN_QUOTE
-Copyright (C) 2020-2020 Jethro Kuan <jethrokuan95@gmail.com>
+Copyright (C) 2020-2021 Jethro Kuan <jethrokuan95@gmail.com>
 
 You can redistribute this document and/or modify it under the terms
 of the GNU General Public License as published by the Free Software
