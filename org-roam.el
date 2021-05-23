@@ -339,7 +339,8 @@ Use external shell commands if defined in `org-roam-list-files-commands'."
 (defun org-roam--files-table ()
   "Return a hash table of file to file properties."
   (let ((ht (make-hash-table :test #'equal)))
-    (pcase-dolist (`(,file ,hash ,atime ,mtime) (org-roam-db-query [:select [file hash atime mtime] :from files]))
+    (pcase-dolist (`(,file ,hash ,atime ,mtime)
+                   (org-roam-db-query [:select [file hash atime mtime] :from files]))
       (puthash file `(,hash ,atime ,mtime) ht))
     ht))
 
