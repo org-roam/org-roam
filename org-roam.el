@@ -79,6 +79,11 @@
   :group 'faces)
 
 ;;;; Variables
+(defcustom org-roam-verbose t
+  "Echo messages that are not errors."
+  :type 'boolean
+  :group 'org-roam)
+
 (defcustom org-roam-directory (expand-file-name "~/org-roam/")
   "Default path to Org-roam files.
 All Org files, at any level of nesting, are considered part of the Org-roam."
@@ -156,11 +161,6 @@ method symbol as a cons cell. For example: '(find (rg . \"/path/to/rg\"))."
 By default, the characters are specified to remove Diacritical
 Marks from the Latin alphabet."
   :type '(repeat character)
-  :group 'org-roam)
-
-(defcustom org-roam-verbose t
-  "Echo messages that are not errors."
-  :type 'boolean
   :group 'org-roam)
 
 ;;;; ID Utilities
@@ -336,6 +336,13 @@ Use external shell commands if defined in `org-roam-list-files-commands'."
   "Return a list of all Org-roam files within `org-roam-directory'."
   (org-roam--list-files (expand-file-name org-roam-directory)))
 
+(defun org-roam--files-table ()
+  "Return a hash table of file to file properties."
+  (let ((ht (make-hash-table :test #'equal)))
+    (pcase-dolist (`(,file ,hash ,atime ,mtime) (org-roam-db-query [:select [file hash atime mtime] :from files]))
+      (puthash file `(,hash ,atime ,mtime) ht))
+    ht))
+
 (defun org-roam--tags-table ()
   "Return a hash table of node ID to list of tags."
   (let ((ht (make-hash-table :test #'equal)))
@@ -431,7 +438,8 @@ OLD-FILE is cleared from the database, and NEW-FILE-OR-DIR is added."
 ;;;; Nodes
 (cl-defstruct (org-roam-node (:constructor org-roam-node-create)
                              (:copier nil))
-  id file level point todo priority scheduled deadline title properties olp
+  file file-hash file-atime file-mtime
+  id level point todo priority scheduled deadline title properties olp
   tags aliases refs)
 
 (cl-defmethod org-roam-node-slug ((node org-roam-node))
@@ -638,7 +646,8 @@ Throw an error if multiple choices exist."
 The car is the displayed title or alias for the node, and the cdr
 is the `org-roam-node'."
   (setq org-roam--cached-display-format nil)
-  (let ((tags-table (org-roam--tags-table)))
+  (let ((files-table (org-roam--files-table))
+        (tags-table (org-roam--tags-table)))
     (cl-loop for row in (append
                          (org-roam-db-query [:select [file pos title title id properties olp]
                                              :from nodes])
@@ -647,8 +656,12 @@ is the `org-roam-node'."
                                              :left-join nodes
                                              :on (= aliases:node-id nodes:id)]))
              collect (pcase-let* ((`(,file ,pos ,alias ,title ,id ,properties ,olp) row)
+                                  (`(,file-hash ,file-atime ,file-mtime) (gethash file files-table))
                                   (node (org-roam-node-create :id id
                                                               :file file
+                                                              :file-hash file-hash
+                                                              :file-atime file-atime
+                                                              :file-mtime file-mtime
                                                               :title alias
                                                               :point pos
                                                               :properties properties
@@ -667,13 +680,40 @@ This function takes a single argument NODE, which is an `org-roam-node' construc
   :group 'org-roam
   :type 'function)
 
-(defun org-roam-node-read (&optional initial-input filter-fn require-match)
+(defcustom org-roam-node-default-sort #'file-mtime
+  "Default sort order for Org-roam node completions."
+  :type 'const
+  :group 'org-roam)
+
+(defun org-roam-node-sort-by-file-mtime (completion-a completion-b)
+  "Sort files such that files modified more recently are shown first.
+COMPLETION-A and COMPLETION-B are items in the form of (node-title org-roam-node-struct)"
+  (let ((node-a (cdr completion-a))
+        (node-b (cdr completion-b)))
+    (time-less-p (org-roam-node-file-mtime node-b)
+                 (org-roam-node-file-mtime node-a))))
+
+(defun org-roam-node-sort-by-file-atime (completion-a completion-b)
+  "Sort files such that files accessed more recently are shown first.
+COMPLETION-A and COMPLETION-B are items in the form of (node-title org-roam-node-struct)"
+  "Sort completions list by file modification time."
+  (let ((node-a (cdr completion-a))
+        (node-b (cdr completion-b)))
+    (time-less-p (org-roam-node-file-atime node-b)
+                 (org-roam-node-file-atime node-a))))
+
+(defun org-roam-node-read (&optional initial-input filter-fn sort-fn require-match)
   "Read and return an `org-roam-node'.
 INITIAL-INPUT is the initial prompt value.
-FILTER-FN is a function applied to the completion list.
+FILTER-FN is a function to filter out nodes.
+SORT-FN is a function to sort nodes.
 If REQUIRE-MATCH, require returning a match."
   (let* ((nodes (org-roam-node--completions))
          (nodes (funcall (or filter-fn #'identity) nodes))
+         (sort-fn (or sort-fn
+                      (when org-roam-node-default-sort
+                        (intern (concat "org-roam-node-sort-by-" (symbol-name org-roam-node-default-sort))))))
+         (_ (when sort-fn (setq nodes (seq-sort sort-fn nodes))))
          (node (completing-read
                 "Node: "
                 (lambda (string pred action)
