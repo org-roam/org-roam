@@ -413,11 +413,11 @@ Org-roam provides (see [[id:70083bfd-d1e3-42b9-bf83-5b05708791c0][Completion]]).
 # to a buffer pointing to the note you just created. For the usual ~org-capture~
 # behavior you can call ~M-x org-roam-capture~ instead of ~M-x org-roam-find-file~.
 
-* TODO Viewing the links
+* The Org-roam Buffer
 
-Org-roam provides an interface to view relationships with other notes
-(backlinks, reference links, unlinked references etc.). There are two main
-functions to use here:
+Org-roam provides the Org-roam buffer: an interface to view relationships with
+other notes (backlinks, reference links, unlinked references etc.). There are
+two main functions to use here:
 
 - ~org-roam-buffer~: Launch an Org-roam buffer for the current node at point.
 - ~org-roam-buffer-toggle~: Launch an Org-roam buffer that tracks the node
@@ -426,6 +426,30 @@ functions to use here:
 
 Use ~org-roam-buffer-toggle~ when you want wish for the Org-roam buffer to
 buffer, call ~M-x org-roam-buffer~.
+
+- Function: org-roam-buffer
+
+  Launch an Org-roam buffer for the current node at point.
+
+To bring up a buffer that tracks the current node at point, call ~M-x
+org-roam-buffer-toggle~.
+
+- Function: org-roam-buffer-toggle
+
+  Toggle display of the ~org-roam-buffer~.
+
+** Navigating the Org-roam Buffer
+
+The Org-roam buffer uses ~magit-section~, making the typical ~magit-section~
+keybindings available. Here are several of the more useful ones:
+
+- ~M-{N}~: ~magit-section-show-level-{N}-all~
+- ~n~: ~magit-section-forward~
+-~<TAB>~: ~magit-section-toggle~
+- ~<RET>~: ~org-roam-visit-thing~
+
+~org-roam-visit-thing~ is a placeholder command, that is replaced by
+section-specific commands such as ~org-roam-node-visit~.
 
 ** Configuring what is displayed in the buffer
 
@@ -440,14 +464,13 @@ To configure what sections are displayed in the buffer, set ~org-roam-mode-secti
 
 #+begin_src emacs-lisp
   (setq org-roam-mode-sections
-        (list #'org-roam-backlinks-insert-section
-              #'org-roam-reflinks-insert-section
-              ;; #'org-roam-unlinked-references-insert-section
+        (list #'org-roam-backlinks-section
+              #'org-roam-reflinks-section
+              ;; #'org-roam-unlinked-references-section
               ))
 #+end_src
 
-Note that computing unlinked references may be slow, and you might want to turn
-that off by default.
+Note that computing unlinked references may be slow, and has not been added in by default.
 
 ** Configuring the Org-roam buffer display
 
@@ -558,37 +581,6 @@ Org-roam also provides some functions to add or remove refs.
 
   Remove a ref from the node at point.
 
-* TODO The Org-roam Buffer
-
-The Org-roam buffer displays relationships between nodes. To show the
-relationship between the current node at point with other nodes, call ~M-x
-org-roam-buffer~.
-
-- Function: org-roam-buffer
-
-  Launch an Org-roam buffer for the current node at point.
-
-To bring up a buffer that tracks the current node at point, call ~M-x
-org-roam-buffer-toggle~.
-
-- Function: org-roam-buffer-toggle
-
-  Toggle display of the ~org-roam-buffer~.
-
-** TODO Navigating the Org-roam Buffer
-
-The Org-roam buffer uses ~magit-section~, making the typical ~magit-section~
-keybindings available. Here are several of the more useful ones:
-
-- ~M-{N}~: ~magit-section-show-level-{N}-all~
-- ~n~: ~magit-section-forward~
--~<TAB>~: ~magit-section-toggle~
-- ~<RET>~: ~org-roam-visit-thing~
-
-~org-roam-visit-thing~ visits the item at point.
-
-** TODO Customizing the Org-roam Buffer
-
 * TODO Styling Org-roam
 * Completion
 :PROPERTIES:
@@ -637,7 +629,19 @@ to ~t~:
 
 When non-nil, provide link completion matching outside of Org links.
 
-* TODO Encryption
+* Encryption
+
+Emacs has support for creating and editing encrypted gpg files, and Org-roam need
+not provide additional tooling. To create encrypted files, simply add the ~.gpg~
+extension in your Org-roam capture templates. For example:
+
+#+begin_src emacs-lisp
+(setq org-roam-capture-templates '(("d" "default" plain "%?"
+     :if-new (file+head "${slug}.org.gpg"
+                        "#+title: ${title}\n")
+     :unnarrowed t)))
+#+end_src
+
 * TODO Org-roam protocol
 * TODO Diagnosing and Repair
 * TODO Building Extensions
@@ -948,21 +952,6 @@ In Org-roam, you can define the path to your index file by setting
 - Function: org-roam-find-index
 
   Opens the Index file in the current ~org-roam-directory~.
-
-* Encryption
-
-One may wish to keep private, encrypted files. Org-roam supports encryption (via
-GPG), which can be enabled for all new files by setting ~org-roam-encrypt-files~
-to ~t~. When enabled, new files are created with the ~.org.gpg~ extension and
-decryption are handled automatically by EasyPG.
-
-Note that Emacs will prompt for a password for encrypted files during cache
-updates if it requires reading the encrypted file. To reduce the number of
-password prompts, you may wish to cache the password.
-
-- User Option: org-roam-encrypt-files
-
-  Whether to encrypt new files. If true, create files with .org.gpg extension.
 
 * Graphing
 
