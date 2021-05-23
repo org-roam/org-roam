@@ -482,11 +482,12 @@ This function is to be called in the Org-capture finalization process."
         (when (find-buffer-visiting new-file)
           (kill-buffer (find-buffer-visiting new-file)))
         (delete-file new-file))
-    (when-let ((finalize (org-roam-capture--get :finalize)))
-      (if (functionp finalize)
-          (funcall finalize)
-        (funcall (intern (concat "org-roam-capture--finalize-"
-                                 (symbol-name finalize)))))))
+    (when-let* ((finalize (org-roam-capture--get :finalize))
+                (org-roam-finalize-fn (intern (concat "org-roam-capture--finalize-"
+                                                      (symbol-name finalize)))))
+      (if (functionp org-roam-finalize-fn)
+          (funcall org-roam-finalize-fn)
+        (funcall finalize))))
   (remove-hook 'org-capture-after-finalize-hook #'org-roam-capture--finalize))
 
 (defun org-roam-capture--install-finalize ()
