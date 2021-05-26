@@ -373,13 +373,12 @@ If UPDATE-P is non-nil, first remove the file in the database."
 
 (defun org-roam-db-insert-aliases ()
   "Insert aliases for node at point into Org-roam cache."
-  (when-let ((file (buffer-file-name (buffer-base-buffer)))
-             (node-id (org-id-get))
+  (when-let ((node-id (org-id-get))
              (aliases (org-entry-get (point) "ROAM_ALIASES")))
     (org-roam-db-query [:insert :into aliases
                         :values $v1]
                        (mapcar (lambda (alias)
-                                 (vector file node-id alias))
+                                 (vector node-id alias))
                                (split-string-and-unquote aliases)))))
 
 (defun org-roam-db-insert-tags ()
