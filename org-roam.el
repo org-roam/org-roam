@@ -670,8 +670,8 @@ is the `org-roam-node'."
                                                               :tags (gethash id tags-table)))
                                   (candidate-main (org-roam-node--format-entry node (1- (frame-width))))
                                   (tag-str (org-roam--tags-to-str (org-roam-node-tags node))))
-                       (cons (propertize (concat (propertize tag-str 'invisible t)
-                                                 candidate-main)
+                       (cons (propertize (concat candidate-main
+                                                 (propertize tag-str 'invisible t))
                                          'node node)
                              node)))))
 
