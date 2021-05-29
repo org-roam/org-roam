@@ -56,7 +56,7 @@ during the Org-roam capture process.")
 This variable is populated dynamically, and is only non-nil
 during the Org-roam capture process.")
 
-(defconst org-roam-capture--template-keywords '(:if-new :id :link-description :call-location)
+(defconst org-roam-capture--template-keywords '(:if-new :id :link-description :call-location :region)
   "Keywords used in `org-roam-capture-templates' specific to Org-roam.")
 
 (defcustom org-roam-capture-templates
