@@ -826,11 +826,12 @@ which takes as its argument an alist of path-completions."
                          description)))
             (org-roam-capture-
              :node node
-             :props (list :region (when (and beg end)
-                                    (cons beg end))
-                          :insert-at (point-marker)
-                          :link-description description
-                          :finalize 'insert-link)))))
+             :props (append
+                     (when (and beg end)
+                       (list :region (cons beg end)))
+                     (list :insert-at (point-marker)
+                           :link-description description
+                           :finalize 'insert-link))))))
     (deactivate-mark)))
 
 ;;;###autoload
