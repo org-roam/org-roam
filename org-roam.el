@@ -1,6 +1,6 @@
 ;;; org-roam.el --- Roam Research replica with Org-mode -*- coding: utf-8; lexical-binding: t; -*-
 
-;; Copyright © 2020 Jethro Kuan <jethrokuan95@gmail.com>
+;; Copyright © 2020-2021 Jethro Kuan <jethrokuan95@gmail.com>
 
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
 ;; URL: https://github.com/org-roam/org-roam
@@ -335,6 +335,14 @@ Use external shell commands if defined in `org-roam-list-files-commands'."
 (defun org-roam--list-all-files ()
   "Return a list of all Org-roam files within `org-roam-directory'."
   (org-roam--list-files (expand-file-name org-roam-directory)))
+
+(defun org-roam--nodes-table ()
+  "Return a hash table of node ID to org-roam-nodes."
+  (let ((ht (make-hash-table :test #'equal)))
+    (pcase-dolist (`(,id ,file ,title)
+                   (org-roam-db-query [:select [id file title] :from nodes])q)
+      (puthash id (org-roam-node-create :file file :id id :title title) ht))
+    ht))
 
 (defun org-roam--files-table ()
   "Return a hash table of file to file properties."

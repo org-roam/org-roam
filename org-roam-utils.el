@@ -34,7 +34,6 @@
 ;;; Code:
 ;;;; Library Requires
 (require 'dash)
-(require 's)
 
 (defvar org-roam-verbose)
 
@@ -42,6 +41,32 @@
 ;; `org-mode-hook' and `org-inhibit-startup' as dynamic variables,
 ;; regardless of whether Org is loaded before their compilation.
 (require 'org)
+
+;;;; String Utilities
+(defun org-roam-truncate (len s &optional ellipsis)
+  "If S is longer than LEN, cut it down and add ELLIPSIS to the end.
+
+The resulting string, including ellipsis, will be LEN characters
+long.
+
+When not specified, ELLIPSIS defaults to ‘...’."
+  (declare (pure t) (side-effect-free t))
+  (unless ellipsis
+    (setq ellipsis "..."))
+  (if (> (length s) len)
+      (format "%s%s" (substring s 0 (- len (length ellipsis))) ellipsis)
+    s))
+
+(defun org-roam-replace (old new s)
+  "Replaces OLD with NEW in S."
+  (declare (pure t) (side-effect-free t))
+  (replace-regexp-in-string (regexp-quote old) new s t t))
+
+(defun org-roam-quote-string (s)
+  "Quotes string S."
+  (->> s
+    (org-roam-replace "\\" "\\\\")
+    (org-roam-replace "\"" "\\\"")))
 
 ;;;; Utility Functions
 (defun org-roam--list-interleave (lst separator)

@@ -31,7 +31,7 @@
 ;;
 ;; We define 2 protocols:
 ;;
-;; 1. "roam-file": This protocol simply opens the file given by the FILE key
+;; 1. "roam-node": This protocol simply opens the node given by the node ID
 ;; 2. "roam-ref": This protocol creates or opens a note with the given REF
 ;;
 ;;; Code:
@@ -83,7 +83,7 @@ It opens or creates a note with the given ref.
    :templates org-roam-capture-ref-templates)
   nil)
 
-(defun org-roam-protocol-open-file (info)
+(defun org-roam-protocol-open-node (info)
   "This handler simply opens the file with emacsclient.
 
 INFO is an alist containing additional information passed by the protocol URL.
@@ -91,15 +91,15 @@ It should contain the FILE key, pointing to the path of the file to open.
 
   Example protocol string:
 
-org-protocol://roam-file?file=/path/to/file.org"
-  (when-let ((file (plist-get info :file)))
+org-protocol://roam-node?node=uuid"
+  (when-let ((node (plist-get info :node)))
     (raise-frame)
-    (find-file file))
+    (org-roam-node-visit file))
   nil)
 
 (push '("org-roam-ref"  :protocol "roam-ref"   :function org-roam-protocol-open-ref)
       org-protocol-protocol-alist)
-(push '("org-roam-file"  :protocol "roam-file"   :function org-roam-protocol-open-file)
+(push '("org-roam-node"  :protocol "roam-node"   :function org-roam-protocol-open-node)
       org-protocol-protocol-alist)
 
 (provide 'org-roam-protocol)
