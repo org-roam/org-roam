@@ -340,7 +340,7 @@ Use external shell commands if defined in `org-roam-list-files-commands'."
   "Return a hash table of node ID to org-roam-nodes."
   (let ((ht (make-hash-table :test #'equal)))
     (pcase-dolist (`(,id ,file ,title)
-                   (org-roam-db-query [:select [id file title] :from nodes])q)
+                   (org-roam-db-query [:select [id file title] :from nodes]))
       (puthash id (org-roam-node-create :file file :id id :title title) ht))
     ht))
 

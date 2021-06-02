@@ -90,13 +90,6 @@ Example:
   :type '(alist)
   :group 'org-roam)
 
-(defcustom org-roam-graph-edge-cites-extra-config '(("color" . "red"))
-  "Extra options for graphviz edges for citation links.
-Example:
- '((\"dir\" . \"back\"))"
-  :type '(alist)
-  :group 'org-roam)
-
 (defcustom org-roam-graph-max-title-length 100
   "Maximum length of titles in graph nodes."
   :type 'number
@@ -166,7 +159,7 @@ If WRAP-VAL is non-nil it wraps the VAL."
   "Build the graphviz for full page."
   (let ((org-roam-directory-temp org-roam-directory)
         (nodes-table (org-roam--nodes-table))
-        (edges (org-roam-db-query [:select [source dest] :from links])))
+        (edges (org-roam-db-query [:select :distinct [source dest] :from links])))
     (with-temp-buffer
       (setq-local org-roam-directory org-roam-directory-temp)
       (insert "digraph \"org-roam\" {\n")
@@ -181,14 +174,12 @@ If WRAP-VAL is non-nil it wraps the VAL."
                                    ","))))
       (dolist (node-id (hash-table-keys nodes-table))
         (let* ((node (gethash node-id nodes-table))
-               (file (xml-escape-string (org-roam-node-file node)))
-               (title (org-roam-node-title node))
-               (shortened-title (pcase org-roam-graph-shorten-titles
-                                  (`truncate (org-roam-truncate org-roam-graph-max-title-length title))
-                                  (`wrap (s-word-wrap org-roam-graph-max-title-length title))
-                                  (_ title)))
-               (shortened-title (org-roam-quote-string shortened-title))
-               (title (org-roam-quote-string title))
+               (title (org-roam-quote-string (org-roam-node-title node)))
+               (shortened-title (org-roam-quote-string
+                                 (pcase org-roam-graph-shorten-titles
+                                   (`truncate (org-roam-truncate org-roam-graph-max-title-length title))
+                                   (`wrap (s-word-wrap org-roam-graph-max-title-length title))
+                                   (_ title))))
                (node-properties
                 `(("label"   . ,shortened-title)
                   ("URL"     . ,(concat "org-protocol://roam-node?node=" (url-hexify-string node-id)))
@@ -198,9 +189,12 @@ If WRAP-VAL is non-nil it wraps the VAL."
                    (mapconcat (lambda (n)
                                 (org-roam-graph--dot-option n nil "\""))
                               node-properties ",")))))
-      (dolist (edge edges)
-        (insert (apply #'format `("  \"%s\" -> \"%s\";\n"
-                                  ,@(mapcar #'xml-escape-string edge)))))
+      (pcase-dolist (`(,source ,dest) edges)
+        (when (and (gethash source nodes-table)
+                   (gethash dest nodes-table))
+          (insert (format "  \"%s\" -> \"%s\";\n"
+                          (xml-escape-string source)
+                          (xml-escape-string dest)))))
       (insert "}")
       (buffer-string))))
 
