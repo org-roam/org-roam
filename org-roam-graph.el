@@ -274,7 +274,9 @@ ARG may be any of the following values:
     (pcase arg
       ('nil            (org-roam-graph--build node-query #'org-roam-graph--open))
       ('(4)            (org-roam-graph--build-connected-component file nil #'org-roam-graph--open))
-      ((pred integerp) (org-roam-graph--build-connected-component file (abs arg) (when (>= arg 0) #'org-roam-graph--open)))
+      ((pred integerp) (org-roam-graph--build-connected-component file
+                                                                  (abs arg)
+                                                                  (when (>= arg 0) #'org-roam-graph--open)))
       ('(16)           (org-roam-graph--build node-query))
       ('-              (org-roam-graph--build-connected-component file))
       (_ (user-error "Unrecognized ARG: %s" arg)))))

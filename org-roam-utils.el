@@ -58,7 +58,7 @@ When not specified, ELLIPSIS defaults to ‘...’."
     s))
 
 (defun org-roam-replace (old new s)
-  "Replaces OLD with NEW in S."
+  "Replace OLD with NEW in S."
   (declare (pure t) (side-effect-free t))
   (replace-regexp-in-string (regexp-quote old) new s t t))
 
