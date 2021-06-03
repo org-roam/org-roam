@@ -658,15 +658,16 @@ is the `org-roam-node'."
   (let ((files-table (org-roam--files-table))
         (tags-table (org-roam--tags-table)))
     (cl-loop for row in (append
-                         (org-roam-db-query [:select [file pos title title id properties olp]
+                         (org-roam-db-query [:select [file level pos title title id properties olp]
                                              :from nodes])
-                         (org-roam-db-query [:select [nodes:file pos alias title node-id]
+                         (org-roam-db-query [:select [nodes:file level pos alias title node-id]
                                              :from aliases
                                              :left-join nodes
                                              :on (= aliases:node-id nodes:id)]))
-             collect (pcase-let* ((`(,file ,pos ,alias ,title ,id ,properties ,olp) row)
+             collect (pcase-let* ((`(,file ,level ,pos ,alias ,title ,id ,properties ,olp) row)
                                   (`(,file-hash ,file-atime ,file-mtime) (gethash file files-table))
                                   (node (org-roam-node-create :id id
+                                                              :level level
                                                               :file file
                                                               :file-hash file-hash
                                                               :file-atime file-atime
