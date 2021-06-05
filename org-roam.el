@@ -485,7 +485,8 @@ recursion."
   (let ((regex (concat "\\.\\(?:"(mapconcat #'regexp-quote org-roam-file-extensions "\\|" )"\\)\\(?:\\.gpg\\)?\\'"))
         result)
     (dolist (file (org-roam--directory-files-recursively dir regex nil nil t) result)
-      (when (and (file-readable-p file) (org-roam--org-file-p file))
+      (when (and (file-readable-p file)
+                 (org-roam--org-roam-file-p file))
         (push file result)))))
 
 (defun org-roam--list-files (dir)
