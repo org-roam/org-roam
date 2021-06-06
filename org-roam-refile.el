@@ -39,25 +39,24 @@
 (defvar org-loop-over-headlines-in-active-region)
 
 (defun org-roam-demote-entire-buffer ()
-    "Convert an org buffer with any top-level content to a single node.
+  "Convert an org buffer with any top level content to a single node.
 
 All headings are demoted one level.
 
 The #+TITLE: keyword is converted into a level-1 heading and deleted.
 Any tags declared on #+FILETAGS: are transferred to tags on the new top heading.
 
-Any top-level properties drawers are incorporated into the new heading.
-"
-    (interactive)
-    (org-with-point-at 1
-      (org-map-entries 'org-do-demote)
-      (insert "* "
-              (org-roam--file-keyword-get "TITLE")
-              "\n")
-      (org-back-to-heading)
-      (org-set-tags (org-roam--file-keyword-get "FILETAGS"))
-      (org-roam--file-keyword-kill "TITLE")
-      (org-roam--file-keyword-kill "FILETAGS")))
+Any top level properties drawers are incorporated into the new heading."
+  (interactive)
+  (org-with-point-at 1
+    (org-map-entries 'org-do-demote)
+    (insert "* "
+            (org-roam--file-keyword-get "TITLE")
+            "\n")
+    (org-back-to-heading)
+    (org-set-tags (org-roam--file-keyword-get "FILETAGS"))
+    (org-roam--file-keyword-kill "TITLE")
+    (org-roam--file-keyword-kill "FILETAGS")))
 
 (defun org-roam-refile ()
   "Refile to node."

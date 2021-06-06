@@ -206,15 +206,14 @@ Adapted from `s-format'."
 
 ;;; for org-roam-demote-entire-buffer in org-roam-refile.el
 (defun org-roam--file-keyword-get (keyword)
-  "Pull a keyword setting from the top of the file.
+  "Pull a KEYWORD setting from the top of the file.
 
-Keyword must be specified in ALL CAPS.
-"
+Keyword must be specified in ALL CAPS."
   (cadr (assoc keyword
-              (org-collect-keywords (list keyword)))))
+               (org-collect-keywords (list keyword)))))
 
 (defun org-roam--file-keyword-kill (keyword)
-  "Erase a keyword setting line from the top of the file."
+  "Erase KEYWORD setting line from the top of the file."
   (let ((case-fold-search t))
     (org-with-point-at 1
       (when (re-search-forward (concat "^#\\+" keyword ":") nil t)
@@ -223,20 +222,19 @@ Keyword must be specified in ALL CAPS.
         (delete-char 1)))))
 
 (defun org-roam--kill-empty-buffer ()
-    "If the source buffer has been emptied, kill it.
+  "If the source buffer has been emptied, kill it.
 
 If the buffer is associated with a file, delete the file.
 
-If the buffer is associated with an in-process capture operation, abort the operation.
-"
-    (when (eq (buffer-size) 0)
-      (if (buffer-file-name)
-          (delete-file (buffer-file-name)))
-      (set-buffer-modified-p nil)
-      (when (and org-capture-mode
+If the buffer is associated with an in-process capture operation, abort the operation."
+  (when (eq (buffer-size) 0)
+    (if (buffer-file-name)
+        (delete-file (buffer-file-name)))
+    (set-buffer-modified-p nil)
+    (when (and org-capture-mode
                (buffer-base-buffer (current-buffer)))
-        (org-capture-kill))
-      (kill-buffer (current-buffer))))
+      (org-capture-kill))
+    (kill-buffer (current-buffer))))
 
 ;;; Diagnostics
 ;;;###autoload
