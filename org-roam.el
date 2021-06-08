@@ -163,6 +163,21 @@ Marks from the Latin alphabet."
   :type '(repeat character)
   :group 'org-roam)
 
+(defcustom org-roam-slug-name-replacement-rules
+  '(("[^[:alnum:][:digit:]]" . "_")  ;; convert anything not alphanumeric
+    ("__*" . "_")                    ;; remove sequential underscores
+    ("^_" . "")                      ;; remove starting underscore
+    ("_$" . ""))                     ;; remove ending underscore
+  "Replacement rules applied after Unicode normalization to get the slug.
+
+By default the following rules are applied:
+1. All not alphanumeric characters are replaced by underscores
+2. Sequential underscores are replaced by a single underscore
+3. Starting underscores are removed
+4. Ending underscores are removed"
+  :type '(alist :key-type regexp :value-type string)
+  :group 'org-roam)
+
 ;;;; ID Utilities
 (defun org-roam-id-at-point ()
   "Return the ID at point, if any.
@@ -462,11 +477,7 @@ OLD-FILE is cleared from the database, and NEW-FILE-OR-DIR is added."
                                                                     (ucs-normalize-NFD-string s)))))
                (cl-replace (title pair)
                            (replace-regexp-in-string (car pair) (cdr pair) title)))
-      (let* ((pairs `(("[^[:alnum:][:digit:]]" . "_")  ;; convert anything not alphanumeric
-                      ("__*" . "_")  ;; remove sequential underscores
-                      ("^_" . "")  ;; remove starting underscore
-                      ("_$" . "")))  ;; remove ending underscore
-             (slug (-reduce-from #'cl-replace (strip-nonspacing-marks title) pairs)))
+      (let ((slug (-reduce-from #'cl-replace (strip-nonspacing-marks title) org-roam-slug-name-replacement-rules)))
         (downcase slug)))))
 
 (defvar org-roam-node-map
