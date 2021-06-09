@@ -69,7 +69,6 @@ Any top level properties drawers are incorporated into the new heading."
          (nbuf (or (find-buffer-visiting file)
                    (find-file-noselect file)))
          level reversed)
-
     (if regionp
         (progn
           (org-kill-new (buffer-substring region-start region-end))
@@ -77,9 +76,7 @@ Any top level properties drawers are incorporated into the new heading."
       (progn
         (if (org-before-first-heading-p)
             (org-roam-demote-entire-buffer))
-        (org-copy-subtree 1 nil t))
-      )
-
+        (org-copy-subtree 1 nil t)))
     (with-current-buffer nbuf
       (org-with-wide-buffer
        (goto-char (org-roam-node-point node))
