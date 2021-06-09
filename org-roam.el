@@ -559,6 +559,28 @@ any), and Org keywords. Org keywords take precedence."
    (org-roam--extract-global-props-keyword props)
    (org-roam--extract-global-props-drawer props)))
 
+(defun org-roam--extract-prop-as-list (prop)
+  "Extract PROP from the current Org buffer as a list.
+
+This is the common logic behind the extraction of roam_tags and
+roam_alias."
+  ;; Values are split in two ways:
+  ;; 1. with spaces and double quotes:
+  ;;     #+prop: a b c \"quoted string\"
+  ;;     -> '(\"a\" \"b\" \"c\" \"quoted string\")
+  ;; 2. and/or with multiple lines:
+  ;;     #+prop: a b
+  ;;     #+prop: c d
+  ;;     -> '(\"a\" \"b\" \"c\" \"d\")
+  (--> (org-roam--extract-global-props (list prop))
+    ;; so that the returned order is the same as in the buffer
+    nreverse
+    ;; '(("ROAM_TAGS" . "a b") ("ROAM_TAGS" . "c d"))
+    ;; -> '("a b" "c d")
+    (mapcar #'cdr it)
+    (mapcar #'split-string-and-unquote it)
+    ;; We have a list of lists at this point. Join them.
+    (apply #'append it)))
 
 (defun org-roam--get-outline-path ()
   "Return the outline path to the current entry.
@@ -667,18 +689,15 @@ If FILE-PATH is nil, use the current file."
 (defun org-roam--extract-titles-alias ()
   "Return the aliases from the current buffer.
 Reads from the \"roam_alias\" property."
-  (let* ((prop (org-roam--extract-global-props '("ROAM_ALIAS")))
-         (aliases (or (cdr (assoc "ROAM_ALIAS" prop))
-                      "")))
-    (condition-case nil
-        (split-string-and-unquote aliases)
-      (error
-       (progn
-         (lwarn '(org-roam) :error
-                "Failed to parse aliases for buffer: %s. Skipping"
-                (or org-roam-file-name
-                    (buffer-file-name)))
-         nil)))))
+  (condition-case nil
+      (org-roam--extract-prop-as-list "ROAM_ALIAS")
+    (error
+     (progn
+       (lwarn '(org-roam) :error
+              "Failed to parse aliases for buffer: %s. Skipping"
+              (or org-roam-file-name
+                  (buffer-file-name)))
+       nil))))
 
 (defun org-roam--extract-titles-headline ()
   "Return the first headline of the current buffer."
@@ -735,17 +754,15 @@ tag."
 
 (defun org-roam--extract-tags-prop (_file)
   "Extract tags from the current buffer's \"#roam_tags\" global property."
-  (let* ((prop (or (cdr (assoc "ROAM_TAGS" (org-roam--extract-global-props '("ROAM_TAGS"))))
-                   "")))
-    (condition-case nil
-        (split-string-and-unquote prop)
-      (error
-       (progn
-         (lwarn '(org-roam) :error
-                "Failed to parse tags for buffer: %s. Skipping"
-                (or org-roam-file-name
-                    (buffer-file-name)))
-         nil)))))
+  (condition-case nil
+      (org-roam--extract-prop-as-list "ROAM_TAGS")
+    (error
+     (progn
+       (lwarn '(org-roam) :error
+              "Failed to parse tags for buffer: %s. Skipping"
+              (or org-roam-file-name
+                  (buffer-file-name)))
+       nil))))
 
 (defun org-roam--extract-tags-vanilla (_file)
   "Extract vanilla `org-mode' tags.
