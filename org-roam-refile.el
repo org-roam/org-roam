@@ -39,7 +39,7 @@
   (let* ((regionp (org-region-active-p))
          (region-start (and regionp (region-beginning)))
          (region-end (and regionp (region-end)))
-         (node (org-roam-node-read nil nil 'require-match))
+         (node (org-roam-node-read nil nil nil 'require-match))
          (file (org-roam-node-file node))
          (nbuf (or (find-buffer-visiting file)
                    (find-file-noselect file)))
