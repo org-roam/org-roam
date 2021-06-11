@@ -120,38 +120,40 @@ If WRAP-VAL is non-nil it wraps the VAL."
           wrap-val (cdr option) wrap-val))
 
 (defun org-roam-graph--connected-component (id &optional distance)
-  "Return all files reachable from/connected to ID, including the node itself.
-If the node does not have any connections, nil is returned."
+  "Return the edges for all nodes reachable from/connected to ID, including the node itself.
+DISTANCE is the maximum distance away from the root node."
   (let* ((query
           (if distance
-              "WITH RECURSIVE
-                   links_of(source, dest) AS
-                     (SELECT source, dest FROM links UNION
-                      SELECT dest, source FROM links),
-                   connected_component(source, trace) AS
-                     (VALUES ($s1 , json_array($s1)) UNION
-                      SELECT lo.dest, json_insert(cc.trace, '$[' || json_array_length(cc.trace) || ']', lo.dest) FROM
-                      connected_component AS cc JOIN links_of AS lo USING(source)
-                      WHERE (
-                      -- Avoid cycles by only visiting each node once.
-                      (SELECT count(*) FROM json_each(cc.trace) WHERE json_each.value == lo.dest) == 0
-                      -- Note: BFS is cut off early here.
-                      AND json_array_length(cc.trace) < ($s2 + 1))),
-                   nodes(source) as (SELECT DISTINCT source
-                   FROM connected_component GROUP BY source ORDER BY min(json_array_length(trace)))
-                   SELECT source, dest, type FROM links WHERE source IN nodes OR dest IN nodes;"
-            "WITH RECURSIVE
-               links_of(source, dest) AS
-                (SELECT source, dest FROM links UNION
-                 SELECT dest, source FROM links),
-               connected_component(source) AS
-                (SELECT dest FROM links_of WHERE source = $s1 UNION
-                 SELECT dest FROM links_of JOIN connected_component USING(source))
-             SELECT source, dest, type FROM links WHERE source IN connected_component OR dest IN connected_component;")))
+              "
+WITH RECURSIVE
+  links_of(source, dest) AS
+  (SELECT source, dest FROM links UNION
+   SELECT dest, source FROM links),
+  connected_component(source, trace) AS
+  (VALUES ($s1 , json_array($s1)) UNION
+   SELECT lo.dest, json_insert(cc.trace, '$[' || json_array_length(cc.trace) || ']', lo.dest) FROM
+   connected_component AS cc JOIN links_of AS lo USING(source)
+   WHERE (
+    -- Avoid cycles by only visiting each node once.
+    (SELECT count(*) FROM json_each(cc.trace) WHERE json_each.value == lo.dest) == 0
+    -- Note: BFS is cut off early here.
+    AND json_array_length(cc.trace) < ($s2 + 1))),
+  nodes(source) as (SELECT DISTINCT source
+   FROM connected_component GROUP BY source ORDER BY min(json_array_length(trace)))
+SELECT source, dest, type FROM links WHERE source IN nodes OR dest IN nodes;"
+            "
+WITH RECURSIVE
+  links_of(source, dest) AS
+  (SELECT source, dest FROM links UNION
+   SELECT dest, source FROM links),
+   connected_component(source) AS
+  (SELECT dest FROM links_of WHERE source = $s1 UNION
+   SELECT dest FROM links_of JOIN connected_component USING(source))
+SELECT source, dest, type FROM links WHERE source IN connected_component OR dest IN connected_component;")))
     (org-roam-db-query query id distance)))
 
 (defun org-roam-graph--dot (&optional edges)
-  "Build the graphviz for full page."
+  "Build the graphviz given the EDGES of the graph."
   (let ((org-roam-directory-temp org-roam-directory)
         (nodes-table (org-roam--nodes-table))
         (seen-nodes (list))
@@ -245,13 +247,13 @@ ARG may be any of the following values:
   - `\\[universal-argument]' N   show the graph for FILE limiting nodes to N steps."
   (interactive "P")
   (pcase arg
-      ('nil            (org-roam-graph--build (org-roam-graph--dot)
-                                              #'org-roam-graph--open))
-      ((pred integerp) (org-roam-graph--build (org-roam-graph--dot
-                                               (org-roam-graph--connected-component
-                                                (org-roam-node-id (org-roam-node-at-point 'assert))
-                                                (abs arg)))
-                                              #'org-roam-graph--open))))
+    ('nil            (org-roam-graph--build (org-roam-graph--dot)
+                                            #'org-roam-graph--open))
+    ((pred integerp) (org-roam-graph--build (org-roam-graph--dot
+                                             (org-roam-graph--connected-component
+                                              (org-roam-node-id (org-roam-node-at-point 'assert))
+                                              (abs arg)))
+                                            #'org-roam-graph--open))))
 
 
 (provide 'org-roam-graph)
