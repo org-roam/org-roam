@@ -120,7 +120,7 @@ If WRAP-VAL is non-nil it wraps the VAL."
           wrap-val (cdr option) wrap-val))
 
 (defun org-roam-graph--connected-component (id &optional distance)
-  "Return the edges for all nodes reachable from/connected to ID, including the node itself.
+  "Return the edges for all nodes reachable from/connected to ID.
 DISTANCE is the maximum distance away from the root node."
   (let* ((query
           (if distance
@@ -168,8 +168,8 @@ SELECT source, dest, type FROM links WHERE source IN connected_component OR dest
           (pcase-dolist (`(,node ,node-type) `((,source "id")
                                                (,dest ,type)))
             (unless (member node seen-nodes)
-              (org-roam-graph--insert-node
-               (or (gethash node nodes-table) node) node-type)
+              (insert (org-roam-graph--format-node
+                       (or (gethash node nodes-table) node) node-type))
               (push node seen-nodes)))
           (insert (format "  \"%s\" -> \"%s\";\n"
                           (xml-escape-string source)
@@ -177,7 +177,9 @@ SELECT source, dest, type FROM links WHERE source IN connected_component OR dest
       (insert "}")
       (buffer-string))))
 
-(defun org-roam-graph--insert-node (node type)
+(defun org-roam-graph--format-node (node type)
+  "Return a graphviz NODE with TYPE.
+Handles both Org-roam nodes, and string nodes (e.g. urls)."
   (let (node-id node-properties)
     (if (org-roam-node-p node)
         (let* ((title (org-roam-quote-string (org-roam-node-title node)))
@@ -188,19 +190,19 @@ SELECT source, dest, type FROM links WHERE source IN connected_component OR dest
                                    (_ title)))))
           (setq node-id (org-roam-node-id node)
                 node-properties `(("label"   . ,shortened-title)
-                                  ("URL"     . ,(concat "org-protocol://roam-node?node=" (url-hexify-string (org-roam-node-id node))))
+                                  ("URL"     . ,(concat "org-protocol://roam-node?node="
+                                                        (url-hexify-string (org-roam-node-id node))))
                                   ("tooltip" . ,(xml-escape-string title)))))
       (setq node-id node
             node-properties (append `(("label" . ,(concat type ":" node)))
                                     (when (member type (list "http" "https"))
                                       `(("URL" . ,(xml-escape-string (concat type ":" node))))))))
-    (insert
-     (format "\"%s\" [%s];\n"
-             node-id
-             (mapconcat (lambda (n)
-                          (org-roam-graph--dot-option n nil "\""))
-                        (append (cdr (assoc type org-roam-graph-node-extra-config))
-                                node-properties) ",")))))
+    (format "\"%s\" [%s];\n"
+            node-id
+            (mapconcat (lambda (n)
+                         (org-roam-graph--dot-option n nil "\""))
+                       (append (cdr (assoc type org-roam-graph-node-extra-config))
+                               node-properties) ","))))
 
 (defun org-roam-graph--build (graph &optional callback)
   "Generate the GRAPH, and execute CALLBACK when process exits successfully.
