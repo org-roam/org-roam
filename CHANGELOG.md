@@ -12,6 +12,7 @@
 
 - [#1352](https://github.com/org-roam/org-roam/pull/1352) prefer lower-case for roam_tag and roam_alias in interactive commands
 - [#1513](https://github.com/org-roam/org-roam/pull/1513) replaced hardcoded "svg" with defcustom org-roam-graph-filetype 
+- [#1540](https://github.com/org-roam/org-roam/pull/1540) allow `roam_tag` and `roam_alias` to be specified on multiple lines
 
 ### Fixed
 
@@ -26,6 +27,7 @@
 - [#1375](https://github.com/org-roam/org-roam/pull/1375) fix org-roam-protocol to use existing ref file
 - [#1403](https://github.com/org-roam/org-roam/issues/1403) fixed inconsistency between how we write and read props like alias and tags
 - [#1409](https://github.com/org-roam/org-roam/issues/1398) prevent inclusion of non-org-roam files in `org-roam-dailies--list-files`
+- [#1542](https://github.com/org-roam/org-roam/issues/1542) fix files not excluded when `org-roam-list-files-commands` is nil
 
 ## 1.2.3 (13-11-2020)
 
