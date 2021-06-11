@@ -91,7 +91,7 @@ Example:
   '("file")
   "What sort of links to hide from the Org-roam graph."
   :type (repeat 'string)
-  :group 'org-roam))
+  :group 'org-roam)
 
 (defcustom org-roam-graph-max-title-length 100
   "Maximum length of titles in graph nodes."
