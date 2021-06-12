@@ -124,6 +124,9 @@ and `:slant'."
 (defvar org-roam-current-node nil
   "The current node at point.")
 
+(defvar org-roam-current-directory nil
+  "The `org-roam-directory' value for the current node.")
+
 (defcustom org-roam-mode-section-functions (list #'org-roam-backlinks-section
                                                  #'org-roam-reflinks-section)
   "Functions which insert sections of the `org-roam-buffer'.
@@ -160,6 +163,8 @@ which visits the thing at point."
   (when (derived-mode-p 'org-roam-mode)
     (let ((inhibit-read-only t))
       (erase-buffer)
+      (setq-local default-directory org-roam-current-directory)
+      (setq-local org-roam-directory org-roam-current-directory)
       (org-roam-set-header-line-format (org-roam-node-title org-roam-current-node))
       (magit-insert-section (org-roam)
         (magit-insert-heading)
@@ -168,7 +173,8 @@ which visits the thing at point."
 (defun org-roam-buffer ()
   "Launch an Org-roam buffer for the current node at point."
   (interactive)
-  (if-let ((node (org-roam-node-at-point)))
+  (if-let ((node (org-roam-node-at-point))
+           (source-org-roam-directory org-roam-directory))
       (progn
         (let ((buffer (get-buffer-create
                        (concat "org-roam: "
@@ -176,6 +182,7 @@ which visits the thing at point."
           (with-current-buffer buffer
             (org-roam-mode)
             (setq-local org-roam-current-node node)
+            (setq-local org-roam-current-directory source-org-roam-directory)
             (org-roam-buffer-render))
           (switch-to-buffer-other-window buffer)))
     (user-error "No node at point")))
@@ -193,6 +200,7 @@ the Org-roam buffer."
     (when-let ((node (org-roam-node-at-point)))
       (unless (equal node org-roam-current-node)
         (setq org-roam-current-node node)
+        (setq org-roam-current-directory org-roam-directory)
         (org-roam-buffer-persistent-redisplay)))))
 
 (define-inline org-roam-buffer--visibility ()
@@ -216,7 +224,8 @@ Valid states are 'visible, 'exists and 'none."
     ((or 'exists 'none)
      (progn
        (display-buffer (get-buffer-create org-roam-buffer))
-       (setq org-roam-current-node (org-roam-node-at-point))
+       (setq org-roam-current-node (org-roam-node-at-point)
+             org-roam-current-directory org-roam-directory)
        (org-roam-buffer-persistent-redisplay)))))
 
 (defun org-roam-buffer-persistent-redisplay ()
@@ -227,6 +236,8 @@ Has no effect when `org-roam-current-node' is nil."
       (let ((inhibit-read-only t))
         (erase-buffer)
         (org-roam-mode)
+        (setq-local default-directory org-roam-current-directory)
+        (setq-local org-roam-directory org-roam-current-directory)
         (org-roam-set-header-line-format (org-roam-node-title org-roam-current-node))
         (magit-insert-section (org-roam)
           (magit-insert-heading)
