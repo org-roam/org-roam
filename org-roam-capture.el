@@ -56,7 +56,7 @@ during the Org-roam capture process.")
 This variable is populated dynamically, and is only non-nil
 during the Org-roam capture process.")
 
-(defconst org-roam-capture--template-keywords '(:if-new :id :link-description :call-location :region)
+(defconst org-roam-capture--template-keywords '(:if-new :id :link-description :call-location :region :override-default-time)
   "Keywords used in `org-roam-capture-templates' specific to Org-roam.")
 
 (defcustom org-roam-capture-templates
@@ -698,6 +698,8 @@ you can catch it with `condition-case'."
   "Return exact point to file for org-capture-template.
 This function is used solely in Org-roam's capture templates: see
 `org-roam-capture-templates'."
+  (when (org-roam-capture--get :override-default-time)
+    (org-capture-put :default-time (org-roam-capture--get :override-default-time)))
   (let ((id (cond ((plist-get org-roam-capture--info :ref)
                    (if-let ((node (org-roam-capture--get-node-from-ref
                                    (plist-get org-roam-capture--info :ref))))

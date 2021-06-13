@@ -156,18 +156,16 @@ When GOTO is non-nil, go the note without creating an entry."
   (org-roam-capture- :goto (when goto '(4))
                      :node (org-roam-node-create)
                      :templates org-roam-dailies-capture-templates
-                     :props (list :default-time time)))
+                     :props (list :override-default-time time))
+  (when goto (run-hooks 'org-roam-dailies-find-file-hook)))
 
 ;;;; Commands
 ;;; Today
 (defun org-roam-dailies-capture-today (&optional goto)
   "Create an entry in the daily-note for today.
-
 When GOTO is non-nil, go the note without creating an entry."
   (interactive "P")
-  (org-roam-dailies--capture (current-time) goto)
-  (when goto
-    (run-hooks 'org-roam-dailies-find-file-hook)))
+  (org-roam-dailies--capture (current-time) goto))
 
 (defun org-roam-dailies-find-today ()
   "Find the daily-note for today, creating it if necessary."
@@ -212,23 +210,8 @@ future."
   (org-roam-dailies-capture-tomorrow (- n) t))
 
 ;;; Calendar
-(defvar org-roam-dailies-calendar-hook (list 'org-roam-dailies-calendar-mark-entries)
-  "Hooks to run when showing the `org-roam-dailies-calendar'.")
-
-(defun org-roam-dailies-calendar--install-hook ()
-  "Install Org-roam-dailies hooks to calendar."
-  (add-hook 'calendar-today-visible-hook #'org-roam-dailies-calendar--run-hook)
-  (add-hook 'calendar-today-invisible-hook #'org-roam-dailies-calendar--run-hook))
-
-(defun org-roam-dailies-calendar--run-hook ()
-  "Run Org-roam-dailies hooks to calendar."
-  (run-hooks 'org-roam-dailies-calendar-hook)
-  (remove-hook 'calendar-today-visible-hook #'org-roam-dailies-calendar--run-hook)
-  (remove-hook 'calendar-today-invisible-hook #'org-roam-dailies-calendar--run-hook))
-
 (defun org-roam-dailies-calendar--file-to-date (&optional file)
   "Convert FILE to date.
-
 Return (MONTH DAY YEAR)."
   (let ((file (or file
                   (buffer-base-buffer (buffer-file-name)))))
@@ -239,7 +222,7 @@ Return (MONTH DAY YEAR)."
       (list m d y))))
 
 (defun org-roam-dailies-calendar--date-to-time (date)
-  "Convert DATE as returned from the calendar (MONTH DAY YEAR) to a time."
+  "Convert DATE as returned from then calendar (MONTH DAY YEAR) to a time."
   (encode-time 0 0 0 (nth 1 date) (nth 0 date) (nth 2 date)))
 
 (defun org-roam-dailies-calendar-mark-entries ()
@@ -253,21 +236,15 @@ Return (MONTH DAY YEAR)."
 ;;; Date
 (defun org-roam-dailies-capture-date (&optional goto prefer-future)
   "Create an entry in the daily-note for a date using the calendar.
-
 Prefer past dates, unless PREFER-FUTURE is non-nil.
-
 With a `C-u' prefix or when GOTO is non-nil, go the note without
 creating an entry."
   (interactive "P")
-  (org-roam-dailies-calendar--install-hook)
-  (let* ((time-str (let ((org-read-date-prefer-future prefer-future))
-                     (org-read-date nil nil nil (if goto
-                                                    "Find daily-note: "
-                                                  "Capture to daily-note: "))))
-         (time (org-read-date nil t time-str)))
-    (org-roam-dailies--capture time goto)
-    (when goto
-      (run-hooks 'org-roam-dailies-find-file-hook))))
+  (let ((time (let ((org-read-date-prefer-future prefer-future))
+                (org-read-date t t nil (if goto
+                                           "Find daily-note: "
+                                         "Capture to daily-note: ")))))
+    (org-roam-dailies--capture time goto)))
 
 (defun org-roam-dailies-find-date (&optional prefer-future)
   "Find the daily-note for a date using the calendar, creating it if necessary.
@@ -325,6 +302,9 @@ negative, find note N days in the future."
   (interactive "p")
   (let ((n (if n (- n) -1)))
     (org-roam-dailies-find-next-note n)))
+
+(add-hook 'calendar-today-visible-hook #'org-roam-dailies-calendar-mark-entries)
+(add-hook 'calendar-today-invisible-hook #'org-roam-dailies-calendar-mark-entries)
 
 ;;;; Bindings
 (defvar org-roam-dailies-map (make-sparse-keymap)
