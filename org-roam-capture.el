@@ -320,13 +320,13 @@ streamlined user experience in Org-roam."
                                                         (const :format "" file+olp)
                                                         (string :tag "  File")
                                                         (list :tag "Outline path"
-                                                              (repeat string :tag "Headline")))
+                                                              (repeat (string :tag "Headline"))))
                                                   (list :tag "File & Head Content & Outline path"
                                                         (const :format "" file+head+olp)
                                                         (string :tag "  File")
                                                         (string :tag "  Head Content")
                                                         (list :tag "Outline path"
-                                                              (repeat string :tag "Headline")))))
+                                                              (repeat (string :tag "Headline"))))))
                                          ((const :format "%v " :prepend) (const t))
                                          ((const :format "%v " :immediate-finish) (const t))
                                          ((const :format "%v " :jump-to-captured) (const t))
@@ -391,13 +391,13 @@ See `org-roam-capture-templates' for the template documentation."
                                                         (const :format "" file+olp)
                                                         (string :tag "  File")
                                                         (list :tag "Outline path"
-                                                              (repeat string :tag "Headline")))
+                                                              (repeat (string :tag "Headline"))))
                                                   (list :tag "File & Head Content & Outline path"
                                                         (const :format "" file+head+olp)
                                                         (string :tag "  File")
                                                         (string :tag "  Head Content")
                                                         (list :tag "Outline path"
-                                                              (repeat string :tag "Headline")))))
+                                                              (repeat (string :tag "Headline"))))))
                                          ((const :format "%v " :prepend) (const t))
                                          ((const :format "%v " :immediate-finish) (const t))
                                          ((const :format "%v " :jump-to-captured) (const t))
