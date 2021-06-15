@@ -642,7 +642,7 @@ extension in your Org-roam capture templates. For example:
      :unnarrowed t)))
 #+end_src
 
-* Org-roam Protocol
+* TODO Org-roam Protocol
 
 Org-roam provides extensions for capturing content from external applications
 such as the browser, via ~org-protocol~. Org-roam extends ~org-protocol~ with 2
@@ -817,77 +817,9 @@ where ~template~ is the template key for a template in
 ~org-roam-capture-ref-templates~ (see [[*The Templating System][The Templating System]]). These templates
 should contain a ~#+roam_key: ${ref}~ in it.
 
-* TODO Diagnosing and Repair
-* TODO Building Extensions
-** TODO Public Interface
-
-Database (for developers)
-- querying: (org-roam-db-query)
-- updating full database: (org-roam-db-sync)
-- update current file: (org-roam-db-update-file)
-- remove file from database: (org-roam-db-clear-file)
-
-Nodes:
-- List all nodes
-- Read a node in from completion
-- Get node at point
-
-Links:
-- Get backlinks for node
-
-Tags:
-- Add tag to node
-- delete tag for node
-- Get tags for node
-
-Aliases:
-- Add alias to node
-- Delete alias for node
-- Get aliases for node
-
-Ref:
-- Add ref to node
-
-Capture:
-
-Navigation:
-- Find or create a node
-
 * TODO The Org-mode Ecosystem
 * TODO Frequently Asked Questions
-* TODO Developer's Guide to Org-roam
-** Org-roam's Design Principles
-
-Org-roam is primarily motivated by the need for a dual representation. We
-(humans) love operating in a plain-text environment. The syntax rules of
-Org-mode are simple and fit snugly within our brain. This also allows us to use
-the tools and packages we love to explore and edit our notes. Org-mode is simply
-the most powerful plain-text format available, with support for images, LaTeX,
-TODO planning and much more.
-
-But this plain-text format is simply ill-suited for exploration of these notes:
-plain-text is simply not amenable for answering large-scale, complex queries
-(e.g. how many tasks do I have that are due by next week?). Interfaces such as
-Org-agenda slow to a crawl when the number of files becomes unwieldy, which
-can quickly become the case.
-
-At its core, Org-roam provides a database abstraction layer, providing a dual
-representation of what's already available in plain-text. This allows us
-(humans) to continue working with plain-text, while programs can utilize the
-database layer to perform complex queries. These capabilities include, but are
-not limited to:
-
-- link graph traversal and visualization
-- Instantaneous SQL-like queries on headlines
-  - What are my TODOs, scheduled for X, or due by Y?
-
-All of these functionality is powered by this database abstraction layer. Hence,
-at its core Org-roam's primary goal is to provide a resilient dual
-representation that is cheap to maintain, easy to understand, and is as
-up-to-date as it possibly can. Org-roam also then exposes an API to this
-database abstraction layer for users who would like to perform programmatic
-queries on their Org files.
-* The Templating System
+* TODO The Templating System
 
 Rather than creating blank files on ~org-roam-insert~ and ~org-roam-find-file~,
 it may be desirable to prefill the file with templated content. This may
@@ -1268,6 +1200,141 @@ PCRE support.
 NOTE: Since ripgrep cannot read encrypted files, this function cannot find
 unlinked references within encrypted files.
 #+end_quote
+
+* Developer's Guide to Org-roam
+** Org-roam's Design Principle
+
+Org-roam is primarily motivated by the need for a dual representation. We
+(humans) love operating in a plain-text environment. The syntax rules of
+Org-mode are simple and fit snugly within our brain. This also allows us to use
+the tools and packages we love to explore and edit our notes. Org-mode is simply
+the most powerful plain-text format available, with support for images, LaTeX,
+TODO planning and much more.
+
+But this plain-text format is simply ill-suited for exploration of these notes:
+plain-text is simply not amenable for answering large-scale, complex queries
+(e.g. how many tasks do I have that are due by next week?). Interfaces such as
+Org-agenda slow to a crawl when the number of files becomes unwieldy, which can
+quickly become the case.
+
+At its core, Org-roam provides a database abstraction layer, providing a dual
+representation of what's already available in plain-text. This allows us
+(humans) to continue working with plain-text, while programs can utilize the
+database layer to perform complex queries. These capabilities include, but are
+not limited to:
+
+- link graph traversal and visualization
+- Instantaneous SQL-like queries on headlines
+  - What are my TODOs, scheduled for X, or due by Y?
+
+All of these functionality is powered by this database abstraction layer. Hence,
+at its core Org-roam's primary goal is to provide a resilient dual
+representation that is cheap to maintain, easy to understand, and is as
+up-to-date as it possibly can. Org-roam also then exposes an API to this
+database abstraction layer for users who would like to perform programmatic
+queries on their Org files.
+
+** Building Extensions and Advanced Customization of Org-roam
+
+Because Org-roam's core functionality is small, it is possible and sometimes
+desirable to build extensions on top of it. These extensions may one or more of
+the following functionalities:
+
+- Access to Org-roam's database
+- Usage/modification of Org-roam's interactive commands
+
+Org-roam provides no guarantees that extensions will continue to function as
+Org-roam evolves, but by following these simple rules, extensions can be made
+robust to local changes in Org-roam.
+
+1. Extensions should not modify the database schema. Any extension that requires
+   the caching of additional data should make a request upstream to Org-roam.
+2. Extensions requiring access to the database should explicitly state support
+   for the database version (~org-roam-db--version~), and only conditionally
+   load when support is available.
+
+*** Accessing the Database
+
+Access to the database is provided singularly by ~org-roam-db-query~, for
+example:
+
+#+begin_src emacs-lisp
+(org-roam-db-query [:select * :from nodes])
+#+end_src
+
+One can refer to the database schema by looking up
+~org-roam-db--table-schemata~. There are multiple helper functions within
+Org-roam that call ~org-roam-db-query~, these are subject to change. To ensure
+that extensions/customizations are robust to change, extensions should only use
+~org-roam-db-query~, and perhaps replicate the SQL query if necessary.
+
+*** Accessing and Modifying Nodes
+
+The node interface is cleanly defined using ~cl-defstruct~. The primary
+method to access nodes is ~org-roam-node-at-point~ and ~org-roam-node-read~:
+
+- Function: org-roam-node-at-point &optional assert
+
+  Return the node at point. If ASSERT, throw an error if there is no node at
+  point.
+
+- Function: org-roam-node-read &optional initial-input filter-fn sort-fn
+  require-match
+
+  Read and return an ~org-roam-node~.
+  INITIAL-INPUT is the initial prompt value.
+  FILTER-FN is a function to filter out nodes.
+  SORT-FN is a function to sort nodes.
+  If REQUIRE-MATCH, require returning a match.
+
+
+Once you obtain the node, you can use the accessors for the node, e.g.
+~org-roam-node-id~ or ~org-roam-node-todo~.
+
+It is possible to define (or override existing) properties on nodes. This is
+simply done using a ~cl-defmethod~ on the ~org-roam-node~ struct:
+
+#+begin_src emacs-lisp
+(cl-defmethod org-roam-namespace ((node org-roam-node))
+  "Return the namespace for NODE.
+The namespace is the final directory of the file for the node."
+  (file-name-nondirectory
+   (directory-file-name
+    (file-name-directory (org-roam-node-file node)))))
+#+end_src
+
+The snippet above defines a new property ~namespace~ on ~org-roam-node~, which
+making it available for use in capture templates.
+
+*** Extending the Capture System
+
+Org-roam applies some patching over Org's capture system to smooth out the user
+experience, and sometimes it is desirable to use Org-roam's capturing system
+instead. The exposed function to be used in extensions is ~org-roam-capture-~:
+
+- Function: org-roam-capture- &key goto keys node info props templates
+
+  Main entry point.
+  GOTO and KEYS correspond to `org-capture' arguments.
+  INFO is an alist for filling up Org-roam's capture templates.
+  NODE is an `org-roam-node' construct containing information about the node.
+  PROPS is a plist containing additional Org-roam properties for each template.
+  TEMPLATES is a list of org-roam templates.
+
+An example of an extension using ~org-roam-capture-~ is ~org-roam-dailies~
+itself:
+
+#+begin_src emacs-lisp
+(defun org-roam-dailies--capture (time &optional goto)
+  "Capture an entry in a daily-note for TIME, creating it if necessary.
+
+When GOTO is non-nil, go the note without creating an entry."
+  (org-roam-capture- :goto (when goto '(4))
+                     :node (org-roam-node-create)
+                     :templates org-roam-dailies-capture-templates
+                     :props (list :override-default-time time))
+  (when goto (run-hooks 'org-roam-dailies-find-file-hook)))
+#+end_src
 
 * Performance Optimization
 ** TODO Profiling Key Operations

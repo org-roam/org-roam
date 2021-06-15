@@ -576,7 +576,7 @@ WIDTH is the width of the results list."
 
 (defun org-roam-node-at-point (&optional assert)
   "Return the node at point.
-If ASSERT, throw an error."
+If ASSERT, throw an error if there is no node at point."
   (if-let ((node (magit-section-case
                    (org-roam-node-section (oref it node))
                    (t (let (id)
