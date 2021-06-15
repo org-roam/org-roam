@@ -51,7 +51,8 @@
 
 ;;;; Customizable variables
 (defcustom org-roam-dailies-directory "daily/"
-  "Path to daily-notes."
+  "Path to daily-notes.
+This path is relative to `org-roam-directory'."
   :group 'org-roam
   :type 'string)
 
@@ -126,23 +127,18 @@ See `org-roam-capture-templates' for the template documentation."
                                          ((const :format "%v " :table-line-pos) (string))
                                          ((const :format "%v " :kill-buffer) (const t))))))))
 
-;;;; Utilities
-(defun org-roam-dailies-directory--get-absolute-path ()
-  "Get absolute path to `org-roam-dailies-directory'."
-  (expand-file-name org-roam-dailies-directory org-roam-directory))
-
 (defun org-roam-dailies-find-directory ()
   "Find and open `org-roam-dailies-directory'."
   (interactive)
-  (find-file (org-roam-dailies-directory--get-absolute-path)))
+  (find-file (expand-file-name org-roam-dailies-directory org-roam-directory)))
 
 (defun org-roam-dailies--daily-note-p (&optional file)
   "Return t if FILE is an Org-roam daily-note, nil otherwise.
-
 If FILE is not specified, use the current buffer's file-path."
-  (when-let ((path (or file
-                       (buffer-base-buffer (buffer-file-name))))
-             (directory (org-roam-dailies-directory--get-absolute-path)))
+  (when-let ((path (expand-file-name
+                    (or file
+                        (buffer-base-buffer (buffer-file-name)))))
+             (directory (expand-file-name org-roam-dailies-directory org-roam-directory)))
     (setq path (expand-file-name path))
     (save-match-data
       (and
@@ -151,7 +147,6 @@ If FILE is not specified, use the current buffer's file-path."
 
 (defun org-roam-dailies--capture (time &optional goto)
   "Capture an entry in a daily-note for TIME, creating it if necessary.
-
 When GOTO is non-nil, go the note without creating an entry."
   (org-roam-capture- :goto (when goto '(4))
                      :node (org-roam-node-create)
@@ -227,7 +222,7 @@ Return (MONTH DAY YEAR)."
 
 (defun org-roam-dailies-calendar-mark-entries ()
   "Mark days in the calendar for which a daily-note is present."
-  (when (file-exists-p (org-roam-dailies-directory--get-absolute-path))
+  (when (file-exists-p (expand-file-name org-roam-dailies-directory org-roam-directory))
     (dolist (date (mapcar #'org-roam-dailies-calendar--file-to-date
                           (org-roam-dailies--list-files)))
       (when (calendar-date-is-visible-p date)
@@ -256,7 +251,7 @@ Prefer past dates, unless PREFER-FUTURE is non-nil."
 (defun org-roam-dailies--list-files (&rest extra-files)
   "List all files in `org-roam-dailies-directory'.
 EXTRA-FILES can be used to append extra files to the list."
-  (let ((dir (org-roam-dailies-directory--get-absolute-path))
+  (let ((dir (expand-file-name org-roam-dailies-directory org-roam-directory))
         (regexp (rx-to-string `(and "." (or ,@org-roam-file-extensions)))))
     (append (--remove (let ((file (file-name-nondirectory it)))
                         (when (or (auto-save-file-name-p file)
