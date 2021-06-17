@@ -90,7 +90,7 @@ Example:
 (defcustom org-roam-graph-link-hidden-types
   '("file")
   "What sort of links to hide from the Org-roam graph."
-  :type (repeat 'string)
+  :type '(repeat string)
   :group 'org-roam)
 
 (defcustom org-roam-graph-max-title-length 100
