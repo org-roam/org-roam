@@ -705,12 +705,16 @@ COMPLETION-A and COMPLETION-B are items in the form of (node-title org-roam-node
 
 (defun org-roam-node-read (&optional initial-input filter-fn sort-fn require-match)
   "Read and return an `org-roam-node'.
-INITIAL-INPUT is the initial prompt value.
-FILTER-FN is a function to filter out nodes.
-SORT-FN is a function to sort nodes.
-If REQUIRE-MATCH, require returning a match."
+INITIAL-INPUT is the initial minibuffer prompt value. FILTER-FN
+is a function to filter out nodes: it takes a single argument (an
+`org-roam-node'), and when nil is returned the node will be
+filtered out.
+SORT-FN is a function to sort nodes. See `org-roam-node-sort-by-file-mtime'
+for an example sort function.
+If REQUIRE-MATCH, the minibuffer prompt will require a match."
   (let* ((nodes (org-roam-node--completions))
-         (nodes (funcall (or filter-fn #'identity) nodes))
+         (nodes (cl-remove-if-not (lambda (n)
+                                    (if filter-fn (funcall filter-fn (cdr n)) t)) nodes))
          (sort-fn (or sort-fn
                       (when org-roam-node-default-sort
                         (intern (concat "org-roam-node-sort-by-" (symbol-name org-roam-node-default-sort))))))
