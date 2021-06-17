@@ -100,7 +100,7 @@ Any top level properties drawers are incorporated into the new heading."
        (delete-region
         (and (org-back-to-heading t) (point))
         (min (1+ (buffer-size)) (org-end-of-subtree t t) (point)))))
-    (org-roam-kill-empty-buffer)
+    (org-roam--kill-empty-buffer)
     ))
 
 (provide 'org-roam-refile)
