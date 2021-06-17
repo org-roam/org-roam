@@ -79,7 +79,7 @@ value like `most-positive-fixnum'."
   :type 'int
   :group 'org-roam)
 
-(defconst org-roam-db--version 16)
+(defconst org-roam-db-version 16)
 (defconst org-roam--sqlite-available-p
   (with-demoted-errors "Org-roam initialization: %S"
     (emacsql-sqlite-ensure-binary)
@@ -113,12 +113,12 @@ Performs a database upgrade when required."
         (let* ((version (caar (emacsql conn "PRAGMA user_version")))
                (version (org-roam-db--upgrade-maybe conn version)))
           (cond
-           ((> version org-roam-db--version)
+           ((> version org-roam-db-version)
             (emacsql-close conn)
             (user-error
              "The Org-roam database was created with a newer Org-roam version.  "
              "You need to update the Org-roam package"))
-           ((< version org-roam-db--version)
+           ((< version org-roam-db-version)
             (emacsql-close conn)
             (error "BUG: The Org-roam database scheme changed %s"
                    "and there is no upgrade path")))))))
@@ -201,16 +201,16 @@ The query is expected to be able to fail, in this situation, run HANDLER."
       (emacsql db [:create-table $i1 $S2] table schema))
     (pcase-dolist (`(,index-name ,table ,columns) org-roam-db--table-indices)
       (emacsql db [:create-index $i1 :on $i2 $S3] index-name table columns))
-    (emacsql db (format "PRAGMA user_version = %s" org-roam-db--version))))
+    (emacsql db (format "PRAGMA user_version = %s" org-roam-db-version))))
 
 (defun org-roam-db--upgrade-maybe (db version)
   "Upgrades the database schema for DB, if VERSION is old."
   (emacsql-with-transaction db
     'ignore
-    (if (< version org-roam-db--version)
+    (if (< version org-roam-db-version)
         (progn
           (org-roam-message (format "Upgrading the Org-roam database from version %d to version %d"
-                                    version org-roam-db--version))
+                                    version org-roam-db-version))
           (org-roam-db-sync t))))
   version)
 

@@ -1252,7 +1252,7 @@ robust to local changes in Org-roam.
 1. Extensions should not modify the database schema. Any extension that requires
    the caching of additional data should make a request upstream to Org-roam.
 2. Extensions requiring access to the database should explicitly state support
-   for the database version (~org-roam-db--version~), and only conditionally
+   for the database version (~org-roam-db-version~), and only conditionally
    load when support is available.
 
 *** Accessing the Database
