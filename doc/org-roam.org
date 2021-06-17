@@ -1226,6 +1226,8 @@ not limited to:
 - link graph traversal and visualization
 - Instantaneous SQL-like queries on headlines
   - What are my TODOs, scheduled for X, or due by Y?
+- Accessing the properties of a node, such as its tags, refs, TODO state or
+  priority
 
 All of these functionality is powered by this database abstraction layer. Hence,
 at its core Org-roam's primary goal is to provide a resilient dual
@@ -1281,12 +1283,14 @@ method to access nodes is ~org-roam-node-at-point~ and ~org-roam-node-read~:
 - Function: org-roam-node-read &optional initial-input filter-fn sort-fn
   require-match
 
-  Read and return an ~org-roam-node~.
-  INITIAL-INPUT is the initial prompt value.
-  FILTER-FN is a function to filter out nodes.
-  SORT-FN is a function to sort nodes.
-  If REQUIRE-MATCH, require returning a match.
-
+  Read and return an `org-roam-node'.
+  INITIAL-INPUT is the initial minibuffer prompt value. FILTER-FN
+  is a function to filter out nodes: it takes a single argument (an
+  ~org-roam-node~), and when nil is returned the node will be
+  filtered out.
+  SORT-FN is a function to sort nodes. See ~org-roam-node-sort-by-file-mtime~
+  for an example sort function.
+  If REQUIRE-MATCH, the minibuffer prompt will require a match.
 
 Once you obtain the node, you can use the accessors for the node, e.g.
 ~org-roam-node-id~ or ~org-roam-node-todo~.
@@ -1295,7 +1299,7 @@ It is possible to define (or override existing) properties on nodes. This is
 simply done using a ~cl-defmethod~ on the ~org-roam-node~ struct:
 
 #+begin_src emacs-lisp
-(cl-defmethod org-roam-namespace ((node org-roam-node))
+(cl-defmethod org-roam-node-namespace ((node org-roam-node))
   "Return the namespace for NODE.
 The namespace is the final directory of the file for the node."
   (file-name-nondirectory
