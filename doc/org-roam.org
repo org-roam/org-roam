@@ -389,6 +389,8 @@ functions for creating nodes:
   link to the node at point.
 - ~org-roam-node-find~: creates a node if it does not exist, and visits the
   node.
+- ~org-roam-capture~: creates a node if it does not exist, and restores the
+  current window configuration upon completion.
 
 Let's first try ~org-roam-node-find~. Calling ~M-x org-roam-node-find~ will
 show a list of titles for nodes that reside in ~org-roam-directory~. It should
@@ -406,12 +408,6 @@ brought through the node creation process.
 
 One can also conveniently insert links via the completion-at-point functions
 Org-roam provides (see [[id:70083bfd-d1e3-42b9-bf83-5b05708791c0][Completion]]).
-
-# For experienced ~org-capture~ users, the behavior of ~M-x org-roam-find-file~
-# may seem unfamiliar: after finishing a capture with ~C-c C-c~, you are returned
-# not to the original buffer from which you called ~M-x org-roam-find-file~, but
-# to a buffer pointing to the note you just created. For the usual ~org-capture~
-# behavior you can call ~M-x org-roam-capture~ instead of ~M-x org-roam-find-file~.
 
 * The Org-roam Buffer
 
@@ -642,7 +638,7 @@ extension in your Org-roam capture templates. For example:
      :unnarrowed t)))
 #+end_src
 
-* TODO Org-roam Protocol
+* Org-roam Protocol
 
 Org-roam provides extensions for capturing content from external applications
 such as the browser, via ~org-protocol~. Org-roam extends ~org-protocol~ with 2
@@ -782,11 +778,11 @@ Windows, replace the last line with:
 After executing the .reg file, the protocol is registered and you can delete the
 file.
 
-** The roam-file protocol
+** The roam-node protocol
 
-This is a simple protocol that opens the path specified by the ~file~
-key (e.g. ~org-protocol://roam-file?file=/tmp/file.org~). This is used
-in the generated graph.
+The roam-node protocol opens the node with ID specified by the ~node~ key (e.g.
+~org-protocol://roam-node?node=node-id~). ~org-roam-graph~ uses this to make the
+graph navigable.
 
 ** The roam-ref protocol
 
@@ -914,7 +910,7 @@ directly to provide its third argument to specify UTC.
        :unnarrowed t)
 #+END_SRC
 
-* Graphing
+* TODO Graphing
 
 Org-roam provides graphing capabilities to explore interconnections between
 notes. This is done by performing SQL queries and generating images using
@@ -1182,24 +1178,6 @@ per checker, to perform autofixes for the errors. For each error detected,
 ~org-roam-doctor~ will move the point to the current error, and pop-up a help
 window displaying the error message, as well as the list of actions that can be
 taken provided in ~:actions~.
-
-* Finding Unlinked References
-
-Unlinked references are occurrences of strings of text that exactly match the
-title or alias of an existing note in the Org-roam database. Org-roam provides
-facilities for discovering these unlinked references, so one may decide whether
-to convert them into links.
-
-To use this feature, simply call ~M-x org-roam-unlinked-references~ from within
-an Org-roam note. Internally, Org-roam uses [[https://github.com/BurntSushi/ripgrep][ripgrep]] and a clever PCRE regex to
-find occurrences of the title or aliases of the currently open note in all
-Org-roam files. Hence, this requires a version of ripgrep that is compiled with
-PCRE support.
-
-#+begin_quote
-NOTE: Since ripgrep cannot read encrypted files, this function cannot find
-unlinked references within encrypted files.
-#+end_quote
 
 * Developer's Guide to Org-roam
 ** Org-roam's Design Principle
