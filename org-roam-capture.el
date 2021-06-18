@@ -506,11 +506,14 @@ also run Org-capture's template expansion."
            (org-roam-format
             template
             (lambda (key)
-              (let ((fn (intern (concat "org-roam-node-" key)))
+              (let ((fn (intern key))
+                    (node-fn (intern (concat "org-roam-node-" key)))
                     (ksym (intern (concat ":" key))))
                 (cond
                  ((fboundp fn)
                   (funcall fn org-roam-capture--node))
+                 ((fboundp node-fn)
+                  (funcall node-fn org-roam-capture--node))
                  ((plist-get org-roam-capture--info ksym)
                   (plist-get org-roam-capture--info ksym))
                  (t (let ((r (completing-read (format "%s: " key) nil)))
