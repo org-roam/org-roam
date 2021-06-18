@@ -523,7 +523,11 @@ nodes."
 
 (defcustom org-roam-node-display-template
   "${title:*} ${tags:10}"
-  "Configures display formatting for Org-roam node."
+  "Configures display formatting for Org-roam node.
+Patterns of form \"${field-name:length}\" are interpolated based on the current node.
+\"field-name\" is replaced with the corresponding value of the field of the current node.
+\"length\" specifies how many characters are used to display the value of the field.
+A \"length\" of \"*\" specifies that as many characters as possible should be used."
   :group 'org-roam
   :type  'string)
 
@@ -533,7 +537,8 @@ nodes."
 
 (defun org-roam-node--format-entry (node width)
   "Formats NODE for display in the results list.
-WIDTH is the width of the results list."
+WIDTH is the width of the results list.
+Uses `org-roam-node-display-template' to format the entry."
   (let ((fmt (org-roam--process-display-format org-roam-node-display-template)))
     (org-roam-format
      (car fmt)
@@ -644,7 +649,8 @@ Throw an error if multiple choices exist."
 (defun org-roam-node--completions ()
   "Return an alist for node completion.
 The car is the displayed title or alias for the node, and the cdr
-is the `org-roam-node'."
+is the `org-roam-node'.
+The displayed title is formatted according to `org-roam-node-display-template'."
   (setq org-roam--cached-display-format nil)
   (let ((files-table (org-roam--files-table))
         (tags-table (org-roam--tags-table)))
