@@ -524,10 +524,12 @@ nodes."
 (defcustom org-roam-node-display-template
   "${title:*} ${tags:10}"
   "Configures display formatting for Org-roam node.
-Patterns of form \"${field-name:length}\" are interpolated based on the current node.
-\"field-name\" is replaced with the corresponding value of the field of the current node.
-\"length\" specifies how many characters are used to display the value of the field.
-A \"length\" of \"*\" specifies that as many characters as possible should be used."
+Patterns of form \"${field-name:length}\" are interpolated based
+on the current node. \"field-name\" is replaced with the
+corresponding value of the field of the current node. \"length\"
+specifies how many characters are used to display the value of
+the field. A \"length\" of \"*\" specifies that as many
+characters as possible should be used."
   :group 'org-roam
   :type  'string)
 
