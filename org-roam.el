@@ -1039,15 +1039,19 @@ FILTER-FN is applied to the ref list to filter out candidates."
 This function is called by Org when following links of the type
 `roam'. While the path is passed, assume that the cursor is on
 the link."
-  (let ((node (org-roam-node-from-title-or-alias path)))
-    (when org-roam-link-auto-replace
-      (save-excursion
-        (save-match-data
-          (org-in-regexp org-link-bracket-re 1)
-          (replace-match (org-link-make-string
-                          (concat "id:" (org-roam-node-id node))
-                          path)))))
-    (org-id-goto (org-roam-node-id node))))
+  (if-let ((node (org-roam-node-from-title-or-alias path)))
+      (progn
+        (when org-roam-link-auto-replace
+          (save-excursion
+            (save-match-data
+              (org-in-regexp org-link-bracket-re 1)
+              (replace-match (org-link-make-string
+                              (concat "id:" (org-roam-node-id node))
+                              path)))))
+        (org-id-goto (org-roam-node-id node)))
+    (org-roam-capture-
+     :node (org-roam-node-create :title path)
+     :props '(:finalize find-file))))
 
 (defun org-roam-open-id-at-point ()
   "Navigates to the ID at point.
