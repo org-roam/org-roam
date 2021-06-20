@@ -642,7 +642,7 @@ extension in your Org-roam capture templates. For example:
 
 Org-roam provides extensions for capturing content from external applications
 such as the browser, via ~org-protocol~. Org-roam extends ~org-protocol~ with 2
-protocols: the ~roam-file~ and ~roam-ref~ protocols.
+protocols: the ~roam-node~ and ~roam-ref~ protocols.
 
 ** Installation
 
@@ -656,9 +656,7 @@ file:
 We also need to set up ~org-protocol~: the instructions for setting up
 ~org-protocol~ are reproduced below.
 
-We will also need to create a desktop application for ~emacsclient~. The
-instructions for various platforms are shown below.
-
+*** Linux
 For Linux users, create a desktop application in
 ~~/.local/share/applications/org-protocol.desktop~:
 
@@ -699,7 +697,8 @@ make the new policy take effect.
 See [[https://www.chromium.org/administrators/linux-quick-start][here]] for more info on the ~/etc/opt/chrome/policies/managed~ directory and
 [[https://cloud.google.com/docs/chrome-enterprise/policies/?policy=ExternalProtocolDialogShowAlwaysOpenCheckbox][here]] for information on the ~ExternalProtocolDialogShowAlwaysOpenCheckbox~ policy.
 
-For MacOS, we need to create our own application.
+*** Mac OS
+For Mac OS, we need to create our own application.
 
 1. Launch Script Editor
 2. Use the following script, paying attention to the path to ~emacsclient~:
@@ -742,7 +741,6 @@ without confirmation. To do this, run in a shell:
 defaults write com.google.Chrome ExternalProtocolDialogShowAlwaysOpenCheckbox -bool true
 #+END_SRC
 
-
 If you're using [[https://github.com/railwaycat/homebrew-emacsmacport][Emacs Mac Port]], it registered its `Emacs.app` as the default
 handler for the URL scheme `org-protocol`. To make ~OrgProtocol.app~
 the default handler instead, run:
@@ -754,6 +752,7 @@ defaults write com.apple.LaunchServices/com.apple.launchservices.secure LSHandle
 
 Then restart your computer.
 
+*** Windows
 For Windows, create a temporary ~org-protocol.reg~ file:
 
 #+BEGIN_SRC text
@@ -813,43 +812,28 @@ where ~template~ is the template key for a template in
 ~org-roam-capture-ref-templates~ (see [[*The Templating System][The Templating System]]). These templates
 should contain a ~#+roam_key: ${ref}~ in it.
 
-* TODO The Org-mode Ecosystem
-* TODO Frequently Asked Questions
-* TODO The Templating System
+* The Org-roam Templating System
 
-Rather than creating blank files on ~org-roam-insert~ and ~org-roam-find-file~,
-it may be desirable to prefill the file with templated content. This may
-include:
+Org-roam extends the ~org-capture~ system, providing a smoother note-taking
+experience. However, these extensions mean Org-roam capture templates are
+incompatible with ~org-capture~ templates.
 
-- Time of creation
-- File it was created from
-- Clipboard content
-- Any other data you may want to input manually
-
-This requires a complex template insertion system. Fortunately, Org ships with a
-powerful one: ~org-capture~ (see info:org#capture). However, org-capture was not
-designed for such use. Org-roam abuses ~org-capture~, extending its syntax and
-capabilities. To first understand how org-roam's templating system works, it may
-be useful to look into basic usage of ~org-capture~.
-
-For these reasons, Org-roam capture templates are not compatible with regular
-~org-capture~. Hence, Org-roam's templates can be customized by instead
-modifying the variable ~org-roam-capture-templates~. Just like
+Org-roam's templates are specified by ~org-roam-capture-templates~. Just like
 ~org-capture-templates~, ~org-roam-capture-templates~ can contain multiple
 templates. If ~org-roam-capture-templates~ only contains one template, there
 will be no prompt for template selection.
 
 ** Template Walkthrough
 
-To demonstrate the additions made to org-capture templates. Here, we walkthrough
-the default template, reproduced below.
+To demonstrate the additions made to org-capture templates. Here, we explain
+the default template, reproduced below. You will find some most of the elements
+of the template are similar to ~org-capture~ templates.
 
 #+BEGIN_SRC emacs-lisp
-  ("d" "default" plain (function org-roam--capture-get-point)
-       "%?"
-       :file-name "%<%Y%m%d%H%M%S>-${slug}"
-       :head "#+title: ${title}\n"
-       :unnarrowed t)
+(("d" "default" plain "%?"
+  :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
+                     "#+title: ${title}\n")
+  :unnarrowed t))
 #+END_SRC
 
 1. The template has short key ~"d"~. If you have only one template, org-roam
@@ -857,22 +841,18 @@ the default template, reproduced below.
 2. The template is given a description of ~"default"~.
 3. ~plain~ text is inserted. Other options include Org headings via
    ~entry~.
-4. ~(function org-roam--capture-get-point)~ should not be changed.
+4. Notice that the ~target~ that's usually in Org-capture templates is missing
+   here.
 5. ~"%?"~ is the template inserted on each call to ~org-roam-capture-~.
    This template means don't insert any content, but place the cursor here.
-6. ~:file-name~ is the file-name template for a new note, if it doesn't yet
-   exist. This creates a file at path that looks like
-   ~/path/to/org-roam-directory/20200213032037-foo.org~. This template also
-   allows you to specify if you want the note to go into a subdirectory. For
-   example, the template ~private/${slug}~ will create notes in
-   ~/path/to/org-roam-directory/private~.
-7. ~:head~ contains the initial template to be inserted (once only), at
-   the beginning of the file. Here, the title global attribute is
-   inserted.
-8. ~:unnarrowed t~ tells org-capture to show the contents for the whole
-   file, rather than narrowing to just the entry.
+6. ~:if-new~ is a compulsory specification in the Org-roam capture template.
+   This indicates the location for the new node.
+7. ~:unnarrowed t~ tells org-capture to show the contents for the whole file,
+   rather than narrowing to just the entry. This is part of the Org-capture
+   templates.
 
-Other options you may want to learn about include ~:immediate-finish~.
+See the ~org-roam-capture-templates~ documentation for more details and
+customization options.
 
 ** Org-roam Template Expansion
 
@@ -880,56 +860,35 @@ Org-roam's template definitions also extend org-capture's template syntax, to
 allow prefilling of strings. We have seen a glimpse of this in [[*Template Walkthrough][Template
 Walkthrough]].
 
-In org-roam templates, the ~${var}~ syntax allows for the expansion of
-variables, stored in ~org-roam-capture--info~. For example, during
-~org-roam-insert~, the user is prompted for a title. Upon entering a
-non-existent title, the ~title~ key in ~org-roam-capture--info~ is set to the
-provided title. ~${title}~ is then expanded into the provided title during the
-org-capture process. Any variables that do not contain strings, are prompted for
-values using ~completing-read~.
+Org-roam provides the ~${foo}~ syntax for substituting variables with known
+strings. ~${foo}~'s substitution is performed as follows:
 
-After doing this expansion, the org-capture's template expansion system is used
-to fill up the rest of the template. You may read up more on this on
-[[https://orgmode.org/manual/Template-expansion.html#Template-expansion][org-capture's documentation page]].
+1. If ~foo~ is a function, ~foo~ is called with the current node as its
+   argument.
+2. Else if ~org-roam-node-foo~ is a function, ~foo~ is called with the current node
+   as its argument. The ~org-roam-node-~ prefix defines many of Org-roam's node
+   accessors such as ~org-roam-node-title~ and ~org-roam-node-level~.
+3. Else look up ~org-roam-capture--info~ for ~foo~. This is an internal variable
+   that is set before the capture process begins.
+4. If none of the above applies, read a string using ~completing-read~.
 
-To illustrate this dual expansion process, take for example the template string:
-~"%<%Y%m%d%H%M%S>-${title}"~, with the title ~"Foo"~. The template is first
-expanded into ~%<%Y%m%d%H%M%S>-Foo~. Then org-capture expands ~%<%Y%m%d%H%M%S>~
-with timestamp: e.g. ~20200213032037-Foo~.
+* Graphing
 
-All of the flexibility afforded by Emacs and Org-mode are available. For
-example, if you want to encode a UTC timestamp in the filename, you can take
-advantage of org-mode's ~%(EXP)~ template expansion to call ~format-time-string~
-directly to provide its third argument to specify UTC.
-
-#+BEGIN_SRC emacs-lisp
-  ("d" "default" plain (function org-roam--capture-get-point)
-       "%?"
-       :file-name "%(format-time-string \"%Y-%m-%d--%H-%M-%SZ--${slug}\" (current-time) t)"
-       :head "#+title: ${title}\n"
-       :unnarrowed t)
-#+END_SRC
-
-* TODO Graphing
-
-Org-roam provides graphing capabilities to explore interconnections between
-notes. This is done by performing SQL queries and generating images using
-[[https://graphviz.org/][Graphviz]]. The graph can also be navigated: see [[*Roam Protocol][Roam Protocol]].
+Org-roam provides basic graphing capabilities to explore interconnections
+between notes, in ~org-roam-graph~. This is done by performing SQL queries and
+generating images using [[https://graphviz.org/][Graphviz]]. The graph can also be navigated: see [[*Roam Protocol][Roam
+Protocol]].
 
 The entry point to graph creation is ~org-roam-graph~.
 
-- Function: org-roam-graph & optional arg file node-query
+- Function: org-roam-graph & optional arg node
 
-  Build and possibly display a graph for FILE from NODE-QUERY.
-  If FILE is nil, default to current buffer’s file name.
-  ARG may be any of the following values:
+Build and display a graph for NODE.
+ARG may be any of the following values:
 
-  - ~nil~       show the graph.
-  - ~C-u~       show the graph for FILE.
-  - ~C-u N~     show the graph for FILE limiting nodes to N steps.
-  - ~C-u C-u~   build the graph.
-  - ~C-u -~     build the graph for FILE.
-  - ~C-u -N~    build the graph for FILE limiting nodes to N steps.
+  - ~nil~       show the full graph.
+  - ~integer~   an integer argument ~N~ will show the graph for the connected
+                components to node up to ~N~ steps away.
 
 - User Option: org-roam-graph-executable
 
@@ -965,6 +924,10 @@ Graphviz provides many options for customizing the graph output, and Org-roam
 supports some of them. See https://graphviz.gitlab.io/_pages/doc/info/attrs.html
 for customizable options.
 
+- User Option: org-roam-graph-filetype
+
+  The file type to generate for graphs. This defaults to ~"svg"~.
+
 - User Option: org-roam-graph-extra-config
 
   Extra options passed to graphviz for the digraph (The "G" attributes).
@@ -972,62 +935,16 @@ for customizable options.
 
 - User Option: org-roam-graph-node-extra-config
 
-  Extra options for nodes in the graphviz output (The "N" attributes).
-  Example: ~'(("color" . "skyblue"))~
+  An alist of options to style the nodes.
+  The car of the alist node type such as ~"id"~, or ~"http"~. The cdr of the
+  list is another alist of Graphviz node options (the "N" attributes).
 
 - User Option: org-roam-graph-edge-extra-config
 
   Extra options for edges in the graphviz output (The "E" attributes).
   Example: ~'(("dir" . "back"))~
 
-- User Option: org-roam-graph-edge-cites-extra-config
-
-  Extra options for citation edges in the graphviz output.
-  Example: ~'(("color" . "red"))~
-
-** Excluding Nodes and Edges
-
-One may want to exclude certain files to declutter the graph.
-
-- User Option: org-roam-graph-exclude-matcher
-
-  Matcher for excluding nodes from the generated graph. Any nodes and links for
-  file paths matching this string is excluded from the graph.
-
-  If value is a string, the string is the only matcher.
-
-  If value is a list, all file paths matching any of the strings
-  are excluded.
-
-#+BEGIN_EXAMPLE
-    (setq org-roam-graph-exclude-matcher '("private" "dailies"))
-#+END_EXAMPLE
-
-This setting excludes all files whose path contain "private" or "dailies".
-
-* Minibuffer Completion
-
-Org-roam allows customization of which minibuffer completion system to use for
-its interactive commands. The default setting uses Emacs' standard
-~completing-read~ mechanism.
-
-#+BEGIN_SRC emacs-lisp
-  (setq org-roam-completion-system 'default)
-#+END_SRC
-
-If you have installed Helm or Ivy, and have their modes enabled, under the
-~'default~ setting they will be used.
-
-In the rare scenario where you use Ivy globally, but prefer [[https://emacs-helm.github.io/helm/][Helm]] for org-roam
-commands, set:
-
-#+BEGIN_SRC emacs-lisp
-  (setq org-roam-completion-system 'helm)
-#+END_SRC
-
-Other options include ~'ido~, and ~'ivy~.
-
-* Daily-notes
+* Org-roam Dailies
 
 Org-roam provides journaling capabilities akin to
 [[#org-journal][Org-journal]] with ~org-roam-dailies~.
@@ -1038,7 +955,7 @@ For ~org-roam-dailies~ to work, you need to define two variables:
 
 - Variable: ~org-roam-dailies-directory~
 
-  Path to daily-notes.
+  Path to daily-notes. This path is relative to ~org-roam-directory~.
 
 - Variable: ~org-roam-dailies-capture-templates~
 
@@ -1047,46 +964,20 @@ For ~org-roam-dailies~ to work, you need to define two variables:
 Here is a sane default configuration:
 
 #+begin_src emacs-lisp
-  (setq org-roam-dailies-directory "daily/")
+(setq org-roam-dailies-directory "daily/")
 
-  (setq org-roam-dailies-capture-templates
-        '(("d" "default" entry
-           #'org-roam-capture--get-point
-           "* %?"
-           :file-name "daily/%<%Y-%m-%d>"
-           :head "#+title: %<%Y-%m-%d>\n\n")))
+(setq org-roam-dailies-capture-templates
+      '(("d" "default" entry
+         "* %?"
+         :if-new (file+head "%<%Y-%m-%d>.org"
+                            "#+title: %<%Y-%m-%d>\n"))))
 #+end_src
 
-Make sure that ~org-roam-dailies-directory~ appears in ~:file-name~ for your
-notes to be recognized as daily-notes. You can have different templates placing
-their notes in different directories, but the one in
-~org-roam-dailies-directory~ will be considered as the main one in commands.
+See [[*The Templating System][The Templating System]] for creating new templates.
 
-See [[*The Templating System][The Templating System]] for creating new
-templates. ~org-roam-dailies~ provides an extra ~:olp~ option which allows
-specifying the outline-path to a heading:
+** Usage
 
-#+begin_src emacs-lisp
-  (setq org-roam-dailies-capture-templates
-        '(("l" "lab" entry
-           #'org-roam-capture--get-point
-           "* %?"
-           :file-name "daily/%<%Y-%m-%d>"
-           :head "#+title: %<%Y-%m-%d>\n"
-           :olp ("Lab notes"))
-
-          ("j" "journal" entry
-           #'org-roam-capture--get-point
-           "* %?"
-           :file-name "daily/%<%Y-%m-%d>"
-           :head "#+title: %<%Y-%m-%d>\n"
-           :olp ("Journal"))))
-#+end_src
-
-The template ~l~ will put its notes under the heading ‘Lab notes’, and the
-template ~j~ will put its notes under the heading ‘Journal’. 
-
-** Capturing and finding daily-notes
+~org-roam-dailies~ provides these interactive functions:
 
 - Function: ~org-roam-dailies-capture-today~ &optional goto
 
@@ -1127,10 +1018,6 @@ There are also commands which allow you to use Emacs’s ~calendar~ to find the 
 
   Prefer past dates, unless ~prefer-future~ is non-nil.
 
-** Navigation
-  
-You can navigate between daily-notes:
-
 - Function: ~org-roam-dailies-find-directory~
 
   Find and open ~org-roam-dailies-directory~.
@@ -1142,42 +1029,185 @@ You can navigate between daily-notes:
 - Function: ~org-roam-dailies-find-next-note~
 
   When in an daily-note, find the next one.
+* Performance Optimization
+** Garbage Collection
 
-* Diagnosing and Repairing Files
+During the cache-build process, Org-roam generates a lot of in-memory
+data-structures (such as the Org file's AST), which are discarded after use.
+These structures are garbage collected at regular intervals (see [[info:elisp#Garbage
+ Collection][info:elisp#Garbage Collection]]).
 
-Org-roam provides a utility for diagnosing and repairing problematic files via
-~org-roam-doctor~. By default, ~org-roam-doctor~ runs the check on the current
-Org-roam file. To run the check only for all Org-roam files, run ~C-u M-x
-org-roam-doctor~, but note that this may take some time.
-
-- Function: org-roam-doctor &optional this-buffer
-
-  Perform a check on Org-roam files to ensure cleanliness. If THIS-BUFFER, run
-  the check only for the current buffer.
-
-The checks run are defined in ~org-roam-doctor--checkers~. By default, there are
-checkers for broken links and invalid =#+roam_*= properties.
-
-Each checker is an instance of ~org-roam-doctor-checker~. To define a checker,
-use ~make-org-roam-doctor-checker~. Here is a sample definition:
+Org-roam provides the option ~org-roam-db-gc-threshold~ to temporarily change
+the threshold value for GC to be triggered during these memory-intensive
+operations. To reduce the number of garbage collection processes, one may set
+~org-roam-db-gc-threshold~ to a high value (such as ~most-positive-fixnum~):
 
 #+BEGIN_SRC emacs-lisp
-(make-org-roam-doctor-checker
-    :name 'org-roam-doctor-broken-links
-    :description "Fix broken links."
-    :actions '(("d" . ("Unlink" . org-roam-doctor--remove-link))
-               ("r" . ("Replace link" . org-roam-doctor--replace-link))
-               ("R" . ("Replace link (keep label)" . org-roam-doctor--replace-link-keep-label))))
+  (setq org-roam-db-gc-threshold most-positive-fixnum)
 #+END_SRC
 
-The ~:name~ property is the name of the function run. The function takes in the
-Org parse tree, and returns a list of ~(point error-message)~. ~:description~ is
-a short description of what the checker does. ~:actions~ is an alist containing
-elements of the form ~(char . (prompt . function))~. These actions are defined
-per checker, to perform autofixes for the errors. For each error detected,
-~org-roam-doctor~ will move the point to the current error, and pop-up a help
-window displaying the error message, as well as the list of actions that can be
-taken provided in ~:actions~.
+* The Org-mode Ecosystem
+
+Because Org-roam is built on top of Org-mode, it benefits from the vast number
+of packages already available.
+
+** Browsing History with winner-mode
+
+~winner-mode~ is a global minor mode that allows one to undo and redo changes in
+the window configuration. It is included with GNU Emacs since version 20.
+
+~winner-mode~ can be used as a simple version of browser history for Org-roam.
+Each click through org-roam links (from both Org files and the backlinks buffer)
+causes changes in window configuration, which can be undone and redone using
+~winner-mode~. To use ~winner-mode~, simply enable it, and bind the appropriate
+interactive functions:
+
+#+BEGIN_SRC emacs-lisp
+  (winner-mode +1)
+  (define-key winner-mode-map (kbd "<M-left>") #'winner-undo)
+  (define-key winner-mode-map (kbd "<M-right>") #'winner-redo)
+
+#+END_SRC
+** Versioning Notes
+
+Since Org-roam notes are just plain text, it is trivial to track changes in your
+notes database using version control systems such as [[https://git-scm.com/][Git]]. Simply initialize
+~org-roam-directory~ as a Git repository, and commit your files at regular or
+appropriate intervals. [[https://magit.vc/][Magit]] is a great interface to Git within Emacs.
+
+In addition, it may be useful to observe how a particular note has evolved, by
+looking at the file history. [[https://gitlab.com/pidu/git-timemachine][Git-timemachine]] allows you to visit historic
+versions of a tracked Org-roam note.
+
+** Full-text search with Deft
+
+[[https://jblevins.org/projects/deft/][Deft]] provides a nice interface for browsing and filtering org-roam notes.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package deft
+    :after org
+    :bind
+    ("C-c n d" . deft)
+    :custom
+    (deft-recursive t)
+    (deft-use-filter-string-for-filename t)
+    (deft-default-extension "org")
+    (deft-directory org-roam-directory))
+#+END_SRC
+
+The Deft interface can slow down quickly when the number of files get huge.
+[[https://github.com/hasu/notdeft][Notdeft]] is a fork of Deft that uses an external search engine and indexer.
+
+** Org-journal
+
+[[https://github.com/bastibe/org-journal][Org-journal]] provides journaling capabilities to Org-mode. A lot of its
+functionalities have been incorporated into Org-roam under the name
+[[*Daily-notes][~org-roam-dailies~]]. It remains a good tool if you want to isolate your verbose
+journal entries from the ideas you would write on a scratchpad.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package org-journal
+    :bind
+    ("C-c n j" . org-journal-new-entry)
+    :custom
+    (org-journal-date-prefix "#+title: ")
+    (org-journal-file-format "%Y-%m-%d.org")
+    (org-journal-dir "/path/to/journal/files/")
+    (org-journal-date-format "%A, %d %B %Y"))
+#+END_SRC
+
+** Org-download
+
+[[https://github.com/abo-abo/org-download][Org-download]] lets you screenshot and yank images from the web into your notes:
+
+#+CAPTION: org-download
+[[file:images/org-download.gif]]
+
+#+BEGIN_SRC emacs-lisp
+  (use-package org-download
+    :after org
+    :bind
+    (:map org-mode-map
+          (("s-Y" . org-download-screenshot)
+           ("s-y" . org-download-yank))))
+#+END_SRC
+
+** mathpix.el
+
+[[https://github.com/jethrokuan/mathpix.el][mathpix.el]] uses [[https://mathpix.com/][Mathpix's]] API to convert clips into latex equations:
+
+#+CAPTION: mathpix
+[[file:images/mathpix.gif]]
+
+#+BEGIN_SRC emacs-lisp
+  (use-package mathpix.el
+    :straight (:host github :repo "jethrokuan/mathpix.el")
+    :custom ((mathpix-app-id "app-id")
+             (mathpix-app-key "app-key"))
+    :bind
+    ("C-x m" . mathpix-screenshot))
+#+END_SRC
+
+** Org-noter / Interleave
+
+[[https://github.com/weirdNox/org-noter][Org-noter]] and [[https://github.com/rudolfochrist/interleave][Interleave]] are both projects that allow synchronised annotation of
+documents (PDF, EPUB etc.) within Org-mode.
+
+** Bibliography
+
+[[https://github.com/org-roam/org-roam-bibtex][org-roam-bibtex]] offers tight integration between [[https://github.com/jkitchin/org-ref][org-ref]], [[https://github.com/tmalsburg/helm-bibtex][helm-bibtex]] and
+~org-roam~. This helps you manage your bibliographic notes under ~org-roam~.
+
+For example, though helm-bibtex provides the ability to visit notes for
+bibliographic entries, org-roam-bibtex extends it with the ability to visit the
+file with the right =#+ROAM_KEYS=.
+
+** Spaced Repetition
+
+[[https://www.leonrische.me/fc/index.html][Org-fc]] is a spaced repetition system that scales well with a large number of
+files. Other alternatives include [[https://orgmode.org/worg/org-contrib/org-drill.html][org-drill]], and [[https://github.com/abo-abo/pamparam][pamparam]].
+
+To use Anki for spaced repetition, [[https://github.com/louietan/anki-editor][anki-editor]] allows you to write your cards in
+Org-mode, and sync your cards to Anki via [[https://github.com/FooSoft/anki-connect#installation][anki-connect]].
+
+* FAQ
+** How do I have more than one Org-roam directory?
+
+Emacs supports directory-local variables, allowing the value of
+~org-roam-directory~ to be different in different directories. It does this by
+checking for a file named ~.dir-locals.el~.
+
+To add support for multiple directories, override the ~org-roam-directory~
+variable using directory-local variables. This is what ~.dir-locals.el~ may
+contain:
+
+#+BEGIN_SRC emacs-lisp
+  ((nil . ((org-roam-directory . (expand-file-name "."))
+           (org-roam-db-location . (expand-file-name "./org-roam.db")))))
+#+END_SRC
+
+All files within that directory will be treated as their own separate set of
+Org-roam files. Remember to run ~org-roam-db-sync~ from a file within
+that directory, at least once.
+
+** How do I migrate from Roam Research?
+
+Fabio has produced a command-line tool that converts markdown files exported
+from Roam Research into Org-roam compatible markdown. More instructions are
+provided [[https://github.com/fabioberger/roam-migration][in the repository]].
+
+** How do I create a note whose title already matches one of the candidates?
+
+This situation arises when, for example, one would like to create a note titled
+"bar" when "barricade" already exists.
+
+The solution is dependent on the mini-buffer completion framework in use. Here
+are the solutions:
+
+- Ivy :: call ~ivy-immediate-done~, typically bound to ~C-M-j~. Alternatively,
+  set ~ivy-use-selectable-prompt~ to ~t~, so that "bar" is now selectable.
+- Helm :: Org-roam should provide a selectable "[?] bar" candidate at the top of
+  the candidate list.
 
 * Developer's Guide to Org-roam
 ** Org-roam's Design Principle
@@ -1318,24 +1348,6 @@ When GOTO is non-nil, go the note without creating an entry."
   (when goto (run-hooks 'org-roam-dailies-find-file-hook)))
 #+end_src
 
-* Performance Optimization
-** TODO Profiling Key Operations
-** Garbage Collection
-
-During the cache-build process, Org-roam generates a lot of in-memory
-data-structures (such as the Org file's AST), which are discarded after use.
-These structures are garbage collected at regular intervals (see [[info:elisp#Garbage
- Collection][info:elisp#Garbage Collection]]).
-
-Org-roam provides the option ~org-roam-db-gc-threshold~ to temporarily change
-the threshold value for GC to be triggered during these memory-intensive
-operations. To reduce the number of garbage collection processes, one may set
-~org-roam-db-gc-threshold~ to a high value (such as ~most-positive-fixnum~):
-
-#+BEGIN_SRC emacs-lisp
-  (setq org-roam-db-gc-threshold most-positive-fixnum)
-#+END_SRC
-
 * _ Copying
 :PROPERTIES:
 :COPYING:    t
@@ -1370,212 +1382,6 @@ General Public License for more details.
 - Videos ::
   - [[https://www.youtube.com/watch?v=RvWic15iXjk][How to Use Roam to Outline a New Article in Under 20 Minutes]]
 ** Ecosystem
-
-*** Browsing History with winner-mode
-
-~winner-mode~ is a global minor mode that allows one to undo and redo changes in
-the window configuration. It is included with GNU Emacs since version 20.
-
-~winner-mode~ can be used as a simple version of browser history for Org-roam.
-Each click through org-roam links (from both Org files and the backlinks buffer)
-causes changes in window configuration, which can be undone and redone using
-~winner-mode~. To use ~winner-mode~, simply enable it, and bind the appropriate
-interactive functions:
-
-#+BEGIN_SRC emacs-lisp
-  (winner-mode +1)
-  (define-key winner-mode-map (kbd "<M-left>") #'winner-undo)
-  (define-key winner-mode-map (kbd "<M-right>") #'winner-redo)
-
-#+END_SRC
-*** Versioning Notes
-
-Since Org-roam notes are just plain text, it is trivial to track changes in your
-notes database using version control systems such as [[https://git-scm.com/][Git]]. Simply initialize
-~org-roam-directory~ as a Git repository, and commit your files at regular or
-appropriate intervals. [[https://magit.vc/][Magit]] is a great interface to Git within Emacs.
-
-In addition, it may be useful to observe how a particular note has evolved, by
-looking at the file history. [[https://gitlab.com/pidu/git-timemachine][Git-timemachine]] allows you to visit historic
-versions of a tracked Org-roam note.
-
-*** Full-text search interface with Deft
-   :PROPERTIES:
-   :CUSTOM_ID: deft
-   :END:
-
-[[https://jblevins.org/projects/deft/][Deft]] provides a nice interface for browsing and filtering org-roam notes.
-
-#+BEGIN_SRC emacs-lisp
-  (use-package deft
-    :after org
-    :bind
-    ("C-c n d" . deft)
-    :custom
-    (deft-recursive t)
-    (deft-use-filter-string-for-filename t)
-    (deft-default-extension "org")
-    (deft-directory "/path/to/org-roam-files/"))
-#+END_SRC
-
-If the title of the Org file is not the first line, you might not get nice
-titles. You may choose to patch this to use ~org-roam~'s functionality. Here I'm
-using [[https://github.com/raxod502/el-patch][el-patch]]:
-
-#+BEGIN_SRC emacs-lisp
-  (use-package el-patch
-    :straight (:host github
-               :repo "raxod502/el-patch"
-               :branch "develop"))
-
-  (eval-when-compile
-    (require 'el-patch))
-#+END_SRC
-
-The Deft interface can slow down quickly when the number of files get huge.
-[[https://github.com/hasu/notdeft][Notdeft]] is a fork of Deft that uses an external search engine and indexer.
-
-*** Org-journal
-   :PROPERTIES:
-   :CUSTOM_ID: org-journal
-   :END:
-
-[[https://github.com/bastibe/org-journal][Org-journal]] provides journaling capabilities to Org-mode. A lot of its
-functionalities have been incorporated into Org-roam under the name
-[[*Daily-notes][~org-roam-dailies~]]. It remains a good tool if you want to isolate your verbose
-journal entries from the ideas you would write on a scratchpad.
-
-#+BEGIN_SRC emacs-lisp
-  (use-package org-journal
-    :bind
-    ("C-c n j" . org-journal-new-entry)
-    :custom
-    (org-journal-date-prefix "#+title: ")
-    (org-journal-file-format "%Y-%m-%d.org")
-    (org-journal-dir "/path/to/journal/files/")
-    (org-journal-date-format "%A, %d %B %Y"))
-#+END_SRC
-
-*** Note-taking Add-ons
-   :PROPERTIES:
-   :CUSTOM_ID: note-taking-add-ons
-   :END:
-
-These are some plugins that make note-taking in Org-mode more enjoyable.
-
-**** Org-download
-    :PROPERTIES:
-    :CUSTOM_ID: org-download
-    :END:
-
-[[https://github.com/abo-abo/org-download][Org-download]] lets you screenshot and yank images from the web into your notes:
-
-#+CAPTION: org-download
-[[file:images/org-download.gif]]
-
-#+BEGIN_SRC emacs-lisp
-  (use-package org-download
-    :after org
-    :bind
-    (:map org-mode-map
-          (("s-Y" . org-download-screenshot)
-           ("s-y" . org-download-yank))))
-#+END_SRC
-
-**** mathpix.el
-    :PROPERTIES:
-    :CUSTOM_ID: mathpix.el
-    :END:
-
-[[https://github.com/jethrokuan/mathpix.el][mathpix.el]] uses [[https://mathpix.com/][Mathpix's]] API to convert clips into latex equations:
-
-#+CAPTION: mathpix
-[[file:images/mathpix.gif]]
-
-#+BEGIN_SRC emacs-lisp
-  (use-package mathpix.el
-    :straight (:host github :repo "jethrokuan/mathpix.el")
-    :custom ((mathpix-app-id "app-id")
-             (mathpix-app-key "app-key"))
-    :bind
-    ("C-x m" . mathpix-screenshot))
-#+END_SRC
-
-**** Org-noter / Interleave
-    :PROPERTIES:
-    :CUSTOM_ID: org-noter-interleave
-    :END:
-
-[[https://github.com/weirdNox/org-noter][Org-noter]] and
-[[https://github.com/rudolfochrist/interleave][Interleave]] are both
-projects that allow synchronised annotation of documents (PDF, EPUB
-etc.) within Org-mode.
-
-**** Bibliography
-    :PROPERTIES:
-    :CUSTOM_ID: bibliography
-    :END:
-
-[[https://github.com/org-roam/org-roam-bibtex][org-roam-bibtex]] offers
-tight integration between
-[[https://github.com/jkitchin/org-ref][org-ref]],
-[[https://github.com/tmalsburg/helm-bibtex][helm-bibtex]] and
-~org-roam~. This helps you manage your bibliographic notes under
-~org-roam~.
-
-For example, though helm-bibtex provides the ability to visit notes for
-bibliographic entries, org-roam-bibtex extends it with the ability to visit the
-file with the right =#+roam_key=.
-
-**** Spaced Repetition
-    :PROPERTIES:
-    :CUSTOM_ID: spaced-repetition
-    :END:
-
-[[https://www.leonrische.me/fc/index.html][Org-fc]] is a spaced repetition system that scales well with a large number of
-files. Other alternatives include [[https://orgmode.org/worg/org-contrib/org-drill.html][org-drill]], and [[https://github.com/abo-abo/pamparam][pamparam]].
-
-To use Anki for spaced repetition, [[https://github.com/louietan/anki-editor][anki-editor]] allows you to write your cards in
-Org-mode, and sync your cards to Anki via [[https://github.com/FooSoft/anki-connect#installation][anki-connect]].
-
-* FAQ
-** How do I have more than one Org-roam directory?
-
-Emacs supports directory-local variables, allowing the value of
-~org-roam-directory~ to be different in different directories. It does this by
-checking for a file named ~.dir-locals.el~.
-
-To add support for multiple directories, override the ~org-roam-directory~
-variable using directory-local variables. This is what ~.dir-locals.el~ may
-contain:
-
-#+BEGIN_SRC emacs-lisp
-  ((nil . ((org-roam-directory . (expand-file-name "."))
-           (org-roam-db-location . (expand-file-name "./org-roam.db")))))
-#+END_SRC
-
-All files within that directory will be treated as their own separate set of
-Org-roam files. Remember to run ~org-roam-db-build-cache~ from a file within
-that directory, at least once.
-
-** How do I migrate from Roam Research?
-
-Fabio has produced a command-line tool that converts markdown files exported
-from Roam Research into Org-roam compatible markdown. More instructions are
-provided [[https://github.com/fabioberger/roam-migration][in the repository]].
-
-** How do I create a note whose title already matches one of the candidates?
-
-This situation arises when, for example, one would like to create a note titled
-"bar" when "barricade" already exists.
-
-The solution is dependent on the mini-buffer completion framework in use. Here
-are the solutions:
-
-- Ivy :: call ~ivy-immediate-done~, typically bound to ~C-M-j~. Alternatively,
-  set ~ivy-use-selectable-prompt~ to ~t~, so that "bar" is now selectable.
-- Helm :: Org-roam should provide a selectable "[?] bar" candidate at the top of
-  the candidate list.
 
 * Keystroke Index
 :PROPERTIES:
