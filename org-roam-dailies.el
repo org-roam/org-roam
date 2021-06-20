@@ -64,7 +64,7 @@ This path is relative to `org-roam-directory'."
 (defcustom org-roam-dailies-capture-templates
   `(("d" "default" entry
      "* %?"
-     :if-new (file+head ,(expand-file-name "%<%Y-%m-%d>.org" org-roam-dailies-directory)
+     :if-new (file+head "%<%Y-%m-%d>.org"
                         "#+title: %<%Y-%m-%d>\n")))
   "Capture templates for daily-notes in Org-roam.
 See `org-roam-capture-templates' for the template documentation."
@@ -148,10 +148,11 @@ If FILE is not specified, use the current buffer's file-path."
 (defun org-roam-dailies--capture (time &optional goto)
   "Capture an entry in a daily-note for TIME, creating it if necessary.
 When GOTO is non-nil, go the note without creating an entry."
-  (org-roam-capture- :goto (when goto '(4))
-                     :node (org-roam-node-create)
-                     :templates org-roam-dailies-capture-templates
-                     :props (list :override-default-time time))
+  (let ((org-roam-directory (expand-file-name org-roam-dailies-directory org-roam-directory)))
+    (org-roam-capture- :goto (when goto '(4))
+                       :node (org-roam-node-create)
+                       :templates org-roam-dailies-capture-templates
+                       :props (list :override-default-time time)))
   (when goto (run-hooks 'org-roam-dailies-find-file-hook)))
 
 ;;;; Commands
