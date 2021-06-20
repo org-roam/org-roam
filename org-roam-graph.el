@@ -169,11 +169,11 @@ SELECT source, dest, type FROM links WHERE source IN connected_component OR dest
       (insert "digraph \"org-roam\" {\n")
       (dolist (option org-roam-graph-extra-config)
         (insert (org-roam-graph--dot-option option) ";\n"))
-        (insert (format " edge [%s];\n"
-                        (mapconcat (lambda (var)
-                                     (org-roam-graph--dot-option var nil "\""))
-                                   org-roam-graph-edge-extra-config
-                                   ",")))
+      (insert (format " edge [%s];\n"
+                      (mapconcat (lambda (var)
+                                   (org-roam-graph--dot-option var nil "\""))
+                                 org-roam-graph-edge-extra-config
+                                 ",")))
       (pcase-dolist (`(,source ,dest ,type) edges)
         (unless (member type org-roam-graph-link-hidden-types)
           (pcase-dolist (`(,node ,node-type) `((,source "id")
