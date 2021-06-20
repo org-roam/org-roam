@@ -155,21 +155,17 @@ Like `file-name-extension', but does not strip version number."
                (not (eq 0 (match-beginning 0))))
           (substring file (+ (match-beginning 0) 1))))))
 
-(defun org-roam--org-file-p (path)
-  "Check if PATH is pointing to an org file."
-  (let ((ext (org-roam--file-name-extension path)))
-    (when (string= ext "gpg")           ; Handle encrypted files
-      (setq ext (org-roam--file-name-extension (file-name-sans-extension path))))
-    (member ext org-roam-file-extensions)))
-
-(defun org-roam--org-roam-file-p (&optional file)
+(defun org-roam-file-p (&optional file)
   "Return t if FILE is part of Org-roam system, nil otherwise.
 If FILE is not specified, use the current buffer's file-path."
-  (when-let ((path (or file
-                       (buffer-file-name (buffer-base-buffer)))))
+  (let* ((path (or file (buffer-file-name (buffer-base-buffer))))
+         (ext (org-roam--file-name-extension path))
+         (ext (if (string= ext "gpg")
+                  (org-roam--file-name-extension (file-name-sans-extension path))
+                ext)))
     (save-match-data
       (and
-       (org-roam--org-file-p path)
+       (member ext org-roam-file-extensions)
        (not (and org-roam-file-exclude-regexp
                  (string-match-p org-roam-file-exclude-regexp path)))
        (f-descendant-of-p path (expand-file-name org-roam-directory))))))
@@ -272,7 +268,7 @@ recursion."
         result)
     (dolist (file (org-roam--directory-files-recursively dir regex nil nil t) result)
       (when (and (file-readable-p file)
-                 (org-roam--org-roam-file-p file))
+                 (org-roam-file-p file))
         (push file result)))))
 
 (defun org-roam--list-files (dir)
@@ -296,7 +292,7 @@ Use external shell commands if defined in `org-roam-list-files-commands'."
                        (let ((fn (intern (concat "org-roam--list-files-" exe))))
                          (unless (fboundp fn) (user-error "%s is not an implemented search method" fn))
                          (funcall fn path (format "\"%s\"" dir)))))
-              (files (seq-filter #'org-roam--org-roam-file-p files))
+              (files (seq-filter #'org-roam-file-p files))
               (files (mapcar #'expand-file-name files))) ; canonicalize names
         files
       (org-roam--list-files-elisp dir))))
@@ -328,7 +324,7 @@ Use external shell commands if defined in `org-roam-list-files-commands'."
       (puthash node-id (cons tag (gethash node-id ht)) ht))
     ht))
 
-(defun org-roam--org-roam-buffer-p (&optional buffer)
+(defun org-roam-buffer-p (&optional buffer)
   "Return t if BUFFER is accessing a part of Org-roam system.
 If BUFFER is not specified, use the current buffer."
   (let ((buffer (or buffer (current-buffer)))
@@ -336,11 +332,11 @@ If BUFFER is not specified, use the current buffer."
     (with-current-buffer buffer
       (and (derived-mode-p 'org-mode)
            (setq path (buffer-file-name (buffer-base-buffer)))
-           (org-roam--org-roam-file-p path)))))
+           (org-roam-file-p path)))))
 
-(defun org-roam--get-roam-buffers ()
+(defun org-roam-buffer-list ()
   "Return a list of buffers that are Org-roam files."
-  (--filter (org-roam--org-roam-buffer-p it)
+  (--filter (org-roam-buffer-p it)
             (buffer-list)))
 
 (defun org-roam--get-titles ()
@@ -378,14 +374,14 @@ M-x info for more information at Org-roam > Installation > Post-Installation Tas
   (advice-remove 'delete-file #'org-roam--delete-file-advice)
   (org-roam-db--close-all)
   ;; Disable local hooks for all org-roam buffers
-  (dolist (buf (org-roam--get-roam-buffers))
+  (dolist (buf (org-roam-buffer-list))
     (with-current-buffer buf
       (remove-hook 'after-save-hook #'org-roam-db-update-file t))))
 
 ;;; Hooks and advices
 (defun org-roam--file-setup ()
   "Setup an Org-roam file."
-  (when (org-roam--org-roam-file-p)
+  (when (org-roam-file-p)
     (run-hooks 'org-roam-find-file-hook)))
 
 (defun org-roam--delete-file-advice (file &optional _trash)
@@ -393,7 +389,7 @@ M-x info for more information at Org-roam > Installation > Post-Installation Tas
 FILE is removed from the database."
   (when (and (not (auto-save-file-name-p file))
              (not (backup-file-name-p file))
-             (org-roam--org-roam-file-p file))
+             (org-roam-file-p file))
     (org-roam-db-clear-file (expand-file-name file))))
 
 (defun org-roam--rename-file-advice (old-file new-file-or-dir &rest _args)
@@ -408,9 +404,9 @@ OLD-FILE is cleared from the database, and NEW-FILE-OR-DIR is added."
                (not (auto-save-file-name-p new-file))
                (not (backup-file-name-p old-file))
                (not (backup-file-name-p new-file))
-               (org-roam--org-roam-file-p old-file))
+               (org-roam-file-p old-file))
       (org-roam-db-clear-file old-file))
-    (when (org-roam--org-roam-file-p new-file)
+    (when (org-roam-file-p new-file)
       (org-roam-db-update-file new-file))))
 
 ;;;; Nodes

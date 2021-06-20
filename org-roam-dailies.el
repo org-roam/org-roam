@@ -41,7 +41,7 @@
 ;;;; Declarations
 (defvar org-roam-directory)
 (defvar org-roam-file-extensions)
-(declare-function org-roam--org-file-p        "org-roam")
+(declare-function org-roam-file-p        "org-roam")
 
 ;;;; Faces
 (defface org-roam-dailies-calendar-note
@@ -142,7 +142,7 @@ If FILE is not specified, use the current buffer's file-path."
     (setq path (expand-file-name path))
     (save-match-data
       (and
-       (org-roam--org-file-p path)
+       (org-roam-file-p path)
        (f-descendant-of-p path directory)))))
 
 (defun org-roam-dailies--capture (time &optional goto)

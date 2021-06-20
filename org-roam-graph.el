@@ -37,7 +37,6 @@
 
 ;;;; Declarations
 (defvar org-roam-directory)
-(declare-function org-roam--org-roam-file-p  "org-roam")
 
 ;;;; Options
 (defcustom org-roam-graph-viewer (executable-find "firefox")
