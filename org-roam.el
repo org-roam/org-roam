@@ -58,6 +58,7 @@
 (require 'org-roam-capture)
 (require 'org-roam-dailies)
 (require 'org-roam-db)
+(require 'org-roam-protocol)
 
 ;;; Declarations
 ;; From org-ref-core.el
