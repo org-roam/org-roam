@@ -36,7 +36,7 @@
 ;;
 ;;; Code:
 (require 'org-protocol)
-(require 'org-roam)
+;; (require 'org-roam)
 (eval-when-compile
   (require 'org-roam-macs))
 (require 'ol) ;; for org-link-decode
