@@ -264,15 +264,17 @@ ARG may be any of the following values:
   - nil       show the graph.
   - `\\[universal-argument]'     show the graph for NODE.
   - `\\[universal-argument]' N   show the graph for NODE limiting nodes to N steps."
-  (interactive "P")
-  (pcase arg
-    ('nil            (org-roam-graph--build (org-roam-graph--dot nil t)
-                                            #'org-roam-graph--open))
-    ((pred integerp) (org-roam-graph--build (org-roam-graph--dot
-                                             (org-roam-graph--connected-component
-                                              (org-roam-node-id (org-roam-node-at-point 'assert))
-                                              (abs arg)))
-                                            #'org-roam-graph--open))))
+  (interactive
+   (list current-prefix-arg
+         (and current-prefix-arg
+              (org-roam-node-at-point 'assert))))
+  (let ((graph (cl-typecase arg
+                 (null (org-roam-graph--dot nil 'all-nodes))
+                 (cons (org-roam-graph--dot (org-roam-graph--connected-component
+                                             (org-roam-node-id node) 0)))
+                 (integer (org-roam-graph--dot (org-roam-graph--connected-component
+                                                (org-roam-node-id node) (abs arg)))))))
+    (org-roam-graph--build graph #'org-roam-graph--open)))
 
 
 (provide 'org-roam-graph)
