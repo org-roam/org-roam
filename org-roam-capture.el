@@ -77,7 +77,7 @@ note with the given `ref'.")
 (defvar org-roam-capture-additional-template-props nil
   "Additional props to be added to the Org-roam template.")
 
-(defconst org-roam-capture--template-keywords '(:file-name :head :olp)
+(defconst org-roam-capture--template-keywords '(:file-name :head :olp :encrypt-file)
   "Keywords used in `org-roam-capture-templates' specific to Org-roam.")
 
 (defcustom org-roam-capture-templates
@@ -391,13 +391,13 @@ The file is saved if the original value of :no-save is not t and
     (with-current-buffer (org-capture-get :buffer)
       (save-buffer)))))
 
-(defun org-roam-capture--get-file-path (basename)
+(defun org-roam-capture--get-file-path (basename encrypt-file)
   "Return path for Org-roam file with BASENAME."
   (let* ((ext (or (car org-roam-file-extensions)
                   "org"))
          (file (concat basename "." ext)))
     (expand-file-name
-     (if org-roam-encrypt-files
+     (if encrypt-file
          (concat file ".gpg")
        file)
      org-roam-directory)))
@@ -426,7 +426,8 @@ the file if the original value of :no-save is not t and
                          (user-error "Template needs to specify `:file-name'")))
          (new-id (s-trim (org-roam-capture--fill-template
                           name-templ)))
-         (file-path (org-roam-capture--get-file-path new-id))
+         (file-path (org-roam-capture--get-file-path new-id (or org-roam-encrypt-files
+                                                                (org-roam-capture--get :encrypt-file))))
          (roam-head (or (org-roam-capture--get :head)
                         ""))
          (org-template (org-capture-get :template))
