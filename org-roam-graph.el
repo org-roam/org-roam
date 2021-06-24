@@ -159,8 +159,9 @@ SELECT source, dest, type FROM links WHERE source IN nodes OR dest IN nodes;"
             )))
     (org-roam-db-query query id (- 1 distance))))
 
-(defun org-roam-graph--dot (&optional edges)
-  "Build the graphviz given the EDGES of the graph."
+(defun org-roam-graph--dot (&optional edges all-nodes)
+  "Build the graphviz given the EDGES of the graph.
+If ALL-NODES, include also nodes without edges."
   (let ((org-roam-directory-temp org-roam-directory)
         (nodes-table (org-roam--nodes-table))
         (seen-nodes (list))
@@ -186,6 +187,11 @@ SELECT source, dest, type FROM links WHERE source IN nodes OR dest IN nodes;"
           (insert (format "  \"%s\" -> \"%s\";\n"
                           (xml-escape-string source)
                           (xml-escape-string dest)))))
+      (when all-nodes
+        (maphash (lambda (id node)
+                   (unless (member id seen-nodes)
+                     (insert (org-roam-graph--format-node node "id"))))
+                 nodes-table))
       (insert "}")
       (buffer-string))))
 
@@ -260,7 +266,7 @@ ARG may be any of the following values:
   - `\\[universal-argument]' N   show the graph for NODE limiting nodes to N steps."
   (interactive "P")
   (pcase arg
-    ('nil            (org-roam-graph--build (org-roam-graph--dot)
+    ('nil            (org-roam-graph--build (org-roam-graph--dot nil t)
                                             #'org-roam-graph--open))
     ((pred integerp) (org-roam-graph--build (org-roam-graph--dot
                                              (org-roam-graph--connected-component
