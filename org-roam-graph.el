@@ -125,12 +125,21 @@ If WRAP-VAL is non-nil it wraps the VAL."
           "="
           wrap-val (cdr option) wrap-val))
 
-(defun org-roam-graph--connected-component (id &optional distance)
+(defun org-roam-graph--connected-component (id distance)
   "Return the edges for all nodes reachable from/connected to ID.
 DISTANCE is the maximum distance away from the root node."
   (let* ((query
-          (if distance
+          (if (= distance 0)
               "
+WITH RECURSIVE
+  links_of(source, dest) AS
+  (SELECT source, dest FROM links UNION
+   SELECT dest, source FROM links),
+   connected_component(source) AS
+  (SELECT dest FROM links_of WHERE source = $s1 UNION
+   SELECT dest FROM links_of JOIN connected_component USING(source))
+SELECT source, dest, type FROM links WHERE source IN connected_component OR dest IN connected_component;"
+            "
 WITH RECURSIVE
   links_of(source, dest) AS
   (SELECT source, dest FROM links UNION
@@ -147,16 +156,8 @@ WITH RECURSIVE
   nodes(source) as (SELECT DISTINCT source
    FROM connected_component GROUP BY source ORDER BY min(json_array_length(trace)))
 SELECT source, dest, type FROM links WHERE source IN nodes OR dest IN nodes;"
-            "
-WITH RECURSIVE
-  links_of(source, dest) AS
-  (SELECT source, dest FROM links UNION
-   SELECT dest, source FROM links),
-   connected_component(source) AS
-  (SELECT dest FROM links_of WHERE source = $s1 UNION
-   SELECT dest FROM links_of JOIN connected_component USING(source))
-SELECT source, dest, type FROM links WHERE source IN connected_component OR dest IN connected_component;")))
-    (org-roam-db-query query id distance)))
+            )))
+    (org-roam-db-query query id (- 1 distance))))
 
 (defun org-roam-graph--dot (&optional edges)
   "Build the graphviz given the EDGES of the graph."

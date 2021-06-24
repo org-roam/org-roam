@@ -128,9 +128,7 @@ Performs a database upgrade when required."
 (defun org-roam-db-query (sql &rest args)
   "Run SQL query on Org-roam database with ARGS.
 SQL can be either the emacsql vector representation, or a string."
-  (if  (stringp sql)
-      (emacsql (org-roam-db) (apply #'format sql args))
-    (apply #'emacsql (org-roam-db) sql args)))
+  (apply #'emacsql (org-roam-db) sql args))
 
 (defun org-roam-db-query! (handler sql &rest args)
   "Run SQL query on Org-roam database with ARGS.
