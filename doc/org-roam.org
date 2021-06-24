@@ -618,7 +618,8 @@ the default template, reproduced below.
        "%?"
        :file-name "%<%Y%m%d%H%M%S>-${slug}"
        :head "#+title: ${title}\n"
-       :unnarrowed t)
+       :unnarrowed t
+       :encrypt-file t)
 #+END_SRC
 
 1. The template has short key ~"d"~. If you have only one template, org-roam
@@ -640,6 +641,8 @@ the default template, reproduced below.
    inserted.
 8. ~:unnarrowed t~ tells org-capture to show the contents for the whole
    file, rather than narrowing to just the entry.
+9. ~:encrypt-file t~ tells to encrypt file if doesn't exist. This is useful to
+   encrypt only specific capture template files.
 
 Other options you may want to learn about include ~:immediate-finish~.
 
@@ -912,6 +915,9 @@ GPG), which can be enabled for all new files by setting ~org-roam-encrypt-files~
 to ~t~. When enabled, new files are created with the ~.org.gpg~ extension and
 decryption are handled automatically by EasyPG.
 
+If you want to encrypt, specific capture templates, you can also set
+~:encrypt-file~ to ~t~ in the org-roam-capture-templates list.
+
 Note that Emacs will prompt for a password for encrypted files during cache
 updates if it requires reading the encrypted file. To reduce the number of
 password prompts, you may wish to cache the password.
@@ -919,6 +925,11 @@ password prompts, you may wish to cache the password.
 - User Option: org-roam-encrypt-files
 
   Whether to encrypt new files. If true, create files with .org.gpg extension.
+
+- Capture Template Keyword: :encrypt-file
+
+  Whether to encrypt new files for specified capture template. If true, create
+  files with .org.gpg extension.
 
 * Graphing
 
