@@ -152,12 +152,11 @@ WITH RECURSIVE
     -- Avoid cycles by only visiting each node once.
     (SELECT count(*) FROM json_each(cc.trace) WHERE json_each.value == lo.dest) == 0
     -- Note: BFS is cut off early here.
-    AND json_array_length(cc.trace) < ($s2 + 1))),
+    AND json_array_length(cc.trace) < $s2)),
   nodes(source) as (SELECT DISTINCT source
    FROM connected_component GROUP BY source ORDER BY min(json_array_length(trace)))
-SELECT source, dest, type FROM links WHERE source IN nodes OR dest IN nodes;"
-            )))
-    (org-roam-db-query query id (- 1 distance))))
+SELECT source, dest, type FROM links WHERE source IN nodes OR dest IN nodes;")))
+    (org-roam-db-query query id distance)))
 
 (defun org-roam-graph--dot (&optional edges all-nodes)
   "Build the graphviz given the EDGES of the graph.
