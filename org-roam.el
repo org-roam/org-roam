@@ -644,40 +644,73 @@ Throw an error if multiple choices exist."
      (t
       (user-error "Multiple nodes exist with title or alias \"%s\"" s)))))
 
+(defun org-roam-node--to-candidate (node)
+  "Return a minibuffer completion candidate given NODE."
+  (let ((candidate-main (org-roam-node--format-entry node (1- (frame-width))))
+        (tag-str (org-roam--tags-to-str (org-roam-node-tags node))))
+    (cons (propertize (concat candidate-main
+                                  (propertize tag-str 'invisible t))
+                          'node node)
+              node)))
+
 (defun org-roam-node--completions ()
   "Return an alist for node completion.
 The car is the displayed title or alias for the node, and the cdr
 is the `org-roam-node'.
 The displayed title is formatted according to `org-roam-node-display-template'."
   (setq org-roam--cached-display-format nil)
-  (let ((files-table (org-roam--files-table))
-        (tags-table (org-roam--tags-table)))
-    (cl-loop for row in (append
-                         (org-roam-db-query [:select [file level pos title title id properties olp]
-                                             :from nodes])
-                         (org-roam-db-query [:select [nodes:file level pos alias title node-id]
-                                             :from aliases
-                                             :left-join nodes
-                                             :on (= aliases:node-id nodes:id)]))
-             collect (pcase-let* ((`(,file ,level ,pos ,alias ,title ,id ,properties ,olp) row)
-                                  (`(,file-hash ,file-atime ,file-mtime) (gethash file files-table))
-                                  (node (org-roam-node-create :id id
-                                                              :level level
-                                                              :file file
-                                                              :file-hash file-hash
-                                                              :file-atime file-atime
-                                                              :file-mtime file-mtime
-                                                              :title alias
-                                                              :point pos
-                                                              :properties properties
-                                                              :olp olp
-                                                              :tags (gethash id tags-table)))
-                                  (candidate-main (org-roam-node--format-entry node (1- (frame-width))))
-                                  (tag-str (org-roam--tags-to-str (org-roam-node-tags node))))
-                       (cons (propertize (concat candidate-main
-                                                 (propertize tag-str 'invisible t))
-                                         'node node)
-                             node)))))
+  (let ((rows (org-roam-db-query
+   "SELECT id, file, title, \"level\", todo, pos, priority, scheduled, deadline,
+           properties, olp, atime, mtime,
+           '(' || group_concat(tags,  ' ') || ')' as tags, aliases, refs
+    FROM
+     (SELECT
+       nodes.id as id,
+       nodes.file as file,
+       nodes.\"level\" as \"level\",
+       nodes.todo as todo,
+       nodes.pos as pos,
+       nodes.priority as priority,
+       nodes.scheduled as scheduled,
+       nodes.deadline as deadline,
+       nodes.title as title,
+       nodes.properties as properties,
+       nodes.olp as olp,
+       files.atime as atime,
+       files.mtime as mtime,
+       tags.tag as tags,
+       '(' || group_concat(aliases.alias, ' ') || ')' as aliases,
+       '(' || group_concat(refs.ref, ' ') || ')' as refs
+     FROM nodes
+     LEFT JOIN files ON files.file = nodes.file
+     LEFT JOIN tags ON tags.node_id = nodes.id
+     LEFT JOIN aliases ON aliases.node_id = nodes.id
+     LEFT JOIN refs ON refs.node_id = nodes.id
+     GROUP BY nodes.id, tags.tag )
+   GROUP BY id, aliases, refs;")))
+    (cl-loop for row in rows
+             append (pcase-let* ((`(,id ,file ,title ,level ,todo ,pos ,priority ,scheduled
+                                        ,deadline ,properties ,olp ,atime ,mtime ,tags ,aliases, refs) row)
+                                 (all-titles (cons title aliases))
+                                 (nodes (mapcar (lambda (t)
+                                                  (org-roam-node-create :id id
+                                                                        :file file
+                                                                        :file-atime atime
+                                                                        :file-mtime mtime
+                                                                        :level level
+                                                                        :point pos
+                                                                        :todo todo
+                                                                        :priority priority
+                                                                        :scheduled scheduled
+                                                                        :deadline deadline
+                                                                        :title t
+                                                                        :properties properties
+                                                                        :olp olp
+                                                                        :tags tags
+                                                                        :refs refs))
+                                                ;; NOTE: refs here do not have their type (e.g. //google.com, not http://google.com)
+                                                all-titles)))
+                      (mapcar #'org-roam-node--to-candidate nodes)))))
 
 (defcustom org-roam-node-annotation-function #'org-roam-node--annotation
   "The function used to return annotations in the minibuffer for Org-roam nodes.
