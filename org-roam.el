@@ -649,9 +649,9 @@ Throw an error if multiple choices exist."
   (let ((candidate-main (org-roam-node--format-entry node (1- (frame-width))))
         (tag-str (org-roam--tags-to-str (org-roam-node-tags node))))
     (cons (propertize (concat candidate-main
-                                  (propertize tag-str 'invisible t))
-                          'node node)
-              node)))
+                              (propertize tag-str 'invisible t))
+                      'node node)
+          node)))
 
 (defun org-roam-node--completions ()
   "Return an alist for node completion.
@@ -660,34 +660,34 @@ is the `org-roam-node'.
 The displayed title is formatted according to `org-roam-node-display-template'."
   (setq org-roam--cached-display-format nil)
   (let ((rows (org-roam-db-query
-   "SELECT id, file, title, \"level\", todo, pos, priority, scheduled, deadline,
-           properties, olp, atime, mtime,
-           '(' || group_concat(tags,  ' ') || ')' as tags, aliases, refs
-    FROM
-     (SELECT
-       nodes.id as id,
-       nodes.file as file,
-       nodes.\"level\" as \"level\",
-       nodes.todo as todo,
-       nodes.pos as pos,
-       nodes.priority as priority,
-       nodes.scheduled as scheduled,
-       nodes.deadline as deadline,
-       nodes.title as title,
-       nodes.properties as properties,
-       nodes.olp as olp,
-       files.atime as atime,
-       files.mtime as mtime,
-       tags.tag as tags,
-       '(' || group_concat(aliases.alias, ' ') || ')' as aliases,
-       '(' || group_concat(refs.ref, ' ') || ')' as refs
-     FROM nodes
-     LEFT JOIN files ON files.file = nodes.file
-     LEFT JOIN tags ON tags.node_id = nodes.id
-     LEFT JOIN aliases ON aliases.node_id = nodes.id
-     LEFT JOIN refs ON refs.node_id = nodes.id
-     GROUP BY nodes.id, tags.tag )
-   GROUP BY id, aliases, refs;")))
+               "SELECT id, file, title, \"level\", todo, pos, priority, scheduled, deadline,
+                  properties, olp, atime, mtime,
+                  '(' || group_concat(tags,  ' ') || ')' as tags, aliases, refs
+           FROM
+            (SELECT
+              nodes.id as id,
+              nodes.file as file,
+              nodes.\"level\" as \"level\",
+              nodes.todo as todo,
+              nodes.pos as pos,
+              nodes.priority as priority,
+              nodes.scheduled as scheduled,
+              nodes.deadline as deadline,
+              nodes.title as title,
+              nodes.properties as properties,
+              nodes.olp as olp,
+              files.atime as atime,
+              files.mtime as mtime,
+              tags.tag as tags,
+              '(' || group_concat(aliases.alias, ' ') || ')' as aliases,
+              '(' || group_concat(refs.ref, ' ') || ')' as refs
+            FROM nodes
+            LEFT JOIN files ON files.file = nodes.file
+            LEFT JOIN tags ON tags.node_id = nodes.id
+            LEFT JOIN aliases ON aliases.node_id = nodes.id
+            LEFT JOIN refs ON refs.node_id = nodes.id
+            GROUP BY nodes.id, tags.tag )
+          GROUP BY id, aliases, refs;")))
     (cl-loop for row in rows
              append (pcase-let* ((`(,id ,file ,title ,level ,todo ,pos ,priority ,scheduled
                                         ,deadline ,properties ,olp ,atime ,mtime ,tags ,aliases, refs) row)
