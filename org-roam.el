@@ -692,7 +692,7 @@ The displayed title is formatted according to `org-roam-node-display-template'."
              append (pcase-let* ((`(,id ,file ,title ,level ,todo ,pos ,priority ,scheduled
                                         ,deadline ,properties ,olp ,atime ,mtime ,tags ,aliases, refs) row)
                                  (all-titles (cons title aliases))
-                                 (nodes (mapcar (lambda (t)
+                                 (nodes (mapcar (lambda (temp-title)
                                                   (org-roam-node-create :id id
                                                                         :file file
                                                                         :file-atime atime
@@ -703,12 +703,13 @@ The displayed title is formatted according to `org-roam-node-display-template'."
                                                                         :priority priority
                                                                         :scheduled scheduled
                                                                         :deadline deadline
-                                                                        :title t
+                                                                        :title temp-title
                                                                         :properties properties
                                                                         :olp olp
                                                                         :tags tags
                                                                         :refs refs))
-                                                ;; NOTE: refs here do not have their type (e.g. //google.com, not http://google.com)
+                                                ;; NOTE: refs here do not have their type
+                                                ;; (e.g. //google.com, not http://google.com)
                                                 all-titles)))
                       (mapcar #'org-roam-node--to-candidate nodes)))))
 
