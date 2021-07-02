@@ -714,7 +714,7 @@ FROM
       files.mtime as mtime,
       tags.tag as tags,
       aliases.alias as aliases,
-      '(' || group_concat(refs.ref, ' ') || ')' as refs
+      '(' || group_concat(RTRIM (refs.\"type\", '\"') || ':' || LTRIM(refs.ref, '\"'), ' ') || ')' as refs
     FROM nodes
     LEFT JOIN files ON files.file = nodes.file
     LEFT JOIN tags ON tags.node_id = nodes.id
