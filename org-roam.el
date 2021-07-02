@@ -934,10 +934,10 @@ If the property is already set, it's value is replaced."
                                    (_ nil)))))
     (seq-uniq (append roam-tags org-tags))))
 
-(defun org-roam-tag-add (tag)
-  "Add TAG to the node at point."
+(defun org-roam-tag-add (tags)
+  "Add TAGS to the node at point."
   (interactive
-   (list (completing-read "Tag: " (org-roam-tag-completions))))
+   (list (completing-read-multiple "Tag: " (org-roam-tag-completions))))
   (let ((node (org-roam-node-at-point 'assert)))
     (save-excursion
       (goto-char (org-roam-node-point node))
@@ -945,12 +945,12 @@ If the property is already set, it's value is replaced."
           (let ((current-tags (split-string (or (cadr (assoc "FILETAGS"
                                                              (org-collect-keywords '("filetags"))))
                                                 ""))))
-            (org-roam-set-keyword "filetags" (string-join (seq-uniq (cons tag current-tags)) " ")))
-        (org-set-tags (seq-uniq (cons tag (org-get-tags)))))
-      tag)))
+            (org-roam-set-keyword "filetags" (string-join (seq-uniq (append tags current-tags)) " ")))
+        (org-set-tags (seq-uniq (append tags (org-get-tags)))))
+      tags)))
 
-(defun org-roam-tag-remove (&optional tag)
-  "Remove a TAG to the node at point."
+(defun org-roam-tag-remove (&optional tags)
+  "Remove TAGS from the node at point."
   (interactive)
   (let ((node (org-roam-node-at-point 'assert)))
     (save-excursion
@@ -959,13 +959,13 @@ If the property is already set, it's value is replaced."
           (let* ((current-tags (split-string (or (cadr (assoc "FILETAGS"
                                                               (org-collect-keywords '("filetags"))))
                                                  (user-error "No tag to remove"))))
-                 (tag (or tag (completing-read "Tag: " current-tags))))
-            (org-roam-set-keyword "filetags" (string-join (delete tag current-tags) " ")))
+                 (tags (or tags (completing-read-multiple "Tag: " current-tags))))
+            (org-roam-set-keyword "filetags" (string-join (seq-difference current-tags tags #'string-equal) " ")))
         (let* ((current-tags (or (org-get-tags)
                                  (user-error "No tag to remove")))
-               (tag (completing-read "Tag: " current-tags)))
-          (org-set-tags (delete tag current-tags))))
-      tag)))
+               (tags (completing-read-multiple "Tag: " current-tags)))
+          (org-set-tags (seq-difference current-tags tags #'string-equal))))
+      tags)))
 
 ;;;; Aliases
 (defun org-roam-alias-add (alias)
