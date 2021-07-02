@@ -995,7 +995,8 @@ If the property is already set, it's value is replaced."
                                                               (org-collect-keywords '("filetags"))))
                                                  (user-error "No tag to remove"))))
                  (tags (or tags (completing-read-multiple "Tag: " current-tags))))
-            (org-roam-set-keyword "filetags" (string-join (seq-difference current-tags tags #'string-equal) " ")))
+            (org-roam-set-keyword "filetags"
+                                  (string-join (seq-difference current-tags tags #'string-equal) " ")))
         (let* ((current-tags (or (org-get-tags)
                                  (user-error "No tag to remove")))
                (tags (completing-read-multiple "Tag: " current-tags)))
