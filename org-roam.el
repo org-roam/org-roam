@@ -1100,6 +1100,34 @@ FILTER-FN is applied to the ref list to filter out candidates."
 ;;; the roam: link
 (org-link-set-parameters "roam" :follow #'org-roam-link-follow-link)
 
+(defun org-roam-link-replace-at-point (&optional link)
+  "Replace the roam: LINK at point with an id link."
+  (save-excursion
+    (save-match-data
+      (let* ((link (or link (org-element-context)))
+             (type (org-element-property :type link))
+             (path (org-element-property :path link))
+             node)
+        (goto-char (org-element-property :begin link))
+        (when (and (org-in-regexp org-link-any-re 1)
+                   (string-equal type "roam")
+                   (setq node (org-roam-node-from-title-or-alias path)))
+          (replace-match (org-link-make-string
+                          (concat "id:" (org-roam-node-id node))
+                          path)))))))
+
+(defun org-roam-link-replace-all ()
+  "Replace all roam: links in buffer with id: links."
+  (interactive)
+  (org-roam-db-map-links (list #'org-roam-link-replace-at-point)))
+
+(defun org-roam-replace-roam-links-on-save ()
+  "Replce roam: links on save.
+Added to `before-save-hook'."
+  (when (and org-roam-link-auto-replace
+             (org-roam-file-p))
+    (org-roam-db-map-links (list #'org-roam-link-replace-at-point))))
+
 (defun org-roam-link-follow-link (path)
   "Org-roam's roam: link navigation with description PATH.
 This function is called by Org when following links of the type
@@ -1108,12 +1136,7 @@ the link."
   (if-let ((node (org-roam-node-from-title-or-alias path)))
       (progn
         (when org-roam-link-auto-replace
-          (save-excursion
-            (save-match-data
-              (org-in-regexp org-link-bracket-re 1)
-              (replace-match (org-link-make-string
-                              (concat "id:" (org-roam-node-id node))
-                              path)))))
+          (org-roam-link-replace-at-point))
         (org-id-goto (org-roam-node-id node)))
     (org-roam-capture-
      :node (org-roam-node-create :title path)
@@ -1139,6 +1162,7 @@ To be added to `org-open-at-point-functions'."
   (add-hook 'org-open-at-point-functions #'org-roam-open-id-at-point nil t))
 
 (add-hook 'org-roam-find-file-hook #'org-roam-open-id-with-org-roam-db-h)
+(add-hook 'before-save-hook #'org-roam-replace-roam-links-on-save)
 
 ;;; Refiling
 (defun org-roam-demote-entire-buffer ()
