@@ -497,7 +497,7 @@ If the file exists, update the cache with information."
   "."
   (add-hook 'after-save-hook #'org-roam-db-update-file nil t))
 
-(add-to-list 'org-roam-find-file-hook #'org-roam-db--update-on-save-h)
+(add-hook 'org-roam-find-file-hook #'org-roam-db--update-on-save-h)
 
 ;; Diagnostic Interactives
 (defun org-roam-db-diagnose-node ()
