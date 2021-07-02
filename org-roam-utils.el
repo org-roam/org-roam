@@ -136,6 +136,7 @@ it aligns with the text area."
 
 ;;; Keywords
 (defun org-roam--get-keyword (name &optional file bound)
+  "."
   (save-excursion
     (let ((re (format "^#\\+%s:[ \t]*\\([^\n]+\\)" (upcase name))))
       (goto-char (point-min))
@@ -144,7 +145,7 @@ it aligns with the text area."
 
 (defun org-roam-get-keyword (name &optional file bound)
   "Get a document property named NAME (string) from an org FILE (defaults to
-current file). Only scans first 2048 bytes of the document."
+current file). Only scans up to BOUND bytes of the document."
   (unless bound
     (setq bound 1024))
   (if file
