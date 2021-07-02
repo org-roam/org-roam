@@ -42,11 +42,6 @@
 
 (declare-function org-roam--get-titles "org-roam")
 
-(defcustom org-roam-completion-ignore-case t
-  "Whether to ignore case in Org-roam `completion-at-point' completions."
-  :group 'org-roam
-  :type 'boolean)
-
 (defcustom org-roam-completion-everywhere nil
   "When non-nil, provide link completion matching outside of Org links."
   :group 'org-roam
