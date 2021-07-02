@@ -743,8 +743,6 @@ GROUP BY id")))
                                                                         :olp olp
                                                                         :tags tags
                                                                         :refs refs))
-                                                ;; NOTE: refs here do not have their type
-                                                ;; (e.g. //google.com, not http://google.com)
                                                 all-titles)))
                       (mapcar #'org-roam-node--to-candidate nodes)))))
 
