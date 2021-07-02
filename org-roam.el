@@ -724,8 +724,9 @@ FROM
   GROUP BY id, tags )
 GROUP BY id")))
     (cl-loop for row in rows
-             append (pcase-let* ((`(,id ,file ,title ,level ,todo ,pos ,priority ,scheduled
-                                        ,deadline ,properties ,olp ,atime ,mtime ,tags ,aliases, refs) row)
+             append (pcase-let* ((`(,id ,file ,level ,todo ,pos ,priority ,scheduled ,deadline
+                                        ,title ,properties ,olp ,atime ,mtime ,tags ,aliases, refs)
+                                  row)
                                  (all-titles (cons title aliases))
                                  (nodes (mapcar (lambda (temp-title)
                                                   (org-roam-node-create :id id
