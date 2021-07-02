@@ -134,6 +134,25 @@ it aligns with the text area."
               (concat (propertize " " 'display '(space :align-to 0))
                       string)))
 
+;;; Keywords
+(defun org-roam--get-keyword (name &optional file bound)
+  (save-excursion
+    (let ((re (format "^#\\+%s:[ \t]*\\([^\n]+\\)" (upcase name))))
+      (goto-char (point-min))
+      (when (re-search-forward re bound t)
+        (buffer-substring-no-properties (match-beginning 1) (match-end 1))))))
+
+(defun org-roam-get-keyword (name &optional file bound)
+  "Get a document property named NAME (string) from an org FILE (defaults to
+current file). Only scans first 2048 bytes of the document."
+  (unless bound
+    (setq bound 1024))
+  (if file
+      (with-temp-buffer
+        (insert-file-contents-literally file nil 0 bound)
+        (org-roam--get-keyword name))
+    (org-roam--get-keyword name bound)))
+
 ;;; Shielding regions
 (defface org-roam-shielded
   '((t :inherit (warning)))
