@@ -1116,16 +1116,16 @@ FILTER-FN is applied to the ref list to filter out candidates."
                           path)))))))
 
 (defun org-roam-link-replace-all ()
-  "Replace all roam: links in buffer with id: links."
+  "Replace all \"roam:\" links in buffer with \"id:\" links."
   (interactive)
   (org-roam-db-map-links (list #'org-roam-link-replace-at-point)))
 
-(defun org-roam-replace-roam-links-on-save ()
-  "Replce roam: links on save.
-Added to `before-save-hook'."
-  (when (and org-roam-link-auto-replace
-             (org-roam-file-p))
-    (org-roam-db-map-links (list #'org-roam-link-replace-at-point))))
+(defun org-roam--replace-roam-links-on-save-h ()
+  "Run `org-roam-link-replace-all' before buffer is saved to its file."
+  (when org-roam-link-auto-replace
+    (add-hook 'before-save-hook #'org-roam-link-replace-all nil t)))
+
+(add-hook 'org-roam-find-file-hook #'org-roam--replace-roam-links-on-save-h)
 
 (defun org-roam-link-follow-link (path)
   "Org-roam's roam: link navigation with description PATH.
@@ -1161,7 +1161,6 @@ To be added to `org-open-at-point-functions'."
   (add-hook 'org-open-at-point-functions #'org-roam-open-id-at-point nil t))
 
 (add-hook 'org-roam-find-file-hook #'org-roam-open-id-with-org-roam-db-h)
-(add-hook 'before-save-hook #'org-roam-replace-roam-links-on-save)
 
 ;;; Refiling
 (defun org-roam-demote-entire-buffer ()
