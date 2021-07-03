@@ -144,8 +144,9 @@ it aligns with the text area."
         (buffer-substring-no-properties (match-beginning 1) (match-end 1))))))
 
 (defun org-roam-get-keyword (name &optional file bound)
-  "Get a document property named NAME (string) from an org FILE (defaults to
-current file). Only scans up to BOUND bytes of the document."
+  "Return keyword property NAME from an org FILE.
+FILE defaults to current file.
+Only scans up to BOUND bytes of the document."
   (unless bound
     (setq bound 1024))
   (if file

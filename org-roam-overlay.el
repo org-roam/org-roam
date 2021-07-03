@@ -51,6 +51,7 @@
     o))
 
 (defun org-roam-overlay-make-link-overlay (link)
+  "Create overlay for LINK."
   (save-excursion
     (save-match-data
       (let* ((type (org-element-property :type link))
