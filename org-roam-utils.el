@@ -135,8 +135,9 @@ it aligns with the text area."
                       string)))
 
 ;;; Keywords
-(defun org-roam--get-keyword (name &optional file bound)
-  "."
+(defun org-roam--get-keyword (name &optional bound)
+  "Return keyword property NAME in current buffer.
+If BOUND, scan up to BOUND bytes of the buffer."
   (save-excursion
     (let ((re (format "^#\\+%s:[ \t]*\\([^\n]+\\)" (upcase name))))
       (goto-char (point-min))
