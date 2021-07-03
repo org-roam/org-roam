@@ -1118,7 +1118,9 @@ FILTER-FN is applied to the ref list to filter out candidates."
 (defun org-roam-link-replace-all ()
   "Replace all \"roam:\" links in buffer with \"id:\" links."
   (interactive)
-  (org-roam-db-map-links (list #'org-roam-link-replace-at-point)))
+  (org-with-point-at 1
+    (while (re-search-forward org-link-bracket-re nil t)
+      (org-roam-link-replace-at-point))))
 
 (defun org-roam--replace-roam-links-on-save-h ()
   "Run `org-roam-link-replace-all' before buffer is saved to its file."
