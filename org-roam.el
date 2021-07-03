@@ -731,7 +731,7 @@ GROUP BY id")))
                                                       :olp olp
                                                       :tags tags
                                                       :refs refs))
-                                                all-titles)))))
+                              all-titles)))))
 
 (defun org-roam-node--to-candidate (node)
   "Return a minibuffer completion candidate given NODE."

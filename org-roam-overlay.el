@@ -63,24 +63,34 @@
                    (not desc-p))
           (org-roam-overlay--make
            pos pos
-           'after-string (concat " "
+           'after-string (format "%s "
                                  (propertize (org-roam-node-title node)
                                              'face 'org-roam-overlay))))))))
 
 (defun org-roam-overlay-enable ()
   "Enable Org-roam overlays."
   (org-roam-db-map-links
-    (list #'org-roam-overlay-make-link-overlay)))
+   (list #'org-roam-overlay-make-link-overlay)))
 
 (defun org-roam-overlay-disable ()
   "Disable Org-roam overlays."
   (remove-overlays nil nil 'category 'org-roam))
 
+(defun org-roam-overlay-redisplay ()
+  "Redisplay Org-roam overlays."
+  (org-roam-overlay-disable)
+  (org-roam-overlay-enable))
+
 (define-minor-mode org-roam-overlay-mode
   "Overlays for Org-roam ID links.
-
-Org-roam overlay mode is a global minor mode.  When enabled,
+Org-roam overlay mode is a minor mode.  When enabled,
 overlay displaying the node's title is displayed."
-  :global t
-  :version "20.3"
-  (if org-roam-overlay-mode (org-roam-overlay-enable) (org-roam-overlay-disable)))
+  (if org-roam-overlay-mode
+      (progn
+        (org-roam-overlay-enable)
+        (add-hook #'after-save-hook #'org-roam-overlay-redisplay nil t))
+    (org-roam-overlay-disable)
+    (remove-hook #'after-save-hook #'org-roam-overlay-redisplay t)))
+
+(provide 'org-roam-overlay)
+;;; org-roam-overlay.el ends here
