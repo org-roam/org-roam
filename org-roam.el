@@ -644,21 +644,8 @@ Throw an error if multiple choices exist."
      (t
       (user-error "Multiple nodes exist with title or alias \"%s\"" s)))))
 
-(defun org-roam-node--to-candidate (node)
-  "Return a minibuffer completion candidate given NODE."
-  (let ((candidate-main (org-roam-node--format-entry node (1- (frame-width))))
-        (tag-str (org-roam--tags-to-str (org-roam-node-tags node))))
-    (cons (propertize (concat candidate-main
-                              (propertize tag-str 'invisible t))
-                      'node node)
-          node)))
-
-(defun org-roam-node--completions ()
-  "Return an alist for node completion.
-The car is the displayed title or alias for the node, and the cdr
-is the `org-roam-node'.
-The displayed title is formatted according to `org-roam-node-display-template'."
-  (setq org-roam--cached-display-format nil)
+(defun org-roam-node-list ()
+  "Return a list of all nodes."
   (let ((rows (org-roam-db-query
                "SELECT
   id,
@@ -725,27 +712,44 @@ FROM
 GROUP BY id")))
     (cl-loop for row in rows
              append (pcase-let* ((`(,id ,file ,level ,todo ,pos ,priority ,scheduled ,deadline
-                                        ,title ,properties ,olp ,atime ,mtime ,tags ,aliases, refs)
+                                        ,title ,properties ,olp ,atime ,mtime ,tags ,aliases ,refs)
                                   row)
-                                 (all-titles (cons title aliases))
-                                 (nodes (mapcar (lambda (temp-title)
-                                                  (org-roam-node-create :id id
-                                                                        :file file
-                                                                        :file-atime atime
-                                                                        :file-mtime mtime
-                                                                        :level level
-                                                                        :point pos
-                                                                        :todo todo
-                                                                        :priority priority
-                                                                        :scheduled scheduled
-                                                                        :deadline deadline
-                                                                        :title temp-title
-                                                                        :properties properties
-                                                                        :olp olp
-                                                                        :tags tags
-                                                                        :refs refs))
-                                                all-titles)))
-                      (mapcar #'org-roam-node--to-candidate nodes)))))
+                                 (all-titles (cons title aliases)))
+                      (mapcar (lambda (temp-title)
+                                (org-roam-node-create :id id
+                                                      :file file
+                                                      :file-atime atime
+                                                      :file-mtime mtime
+                                                      :level level
+                                                      :point pos
+                                                      :todo todo
+                                                      :priority priority
+                                                      :scheduled scheduled
+                                                      :deadline deadline
+                                                      :title temp-title
+                                                      :properties properties
+                                                      :olp olp
+                                                      :tags tags
+                                                      :refs refs))
+                                                all-titles)))))
+
+(defun org-roam-node--to-candidate (node)
+  "Return a minibuffer completion candidate given NODE."
+  (let ((candidate-main (org-roam-node--format-entry node (1- (frame-width))))
+        (tag-str (org-roam--tags-to-str (org-roam-node-tags node))))
+    (cons (propertize (concat candidate-main
+                              (propertize tag-str 'invisible t))
+                      'node node)
+          node)))
+
+(defun org-roam-node--completions ()
+  "Return an alist for node completion.
+The car is the displayed title or alias for the node, and the cdr
+is the `org-roam-node'.
+The displayed title is formatted according to `org-roam-node-display-template'."
+  (setq org-roam--cached-display-format nil)
+  (let ((nodes (org-roam-node-list)))
+    (mapcar #'org-roam-node--to-candidate nodes)))
 
 (defcustom org-roam-node-annotation-function #'org-roam-node--annotation
   "The function used to return annotations in the minibuffer for Org-roam nodes.
