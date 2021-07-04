@@ -222,9 +222,9 @@ Valid states are 'visible, 'exists and 'none."
        (remove-hook 'post-command-hook #'org-roam-buffer--post-command-h)))
     ((or 'exists 'none)
      (progn
-       (display-buffer (get-buffer-create org-roam-buffer))
        (setq org-roam-current-node (org-roam-node-at-point)
              org-roam-current-directory org-roam-directory)
+       (display-buffer (get-buffer-create org-roam-buffer))
        (org-roam-buffer-persistent-redisplay)))))
 
 (defun org-roam-buffer-persistent-redisplay ()
