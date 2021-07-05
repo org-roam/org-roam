@@ -137,7 +137,7 @@ See `org-roam-capture-templates' for the template documentation."
 If FILE is not specified, use the current buffer's file-path."
   (when-let ((path (expand-file-name
                     (or file
-                        (buffer-base-buffer (buffer-file-name)))))
+                        (buffer-file-name (buffer-base-buffer)))))
              (directory (expand-file-name org-roam-dailies-directory org-roam-directory)))
     (setq path (expand-file-name path))
     (save-match-data
