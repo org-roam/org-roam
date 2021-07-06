@@ -617,7 +617,6 @@ Return the ID of the location."
            ;; Current date, possibly corrected for late night
            ;; workers.
            (org-today)))))
-       (org-end-of-subtree t t)
        (setq p (point)))
       (`(node ,title-or-id)
        ;; first try to get ID, then try to get title/alias
@@ -626,8 +625,7 @@ Return the ID of the location."
                        (user-error "No node with title or id \"%s\" title-or-id"))))
          (set-buffer (org-capture-target-buffer (org-roam-node-file node)))
          (goto-char (org-roam-node-point node))
-         (setq p (org-roam-node-point node))
-         (org-end-of-subtree t t))))
+         (setq p (org-roam-node-point node)))))
     (save-excursion
       (goto-char p)
       (when-let* ((node org-roam-capture--node)
@@ -680,7 +678,9 @@ you can catch it with `condition-case'."
        (setq lmin (1+ flevel) lmax (+ lmin (if org-odd-levels-only 1 0)))
        (setq start found
              end (save-excursion (org-end-of-subtree t t))))
-     (copy-marker end))))
+     (if (org-at-heading-p)
+         (point-marker)
+       (copy-marker end)))))
 
 (defun org-roam-capture--get-node-from-ref (ref)
   "Return the node from reference REF."
