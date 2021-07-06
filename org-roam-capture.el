@@ -727,7 +727,28 @@ This function is used solely in Org-roam's capture templates: see
                      (org-roam-capture--fill-template (org-capture-get :template)))
     (org-roam-capture--put :id id)
     (org-roam-capture--put :finalize (or (org-capture-get :finalize)
-                                         (org-roam-capture--get :finalize)))))
+                                         (org-roam-capture--get :finalize)))
+    ;; NOTE This should be always put at the end of the defun.
+    (advice-add 'org-capture-put :filter-args #'org-roam-capture--inhibit-exact-position-a)))
+
+;; HACK `org-roam-capture--get-point' designed as a (function ...) based target
+;; for `org-capture-set-target-location'. The problem with this is that the
+;; function based capture target will always try to set `:exact-position' there
+;; and this has a major conflict with org-roam's capture targets. Most (if not
+;; all) of its targets don't need `:exact-position' and those that do should set
+;; them explicitly in `org-roam-capture--goto-location', similarly to how
+;; `org-capture-set-target-location' does it for its own targets.
+;;
+;; This advice will be relevant as long as both, org-roam hooks itself to
+;; org-capture as a function based target and org-capture keep attempts to set
+;; `:exact-position' for function based capture targets.
+(defun org-roam-capture--inhibit-exact-position-a (plist)
+  "Filter out `:exact-position' out of PLIST.
+This function is designed as a self-removing advice for
+`org-captre-put' and is exclusively used inside
+`org-roam-capture--get-point'."
+  (prog1 (plist-put plist :exact-position nil)
+    (advice-remove 'org-capture-put #'org-roam-capture--inhibit-exact-position-a)))
 
 (defun org-roam-capture--convert-template (template &optional props)
   "Convert TEMPLATE from Org-roam syntax to `org-capture-templates' syntax.
