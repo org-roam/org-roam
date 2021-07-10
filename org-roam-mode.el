@@ -224,6 +224,7 @@ Valid states are 'visible, 'exists and 'none."
      (progn
        (setq org-roam-current-node (org-roam-node-at-point)
              org-roam-current-directory org-roam-directory)
+       (add-hook 'post-command-hook #'org-roam-buffer--post-command-h)
        (display-buffer (get-buffer-create org-roam-buffer))
        (org-roam-buffer-persistent-redisplay)))))
 
