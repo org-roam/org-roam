@@ -309,21 +309,6 @@ Use external shell commands if defined in `org-roam-list-files-commands'."
       (puthash id (org-roam-node-create :file file :id id :title title) ht))
     ht))
 
-(defun org-roam--files-table ()
-  "Return a hash table of file to file properties."
-  (let ((ht (make-hash-table :test #'equal)))
-    (pcase-dolist (`(,file ,hash ,atime ,mtime)
-                   (org-roam-db-query [:select [file hash atime mtime] :from files]))
-      (puthash file `(,hash ,atime ,mtime) ht))
-    ht))
-
-(defun org-roam--tags-table ()
-  "Return a hash table of node ID to list of tags."
-  (let ((ht (make-hash-table :test #'equal)))
-    (pcase-dolist (`(,node-id ,tag) (org-roam-db-query [:select [node-id tag] :from tags]))
-      (puthash node-id (cons tag (gethash node-id ht)) ht))
-    ht))
-
 (defun org-roam-buffer-p (&optional buffer)
   "Return t if BUFFER is accessing a part of Org-roam system.
 If BUFFER is not specified, use the current buffer."
