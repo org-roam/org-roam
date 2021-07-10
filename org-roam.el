@@ -325,11 +325,9 @@ If BUFFER is not specified, use the current buffer."
             (buffer-list)))
 
 (defun org-roam--get-titles ()
-  "Return all titles and aliases in the Org-roam database."
-  (let* ((titles (mapcar #'car (org-roam-db-query [:select title :from nodes])))
-         (aliases (mapcar #'car (org-roam-db-query [:select alias :from aliases])))
-         (completions (append titles aliases)))
-    completions))
+  "Return all distinct titles and aliases in the Org-roam database."
+  (mapcar #'car (org-roam-db-query [:select :distinct title :from nodes
+                                    :union :select alias :from aliases])))
 
 ;;; Org-roam setup and teardown
 (defvar org-roam-find-file-hook nil
