@@ -353,12 +353,6 @@ If BUFFER is not specified, use the current buffer."
 (defun org-roam-setup ()
   "Setup Org-roam."
   (interactive)
-  (unless (or (and (bound-and-true-p emacsql-sqlite3-executable)
-                   (file-executable-p emacsql-sqlite3-executable))
-              (executable-find "sqlite3"))
-    (lwarn '(org-roam) :error "Cannot find executable 'sqlite3'. \
-Ensure it is installed and can be found within `exec-path'. \
-M-x info for more information at Org-roam > Installation > Post-Installation Tasks."))
   (add-hook 'find-file-hook #'org-roam--file-setup)
   (add-hook 'kill-emacs-hook #'org-roam-db--close-all)
   (advice-add 'rename-file :after #'org-roam--rename-file-advice)
