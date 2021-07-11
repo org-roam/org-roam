@@ -468,8 +468,7 @@ nodes."
                                                  :where (= id $s1)
                                                  :limit 1]
                                                 (org-roam-node-id node)))))
-    (pcase-let* ((`(,file ,level ,pos ,todo ,priority ,scheduled
-                           ,deadline ,title ,properties ,olp) node-info)
+    (pcase-let* ((`(,file ,level ,pos ,todo ,priority ,scheduled ,deadline ,title ,properties ,olp) node-info)
                  (`(,atime ,mtime) (car (org-roam-db-query [:select [atime mtime]
                                                             :from files
                                                             :where (= file $s1)]
