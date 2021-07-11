@@ -78,7 +78,7 @@ value like `most-positive-fixnum'."
   :type 'int
   :group 'org-roam)
 
-(defcustom org-roam-db-node-exclude-function (lambda () t)
+(defcustom org-roam-db-node-include-function (lambda () t)
   "A custom function to check if the headline at point as a node."
   :type 'function
   :group 'org-roam)
@@ -276,7 +276,7 @@ If UPDATE-P is non-nil, first remove the file in the database."
   "Return t if headline at point is a node, else return nil."
   (and (org-id-get)
        (not (cdr (assoc "ROAM_EXCLUDE" (org-entry-properties))))
-       (funcall org-roam-db-node-exclude-function)))
+       (funcall org-roam-db-node-include-function)))
 
 (defun org-roam-db-map-nodes (fns)
   "Run FNS over all nodes in the current buffer."

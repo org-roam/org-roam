@@ -397,11 +397,11 @@ property to a non-nil value. For example:
   :END:
 #+end_src
 
-One can also set ~org-roam-db-node-exclude-function~. For example, to exclude
+One can also set ~org-roam-db-node-include-function~. For example, to exclude
 all headlines with the ~ATTACH~ tag from the Org-roam database, one can set:
 
 #+begin_src org
-(setq org-roam-db-node-exclude-function
+(setq org-roam-db-node-include-function
       (lambda ()
         (not (member "ATTACH" (org-get-tags)))))
 #+end_src
