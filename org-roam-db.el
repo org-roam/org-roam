@@ -78,6 +78,11 @@ value like `most-positive-fixnum'."
   :type 'int
   :group 'org-roam)
 
+(defcustom org-roam-db-node-exclude-function (lambda () t)
+  "A custom function to check if the headline at point as a node."
+  :type 'function
+  :group 'org-roam)
+
 (defconst org-roam-db-version 16)
 (defconst org-roam--sqlite-available-p
   (with-demoted-errors "Org-roam initialization: %S"
@@ -267,13 +272,20 @@ If UPDATE-P is non-nil, first remove the file in the database."
   (when-let ((time (org-get-deadline-time (point))))
     (org-format-time-string "%FT%T%z" time)))
 
-(defun org-roam-db-map-headlines (fns)
-  "Run FNS over all headlines in the current buffer."
+(defun org-roam-db-node-p ()
+  "Return t if headline at point is a node, else return nil."
+  (and (org-id-get)
+       (not (cdr (assoc "ROAM_EXCLUDE" (org-entry-properties))))
+       (funcall org-roam-db-node-exclude-function)))
+
+(defun org-roam-db-map-nodes (fns)
+  "Run FNS over all nodes in the current buffer."
   (org-with-point-at 1
     (org-map-entries
      (lambda ()
-       (dolist (fn fns)
-         (funcall fn))))))
+       (when (org-roam-db-node-p)
+         (dolist (fn fns)
+           (funcall fn)))))))
 
 (defun org-roam-db-map-links (fns)
   "Run FNS over all links in the current buffer."
@@ -286,7 +298,8 @@ If UPDATE-P is non-nil, first remove the file in the database."
 (defun org-roam-db-insert-file-node ()
   "Insert the file-level node into the Org-roam cache."
   (org-with-point-at 1
-    (when (= (org-outline-level) 0)
+    (when (and (= (org-outline-level) 0)
+               (org-roam-db-node-p))
       (when-let ((id (org-id-get)))
         (let* ((file (buffer-file-name (buffer-base-buffer)))
                (title (org-link-display-format
@@ -485,7 +498,7 @@ If the file exists, update the cache with information."
           (org-roam-db-clear-file)
           (org-roam-db-insert-file)
           (org-roam-db-insert-file-node)
-          (org-roam-db-map-headlines
+          (org-roam-db-map-nodes
            (list #'org-roam-db-insert-node-data
                  #'org-roam-db-insert-aliases
                  #'org-roam-db-insert-tags

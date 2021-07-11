@@ -380,6 +380,32 @@ To build the cache manually, run ~M-x org-roam-db-build-cache~. Cache builds may
 take a while the first time, but subsequent builds are often instantaneous
 because they only reprocess modified files.
 
+** Customizing Node Caching
+
+By default, all nodes (any headline or file with an ID) are cached by Org-roam.
+There are instances where you may want to have headlines with ID, but not have
+them cached by Org-roam.
+
+To exclude a headline from the Org-roam database, set the ~ROAM_EXCLUDE~
+property to a non-nil value. For example:
+
+#+begin_src org
+,* Foo
+  :PROPERTIES:
+  :ID:       foo
+  :ROAM_EXCLUDE: t
+  :END:
+#+end_src
+
+One can also set ~org-roam-db-node-exclude-function~. For example, to exclude
+all headlines with the ~ATTACH~ tag from the Org-roam database, one can set:
+
+#+begin_src org
+(setq org-roam-db-node-exclude-function
+      (lambda ()
+        (not (member "ATTACH" (org-get-tags)))))
+#+end_src
+
 ** TODO Creating and Linking Nodes
 
 Org-roam makes it easy to create notes and link them together. There are 2 main
