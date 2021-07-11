@@ -138,12 +138,12 @@ method symbol as a cons cell. For example: '(find (rg . \"/path/to/rg\"))."
   "Return the ID at point, if any.
 Recursively traverses up the headline tree to find the
 first encapsulating ID."
-  (let (source)
-    (org-with-wide-buffer
-     (while (and (not (setq source (org-id-get)))
-                 (not (bobp)))
-       (org-roam-up-heading-or-point-min)))
-    source))
+  (org-with-wide-buffer
+   (org-back-to-heading-or-point-min)
+   (while (and (not (org-roam-db-node-p))
+               (not (bobp)))
+     (org-roam-up-heading-or-point-min))
+   (org-id-get)))
 
 ;;;; File functions and predicates
 (defun org-roam--file-name-extension (filename)
@@ -559,15 +559,10 @@ Uses `org-roam-node-display-template' to format the entry."
 If ASSERT, throw an error if there is no node at point."
   (if-let ((node (magit-section-case
                    (org-roam-node-section (oref it node))
-                   (t (let (id)
-                        (org-with-wide-buffer
-                         (while (and (not (setq id (org-id-get)))
-                                     (not (bobp)))
-                           (org-roam-up-heading-or-point-min))
-                         (when id
+                   (t (let ((id (org-roam-id-at-point)))
+                        (when id
                            (org-roam-populate
-                            (org-roam-node-create :id id
-                                                  :point (point))))))))))
+                            (org-roam-node-create :id id))))))))
       node
     (when assert
       (user-error "No node at point"))))

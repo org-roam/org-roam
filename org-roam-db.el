@@ -79,7 +79,7 @@ value like `most-positive-fixnum'."
   :group 'org-roam)
 
 (defcustom org-roam-db-node-include-function (lambda () t)
-  "A custom function to check if the headline at point as a node."
+  "A custom function to check if the headline at point is a node."
   :type 'function
   :group 'org-roam)
 
