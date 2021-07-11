@@ -468,30 +468,36 @@ nodes."
                                                  :where (= id $s1)
                                                  :limit 1]
                                                 (org-roam-node-id node)))))
-    (let ((tag-info (mapcar #'car (org-roam-db-query [:select [tag] :from tags
-                                                      :where (= node-id $s1)]
-                                                     (org-roam-node-id node))))
-          (alias-info (mapcar #'car (org-roam-db-query [:select [alias] :from aliases
-                                                        :where (= node-id $s1)]
-                                                       (org-roam-node-id node))))
-          (refs-info (mapcar #'car (org-roam-db-query [:select [ref] :from refs
-                                                       :where (= node-id $s1)]
-                                                      (org-roam-node-id node)))))
-      (pcase-let ((`(,file ,level ,pos ,todo ,priority ,scheduled
-                           ,deadline ,title ,properties ,olp) node-info))
-        (setf (org-roam-node-file node) file
-              (org-roam-node-level node) level
-              (org-roam-node-point node) pos
-              (org-roam-node-todo node) todo
-              (org-roam-node-priority node) priority
-              (org-roam-node-scheduled node) scheduled
-              (org-roam-node-deadline node) deadline
-              (org-roam-node-title node) title
-              (org-roam-node-properties node) properties
-              (org-roam-node-olp node) olp
-              (org-roam-node-tags node) tag-info
-              (org-roam-node-refs node) refs-info
-              (org-roam-node-aliases node) alias-info))))
+    (pcase-let* ((`(,file ,level ,pos ,todo ,priority ,scheduled
+                           ,deadline ,title ,properties ,olp) node-info)
+                 (`(,atime ,mtime) (car (org-roam-db-query [:select [atime mtime]
+                                                            :from files
+                                                            :where (= file $s1)]
+                                                           file)))
+                 (tag-info (mapcar #'car (org-roam-db-query [:select [tag] :from tags
+                                                             :where (= node-id $s1)]
+                                                            (org-roam-node-id node))))
+                 (alias-info (mapcar #'car (org-roam-db-query [:select [alias] :from aliases
+                                                               :where (= node-id $s1)]
+                                                              (org-roam-node-id node))))
+                 (refs-info (mapcar #'car (org-roam-db-query [:select [ref] :from refs
+                                                              :where (= node-id $s1)]
+                                                             (org-roam-node-id node)))))
+      (setf (org-roam-node-file node) file
+            (org-roam-node-file-atime node) atime
+            (org-roam-node-file-mtime node) mtime
+            (org-roam-node-level node) level
+            (org-roam-node-point node) pos
+            (org-roam-node-todo node) todo
+            (org-roam-node-priority node) priority
+            (org-roam-node-scheduled node) scheduled
+            (org-roam-node-deadline node) deadline
+            (org-roam-node-title node) title
+            (org-roam-node-properties node) properties
+            (org-roam-node-olp node) olp
+            (org-roam-node-tags node) tag-info
+            (org-roam-node-refs node) refs-info
+            (org-roam-node-aliases node) alias-info)))
   node)
 
 (defcustom org-roam-node-display-template
@@ -561,8 +567,8 @@ If ASSERT, throw an error if there is no node at point."
                    (org-roam-node-section (oref it node))
                    (t (let ((id (org-roam-id-at-point)))
                         (when id
-                           (org-roam-populate
-                            (org-roam-node-create :id id))))))))
+                          (org-roam-populate
+                           (org-roam-node-create :id id))))))))
       node
     (when assert
       (user-error "No node at point"))))
