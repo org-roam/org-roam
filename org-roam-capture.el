@@ -539,7 +539,7 @@ Return the ID of the location."
          (org-roam-capture--put :new-file path))
        (set-buffer (org-capture-target-buffer path))
        (widen)
-       (setq p (point)))
+       (setq p (goto-char (point-min))))
       (`(file+olp ,path ,olp)
        (setq path (expand-file-name
                    (string-trim (org-roam-capture--fill-template path t))
@@ -560,7 +560,7 @@ Return the ID of the location."
          (org-roam-capture--put :new-file path)
          (insert (org-roam-capture--fill-template head t)))
        (widen)
-       (setq p (point-min)))
+       (setq p (goto-char (point-min))))
       (`(file+head+olp ,path ,head ,olp)
        (setq path (expand-file-name
                    (string-trim (org-roam-capture--fill-template path t))
@@ -617,7 +617,6 @@ Return the ID of the location."
            ;; Current date, possibly corrected for late night
            ;; workers.
            (org-today)))))
-       (org-end-of-subtree t t)
        (setq p (point)))
       (`(node ,title-or-id)
        ;; first try to get ID, then try to get title/alias
@@ -626,16 +625,52 @@ Return the ID of the location."
                        (user-error "No node with title or id \"%s\" title-or-id"))))
          (set-buffer (org-capture-target-buffer (org-roam-node-file node)))
          (goto-char (org-roam-node-point node))
-         (setq p (org-roam-node-point node))
-         (org-end-of-subtree t t))))
-    (save-excursion
-      (goto-char p)
-      (when-let* ((node org-roam-capture--node)
-                  (id (org-roam-node-id node)))
-        (org-entry-put p "ID" id))
-      (prog1
-          (org-id-get-create)
-        (run-hooks 'org-roam-capture-new-node-hook)))))
+         (setq p (org-roam-node-point node)))))
+    (prog1
+        ;; Setup `org-id' for the current capture target and return it back to
+        ;; the caller.
+        (save-excursion
+          (goto-char p)
+          (when-let* ((node org-roam-capture--node)
+                      (id (org-roam-node-id node)))
+            (org-entry-put p "ID" id))
+          (prog1
+              (org-id-get-create)
+            (run-hooks 'org-roam-capture-new-node-hook)))
+      ;; Adjust the point only after ID was generated and polluted to the
+      ;; current target in the capture buffer.
+      (org-roam-capture--adjust-point-for-capture-type))))
+
+(defun org-roam-capture--adjust-point-for-capture-type (&optional pos)
+  "Reposition the point for template insertion dependently on the capture type.
+Return the newly adjusted position of `point'.
+
+POS is the current position of point (an integer) inside the
+currently active capture buffer, where the adjustment should
+start to begin from. If it's nil, then it will default to
+the current value of `point'."
+  (or pos (setq pos (point)))
+  (goto-char pos)
+  (let ((location-type (if (= pos 1) 'beginning-of-file 'heading-at-point)))
+    (and (eq location-type 'heading-at-point)
+         (cl-assert (org-at-heading-p)))
+    (pcase (org-capture-get :type)
+      (`plain
+       (cl-case location-type
+         (beginning-of-file
+          (if (org-capture-get :prepend)
+              (let ((el (org-element-at-point)))
+                (while (and (not (eobp))
+                            (memq (org-element-type el)
+                                  '(drawer property-drawer keyword comment comment-block horizontal-rule)))
+                  (goto-char (org-element-property :end el))
+                  (setq el (org-element-at-point))))
+            (goto-char (org-entry-end-position))))
+         (heading-at-point
+          (if (org-capture-get :prepend)
+              (org-end-of-meta-data t)
+            (goto-char (org-entry-end-position))))))))
+  (point))
 
 (defun org-roam-capture-find-or-create-olp (olp)
   "Return a marker pointing to the entry at OLP in the current buffer.
@@ -666,9 +701,10 @@ you can catch it with `condition-case'."
            ;; Create heading if it doesn't exist
            (goto-char end)
            (unless (bolp) (newline))
-           (org-insert-heading nil nil t)
+           (let (org-insert-heading-respect-content)
+             (org-insert-heading nil nil t))
            (unless (= lmax 1)
-             (dotimes (_ (1- lmax)) (org-do-demote)))
+             (dotimes (_ level) (org-do-demote)))
            (insert heading)
            (setq end (point))
            (goto-char start)
@@ -680,7 +716,7 @@ you can catch it with `condition-case'."
        (setq lmin (1+ flevel) lmax (+ lmin (if org-odd-levels-only 1 0)))
        (setq start found
              end (save-excursion (org-end-of-subtree t t))))
-     (copy-marker end))))
+     (point-marker))))
 
 (defun org-roam-capture--get-node-from-ref (ref)
   "Return the node from reference REF."
