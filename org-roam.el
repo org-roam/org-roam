@@ -109,23 +109,30 @@ ensure that."
 (defcustom org-roam-list-files-commands
   (if (member system-type '(windows-nt ms-dos cygwin))
       nil
-    '(find rg))
+    '(find fd fdfind rg))
   "Commands that will be used to find Org-roam files.
 
 It should be a list of symbols or cons cells representing any of the following
- supported file search methods.
+supported file search methods.
 
 The commands will be tried in order until an executable for a command is found.
 The Elisp implementation is used if no command in the list is found.
-
-  `rg'
-    Use ripgrep as the file search method.
-    Example command: rg /path/to/dir/ --files -g \"*.org\" -g \"*.org.gpg\"
 
   `find'
     Use find as the file search method.
     Example command:
     find /path/to/dir -type f \( -name \"*.org\" -o -name \"*.org.gpg\" \)
+
+  `fd'
+    Use fd as the file search method.
+    Example command: fd /path/to/dir/ --type file -e \".org\" -e \".org.gpg\"
+
+  `fdfind'
+    Same as `fd'. It's an alias that used in some OSes (e.g. Debian, Ubuntu)
+
+  `rg'
+    Use ripgrep as the file search method.
+    Example command: rg /path/to/dir/ --files -g \"*.org\" -g \"*.org.gpg\"
 
 By default, `executable-find' will be used to look up the path to the
 executable. If a custom path is required, it can be specified together with the
@@ -184,6 +191,15 @@ E.g. (\".org\") => (\"*.org\" \"*.org.gpg\")"
   (cl-loop for e in exts
            append (list (format "\"*.%s\"" e)
                         (format "\"*.%s.gpg\"" e))))
+
+(defun org-roam--list-files-fd (executable dir)
+  "Return all Org-roam files located recursively within DIR, using fd, provided as EXECUTABLE."
+  (let* ((globs (org-roam--list-files-search-globs org-roam-file-extensions))
+         (extensions (s-join " -e " (mapcar (lambda (glob) (substring glob 2 -1)) globs)))
+         (command (s-join " " `(,executable "-L" ,dir "--type file" ,extensions))))
+    (org-roam--shell-command-files command)))
+
+(defalias 'org-roam--list-files-fdfind #'org-roam--list-files-fd)
 
 (defun org-roam--list-files-rg (executable dir)
   "Return all Org-roam files located recursively within DIR, using ripgrep, provided as EXECUTABLE."
