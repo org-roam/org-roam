@@ -59,6 +59,34 @@
 (require 'org-roam-dailies)
 (require 'org-roam-db)
 
+;;; v1 breaking warning
+(defvar org-roam-v2-ack nil)
+
+(unless org-roam-v2-ack
+  (lwarn 'org-roam :error "
+------------------------------------
+WARNING: You're now on Org-roam v2!
+------------------------------------
+
+You may have arrived here from a general package upgrade.
+v2 of Org-roam is incompatible with v1, and you may need to
+migrate the notes you have already taken.
+Please read the manual for more information.
+
+If you have arrived on v2 via a package upgrade but wish to stay
+on v1, v1 is unfortunately not distributed on MELPA. See
+org-roam/org-roam-v1 on GitHub on how to install v1.
+
+If you've gone through the migration steps (if necessary), and
+know what you're doing set `org-roam-v2-ack' to `t' to disable
+this warning. You can do so by adding:
+
+(setq org-roam-v2-ack t)
+
+To your init file.
+
+"))
+
 ;;; Declarations
 ;; From org-ref-core.el
 (defvar org-ref-cite-types)
