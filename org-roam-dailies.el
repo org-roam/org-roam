@@ -318,12 +318,24 @@ negative, find note N days in the future."
 (define-key org-roam-dailies-map (kbd "v") #'org-roam-dailies-capture-date)
 (define-key org-roam-dailies-map (kbd ".") #'org-roam-dailies-find-directory)
 
-(define-obsolete-function-alias 'org-roam-dailies-find-today 'org-roam-dailies-goto-today "org-roam 2.0")
-(define-obsolete-function-alias 'org-roam-dailies-find-yesterday 'org-roam-dailies-goto-yesterday "org-roam 2.0")
-(define-obsolete-function-alias 'org-roam-dailies-find-tomorrow 'org-roam-dailies-goto-tomorrow "org-roam 2.0")
-(define-obsolete-function-alias 'org-roam-dailies-find-next-note 'org-roam-dailies-goto-next-note "org-roam 2.0")
-(define-obsolete-function-alias 'org-roam-dailies-find-previous-note 'org-roam-dailies-goto-previous-note "org-roam 2.0")
-(define-obsolete-function-alias 'org-roam-dailies-find-date 'org-roam-dailies-goto-date "org-roam 2.0")
+(define-obsolete-function-alias
+  'org-roam-dailies-find-today
+  'org-roam-dailies-goto-today "org-roam 2.0")
+(define-obsolete-function-alias
+  'org-roam-dailies-find-yesterday
+  'org-roam-dailies-goto-yesterday "org-roam 2.0")
+(define-obsolete-function-alias
+  'org-roam-dailies-find-tomorrow
+  'org-roam-dailies-goto-tomorrow "org-roam 2.0")
+(define-obsolete-function-alias
+  'org-roam-dailies-find-next-note
+  'org-roam-dailies-goto-next-note "org-roam 2.0")
+(define-obsolete-function-alias
+  'org-roam-dailies-find-previous-note
+  'org-roam-dailies-goto-previous-note "org-roam 2.0")
+(define-obsolete-function-alias
+  'org-roam-dailies-find-date
+  'org-roam-dailies-goto-date "org-roam 2.0")
 
 (provide 'org-roam-dailies)
 
