@@ -86,12 +86,13 @@
   "Overlays for Org-roam ID links.
 Org-roam overlay mode is a minor mode.  When enabled,
 overlay displaying the node's title is displayed."
+  :lighter " org-roam-overlay"
   (if org-roam-overlay-mode
       (progn
         (org-roam-overlay-enable)
-        (add-hook #'after-save-hook #'org-roam-overlay-redisplay nil t))
+        (add-hook 'after-save-hook #'org-roam-overlay-redisplay nil t))
     (org-roam-overlay-disable)
-    (remove-hook #'after-save-hook #'org-roam-overlay-redisplay t)))
+    (remove-hook 'after-save-hook #'org-roam-overlay-redisplay t)))
 
 (provide 'org-roam-overlay)
 ;;; org-roam-overlay.el ends here

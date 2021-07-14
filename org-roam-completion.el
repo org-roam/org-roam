@@ -76,7 +76,7 @@ This is a `completion-at-point' function, and is active when
 
 (defun org-roam-complete-link-at-point ()
   "Do appropriate completion for the link at point."
-  (let (roam-p start end link-type)
+  (let (roam-p start end)
     (when (org-in-regexp org-roam-bracket-completion-re 1)
       (setq roam-p (not (string-blank-p (match-string 1)))
             start (match-beginning 2)
@@ -94,7 +94,7 @@ This is a `completion-at-point' function, and is active when
 
 (defun org-roam-complete-at-point ()
   "."
-  (run-hook-with-args-until-success #'org-roam-completion-functions))
+  (run-hook-with-args-until-success 'org-roam-completion-functions))
 
 (defun org-roam--register-completion-functions ()
   "."

@@ -770,7 +770,7 @@ This function is used solely in Org-roam's capture templates: see
 PROPS is a plist containing additional Org-roam specific
 properties to be added to the template."
   (pcase template
-    (`(,key ,desc)
+    (`(,_key ,_desc)
      template)
     (`(,key ,desc ,type ,body . ,rest)
      (setq rest (append rest props))

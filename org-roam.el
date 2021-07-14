@@ -485,7 +485,7 @@ OLD-FILE is cleared from the database, and NEW-FILE-OR-DIR is added."
   "Keymap for Org-roam node sections.")
 
 (defclass org-roam-node-section (magit-section)
-  ((keymap :initform org-roam-node-map)
+  ((keymap :initform 'org-roam-node-map)
    (node :initform nil)))
 
 (defvar org-roam-preview-map
@@ -496,7 +496,7 @@ OLD-FILE is cleared from the database, and NEW-FILE-OR-DIR is added."
   "Keymap for Org-roam preview.")
 
 (defclass org-roam-preview-section (magit-section)
-  ((keymap :initform org-roam-preview-map)
+  ((keymap :initform 'org-roam-preview-map)
    (file :initform nil)
    (begin :initform nil)
    (end :initform nil)))
@@ -787,7 +787,7 @@ This function takes a single argument NODE, which is an `org-roam-node' construc
   :group 'org-roam
   :type 'function)
 
-(defcustom org-roam-node-default-sort #'file-mtime
+(defcustom org-roam-node-default-sort 'file-mtime
   "Default sort order for Org-roam node completions."
   :type 'const
   :group 'org-roam)

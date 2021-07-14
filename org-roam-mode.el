@@ -359,7 +359,7 @@ Sorts by title."
   "Keymap for Org-roam grep result sections.")
 
 (defclass org-roam-grep-section (magit-section)
-  ((keymap :initform org-roam-grep-map)
+  ((keymap :initform 'org-roam-grep-map)
    (file :initform nil)
    (row :initform nil)
    (col :initform nil)))
