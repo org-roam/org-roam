@@ -605,13 +605,22 @@ Uses `org-roam-node-display-template' to format the entry."
 
 (defun org-roam-node-at-point (&optional assert)
   "Return the node at point.
-If ASSERT, throw an error if there is no node at point."
+If ASSERT, throw an error if there is no node at point.
+This function also returns the node if it has yet to be cached in the
+database. In this scenario, only expect `:id' and `:point' to be
+populated."
   (if-let ((node (magit-section-case
                    (org-roam-node-section (oref it node))
-                   (t (let ((id (org-roam-id-at-point)))
-                        (when id
-                          (org-roam-populate
-                           (org-roam-node-create :id id))))))))
+                   (t (org-with-wide-buffer
+                       (org-back-to-heading-or-point-min)
+                       (while (and (not (org-roam-db-node-p))
+                                   (not (bobp)))
+                         (org-roam-up-heading-or-point-min))
+                       (when-let ((id (org-id-get)))
+                         (org-roam-populate
+                          (org-roam-node-create
+                           :id id
+                           :point (point)))))))))
       node
     (when assert
       (user-error "No node at point"))))
