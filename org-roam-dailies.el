@@ -179,7 +179,7 @@ creating an entry."
   (interactive "p")
   (org-roam-dailies--capture (time-add (* n 86400) (current-time)) goto))
 
-(defun org-roam-dailies-find-tomorrow (n)
+(defun org-roam-dailies-goto-tomorrow (n)
   "Find the daily-note for tomorrow, creating it if necessary.
 
 With numeric argument N, use the daily-note N days in the
