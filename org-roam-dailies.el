@@ -163,7 +163,7 @@ When GOTO is non-nil, go the note without creating an entry."
   (interactive "P")
   (org-roam-dailies--capture (current-time) goto))
 
-(defun org-roam-dailies-find-today ()
+(defun org-roam-dailies-goto-today ()
   "Find the daily-note for today, creating it if necessary."
   (interactive)
   (org-roam-dailies-capture-today t))
@@ -197,7 +197,7 @@ When GOTO is non-nil, go the note without creating an entry."
   (interactive "p")
   (org-roam-dailies-capture-tomorrow (- n) goto))
 
-(defun org-roam-dailies-find-yesterday (n)
+(defun org-roam-dailies-goto-yesterday (n)
   "Find the daily-note for yesterday, creating it if necessary.
 
 With numeric argument N, use the daily-note N days in the
@@ -242,7 +242,7 @@ creating an entry."
                                          "Capture to daily-note: ")))))
     (org-roam-dailies--capture time goto)))
 
-(defun org-roam-dailies-find-date (&optional prefer-future)
+(defun org-roam-dailies-goto-date (&optional prefer-future)
   "Find the daily-note for a date using the calendar, creating it if necessary.
 Prefer past dates, unless PREFER-FUTURE is non-nil."
   (interactive)
@@ -262,7 +262,7 @@ EXTRA-FILES can be used to append extra files to the list."
                       (directory-files-recursively dir regexp))
             extra-files)))
 
-(defun org-roam-dailies-find-next-note (&optional n)
+(defun org-roam-dailies-goto-next-note (&optional n)
   "Find next daily-note.
 
 With numeric argument N, find note N days in the future. If N is
@@ -290,14 +290,14 @@ negative, find note N days in the past."
     (find-file note)
     (run-hooks 'org-roam-dailies-find-file-hook)))
 
-(defun org-roam-dailies-find-previous-note (&optional n)
+(defun org-roam-dailies-goto-previous-note (&optional n)
   "Find previous daily-note.
 
 With numeric argument N, find note N days in the past. If N is
 negative, find note N days in the future."
   (interactive "p")
   (let ((n (if n (- n) -1)))
-    (org-roam-dailies-find-next-note n)))
+    (org-roam-dailies-goto-next-note n)))
 
 (add-hook 'calendar-today-visible-hook #'org-roam-dailies-calendar-mark-entries)
 (add-hook 'calendar-today-invisible-hook #'org-roam-dailies-calendar-mark-entries)
@@ -308,15 +308,22 @@ negative, find note N days in the future."
 
 (define-prefix-command 'org-roam-dailies-map)
 
-(define-key org-roam-dailies-map (kbd "d") #'org-roam-dailies-find-today)
-(define-key org-roam-dailies-map (kbd "y") #'org-roam-dailies-find-yesterday)
-(define-key org-roam-dailies-map (kbd "t") #'org-roam-dailies-find-tomorrow)
+(define-key org-roam-dailies-map (kbd "d") #'org-roam-dailies-goto-today)
+(define-key org-roam-dailies-map (kbd "y") #'org-roam-dailies-goto-yesterday)
+(define-key org-roam-dailies-map (kbd "t") #'org-roam-dailies-goto-tomorrow)
 (define-key org-roam-dailies-map (kbd "n") #'org-roam-dailies-capture-today)
-(define-key org-roam-dailies-map (kbd "f") #'org-roam-dailies-find-next-note)
-(define-key org-roam-dailies-map (kbd "b") #'org-roam-dailies-find-previous-note)
-(define-key org-roam-dailies-map (kbd "c") #'org-roam-dailies-find-date)
+(define-key org-roam-dailies-map (kbd "f") #'org-roam-dailies-goto-next-note)
+(define-key org-roam-dailies-map (kbd "b") #'org-roam-dailies-goto-previous-note)
+(define-key org-roam-dailies-map (kbd "c") #'org-roam-dailies-goto-date)
 (define-key org-roam-dailies-map (kbd "v") #'org-roam-dailies-capture-date)
 (define-key org-roam-dailies-map (kbd ".") #'org-roam-dailies-find-directory)
+
+(define-obsolete-function-alias 'org-roam-dailies-find-today 'org-roam-dailies-goto-today "org-roam 2.0")
+(define-obsolete-function-alias 'org-roam-dailies-find-yesterday 'org-roam-dailies-goto-yesterday "org-roam 2.0")
+(define-obsolete-function-alias 'org-roam-dailies-find-tomorrow 'org-roam-dailies-goto-tomorrow "org-roam 2.0")
+(define-obsolete-function-alias 'org-roam-dailies-find-next-note 'org-roam-dailies-goto-next-note "org-roam 2.0")
+(define-obsolete-function-alias 'org-roam-dailies-find-previous-note 'org-roam-dailies-goto-previous-note "org-roam 2.0")
+(define-obsolete-function-alias 'org-roam-dailies-find-date 'org-roam-dailies-goto-date "org-roam 2.0")
 
 (provide 'org-roam-dailies)
 
