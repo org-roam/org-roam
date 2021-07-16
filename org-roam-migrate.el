@@ -68,8 +68,7 @@ To your init file.
   "Migrate all notes from to be compatible with Org-roam v2.
 1. Convert all notes from v1 format to v2.
 2. Rebuild the cache.
-3. Replace all file links with ID links.
-"
+3. Replace all file links with ID links."
   (interactive)
   (when (yes-or-no-p "Org-roam will now convert all your notes from v1 to v2.
 This will take a while. Are you sure you want to do this?")
@@ -93,6 +92,7 @@ This will take a while. Are you sure you want to do this?")
         (save-buffer)))))
 
 (defun org-roam-migrate-v1-to-v2 ()
+  "Convert the current buffer to v2 format."
   ;; Create file level ID
   (org-with-point-at 1
     (org-id-get-create))
@@ -132,22 +132,22 @@ This will take a while. Are you sure you want to do this?")
       (when tags
         (org-roam-migrate-prop-set "filetags" (string-join tags " "))))
     (let ((case-fold-search t))
-        (org-with-point-at 1
-          (while (re-search-forward "^#\\+roam_tags:" (point-max) t)
-            (beginning-of-line)
-            (kill-line 1)))))
+      (org-with-point-at 1
+        (while (re-search-forward "^#\\+roam_tags:" (point-max) t)
+          (beginning-of-line)
+          (kill-line 1)))))
   (save-buffer))
 
 (defun org-roam-migrate-get-prop-list (keyword)
   "Return prop list for KEYWORD."
   (let ((re (format "^#\\+%s:[ \t]*\\([^\n]+\\)" (upcase keyword)))
         lst)
-      (goto-char (point-min))
-      (while (re-search-forward re 2048 t)
-        (setq lst (append lst (split-string-and-unquote
-                               (buffer-substring-no-properties
-                                (match-beginning 1) (match-end 1))))))
-      lst))
+    (goto-char (point-min))
+    (while (re-search-forward re 2048 t)
+      (setq lst (append lst (split-string-and-unquote
+                             (buffer-substring-no-properties
+                              (match-beginning 1) (match-end 1))))))
+    lst))
 
 (defun org-roam-migrate-prop-set (name value)
   "Set a file property called NAME to VALUE in buffer file.
@@ -169,6 +169,7 @@ If the property is already set, replace its value."
         (insert "#+" name ": " value "\n")))))
 
 (defun org-roam-migrate-replace-file-links-with-id ()
+  "Replace all file: links with ID links in current buffer."
   (org-with-point-at 1
     (while (re-search-forward org-link-bracket-re nil t)
       (let* ((mdata (match-data))

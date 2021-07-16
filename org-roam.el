@@ -48,6 +48,7 @@
 (eval-when-compile (require 'subr-x))
 
 ;;;; Features
+(require 'org-roam-migrate)
 (require 'org-roam-compat)
 (eval-when-compile
   (require 'org-roam-macs)
