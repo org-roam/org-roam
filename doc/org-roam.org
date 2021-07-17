@@ -134,7 +134,7 @@ A slip-box requires a method for quickly capturing ideas. These are called
 *fleeting notes*: they are simple reminders of information or ideas that will
 need to be processed later on, or trashed. This is typically accomplished using
 ~org-capture~ (see info:org#Capture), or using Org-roam's daily notes
-functionality (see [[*Daily-notes][Daily-notes]]). This provides a central inbox for collecting
+functionality (see [[id:4eae8552-95e1-4e4a-b7b7-2c53433730ea][Org-roam Dailies]]). This provides a central inbox for collecting
 thoughts, to be processed later into permanent notes.
 
 *Permanent notes*
@@ -478,7 +478,7 @@ section-specific commands such as ~org-roam-node-visit~.
 There are currently 3 provided widget types:
 
 - Backlinks :: View (preview of) nodes that link to this node
-- Reference Links :: Nodes that reference this node (see [[id:57c1f991-be38-4fab-b27d-60227047f3b7][Refs]])
+- Reference Links :: Nodes that reference this node (see [[*Refs][Refs]])
 - Unlinked references :: View nodes that contain text that match the nodes
   title/alias but are not linked
 
@@ -587,7 +587,7 @@ With the above example, if another node links to https://www.google.com/, it
 will show up as a “reference backlink”.
 
 These keys also come in useful for when taking website notes, using the
- ~roam-ref~ protocol (see [[*Roam Protocol][Roam Protocol]]).
+ ~roam-ref~ protocol (see [[*Org-roam Protocol][Roam Protocol]]).
 
 You may assign multiple refs to a single node, for example when you want
 multiple papers in a series to share the same note, or an article has a citation
@@ -838,7 +838,7 @@ where ~template~ is the template key for a template in
 ~org-roam-capture-ref-templates~ (see [[*The Templating System][The Templating System]]). These templates
 should contain a ~#+roam_key: ${ref}~ in it.
 
-* The Org-roam Templating System
+* The Templating System
 
 Org-roam extends the ~org-capture~ system, providing a smoother note-taking
 experience. However, these extensions mean Org-roam capture templates are
@@ -902,7 +902,7 @@ strings. ~${foo}~'s substitution is performed as follows:
 
 Org-roam provides basic graphing capabilities to explore interconnections
 between notes, in ~org-roam-graph~. This is done by performing SQL queries and
-generating images using [[https://graphviz.org/][Graphviz]]. The graph can also be navigated: see [[*Roam Protocol][Roam
+generating images using [[https://graphviz.org/][Graphviz]]. The graph can also be navigated: see [[*Org-roam Protocol][Roam
 Protocol]].
 
 The entry point to graph creation is ~org-roam-graph~.
@@ -971,9 +971,12 @@ for customizable options.
   Example: ~'(("dir" . "back"))~
 
 * Org-roam Dailies
+:PROPERTIES:
+:ID:       4eae8552-95e1-4e4a-b7b7-2c53433730ea
+:END:
 
 Org-roam provides journaling capabilities akin to
-[[#org-journal][Org-journal]] with ~org-roam-dailies~.
+Org-journal with ~org-roam-dailies~.
 
 ** Configuration
 
@@ -1011,7 +1014,7 @@ See [[*The Templating System][The Templating System]] for creating new templates
 
   When ~goto~ is non-nil, go to the note without creating an entry.
 
-- Function: ~org-roam-dailies-find-today~
+- Function: ~org-roam-dailies-goto-today~
 
   Find the daily note for today, creating it if necessary.
 
@@ -1023,7 +1026,7 @@ There are variants of those commands for ~-yesterday~ and ~-tomorrow~:
 
   With numeric argument ~n~, use the daily note ~n~ days in the past.
 
-- Function: ~org-roam-dailies-find-yesterday~
+- Function: ~org-roam-dailies-goto-yesterday~
 
   With numeric argument N, use the daily-note N days in the future.
 
@@ -1038,7 +1041,7 @@ There are also commands which allow you to use Emacs’s ~calendar~ to find the 
   With a 'C-u' prefix or when ~goto~ is non-nil, go the note without
   creating an entry.
 
-- Function: ~org-roam-dailies-find-date~
+- Function: ~org-roam-dailies-goto-date~
 
   Find the daily note for a date using the calendar, creating it if necessary.
 
@@ -1048,11 +1051,11 @@ There are also commands which allow you to use Emacs’s ~calendar~ to find the 
 
   Find and open ~org-roam-dailies-directory~.
 
-- Function: ~org-roam-dailies-find-previous-note~
+- Function: ~org-roam-dailies-goto-previous-note~
 
   When in an daily-note, find the previous one.
 
-- Function: ~org-roam-dailies-find-next-note~
+- Function: ~org-roam-dailies-goto-next-note~
 
   When in an daily-note, find the next one.
 * Performance Optimization
@@ -1128,7 +1131,7 @@ The Deft interface can slow down quickly when the number of files get huge.
 
 [[https://github.com/bastibe/org-journal][Org-journal]] provides journaling capabilities to Org-mode. A lot of its
 functionalities have been incorporated into Org-roam under the name
-[[*Daily-notes][~org-roam-dailies~]]. It remains a good tool if you want to isolate your verbose
+[[*Org-roam Dailies][~org-roam-dailies~]]. It remains a good tool if you want to isolate your verbose
 journal entries from the ideas you would write on a scratchpad.
 
 #+BEGIN_SRC emacs-lisp
