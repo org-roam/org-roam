@@ -127,6 +127,7 @@ See `org-roam-capture-templates' for the template documentation."
                                          ((const :format "%v " :table-line-pos) (string))
                                          ((const :format "%v " :kill-buffer) (const t))))))))
 
+;;;###autoload
 (defun org-roam-dailies-find-directory ()
   "Find and open `org-roam-dailies-directory'."
   (interactive)
@@ -157,18 +158,21 @@ When GOTO is non-nil, go the note without creating an entry."
 
 ;;;; Commands
 ;;; Today
+;;;###autoload
 (defun org-roam-dailies-capture-today (&optional goto)
   "Create an entry in the daily-note for today.
 When GOTO is non-nil, go the note without creating an entry."
   (interactive "P")
   (org-roam-dailies--capture (current-time) goto))
 
+;;;###autoload
 (defun org-roam-dailies-goto-today ()
   "Find the daily-note for today, creating it if necessary."
   (interactive)
   (org-roam-dailies-capture-today t))
 
 ;;; Tomorrow
+;;;###autoload
 (defun org-roam-dailies-capture-tomorrow (n &optional goto)
   "Create an entry in the daily-note for tomorrow.
 
@@ -179,6 +183,7 @@ creating an entry."
   (interactive "p")
   (org-roam-dailies--capture (time-add (* n 86400) (current-time)) goto))
 
+;;;###autoload
 (defun org-roam-dailies-goto-tomorrow (n)
   "Find the daily-note for tomorrow, creating it if necessary.
 
@@ -188,6 +193,7 @@ future."
   (org-roam-dailies-capture-tomorrow n t))
 
 ;;; Yesterday
+;;;###autoload
 (defun org-roam-dailies-capture-yesterday (n &optional goto)
   "Create an entry in the daily-note for yesteday.
 
@@ -197,6 +203,7 @@ When GOTO is non-nil, go the note without creating an entry."
   (interactive "p")
   (org-roam-dailies-capture-tomorrow (- n) goto))
 
+;;;###autoload
 (defun org-roam-dailies-goto-yesterday (n)
   "Find the daily-note for yesterday, creating it if necessary.
 
@@ -230,6 +237,7 @@ Return (MONTH DAY YEAR)."
         (calendar-mark-visible-date date 'org-roam-dailies-calendar-note)))))
 
 ;;; Date
+;;;###autoload
 (defun org-roam-dailies-capture-date (&optional goto prefer-future)
   "Create an entry in the daily-note for a date using the calendar.
 Prefer past dates, unless PREFER-FUTURE is non-nil.
@@ -242,6 +250,7 @@ creating an entry."
                                          "Capture to daily-note: ")))))
     (org-roam-dailies--capture time goto)))
 
+;;;###autoload
 (defun org-roam-dailies-goto-date (&optional prefer-future)
   "Find the daily-note for a date using the calendar, creating it if necessary.
 Prefer past dates, unless PREFER-FUTURE is non-nil."
