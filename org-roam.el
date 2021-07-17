@@ -350,6 +350,7 @@ If BUFFER is not specified, use the current buffer."
 (defvar org-roam-find-file-hook nil
   "Hook run when an Org-roam file is visited.")
 
+;;;###autoload
 (defun org-roam-setup ()
   "Setup Org-roam."
   (interactive)
@@ -871,6 +872,7 @@ If OTHER-WINDOW, visit the NODE in another window."
        :node node
        :props '(:finalize find-file)))))
 
+;;;###autoload
 (defun org-roam-node-insert (&optional filter-fn)
   "Find an Org-roam file, and insert a relative org link to it at point.
 Return selected file if it exists.
@@ -1087,6 +1089,7 @@ REF is assumed to be a propertized string."
     (when title
       (concat " " title))))
 
+;;;###autoload
 (defun org-roam-ref-find (&optional initial-input filter-fn)
   "Find and open and Org-roam file from REF if it exists.
 REF should be the value of '#+roam_key:' without any
