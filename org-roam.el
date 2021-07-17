@@ -785,10 +785,9 @@ COMPLETION-A and COMPLETION-B are items in the form of (node-title org-roam-node
 
 (defun org-roam-node-read (&optional initial-input filter-fn sort-fn require-match)
   "Read and return an `org-roam-node'.
-INITIAL-INPUT is the initial minibuffer prompt value. FILTER-FN
-is a function to filter out nodes: it takes a single argument (an
-`org-roam-node'), and when nil is returned the node will be
-filtered out.
+INITIAL-INPUT is the initial minibuffer prompt value.
+FILTER-FN is a function to filter out nodes: it takes an `org-roam-node',
+and when nil is returned the node will be filtered out.
 SORT-FN is a function to sort nodes. See `org-roam-node-sort-by-file-mtime'
 for an example sort function.
 If REQUIRE-MATCH, the minibuffer prompt will require a match."
@@ -861,8 +860,8 @@ PROPERTIES contains properties about the link."
 (defun org-roam-node-find (&optional other-window initial-input filter-fn)
   "Find and open an Org-roam node by its title or alias.
 INITIAL-INPUT is the initial input for the prompt.
-FILTER-FN is the name of a function to apply on the candidates
-which takes as its argument an alist of path-completions.
+FILTER-FN is a function to filter out nodes: it takes an `org-roam-node',
+and when nil is returned the node will be filtered out.
 If OTHER-WINDOW, visit the NODE in another window."
   (interactive current-prefix-arg)
   (let ((node (org-roam-node-read initial-input filter-fn)))
@@ -877,8 +876,8 @@ If OTHER-WINDOW, visit the NODE in another window."
   "Find an Org-roam file, and insert a relative org link to it at point.
 Return selected file if it exists.
 If LOWERCASE is non-nil, downcase the link description.
-FILTER-FN is the name of a function to apply on the candidates
-which takes as its argument an alist of path-completions."
+FILTER-FN is a function to filter out nodes: it takes an `org-roam-node',
+and when nil is returned the node will be filtered out."
   (interactive)
   (unwind-protect
       ;; Group functions together to avoid inconsistent state on quit
@@ -1068,9 +1067,12 @@ The car is the ref, and the cdr is the corresponding node for the ref."
   "Read an Org-roam ref.
 Return a string, is propertized in `meta' with additional properties.
 INITIAL-INPUT is the initial prompt value.
-FILTER-FN is a function applied to the completion list."
+FILTER-FN is a function to filter out nodes: it takes an `org-roam-node',
+and when nil is returned the node will be filtered out.
+filtered out."
   (let* ((refs (org-roam-ref--completions))
-         (refs (funcall (or filter-fn #'identity) refs))
+         (refs (cl-remove-if-not (lambda (n)
+                                   (if filter-fn (funcall filter-fn (cdr n)) t)) refs))
          (ref (completing-read "Ref: "
                                (lambda (string pred action)
                                  (if (eq action 'metadata)
@@ -1095,7 +1097,8 @@ REF is assumed to be a propertized string."
 REF should be the value of '#+roam_key:' without any
 type-information (e.g. 'cite:').
 INITIAL-INPUT is the initial input to the prompt.
-FILTER-FN is applied to the ref list to filter out candidates."
+FILTER-FN is a function to filter out nodes: it takes an `org-roam-node',
+and when nil is returned the node will be filtered out."
   (interactive)
   (let* ((node (org-roam-ref-read initial-input filter-fn)))
     (find-file (org-roam-node-file node))
