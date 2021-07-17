@@ -44,15 +44,19 @@
 WARNING: You're now on Org-roam v2!
 ------------------------------------
 
-You may have arrived here from a general package upgrade. v2 of
-Org-roam is incompatible with v1, and you may need to migrate the
-notes you have already taken. To run through the wizard, run:
+You may have arrived here from a package upgrade. Please read the
+wiki entry at
+https://github.com/org-roam/org-roam/wiki/Hitchhiker's-Rough-Guide-to-Org-roam-V2
+for an overview of the major changes.
+
+Notes taken in v1 are incompatible with v1, but you can upgrade
+them to the v2 format via a simple command. To migrate your
+notes, run:
 
   M-x org-roam-migrate-wizard
 
-If you have arrived on v2 via a package upgrade but wish to stay
-on v1, v1 is unfortunately not distributed on MELPA. See
-org-roam/org-roam-v1 on GitHub on how to install v1.
+If you wish to stay on v1, v1 is unfortunately not distributed on
+MELPA. See org-roam/org-roam-v1 on GitHub on how to install v1.
 
 If you've gone through the migration steps (if necessary), and
 know what you're doing set `org-roam-v2-ack' to `t' to disable
