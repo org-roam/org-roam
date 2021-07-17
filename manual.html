@@ -60,10 +60,10 @@ Next: <a href="#Introduction" accesskey="n" rel="next">Introduction</a> &nbsp; [
 <span id="Org_002droam-User-Manual"></span><h1 class="top">Org-roam User Manual</h1>
 
 
-<p>This manual is for Org-roam version 1.2.3.
+<p>This manual is for Org-roam version 2.0.0.
 </p>
 <blockquote>
-<p>Copyright (C) 2020-2020 Jethro Kuan &lt;jethrokuan95@gmail.com&gt;
+<p>Copyright (C) 2020-2021 Jethro Kuan &lt;jethrokuan95@gmail.com&gt;
 </p>
 <p>You can redistribute this document and/or modify it under the terms of the GNU
 General Public License as published by the Free Software Foundation, either
@@ -87,19 +87,41 @@ General Public License for more details.
 </td></tr>
 <tr><td align="left" valign="top">&bull; <a href="#Getting-Started" accesskey="5">Getting Started</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
-<tr><td align="left" valign="top">&bull; <a href="#Files" accesskey="6">Files</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+<tr><td align="left" valign="top">&bull; <a href="#Viewing-the-links" accesskey="6">Viewing the links</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
-<tr><td align="left" valign="top">&bull; <a href="#The-Templating-System" accesskey="7">The Templating System</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+<tr><td align="left" valign="top">&bull; <a href="#Node-Properties" accesskey="7">Node Properties</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
-<tr><td align="left" valign="top">&bull; <a href="#Concepts-and-Configuration" accesskey="8">Concepts and Configuration</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+<tr><td align="left" valign="top">&bull; <a href="#The-Org_002droam-Buffer" accesskey="8">The Org-roam Buffer</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
-<tr><td align="left" valign="top">&bull; <a href="#Inserting-Links" accesskey="9">Inserting Links</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+<tr><td align="left" valign="top">&bull; <a href="#Styling-Org_002droam" accesskey="9">Styling Org-roam</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Completion">Completion</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Encryption">Encryption</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Org_002droam-protocol">Org-roam protocol</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Diagnosing-and-Repair">Diagnosing and Repair</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Building-Extensions">Building Extensions</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#The-Org_002dmode-Ecosystem">The Org-mode Ecosystem</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Frequently-Asked-Questions">Frequently Asked Questions</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Developer_0027s-Guide-to-Org_002droam">Developer's Guide to Org-roam</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#The-Templating-System">The Templating System</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Concepts-and-Configuration">Concepts and Configuration</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Inserting-Links">Inserting Links</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
 <tr><td align="left" valign="top">&bull; <a href="#Completions">Completions</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
 <tr><td align="left" valign="top">&bull; <a href="#Navigating-Around">Navigating Around</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
-<tr><td align="left" valign="top">&bull; <a href="#Encryption">Encryption</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+<tr><td align="left" valign="top">&bull; <a href="#Encryption-_00281_0029">Encryption</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
 <tr><td align="left" valign="top">&bull; <a href="#Graphing">Graphing</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
@@ -131,45 +153,49 @@ General Public License for more details.
 
 </pre></th></tr><tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">&mdash; The Detailed Node Listing &mdash;
 
-A Brief Introduction to the Zettelkasten Method
-
-</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="#Fleeting-notes">Fleeting notes</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top">&bull; <a href="#Permanent-notes">Permanent notes</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
-
 Installation
 
 </pre></th></tr><tr><td align="left" valign="top">&bull; <a href="#Installing-from-MELPA">Installing from MELPA</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
 <tr><td align="left" valign="top">&bull; <a href="#Installing-from-Apt">Installing from Apt</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
-<tr><td align="left" valign="top">&bull; <a href="#Installing-from-the-Git-Repository">Installing from the Git Repository</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+<tr><td align="left" valign="top">&bull; <a href="#Installing-from-Source">Installing from Source</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
 <tr><td align="left" valign="top">&bull; <a href="#Post_002dInstallation-Tasks">Post-Installation Tasks</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
 <tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
 
-Files
+Getting Started
 
-</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="#File-Titles">File Titles</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="#The-Org_002droam-Node">The Org-roam Node</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
-<tr><td align="left" valign="top">&bull; <a href="#File-Tags">File Tags</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+<tr><td align="left" valign="top">&bull; <a href="#Links-between-Nodes">Links between Nodes</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
-<tr><td align="left" valign="top">&bull; <a href="#File-Refs">File Refs</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+<tr><td align="left" valign="top">&bull; <a href="#Setting-up-Org_002droam">Setting up Org-roam</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
-<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
-
-File Titles
-
-</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="#Customizing-Title-Extraction">Customizing Title Extraction</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+<tr><td align="left" valign="top">&bull; <a href="#Creating-and-Linking-Nodes">Creating and Linking Nodes</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
 <tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
 
-File Tags
+Node Properties
 
-</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="#Customizing-Tag-Extraction">Customizing Tag Extraction</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="#Standard-Org-properties">Standard Org properties</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Aliases">Aliases</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Refs">Refs</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+
+Building Extensions
+
+</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="#Public-Interface">Public Interface</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+
+Developer&rsquo;s Guide to Org-roam
+
+</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="#Org_002droam_0027s-Design-Principles">Org-roam's Design Principles</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
 <tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
 
@@ -185,13 +211,11 @@ Concepts and Configuration
 
 </pre></th></tr><tr><td align="left" valign="top">&bull; <a href="#Directories-and-Files">Directories and Files</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
-<tr><td align="left" valign="top">&bull; <a href="#The-Org_002droam-Buffer">The Org-roam Buffer</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+<tr><td align="left" valign="top">&bull; <a href="#The-Org_002droam-Buffer-_00281_0029">The Org-roam Buffer</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
 <tr><td align="left" valign="top">&bull; <a href="#Org_002droam-Files">Org-roam Files</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
 <tr><td align="left" valign="top">&bull; <a href="#Org_002droam-Faces">Org-roam Faces</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top">&bull; <a href="#The-Database">The Database</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
 <tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
 
@@ -306,27 +330,23 @@ Next: <a href="#Target-Audience" accesskey="n" rel="next">Target Audience</a>, P
 </div>
 <span id="Introduction-1"></span><h2 class="chapter">1 Introduction</h2>
 
-<p>Org-roam is a tool for network thought. It reproduces some of <a href="https://roamresearch.com/">Roam
-Research&rsquo;s</a> <a id="DOCF1" href="#FOOT1"><sup>1</sup></a> features within the all-powerful <a href="https://orgmode.org/">Org-mode</a>.
+<p>Org-roam is a tool for networked thought. It reproduces some of <a href="https://roamresearch.com/">Roam
+Research&rsquo;s</a> <a id="DOCF1" href="#FOOT1"><sup>1</sup></a> key features within <a href="https://orgmode.org/">Org-mode</a>.
 </p>
-<p>Org-roam is a solution for effortless non-hierarchical note-taking with
-Org-mode. With Org-roam, notes flow naturally, making note-taking fun and easy.
-Org-roam keeps closely to Org syntax, and will work for anyone already using
-Org-mode for their personal wiki.
+<p>Org-roam allows for effortless non-hierarchical note-taking: with Org-roam,
+notes flow naturally, making note-taking fun and easy. Org-roam augments the
+Org-mode syntax, and will work for anyone already using Org-mode for their
+personal wiki.
 </p>
-<p>Org-roam gains its superpowers by leveraging the mature ecosystem around
-Org-mode. For example, it has first-class support for <a href="https://github.com/jkitchin/org-ref">org-ref</a> for citation
-management.
+<p>Org-roam leverages the mature ecosystem around Org-mode. For example, it has
+first-class support for <a href="https://github.com/jkitchin/org-ref">org-ref</a> for citation management, and is able to
+piggyback off Org&rsquo;s excellent LaTeX and source-block evaluation capabilities.
 </p>
-<p>Org-roam aims to implement the core features of Roam, leveraging the
-mature ecosystem around Org-mode where possible. Eventually, we hope
-to further introduce features enabled by the Emacs ecosystem.
-</p>
-<p>Org-roam provides several benefits over other tooling:
+<p>Org-roam provides these benefits over other tooling:
 </p>
 <ul>
-<li> <strong>Privacy and Security:</strong> Keep your personal wiki entirely offline and in your
-control. Encrypt your notes with GPG.
+<li> <strong>Privacy and Security:</strong> Your personal wiki belongs only to you, entirely
+offline and in your control. Encrypt your notes with GPG.
 
 </li><li> <strong>Longevity of Plain Text:</strong> Unlike web solutions like Roam Research, the notes
 are first and foremost plain Org-mode files &ndash; Org-roam simply builds an
@@ -339,12 +359,12 @@ functional even if Org-roam ceases to exist.
 you feel unhappy with any part of Org-roam, you may choose to extend Org-roam,
 or open a pull request.
 
-</li><li> <strong>Leverage the Org-mode ecosystem:</strong> Over the years, Emacs and Org-mode has
+</li><li> <strong>Leverage the Org-mode ecosystem:</strong> Over the decades, Emacs and Org-mode has
 developed into a mature system for plain-text organization. Building upon
 Org-mode already puts Org-roam light-years ahead of many other solutions.
 
-</li><li> <strong>Built on Emacs:</strong> Emacs is also a fantastic interface for editing text, and we
-can inherit many of the powerful text-navigation and editing packages
+</li><li> <strong>Built on Emacs:</strong> Emacs is also a fantastic interface for editing text, and
+Org-roam inherits many of the powerful text-navigation and editing packages
 available to Emacs.
 </li></ul>
 
@@ -356,18 +376,18 @@ Next: <a href="#A-Brief-Introduction-to-the-Zettelkasten-Method" accesskey="n" r
 <span id="Target-Audience-1"></span><h2 class="chapter">2 Target Audience</h2>
 
 <p>Org-roam is a tool that will appear unfriendly to anyone unfamiliar with Emacs
-and Org-mode, but is also extremely powerful to those willing to put effort in
-mastering the intricacies of the tools. Org-roam stands on the shoulders on
-giants. Emacs was first created in 1976, and remains a top tier tool for editing
+and Org-mode, but it is also extremely powerful to those willing to put effort
+inn mastering the intricacies. Org-roam stands on the shoulders of giants. Emacs
+was first created in 1976, and remains the tool of choice for many for editing
 text and designing textual interfaces. The malleability of Emacs allowed the
 creation of Org-mode, an all-purpose plain-text system for maintaining TODO
 lists, planning projects, and authoring documents. Both of these tools are
 incredibly vast and require significant time investment to master.
 </p>
-<p>Org-roam assumes basic familiarity with these tools. It is not difficult to get
-up and running with basic text-editing functionality, but one will only fully
-appreciate the power of building Roam functionality into Emacs and Org-mode when
-the usage of these tools become more advanced.
+<p>Org-roam assumes only basic familiarity with these tools. It is not difficult to
+get up and running with basic text-editing functionality, but one will only
+fully appreciate the power of building Roam functionality into Emacs and
+Org-mode when the usage of these tools become more advanced.
 </p>
 <p>One key advantage to Org-roam is that building on top of Emacs gives it
 malleability. This is especially important for note-taking workflows. It is our
@@ -424,20 +444,8 @@ plain-text, Org-mode file. In the same way one would maintain a paper slip-box,
 Org-roam makes it easy to create new zettels, pre-filling boilerplate content
 using a powerful templating system.
 </p>
-<table class="menu" border="0" cellspacing="0">
-<tr><td align="left" valign="top">&bull; <a href="#Fleeting-notes" accesskey="1">Fleeting notes</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top">&bull; <a href="#Permanent-notes" accesskey="2">Permanent notes</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-</table>
-
-<hr>
-<span id="Fleeting-notes"></span><div class="header">
-<p>
-Next: <a href="#Permanent-notes" accesskey="n" rel="next">Permanent notes</a>, Up: <a href="#A-Brief-Introduction-to-the-Zettelkasten-Method" accesskey="u" rel="up">A Brief Introduction to the Zettelkasten Method</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
-</div>
-<span id="Fleeting-notes-1"></span><h3 class="section">3.1 Fleeting notes</h3>
-
+<p><strong>Fleeting notes</strong>
+</p>
 <p>A slip-box requires a method for quickly capturing ideas. These are called
 <strong>fleeting notes</strong>: they are simple reminders of information or ideas that will
 need to be processed later on, or trashed. This is typically accomplished using
@@ -445,19 +453,17 @@ need to be processed later on, or trashed. This is typically accomplished using
 functionality (see <a href="#Daily_002dnotes">Daily-notes</a>). This provides a central inbox for collecting
 thoughts, to be processed later into permanent notes.
 </p>
-<hr>
-<span id="Permanent-notes"></span><div class="header">
-<p>
-Previous: <a href="#Fleeting-notes" accesskey="p" rel="prev">Fleeting notes</a>, Up: <a href="#A-Brief-Introduction-to-the-Zettelkasten-Method" accesskey="u" rel="up">A Brief Introduction to the Zettelkasten Method</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
-</div>
-<span id="Permanent-notes-1"></span><h3 class="section">3.2 Permanent notes</h3>
-
+<p><strong>Permanent notes</strong>
+</p>
 <p>Permanent notes are further split into two categories: <strong>literature notes</strong> and
 <strong>concept notes</strong>. Literature notes can be brief annotations on a particular
 source (e.g. book, website or paper), that you&rsquo;d like to access later on.
 Concept notes require much more care in authoring: they need to be
 self-explanatory and detailed. Org-roam&rsquo;s templating system supports the
 addition of different templates to facilitate the creation of these notes.
+</p>
+<p>For further reading on the Zettelkasten method, &ldquo;How to Take Smart Notes&rdquo; by
+Sonke Ahrens is a decent guide.
 </p>
 <hr>
 <span id="Installation"></span><div class="header">
@@ -474,7 +480,7 @@ development repository.
 </td></tr>
 <tr><td align="left" valign="top">&bull; <a href="#Installing-from-Apt" accesskey="2">Installing from Apt</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
-<tr><td align="left" valign="top">&bull; <a href="#Installing-from-the-Git-Repository" accesskey="3">Installing from the Git Repository</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+<tr><td align="left" valign="top">&bull; <a href="#Installing-from-Source" accesskey="3">Installing from Source</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
 <tr><td align="left" valign="top">&bull; <a href="#Post_002dInstallation-Tasks" accesskey="4">Post-Installation Tasks</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
@@ -538,7 +544,7 @@ using:
 <hr>
 <span id="Installing-from-Apt"></span><div class="header">
 <p>
-Next: <a href="#Installing-from-the-Git-Repository" accesskey="n" rel="next">Installing from the Git Repository</a>, Previous: <a href="#Installing-from-MELPA" accesskey="p" rel="prev">Installing from MELPA</a>, Up: <a href="#Installation" accesskey="u" rel="up">Installation</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+Next: <a href="#Installing-from-Source" accesskey="n" rel="next">Installing from Source</a>, Previous: <a href="#Installing-from-MELPA" accesskey="p" rel="prev">Installing from MELPA</a>, Up: <a href="#Installation" accesskey="u" rel="up">Installation</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
 <span id="Installing-from-Apt-1"></span><h3 class="section">4.2 Installing from Apt</h3>
 
@@ -552,11 +558,11 @@ using Apt:
 <p>Org-roam will then be autoloaded into Emacs.
 </p>
 <hr>
-<span id="Installing-from-the-Git-Repository"></span><div class="header">
+<span id="Installing-from-Source"></span><div class="header">
 <p>
 Next: <a href="#Post_002dInstallation-Tasks" accesskey="n" rel="next">Post-Installation Tasks</a>, Previous: <a href="#Installing-from-Apt" accesskey="p" rel="prev">Installing from Apt</a>, Up: <a href="#Installation" accesskey="u" rel="up">Installation</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="Installing-from-the-Git-Repository-1"></span><h3 class="section">4.3 Installing from the Git Repository</h3>
+<span id="Installing-from-Source-1"></span><h3 class="section">4.3 Installing from Source</h3>
 
 <p>You may install Org-roam directly from the repository on <a href="https://github.com/org-roam/org-roam">GitHub</a> if you like.
 This will give you access to the latest version hours or days before it appears
@@ -650,22 +656,21 @@ file:
 <hr>
 <span id="Post_002dInstallation-Tasks"></span><div class="header">
 <p>
-Previous: <a href="#Installing-from-the-Git-Repository" accesskey="p" rel="prev">Installing from the Git Repository</a>, Up: <a href="#Installation" accesskey="u" rel="up">Installation</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+Previous: <a href="#Installing-from-Source" accesskey="p" rel="prev">Installing from Source</a>, Up: <a href="#Installation" accesskey="u" rel="up">Installation</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
 <span id="Post_002dInstallation-Tasks-1"></span><h3 class="section">4.4 Post-Installation Tasks</h3>
 
-<p>Org-roam uses <code>emacsql-sqlite3</code>, which requires <code>sqlite3</code> to be located on
-<code>exec-path</code>. Please ensure that <code>sqlite3</code> is installed appropriately on your
-operating system. You can verify that this is the case by executing:
+<p>Org-roam requires <code>sqlite3</code> to be locatable by Emacs (i.e. on <code>exec-path</code>).
+Please ensure that <code>sqlite3</code> is installed appropriately on your operating
+system. You can verify that this is the case by executing <a id="DOCF2" href="#FOOT2"><sup>2</sup></a>:
 </p>
 <div class="lisp">
 <pre class="lisp">(executable-find &quot;sqlite3&quot;)
 </pre></div>
 
 <p>If you have <code>sqlite3</code> installed, and <code>executable-find</code> still reports <code>nil</code>, then
-it is likely that the path to the executable is not a member of the Emacs
-variable <code>exec-path</code>. You may rectify this by manually adding the path within
-your Emacs configuration:
+the path to the executable is not a member of the Emacs variable <code>exec-path</code>.
+Rectify this by manually adding the path within your Emacs configuration:
 </p>
 <div class="lisp">
 <pre class="lisp">(add-to-list 'exec-path &quot;path/to/sqlite3&quot;)
@@ -674,306 +679,188 @@ your Emacs configuration:
 <hr>
 <span id="Getting-Started"></span><div class="header">
 <p>
-Next: <a href="#Files" accesskey="n" rel="next">Files</a>, Previous: <a href="#Installation" accesskey="p" rel="prev">Installation</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+Next: <a href="#Viewing-the-links" accesskey="n" rel="next">Viewing the links</a>, Previous: <a href="#Installation" accesskey="p" rel="prev">Installation</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
 <span id="Getting-Started-1"></span><h2 class="chapter">5 Getting Started</h2>
 
-<p>This short tutorial describes the essential commands used in Org-roam, to help
-you get started.
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#The-Org_002droam-Node" accesskey="1">The Org-roam Node</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Links-between-Nodes" accesskey="2">Links between Nodes</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Setting-up-Org_002droam" accesskey="3">Setting up Org-roam</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Creating-and-Linking-Nodes" accesskey="4">Creating and Linking Nodes</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr>
+<span id="The-Org_002droam-Node"></span><div class="header">
+<p>
+Next: <a href="#Links-between-Nodes" accesskey="n" rel="next">Links between Nodes</a>, Up: <a href="#Getting-Started" accesskey="u" rel="up">Getting Started</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+</div>
+<span id="The-Org_002droam-Node-1"></span><h3 class="section">5.1 The Org-roam Node</h3>
+
+<p>We first begin with some terminology we&rsquo;ll use throughout the manual. We term
+the basic denomination in Org-roam a node. We define a node as follows:
 </p>
-<p>First, it is important to understand how Org-roam was designed. Org-roam was
-built to support a workflow that was not possible with vanilla Org-mode. This
-flow is modelled after the <a href="https://zettelkasten.de/">Zettelkasten Method</a>, and many of <a href="https://roamresearch.com">Roam Research&rsquo;s</a>
-workflows. Org-roam does not magically make note-taking better &ndash; this often
-requires a radical change in your current note-taking workflow. To understand
-more about the methods and madness, see <a href="#Note_002dtaking-Workflows">Note-taking Workflows</a>.
+<blockquote>
+<p>A node is any headline or top level file with an ID.
+</p>
+</blockquote>
+
+<p>For example, with this example file content:
+</p>
+<div class="example">
+<pre class="example">:PROPERTIES:
+:ID:       foo
+:END:
+#+title: Foo
+
+* Bar
+:PROPERTIES:
+:ID:       bar
+:END:
+</pre></div>
+
+<p>We create two nodes:
+</p>
+<ul>
+<li> A file node &ldquo;Foo&rdquo; with id <code>foo</code>.
+
+</li><li> A headline node &ldquo;Bar&rdquo; with id <code>bar</code>.
+</li></ul>
+
+<p>Headlines without IDs will not be considered Org-roam nodes. Org IDs can be
+added to files or headlines via the interactive command <code>M-x org-id-get-create</code>.
+</p>
+<hr>
+<span id="Links-between-Nodes"></span><div class="header">
+<p>
+Next: <a href="#Setting-up-Org_002droam" accesskey="n" rel="next">Setting up Org-roam</a>, Previous: <a href="#The-Org_002droam-Node" accesskey="p" rel="prev">The Org-roam Node</a>, Up: <a href="#Getting-Started" accesskey="u" rel="up">Getting Started</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+</div>
+<span id="Links-between-Nodes-1"></span><h3 class="section">5.2 Links between Nodes</h3>
+
+<p>We link between nodes using Org&rsquo;s standard ID link (e.g. <code>id:foo</code>). While only
+ID links will be considered during the computation of links between nodes,
+Org-roam caches all other links in the documents for external use.
+</p>
+<hr>
+<span id="Setting-up-Org_002droam"></span><div class="header">
+<p>
+Next: <a href="#Creating-and-Linking-Nodes" accesskey="n" rel="next">Creating and Linking Nodes</a>, Previous: <a href="#Links-between-Nodes" accesskey="p" rel="prev">Links between Nodes</a>, Up: <a href="#Getting-Started" accesskey="u" rel="up">Getting Started</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+</div>
+<span id="Setting-up-Org_002droam-1"></span><h3 class="section">5.3 Setting up Org-roam</h3>
+
+<p>Org-roam&rsquo;s capabilities stem from its aggressive caching: it crawls all files
+within <code>org-roam-directory</code>, keeping a cache of all its links and nodes, while
+making sure that the cache is consistent.
 </p>
 <p>To first start using Org-roam, one needs to pick a location to store the
 Org-roam files. The directory that will contain your notes is specified by the
-variable <code>org-roam-directory</code>. This variable needs to be set before any calls to
-Org-roam functions, including enabling <code>org-roam-mode</code>. For this tutorial,
-create an empty directory, and set <code>org-roam-directory</code>:
+variable <code>org-roam-directory</code>. Org-roam searches recursively within
+<code>org-roam-directory</code> for notes. This variable needs to be set before any calls
+to Org-roam functions. For this tutorial, create an empty directory, and set
+<code>org-roam-directory</code>:
 </p>
 <div class="lisp">
 <pre class="lisp">(make-directory &quot;~/org-roam&quot;)
 (setq org-roam-directory &quot;~/org-roam&quot;)
 </pre></div>
 
-<p>We encourage using a flat hierarchy for storing notes, but some prefer using
-folders for storing specific kinds of notes (e.g. websites, papers). This is
-fine; Org-roam searches recursively within <code>org-roam-directory</code> for notes.
-Instead of relying on the file hierarchy for any form of categorization, one
-should use links between files to establish connections between notes.
-</p>
-<p>Next, we need to enable the global minor mode <code>org-roam-mode</code>. This sets up
-Emacs with several hooks, building a cache that is kept consistent as your
-slip-box grows. We recommend starting <code>org-roam-mode</code> on startup:
+<p>Next, we need to setup Org-roam to maintain cache consistency. This is achieved
+by running <code>M-x org-roam-setup</code>. To ensure that Org-roam is available on
+startup, one can place this in their Emacs configuration:
 </p>
 <div class="lisp">
-<pre class="lisp">(add-hook 'after-init-hook 'org-roam-mode)
+<pre class="lisp">(require 'org-roam)
+(org-roam-setup)
 </pre></div>
 
 <p>To build the cache manually, one can run <code>M-x org-roam-db-build-cache</code>. Cache
 builds may take a while the first time, but is often instantaneous in subsequent
 runs because it only reprocesses modified files.
 </p>
-<p>Let us now create our first note. Call <code>M-x org-roam-find-file</code>. This shows a
-list of titles for notes that reside in <code>org-roam-directory</code>. It should show
-nothing right now, since there are no notes in the directory. Entering the title
-of the note you wish to create, and pressing <code>RET</code> should begin the note
+<hr>
+<span id="Creating-and-Linking-Nodes"></span><div class="header">
+<p>
+Previous: <a href="#Setting-up-Org_002droam" accesskey="p" rel="prev">Setting up Org-roam</a>, Up: <a href="#Getting-Started" accesskey="u" rel="up">Getting Started</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+</div>
+<span id="TODO-Creating-and-Linking-Nodes"></span><h3 class="section">5.4 <strong>TODO</strong> Creating and Linking Nodes</h3>
+
+<p>Org-roam makes it easy to create notes and link them together. There are 2 main
+functions for creating nodes:
+</p>
+<ul>
+<li> <code>org-roam-node-insert</code>: creates a node if it does not exist, and inserts a
+link to the node at point.
+
+</li><li> <code>org-roam-node-find</code>: creates a node if it does not exist, and visits the
+node.
+</li></ul>
+
+<p>Let&rsquo;s first try <code>org-roam-node-find</code>. Calling <code>M-x org-roam-node-find</code> will
+show a list of titles for nodes that reside in <code>org-roam-directory</code>. It should
+show nothing right now, since there are no notes in the directory. Enter the
+title of the note you wish to create, and press <code>RET</code>. This begins the note
 creation process. This process uses <code>org-capture</code>&rsquo;s templating system, and can
 be customized (see <a href="#The-Templating-System">The Templating System</a>). Using the default template, pressing
 <code>C-c C-c</code> finishes the note capture.
 </p>
-<p>By default, Org-roam updates the cache asynchronously in the background to
-avoid getting in the way of writing. Org-roam queues updates to the files,
-waits for you to be idle for 2 seconds, and then automatically triggers
-updating the cache. After the cache has been updated, running <code>M-x
-org-roam-find-file</code> again should show the note you have created, and selecting
-that entry will bring you to that note <a id="DOCF2" href="#FOOT2"><sup>2</sup></a>. One can customize the waiting
-time by setting <code>org-roam-db-update-idle-seconds</code>; or change the cache update
-to be triggered immediately after buffer save by setting
-<code>org-roam-db-update-method</code> to <code>'immediate</code>.
-</p>
-<p>For experienced <code>org-capture</code> users, the behavior of <code>M-x org-roam-find-file</code> 
-may seem unfamiliar: after finishing a capture with <code>C-c C-c</code>, you are returned  
-not to the original buffer from which you called <code>M-x org-roam-find-file</code>, but 
-to a buffer pointing to the note you just created. For the usual <code>org-capture</code> 
-behavior you can call <code>M-x org-roam-capture</code> instead of <code>M-x org-roam-find-file</code>. 
-</p>
-<p>Org-roam makes it easy to create notes, and link them together. To link notes
-together, we call <code>M-x org-roam-insert</code>. This brings up a prompt with a list of
-title for existing notes. Selecting an existing entry will create and insert a
-link to the current file. Entering a non-existent title will create a new note
-with that title. Good usage of Org-roam requires liberally linking files: this
-facilitates building up a dense graph of inter-connected notes.
-</p>
-<p>Org-roam provides an interface to view backlinks. It shows backlinks for the
-currently active Org-roam note, along with some surrounding context. To toggle
-the visibility of this buffer, call <code>M-x org-roam</code>.
-</p>
-<p>For a visual representation of the notes and their connections, Org-roam also
-provides graphing capabilities, using Graphviz. It generates graphs with notes
-as nodes, and links between them as edges. The generated graph can be used to
-navigate to the files, but this requires some additional setup (see <a href="#Roam-Protocol">Roam Protocol</a>).
+<p>Now that we have a node, we can try inserting a link to the node using <code>M-x
+org-roam-node-insert</code>. This brings up the list of nodes, which should contain
+the node you just created. Selecting the node will insert an <code>id:</code> link to the
+node. If you instead entered a title that does not exist, you will once again be
+brought through the node creation process. To enable link auto-completion,
+see <a href="#Completion">Completion</a>.
 </p>
 <hr>
-<span id="Files"></span><div class="header">
+<span id="Viewing-the-links"></span><div class="header">
 <p>
-Next: <a href="#The-Templating-System" accesskey="n" rel="next">The Templating System</a>, Previous: <a href="#Getting-Started" accesskey="p" rel="prev">Getting Started</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+Next: <a href="#Node-Properties" accesskey="n" rel="next">Node Properties</a>, Previous: <a href="#Getting-Started" accesskey="p" rel="prev">Getting Started</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="Files-1"></span><h2 class="chapter">6 Files</h2>
+<span id="TODO-Viewing-the-links"></span><h2 class="chapter">6 <strong>TODO</strong> Viewing the links</h2>
 
-<p>In Org-roam, notes typically consist of multiple files, where each file is a
-zettel.
+<p>Org-roam provides an interface to view relationships with other notes
+(backlinks, reference links, unlinked references etc.). To pop up this info
+buffer, call <code>M-x org-roam-buffer</code>.
 </p>
-<p>While the bulk of Org-roam&rsquo;s functionality is built on top of vanilla Org-mode,
-Org-roam adds several Org-roam-specific keywords to support additional
-functionality.
-</p>
-<p>This section explains the important components of a file, and the extensions to
-Org-mode.
-</p>
+<hr>
+<span id="Node-Properties"></span><div class="header">
+<p>
+Next: <a href="#The-Org_002droam-Buffer" accesskey="n" rel="next">The Org-roam Buffer</a>, Previous: <a href="#Viewing-the-links" accesskey="p" rel="prev">Viewing the links</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+</div>
+<span id="TODO-Node-Properties"></span><h2 class="chapter">7 <strong>TODO</strong> Node Properties</h2>
+
 <table class="menu" border="0" cellspacing="0">
-<tr><td align="left" valign="top">&bull; <a href="#File-Titles" accesskey="1">File Titles</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+<tr><td align="left" valign="top">&bull; <a href="#Standard-Org-properties" accesskey="1">Standard Org properties</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
-<tr><td align="left" valign="top">&bull; <a href="#File-Tags" accesskey="2">File Tags</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+<tr><td align="left" valign="top">&bull; <a href="#Aliases" accesskey="2">Aliases</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
-<tr><td align="left" valign="top">&bull; <a href="#File-Refs" accesskey="3">File Refs</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-</table>
-
-<hr>
-<span id="File-Titles"></span><div class="header">
-<p>
-Next: <a href="#File-Tags" accesskey="n" rel="next">File Tags</a>, Up: <a href="#Files" accesskey="u" rel="up">Files</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
-</div>
-<span id="File-Titles-1"></span><h3 class="section">6.1 File Titles</h3>
-
-<p>To easily find a note, a title needs to be prescribed to a note.
-</p>
-<p>A note can have many titles: this allows a note to be referred to by different
-names, which is especially useful for topics or concepts with acronyms. For
-example, for a note like &ldquo;World War 2&rdquo;, it may be desirable to also refer to it
-using the acronym &ldquo;WWII&rdquo;.
-</p>
-<p>Org-roam calls <code>org-roam--extract-titles</code> to extract titles. It uses the
-variable <code>org-roam-title-sources</code>, to control how the titles are extracted. The
-title extraction methods supported are:
-</p>
-<ul>
-<li> <code>'title</code>: This extracts the title using the file <code>#+title</code> property
-
-</li><li> <code>'headline</code>: This extracts the title from the first headline in the Org file
-
-</li><li> <code>'alias</code>: This extracts a list of titles using the <code>#+roam_alias</code> property.
-The aliases are space-delimited, and can be multi-worded using quotes.
-</li></ul>
-
-<p>Take for example the following org file:
-</p>
-<div class="example">
-<pre class="example">#+title: World War 2
-#+roam_alias: &quot;WWII&quot; &quot;World War II&quot;
-
-* Headline
-</pre></div>
-
-<table>
-<thead><tr><th>Method</th><th>Titles</th></tr></thead>
-<tr><td><code>'title</code></td><td>&rsquo;(&ldquo;World War 2&rdquo;)</td></tr>
-<tr><td><code>'headline</code></td><td>&rsquo;(&ldquo;Headline&rdquo;)</td></tr>
-<tr><td><code>'alias</code></td><td>&rsquo;(&ldquo;WWII&rdquo; &ldquo;World War II&rdquo;)</td></tr>
-</table>
-
-<p>If no title is provided, Org-roam defaults to using the file-path.
-</p>
-<table class="menu" border="0" cellspacing="0">
-<tr><td align="left" valign="top">&bull; <a href="#Customizing-Title-Extraction" accesskey="1">Customizing Title Extraction</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+<tr><td align="left" valign="top">&bull; <a href="#Refs" accesskey="3">Refs</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
 </table>
 
 <hr>
-<span id="Customizing-Title-Extraction"></span><div class="header">
+<span id="Standard-Org-properties"></span><div class="header">
 <p>
-Up: <a href="#File-Titles" accesskey="u" rel="up">File Titles</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+Next: <a href="#Aliases" accesskey="n" rel="next">Aliases</a>, Up: <a href="#Node-Properties" accesskey="u" rel="up">Node Properties</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="Customizing-Title-Extraction-1"></span><h4 class="subsection">6.1.1 Customizing Title Extraction</h4>
-
-<p>To control how Org-roam extracts titles, customize <code>org-roam-title-sources</code>. If
-all methods of title extraction return no results, the file-name is used as the
-note&rsquo;s title.
-</p>
-<dl>
-<dt id="index-org_002droam_002dtitle_002dsources">User Option: <strong>org-roam-title-sources</strong></dt>
-<dd>
-<p>The list of sources from which to retrieve a note title.
-Each element in the list is either:
-</p></dd></dl>
-
-<ul>
-<li> a symbol &ndash; this symbol corresponds to a title retrieval function, which
-returns the list of titles for the current buffer
-<ul>
-<li> a list of symbols &ndash; symbols in the list are treated as with (1). The
-return value of this list is the first symbol in the list returning a
-non-nil value.
-</li></ul>
-
-<p>The return results of the root list are concatenated.
-</p>
-<p>For example the setting: &rsquo;((title headline) alias) means the following:
-</p>
-<ul>
-<li> Return the &rsquo;title + &rsquo;alias, if the title of current buffer is non-empty;
-
-</li><li> Or return &rsquo;headline + &rsquo;alias otherwise.
-</li></ul>
-
-<p>The currently supported symbols are:
-</p>
-<p><code>'title</code>
-The <code>#+title</code> property of org file.
-</p>
-<p><code>'alias</code>
-The <code>#+roam_alias</code> property of the org file, using
-space-delimited strings.
-</p>
-<p><code>'headline</code>
-The first headline in the org file.
-</p></li></ul>
-
-<p>Adding your own title extraction method requires two steps. First, define a
-method <code>(defun org-roam--extract-titles-foo () ...)</code>, where <code>foo</code> a
-self-prescribed name for the title extraction method. This method takes no
-arguments, and returns a list of strings (titles). Finally, push the symbol
-<code>foo</code> into <code>org-roam-title-sources</code>. You may need to rebuild the cache from
-scratch to re-process all files to pick up the new titles.
-</p>
-<hr>
-<span id="File-Tags"></span><div class="header">
-<p>
-Next: <a href="#File-Refs" accesskey="n" rel="next">File Refs</a>, Previous: <a href="#File-Titles" accesskey="p" rel="prev">File Titles</a>, Up: <a href="#Files" accesskey="u" rel="up">Files</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
-</div>
-<span id="File-Tags-1"></span><h3 class="section">6.2 File Tags</h3>
-
-<p>Tags are used as meta-data for files: they facilitate interactions with notes
-where titles are insufficient. For example, tags allow for categorization of
-notes: differentiating between bibliographical and structure notes during
-interactive commands.
-</p>
-<p>By default, tags are extracted from the <code>#+roam_tags</code> property. To add
-additional extraction methods, see <a href="#Customizing-Tag-Extraction">Customizing Tag Extraction</a>.
-</p>
-<table class="menu" border="0" cellspacing="0">
-<tr><td align="left" valign="top">&bull; <a href="#Customizing-Tag-Extraction" accesskey="1">Customizing Tag Extraction</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-</table>
+<span id="TODO-Standard-Org-properties"></span><h3 class="section">7.1 <strong>TODO</strong> Standard Org properties</h3>
 
 <hr>
-<span id="Customizing-Tag-Extraction"></span><div class="header">
+<span id="Aliases"></span><div class="header">
 <p>
-Up: <a href="#File-Tags" accesskey="u" rel="up">File Tags</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+Next: <a href="#Refs" accesskey="n" rel="next">Refs</a>, Previous: <a href="#Standard-Org-properties" accesskey="p" rel="prev">Standard Org properties</a>, Up: <a href="#Node-Properties" accesskey="u" rel="up">Node Properties</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="Customizing-Tag-Extraction-1"></span><h4 class="subsection">6.2.1 Customizing Tag Extraction</h4>
+<span id="TODO-Aliases"></span><h3 class="section">7.2 <strong>TODO</strong> Aliases</h3>
 
-<p>Org-roam calls <code>org-roam--extract-tags</code> to extract tags from files. The variable
-<code>org-roam-tag-sources</code>, to control how tags are extracted.
-</p>
-<dl>
-<dt id="index-org_002droam_002dtag_002dsources">User Option: <strong>org-roam-tag-sources</strong></dt>
-</dl>
-
-<p>Sources to obtain tags from.
-</p>
-<p>It should be a list of symbols representing any of the following extraction
-methods:
-</p>
-<p><code>'prop</code>
-  Extract tags from the <code>#+roam_tags</code> property.
-  Tags are space delimited.
-  Tags may contain spaces if they are double-quoted.
-  e.g. <code>#+roam_tags: TAG &quot;tag with spaces&quot;</code>
-</p>
-<p><code>'vanilla</code>
-  Extract vanilla org-mode tags, including <code>#+FILETAGS</code> and
-  inherited tags.
-</p>
-<p><code>'all-directories</code>
-  Extract sub-directories relative to <code>org-roam-directory</code>.
-  That is, if a file is located at relative path foo/bar/file.org,
-  the file will have tags &ldquo;foo&rdquo; and &ldquo;bar&rdquo;.
-</p>
-<p><code>'last-directory</code>
-  Extract the last directory relative to &lsquo;org-roam-directory&rsquo;.
-  That is, if a file is located at relative path foo/bar/file.org,
-  the file will have tag \&ldquo;bar\&rdquo;.
-</p>
-<p><code>'first-directory</code>
-  Extract the first directory relative to <code>org-roam-directory</code>.
-  That is, if a file is located at relative path foo/bar/file.org,
-  the file will have tag &ldquo;foo&rdquo;
-</p>
-<p>By default, only the <code>'prop</code> extraction method is enabled. To enable the other
-extraction methods, you may modify <code>org-roam-tag-sources</code>, for example:
-</p>
-<div class="lisp">
-<pre class="lisp">(setq org-roam-tag-sources '(prop last-directory))
-</pre></div>
-
-<p>Adding your own tag extraction method requires two steps. First, define a method
-<code>(defun org-roam--extract-tags-foo (file) ...)</code>, where <code>foo</code> a self-prescribed
-name for the tag extraction method. This method takes the file path as an
-argument, and returns a list of strings (titles). Finally, push the symbol <code>foo</code>
-into <code>org-roam-tag-sources</code>. You may need to rebuild the cache from scratch to
-re-process all files to pick up the new tags.
-</p>
 <hr>
-<span id="File-Refs"></span><div class="header">
+<span id="Refs"></span><div class="header">
 <p>
-Previous: <a href="#File-Tags" accesskey="p" rel="prev">File Tags</a>, Up: <a href="#Files" accesskey="u" rel="up">Files</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+Previous: <a href="#Aliases" accesskey="p" rel="prev">Aliases</a>, Up: <a href="#Node-Properties" accesskey="u" rel="up">Node Properties</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="File-Refs-1"></span><h3 class="section">6.3 File Refs</h3>
+<span id="TODO-Refs"></span><h3 class="section">7.3 <strong>TODO</strong> Refs</h3>
 
 <p>Refs are unique identifiers for files. For example, a note for a website may
 contain a ref:
@@ -1006,11 +893,195 @@ multiple papers in a series to share the same note, or an article has a citation
 key and a URL at the same time.
 </p>
 <hr>
+<span id="The-Org_002droam-Buffer"></span><div class="header">
+<p>
+Next: <a href="#Styling-Org_002droam" accesskey="n" rel="next">Styling Org-roam</a>, Previous: <a href="#Node-Properties" accesskey="p" rel="prev">Node Properties</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+</div>
+<span id="TODO-The-Org_002droam-Buffer"></span><h2 class="chapter">8 <strong>TODO</strong> The Org-roam Buffer</h2>
+
+<hr>
+<span id="Styling-Org_002droam"></span><div class="header">
+<p>
+Next: <a href="#Completion" accesskey="n" rel="next">Completion</a>, Previous: <a href="#The-Org_002droam-Buffer" accesskey="p" rel="prev">The Org-roam Buffer</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+</div>
+<span id="TODO-Styling-Org_002droam"></span><h2 class="chapter">9 <strong>TODO</strong> Styling Org-roam</h2>
+
+<hr>
+<span id="Completion"></span><div class="header">
+<p>
+Next: <a href="#Encryption" accesskey="n" rel="next">Encryption</a>, Previous: <a href="#Styling-Org_002droam" accesskey="p" rel="prev">Styling Org-roam</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+</div>
+<span id="TODO-Completion"></span><h2 class="chapter">10 <strong>TODO</strong> Completion</h2>
+
+<hr>
+<span id="Encryption"></span><div class="header">
+<p>
+Next: <a href="#Org_002droam-protocol" accesskey="n" rel="next">Org-roam protocol</a>, Previous: <a href="#Completion" accesskey="p" rel="prev">Completion</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+</div>
+<span id="TODO-Encryption"></span><h2 class="chapter">11 <strong>TODO</strong> Encryption</h2>
+
+<hr>
+<span id="Org_002droam-protocol"></span><div class="header">
+<p>
+Next: <a href="#Diagnosing-and-Repair" accesskey="n" rel="next">Diagnosing and Repair</a>, Previous: <a href="#Encryption" accesskey="p" rel="prev">Encryption</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+</div>
+<span id="TODO-Org_002droam-protocol"></span><h2 class="chapter">12 <strong>TODO</strong> Org-roam protocol</h2>
+
+<hr>
+<span id="Diagnosing-and-Repair"></span><div class="header">
+<p>
+Next: <a href="#Building-Extensions" accesskey="n" rel="next">Building Extensions</a>, Previous: <a href="#Org_002droam-protocol" accesskey="p" rel="prev">Org-roam protocol</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+</div>
+<span id="TODO-Diagnosing-and-Repair"></span><h2 class="chapter">13 <strong>TODO</strong> Diagnosing and Repair</h2>
+
+<hr>
+<span id="Building-Extensions"></span><div class="header">
+<p>
+Next: <a href="#The-Org_002dmode-Ecosystem" accesskey="n" rel="next">The Org-mode Ecosystem</a>, Previous: <a href="#Diagnosing-and-Repair" accesskey="p" rel="prev">Diagnosing and Repair</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+</div>
+<span id="TODO-Building-Extensions"></span><h2 class="chapter">14 <strong>TODO</strong> Building Extensions</h2>
+
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Public-Interface" accesskey="1">Public Interface</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr>
+<span id="Public-Interface"></span><div class="header">
+<p>
+Up: <a href="#Building-Extensions" accesskey="u" rel="up">Building Extensions</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+</div>
+<span id="TODO-Public-Interface"></span><h3 class="section">14.1 <strong>TODO</strong> Public Interface</h3>
+
+<p>Database (for developers)
+</p><ul>
+<li> querying: (org-roam-db-query)
+
+</li><li> updating full database: (org-roam-db-sync)
+
+</li><li> update current file: (org-roam-db-update-file)
+
+</li><li> remove file from database: (org-roam-db-clear-file)
+</li></ul>
+
+<p>Nodes:
+</p><ul>
+<li> List all nodes
+
+</li><li> Read a node in from completion
+
+</li><li> Get node at point
+</li></ul>
+
+<p>Links:
+</p><ul>
+<li> Get backlinks for node
+</li></ul>
+
+<p>Tags:
+</p><ul>
+<li> Add tag to node
+
+</li><li> delete tag for node
+
+</li><li> Get tags for node
+</li></ul>
+
+<p>Aliases:
+</p><ul>
+<li> Add alias to node
+
+</li><li> Delete alias for node
+
+</li><li> Get aliases for node
+</li></ul>
+
+<p>Ref:
+</p><ul>
+<li> Add ref to node
+</li></ul>
+
+<p>Capture:
+</p>
+<p>Navigation:
+</p><ul>
+<li> Find or create a node
+</li></ul>
+
+<hr>
+<span id="The-Org_002dmode-Ecosystem"></span><div class="header">
+<p>
+Next: <a href="#Frequently-Asked-Questions" accesskey="n" rel="next">Frequently Asked Questions</a>, Previous: <a href="#Building-Extensions" accesskey="p" rel="prev">Building Extensions</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+</div>
+<span id="TODO-The-Org_002dmode-Ecosystem"></span><h2 class="chapter">15 <strong>TODO</strong> The Org-mode Ecosystem</h2>
+
+<hr>
+<span id="Frequently-Asked-Questions"></span><div class="header">
+<p>
+Next: <a href="#Developer_0027s-Guide-to-Org_002droam" accesskey="n" rel="next">Developer's Guide to Org-roam</a>, Previous: <a href="#The-Org_002dmode-Ecosystem" accesskey="p" rel="prev">The Org-mode Ecosystem</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+</div>
+<span id="TODO-Frequently-Asked-Questions"></span><h2 class="chapter">16 <strong>TODO</strong> Frequently Asked Questions</h2>
+
+<hr>
+<span id="Developer_0027s-Guide-to-Org_002droam"></span><div class="header">
+<p>
+Next: <a href="#The-Templating-System" accesskey="n" rel="next">The Templating System</a>, Previous: <a href="#Frequently-Asked-Questions" accesskey="p" rel="prev">Frequently Asked Questions</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+</div>
+<span id="TODO-Developer_0027s-Guide-to-Org_002droam"></span><h2 class="chapter">17 <strong>TODO</strong> Developer&rsquo;s Guide to Org-roam</h2>
+
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Org_002droam_0027s-Design-Principles" accesskey="1">Org-roam's Design Principles</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr>
+<span id="Org_002droam_0027s-Design-Principles"></span><div class="header">
+<p>
+Up: <a href="#Developer_0027s-Guide-to-Org_002droam" accesskey="u" rel="up">Developer's Guide to Org-roam</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+</div>
+<span id="Org_002droam_0027s-Design-Principles-1"></span><h3 class="section">17.1 Org-roam&rsquo;s Design Principles</h3>
+
+<p>Org-roam is primarily motivated by the need for a dual representation. We
+(humans) love operating in a plain-text environment. The syntax rules of
+Org-mode are simple and fit snugly within our brain. This also allows us to use
+the tools and packages we love to explore and edit our notes. Org-mode is simply
+the most powerful plain-text format available, with support for images, LaTeX,
+TODO planning and much more.
+</p>
+<p>But this plain-text format is simply ill-suited for exploration of these notes:
+plain-text is simply not amenable for answering large-scale, complex queries
+(e.g. how many tasks do I have that are due by next week?). Interfaces such as
+Org-agenda slow to a crawl when the number of files becomes unwieldy, which
+can quickly become the case.
+</p>
+<p>At its core, Org-roam provides a database abstraction layer, providing a dual
+representation of what&rsquo;s already available in plain-text. This allows us
+(humans) to continue working with plain-text, while programs can utilize the
+database layer to perform complex queries. These capabilities include, but are
+not limited to:
+</p>
+<ul>
+<li> link graph traversal and visualization
+
+</li><li> Instantaneous SQL-like queries on headlines
+<ul>
+<li> What are my TODOs, scheduled for X, or due by Y?
+</li></ul>
+</li></ul>
+
+<p>All of these functionality is powered by this database abstraction layer. Hence,
+at its core Org-roam&rsquo;s primary goal is to provide a resilient dual
+representation that is cheap to maintain, easy to understand, and is as
+up-to-date as it possibly can. Org-roam also then exposes an API to this
+database abstraction layer for users who would like to perform programmatic
+queries on their Org files.
+</p>
+<hr>
 <span id="The-Templating-System"></span><div class="header">
 <p>
-Next: <a href="#Concepts-and-Configuration" accesskey="n" rel="next">Concepts and Configuration</a>, Previous: <a href="#Files" accesskey="p" rel="prev">Files</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+Next: <a href="#Concepts-and-Configuration" accesskey="n" rel="next">Concepts and Configuration</a>, Previous: <a href="#Developer_0027s-Guide-to-Org_002droam" accesskey="p" rel="prev">Developer's Guide to Org-roam</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="The-Templating-System-1"></span><h2 class="chapter">7 The Templating System</h2>
+<span id="The-Templating-System-1"></span><h2 class="chapter">18 The Templating System</h2>
 
 <p>Rather than creating blank files on <code>org-roam-insert</code> and <code>org-roam-find-file</code>,
 it may be desirable to prefill the file with templated content. This may
@@ -1051,7 +1122,7 @@ will be no prompt for template selection.
 <p>
 Next: <a href="#Org_002droam-Template-Expansion" accesskey="n" rel="next">Org-roam Template Expansion</a>, Up: <a href="#The-Templating-System" accesskey="u" rel="up">The Templating System</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="Template-Walkthrough-1"></span><h3 class="section">7.1 Template Walkthrough</h3>
+<span id="Template-Walkthrough-1"></span><h3 class="section">18.1 Template Walkthrough</h3>
 
 <p>To demonstrate the additions made to org-capture templates. Here, we walkthrough
 the default template, reproduced below.
@@ -1075,7 +1146,7 @@ automatically chooses this template for you.
 
 </li><li> <code>(function org-roam--capture-get-point)</code> should not be changed.
 
-</li><li> <code>&quot;%?&quot;</code> is the template inserted on each call to <code>org-roam-capture--capture</code>.
+</li><li> <code>&quot;%?&quot;</code> is the template inserted on each call to <code>org-roam-capture-</code>.
 This template means don&rsquo;t insert any content, but place the cursor here.
 
 </li><li> <code>:file-name</code> is the file-name template for a new note, if it doesn&rsquo;t yet
@@ -1100,7 +1171,7 @@ file, rather than narrowing to just the entry.
 <p>
 Previous: <a href="#Template-Walkthrough" accesskey="p" rel="prev">Template Walkthrough</a>, Up: <a href="#The-Templating-System" accesskey="u" rel="up">The Templating System</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="Org_002droam-Template-Expansion-1"></span><h3 class="section">7.2 Org-roam Template Expansion</h3>
+<span id="Org_002droam-Template-Expansion-1"></span><h3 class="section">18.2 Org-roam Template Expansion</h3>
 
 <p>Org-roam&rsquo;s template definitions also extend org-capture&rsquo;s template syntax, to
 allow prefilling of strings. We have seen a glimpse of this in <a href="#Template-Walkthrough">Template
@@ -1141,7 +1212,7 @@ directly to provide its third argument to specify UTC.
 <p>
 Next: <a href="#Inserting-Links" accesskey="n" rel="next">Inserting Links</a>, Previous: <a href="#The-Templating-System" accesskey="p" rel="prev">The Templating System</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="Concepts-and-Configuration-1"></span><h2 class="chapter">8 Concepts and Configuration</h2>
+<span id="Concepts-and-Configuration-1"></span><h2 class="chapter">19 Concepts and Configuration</h2>
 
 <p>The number of configuration options is deliberately kept small, to keep the
 Org-roam codebase manageable. However, we attempt to accommodate as many usage
@@ -1153,22 +1224,20 @@ org-roam</code>.
 <table class="menu" border="0" cellspacing="0">
 <tr><td align="left" valign="top">&bull; <a href="#Directories-and-Files" accesskey="1">Directories and Files</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
-<tr><td align="left" valign="top">&bull; <a href="#The-Org_002droam-Buffer" accesskey="2">The Org-roam Buffer</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+<tr><td align="left" valign="top">&bull; <a href="#The-Org_002droam-Buffer-_00281_0029" accesskey="2">The Org-roam Buffer</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
 <tr><td align="left" valign="top">&bull; <a href="#Org_002droam-Files" accesskey="3">Org-roam Files</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
 <tr><td align="left" valign="top">&bull; <a href="#Org_002droam-Faces" accesskey="4">Org-roam Faces</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top">&bull; <a href="#The-Database" accesskey="5">The Database</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
 </table>
 
 <hr>
 <span id="Directories-and-Files"></span><div class="header">
 <p>
-Next: <a href="#The-Org_002droam-Buffer" accesskey="n" rel="next">The Org-roam Buffer</a>, Up: <a href="#Concepts-and-Configuration" accesskey="u" rel="up">Concepts and Configuration</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+Next: <a href="#The-Org_002droam-Buffer-_00281_0029" accesskey="n" rel="next">The Org-roam Buffer (1)</a>, Up: <a href="#Concepts-and-Configuration" accesskey="u" rel="up">Concepts and Configuration</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="Directories-and-Files-1"></span><h3 class="section">8.1 Directories and Files</h3>
+<span id="Directories-and-Files-1"></span><h3 class="section">19.1 Directories and Files</h3>
 
 <p>This section concerns the placement and creation of files.
 </p>
@@ -1196,11 +1265,11 @@ with multiple Org-roam instances.
 </p></dd></dl>
 
 <hr>
-<span id="The-Org_002droam-Buffer"></span><div class="header">
+<span id="The-Org_002droam-Buffer-_00281_0029"></span><div class="header">
 <p>
 Next: <a href="#Org_002droam-Files" accesskey="n" rel="next">Org-roam Files</a>, Previous: <a href="#Directories-and-Files" accesskey="p" rel="prev">Directories and Files</a>, Up: <a href="#Concepts-and-Configuration" accesskey="u" rel="up">Concepts and Configuration</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="The-Org_002droam-Buffer-1"></span><h3 class="section">8.2 The Org-roam Buffer</h3>
+<span id="The-Org_002droam-Buffer-1"></span><h3 class="section">19.2 The Org-roam Buffer</h3>
 
 <p>The Org-roam buffer displays backlinks for the currently active Org-roam note.
 </p>
@@ -1245,9 +1314,9 @@ Next: <a href="#Org_002droam-Files" accesskey="n" rel="next">Org-roam Files</a>,
 <hr>
 <span id="Org_002droam-Files"></span><div class="header">
 <p>
-Next: <a href="#Org_002droam-Faces" accesskey="n" rel="next">Org-roam Faces</a>, Previous: <a href="#The-Org_002droam-Buffer" accesskey="p" rel="prev">The Org-roam Buffer</a>, Up: <a href="#Concepts-and-Configuration" accesskey="u" rel="up">Concepts and Configuration</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+Next: <a href="#Org_002droam-Faces" accesskey="n" rel="next">Org-roam Faces</a>, Previous: <a href="#The-Org_002droam-Buffer-_00281_0029" accesskey="p" rel="prev">The Org-roam Buffer (1)</a>, Up: <a href="#Concepts-and-Configuration" accesskey="u" rel="up">Concepts and Configuration</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="Org_002droam-Files-1"></span><h3 class="section">8.3 Org-roam Files</h3>
+<span id="Org_002droam-Files-1"></span><h3 class="section">19.3 Org-roam Files</h3>
 
 <p>Org-roam files are created and prefilled using Org-roam&rsquo;s templating
 system. The templating system is customizable (see <a href="#The-Templating-System">The Templating System</a>).
@@ -1255,9 +1324,9 @@ system. The templating system is customizable (see <a href="#The-Templating-Syst
 <hr>
 <span id="Org_002droam-Faces"></span><div class="header">
 <p>
-Next: <a href="#The-Database" accesskey="n" rel="next">The Database</a>, Previous: <a href="#Org_002droam-Files" accesskey="p" rel="prev">Org-roam Files</a>, Up: <a href="#Concepts-and-Configuration" accesskey="u" rel="up">Concepts and Configuration</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+Previous: <a href="#Org_002droam-Files" accesskey="p" rel="prev">Org-roam Files</a>, Up: <a href="#Concepts-and-Configuration" accesskey="u" rel="up">Concepts and Configuration</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="Org_002droam-Faces-1"></span><h3 class="section">8.4 Org-roam Faces</h3>
+<span id="Org_002droam-Faces-1"></span><h3 class="section">19.4 Org-roam Faces</h3>
 
 <p>Org-roam introduces several faces to distinguish links within the same buffer.
 These faces are enabled by default in Org-roam notes.
@@ -1279,38 +1348,11 @@ This distinguishes internal links from external links (e.g. external web links).
 links to files or IDs that cannot be found.
 </p>
 <hr>
-<span id="The-Database"></span><div class="header">
-<p>
-Previous: <a href="#Org_002droam-Faces" accesskey="p" rel="prev">Org-roam Faces</a>, Up: <a href="#Concepts-and-Configuration" accesskey="u" rel="up">Concepts and Configuration</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
-</div>
-<span id="TODO-The-Database"></span><h3 class="section">8.5 <strong>TODO</strong> The Database</h3>
-
-<p>Org-roam is backed by a Sqlite database.
-</p>
-<dl>
-<dt id="index-org_002droam_002ddb_002dupdate_002dmethod">User Option: <strong>org-roam-db-update-method</strong></dt>
-<dd>
-<p>Method to update the Org-roam database.
-</p>
-<p><code>'immediate</code>: Update the database immediately upon file changes.
-</p>
-<p><code>'idle-timer</code>: Updates the database if dirty, if Emacs idles for
-<code>org-roam-db-update-idle-seconds</code>.
-</p></dd></dl>
-
-<dl>
-<dt id="index-org_002droam_002ddb_002dupdate_002didle_002dseconds">User Option: <strong>org-roam-db-update-idle-seconds</strong></dt>
-<dd>
-<p>Number of idle seconds before triggering an Org-roam database update. This is
-only valid if <code>org-roam-db-update-method</code> is <code>'idle-timer</code>.
-</p></dd></dl>
-
-<hr>
 <span id="Inserting-Links"></span><div class="header">
 <p>
 Next: <a href="#Completions" accesskey="n" rel="next">Completions</a>, Previous: <a href="#Concepts-and-Configuration" accesskey="p" rel="prev">Concepts and Configuration</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="Inserting-Links-1"></span><h2 class="chapter">9 Inserting Links</h2>
+<span id="Inserting-Links-1"></span><h2 class="chapter">20 Inserting Links</h2>
 
 <p>The preferred mode of linking is via <code>file</code> links to files, and <code>id</code> links for
 headlines. This maintains the strongest compatibility with Org-mode, ensuring
@@ -1361,7 +1403,7 @@ harder to edit. Defaults to <code>t</code>.
 <p>
 Next: <a href="#Navigating-Around" accesskey="n" rel="next">Navigating Around</a>, Previous: <a href="#Inserting-Links" accesskey="p" rel="prev">Inserting Links</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="Completions-1"></span><h2 class="chapter">10 Completions</h2>
+<span id="Completions-1"></span><h2 class="chapter">21 Completions</h2>
 
 <p>Completions for Org-roam are provided via <code>completion-at-point</code>. Completion
 suggestions are implemented as separate functions. Org-roam installs all
@@ -1396,7 +1438,7 @@ to variable <code>company-backends</code>.
 <p>
 Next: <a href="#Tag-Completion" accesskey="n" rel="next">Tag Completion</a>, Up: <a href="#Completions" accesskey="u" rel="up">Completions</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="Link-Completion-1"></span><h3 class="section">10.1 Link Completion</h3>
+<span id="Link-Completion-1"></span><h3 class="section">21.1 Link Completion</h3>
 
 <p><code>roam</code> links support auto-completion via <code>completion-at-point</code>: simply call
 <code>M-x completion-at-point</code> within a roam link. That is, where the <code>|</code> character
@@ -1405,7 +1447,7 @@ represents the cursor:
 <ul>
 <li> <code>[[|]]</code>: completes for a file title
 
-</li><li> <code>[[roam:]]</code>: completes for a file title
+</li><li> <code>[[roam:|]]</code>: completes for a file title
 
 </li><li> <code>[[*|]]</code>: completes for a headline within this file
 
@@ -1414,6 +1456,9 @@ represents the cursor:
 </li><li> <code>[[roam:foo*|]]</code> completes a headline within the file with title &ldquo;foo&rdquo;
 </li></ul>
 
+<p>If you don&rsquo;t see the literal display of your links like the above examples,
+call <code>M-x org-toggle-link-display</code>
+</p>
 <p>Completions account for the current input. For example, for <code>[[f|]]</code>, the
 completions (by default) only show for files with titles that start with &ldquo;f&rdquo;.
 </p>
@@ -1433,7 +1478,7 @@ completions (by default) only show for files with titles that start with &ldquo;
 <p>
 Up: <a href="#Link-Completion" accesskey="u" rel="up">Link Completion</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="Link-Completions-Everywhere-1"></span><h4 class="subsection">10.1.1 Link Completions Everywhere</h4>
+<span id="Link-Completions-Everywhere-1"></span><h4 class="subsection">21.1.1 Link Completions Everywhere</h4>
 
 <p>Org-roam is able to provide completions from the current word at point, enabling
 as-you-type link completions. However, this is disabled by default: the author
@@ -1456,7 +1501,7 @@ completions for titles that begin with &ldquo;sent&rdquo;.
 <p>
 Previous: <a href="#Link-Completion" accesskey="p" rel="prev">Link Completion</a>, Up: <a href="#Completions" accesskey="u" rel="up">Completions</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="Tag-Completion-1"></span><h3 class="section">10.2 Tag Completion</h3>
+<span id="Tag-Completion-1"></span><h3 class="section">21.2 Tag Completion</h3>
 
 <p>Org-roam facilitates the insertion of existing tags via <code>completion-at-point</code>.
 </p>
@@ -1469,9 +1514,9 @@ appear as-you-type if they match.
 <hr>
 <span id="Navigating-Around"></span><div class="header">
 <p>
-Next: <a href="#Encryption" accesskey="n" rel="next">Encryption</a>, Previous: <a href="#Completions" accesskey="p" rel="prev">Completions</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+Next: <a href="#Encryption-_00281_0029" accesskey="n" rel="next">Encryption (1)</a>, Previous: <a href="#Completions" accesskey="p" rel="prev">Completions</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="Navigating-Around-1"></span><h2 class="chapter">11 Navigating Around</h2>
+<span id="Navigating-Around-1"></span><h2 class="chapter">22 Navigating Around</h2>
 
 <table class="menu" border="0" cellspacing="0">
 <tr><td align="left" valign="top">&bull; <a href="#Index-File" accesskey="1">Index File</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
@@ -1483,7 +1528,7 @@ Next: <a href="#Encryption" accesskey="n" rel="next">Encryption</a>, Previous: <
 <p>
 Up: <a href="#Navigating-Around" accesskey="u" rel="up">Navigating Around</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="Index-File-1"></span><h3 class="section">11.1 Index File</h3>
+<span id="Index-File-1"></span><h3 class="section">22.1 Index File</h3>
 
 <p>As your collection grows, you might want to create an index where you keep links
 to your main files.
@@ -1510,11 +1555,11 @@ title is <code>&quot;Index&quot;</code>.
 </p></dd></dl>
 
 <hr>
-<span id="Encryption"></span><div class="header">
+<span id="Encryption-_00281_0029"></span><div class="header">
 <p>
 Next: <a href="#Graphing" accesskey="n" rel="next">Graphing</a>, Previous: <a href="#Navigating-Around" accesskey="p" rel="prev">Navigating Around</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="Encryption-1"></span><h2 class="chapter">12 Encryption</h2>
+<span id="Encryption-1"></span><h2 class="chapter">23 Encryption</h2>
 
 <p>One may wish to keep private, encrypted files. Org-roam supports encryption (via
 GPG), which can be enabled for all new files by setting <code>org-roam-encrypt-files</code>
@@ -1534,9 +1579,9 @@ password prompts, you may wish to cache the password.
 <hr>
 <span id="Graphing"></span><div class="header">
 <p>
-Next: <a href="#Minibuffer-Completion" accesskey="n" rel="next">Minibuffer Completion</a>, Previous: <a href="#Encryption" accesskey="p" rel="prev">Encryption</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+Next: <a href="#Minibuffer-Completion" accesskey="n" rel="next">Minibuffer Completion</a>, Previous: <a href="#Encryption-_00281_0029" accesskey="p" rel="prev">Encryption (1)</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="Graphing-1"></span><h2 class="chapter">13 Graphing</h2>
+<span id="Graphing-1"></span><h2 class="chapter">24 Graphing</h2>
 
 <p>Org-roam provides graphing capabilities to explore interconnections between
 notes. This is done by performing SQL queries and generating images using
@@ -1613,7 +1658,7 @@ the second option to set the browser and network file path:
 <p>
 Next: <a href="#Excluding-Nodes-and-Edges" accesskey="n" rel="next">Excluding Nodes and Edges</a>, Up: <a href="#Graphing" accesskey="u" rel="up">Graphing</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="Graph-Options-1"></span><h3 class="section">13.1 Graph Options</h3>
+<span id="Graph-Options-1"></span><h3 class="section">24.1 Graph Options</h3>
 
 <p>Graphviz provides many options for customizing the graph output, and Org-roam
 supports some of them. See <a href="https://graphviz.gitlab.io/_pages/doc/info/attrs.html">https://graphviz.gitlab.io/_pages/doc/info/attrs.html</a>
@@ -1652,7 +1697,7 @@ Example: <code>'((&quot;color&quot; . &quot;red&quot;))</code>
 <p>
 Previous: <a href="#Graph-Options" accesskey="p" rel="prev">Graph Options</a>, Up: <a href="#Graphing" accesskey="u" rel="up">Graphing</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="Excluding-Nodes-and-Edges-1"></span><h3 class="section">13.2 Excluding Nodes and Edges</h3>
+<span id="Excluding-Nodes-and-Edges-1"></span><h3 class="section">24.2 Excluding Nodes and Edges</h3>
 
 <p>One may want to exclude certain files to declutter the graph.
 </p>
@@ -1679,7 +1724,7 @@ are excluded.
 <p>
 Next: <a href="#Roam-Protocol" accesskey="n" rel="next">Roam Protocol</a>, Previous: <a href="#Graphing" accesskey="p" rel="prev">Graphing</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="Minibuffer-Completion-1"></span><h2 class="chapter">14 Minibuffer Completion</h2>
+<span id="Minibuffer-Completion-1"></span><h2 class="chapter">25 Minibuffer Completion</h2>
 
 <p>Org-roam allows customization of which minibuffer completion system to use for
 its interactive commands. The default setting uses Emacs&rsquo; standard
@@ -1706,7 +1751,7 @@ commands, set:
 <p>
 Next: <a href="#Daily_002dnotes" accesskey="n" rel="next">Daily-notes</a>, Previous: <a href="#Minibuffer-Completion" accesskey="p" rel="prev">Minibuffer Completion</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="Roam-Protocol-1"></span><h2 class="chapter">15 Roam Protocol</h2>
+<span id="Roam-Protocol-1"></span><h2 class="chapter">26 Roam Protocol</h2>
 
 <p>Org-roam extends <code>org-protocol</code> with 2 protocols: the <code>roam-file</code> and <code>roam-ref</code>
 protocols.
@@ -1725,7 +1770,7 @@ protocols.
 <p>
 Next: <a href="#The-roam_002dfile-protocol" accesskey="n" rel="next">The roam-file protocol</a>, Up: <a href="#Roam-Protocol" accesskey="u" rel="up">Roam Protocol</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="Installation-2"></span><h3 class="section">15.1 Installation</h3>
+<span id="Installation-2"></span><h3 class="section">26.1 Installation</h3>
 
 <p>To enable Org-roam&rsquo;s protocol extensions, you have to add the following to your
 init file:
@@ -1871,7 +1916,7 @@ file.
 <p>
 Next: <a href="#The-roam_002dref-protocol" accesskey="n" rel="next">The roam-ref protocol</a>, Previous: <a href="#Installation-_00281_0029" accesskey="p" rel="prev">Installation (1)</a>, Up: <a href="#Roam-Protocol" accesskey="u" rel="up">Roam Protocol</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="The-roam_002dfile-protocol-1"></span><h3 class="section">15.2 The roam-file protocol</h3>
+<span id="The-roam_002dfile-protocol-1"></span><h3 class="section">26.2 The roam-file protocol</h3>
 
 <p>This is a simple protocol that opens the path specified by the <code>file</code>
 key (e.g. <code>org-protocol://roam-file?file=/tmp/file.org</code>). This is used
@@ -1882,9 +1927,9 @@ in the generated graph.
 <p>
 Previous: <a href="#The-roam_002dfile-protocol" accesskey="p" rel="prev">The roam-file protocol</a>, Up: <a href="#Roam-Protocol" accesskey="u" rel="up">Roam Protocol</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="The-roam_002dref-protocol-1"></span><h3 class="section">15.3 The roam-ref protocol</h3>
+<span id="The-roam_002dref-protocol-1"></span><h3 class="section">26.3 The roam-ref protocol</h3>
 
-<p>This protocol finds or creates a new note with a given <code>roam_key</code> (see <a href="#Files">Files</a>):
+<p>This protocol finds or creates a new note with a given <code>roam_key</code>:
 </p>
 <img src="images/roam-ref.gif" alt="images/roam-ref">
 
@@ -1916,7 +1961,7 @@ should contain a <code>#+roam_key: ${ref}</code> in it.
 <p>
 Next: <a href="#Diagnosing-and-Repairing-Files" accesskey="n" rel="next">Diagnosing and Repairing Files</a>, Previous: <a href="#Roam-Protocol" accesskey="p" rel="prev">Roam Protocol</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="Daily_002dnotes-1"></span><h2 class="chapter">16 Daily-notes</h2>
+<span id="Daily_002dnotes-1"></span><h2 class="chapter">27 Daily-notes</h2>
 
 <p>Org-roam provides journaling capabilities akin to
 <a href="#Org_002djournal">Org-journal</a> with <code>org-roam-dailies</code>.
@@ -1935,7 +1980,7 @@ Next: <a href="#Diagnosing-and-Repairing-Files" accesskey="n" rel="next">Diagnos
 <p>
 Next: <a href="#Capturing-and-finding-daily_002dnotes" accesskey="n" rel="next">Capturing and finding daily-notes</a>, Up: <a href="#Daily_002dnotes" accesskey="u" rel="up">Daily-notes</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="Configuration-1"></span><h3 class="section">16.1 Configuration</h3>
+<span id="Configuration-1"></span><h3 class="section">27.1 Configuration</h3>
 
 <p>For <code>org-roam-dailies</code> to work, you need to define two variables:
 </p>
@@ -1998,14 +2043,14 @@ template <code>j</code> will put its notes under the heading ‘Journal’.
 <p>
 Next: <a href="#Navigation" accesskey="n" rel="next">Navigation</a>, Previous: <a href="#Configuration" accesskey="p" rel="prev">Configuration</a>, Up: <a href="#Daily_002dnotes" accesskey="u" rel="up">Daily-notes</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="Capturing-and-finding-daily_002dnotes-1"></span><h3 class="section">16.2 Capturing and finding daily-notes</h3>
+<span id="Capturing-and-finding-daily_002dnotes-1"></span><h3 class="section">27.2 Capturing and finding daily-notes</h3>
 
 <dl>
 <dt id="index-org_002droam_002ddailies_002dcapture_002dtoday">Function: <strong><code>org-roam-dailies-capture-today</code></strong> <em>&amp;optional goto</em></dt>
 <dd>
 <p>Create an entry in the daily note for today.
 </p>
-<p>When <code>goto</code> is non-nil, go the note without creating an entry.
+<p>When <code>goto</code> is non-nil, go to the note without creating an entry.
 </p></dd></dl>
 
 <dl>
@@ -2056,7 +2101,7 @@ creating an entry.
 <p>
 Previous: <a href="#Capturing-and-finding-daily_002dnotes" accesskey="p" rel="prev">Capturing and finding daily-notes</a>, Up: <a href="#Daily_002dnotes" accesskey="u" rel="up">Daily-notes</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="Navigation-1"></span><h3 class="section">16.3 Navigation</h3>
+<span id="Navigation-1"></span><h3 class="section">27.3 Navigation</h3>
 
 <p>You can navigate between daily-notes:
 </p>
@@ -2083,7 +2128,7 @@ Previous: <a href="#Capturing-and-finding-daily_002dnotes" accesskey="p" rel="pr
 <p>
 Next: <a href="#Finding-Unlinked-References" accesskey="n" rel="next">Finding Unlinked References</a>, Previous: <a href="#Daily_002dnotes" accesskey="p" rel="prev">Daily-notes</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="Diagnosing-and-Repairing-Files-1"></span><h2 class="chapter">17 Diagnosing and Repairing Files</h2>
+<span id="Diagnosing-and-Repairing-Files-1"></span><h2 class="chapter">28 Diagnosing and Repairing Files</h2>
 
 <p>Org-roam provides a utility for diagnosing and repairing problematic files via
 <code>org-roam-doctor</code>. By default, <code>org-roam-doctor</code> runs the check on the current
@@ -2126,7 +2171,7 @@ taken provided in <code>:actions</code>.
 <p>
 Next: <a href="#Performance-Optimization" accesskey="n" rel="next">Performance Optimization</a>, Previous: <a href="#Diagnosing-and-Repairing-Files" accesskey="p" rel="prev">Diagnosing and Repairing Files</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="Finding-Unlinked-References-1"></span><h2 class="chapter">18 Finding Unlinked References</h2>
+<span id="Finding-Unlinked-References-1"></span><h2 class="chapter">29 Finding Unlinked References</h2>
 
 <p>Unlinked references are occurrences of strings of text that exactly match the
 title or alias of an existing note in the Org-roam database. Org-roam provides
@@ -2150,7 +2195,7 @@ unlinked references within encrypted files.
 <p>
 Next: <a href="#Appendix" accesskey="n" rel="next">Appendix</a>, Previous: <a href="#Finding-Unlinked-References" accesskey="p" rel="prev">Finding Unlinked References</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="Performance-Optimization-1"></span><h2 class="chapter">19 Performance Optimization</h2>
+<span id="Performance-Optimization-1"></span><h2 class="chapter">30 Performance Optimization</h2>
 
 <table class="menu" border="0" cellspacing="0">
 <tr><td align="left" valign="top">&bull; <a href="#Profiling-Key-Operations" accesskey="1">Profiling Key Operations</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
@@ -2164,14 +2209,14 @@ Next: <a href="#Appendix" accesskey="n" rel="next">Appendix</a>, Previous: <a hr
 <p>
 Next: <a href="#Garbage-Collection" accesskey="n" rel="next">Garbage Collection</a>, Up: <a href="#Performance-Optimization" accesskey="u" rel="up">Performance Optimization</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="TODO-Profiling-Key-Operations"></span><h3 class="section">19.1 <strong>TODO</strong> Profiling Key Operations</h3>
+<span id="TODO-Profiling-Key-Operations"></span><h3 class="section">30.1 <strong>TODO</strong> Profiling Key Operations</h3>
 
 <hr>
 <span id="Garbage-Collection"></span><div class="header">
 <p>
 Previous: <a href="#Profiling-Key-Operations" accesskey="p" rel="prev">Profiling Key Operations</a>, Up: <a href="#Performance-Optimization" accesskey="u" rel="up">Performance Optimization</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="Garbage-Collection-1"></span><h3 class="section">19.2 Garbage Collection</h3>
+<span id="Garbage-Collection-1"></span><h3 class="section">30.2 Garbage Collection</h3>
 
 <p>During the cache-build process, Org-roam generates a lot of in-memory
 data-structures (such as the Org file&rsquo;s AST), which are discarded after use.
@@ -2191,7 +2236,7 @@ operations. To reduce the number of garbage collection processes, one may set
 <p>
 Next: <a href="#FAQ" accesskey="n" rel="next">FAQ</a>, Previous: <a href="#Performance-Optimization" accesskey="p" rel="prev">Performance Optimization</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="Appendix-1"></span><h2 class="chapter">20 Appendix</h2>
+<span id="Appendix-1"></span><h2 class="chapter">31 Appendix</h2>
 
 <table class="menu" border="0" cellspacing="0">
 <tr><td align="left" valign="top">&bull; <a href="#Note_002dtaking-Workflows" accesskey="1">Note-taking Workflows</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
@@ -2205,7 +2250,7 @@ Next: <a href="#FAQ" accesskey="n" rel="next">FAQ</a>, Previous: <a href="#Perfo
 <p>
 Next: <a href="#Ecosystem" accesskey="n" rel="next">Ecosystem</a>, Up: <a href="#Appendix" accesskey="u" rel="up">Appendix</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="Note_002dtaking-Workflows-1"></span><h3 class="section">20.1 Note-taking Workflows</h3>
+<span id="Note_002dtaking-Workflows-1"></span><h3 class="section">31.1 Note-taking Workflows</h3>
 
 <ul>
 <li> Books<ul>
@@ -2238,7 +2283,7 @@ Next: <a href="#Ecosystem" accesskey="n" rel="next">Ecosystem</a>, Up: <a href="
 <p>
 Previous: <a href="#Note_002dtaking-Workflows" accesskey="p" rel="prev">Note-taking Workflows</a>, Up: <a href="#Appendix" accesskey="u" rel="up">Appendix</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="Ecosystem-1"></span><h3 class="section">20.2 Ecosystem</h3>
+<span id="Ecosystem-1"></span><h3 class="section">31.2 Ecosystem</h3>
 
 <table class="menu" border="0" cellspacing="0">
 <tr><td align="left" valign="top">&bull; <a href="#Browsing-History-with-winner_002dmode" accesskey="1">Browsing History with winner-mode</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
@@ -2258,7 +2303,7 @@ Previous: <a href="#Note_002dtaking-Workflows" accesskey="p" rel="prev">Note-tak
 <p>
 Next: <a href="#Versioning-Notes" accesskey="n" rel="next">Versioning Notes</a>, Up: <a href="#Ecosystem" accesskey="u" rel="up">Ecosystem</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="Browsing-History-with-winner_002dmode-1"></span><h4 class="subsection">20.2.1 Browsing History with winner-mode</h4>
+<span id="Browsing-History-with-winner_002dmode-1"></span><h4 class="subsection">31.2.1 Browsing History with winner-mode</h4>
 
 <p><code>winner-mode</code> is a global minor mode that allows one to undo and redo changes in
 the window configuration. It is included with GNU Emacs since version 20.
@@ -2281,7 +2326,7 @@ interactive functions:
 <p>
 Next: <a href="#Full_002dtext-search-interface-with-Deft" accesskey="n" rel="next">Full-text search interface with Deft</a>, Previous: <a href="#Browsing-History-with-winner_002dmode" accesskey="p" rel="prev">Browsing History with winner-mode</a>, Up: <a href="#Ecosystem" accesskey="u" rel="up">Ecosystem</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="Versioning-Notes-1"></span><h4 class="subsection">20.2.2 Versioning Notes</h4>
+<span id="Versioning-Notes-1"></span><h4 class="subsection">31.2.2 Versioning Notes</h4>
 
 <p>Since Org-roam notes are just plain text, it is trivial to track changes in your
 notes database using version control systems such as <a href="https://git-scm.com/">Git</a>. Simply initialize
@@ -2297,7 +2342,7 @@ versions of a tracked Org-roam note.
 <p>
 Next: <a href="#Org_002djournal" accesskey="n" rel="next">Org-journal</a>, Previous: <a href="#Versioning-Notes" accesskey="p" rel="prev">Versioning Notes</a>, Up: <a href="#Ecosystem" accesskey="u" rel="up">Ecosystem</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="Full_002dtext-search-interface-with-Deft-1"></span><h4 class="subsection">20.2.3 Full-text search interface with Deft</h4>
+<span id="Full_002dtext-search-interface-with-Deft-1"></span><h4 class="subsection">31.2.3 Full-text search interface with Deft</h4>
 
 <p><a href="https://jblevins.org/projects/deft/">Deft</a> provides a nice interface for browsing and filtering org-roam notes.
 </p>
@@ -2325,22 +2370,6 @@ using <a href="https://github.com/raxod502/el-patch">el-patch</a>:
 
 (eval-when-compile
   (require 'el-patch))
-
-(use-package deft
-  ;; same as above...
-  :config/el-patch
-  (defun deft-parse-title (file contents)
-    &quot;Parse the given FILE and CONTENTS and determine the title.
-If `deft-use-filename-as-title' is nil, the title is taken to
-be the first non-empty line of the FILE.  Else the base name of the FILE is
-used as title.&quot;
-    (el-patch-swap (if deft-use-filename-as-title
-                       (deft-base-filename file)
-                     (let ((begin (string-match &quot;^.+$&quot; contents)))
-                       (if begin
-                           (funcall deft-parse-title-function
-                                    (substring contents begin (match-end 0))))))
-                   (org-roam-db--get-title file))))
 </pre></div>
 
 <p>The Deft interface can slow down quickly when the number of files get huge.
@@ -2351,7 +2380,7 @@ used as title.&quot;
 <p>
 Next: <a href="#Note_002dtaking-Add_002dons" accesskey="n" rel="next">Note-taking Add-ons</a>, Previous: <a href="#Full_002dtext-search-interface-with-Deft" accesskey="p" rel="prev">Full-text search interface with Deft</a>, Up: <a href="#Ecosystem" accesskey="u" rel="up">Ecosystem</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="Org_002djournal-1"></span><h4 class="subsection">20.2.4 Org-journal</h4>
+<span id="Org_002djournal-1"></span><h4 class="subsection">31.2.4 Org-journal</h4>
 
 <p><a href="https://github.com/bastibe/org-journal">Org-journal</a> provides journaling capabilities to Org-mode. A lot of its
 functionalities have been incorporated into Org-roam under the name
@@ -2374,7 +2403,7 @@ journal entries from the ideas you would write on a scratchpad.
 <p>
 Previous: <a href="#Org_002djournal" accesskey="p" rel="prev">Org-journal</a>, Up: <a href="#Ecosystem" accesskey="u" rel="up">Ecosystem</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="Note_002dtaking-Add_002dons-1"></span><h4 class="subsection">20.2.5 Note-taking Add-ons</h4>
+<span id="Note_002dtaking-Add_002dons-1"></span><h4 class="subsection">31.2.5 Note-taking Add-ons</h4>
 
 <p>These are some plugins that make note-taking in Org-mode more enjoyable.
 </p>
@@ -2475,12 +2504,15 @@ Previous: <a href="#Bibliography" accesskey="p" rel="prev">Bibliography</a>, Up:
 <p><a href="https://www.leonrische.me/fc/index.html">Org-fc</a> is a spaced repetition system that scales well with a large number of
 files. Other alternatives include <a href="https://orgmode.org/worg/org-contrib/org-drill.html">org-drill</a>, and <a href="https://github.com/abo-abo/pamparam">pamparam</a>.
 </p>
+<p>To use Anki for spaced repetition, <a href="https://github.com/louietan/anki-editor">anki-editor</a> allows you to write your cards in
+Org-mode, and sync your cards to Anki via <a href="https://github.com/FooSoft/anki-connect#installation">anki-connect</a>.
+</p>
 <hr>
 <span id="FAQ"></span><div class="header">
 <p>
 Next: <a href="#Keystroke-Index" accesskey="n" rel="next">Keystroke Index</a>, Previous: <a href="#Appendix" accesskey="p" rel="prev">Appendix</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="FAQ-1"></span><h2 class="chapter">21 FAQ</h2>
+<span id="FAQ-1"></span><h2 class="chapter">32 FAQ</h2>
 
 <table class="menu" border="0" cellspacing="0">
 <tr><td align="left" valign="top">&bull; <a href="#How-do-I-have-more-than-one-Org_002droam-directory_003f" accesskey="1">How do I have more than one Org-roam directory?</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
@@ -2496,7 +2528,7 @@ Next: <a href="#Keystroke-Index" accesskey="n" rel="next">Keystroke Index</a>, P
 <p>
 Next: <a href="#How-do-I-migrate-from-Roam-Research_003f" accesskey="n" rel="next">How do I migrate from Roam Research?</a>, Up: <a href="#FAQ" accesskey="u" rel="up">FAQ</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="How-do-I-have-more-than-one-Org_002droam-directory_003f-1"></span><h3 class="section">21.1 How do I have more than one Org-roam directory?</h3>
+<span id="How-do-I-have-more-than-one-Org_002droam-directory_003f-1"></span><h3 class="section">32.1 How do I have more than one Org-roam directory?</h3>
 
 <p>Emacs supports directory-local variables, allowing the value of
 <code>org-roam-directory</code> to be different in different directories. It does this by
@@ -2520,7 +2552,7 @@ that directory, at least once.
 <p>
 Next: <a href="#How-do-I-create-a-note-whose-title-already-matches-one-of-the-candidates_003f" accesskey="n" rel="next">How do I create a note whose title already matches one of the candidates?</a>, Previous: <a href="#How-do-I-have-more-than-one-Org_002droam-directory_003f" accesskey="p" rel="prev">How do I have more than one Org-roam directory?</a>, Up: <a href="#FAQ" accesskey="u" rel="up">FAQ</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="How-do-I-migrate-from-Roam-Research_003f-1"></span><h3 class="section">21.2 How do I migrate from Roam Research?</h3>
+<span id="How-do-I-migrate-from-Roam-Research_003f-1"></span><h3 class="section">32.2 How do I migrate from Roam Research?</h3>
 
 <p>Fabio has produced a command-line tool that converts markdown files exported
 from Roam Research into Org-roam compatible markdown. More instructions are
@@ -2531,7 +2563,7 @@ provided <a href="https://github.com/fabioberger/roam-migration">in the reposito
 <p>
 Previous: <a href="#How-do-I-migrate-from-Roam-Research_003f" accesskey="p" rel="prev">How do I migrate from Roam Research?</a>, Up: <a href="#FAQ" accesskey="u" rel="up">FAQ</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="How-do-I-create-a-note-whose-title-already-matches-one-of-the-candidates_003f-1"></span><h3 class="section">21.3 How do I create a note whose title already matches one of the candidates?</h3>
+<span id="How-do-I-create-a-note-whose-title-already-matches-one-of-the-candidates_003f-1"></span><h3 class="section">32.3 How do I create a note whose title already matches one of the candidates?</h3>
 
 <p>This situation arises when, for example, one would like to create a note titled
 &ldquo;bar&rdquo; when &ldquo;barricade&rdquo; already exists.
@@ -2610,21 +2642,19 @@ Previous: <a href="#Function-Index" accesskey="p" rel="prev">Function Index</a>,
 <tr><td></td><th align="left">Index Entry</th><td>&nbsp;</td><th align="left"> Section</th></tr>
 <tr><td colspan="4"> <hr></td></tr>
 <tr><th id="Variable-Index_vr_letter-O">O</th><td></td><td></td></tr>
-<tr><td></td><td valign="top"><a href="#index-org_002droam_002dbuffer"><code>org-roam-buffer</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#The-Org_002droam-Buffer">The Org-roam Buffer</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-org_002droam_002dbuffer_002dheight"><code>org-roam-buffer-height</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#The-Org_002droam-Buffer">The Org-roam Buffer</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-org_002droam_002dbuffer_002dposition"><code>org-roam-buffer-position</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#The-Org_002droam-Buffer">The Org-roam Buffer</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-org_002droam_002dbuffer_002dwidth"><code>org-roam-buffer-width</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#The-Org_002droam-Buffer">The Org-roam Buffer</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-org_002droam_002dbuffer_002dwindow_002dparameters"><code>org-roam-buffer-window-parameters</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#The-Org_002droam-Buffer">The Org-roam Buffer</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-org_002droam_002dbuffer"><code>org-roam-buffer</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#The-Org_002droam-Buffer-_00281_0029">The Org-roam Buffer (1)</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-org_002droam_002dbuffer_002dheight"><code>org-roam-buffer-height</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#The-Org_002droam-Buffer-_00281_0029">The Org-roam Buffer (1)</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-org_002droam_002dbuffer_002dposition"><code>org-roam-buffer-position</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#The-Org_002droam-Buffer-_00281_0029">The Org-roam Buffer (1)</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-org_002droam_002dbuffer_002dwidth"><code>org-roam-buffer-width</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#The-Org_002droam-Buffer-_00281_0029">The Org-roam Buffer (1)</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-org_002droam_002dbuffer_002dwindow_002dparameters"><code>org-roam-buffer-window-parameters</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#The-Org_002droam-Buffer-_00281_0029">The Org-roam Buffer (1)</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-org_002droam_002dcompletion_002deverywhere"><code>org-roam-completion-everywhere</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Link-Completions-Everywhere">Link Completions Everywhere</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-org_002droam_002dcompletion_002dfunctions"><code>org-roam-completion-functions</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Completions">Completions</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-org_002droam_002dcompletion_002dignore_002dcase"><code>org-roam-completion-ignore-case</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Completions">Completions</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-org_002droam_002ddailies_002dcapture_002dtemplates"><code><code>org-roam-dailies-capture-templates</code></code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Configuration">Configuration</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-org_002droam_002ddailies_002ddirectory"><code><code>org-roam-dailies-directory</code></code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Configuration">Configuration</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-org_002droam_002ddb_002dlocation"><code>org-roam-db-location</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Directories-and-Files">Directories and Files</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-org_002droam_002ddb_002dupdate_002didle_002dseconds"><code>org-roam-db-update-idle-seconds</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#The-Database">The Database</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-org_002droam_002ddb_002dupdate_002dmethod"><code>org-roam-db-update-method</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#The-Database">The Database</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-org_002droam_002ddirectory"><code>org-roam-directory</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Directories-and-Files">Directories and Files</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-org_002droam_002dencrypt_002dfiles"><code>org-roam-encrypt-files</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Encryption">Encryption</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-org_002droam_002dencrypt_002dfiles"><code>org-roam-encrypt-files</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Encryption-_00281_0029">Encryption (1)</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-org_002droam_002dfile_002dexclude_002dregexp"><code>org-roam-file-exclude-regexp</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Directories-and-Files">Directories and Files</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-org_002droam_002dgraph_002dedge_002dcites_002dextra_002dconfig"><code>org-roam-graph-edge-cites-extra-config</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Graph-Options">Graph Options</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-org_002droam_002dgraph_002dedge_002dextra_002dconfig"><code>org-roam-graph-edge-extra-config</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Graph-Options">Graph Options</a></td></tr>
@@ -2637,8 +2667,6 @@ Previous: <a href="#Function-Index" accesskey="p" rel="prev">Function Index</a>,
 <tr><td></td><td valign="top"><a href="#index-org_002droam_002dlink_002dauto_002dreplace"><code>org-roam-link-auto-replace</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Inserting-Links">Inserting Links</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-org_002droam_002dlink_002dtitle_002dformat"><code>org-roam-link-title-format</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Inserting-Links">Inserting Links</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-org_002droam_002dlink_002duse_002dcustom_002dfaces"><code>org-roam-link-use-custom-faces</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Org_002droam-Faces">Org-roam Faces</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-org_002droam_002dtag_002dsources"><code>org-roam-tag-sources</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Customizing-Tag-Extraction">Customizing Tag Extraction</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-org_002droam_002dtitle_002dsources"><code>org-roam-title-sources</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Customizing-Title-Extraction">Customizing Title Extraction</a></td></tr>
 <tr><td colspan="4"> <hr></td></tr>
 </table>
 <table><tr><th valign="top">Jump to: &nbsp; </th><td><a class="summary-letter" href="#Variable-Index_vr_letter-O"><b>O</b></a>
@@ -2653,8 +2681,9 @@ Previous: <a href="#Function-Index" accesskey="p" rel="prev">Function Index</a>,
 <h5><a id="FOOT1" href="#DOCF1">(1)</a></h3>
 <p>To understand more about Roam, a collection of links are available in <a href="#Note_002dtaking-Workflows">Note-taking Workflows</a>.</p>
 <h5><a id="FOOT2" href="#DOCF2">(2)</a></h3>
-<p>Depending on your completion framework, you may need to press TAB to
-see the list.</p>
+<p>Two easy ways to evaluate elisp: 1) Place the cursor after the closing
+paren and run &lsquo;<samp>M-x eval-last-sexp RET</samp>&rsquo; or 2) Press &lsquo;<samp>C-c C-c</samp>&rsquo; with your cursor in
+an Org file code block (like &lsquo;<samp>#+BEGIN_SRC emacs-lisp</samp>&rsquo;).</p>
 </div>
 <hr>
 
