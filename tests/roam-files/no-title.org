@@ -1,5 +1,0 @@
-no title in this file :O
-
-links to itself, with no title: [[file:no-title.org][no-title]]
-
-* Headline title

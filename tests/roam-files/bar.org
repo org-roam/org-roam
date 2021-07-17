@@ -1,3 +1,6 @@
+:PROPERTIES:
+:ID:       440795d0-70c1-4165-993d-aebd5eef7a24
+:END:
 #+title: Bar
 
-This is file bar. Bar links to [[file:nested/bar.org][Nested Bar]].
+[[id:884b2341-b7fe-434d-848c-5282c0727861][Foo]]

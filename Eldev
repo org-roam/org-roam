@@ -1,0 +1,29 @@
+; -*- mode: emacs-lisp; lexical-binding: t; no-byte-compile: t -*-
+
+;; explicitly set main file
+(setf eldev-project-main-file "org-roam.el")
+
+(eldev-use-package-archive 'gnu)
+(eldev-use-package-archive 'melpa-unstable)
+
+;; allow to load test helpers
+(eldev-add-loading-roots 'test "test/utils")
+
+;; Tell checkdoc not to demand two spaces after a period.
+(setq sentence-end-double-space nil)
+
+(setf eldev-lint-default '(elisp))
+(setf eldev-standard-excludes `(:or ,eldev-standard-excludes "org-roam-macs.el"))
+
+(with-eval-after-load 'elisp-lint
+  ;; We will byte-compile with Eldev.
+  (setf elisp-lint-ignored-validators '("package-lint" "fill-column")
+        enable-local-variables        :all))
+
+;; Teach linter how to properly indent emacsql vectors
+(eldev-add-extra-dependencies 'lint 'emacsql)
+(add-hook 'eldev-lint-hook
+          (lambda ()
+            (eldev-load-project-dependencies 'lint nil t)
+            (require 'emacsql)
+            (call-interactively #'emacsql-fix-vector-indentation)))

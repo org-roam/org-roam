@@ -1,3 +1,0 @@
-#+title: Nested Bar
-
-This file is nested, 1 level deeper. It links to both [[file:../foo.org][Foo]] and [[file:foo.org][Nested Foo]].
