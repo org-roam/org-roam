@@ -981,11 +981,11 @@ the user. The author&rsquo;s recommended configuration is as follows:
 </p>
 <div class="lisp">
 <pre class="lisp">(add-to-list 'display-buffer-alist
-             '((&quot;\\*org-roam\\*&quot;
-                (display-buffer-in-direction)
-                (direction . right)
-                (window-width . 0.33)
-                (window-height . fit-window-to-buffer))))
+             '(&quot;\\*org-roam\\*&quot;
+               (display-buffer-in-direction)
+               (direction . right)
+               (window-width . 0.33)
+               (window-height . fit-window-to-buffer)))
 </pre></div>
 
 <p>Crucially, the window is a regular window (not a side-window), and this allows
@@ -997,6 +997,20 @@ Org-roam buffer.
 
 </li><li> <code>C-u RET</code> navigates to thing-at-point in the other window.
 </li></ul>
+
+<p>For users that prefer using a side-window for the org-roam buffer, the following
+example configuration should provide a good starting point:
+</p>
+<div class="lisp">
+<pre class="lisp">  (add-to-list 'display-buffer-alist
+               '(&quot;\\*org-roam\\*&quot;
+                 (display-buffer-in-side-window)
+                 (side . right)
+                 (slot . 0)
+                 (window-width . 0.33)
+                 (window-parameters . ((no-other-window . t)
+                                       (no-delete-other-windows . t)))))
+</pre></div>
 
 <hr>
 <span id="Styling-the-Org_002droam-buffer"></span><div class="header">
