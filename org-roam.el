@@ -352,7 +352,9 @@ If BUFFER is not specified, use the current buffer."
 
 ;;;###autoload
 (defun org-roam-setup ()
-  "Setup Org-roam."
+  "Setup Org-roam and initialize its database.
+This will install the needed hooks and advices to keep everything
+in sync with the connected databases."
   (interactive)
   (add-hook 'find-file-hook #'org-roam--file-setup)
   (add-hook 'kill-emacs-hook #'org-roam-db--close-all)
@@ -361,7 +363,10 @@ If BUFFER is not specified, use the current buffer."
   (org-roam-db-sync))
 
 (defun org-roam-teardown ()
-  "Teardown Org-roam."
+  "Teardown Org-roam to completely disable it.
+This will remove all the hooks and advices installed by
+`org-roam-setup' and close all the database connections made by
+Org-roam."
   (interactive)
   (remove-hook 'find-file-hook #'org-roam--file-setup)
   (remove-hook 'kill-emacs-hook #'org-roam-db--close-all)
@@ -407,6 +412,7 @@ OLD-FILE is cleared from the database, and NEW-FILE-OR-DIR is added."
 ;;;; Nodes
 (cl-defstruct (org-roam-node (:constructor org-roam-node-create)
                              (:copier nil))
+  "A heading or top level file with an assigned ID property."
   file file-hash file-atime file-mtime
   id level point todo priority scheduled deadline title properties olp
   tags aliases refs)
@@ -446,7 +452,7 @@ OLD-FILE is cleared from the database, and NEW-FILE-OR-DIR is added."
                            (replace-regexp-in-string (car pair) (cdr pair) title)))
       (let* ((pairs `(("[^[:alnum:][:digit:]]" . "_")  ;; convert anything not alphanumeric
                       ("__*" . "_")  ;; remove sequential underscores
-                      ("^_" . "")  ;; remove starting underscore
+                      ("^_" . "")    ;; remove starting underscore
                       ("_$" . "")))  ;; remove ending underscore
              (slug (-reduce-from #'cl-replace (strip-nonspacing-marks title) pairs)))
         (downcase slug)))))
@@ -456,24 +462,28 @@ OLD-FILE is cleared from the database, and NEW-FILE-OR-DIR is added."
     (set-keymap-parent map org-roam-mode-map)
     (define-key map [remap org-roam-visit-thing] 'org-roam-node-visit)
     map)
-  "Keymap for Org-roam node sections.")
+  "Keymap for `org-roam-node-section's.")
 
 (defclass org-roam-node-section (magit-section)
   ((keymap :initform 'org-roam-node-map)
-   (node :initform nil)))
+   (node :initform nil))
+  "A `magit-section' used by `org-roam-mode' to contain heading for NODE.")
 
 (defvar org-roam-preview-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map org-roam-mode-map)
     (define-key map [remap org-roam-visit-thing] 'org-roam-preview-visit)
     map)
-  "Keymap for Org-roam preview.")
+  "Keymap for `org-roam-preview-section's.")
 
 (defclass org-roam-preview-section (magit-section)
   ((keymap :initform 'org-roam-preview-map)
    (file :initform nil)
    (begin :initform nil)
-   (end :initform nil)))
+   (end :initform nil))
+  "A `magit-section' used by `org-roam-mode' to contain preview content.
+The preview content comes from FILE, between the next locations:
+BEGIN and END.")
 
 (cl-defmethod org-roam-populate ((node org-roam-node))
   "Populate NODE from database.
@@ -521,11 +531,27 @@ nodes."
   "${title:*} ${tags:10}"
   "Configures display formatting for Org-roam node.
 Patterns of form \"${field-name:length}\" are interpolated based
-on the current node. \"field-name\" is replaced with the
-corresponding value of the field of the current node. \"length\"
-specifies how many characters are used to display the value of
-the field. A \"length\" of \"*\" specifies that as many
-characters as possible should be used."
+on the current node.
+
+Each \"field-name\" is replaced with the return value of each
+corresponding accessor function for `org-roam-node', e.g.
+\"${title}\" will be interpolated by the result of
+`org-roam-node-title'. You can also define custom accessors using
+`cl-defmethod'. For example, you can define:
+
+  (cl-defmethod org-roam-node-my-title ((node org-roam-node))
+    (concat \"My \" (org-roam-node-title node)))
+
+and then reference it here or in the capture templates as
+\"${my-title}\".
+
+\"length\" is an optional specifier and declares how many
+characters can be used to display the value of the corresponding
+field. If it's not specified, the field will be inserted as is,
+i.e. it won't be aligned nor trimmed. If it's an integer, the
+field will be aligned accordingly and all the exceeding
+characters will be trimmed out. If it's \"*\", the field will use
+as many characters as possible and will be aligned accordingly."
   :group 'org-roam
   :type  'string)
 
@@ -609,7 +635,7 @@ populated."
     buf))
 
 (defun org-roam-node-visit (node &optional other-window)
-  "From the buffer, visit NODE.
+  "From the current buffer, visit NODE.
 
 Display the buffer in the selected window.  With a prefix
 argument OTHER-WINDOW display the buffer in another window
@@ -649,7 +675,7 @@ Throw an error if multiple choices exist."
       (user-error "Multiple nodes exist with title or alias \"%s\"" s)))))
 
 (defun org-roam-node-list ()
-  "Return a list of all nodes."
+  "Return all nodes stored in the database as a list of `org-roam-node's."
   (let ((rows (org-roam-db-query
                "SELECT
   id,
@@ -833,10 +859,25 @@ window instead."
                #'pop-to-buffer-same-window) buf)))
 
 (cl-defun org-roam-node-insert-section (&key source-node point properties)
-  "Insert section for NODE.
-SOURCE-NODE is the source node.
-POINT is the point in buffer for the link.
-PROPERTIES contains properties about the link."
+  "Insert section for a link from SOURCE-NODE to some other node.
+
+SOURCE-NODE is an `org-roam-node' that links or references some
+other node. Normally the other node is `org-roam-current-node'
+that set in `org-roam-buffer'.
+
+POINT is the position in SOURCE-NODE's file where the link is
+located.
+
+PROPERTIES (a plist) contains additional information about the
+link.
+
+This section is made out of the next 2 `magit-section's:
+1. `org-roam-node-section' for a heading that describes
+   SOURCE-NODE.
+
+2. `org-roam-preview-section' for a preview content that comes
+   from SOURCE-NODE's file for the link (that references the
+   other node) at POINT."
   (magit-insert-section section (org-roam-node-section)
     (let ((outline (if-let ((outline (plist-get properties :outline)))
                        (mapconcat #'org-link-display-format outline " > ")
@@ -873,9 +914,7 @@ If OTHER-WINDOW, visit the NODE in another window."
 
 ;;;###autoload
 (defun org-roam-node-insert (&optional filter-fn)
-  "Find an Org-roam file, and insert a relative org link to it at point.
-Return selected file if it exists.
-If LOWERCASE is non-nil, downcase the link description.
+  "Find an Org-roam node and insert (where the point is) an \"id:\" link to it.
 FILTER-FN is a function to filter out nodes: it takes an `org-roam-node',
 and when nil is returned the node will be filtered out."
   (interactive)
@@ -912,7 +951,7 @@ and when nil is returned the node will be filtered out."
 
 ;;;###autoload
 (defun org-roam-node-random (&optional other-window)
-  "Find a random Org-roam node.
+  "Find and open a random Org-roam node.
 With prefix argument OTHER-WINDOW, visit the node in another
 window instead."
   (interactive current-prefix-arg)
@@ -923,22 +962,24 @@ window instead."
                          other-window)))
 
 ;;;; Properties
-(defun org-roam-add-property (s prop)
-  "Add S to property PROP."
+(defun org-roam-add-property (val prop)
+  "Add VAL value to PROP property for the node at point.
+Both, VAL and PROP are strings."
   (let* ((p (org-entry-get (point) prop))
          (lst (when p (split-string-and-unquote p)))
-         (lst (if (memq s lst) lst (cons s lst)))
+         (lst (if (memq val lst) lst (cons val lst)))
          (lst (seq-uniq lst)))
     (org-set-property prop (combine-and-quote-strings lst))
-    s))
+    val))
 
-(defun org-roam-remove-property (prop &optional s)
-  "Remove S from property PROP.
+(defun org-roam-remove-property (prop &optional val)
+  "Remove VAL value from PROP property for the node at point.
+Both VAL and PROP are strings.
 
-If S is not specified, user is prompted to select a value."
+If VAL is not specified, user is prompted to select a value."
   (let* ((p (org-entry-get (point) prop))
          (lst (when p (split-string-and-unquote p)))
-         (prop-to-remove (or s (completing-read "Remove: " lst)))
+         (prop-to-remove (or val (completing-read "Remove: " lst)))
          (lst (delete prop-to-remove lst)))
     (if lst
         (org-set-property prop (combine-and-quote-strings lst))
@@ -1093,9 +1134,7 @@ REF is assumed to be a propertized string."
 
 ;;;###autoload
 (defun org-roam-ref-find (&optional initial-input filter-fn)
-  "Find and open and Org-roam file from REF if it exists.
-REF should be the value of '#+roam_key:' without any
-type-information (e.g. 'cite:').
+  "Find and open an Org-roam node that's dedicated to a specific ref.
 INITIAL-INPUT is the initial input to the prompt.
 FILTER-FN is a function to filter out nodes: it takes an `org-roam-node',
 and when nil is returned the node will be filtered out."
@@ -1106,7 +1145,7 @@ and when nil is returned the node will be filtered out."
 
 ;;;; roam: link
 (defcustom org-roam-link-auto-replace t
-  "When non-nil, replace Org-roam's roam links with file or id links whenever possible."
+  "If non-nil, replace \"roam:\" links to existing nodes with \"id:\" links."
   :group 'org-roam
   :type 'boolean)
 
@@ -1114,7 +1153,7 @@ and when nil is returned the node will be filtered out."
 (org-link-set-parameters "roam" :follow #'org-roam-link-follow-link)
 
 (defun org-roam-link-replace-at-point (&optional link)
-  "Replace the roam: LINK at point with an id link."
+  "Replace \"roam:\" LINK at point with an \"id:\" link."
   (save-excursion
     (save-match-data
       (let* ((link (or link (org-element-context)))
@@ -1143,23 +1182,21 @@ and when nil is returned the node will be filtered out."
 
 (add-hook 'org-roam-find-file-hook #'org-roam--replace-roam-links-on-save-h)
 
-(defun org-roam-link-follow-link (path)
-  "Org-roam's roam: link navigation with description PATH.
-This function is called by Org when following links of the type
-`roam'. While the path is passed, assume that the cursor is on
-the link."
-  (if-let ((node (org-roam-node-from-title-or-alias path)))
+(defun org-roam-link-follow-link (title-or-alias)
+  "Navigate \"roam:\" link to find and open the node with TITLE-OR-ALIAS.
+Assumes that the cursor was put where the link is."
+  (if-let ((node (org-roam-node-from-title-or-alias title-or-alias)))
       (progn
         (when org-roam-link-auto-replace
           (org-roam-link-replace-at-point))
         (org-id-goto (org-roam-node-id node)))
     (org-roam-capture-
-     :node (org-roam-node-create :title path)
+     :node (org-roam-node-create :title title-or-alias)
      :props '(:finalize find-file))))
 
 (defun org-roam-open-id-at-point ()
-  "Navigates to the ID at point.
-To be added to `org-open-at-point-functions'."
+  "Try to navigate \"id:\" link to find and visit node with an assigned ID.
+Assumes that the cursor was put where the link is."
   (let* ((context (org-element-context))
          (type (org-element-property :type context))
          (id (org-element-property :path context)))
@@ -1173,7 +1210,7 @@ To be added to `org-open-at-point-functions'."
          (t nil))))))
 
 (defun org-roam-open-id-with-org-roam-db-h ()
-  "."
+  "Try to open \"id:\" links at point by querying them to the database."
   (add-hook 'org-open-at-point-functions #'org-roam-open-id-at-point nil t))
 
 (add-hook 'org-roam-find-file-hook #'org-roam-open-id-with-org-roam-db-h)
@@ -1200,7 +1237,8 @@ Any top level properties drawers are incorporated into the new heading."
     (org-roam--file-keyword-kill "FILETAGS")))
 
 (defun org-roam-refile ()
-  "Refile to node."
+  "Refile node at point to an Org-roam node.
+If region is active, then use it instead of the node at point."
   (interactive)
   (let* ((regionp (org-region-active-p))
          (region-start (and regionp (region-beginning)))
