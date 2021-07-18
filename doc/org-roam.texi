@@ -94,7 +94,11 @@ Installation
 * Installing from MELPA::
 * Installing from Apt::
 * Installing from Source::
-* Post-Installation Tasks::
+* Installation Troubleshooting::
+
+Installation Troubleshooting
+
+* C Compiler::
 
 Getting Started
 
@@ -335,7 +339,7 @@ development repository.
 * Installing from MELPA::
 * Installing from Apt::
 * Installing from Source::
-* Post-Installation Tasks::
+* Installation Troubleshooting::
 @end menu
 
 @node Installing from MELPA
@@ -388,8 +392,6 @@ using:
 @example
 M-x package-install RET org-roam RET
 @end example
-
-Now see @ref{Post-Installation Tasks}.
 
 @node Installing from Apt
 @section Installing from Apt
@@ -453,7 +455,7 @@ org
 emacsql
 
 @item
-emacsql-sqlite3
+emacsql-sqlite
 @end itemize
 
 You can install this manually as well, or get the latest version from MELPA@. You
@@ -504,26 +506,64 @@ file:
 install-info /path/to/my/info/files/org-roam.info /path/to/my/info/files/dir
 @end example
 
-@node Post-Installation Tasks
-@section Post-Installation Tasks
+@node Installation Troubleshooting
+@section Installation Troubleshooting
 
-Org-roam requires @code{sqlite3} to be locatable by Emacs (i.e. on @code{exec-path}).
-Please ensure that @code{sqlite3} is installed appropriately on your operating
-system. You can verify that this is the case by executing @footnote{Two easy ways to evaluate elisp: 1) Place the cursor after the closing
-paren and run @samp{M-x eval-last-sexp RET} or 2) Press @samp{C-c C-c} with your cursor in
-an Org file code block (like @samp{#+BEGIN_SRC emacs-lisp}).}:
+@menu
+* C Compiler::
+@end menu
 
-@lisp
-(executable-find "sqlite3")
-@end lisp
+@node C Compiler
+@subsection C Compiler
 
-If you have @code{sqlite3} installed, and @code{executable-find} still reports @code{nil}, then
-the path to the executable is not a member of the Emacs variable @code{exec-path}.
-Rectify this by manually adding the path within your Emacs configuration:
+Org-roam relies on an Emacs package called @code{emacsql} and @code{emacsql-sqlite} to
+work with the @code{sqlite} database. Both of them should be installed automatically
+in your Emacs environment as a prerequisite for Org-roam when you install it.
 
-@lisp
-(add-to-list 'exec-path "path/to/sqlite3")
-@end lisp
+@code{emacsql-sqlite} requires a C compiler (e.g. @code{gcc} or @code{clang}) to be present in
+your computer. How to install a C compiler depends on the OS that you use.
+
+@itemize
+@item
+For Windows:
+@end itemize
+
+There are various ways to install one, depending on how you have installed
+Emacs. If you use Emacs within a Cygwin or MinGW environment, then you should
+install a compiler using their respective package manager.
+
+If you have installed your Emacs from the @uref{https://www.gnu.org/software/emacs/, GNU Emacs website}, then the easiest way
+is to use @uref{https://www.msys2.org/, MSYS2} as at the time of this writing:
+
+@itemize
+@item
+Use the installer in the official website and install MSYS2
+
+@item
+Run MSYS2
+
+@item
+In the command-line tool, type the following and answer ``Y'' to proceed:
+
+@example
+pacman -S gcc
+@end example
+
+Note that you do not need to manually set the PATH for MSYS2; the
+@end itemize
+installer automatically takes care of it for you.
+
+@itemize
+@item
+Open Emacs and call @code{M-x org-roam-setup}
+
+This will automatically start compiling @code{emacsql-sqlite}; you should see a
+@end itemize
+message in minibuffer. It may take a while until compilation completes. Once
+complete, you should see a new file @code{emacsql-sqlite.exe} created in a subfolder
+named @code{sqlite} under @code{emacsql-sqlite} installation folder. It's typically in
+your Emacs configuration folder like this:
+@code{/.config/emacs/elpa/emacsql-sqlite-20190727.1710/sqlite}
 
 @node Getting Started
 @chapter Getting Started
