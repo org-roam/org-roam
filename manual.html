@@ -135,7 +135,13 @@ Installation
 </td></tr>
 <tr><td align="left" valign="top">&bull; <a href="#Installing-from-Source">Installing from Source</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
-<tr><td align="left" valign="top">&bull; <a href="#Post_002dInstallation-Tasks">Post-Installation Tasks</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+<tr><td align="left" valign="top">&bull; <a href="#Installation-Troubleshooting">Installation Troubleshooting</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+
+Installation Troubleshooting
+
+</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="#C-Compiler">C Compiler</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
 <tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
 
@@ -452,7 +458,7 @@ development repository.
 </td></tr>
 <tr><td align="left" valign="top">&bull; <a href="#Installing-from-Source" accesskey="3">Installing from Source</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
-<tr><td align="left" valign="top">&bull; <a href="#Post_002dInstallation-Tasks" accesskey="4">Post-Installation Tasks</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+<tr><td align="left" valign="top">&bull; <a href="#Installation-Troubleshooting" accesskey="4">Installation Troubleshooting</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
 </table>
 
@@ -509,8 +515,6 @@ using:
 <pre class="example">M-x package-install RET org-roam RET
 </pre></div>
 
-<p>Now see <a href="#Post_002dInstallation-Tasks">Post-Installation Tasks</a>.
-</p>
 <hr>
 <span id="Installing-from-Apt"></span><div class="header">
 <p>
@@ -530,7 +534,7 @@ using Apt:
 <hr>
 <span id="Installing-from-Source"></span><div class="header">
 <p>
-Next: <a href="#Post_002dInstallation-Tasks" accesskey="n" rel="next">Post-Installation Tasks</a>, Previous: <a href="#Installing-from-Apt" accesskey="p" rel="prev">Installing from Apt</a>, Up: <a href="#Installation" accesskey="u" rel="up">Installation</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+Next: <a href="#Installation-Troubleshooting" accesskey="n" rel="next">Installation Troubleshooting</a>, Previous: <a href="#Installing-from-Apt" accesskey="p" rel="prev">Installing from Apt</a>, Up: <a href="#Installation" accesskey="u" rel="up">Installation</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
 <span id="Installing-from-Source-1"></span><h3 class="section">4.3 Installing from Source</h3>
 
@@ -575,7 +579,7 @@ dependencies that it requires. These include:
 
 </li><li> emacsql
 
-</li><li> emacsql-sqlite3
+</li><li> emacsql-sqlite
 </li></ul>
 
 <p>You can install this manually as well, or get the latest version from MELPA. You
@@ -624,28 +628,68 @@ file:
 </pre></div>
 
 <hr>
-<span id="Post_002dInstallation-Tasks"></span><div class="header">
+<span id="Installation-Troubleshooting"></span><div class="header">
 <p>
 Previous: <a href="#Installing-from-Source" accesskey="p" rel="prev">Installing from Source</a>, Up: <a href="#Installation" accesskey="u" rel="up">Installation</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="Post_002dInstallation-Tasks-1"></span><h3 class="section">4.4 Post-Installation Tasks</h3>
+<span id="Installation-Troubleshooting-1"></span><h3 class="section">4.4 Installation Troubleshooting</h3>
 
-<p>Org-roam requires <code>sqlite3</code> to be locatable by Emacs (i.e. on <code>exec-path</code>).
-Please ensure that <code>sqlite3</code> is installed appropriately on your operating
-system. You can verify that this is the case by executing <a id="DOCF2" href="#FOOT2"><sup>2</sup></a>:
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#C-Compiler" accesskey="1">C Compiler</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr>
+<span id="C-Compiler"></span><div class="header">
+<p>
+Up: <a href="#Installation-Troubleshooting" accesskey="u" rel="up">Installation Troubleshooting</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+</div>
+<span id="C-Compiler-1"></span><h4 class="subsection">4.4.1 C Compiler</h4>
+
+<p>Org-roam relies on an Emacs package called <code>emacsql</code> and <code>emacsql-sqlite</code> to
+work with the <code>sqlite</code> database. Both of them should be installed automatically
+in your Emacs environment as a prerequisite for Org-roam when you install it.
 </p>
-<div class="lisp">
-<pre class="lisp">(executable-find &quot;sqlite3&quot;)
+<p><code>emacsql-sqlite</code> requires a C compiler (e.g. <code>gcc</code> or <code>clang</code>) to be present in
+your computer. How to install a C compiler depends on the OS that you use.
+</p>
+<ul>
+<li> For Windows:
+</li></ul>
+
+<p>There are various ways to install one, depending on how you have installed
+Emacs. If you use Emacs within a Cygwin or MinGW environment, then you should
+install a compiler using their respective package manager.
+</p>
+<p>If you have installed your Emacs from the <a href="https://www.gnu.org/software/emacs/">GNU Emacs website</a>, then the easiest way
+is to use <a href="https://www.msys2.org/">MSYS2</a> as at the time of this writing:
+</p>
+<ul>
+<li> Use the installer in the official website and install MSYS2
+
+</li><li> Run MSYS2
+
+</li><li> In the command-line tool, type the following and answer &ldquo;Y&rdquo; to proceed:
+
+<div class="example">
+<pre class="example">pacman -S gcc
 </pre></div>
 
-<p>If you have <code>sqlite3</code> installed, and <code>executable-find</code> still reports <code>nil</code>, then
-the path to the executable is not a member of the Emacs variable <code>exec-path</code>.
-Rectify this by manually adding the path within your Emacs configuration:
+<p>Note that you do not need to manually set the PATH for MSYS2; the
+</p></li></ul>
+<p>installer automatically takes care of it for you.
 </p>
-<div class="lisp">
-<pre class="lisp">(add-to-list 'exec-path &quot;path/to/sqlite3&quot;)
-</pre></div>
+<ul>
+<li> Open Emacs and call <code>M-x org-roam-setup</code>
 
+<p>This will automatically start compiling <code>emacsql-sqlite</code>; you should see a
+</p></li></ul>
+<p>message in minibuffer. It may take a while until compilation completes. Once
+complete, you should see a new file <code>emacsql-sqlite.exe</code> created in a subfolder
+named <code>sqlite</code> under <code>emacsql-sqlite</code> installation folder. It&rsquo;s typically in
+your Emacs configuration folder like this:
+<code>/.config/emacs/elpa/emacsql-sqlite-20190727.1710/sqlite</code>
+</p>
 <hr>
 <span id="Getting-Started"></span><div class="header">
 <p>
@@ -2444,10 +2488,6 @@ Previous: <a href="#Function-Index" accesskey="p" rel="prev">Function Index</a>,
 
 <h5><a id="FOOT1" href="#DOCF1">(1)</a></h3>
 <p>To understand more about Roam, a collection of links are available in <a href="#Note_002dtaking-Workflows">Note-taking Workflows</a>.</p>
-<h5><a id="FOOT2" href="#DOCF2">(2)</a></h3>
-<p>Two easy ways to evaluate elisp: 1) Place the cursor after the closing
-paren and run &lsquo;<samp>M-x eval-last-sexp RET</samp>&rsquo; or 2) Press &lsquo;<samp>C-c C-c</samp>&rsquo; with your cursor in
-an Org file code block (like &lsquo;<samp>#+BEGIN_SRC emacs-lisp</samp>&rsquo;).</p>
 </div>
 <hr>
 
