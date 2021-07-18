@@ -682,6 +682,10 @@ extension in your Org-roam capture templates. For example:
      :unnarrowed t)))
 #+end_src
 
+Note that the Org-roam database stores metadata information in plain-text
+(headline text, for example), so if this information is private to you then you
+should also ensure the database is encrypted.
+
 * Org-roam Protocol
 
 Org-roam provides extensions for capturing content from external applications

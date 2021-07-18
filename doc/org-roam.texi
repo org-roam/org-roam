@@ -1030,6 +1030,10 @@ extension in your Org-roam capture templates. For example:
      :unnarrowed t)))
 @end lisp
 
+Note that the Org-roam database stores metadata information in plain-text
+(headline text, for example), so if this information is private to you then you
+should also ensure the database is encrypted.
+
 @node Org-roam Protocol
 @chapter Org-roam Protocol
 
