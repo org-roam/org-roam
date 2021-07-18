@@ -115,13 +115,13 @@ This will take a while. Are you sure you want to do this?")
   ;; Replace roam_alias into properties drawer roam_aliases
   (when-let* ((aliases (mapcan #'split-string-and-unquote
                                (cdar (org-collect-keywords '("roam_alias"))))))
-    (let ((case-fold-search t))
-      (org-with-point-at 1
-        (dolist (alias aliases)
-          (org-roam-alias-add alias))
-        (while (re-search-forward "^#\\+roam_alias:" (point-max) t)
-          (beginning-of-line)
-          (kill-line 1)))))
+    (dolist (alias aliases)
+          (org-roam-alias-add alias)))
+  (let ((case-fold-search t))
+    (org-with-point-at 1
+      (while (re-search-forward "^#\\+roam_alias:" (point-max) t)
+        (beginning-of-line)
+          (kill-line 1))))
 
   ;; Replace #+roam_tags into #+filetags
   (org-with-point-at 1
