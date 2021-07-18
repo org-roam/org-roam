@@ -86,7 +86,7 @@ it has not already been addressed on [GitHub][issues] or on
 - [Jethro Kuan](https://braindump.jethro.dev/)
   ([Source](https://github.com/jethrokuan/braindump/tree/master/org))
 - [Alexey Shmalko](https://braindump.rasen.dev/)
-- [Sidharth Arya](https://sidhartharya.me/braindump/index.html)
+- [Sidharth Arya](https://sidhartharya.github.io/braindump/index.html)
 
 ## Contributing
 
