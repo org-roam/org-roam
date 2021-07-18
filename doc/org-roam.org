@@ -394,7 +394,7 @@ Org-roam is available on startup, place this in your Emacs configuration:
   (org-roam-setup)
 #+end_src
 
-To build the cache manually, run ~M-x org-roam-db-build-cache~. Cache builds may
+To build the cache manually, run ~M-x org-roam-db-sync~. Cache builds may
 take a while the first time, but subsequent builds are often instantaneous
 because they only reprocess modified files.
 
