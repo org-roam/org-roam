@@ -410,7 +410,7 @@ If ROW, move to the row, and if COL move to the COL."
   "Return the preview line from FILE.
 This is the ROW within FILE."
   (with-temp-buffer
-    (insert-file-contents-literally file)
+    (insert-file-contents file)
     (forward-line (1- row))
     (buffer-substring-no-properties
      (save-excursion
