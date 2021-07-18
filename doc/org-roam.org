@@ -519,11 +519,11 @@ the user. The author's recommended configuration is as follows:
 
 #+begin_src emacs-lisp
   (add-to-list 'display-buffer-alist
-               '(("\\*org-roam\\*"
-                  (display-buffer-in-direction)
-                  (direction . right)
-                  (window-width . 0.33)
-                  (window-height . fit-window-to-buffer))))
+               '("\\*org-roam\\*"
+                 (display-buffer-in-direction)
+                 (direction . right)
+                 (window-width . 0.33)
+                 (window-height . fit-window-to-buffer)))
 #+end_src
 
 Crucially, the window is a regular window (not a side-window), and this allows
@@ -532,6 +532,20 @@ for predictable navigation:
 - ~RET~ navigates to thing-at-point in the current window, replacing the
   Org-roam buffer.
 - ~C-u RET~ navigates to thing-at-point in the other window.
+
+For users that prefer using a side-window for the org-roam buffer, the following
+example configuration should provide a good starting point:
+
+#+begin_src emacs-lisp
+  (add-to-list 'display-buffer-alist
+               '("\\*org-roam\\*"
+                 (display-buffer-in-side-window)
+                 (side . right)
+                 (slot . 0)
+                 (window-width . 0.33)
+                 (window-parameters . ((no-other-window . t)
+                                       (no-delete-other-windows . t)))))
+#+end_src
 
 ** TODO Styling the Org-roam buffer
 * Node Properties

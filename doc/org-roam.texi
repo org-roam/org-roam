@@ -818,11 +818,11 @@ the user. The author's recommended configuration is as follows:
 
 @lisp
 (add-to-list 'display-buffer-alist
-             '(("\\*org-roam\\*"
-                (display-buffer-in-direction)
-                (direction . right)
-                (window-width . 0.33)
-                (window-height . fit-window-to-buffer))))
+             '("\\*org-roam\\*"
+               (display-buffer-in-direction)
+               (direction . right)
+               (window-width . 0.33)
+               (window-height . fit-window-to-buffer)))
 @end lisp
 
 Crucially, the window is a regular window (not a side-window), and this allows
@@ -836,6 +836,20 @@ Org-roam buffer.
 @item
 @code{C-u RET} navigates to thing-at-point in the other window.
 @end itemize
+
+For users that prefer using a side-window for the org-roam buffer, the following
+example configuration should provide a good starting point:
+
+@lisp
+  (add-to-list 'display-buffer-alist
+               '("\\*org-roam\\*"
+                 (display-buffer-in-side-window)
+                 (side . right)
+                 (slot . 0)
+                 (window-width . 0.33)
+                 (window-parameters . ((no-other-window . t)
+                                       (no-delete-other-windows . t)))))
+@end lisp
 
 @node Styling the Org-roam buffer
 @section @strong{TODO} Styling the Org-roam buffer
