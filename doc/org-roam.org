@@ -198,8 +198,6 @@ using:
   M-x package-install RET org-roam RET
 #+END_EXAMPLE
 
-Now see [[*Post-Installation Tasks][Post-Installation Tasks]].
-
 ** Installing from Apt
 
 Users of Debian 11 or later or Ubuntu 20.10 or later can simply install Org-roam
@@ -248,7 +246,7 @@ dependencies that it requires. These include:
 - s
 - org
 - emacsql
-- emacsql-sqlite3
+- emacsql-sqlite
 
 You can install this manually as well, or get the latest version from MELPA. You
 may wish to use [[https://github.com/jwiegley/use-package][use-package]], [[https://github.com/raxod502/straight.el][straight.el]] to help manage this.
@@ -291,29 +289,11 @@ file:
 install-info /path/to/my/info/files/org-roam.info /path/to/my/info/files/dir
 #+end_src
 
-** Post-Installation Tasks
-*** SQLite
-Org-roam requires ~sqlite3~ to be locatable by Emacs (i.e. on ~exec-path~).
-Please ensure that ~sqlite3~ is installed appropriately on your operating
-system. You can verify that this is the case by executing [fn:2]:
-
-#+BEGIN_SRC emacs-lisp
-  (executable-find "sqlite3")
-#+END_SRC
-
-If you have ~sqlite3~ installed, and ~executable-find~ still reports ~nil~, then
-the path to the executable is not a member of the Emacs variable ~exec-path~.
-Rectify this by manually adding the path within your Emacs configuration:
-
-#+BEGIN_SRC emacs-lisp
-  (add-to-list 'exec-path "path/to/sqlite3")
-#+END_SRC
-
+** Installation Troubleshooting
 *** C Compiler
 Org-roam relies on an Emacs package called ~emacsql~ and ~emacsql-sqlite~ to
-work with the ~sqlite3~ database. Both of them should be installed automatically
-in your Emacs environment as prerequisite for Org-roam when you install
-it.
+work with the ~sqlite~ database. Both of them should be installed automatically
+in your Emacs environment as a prerequisite for Org-roam when you install it.
 
 ~emacsql-sqlite~ requires a C compiler (e.g. ~gcc~ or ~clang~) to be present in
 your computer. How to install a C compiler depends on the OS that you use.
@@ -344,7 +324,9 @@ installer automatically takes care of it for you.
 message in minibuffer. It may take a while until compilation completes. Once
 complete, you should see a new file ~emacsql-sqlite.exe~ created in a subfolder
 named ~sqlite~ under ~emacsql-sqlite~ installation folder. It's typically in
-your Emacs configuration folder like this: ~/.config/emacs/elpa/emacsql-sqlite-20190727.1710/sqlite~
+your Emacs configuration folder like this:
+~/.config/emacs/elpa/emacsql-sqlite-20190727.1710/sqlite~
+
 * Getting Started
 ** The Org-roam Node
 
