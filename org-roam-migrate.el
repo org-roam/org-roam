@@ -78,23 +78,31 @@ To your init file.
   (when (yes-or-no-p "Org-roam will now convert all your notes from v1 to v2.
 This will take a while. Are you sure you want to do this?")
     ;; Back up notes
-    (let ((backup-dir (expand-file-name "org-roam.bak"
-                                        (file-name-directory (directory-file-name org-roam-directory)))))
+    (let* ((parent-dir (f-parent org-roam-directory))
+           (backup-dir (expand-file-name "org-roam.bak" parent-dir))
+           (debug-dir (expand-file-name "org-roam.debug" parent-dir)))
       (message "Backing up files to %s" backup-dir)
       (copy-directory org-roam-directory backup-dir))
+    (condition-case err
+        (progn
+          ;; Convert v1 to v2
+          (dolist (f (org-roam--list-all-files))
+            (org-roam-with-file f nil
+              (org-roam-migrate-v1-to-v2)))
+          ;; Rebuild cache
+          (org-roam-db-sync 'force)
 
-    ;; Convert v1 to v2
-    (dolist (f (org-roam--list-all-files))
-      (org-roam-with-file f nil
-        (org-roam-migrate-v1-to-v2)))
-    ;; Rebuild cache
-    (org-roam-db-sync 'force)
-
-    ;;Replace all file links with ID links
-    (dolist (f (org-roam--list-all-files))
-      (org-roam-with-file f nil
-        (org-roam-migrate-replace-file-links-with-id)
-        (save-buffer)))))
+          ;;Replace all file links with ID links
+          (dolist (f (org-roam--list-all-files))
+            (org-roam-with-file f nil
+              (org-roam-migrate-replace-file-links-with-id)
+              (save-buffer))))
+      (t
+       (rename-file org-roam-directory debug-dir)
+       (rename-file backup-dir org-roam-directory)
+       (lwarn 'org-roam :warning (format "The migration wizard failed with error:\n%s\n%s"
+                                         (error-message-string err)
+                                         "Your files have been restored, consider filing an issue.\n"))))))
 
 (defun org-roam-migrate-v1-to-v2 ()
   "Convert the current buffer to v2 format."
