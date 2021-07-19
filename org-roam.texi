@@ -456,6 +456,9 @@ emacsql
 
 @item
 emacsql-sqlite
+
+@item
+magit-section
 @end itemize
 
 You can install this manually as well, or get the latest version from MELPA@. You
