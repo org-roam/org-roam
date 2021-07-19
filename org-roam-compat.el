@@ -99,6 +99,10 @@ recursion."
 
 ;;; Obsolete aliases (remove after next major release)
 (define-obsolete-function-alias
+  'org-roam-buffer
+  'org-roam-display-node-dedicated-buffer "org-roam 2.0")
+
+(define-obsolete-function-alias
   'org-roam-dailies-find-today
   'org-roam-dailies-goto-today "org-roam 2.0")
 (define-obsolete-function-alias
