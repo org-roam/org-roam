@@ -706,9 +706,7 @@ GROUP BY id")))
   "Return a minibuffer completion candidate given NODE."
   (let ((candidate-main (org-roam-node--format-entry node (1- (frame-width))))
         (tag-str (org-roam--tags-to-str (org-roam-node-tags node))))
-    (cons (propertize (concat candidate-main
-                              (propertize tag-str 'invisible t))
-                      'node node)
+    (cons (propertize (s-trim candidate-main) 'node node)
           node)))
 
 (defun org-roam-node--completions ()
