@@ -186,7 +186,8 @@ If the property is already set, replace its value."
                                                         :where (= file $s1)
                                                         :and (= level 0)] path))))
             (set-match-data mdata)
-            (replace-match (org-link-make-string (concat "id:" node-id)) nil t)))))))
+            (replace-match (org-link-make-string (concat "id:" node-id)
+                                                 desc) nil t)))))))
 
 (provide 'org-roam-migrate)
 ;;; org-roam-migrate.el ends here
