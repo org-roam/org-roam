@@ -247,6 +247,7 @@ dependencies that it requires. These include:
 - org
 - emacsql
 - emacsql-sqlite
+- magit-section
 
 You can install this manually as well, or get the latest version from MELPA. You
 may wish to use [[https://github.com/jwiegley/use-package][use-package]], [[https://github.com/raxod502/straight.el][straight.el]] to help manage this.
