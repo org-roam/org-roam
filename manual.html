@@ -957,10 +957,10 @@ Next: <a href="#Configuring-the-Org_002droam-buffer-display" accesskey="n" rel="
 title/alias but are not linked
 </li></ul>
 
-<p>To configure what sections are displayed in the buffer, set <code>org-roam-mode-sections</code>.
+<p>To configure what sections are displayed in the buffer, set <code>org-roam-mode-section-functions</code>.
 </p>
 <div class="lisp">
-<pre class="lisp">(setq org-roam-mode-sections
+<pre class="lisp">(setq org-roam-mode-section-functions
       (list #'org-roam-backlinks-section
             #'org-roam-reflinks-section
             ;; #'org-roam-unlinked-references-section
