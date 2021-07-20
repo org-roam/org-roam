@@ -92,7 +92,6 @@ General Public License for more details.
 Installation
 
 * Installing from MELPA::
-* Installing from Apt::
 * Installing from Source::
 * Installation Troubleshooting::
 
@@ -337,7 +336,6 @@ development repository.
 
 @menu
 * Installing from MELPA::
-* Installing from Apt::
 * Installing from Source::
 * Installation Troubleshooting::
 @end menu
@@ -392,18 +390,6 @@ using:
 @example
 M-x package-install RET org-roam RET
 @end example
-
-@node Installing from Apt
-@section Installing from Apt
-
-Users of Debian 11 or later or Ubuntu 20.10 or later can simply install Org-roam
-using Apt:
-
-@example
-apt-get install elpa-org-roam
-@end example
-
-Org-roam will then be autoloaded into Emacs.
 
 @node Installing from Source
 @section Installing from Source
@@ -654,7 +640,7 @@ Org-roam is available on startup, place this in your Emacs configuration:
 (org-roam-setup)
 @end lisp
 
-To build the cache manually, run @code{M-x org-roam-db-build-cache}. Cache builds may
+To build the cache manually, run @code{M-x org-roam-db-sync}. Cache builds may
 take a while the first time, but subsequent builds are often instantaneous
 because they only reprocess modified files.
 
@@ -844,14 +830,14 @@ For users that prefer using a side-window for the org-roam buffer, the following
 example configuration should provide a good starting point:
 
 @lisp
-  (add-to-list 'display-buffer-alist
-               '("\\*org-roam\\*"
-                 (display-buffer-in-side-window)
-                 (side . right)
-                 (slot . 0)
-                 (window-width . 0.33)
-                 (window-parameters . ((no-other-window . t)
-                                       (no-delete-other-windows . t)))))
+(add-to-list 'display-buffer-alist
+             '("\\*org-roam\\*"
+               (display-buffer-in-side-window)
+               (side . right)
+               (slot . 0)
+               (window-width . 0.33)
+               (window-parameters . ((no-other-window . t)
+                                     (no-delete-other-windows . t)))))
 @end lisp
 
 @node Styling the Org-roam buffer
