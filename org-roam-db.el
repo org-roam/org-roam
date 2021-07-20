@@ -422,14 +422,23 @@ If UPDATE-P is non-nil, first remove the file in the database."
   (save-excursion
     (goto-char (org-element-property :begin link))
     (let ((type (org-element-property :type link))
-          (dest (org-element-property :path link))
+          (path (org-element-property :path link))
           (properties (list :outline (org-get-outline-path)))
           (source (org-roam-id-at-point)))
-      (when source
+      ;; For Org-ref links, we need to split the path into the cite keys
+      (when (and (boundp 'org-ref-cite-types)
+                 (fboundp 'org-ref-split-and-strip-string)
+                 (member type org-ref-cite-types))
+        (setq path (org-ref-split-and-strip-string path)))
+      (unless (listp path)
+        (setq path (list path)))
+      (when (and source path)
         (org-roam-db-query
          [:insert :into links
           :values $v1]
-         (vector (point) source dest type properties))))))
+         (mapcar (lambda (p)
+                   (vector (point) source p type properties))
+                 path))))))
 
 ;;;;; Fetching
 (defun org-roam-db--get-current-files ()
