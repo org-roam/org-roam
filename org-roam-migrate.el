@@ -51,7 +51,11 @@ for an overview of the major changes.
 
 Notes taken in v1 are incompatible with v1, but you can upgrade
 them to the v2 format via a simple command. To migrate your
-notes, run:
+notes, first set your org-roam-directory to your notes:
+
+(setq org-roam-directory \"path/to/org/files\")
+
+then, run:
 
   M-x org-roam-migrate-wizard
 
