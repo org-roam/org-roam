@@ -536,12 +536,103 @@ Uses `org-roam-node-display-template' to format the entry."
   (save-excursion
     (org-roam-with-temp-buffer file
       (goto-char point)
-      (let* ((elem (org-element-at-point))
-             (begin (org-element-property :begin elem))
-             (end (org-element-property :end elem)))
-        (list begin end
+      (let ((elem (org-element-at-point)))
+        ;; We want the parent element always
+        (while (org-element-property :parent elem)
+          (setq elem (org-element-property :parent elem)))
+        (pcase (car elem)
+          ('headline                    ; show subtree
+           (org-roam-headline-get-preview-text (point-marker) most-positive-fixnum))
+          (_
+           (let ((begin (org-element-property :begin elem))
+                 (end (org-element-property :end elem)))
+             (list begin end
               (or (string-trim (buffer-substring-no-properties begin end))
-                  (org-element-property :raw-value elem)))))))
+                  (org-element-property :raw-value elem))))))))))
+
+(defun org-roam-headline-get-preview-text (marker n-lines &optional indent
+                                              &rest keep)
+  "Extract entry text from MARKER, at most N-LINES lines.
+This will ignore drawers etc, just get the text.
+If INDENT is given, prefix every line with this string.  If KEEP is
+given, it is a list of symbols, defining stuff that should not be
+removed from the entry content.  Currently only `planning' is allowed here."
+  (let (txt drawer-re kwd-time-re ind)
+    (save-excursion
+      (with-current-buffer (marker-buffer marker)
+        (if (not (derived-mode-p 'org-mode))
+            (setq txt "")
+          (org-with-wide-buffer
+           (goto-char marker)
+           (end-of-line 1)
+           (setq txt (buffer-substring
+                      (min (1+ (point)) (point-max))
+                      (progn (outline-next-heading) (point)))
+                 drawer-re org-drawer-regexp
+                 kwd-time-re (concat "^[ \t]*" org-keyword-time-regexp
+                                     ".*\n?"))
+           (with-temp-buffer
+             (insert txt)
+             (when org-agenda-add-entry-text-descriptive-links
+               (goto-char (point-min))
+               (while (org-activate-links (point-max))
+                 (goto-char (match-end 0))))
+             (goto-char (point-min))
+             (while (re-search-forward org-link-bracket-re (point-max) t)
+               (set-text-properties (match-beginning 0) (match-end 0)
+                                    nil))
+             (goto-char (point-min))
+             (while (re-search-forward drawer-re nil t)
+               (delete-region
+                (match-beginning 0)
+                (progn (re-search-forward
+                        "^[ \t]*:END:.*\n?" nil 'move)
+                       (point))))
+             (unless (member 'planning keep)
+               (goto-char (point-min))
+               (while (re-search-forward kwd-time-re nil t)
+                 (replace-match "")))
+             (goto-char (point-min))
+             (when org-agenda-entry-text-exclude-regexps
+               (let ((re-list org-agenda-entry-text-exclude-regexps)    re)
+                 (while (setq re (pop re-list))
+                   (goto-char (point-min))
+                   (while (re-search-forward re nil t)
+                     (replace-match "")))))
+             (goto-char (point-max))
+             (skip-chars-backward " \t\n")
+             (when (looking-at "[ \t\n]+\\'") (replace-match ""))
+
+             ;; find and remove min common indentation
+             (goto-char (point-min))
+             (untabify (point-min) (point-max))
+             (setq ind (current-indentation))
+             (while (not (eobp))
+               (unless (looking-at "[ \t]*$")
+                 (setq ind (min ind (current-indentation))))
+               (beginning-of-line 2))
+             (goto-char (point-min))
+             (while (not (eobp))
+               (unless (looking-at "[ \t]*$")
+                 (move-to-column ind)
+                 (delete-region (point-at-bol) (point)))
+               (beginning-of-line 2))
+
+             (run-hooks 'org-agenda-entry-text-cleanup-hook)
+
+             (goto-char (point-min))
+             (when indent
+               (while (and (not (eobp)) (re-search-forward "^" nil t))
+                 (replace-match indent t t)))
+             (goto-char (point-min))
+             (while (looking-at "[ \t]*\n") (replace-match ""))
+             (goto-char (point-max))
+             (when (> (org-current-line)
+                      n-lines)
+               (org-goto-line (1+ n-lines))
+               (backward-char 1))
+             (setq txt (buffer-substring (point-min) (point))))))))
+    (list (point-min) (point) txt)))
 
 (defun org-roam-node-at-point (&optional assert)
   "Return the node at point.
