@@ -419,11 +419,9 @@ OLD-FILE is cleared from the database, and NEW-FILE-OR-DIR is added."
 (defclass org-roam-preview-section (magit-section)
   ((keymap :initform 'org-roam-preview-map)
    (file :initform nil)
-   (begin :initform nil)
-   (end :initform nil))
+   (point :initform nil))
   "A `magit-section' used by `org-roam-mode' to contain preview content.
-The preview content comes from FILE, between the next locations:
-BEGIN and END.")
+The preview content comes from FILE, and the link as at POINT.")
 
 (cl-defmethod org-roam-populate ((node org-roam-node))
   "Populate NODE from database.
@@ -531,7 +529,7 @@ Uses `org-roam-node-display-template' to format the entry."
               (- width (cdr fmt)))
             0 ?\s)))))))
 
-(defun org-roam-node-preview (file point)
+(defun org-roam-node-link-preview (file point)
   "Get preview content for FILE at POINT."
   (save-excursion
     (org-roam-with-temp-buffer file
@@ -546,17 +544,13 @@ Uses `org-roam-node-display-template' to format the entry."
           (_
            (let ((begin (org-element-property :begin elem))
                  (end (org-element-property :end elem)))
-             (list begin end
-              (or (string-trim (buffer-substring-no-properties begin end))
-                  (org-element-property :raw-value elem))))))))))
+             (or (string-trim (buffer-substring-no-properties begin end))
+                 (org-element-property :raw-value elem)))))))))
 
-(defun org-roam-headline-get-preview-text (marker n-lines &optional indent
-                                              &rest keep)
+(defun org-roam-headline-get-preview-text (marker n-lines &optional indent)
   "Extract entry text from MARKER, at most N-LINES lines.
 This will ignore drawers etc, just get the text.
-If INDENT is given, prefix every line with this string.  If KEEP is
-given, it is a list of symbols, defining stuff that should not be
-removed from the entry content.  Currently only `planning' is allowed here."
+If INDENT is given, prefix every line with this string."
   (let (txt drawer-re kwd-time-re ind)
     (save-excursion
       (with-current-buffer (marker-buffer marker)
@@ -567,38 +561,24 @@ removed from the entry content.  Currently only `planning' is allowed here."
            (end-of-line 1)
            (setq txt (buffer-substring
                       (min (1+ (point)) (point-max))
-                      (progn (outline-next-heading) (point)))
-                 drawer-re org-drawer-regexp
-                 kwd-time-re (concat "^[ \t]*" org-keyword-time-regexp
-                                     ".*\n?"))
+                      (progn (outline-next-heading) (point))))
            (with-temp-buffer
              (insert txt)
-             (when org-agenda-add-entry-text-descriptive-links
-               (goto-char (point-min))
-               (while (org-activate-links (point-max))
-                 (goto-char (match-end 0))))
+             (goto-char (point-min))
+             (while (org-activate-links (point-max))
+               (goto-char (match-end 0)))
              (goto-char (point-min))
              (while (re-search-forward org-link-bracket-re (point-max) t)
                (set-text-properties (match-beginning 0) (match-end 0)
                                     nil))
              (goto-char (point-min))
-             (while (re-search-forward drawer-re nil t)
+             (while (re-search-forward org-drawer-regexp nil t)
                (delete-region
                 (match-beginning 0)
                 (progn (re-search-forward
                         "^[ \t]*:END:.*\n?" nil 'move)
                        (point))))
-             (unless (member 'planning keep)
-               (goto-char (point-min))
-               (while (re-search-forward kwd-time-re nil t)
-                 (replace-match "")))
              (goto-char (point-min))
-             (when org-agenda-entry-text-exclude-regexps
-               (let ((re-list org-agenda-entry-text-exclude-regexps)    re)
-                 (while (setq re (pop re-list))
-                   (goto-char (point-min))
-                   (while (re-search-forward re nil t)
-                     (replace-match "")))))
              (goto-char (point-max))
              (skip-chars-backward " \t\n")
              (when (looking-at "[ \t\n]+\\'") (replace-match ""))
@@ -617,9 +597,6 @@ removed from the entry content.  Currently only `planning' is allowed here."
                  (move-to-column ind)
                  (delete-region (point-at-bol) (point)))
                (beginning-of-line 2))
-
-             (run-hooks 'org-agenda-entry-text-cleanup-hook)
-
              (goto-char (point-min))
              (when indent
                (while (and (not (eobp)) (re-search-forward "^" nil t))
@@ -878,8 +855,8 @@ Returns empty string for annotations."
   "Visit FILE at POINT.
 With prefix argument OTHER-WINDOW, visit the olp in another
 window instead."
-  (interactive (list (org-roam-file-at-point t)
-                     (oref (magit-current-section) begin)
+  (interactive (list (org-roam-file-at-point 'assert)
+                     (oref (magit-current-section) point)
                      current-prefix-arg))
   (let ((buf (find-file-noselect file)))
     (with-current-buffer buf
@@ -920,12 +897,11 @@ This section is made out of the next 2 `magit-section's:
     (magit-insert-heading)
     (oset section node source-node)
     (magit-insert-section section (org-roam-preview-section)
-      (pcase-let ((`(,begin ,end ,s) (org-roam-node-preview (org-roam-node-file source-node)
-                                                            point)))
-        (insert (org-roam-fontify-like-in-org-mode s) "\n")
-        (oset section file (org-roam-node-file source-node))
-        (oset section begin begin)
-        (oset section end end))
+      (insert (org-roam-fontify-like-in-org-mode
+               (org-roam-node-link-preview (org-roam-node-file source-node) point))
+              "\n")
+      (oset section file (org-roam-node-file source-node))
+      (oset section point point)
       (insert ?\n))))
 
 ;;;###autoload
