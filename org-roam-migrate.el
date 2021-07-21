@@ -130,7 +130,11 @@ This will take a while. Are you sure you want to do this?")
   ;; Replace #+roam_tags into #+filetags
   (org-with-point-at 1
     (let* ((roam-tags (org-roam-migrate-get-prop-list "ROAM_TAGS"))
-           (file-tags (org-roam-migrate-get-prop-list "FILETAGS"))
+           (file-tags (cl-mapcan (lambda (value)
+                                   (cl-mapcan
+                                    (lambda (k) (org-split-string k ":"))
+                                    (split-string value)))
+                                 (org-roam-migrate-get-prop-list "FILETAGS")))
            (tags (append roam-tags file-tags))
            (tags (seq-map (lambda (tag)
                             (replace-regexp-in-string
@@ -139,7 +143,7 @@ This will take a while. Are you sure you want to do this?")
                              tag)) tags))
            (tags (seq-uniq tags)))
       (when tags
-        (org-roam-migrate-prop-set "filetags" (string-join tags " "))))
+        (org-roam-migrate-prop-set "filetags" (org-make-tag-string tags))))
     (let ((case-fold-search t))
       (org-with-point-at 1
         (while (re-search-forward "^#\\+roam_tags:" (point-max) t)
