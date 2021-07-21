@@ -67,6 +67,8 @@ This path is relative to `org-roam-directory'."
      :if-new (file+head "%<%Y-%m-%d>.org"
                         "#+title: %<%Y-%m-%d>\n")))
   "Capture templates for daily-notes in Org-roam.
+Note that for daily files to show up in the calendar, they have to be of format
+\"org-time-string.org\".
 See `org-roam-capture-templates' for the template documentation."
   :group 'org-roam
   :type '(repeat
@@ -213,16 +215,17 @@ future."
   (org-roam-dailies-capture-tomorrow (- n) t))
 
 ;;; Calendar
-(defun org-roam-dailies-calendar--file-to-date (&optional file)
+(defun org-roam-dailies-calendar--file-to-date (file)
   "Convert FILE to date.
-Return (MONTH DAY YEAR)."
-  (let ((file (or file
-                  (buffer-base-buffer (buffer-file-name)))))
-    (cl-destructuring-bind (_ _ _ d m y _ _ _)
-        (org-parse-time-string
-         (file-name-sans-extension
-          (file-name-nondirectory file)))
-      (list m d y))))
+Return (MONTH DAY YEAR) or nil if not an Org time-string."
+  (condition-case nil
+      (progn
+        (cl-destructuring-bind (_ _ _ d m y _ _ _)
+            (org-parse-time-string
+             (file-name-sans-extension
+              (file-name-nondirectory file)))
+          (list m d y)))
+    (t nil)))
 
 (defun org-roam-dailies-calendar--date-to-time (date)
   "Convert DATE as returned from then calendar (MONTH DAY YEAR) to a time."
@@ -231,8 +234,9 @@ Return (MONTH DAY YEAR)."
 (defun org-roam-dailies-calendar-mark-entries ()
   "Mark days in the calendar for which a daily-note is present."
   (when (file-exists-p (expand-file-name org-roam-dailies-directory org-roam-directory))
-    (dolist (date (mapcar #'org-roam-dailies-calendar--file-to-date
-                          (org-roam-dailies--list-files)))
+    (dolist (date (remove nil
+                          (mapcar #'org-roam-dailies-calendar--file-to-date
+                                  (org-roam-dailies--list-files))))
       (when (calendar-date-is-visible-p date)
         (calendar-mark-visible-date date 'org-roam-dailies-calendar-note)))))
 
