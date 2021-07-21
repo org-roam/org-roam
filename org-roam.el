@@ -167,12 +167,13 @@ Like `file-name-extension', but does not strip version number."
   "Return t if FILE is part of Org-roam system, nil otherwise.
 If FILE is not specified, use the current buffer's file-path."
   (let* ((path (or file (buffer-file-name (buffer-base-buffer))))
-         (ext (org-roam--file-name-extension path))
+         (ext (when path (org-roam--file-name-extension path)))
          (ext (if (string= ext "gpg")
                   (org-roam--file-name-extension (file-name-sans-extension path))
                 ext)))
     (save-match-data
       (and
+       path
        (member ext org-roam-file-extensions)
        (not (and org-roam-file-exclude-regexp
                  (string-match-p org-roam-file-exclude-regexp path)))
