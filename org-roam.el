@@ -529,7 +529,7 @@ Uses `org-roam-node-display-template' to format the entry."
               (- width (cdr fmt)))
             0 ?\s)))))))
 
-(defun org-roam-node-link-preview (file point)
+(defun org-roam-get-preview (file point)
   "Get preview content for FILE at POINT."
   (save-excursion
     (org-roam-with-temp-buffer file
@@ -898,7 +898,7 @@ This section is made out of the next 2 `magit-section's:
     (oset section node source-node)
     (magit-insert-section section (org-roam-preview-section)
       (insert (org-roam-fontify-like-in-org-mode
-               (org-roam-node-link-preview (org-roam-node-file source-node) point))
+               (org-roam-get-preview (org-roam-node-file source-node) point))
               "\n")
       (oset section file (org-roam-node-file source-node))
       (oset section point point)
