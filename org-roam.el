@@ -419,11 +419,9 @@ OLD-FILE is cleared from the database, and NEW-FILE-OR-DIR is added."
 (defclass org-roam-preview-section (magit-section)
   ((keymap :initform 'org-roam-preview-map)
    (file :initform nil)
-   (begin :initform nil)
-   (end :initform nil))
+   (point :initform nil))
   "A `magit-section' used by `org-roam-mode' to contain preview content.
-The preview content comes from FILE, between the next locations:
-BEGIN and END.")
+The preview content comes from FILE, and the link as at POINT.")
 
 (cl-defmethod org-roam-populate ((node org-roam-node))
   "Populate NODE from database.
@@ -531,17 +529,87 @@ Uses `org-roam-node-display-template' to format the entry."
               (- width (cdr fmt)))
             0 ?\s)))))))
 
-(defun org-roam-node-preview (file point)
+(defun org-roam-get-preview (file point)
   "Get preview content for FILE at POINT."
   (save-excursion
     (org-roam-with-temp-buffer file
       (goto-char point)
-      (let* ((elem (org-element-at-point))
-             (begin (org-element-property :begin elem))
-             (end (org-element-property :end elem)))
-        (list begin end
-              (or (string-trim (buffer-substring-no-properties begin end))
-                  (org-element-property :raw-value elem)))))))
+      (let ((elem (org-element-at-point)))
+        ;; We want the parent element always
+        (while (org-element-property :parent elem)
+          (setq elem (org-element-property :parent elem)))
+        (pcase (car elem)
+          ('headline                    ; show subtree
+           (org-roam-headline-get-preview-text (point-marker) most-positive-fixnum))
+          (_
+           (let ((begin (org-element-property :begin elem))
+                 (end (org-element-property :end elem)))
+             (or (string-trim (buffer-substring-no-properties begin end))
+                 (org-element-property :raw-value elem)))))))))
+
+(defun org-roam-headline-get-preview-text (marker n-lines &optional indent)
+  "Extract entry text from MARKER, at most N-LINES lines.
+This will ignore drawers etc, just get the text.
+If INDENT is given, prefix every line with this string."
+  (let (txt drawer-re kwd-time-re ind)
+    (save-excursion
+      (with-current-buffer (marker-buffer marker)
+        (if (not (derived-mode-p 'org-mode))
+            (setq txt "")
+          (org-with-wide-buffer
+           (goto-char marker)
+           (end-of-line 1)
+           (setq txt (buffer-substring
+                      (min (1+ (point)) (point-max))
+                      (progn (outline-next-heading) (point))))
+           (with-temp-buffer
+             (insert txt)
+             (goto-char (point-min))
+             (while (org-activate-links (point-max))
+               (goto-char (match-end 0)))
+             (goto-char (point-min))
+             (while (re-search-forward org-link-bracket-re (point-max) t)
+               (set-text-properties (match-beginning 0) (match-end 0)
+                                    nil))
+             (goto-char (point-min))
+             (while (re-search-forward org-drawer-regexp nil t)
+               (delete-region
+                (match-beginning 0)
+                (progn (re-search-forward
+                        "^[ \t]*:END:.*\n?" nil 'move)
+                       (point))))
+             (goto-char (point-min))
+             (goto-char (point-max))
+             (skip-chars-backward " \t\n")
+             (when (looking-at "[ \t\n]+\\'") (replace-match ""))
+
+             ;; find and remove min common indentation
+             (goto-char (point-min))
+             (untabify (point-min) (point-max))
+             (setq ind (current-indentation))
+             (while (not (eobp))
+               (unless (looking-at "[ \t]*$")
+                 (setq ind (min ind (current-indentation))))
+               (beginning-of-line 2))
+             (goto-char (point-min))
+             (while (not (eobp))
+               (unless (looking-at "[ \t]*$")
+                 (move-to-column ind)
+                 (delete-region (point-at-bol) (point)))
+               (beginning-of-line 2))
+             (goto-char (point-min))
+             (when indent
+               (while (and (not (eobp)) (re-search-forward "^" nil t))
+                 (replace-match indent t t)))
+             (goto-char (point-min))
+             (while (looking-at "[ \t]*\n") (replace-match ""))
+             (goto-char (point-max))
+             (when (> (org-current-line)
+                      n-lines)
+               (org-goto-line (1+ n-lines))
+               (backward-char 1))
+             (setq txt (buffer-substring (point-min) (point))))))))
+    (list (point-min) (point) txt)))
 
 (defun org-roam-node-at-point (&optional assert)
   "Return the node at point.
@@ -787,8 +855,8 @@ Returns empty string for annotations."
   "Visit FILE at POINT.
 With prefix argument OTHER-WINDOW, visit the olp in another
 window instead."
-  (interactive (list (org-roam-file-at-point t)
-                     (oref (magit-current-section) begin)
+  (interactive (list (org-roam-file-at-point 'assert)
+                     (oref (magit-current-section) point)
                      current-prefix-arg))
   (let ((buf (find-file-noselect file)))
     (with-current-buffer buf
@@ -829,12 +897,11 @@ This section is made out of the next 2 `magit-section's:
     (magit-insert-heading)
     (oset section node source-node)
     (magit-insert-section section (org-roam-preview-section)
-      (pcase-let ((`(,begin ,end ,s) (org-roam-node-preview (org-roam-node-file source-node)
-                                                            point)))
-        (insert (org-roam-fontify-like-in-org-mode s) "\n")
-        (oset section file (org-roam-node-file source-node))
-        (oset section begin begin)
-        (oset section end end))
+      (insert (org-roam-fontify-like-in-org-mode
+               (org-roam-get-preview (org-roam-node-file source-node) point))
+              "\n")
+      (oset section file (org-roam-node-file source-node))
+      (oset section point point)
       (insert ?\n))))
 
 ;;;###autoload
