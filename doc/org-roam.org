@@ -457,19 +457,15 @@ Org-roam provides (see [[id:70083bfd-d1e3-42b9-bf83-5b05708791c0][Completion]]).
 
 Org-roam provides the Org-roam buffer: an interface to view relationships with
 other notes (backlinks, reference links, unlinked references etc.). There are
-two main functions to use here:
+two main commands to use here:
 
-- ~org-roam-buffer~: Launch an Org-roam buffer for the current node at point.
 - ~org-roam-buffer-toggle~: Launch an Org-roam buffer that tracks the node
   currently at point. This means that the content of the buffer changes as the
   point is moved, if necessary.
-
-Use ~org-roam-buffer-toggle~ when you want wish for the Org-roam buffer to
-buffer, call ~M-x org-roam-buffer~.
-
-- Function: org-roam-buffer
-
-  Launch an Org-roam buffer for the current node at point.
+- ~org-roam-buffer-display-dedicated~: Launch an Org-roam buffer for a specific
+  node without visiting its file. Unlike ~org-roam-buffer-toggle~ you can have
+  multiple such buffers and their content won't be automatically replaced with a
+  new node at point.
 
 To bring up a buffer that tracks the current node at point, call ~M-x
 org-roam-buffer-toggle~.
@@ -477,6 +473,13 @@ org-roam-buffer-toggle~.
 - Function: org-roam-buffer-toggle
 
   Toggle display of the ~org-roam-buffer~.
+
+To bring up a buffer that's dedicated for a specific node, call ~M-x
+org-roam-buffer-display-dedicated~.
+
+- Function: org-roam-buffer-display-dedicated
+
+  Launch node dedicated Org-roam buffer without visiting the node itself.
 
 ** Navigating the Org-roam Buffer
 
