@@ -862,22 +862,19 @@ other notes (backlinks, reference links, unlinked references etc.). There are
 two main functions to use here:
 </p>
 <ul>
-<li> <code>org-roam-buffer</code>: Launch an Org-roam buffer for the current node at point.
-
-</li><li> <code>org-roam-buffer-toggle</code>: Launch an Org-roam buffer that tracks the node
+<li> <code>org-roam-buffer-toggle</code>: Launch an Org-roam buffer that tracks the node
 currently at point. This means that the content of the buffer changes as the
 point is moved, if necessary.
+
+</li><li> <code>org-roam-buffer-display-dedicated</code>: Launch an Org-roam buffer for a
+specific node without visiting its file. Unlike <code>org-roam-buffer-toggle</code> you
+can have multiple such buffers and their content won&rsquo;t be automatically
+replaced with a new node at point.
 </li></ul>
 
 <p>Use <code>org-roam-buffer-toggle</code> when you want wish for the Org-roam buffer to
 buffer, call <code>M-x org-roam-buffer</code>.
 </p>
-<dl>
-<dt id="index-org_002droam_002dbuffer">Function: <strong>org-roam-buffer</strong></dt>
-<dd>
-<p>Launch an Org-roam buffer for the current node at point.
-</p></dd></dl>
-
 <p>To bring up a buffer that tracks the current node at point, call <code>M-x
 org-roam-buffer-toggle</code>.
 </p>
@@ -885,6 +882,15 @@ org-roam-buffer-toggle</code>.
 <dt id="index-org_002droam_002dbuffer_002dtoggle">Function: <strong>org-roam-buffer-toggle</strong></dt>
 <dd>
 <p>Toggle display of the <code>org-roam-buffer</code>.
+</p></dd></dl>
+
+<p>To bring up a buffer that&rsquo;s dedicated for a specific node, call <code>M-x
+org-roam-buffer-display-dedicated</code>.
+</p>
+<dl>
+<dt id="index-org_002droam_002dbuffer_002ddisplay_002ddedicated">Function: <strong>org-roam-buffer-display-dedicated</strong></dt>
+<dd>
+<p>Launch node dedicated Org-roam buffer without visiting the node itself.
 </p></dd></dl>
 
 <table class="menu" border="0" cellspacing="0">
@@ -2429,7 +2435,7 @@ Next: <a href="#Variable-Index" accesskey="n" rel="next">Variable Index</a>, Pre
 <tr><th id="Function-Index_fn_letter-O">O</th><td></td><td></td></tr>
 <tr><td></td><td valign="top"><a href="#index-org_002droam_002dalias_002dadd"><code>org-roam-alias-add</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Titles-and-Aliases">Titles and Aliases</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-org_002droam_002dalias_002dremove"><code>org-roam-alias-remove</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Titles-and-Aliases">Titles and Aliases</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-org_002droam_002dbuffer"><code>org-roam-buffer</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#The-Org_002droam-Buffer">The Org-roam Buffer</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-org_002droam_002dbuffer_002ddisplay_002ddedicated"><code>org-roam-buffer-display-dedicated</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#The-Org_002droam-Buffer">The Org-roam Buffer</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-org_002droam_002dbuffer_002dtoggle"><code>org-roam-buffer-toggle</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#The-Org_002droam-Buffer">The Org-roam Buffer</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-org_002droam_002dcapture_002d"><code>org-roam-capture-</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Extending-the-Capture-System">Extending the Capture System</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-org_002droam_002ddailies_002dcapture_002ddate"><code><code>org-roam-dailies-capture-date</code></code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Usage">Usage</a></td></tr>
