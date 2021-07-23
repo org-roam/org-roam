@@ -870,8 +870,8 @@ window instead."
   "Insert section for a link from SOURCE-NODE to some other node.
 
 SOURCE-NODE is an `org-roam-node' that links or references some
-other node. Normally the other node is `org-roam-current-node'
-that set in `org-roam-buffer'.
+other node. Normally the other node is
+`org-roam-buffer-current-node'.
 
 POINT is the position in SOURCE-NODE's file where the link is
 located.

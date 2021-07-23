@@ -98,6 +98,19 @@ recursion."
     (nconc result (nreverse files))))
 
 ;;; Obsolete aliases (remove after next major release)
+(define-obsolete-variable-alias
+  'org-roam-current-node
+  'org-roam-buffer-current-node "org-roam 2.0")
+(define-obsolete-variable-alias
+  'org-roam-current-directory
+  'org-roam-buffer-current-directory "org-roam 2.0")
+(define-obsolete-function-alias
+  'org-roam-buffer-render
+  'org-roam-buffer-render-contents "org-roam 2.0")
+(define-obsolete-function-alias
+  'org-roam-buffer
+  'org-roam-buffer-display-dedicated "org-roam 2.0")
+
 (define-obsolete-function-alias
   'org-roam-dailies-find-today
   'org-roam-dailies-goto-today "org-roam 2.0")

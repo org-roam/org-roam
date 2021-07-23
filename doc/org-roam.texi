@@ -717,21 +717,19 @@ two main functions to use here:
 
 @itemize
 @item
-@code{org-roam-buffer}: Launch an Org-roam buffer for the current node at point.
-
-@item
 @code{org-roam-buffer-toggle}: Launch an Org-roam buffer that tracks the node
 currently at point. This means that the content of the buffer changes as the
 point is moved, if necessary.
+
+@item
+@code{org-roam-buffer-display-dedicated}: Launch an Org-roam buffer for a
+specific node without visiting its file. Unlike @code{org-roam-buffer-toggle} you
+can have multiple such buffers and their content won't be automatically
+replaced with a new node at point.
 @end itemize
 
 Use @code{org-roam-buffer-toggle} when you want wish for the Org-roam buffer to
 buffer, call @code{M-x org-roam-buffer}.
-
-@defun org-roam-buffer
-
-Launch an Org-roam buffer for the current node at point.
-@end defun
 
 To bring up a buffer that tracks the current node at point, call @code{M-x
 org-roam-buffer-toggle}.
@@ -739,6 +737,14 @@ org-roam-buffer-toggle}.
 @defun org-roam-buffer-toggle
 
 Toggle display of the @code{org-roam-buffer}.
+@end defun
+
+To bring up a buffer that's dedicated for a specific node, call @code{M-x
+org-roam-buffer-display-dedicated}.
+
+@defun org-roam-buffer-display-dedicated
+
+Launch node dedicated Org-roam buffer without visiting the node itself.
 @end defun
 
 @menu

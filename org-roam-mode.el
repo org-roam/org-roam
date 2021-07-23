@@ -120,16 +120,26 @@ and `:slant'."
   :group 'org-roam-faces)
 
 ;;; Variables
-(defvar org-roam-current-node nil
-  "The current node at point.")
+(defvar org-roam-buffer-current-node nil
+  "The node for which an `org-roam-mode' based buffer displays its contents.
+This set both, locally and globally. Normally the local value is
+only set in the `org-roam-mode' based buffers, while the global
+value shows the current node in the persistent `org-roam-buffer'.")
 
-(defvar org-roam-current-directory nil
-  "The `org-roam-directory' value for the current node.")
+(put 'org-roam-buffer-current-node 'permanent-local t)
+
+(defvar org-roam-buffer-current-directory nil
+  "The `org-roam-directory' value of `org-roam-buffer-current-node'.
+Set both, locally and globally in the same way as `org-roam-buffer-current-node'.")
+
+(put 'org-roam-buffer-current-directory 'permanent-local t)
 
 (defcustom org-roam-mode-section-functions (list #'org-roam-backlinks-section
                                                  #'org-roam-reflinks-section)
-  "Functions which insert sections of the `org-roam-buffer'.
-Each function is called with one argument, which is the current org-roam node at point."
+  "Functions that insert sections in the `org-roam-mode' based buffers.
+Each function is called with one argument, which is an
+`org-roam-node' for which the buffer will be constructed for.
+Normally this node is `org-roam-buffer-current-node'."
   :group 'org-roam
   :type 'hook)
 
@@ -139,7 +149,7 @@ Each function is called with one argument, which is the current org-roam node at
     (set-keymap-parent map magit-section-mode-map)
     (define-key map [C-return]  'org-roam-visit-thing)
     (define-key map (kbd "C-m") 'org-roam-visit-thing)
-    (define-key map [remap revert-buffer] 'org-roam-buffer-render)
+    (define-key map [remap revert-buffer] 'org-roam-buffer-refresh)
     map)
   "Parent keymap for all keymaps of modes derived from `org-roam-mode'.")
 
@@ -156,54 +166,85 @@ which visits the thing at point."
   (interactive)
   (user-error "There is no thing at point that could be visited"))
 
-(defun org-roam-buffer-render ()
-  "Render the current node at point."
+(defun org-roam-buffer-refresh ()
+  "Refresh the contents of the currently selected Org-roam buffer."
   (interactive)
-  (when (derived-mode-p 'org-roam-mode)
-    (let ((inhibit-read-only t))
-      (erase-buffer)
-      (setq-local default-directory org-roam-current-directory)
-      (setq-local org-roam-directory org-roam-current-directory)
-      (org-roam-set-header-line-format (org-roam-node-title org-roam-current-node))
-      (magit-insert-section (org-roam)
-        (magit-insert-heading)
-        (run-hook-with-args 'org-roam-mode-section-functions org-roam-current-node)))))
+  (cl-assert (derived-mode-p 'org-roam-mode))
+  (save-excursion (org-roam-buffer-render-contents)))
 
-(defun org-roam-buffer ()
-  "Launch an Org-roam buffer for the current node at point."
-  (interactive)
-  (if-let ((node (org-roam-node-at-point))
-           (source-org-roam-directory org-roam-directory))
-      (progn
-        (let ((buffer (get-buffer-create
-                       (concat "org-roam: "
-                               (file-relative-name (buffer-file-name) org-roam-directory)))))
-          (with-current-buffer buffer
-            (org-roam-mode)
-            (setq-local org-roam-current-node node)
-            (setq-local org-roam-current-directory source-org-roam-directory)
-            (org-roam-buffer-render))
-          (switch-to-buffer-other-window buffer)))
-    (user-error "No node at point")))
+(defun org-roam-buffer-render-contents ()
+  "Recompute and render the contents of an Org-roam buffer.
+Assumes that the current buffer is an `org-roam-mode' based
+buffer."
+  (let ((inhibit-read-only t))
+    (erase-buffer)
+    (org-roam-mode)
+    (setq-local default-directory org-roam-buffer-current-directory)
+    (setq-local org-roam-directory org-roam-buffer-current-directory)
+    (org-roam-set-header-line-format
+     (org-roam-node-title org-roam-buffer-current-node))
+    (magit-insert-section (org-roam)
+      (magit-insert-heading)
+      (run-hook-with-args 'org-roam-mode-section-functions org-roam-buffer-current-node))
+    (goto-char 0)))
+
+;;; Dedicated buffer
+;;;###autoload
+(defun org-roam-buffer-display-dedicated (node)
+  "Launch NODE dedicated Org-roam buffer.
+Unlike the persistent `org-roam-buffer', the contents of this
+buffer won't be automatically changed and will be held in place.
+
+In interactive calls prompt to select NODE, unless called with
+`universal-argument', in which case NODE will be set to
+`org-roam-node-at-point'."
+  (interactive
+   (list (if current-prefix-arg
+             (org-roam-node-at-point 'assert)
+           (org-roam-node-read nil nil nil 'require-match))))
+  (let ((buffer (get-buffer-create (org-roam-buffer--dedicated-name node))))
+    (with-current-buffer buffer
+      (setq-local org-roam-buffer-current-node node)
+      (setq-local org-roam-buffer-current-directory org-roam-directory)
+      (org-roam-buffer-render-contents))
+    (display-buffer buffer)))
+
+(defun org-roam-buffer--dedicated-name (node)
+  "Construct buffer name for NODE dedicated Org-roam buffer."
+  (let ((title (org-roam-node-title node))
+        (filename (file-relative-name (org-roam-node-file node) org-roam-directory)))
+    (format "*org-roam: %s<%s>*" title filename)))
+
+(defun org-roam-buffer-dedicated-p (&optional buffer)
+  "Return t if an Org-roam BUFFER is a node dedicated one.
+See `org-roam-buffer-display-dedicated' for more details.
+If BUFFER is nil, default it to `current-buffer'."
+  (or buffer (setq buffer (current-buffer)))
+  (string-match-p (concat "^" (regexp-quote "*org-roam: "))
+                  (buffer-name buffer)))
 
 ;;; Persistent buffer
 (defvar org-roam-buffer "*org-roam*"
-  "The persistent Org-roam buffer name.")
+  "The persistent Org-roam buffer name. Must be surround with \"*\".
+The content inside of this buffer will be automatically updated
+to the nearest node at point that comes from the current buffer.
+To toggle its display use `org-roam-buffer-toggle' command.")
 
-(defun org-roam-buffer--post-command-h ()
-  "Reconstructs the Org-roam buffer.
-This needs to be quick or infrequent, because this is run at
-`post-command-hook'.  If REDISPLAY, force an update of
-the Org-roam buffer."
-  (when (get-buffer-window org-roam-buffer)
-    (when-let ((node (org-roam-node-at-point)))
-      (unless (equal node org-roam-current-node)
-        (setq org-roam-current-node node)
-        (setq org-roam-current-directory org-roam-directory)
-        (org-roam-buffer-persistent-redisplay)))))
+(defun org-roam-buffer-toggle ()
+  "Toggle display of the persistent `org-roam-buffer'."
+  (interactive)
+  (pcase (org-roam-buffer--visibility)
+    ('visible
+     (progn
+       (delete-window (get-buffer-window org-roam-buffer))
+       (remove-hook 'post-command-hook #'org-roam-buffer--redisplay-h)))
+    ((or 'exists 'none)
+     (progn
+       (display-buffer (get-buffer-create org-roam-buffer))
+       (org-roam-buffer-persistent-redisplay)))))
 
 (define-inline org-roam-buffer--visibility ()
-  "Return whether the current visibility state of the org-roam buffer.
+  "Return the current visibility state of the persistent `org-roam-buffer'.
 Valid states are 'visible, 'exists and 'none."
   (declare (side-effect-free t))
   (inline-quote
@@ -212,42 +253,34 @@ Valid states are 'visible, 'exists and 'none."
     ((get-buffer org-roam-buffer) 'exists)
     (t 'none))))
 
-(defun org-roam-buffer-toggle ()
-  "Toggle display of the Org-roam buffer."
-  (interactive)
-  (pcase (org-roam-buffer--visibility)
-    ('visible
-     (progn
-       (delete-window (get-buffer-window org-roam-buffer))
-       (remove-hook 'post-command-hook #'org-roam-buffer--post-command-h)))
-    ((or 'exists 'none)
-     (progn
-       (setq org-roam-current-node (org-roam-node-at-point)
-             org-roam-current-directory org-roam-directory)
-       (display-buffer (get-buffer-create org-roam-buffer))
-       (org-roam-buffer-persistent-redisplay)))))
+(defun org-roam-buffer--persistent-cleanup-h ()
+  "Clean-up global state thats dedicated for the persistent `org-roam-buffer'."
+  (setq-default org-roam-buffer-current-node nil
+                org-roam-buffer-current-directory nil))
 
 (defun org-roam-buffer-persistent-redisplay ()
-  "Recompute contents of the persistent Org-roam buffer.
-Has no effect when `org-roam-current-node' is nil."
-  (when org-roam-current-node
-    (with-current-buffer (get-buffer-create org-roam-buffer)
-      (let ((inhibit-read-only t))
-        (erase-buffer)
-        (org-roam-mode)
-        (setq-local default-directory org-roam-current-directory)
-        (setq-local org-roam-directory org-roam-current-directory)
-        (org-roam-set-header-line-format (org-roam-node-title org-roam-current-node))
-        (magit-insert-section (org-roam)
-          (magit-insert-heading)
-          (dolist (fn org-roam-mode-section-functions)
-            (funcall fn org-roam-current-node)))))))
+  "Recompute contents of the persistent `org-roam-buffer'.
+Has no effect when there's no `org-roam-node-at-point'."
+  (when-let ((node (org-roam-node-at-point)))
+    (unless (equal node org-roam-buffer-current-node)
+      (setq org-roam-buffer-current-node node
+            org-roam-buffer-current-directory org-roam-directory)
+      (with-current-buffer (get-buffer-create org-roam-buffer)
+        (org-roam-buffer-render-contents)
+        (add-hook 'kill-buffer-hook #'org-roam-buffer--persistent-cleanup-h nil t)))))
 
-(defun org-roam-buffer--redisplay ()
-  "."
-  (add-hook 'post-command-hook #'org-roam-buffer--post-command-h nil t))
+(defun org-roam-buffer--redisplay-h ()
+  "Reconstruct the persistent `org-roam-buffer'.
+This needs to be quick or infrequent, because this designed to
+run at `post-command-hook'."
+  (and (get-buffer-window org-roam-buffer)
+       (org-roam-buffer-persistent-redisplay)))
 
-(add-hook 'org-roam-find-file-hook #'org-roam-buffer--redisplay)
+(defun org-roam-buffer--setup-redisplay-h ()
+  "Setup automatic redisplay of the persistent `org-roam-buffer'."
+  (add-hook 'post-command-hook #'org-roam-buffer--redisplay-h nil t))
+
+(add-hook 'org-roam-find-file-hook #'org-roam-buffer--setup-redisplay-h)
 
 ;;; Sections
 ;;;; Backlinks
