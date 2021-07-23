@@ -51,7 +51,8 @@ for an overview of the major changes.
 
 Notes taken in v1 are incompatible with v1, but you can upgrade
 them to the v2 format via a simple command. To migrate your
-notes, first set your org-roam-directory to your notes:
+notes, first make sure you're on at least Org 9.4 (check with
+C-h v org-version) and set your org-roam-directory to your notes:
 
 (setq org-roam-directory \"path/to/org/files\")
 
