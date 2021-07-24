@@ -88,10 +88,14 @@ This will take a while. Are you sure you want to do this?")
       (message "Backing up files to %s" backup-dir)
       (copy-directory org-roam-directory backup-dir))
 
+    ;; Upgrade database to v2
+    (org-roam-db-sync 'force)
+
     ;; Convert v1 to v2
     (dolist (f (org-roam--list-all-files))
       (org-roam-with-file f nil
         (org-roam-migrate-v1-to-v2)))
+
     ;; Rebuild cache
     (org-roam-db-sync 'force)
 
