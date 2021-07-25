@@ -259,7 +259,7 @@ If the buffer is associated with an in-process capture operation, abort the oper
     (kill-buffer (current-buffer))))
 
 ;;; Diagnostics
-;;;###autoload
+;;;###autoload (autoload 'org-roam-version "org-roam" nil t)
 (defun org-roam-version (&optional message)
   "Return `org-roam' version.
 Interactively, or when MESSAGE is non-nil, show in the echo area."
@@ -276,7 +276,7 @@ Interactively, or when MESSAGE is non-nil, show in the echo area."
         (message "%s" version)
       version)))
 
-;;;###autoload
+;;;###autoload (autoload 'org-roam-diagnostics "org-roam" nil t)
 (defun org-roam-diagnostics ()
   "Collect and print info for `org-roam' issues."
   (interactive)

@@ -460,7 +460,7 @@ If UPDATE-P is non-nil, first remove the file in the database."
      (secure-hash 'sha1 (current-buffer)))))
 
 ;;;;; Updating
-;;;###autoload
+;;;###autoload (autoload 'org-roam-db-sync "org-roam" nil t)
 (defun org-roam-db-sync (&optional force)
   "Synchronize the cache state with the current Org files on-disk.
 If FORCE, force a rebuild of the cache from scratch."

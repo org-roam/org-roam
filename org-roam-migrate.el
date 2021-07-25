@@ -73,7 +73,7 @@ To your init file.
 
 "))
 
-;;;###autoload
+;;;###autoload (autoload 'org-roam-migrate-wizard "org-roam" nil t)
 (defun org-roam-migrate-wizard ()
   "Migrate all notes from to be compatible with Org-roam v2.
 1. Convert all notes from v1 format to v2.

@@ -256,7 +256,7 @@ CALLBACK is passed the graph file as its sole argument."
     (_ (signal 'wrong-type-argument `((functionp stringp null) ,org-roam-graph-viewer)))))
 
 ;;;; Commands
-;;;###autoload
+;;;###autoload (autoload 'org-roam-graph "org-roam" nil t)
 (defun org-roam-graph (&optional arg node)
   "Build and possibly display a graph for NODE.
 ARG may be any of the following values:
