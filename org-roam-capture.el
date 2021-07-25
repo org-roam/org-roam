@@ -525,6 +525,12 @@ also run Org-capture's template expansion."
   (when-let ((ref (plist-get org-roam-capture--info :ref)))
     (org-roam-ref-add ref)))
 
+(defun org-roam-capture--create-parent-directory (path)
+  "Create the parent directory for PATH."
+  (make-directory
+   (file-name-directory path)
+   'parents))
+
 (defun org-roam-capture--goto-location ()
   "Initialize the buffer, and goto the location of the new capture.
 Return the ID of the location."
@@ -535,6 +541,7 @@ Return the ID of the location."
        (setq path (expand-file-name
                    (string-trim (org-roam-capture--fill-template path t))
                    org-roam-directory))
+       (org-roam-capture--create-parent-directory path)
        (unless (file-exists-p path)
          (org-roam-capture--put :new-file path))
        (set-buffer (org-capture-target-buffer path))
@@ -544,6 +551,7 @@ Return the ID of the location."
        (setq path (expand-file-name
                    (string-trim (org-roam-capture--fill-template path t))
                    org-roam-directory))
+       (org-roam-capture--create-parent-directory path)
        (set-buffer (org-capture-target-buffer path))
        (unless (file-exists-p path)
          (org-roam-capture--put :new-file path))
@@ -555,6 +563,7 @@ Return the ID of the location."
        (setq path (expand-file-name
                    (string-trim (org-roam-capture--fill-template path t))
                    org-roam-directory))
+       (org-roam-capture--create-parent-directory path)
        (set-buffer (org-capture-target-buffer path))
        (unless (file-exists-p path)
          (org-roam-capture--put :new-file path)
@@ -565,6 +574,7 @@ Return the ID of the location."
        (setq path (expand-file-name
                    (string-trim (org-roam-capture--fill-template path t))
                    org-roam-directory))
+       (org-roam-capture--create-parent-directory path)
        (widen)
        (set-buffer (org-capture-target-buffer path))
        (unless (file-exists-p path)
@@ -577,6 +587,7 @@ Return the ID of the location."
        (setq path (expand-file-name
                    (string-trim (org-roam-capture--fill-template path t))
                    org-roam-directory))
+       (org-roam-capture--create-parent-directory path)
        (require 'org-datetree)
        (widen)
        (set-buffer (org-capture-target-buffer path))
