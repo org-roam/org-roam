@@ -152,7 +152,7 @@ Only scans up to BOUND bytes of the document."
     (setq bound 1024))
   (if file
       (with-temp-buffer
-        (insert-file-contents-literally file nil 0 bound)
+        (insert-file-contents file nil 0 bound)
         (org-roam--get-keyword name))
     (org-roam--get-keyword name bound)))
 
