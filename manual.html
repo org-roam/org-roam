@@ -267,6 +267,8 @@ FAQ
 </td></tr>
 <tr><td align="left" valign="top">&bull; <a href="#How-do-I-create-a-note-whose-title-already-matches-one-of-the-candidates_003f">How do I create a note whose title already matches one of the candidates?</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#How-can-I-stop-Org_002droam-from-creating-IDs-everywhere_003f">How can I stop Org-roam from creating IDs everywhere?</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
 <tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
 
 Developer&rsquo;s Guide to Org-roam
@@ -859,22 +861,19 @@ Next: <a href="#Node-Properties" accesskey="n" rel="next">Node Properties</a>, P
 
 <p>Org-roam provides the Org-roam buffer: an interface to view relationships with
 other notes (backlinks, reference links, unlinked references etc.). There are
-two main functions to use here:
+two main commands to use here:
 </p>
 <ul>
 <li> <code>org-roam-buffer-toggle</code>: Launch an Org-roam buffer that tracks the node
 currently at point. This means that the content of the buffer changes as the
 point is moved, if necessary.
 
-</li><li> <code>org-roam-buffer-display-dedicated</code>: Launch an Org-roam buffer for a
-specific node without visiting its file. Unlike <code>org-roam-buffer-toggle</code> you
-can have multiple such buffers and their content won&rsquo;t be automatically
-replaced with a new node at point.
+</li><li> <code>org-roam-buffer-display-dedicated</code>: Launch an Org-roam buffer for a specific
+node without visiting its file. Unlike <code>org-roam-buffer-toggle</code> you can have
+multiple such buffers and their content won&rsquo;t be automatically replaced with a
+new node at point.
 </li></ul>
 
-<p>Use <code>org-roam-buffer-toggle</code> when you want wish for the Org-roam buffer to
-buffer, call <code>M-x org-roam-buffer</code>.
-</p>
 <p>To bring up a buffer that tracks the current node at point, call <code>M-x
 org-roam-buffer-toggle</code>.
 </p>
@@ -2053,6 +2052,8 @@ Next: <a href="#Migrating-from-Org_002droam-v1" accesskey="n" rel="next">Migrati
 </td></tr>
 <tr><td align="left" valign="top">&bull; <a href="#How-do-I-create-a-note-whose-title-already-matches-one-of-the-candidates_003f" accesskey="3">How do I create a note whose title already matches one of the candidates?</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#How-can-I-stop-Org_002droam-from-creating-IDs-everywhere_003f" accesskey="4">How can I stop Org-roam from creating IDs everywhere?</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
 </table>
 
 <hr>
@@ -2093,7 +2094,7 @@ provided <a href="https://github.com/fabioberger/roam-migration">in the reposito
 <hr>
 <span id="How-do-I-create-a-note-whose-title-already-matches-one-of-the-candidates_003f"></span><div class="header">
 <p>
-Previous: <a href="#How-do-I-migrate-from-Roam-Research_003f" accesskey="p" rel="prev">How do I migrate from Roam Research?</a>, Up: <a href="#FAQ" accesskey="u" rel="up">FAQ</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+Next: <a href="#How-can-I-stop-Org_002droam-from-creating-IDs-everywhere_003f" accesskey="n" rel="next">How can I stop Org-roam from creating IDs everywhere?</a>, Previous: <a href="#How-do-I-migrate-from-Roam-Research_003f" accesskey="p" rel="prev">How do I migrate from Roam Research?</a>, Up: <a href="#FAQ" accesskey="u" rel="up">FAQ</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
 <span id="How-do-I-create-a-note-whose-title-already-matches-one-of-the-candidates_003f-1"></span><h3 class="section">16.3 How do I create a note whose title already matches one of the candidates?</h3>
 
@@ -2111,6 +2112,19 @@ set <code>ivy-use-selectable-prompt</code> to <code>t</code>, so that &ldquo;bar
 the candidate list.
 </li></ul>
 
+<hr>
+<span id="How-can-I-stop-Org_002droam-from-creating-IDs-everywhere_003f"></span><div class="header">
+<p>
+Previous: <a href="#How-do-I-create-a-note-whose-title-already-matches-one-of-the-candidates_003f" accesskey="p" rel="prev">How do I create a note whose title already matches one of the candidates?</a>, Up: <a href="#FAQ" accesskey="u" rel="up">FAQ</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+</div>
+<span id="How-can-I-stop-Org_002droam-from-creating-IDs-everywhere_003f-1"></span><h3 class="section">16.4 How can I stop Org-roam from creating IDs everywhere?</h3>
+
+<p>Other than the interactive commands that Org-roam provides, Org-roam does not
+create IDs everywhere. If you are noticing that IDs are being created even when
+you don&rsquo;t want them to be (e.g. when tangling an Org file), check the value you
+have set for <code>org-id-link-to-org-use-id</code>: setting it to <code>'create-if-interactive</code>
+is a popular option.
+</p>
 <hr>
 <span id="Migrating-from-Org_002droam-v1"></span><div class="header">
 <p>
