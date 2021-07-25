@@ -173,6 +173,7 @@ FAQ
 * How do I have more than one Org-roam directory?::
 * How do I migrate from Roam Research?::
 * How do I create a note whose title already matches one of the candidates?::
+* How can I stop Org-roam from creating IDs everywhere?::
 
 Developer's Guide to Org-roam
 
@@ -713,7 +714,7 @@ Org-roam provides (see @ref{Completion}).
 
 Org-roam provides the Org-roam buffer: an interface to view relationships with
 other notes (backlinks, reference links, unlinked references etc.). There are
-two main functions to use here:
+two main commands to use here:
 
 @itemize
 @item
@@ -722,14 +723,11 @@ currently at point. This means that the content of the buffer changes as the
 point is moved, if necessary.
 
 @item
-@code{org-roam-buffer-display-dedicated}: Launch an Org-roam buffer for a
-specific node without visiting its file. Unlike @code{org-roam-buffer-toggle} you
-can have multiple such buffers and their content won't be automatically
-replaced with a new node at point.
+@code{org-roam-buffer-display-dedicated}: Launch an Org-roam buffer for a specific
+node without visiting its file. Unlike @code{org-roam-buffer-toggle} you can have
+multiple such buffers and their content won't be automatically replaced with a
+new node at point.
 @end itemize
-
-Use @code{org-roam-buffer-toggle} when you want wish for the Org-roam buffer to
-buffer, call @code{M-x org-roam-buffer}.
 
 To bring up a buffer that tracks the current node at point, call @code{M-x
 org-roam-buffer-toggle}.
@@ -1724,6 +1722,7 @@ Org-mode, and sync your cards to Anki via @uref{https://github.com/FooSoft/anki-
 * How do I have more than one Org-roam directory?::
 * How do I migrate from Roam Research?::
 * How do I create a note whose title already matches one of the candidates?::
+* How can I stop Org-roam from creating IDs everywhere?::
 @end menu
 
 @node How do I have more than one Org-roam directory?
@@ -1771,6 +1770,15 @@ set @code{ivy-use-selectable-prompt} to @code{t}, so that ``bar'' is now selecta
  HelmOrg-roam should provide a selectable ``[?] bar'' candidate at the top of
 the candidate list.
 @end itemize
+
+@node How can I stop Org-roam from creating IDs everywhere?
+@section How can I stop Org-roam from creating IDs everywhere?
+
+Other than the interactive commands that Org-roam provides, Org-roam does not
+create IDs everywhere. If you are noticing that IDs are being created even when
+you don't want them to be (e.g. when tangling an Org file), check the value you
+have set for @code{org-id-link-to-org-use-id}: setting it to @code{'create-if-interactive}
+is a popular option.
 
 @node Migrating from Org-roam v1
 @chapter Migrating from Org-roam v1

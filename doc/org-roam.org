@@ -1266,6 +1266,13 @@ are the solutions:
   set ~ivy-use-selectable-prompt~ to ~t~, so that "bar" is now selectable.
 - Helm :: Org-roam should provide a selectable "[?] bar" candidate at the top of
   the candidate list.
+** How can I stop Org-roam from creating IDs everywhere?
+
+Other than the interactive commands that Org-roam provides, Org-roam does not
+create IDs everywhere. If you are noticing that IDs are being created even when
+you don't want them to be (e.g. when tangling an Org file), check the value you
+have set for ~org-id-link-to-org-use-id~: setting it to ~'create-if-interactive~
+is a popular option.
 
 * Migrating from Org-roam v1
 
