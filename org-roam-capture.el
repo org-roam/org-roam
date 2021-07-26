@@ -626,20 +626,16 @@ Return the ID of the location."
          (set-buffer (org-capture-target-buffer (org-roam-node-file node)))
          (goto-char (org-roam-node-point node))
          (setq p (org-roam-node-point node)))))
-    (prog1
-        ;; Setup `org-id' for the current capture target and return it back to
-        ;; the caller.
-        (save-excursion
-          (goto-char p)
-          (when-let* ((node org-roam-capture--node)
-                      (id (org-roam-node-id node)))
-            (org-entry-put p "ID" id))
-          (prog1
-              (org-id-get-create)
-            (run-hooks 'org-roam-capture-new-node-hook)))
-      ;; Adjust the point only after ID was generated and polluted to the
-      ;; current target in the capture buffer.
-      (org-roam-capture--adjust-point-for-capture-type))))
+    ;; Setup `org-id' for the current capture target and return it back to the
+    ;; caller.
+    (save-excursion
+      (goto-char p)
+      (when-let* ((node org-roam-capture--node)
+                  (id (org-roam-node-id node)))
+        (org-entry-put p "ID" id))
+      (prog1
+          (org-id-get-create)
+        (run-hooks 'org-roam-capture-new-node-hook)))))
 
 (defun org-roam-capture--adjust-point-for-capture-type (&optional pos)
   "Reposition the point for template insertion dependently on the capture type.
@@ -747,18 +743,17 @@ This function is used solely in Org-roam's capture templates: see
                        (progn
                          (set-buffer (org-capture-target-buffer (org-roam-node-file node)))
                          (goto-char (org-roam-node-point node))
-                         (widen)
-                         (org-end-of-subtree t t))
+                         (widen))
                      (org-roam-capture--goto-location)))
                   ((and (org-roam-node-file org-roam-capture--node)
                         (org-roam-node-point org-roam-capture--node))
                    (set-buffer (org-capture-target-buffer (org-roam-node-file org-roam-capture--node)))
                    (goto-char (org-roam-node-point org-roam-capture--node))
                    (widen)
-                   (org-end-of-subtree t t)
                    (org-roam-node-id org-roam-capture--node))
                   (t
                    (org-roam-capture--goto-location)))))
+    (org-roam-capture--adjust-point-for-capture-type)
     (org-capture-put :template
                      (org-roam-capture--fill-template (org-capture-get :template)))
     (org-roam-capture--put :id id)
