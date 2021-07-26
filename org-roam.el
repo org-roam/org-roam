@@ -609,7 +609,7 @@ If INDENT is given, prefix every line with this string."
                (org-goto-line (1+ n-lines))
                (backward-char 1))
              (setq txt (buffer-substring (point-min) (point))))))))
-    (list (point-min) (point) txt)))
+    txt))
 
 (defun org-roam-node-at-point (&optional assert)
   "Return the node at point.
