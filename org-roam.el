@@ -905,25 +905,30 @@ This section is made out of the next 2 `magit-section's:
       (insert ?\n))))
 
 ;;;###autoload
-(defun org-roam-node-find (&optional other-window initial-input filter-fn)
+(cl-defun org-roam-node-find (&optional other-window initial-input filter-fn &key templates)
   "Find and open an Org-roam node by its title or alias.
 INITIAL-INPUT is the initial input for the prompt.
 FILTER-FN is a function to filter out nodes: it takes an `org-roam-node',
 and when nil is returned the node will be filtered out.
-If OTHER-WINDOW, visit the NODE in another window."
+If OTHER-WINDOW, visit the NODE in another window.
+The TEMPLATES, if provided, override the list of capture templates (see
+`org-roam-capture-'.)"
   (interactive current-prefix-arg)
   (let ((node (org-roam-node-read initial-input filter-fn)))
     (if (org-roam-node-file node)
         (org-roam-node-visit node other-window)
       (org-roam-capture-
        :node node
+       :templates templates
        :props '(:finalize find-file)))))
 
 ;;;###autoload
-(defun org-roam-node-insert (&optional filter-fn)
+(cl-defun org-roam-node-insert (&optional filter-fn &key templates)
   "Find an Org-roam node and insert (where the point is) an \"id:\" link to it.
 FILTER-FN is a function to filter out nodes: it takes an `org-roam-node',
-and when nil is returned the node will be filtered out."
+and when nil is returned the node will be filtered out.
+The TEMPLATES, if provided, override the list of capture templates (see
+`org-roam-capture-'.)"
   (interactive)
   (unwind-protect
       ;; Group functions together to avoid inconsistent state on quit
@@ -948,6 +953,7 @@ and when nil is returned the node will be filtered out."
                          description)))
             (org-roam-capture-
              :node node
+             :templates templates
              :props (append
                      (when (and beg end)
                        (list :region (cons beg end)))
