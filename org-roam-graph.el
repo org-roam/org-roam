@@ -197,7 +197,9 @@ Handles both Org-roam nodes, and string nodes (e.g. urls)."
         (let* ((title (org-roam-quote-string (org-roam-node-title node)))
                (shortened-title (org-roam-quote-string
                                  (pcase org-roam-graph-shorten-titles
-                                   (`truncate (org-roam-truncate-string title org-roam-graph-max-title-length))
+                                   (`truncate (org-roam-truncate-string
+                                               title
+                                               org-roam-graph-max-title-length))
                                    (`wrap (s-word-wrap org-roam-graph-max-title-length title))
                                    (_ title)))))
           (setq node-id (org-roam-node-id node)
