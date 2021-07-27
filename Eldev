@@ -6,9 +6,6 @@
 (eldev-use-package-archive 'gnu)
 (eldev-use-package-archive 'melpa-unstable)
 
-;; allow to load test helpers
-(eldev-add-loading-roots 'test "test/utils")
-
 ;; Tell checkdoc not to demand two spaces after a period.
 (setq sentence-end-double-space nil)
 
@@ -17,7 +14,7 @@
 
 (with-eval-after-load 'elisp-lint
   ;; We will byte-compile with Eldev.
-  (setf elisp-lint-ignored-validators '("package-lint" "fill-column")
+  (setf elisp-lint-ignored-validators '("fill-column")
         enable-local-variables        :all))
 
 ;; Teach linter how to properly indent emacsql vectors

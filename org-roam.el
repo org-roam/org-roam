@@ -50,15 +50,16 @@
 (require 'emacsql)
 (require 'emacsql-sqlite)
 
-(eval-when-compile (require 'subr-x))
-
 (require 'org-roam-migrate)
 (require 'org-roam-compat)
+
 (eval-when-compile
+  (require 'subr-x)
   (require 'org-roam-macs)
   (require 'org-macs))
 
 ;;;; Declarations
+
 (defvar org-ref-cite-types)
 (declare-function org-ref-split-and-strip-string "ext:org-ref-utils" (string))
 (declare-function org-datetree-find-date-create "org-datetree" (date &optional keep-restriction))
@@ -89,10 +90,9 @@ All Org files, at any level of nesting, are considered part of the Org-roam."
 
 (defcustom org-roam-file-extensions '("org")
   "Detected file extensions to include in the Org-roam ecosystem.
-The first item in the list is used as the default file extension.
-While the file extensions may be different, the file format needs
-to be an `org-mode' file, and it is the user's responsibility to
-ensure that."
+While a file extension different from \".org\" may be used, the
+file still needs to be an `org-mode' file, and it is the user's
+responsibility to ensure that."
   :type '(repeat string)
   :group 'org-roam)
 
@@ -135,13 +135,15 @@ By default, `executable-find' will be used to look up the path to the
 executable. If a custom path is required, it can be specified together with the
 method symbol as a cons cell. For example: '(find (rg . \"/path/to/rg\"))."
   :type '(set (const :tag "find" find)
-              (const :tag "rg" rg)))
+              (const :tag "fdfind" fdfind)
+              (const :tag "rg" rg)
+              (const :tag "elisp" nil)))
 
 (defvar org-roam-find-file-hook nil
   "Hook run when an Org-roam file is visited.")
 
-;;;; Utilities
-(defun org-roam-truncate (len s &optional ellipsis)
+;;;; Utility Functions
+(defun org-roam-truncate-string (s len &optional ellipsis)
   "If S is longer than LEN, cut it down and add ELLIPSIS to the end.
 
 The resulting string, including ellipsis, will be LEN characters
@@ -155,6 +157,7 @@ When not specified, ELLIPSIS defaults to ‘...’."
       (format "%s%s" (substring s 0 (- len (length ellipsis))) ellipsis)
     s))
 
+;; TODO: Refactor this
 (defun org-roam-replace (old new s)
   "Replace OLD with NEW in S."
   (declare (pure t) (side-effect-free t))
@@ -318,7 +321,6 @@ Adapted from `s-format'."
 
 (defun org-roam--file-keyword-get (keyword)
   "Pull a KEYWORD setting from the top of the file.
-
 Keyword must be specified in ALL CAPS."
   (cadr (assoc keyword
                (org-collect-keywords (list keyword)))))
@@ -347,6 +349,7 @@ If the buffer is associated with an in-process capture operation, abort the oper
       (org-capture-kill))
     (kill-buffer (current-buffer))))
 
+;; TODO: Update this to also get commit hash
 ;;;###autoload
 (defun org-roam-version (&optional message)
   "Return `org-roam' version.
@@ -382,9 +385,7 @@ Interactively, or when MESSAGE is non-nil, show in the echo area."
 
 ;;;; The Org-roam Database
 (defcustom org-roam-db-location (expand-file-name "org-roam.db" user-emacs-directory)
-  "The full path to file where the Org-roam database is stored.
-If this is non-nil, the Org-roam sqlite database is saved here.
-
+  "The path where the Org-roam database is stored.
 It is the user's responsibility to set this correctly, especially
 when used with multiple Org-roam instances."
   :type 'string
@@ -405,6 +406,7 @@ value like `most-positive-fixnum'."
   :type 'int
   :group 'org-roam)
 
+;; TODO: rewrite help message
 (defcustom org-roam-db-node-include-function (lambda () t)
   "A custom function to check if the headline at point is a node."
   :type 'function
