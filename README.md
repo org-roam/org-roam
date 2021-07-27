@@ -66,6 +66,14 @@ Org-roam requires sqlite to function. Org-roam optionally uses Graphviz for
 graph-related functionality. It is recommended to install PCRE-enabled ripgrep
 for better performance and extended functionality.
 
+## Getting Started
+
+[David Wilson](https://github.com/daviwil) of [System
+Crafters](https://www.youtube.com/c/SystemCrafters) has produced an introductory
+video that covers the basic commands:
+
+[![Getting Started with Org Roam - Build a Second Brain in Emacs](https://img.youtube.com/vi/AyhPmypHDEw/0.jpg)](https://www.youtube.com/watch?v=AyhPmypHDEw)
+
 ## Getting Help
 
 Before creating a new topic/issue, please be mindful of our time and ensure that
