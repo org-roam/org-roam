@@ -46,7 +46,7 @@ WARNING: You're now on Org-roam v2!
 
 You may have arrived here from a package upgrade. Please read the
 wiki entry at
-https://github.com/org-roam/org-roam/wiki/Hitchhiker's-Rough-Guide-to-Org-roam-V2
+%s
 for an overview of the major changes.
 
 Notes taken in v1 are incompatible with v2, but you can upgrade
@@ -71,7 +71,8 @@ this warning. You can do so by adding:
 
 To your init file.
 
-"))
+"
+         "https://github.com/org-roam/org-roam/wiki/Hitchhiker's-Rough-Guide-to-Org-roam-V2"))
 
 ;;;###autoload (autoload 'org-roam-migrate-wizard "org-roam" nil t)
 (defun org-roam-migrate-wizard ()
