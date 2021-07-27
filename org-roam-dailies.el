@@ -34,14 +34,8 @@
 ;;
 ;;; Code:
 ;;; Library Requires
-(require 'org-capture)
-(require 'org-roam-capture)
+(require 'org-roam)
 (require 'f)
-
-;;;; Declarations
-(defvar org-roam-directory)
-(defvar org-roam-file-extensions)
-(declare-function org-roam-file-p        "org-roam")
 
 ;;;; Faces
 (defface org-roam-dailies-calendar-note

@@ -31,12 +31,7 @@
 ;;
 ;;; Code:
 (require 'xml) ;xml-escape-string
-(eval-and-compile
-  (require 'org-roam-macs))
-(require 'org-roam-db)
-
-;;;; Declarations
-(defvar org-roam-directory)
+(require 'org-roam)
 
 ;;;; Options
 (defcustom org-roam-graph-viewer (executable-find "firefox")

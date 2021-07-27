@@ -32,9 +32,14 @@
 ;;
 ;;; Code:
 ;;;; Dependencies
-;;;;
+(eval-when-compile
+  (require 'org-macs))
+(declare-function org-roam-alias-add "org-roam")
+(declare-function org-roam-ref-add "org-roam")
+(declare-function org-roam-db-query "org-roam")
+(defvar org-roam-directory)
+
 ;;; v1 breaking warning
-(require 'org-roam-db)
 
 (defvar org-roam-v2-ack nil)
 

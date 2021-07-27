@@ -34,6 +34,7 @@
 ;;
 ;;; Code:
 ;;;; Dependencies
+(require 'org-roam)
 
 (defface org-roam-overlay
   '((((class color) (background light))
