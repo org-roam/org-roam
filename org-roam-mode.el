@@ -189,7 +189,7 @@ buffer."
     (goto-char 0)))
 
 ;;; Dedicated buffer
-;;;###autoload
+;;;###autoload (autoload 'org-roam-buffer-display-dedicated "org-roam" nil t)
 (defun org-roam-buffer-display-dedicated (node)
   "Launch NODE dedicated Org-roam buffer.
 Unlike the persistent `org-roam-buffer', the contents of this

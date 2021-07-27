@@ -786,7 +786,7 @@ properties to be added to the template."
     (_
      (signal 'invalid-template template))))
 
-;;;###autoload
+;;;###autoload (autoload 'org-roam-capture- "org-roam" nil t)
 (cl-defun org-roam-capture- (&key goto keys node info props templates)
   "Main entry point.
 GOTO and KEYS correspond to `org-capture' arguments.
@@ -806,7 +806,7 @@ TEMPLATES is a list of org-roam templates."
       (setq keys (caar org-capture-templates)))
     (org-capture goto keys)))
 
-;;;###autoload
+;;;###autoload (autoload 'org-roam-capture "org-roam" nil t)
 (defun org-roam-capture (&optional goto keys)
   "Launches an `org-capture' process for a new or existing note.
 This uses the templates defined at `org-roam-capture-templates'.
