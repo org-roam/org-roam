@@ -49,7 +49,7 @@ wiki entry at
 https://github.com/org-roam/org-roam/wiki/Hitchhiker's-Rough-Guide-to-Org-roam-V2
 for an overview of the major changes.
 
-Notes taken in v1 are incompatible with v1, but you can upgrade
+Notes taken in v1 are incompatible with v2, but you can upgrade
 them to the v2 format via a simple command. To migrate your
 notes, first make sure you're on at least Org 9.4 (check with
 C-h v org-version) and set your org-roam-directory to your notes:
