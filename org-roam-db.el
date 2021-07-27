@@ -35,6 +35,7 @@
 (require 'emacsql)
 (require 'emacsql-sqlite)
 (require 'seq)
+(require 'cl-lib)
 
 (eval-and-compile
   (require 'org-roam-macs)
@@ -357,7 +358,7 @@ If UPDATE-P is non-nil, first remove the file in the database."
                   :values $v1]
                  rows)))))))))
 
-(defun org-roam-db-insert-node-data ()
+(cl-defun org-roam-db-insert-node-data ()
   "Insert node data for headline at point into the Org-roam cache."
   (when-let ((id (org-id-get)))
     (let* ((file (buffer-file-name (buffer-base-buffer)))
@@ -368,9 +369,15 @@ If UPDATE-P is non-nil, first remove the file in the database."
            (level (nth 1 heading-components))
            (scheduled (org-roam-db-get-scheduled-time))
            (deadline (org-roam-db-get-deadline-time))
-           (title (org-link-display-format (nth 4 heading-components)))
+           (title (or (nth 4 heading-components)
+                      (progn (lwarn 'org-roam :warning "Node in %s:%s:%s has no title, skipping..."
+                                    file
+                                    (line-number-at-pos)
+                                    (1+ (- (point) (line-beginning-position))))
+                             (cl-return-from org-roam-db-insert-node-data))))
            (properties (org-entry-properties))
-           (olp (org-get-outline-path)))
+           (olp (org-get-outline-path))
+           (title (org-link-display-format title)))
       (org-roam-db-query!
        (lambda (err)
          (lwarn 'org-roam :warning "%s for %s (%s) in %s"
