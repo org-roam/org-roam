@@ -33,7 +33,7 @@
 (require 'xml) ;xml-escape-string
 (eval-and-compile
   (require 'org-roam-macs))
-(require 'org-roam-db)
+(require 'org-roam)
 
 ;;;; Declarations
 (defvar org-roam-directory)
@@ -256,7 +256,7 @@ CALLBACK is passed the graph file as its sole argument."
     (_ (signal 'wrong-type-argument `((functionp stringp null) ,org-roam-graph-viewer)))))
 
 ;;;; Commands
-;;;###autoload (autoload 'org-roam-graph "org-roam" nil t)
+;;;###autoload
 (defun org-roam-graph (&optional arg node)
   "Build and possibly display a graph for NODE.
 ARG may be any of the following values:
