@@ -767,7 +767,9 @@ properties to be added to the template."
   (pcase template
     (`(,_key ,_desc)
      template)
-    (`(,key ,desc ,type ,body . ,rest)
+    ((or `(,key ,desc ,type ignore ,body . ,rest)
+         `(,key ,desc ,type (function ignore) ,body . ,rest)
+         `(,key ,desc ,type ,body . ,rest))
      (setq rest (append rest props))
      (let (org-roam-plist options)
        (while rest
