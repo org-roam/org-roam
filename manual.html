@@ -1450,7 +1450,7 @@ Previous: <a href="#The-roam_002dnode-protocol" accesskey="p" rel="prev">The roa
 </div>
 <span id="The-roam_002dref-protocol-1"></span><h3 class="section">10.3 The roam-ref protocol</h3>
 
-<p>This protocol finds or creates a new note with a given <code>roam_key</code>:
+<p>This protocol finds or creates a new note with a given <code>ROAM_REFS</code>:
 </p>
 <img src="images/roam-ref.gif" alt="images/roam-ref">
 
@@ -1474,8 +1474,7 @@ Previous: <a href="#The-roam_002dnode-protocol" accesskey="p" rel="prev">The roa
 </pre></div>
 
 <p>where <code>template</code> is the template key for a template in
-<code>org-roam-capture-ref-templates</code> (see <a href="#The-Templating-System">The Templating System</a>). These templates
-should contain a <code>#+roam_key: ${ref}</code> in it.
+<code>org-roam-capture-ref-templates</code> (see <a href="#The-Templating-System">The Templating System</a>).
 </p>
 <hr>
 <span id="The-Templating-System"></span><div class="header">
@@ -2023,7 +2022,7 @@ Next: <a href="#Spaced-Repetition" accesskey="n" rel="next">Spaced Repetition</a
 </p>
 <p>For example, though helm-bibtex provides the ability to visit notes for
 bibliographic entries, org-roam-bibtex extends it with the ability to visit the
-file with the right &lsquo;<samp>#+ROAM_KEYS</samp>&rsquo;.
+file with the right <code>ROAM_REFS</code>.
 </p>
 <hr>
 <span id="Spaced-Repetition"></span><div class="header">

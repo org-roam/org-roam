@@ -840,7 +840,7 @@ graph navigable.
 
 ** The roam-ref protocol
 
-This protocol finds or creates a new note with a given ~roam_key~:
+This protocol finds or creates a new note with a given ~ROAM_REFS~:
 
 [[file:images/roam-ref.gif]]
 
@@ -864,8 +864,7 @@ or as a keybinding in ~qutebrowser~ in , using the ~config.py~ file (see
 #+END_SRC
 
 where ~template~ is the template key for a template in
-~org-roam-capture-ref-templates~ (see [[*The Templating System][The Templating System]]). These templates
-should contain a ~#+roam_key: ${ref}~ in it.
+~org-roam-capture-ref-templates~ (see [[*The Templating System][The Templating System]]).
 
 * The Templating System
 
@@ -1218,7 +1217,7 @@ documents (PDF, EPUB etc.) within Org-mode.
 
 For example, though helm-bibtex provides the ability to visit notes for
 bibliographic entries, org-roam-bibtex extends it with the ability to visit the
-file with the right =#+ROAM_KEYS=.
+file with the right ~ROAM_REFS~.
 
 ** Spaced Repetition
 
