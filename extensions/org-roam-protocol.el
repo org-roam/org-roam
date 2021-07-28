@@ -1,11 +1,11 @@
 ;;; org-roam-protocol.el --- Protocol handler for roam:// links  -*- coding: utf-8; lexical-binding: t; -*-
 
-;; Copyright © 2020 Jethro Kuan <jethrokuan95@gmail.com>
+;; Copyright © 2020-2021 Jethro Kuan <jethrokuan95@gmail.com>
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
 ;; Version: 2.0.0
-;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (org "9.4") (emacsql "3.0.0") (emacsql-sqlite "1.0.0") (magit-section "2.90.1"))
+;; Package-Requires: ((emacs "26.1") (org "9.4") (org-roam "2.0"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -26,20 +26,21 @@
 
 ;;; Commentary:
 ;;
-;; We extend org-protocol, adding custom Org-roam handlers. The setup
-;; instructions for `org-protocol' can be found in org-protocol.el.
-;;
-;; We define 2 protocols:
+;; This extension extends `org-protocol', adding custom Org-roam handlers to it
+;; to provide the next new protocols:
 ;;
 ;; 1. "roam-node": This protocol simply opens the node given by the node ID
-;; 2. "roam-ref": This protocol creates or opens a note with the given REF
+;; 2. "roam-ref": This protocol creates or opens the node with the given REF
+;;
+;; The setup instructions for `org-protocol' can be found in its corresponding
+;; file that shipped with `org', org-protocol.el.
 ;;
 ;;; Code:
 (require 'org-protocol)
-(require 'org-roam)
 (eval-when-compile
   (require 'org-roam-macs))
 (require 'ol) ;; for org-link-decode
+(require 'org-roam)
 
 (defcustom org-roam-protocol-store-links nil
   "Whether to store links when capturing websites with `org-roam-protocol'."
@@ -86,7 +87,7 @@ It opens or creates a note with the given ref.
 (defun org-roam-protocol-open-node (info)
   "This handler simply opens the file with emacsclient.
 
-INFO is an alist containing additional information passed by the protocol URL.
+INFO is a plist containing additional information passed by the protocol URL.
 It should contain the FILE key, pointing to the path of the file to open.
 
   Example protocol string:

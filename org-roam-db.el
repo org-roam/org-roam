@@ -1,6 +1,6 @@
 ;;; org-roam-db.el --- Org-roam database API -*- coding: utf-8; lexical-binding: t; -*-
 
-;; Copyright © 2020 Jethro Kuan <jethrokuan95@gmail.com>
+;; Copyright © 2020-2021 Jethro Kuan <jethrokuan95@gmail.com>
 
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
 ;; URL: https://github.com/org-roam/org-roam
@@ -27,34 +27,32 @@
 
 ;;; Commentary:
 ;;
-;; This library provides the underlying database api to org-roam.
+;; This module provides the underlying database API to Org-roam.
 ;;
 ;;; Code:
-;;;; Library Requires
 (eval-when-compile (require 'subr-x))
-(require 'emacsql)
-(require 'emacsql-sqlite)
-(require 'seq)
-(require 'cl-lib)
+
+(require 'org-roam)
 
 (eval-and-compile
   (require 'org-roam-macs)
   ;; For `org-with-wide-buffer'
   (require 'org-macs))
-(require 'org)
-(require 'ol)
-(require 'org-roam-utils)
 
-(defvar org-roam-find-file-hook)
-(defvar org-roam-directory)
-(defvar org-roam-verbose)
-(defvar org-agenda-files)
+;; REVIEW declarations
+;; (defvar org-roam-find-file-hook)
+;; (defvar org-roam-directory)
+;; (defvar org-roam-verbose)
+;; (defvar org-agenda-files)
 
-(declare-function org-roam-id-at-point "org-roam")
-(declare-function org-roam--list-all-files "org-roam")
-(declare-function org-roam-node-at-point "org-roam")
+;; REVIEW declarations
+;; (declare-function org-roam-id-at-point "org-roam")
+;; (declare-function org-roam--list-all-files "org-roam")
+;; (declare-function org-roam-node-at-point "org-roam")
+;; (defvar org-ref-cite-types)
+;; (declare-function org-ref-split-and-strip-string "ext:org-ref-utils" (string))
 
-;;;; Options
+;;; Options
 (defcustom org-roam-db-location (expand-file-name "org-roam.db" user-emacs-directory)
   "The full path to file where the Org-roam database is stored.
 If this is non-nil, the Org-roam sqlite database is saved here.
@@ -91,6 +89,7 @@ slow."
   :type 'boolean
   :group 'org-roam)
 
+;;; Variables
 (defconst org-roam-db-version 16)
 (defconst org-roam--sqlite-available-p
   (with-demoted-errors "Org-roam initialization: %S"
@@ -100,8 +99,7 @@ slow."
 (defvar org-roam-db--connection (make-hash-table :test #'equal)
   "Database connection to Org-roam database.")
 
-;;;; Core Functions
-
+;;; Core Functions
 (defun org-roam-db--get-connection ()
   "Return the database connection, if any."
   (gethash (expand-file-name org-roam-directory)
@@ -136,7 +134,7 @@ Performs a database upgrade when required."
                    "and there is no upgrade path")))))))
   (org-roam-db--get-connection))
 
-;;;; Entrypoint: (org-roam-db-query)
+;;; Entrypoint: (org-roam-db-query)
 (define-error 'emacsql-constraint "SQL constraint violation")
 (defun org-roam-db-query (sql &rest args)
   "Run SQL query on Org-roam database with ARGS.
@@ -152,7 +150,7 @@ The query is expected to be able to fail, in this situation, run HANDLER."
     (emacsql-constraint
      (funcall handler err))))
 
-;;;; Schemata
+;;; Schemata
 (defconst org-roam-db--table-schemata
   '((files
      [(file :unique :primary-key)
@@ -238,8 +236,8 @@ the current `org-roam-directory'."
   (dolist (conn (hash-table-values org-roam-db--connection))
     (org-roam-db--close conn)))
 
-;;;; Database API
-;;;;; Clearing
+;;; Database API
+;;;; Clearing
 (defun org-roam-db-clear-all ()
   "Clears all entries in the Org-roam cache."
   (interactive)
@@ -256,7 +254,7 @@ If FILE is nil, clear the current buffer."
                       :where (= file $s1)]
                      file))
 
-;;;;; Updating tables
+;;;; Updating tables
 (defun org-roam-db-insert-file ()
   "Update the files table for the current buffer.
 If UPDATE-P is non-nil, first remove the file in the database."
@@ -281,7 +279,7 @@ If UPDATE-P is non-nil, first remove the file in the database."
     (org-format-time-string "%FT%T%z" time)))
 
 (defun org-roam-db-node-p ()
-  "Return t if headline at point is a node, else return nil."
+  "Return t if headline at point is an Org-roam node, else return nil."
   (and (org-id-get)
        (not (cdr (assoc "ROAM_EXCLUDE" (org-entry-properties))))
        (funcall org-roam-db-node-include-function)))
@@ -454,7 +452,7 @@ If UPDATE-P is non-nil, first remove the file in the database."
                    (vector (point) source p type properties))
                  path))))))
 
-;;;;; Fetching
+;;;; Fetching
 (defun org-roam-db--get-current-files ()
   "Return a hash-table of file to the hash of its file contents."
   (let ((current-files (org-roam-db-query [:select [file hash] :from files]))
@@ -473,8 +471,8 @@ If UPDATE-P is non-nil, first remove the file in the database."
     (org-with-wide-buffer
      (secure-hash 'sha1 (current-buffer)))))
 
-;;;;; Updating
-;;;###autoload (autoload 'org-roam-db-sync "org-roam" nil t)
+;;;; Updating
+;;;###autoload
 (defun org-roam-db-sync (&optional force)
   "Synchronize the cache state with the current Org files on-disk.
 If FORCE, force a rebuild of the cache from scratch."
@@ -530,21 +528,21 @@ If the file exists, update the cache with information."
           (org-roam-db-map-links
            (list #'org-roam-db-insert-link)))))))
 
-(defun org-roam-db--update-on-save ()
-  "."
+(add-hook 'org-roam-find-file-hook #'org-roam-db--setup-update-on-save-h)
+(defun org-roam-db--setup-update-on-save-h ()
+  "Setup the current buffer to update the DB after saving the current file."
+  (add-hook 'after-save-hook #'org-roam-db--try-update-on-save-h nil t))
+
+(defun org-roam-db--try-update-on-save-h ()
+  "If appropriate, update the database for the current file after saving buffer."
   (when org-roam-db-update-on-save (org-roam-db-update-file)))
-
-(defun org-roam-db--update-on-save-h ()
-  "."
-  (add-hook 'after-save-hook #'org-roam-db--update-on-save nil t))
-
-(add-hook 'org-roam-find-file-hook #'org-roam-db--update-on-save-h)
 
 ;; Diagnostic Interactives
 (defun org-roam-db-diagnose-node ()
   "Print information about node at point."
   (interactive)
   (prin1 (org-roam-node-at-point)))
+
 
 (provide 'org-roam-db)
 

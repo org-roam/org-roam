@@ -1,4 +1,4 @@
-;;; org-roam-graph.el --- Graphing API -*- coding: utf-8; lexical-binding: t; -*-
+;;; org-roam-graph.el --- Basic graphing functionality for Org-roam -*- coding: utf-8; lexical-binding: t; -*-
 
 ;; Copyright © 2020-2021 Jethro Kuan <jethrokuan95@gmail.com>
 
@@ -6,7 +6,7 @@
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
 ;; Version: 2.0.0
-;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (org "9.4") (emacsql "3.0.0") (emacsql-sqlite "1.0.0") (magit-section "2.90.1"))
+;; Package-Requires: ((emacs "26.1") (org "9.4") (org-roam "2.0"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -27,7 +27,8 @@
 
 ;;; Commentary:
 ;;
-;; This library provides graphing functionality for org-roam.
+;; This extension implements capability to build and generate graphs in Org-roam
+;; with the help of Graphviz.
 ;;
 ;;; Code:
 (require 'xml) ;xml-escape-string
@@ -36,7 +37,8 @@
 (require 'org-roam)
 
 ;;;; Declarations
-(defvar org-roam-directory)
+;; REVIEW declarations
+;; (defvar org-roam-directory)
 
 ;;;; Options
 (defcustom org-roam-graph-viewer (executable-find "firefox")
@@ -162,9 +164,12 @@ SELECT source, dest, type FROM links WHERE source IN nodes OR dest IN nodes;")))
   "Build the graphviz given the EDGES of the graph.
 If ALL-NODES, include also nodes without edges."
   (let ((org-roam-directory-temp org-roam-directory)
-        (nodes-table (org-roam--nodes-table))
+        (nodes-table (make-hash-table :test #'equal))
         (seen-nodes (list))
         (edges (or edges (org-roam-db-query [:select :distinct [source dest type] :from links]))))
+    (pcase-dolist (`(,id ,file ,title)
+                   (org-roam-db-query [:select [id file title] :from nodes]))
+      (puthash id (org-roam-node-create :file file :id id :title title) nodes-table))
     (with-temp-buffer
       (setq-local org-roam-directory org-roam-directory-temp)
       (insert "digraph \"org-roam\" {\n")
