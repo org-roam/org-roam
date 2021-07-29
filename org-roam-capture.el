@@ -505,7 +505,7 @@ also run Org-capture's template expansion."
   (funcall (if org-capture-p #'org-capture-fill-template #'identity)
            (org-roam-format
             template
-            (lambda (key)
+            (lambda (key default-val)
               (let ((fn (intern key))
                     (node-fn (intern (concat "org-roam-node-" key)))
                     (ksym (intern (concat ":" key))))
@@ -516,7 +516,7 @@ also run Org-capture's template expansion."
                   (funcall node-fn org-roam-capture--node))
                  ((plist-get org-roam-capture--info ksym)
                   (plist-get org-roam-capture--info ksym))
-                 (t (let ((r (completing-read (format "%s: " key) nil)))
+                 (t (let ((r (completing-read (format "%s: " key) nil nil nil default-val)))
                       (plist-put org-roam-capture--info ksym r)
                       r))))))))
 

@@ -505,7 +505,7 @@ Uses `org-roam-node-display-template' to format the entry."
   (let ((fmt (org-roam--process-display-format org-roam-node-display-template)))
     (org-roam-format
      (car fmt)
-     (lambda (field)
+     (lambda (field _default-val)
        (let* ((field (split-string field ":"))
               (field-name (car field))
               (field-width (cadr field))

@@ -186,21 +186,25 @@ BEG and END are markers for the beginning and end regions."
 ;;; Formatting
 (defun org-roam-format (template replacer)
   "Format TEMPLATE with the function REPLACER.
-REPLACER takes an argument of the format variable and optionally
-an extra argument which is the EXTRA value from the call to
-`org-roam-format'.
-Adapted from `s-format'."
+The templates are of form ${foo} for variable foo, and
+${foo=default} for variable foo with default value \"default\".
+REPLACER takes an argument of the format variable and the default
+value (possibly nil). Adapted from `s-format'."
   (let ((saved-match-data (match-data)))
     (unwind-protect
         (replace-regexp-in-string
          "\\${\\([^}]+\\)}"
          (lambda (md)
            (let ((var (match-string 1 md))
-                 (replacer-match-data (match-data)))
+                 (replacer-match-data (match-data))
+                 default-val)
+             (when (string-match "\\(.+\\)=\\(.+\\)" var)
+               (setq default-val (match-string 2 var)
+                     var (match-string 1 var)))
              (unwind-protect
                  (let ((v (progn
                             (set-match-data saved-match-data)
-                            (funcall replacer var))))
+                            (funcall replacer var default-val))))
                    (if v (format "%s" v) (signal 'org-roam-format-resolve md)))
                (set-match-data replacer-match-data)))) template
          ;; Need literal to make sure it works
@@ -218,7 +222,7 @@ Adapted from `s-format'."
                     (string-width
                      (org-roam-format
                       format
-                      (lambda (field)
+                      (lambda (field _default_val)
                         (setq fields-width
                               (+ fields-width
                                  (string-to-number
