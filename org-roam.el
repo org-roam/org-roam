@@ -151,7 +151,8 @@ first encapsulating ID."
    (while (and (not (org-roam-db-node-p))
                (not (bobp)))
      (org-roam-up-heading-or-point-min))
-   (org-id-get)))
+   (when (org-roam-db-node-p)
+     (org-id-get))))
 
 ;;;; File functions and predicates
 (defun org-roam--file-name-extension (filename)
