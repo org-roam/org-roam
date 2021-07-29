@@ -1038,8 +1038,8 @@ If the property is already set, it's value is replaced."
       (if (= (org-outline-level) 0)
           (let ((current-tags (split-string (or (cadr (assoc "FILETAGS"
                                                              (org-collect-keywords '("filetags"))))
-                                                ""))))
-            (org-roam-set-keyword "filetags" (string-join (seq-uniq (append tags current-tags)) " ")))
+                                                "") ":" 't)))
+            (org-roam-set-keyword "filetags" (org-make-tag-string (seq-uniq (append tags current-tags)))))
         (org-set-tags (seq-uniq (append tags (org-get-tags)))))
       tags)))
 
@@ -1052,10 +1052,10 @@ If the property is already set, it's value is replaced."
       (if (= (org-outline-level) 0)
           (let* ((current-tags (split-string (or (cadr (assoc "FILETAGS"
                                                               (org-collect-keywords '("filetags"))))
-                                                 (user-error "No tag to remove"))))
+                                                 (user-error "No tag to remove")) ":" 't))
                  (tags (or tags (completing-read-multiple "Tag: " current-tags))))
             (org-roam-set-keyword "filetags"
-                                  (string-join (seq-difference current-tags tags #'string-equal) " ")))
+                                  (org-make-tag-string (seq-difference current-tags tags #'string-equal))))
         (let* ((current-tags (or (org-get-tags)
                                  (user-error "No tag to remove")))
                (tags (completing-read-multiple "Tag: " current-tags)))

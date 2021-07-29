@@ -28,6 +28,7 @@
 - [#1403](https://github.com/org-roam/org-roam/issues/1403) fixed inconsistency between how we write and read props like alias and tags
 - [#1409](https://github.com/org-roam/org-roam/issues/1398) prevent inclusion of non-org-roam files in `org-roam-dailies--list-files`
 - [#1542](https://github.com/org-roam/org-roam/issues/1542) fix files not excluded when `org-roam-list-files-commands` is nil
+- [#1705](https://github.com/org-roam/org-roam/pull/1705) fix for add/remove of file-level tags
 
 ## 1.2.3 (13-11-2020)
 
