@@ -1226,6 +1226,11 @@ Assumes that the cursor was put where the link is."
 (add-hook 'org-roam-find-file-hook #'org-roam-open-id-with-org-roam-db-h)
 
 ;;; Refiling
+(defcustom org-roam-extract-new-file-template "%<%Y%m%d%H%M%S>-${slug}.org"
+  "The file path to use when a node is extracted to its own file."
+  :group 'org-roam
+  :type 'string)
+
 (defun org-roam-demote-entire-buffer ()
   "Convert an org buffer with any top level content to a single node.
 
@@ -1290,6 +1295,57 @@ If region is active, then use it instead of the node at point."
         (and (org-back-to-heading t) (point))
         (min (1+ (buffer-size)) (org-end-of-subtree t t) (point)))))
     (org-roam--kill-empty-buffer)))
+
+(defun org-roam-promote-entire-buffer ()
+  "Promote the current buffer.
+Converts a file containing a headline node at the top to a file
+node."
+  (interactive)
+  (org-with-point-at 1
+    (org-map-entries (lambda ()
+                       (when (> (org-outline-level) 1)
+                           (org-do-promote))))
+    (let ((title (nth 4 (org-heading-components)))
+          (tags (nth 5 (org-heading-components))))
+      (beginning-of-line)
+      (kill-line 1)
+      (org-roam-set-keyword "title" title)
+      (when tags (org-roam-set-keyword "filetags" tags)))))
+
+(defun org-roam-extract-subtree ()
+  "Convert current subtree at point to a node, and extract it into a new file."
+  (interactive)
+  (save-excursion
+    (org-back-to-heading-or-point-min)
+    (when (bobp) (user-error "Already a top-level node"))
+    (org-id-get-create)
+    (save-buffer)
+    (org-roam-db-update-file)
+    (let* (template-info
+           (node (org-roam-node-at-point))
+           (template (org-roam-format
+                      (s-trim (org-capture-fill-template org-roam-extract-new-file-template))
+                      (lambda (key default-val)
+                        (let ((fn (intern key))
+                              (node-fn (intern (concat "org-roam-node-" key)))
+                              (ksym (intern (concat ":" key))))
+                          (cond
+                           ((fboundp fn)
+                            (funcall fn node))
+                           ((fboundp node-fn)
+                            (funcall node-fn node))
+                           (t (let ((r (completing-read (format "%s: " key) nil nil nil default-val)))
+                                (plist-put template-info ksym r)
+                                r)))))))
+           (file-path (read-file-name "Extract node to: " org-roam-directory template nil template)))
+      (when (file-exists-p file-path)
+        (user-error "%s exists. Aborting" file-path))
+      (org-cut-subtree)
+      (save-buffer)
+      (with-current-buffer (find-file-noselect file-path)
+        (org-paste-subtree)
+        (org-roam-promote-entire-buffer)
+        (save-buffer)))))
 
 (provide 'org-roam)
 ;;; org-roam.el ends here
