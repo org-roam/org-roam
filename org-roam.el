@@ -1226,7 +1226,7 @@ Assumes that the cursor was put where the link is."
 (add-hook 'org-roam-find-file-hook #'org-roam-open-id-with-org-roam-db-h)
 
 ;;; Refiling
-(defcustom org-roam-extract-new-file-template "%<%Y%m%d%H%M%S>-${slug}.org"
+(defcustom org-roam-extract-new-file-path "%<%Y%m%d%H%M%S>-${slug}.org"
   "The file path to use when a node is extracted to its own file."
   :group 'org-roam
   :type 'string)
@@ -1324,7 +1324,7 @@ node."
     (let* (template-info
            (node (org-roam-node-at-point))
            (template (org-roam-format
-                      (s-trim (org-capture-fill-template org-roam-extract-new-file-template))
+                      (string-trim (org-capture-fill-template org-roam-extract-new-file-path))
                       (lambda (key default-val)
                         (let ((fn (intern key))
                               (node-fn (intern (concat "org-roam-node-" key)))
