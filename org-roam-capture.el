@@ -794,7 +794,7 @@ properties to be added to the template."
 (cl-defun org-roam-capture- (&key goto keys node info props templates)
   "Main entry point.
 GOTO and KEYS correspond to `org-capture' arguments.
-INFO is an alist for filling up Org-roam's capture templates.
+INFO is an plist for filling up Org-roam's capture templates.
 NODE is an `org-roam-node' construct containing information about the node.
 PROPS is a plist containing additional Org-roam properties for each template.
 TEMPLATES is a list of org-roam templates."
