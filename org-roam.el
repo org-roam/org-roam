@@ -1304,7 +1304,7 @@ node."
   (org-with-point-at 1
     (org-map-entries (lambda ()
                        (when (> (org-outline-level) 1)
-                           (org-do-promote))))
+                         (org-do-promote))))
     (let ((title (nth 4 (org-heading-components)))
           (tags (nth 5 (org-heading-components))))
       (beginning-of-line)
