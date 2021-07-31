@@ -131,6 +131,7 @@ recursion."
   'org-roam-dailies-goto-date "org-roam 2.0")
 
 ;;; Obsolete functions
+(make-obsolete 'org-roam-get-keyword 'org-collect-keywords "org-roam 2.0")
 
 (provide 'org-roam-compat)
 
