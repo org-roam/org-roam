@@ -67,6 +67,7 @@ General Public License for more details.
 * A Brief Introduction to the Zettelkasten Method::
 * Installation::
 * Getting Started::
+* Customizing Node Caching::
 * The Org-roam Buffer::
 * Node Properties::
 * Completion::
@@ -104,8 +105,12 @@ Getting Started
 * The Org-roam Node::
 * Links between Nodes::
 * Setting up Org-roam::
-* Customizing Node Caching::
 * Creating and Linking Nodes::
+
+Customizing Node Caching
+
+* What to cache::
+* When to cache::
 
 The Org-roam Buffer
 
@@ -562,7 +567,6 @@ your Emacs configuration folder like this:
 * The Org-roam Node::
 * Links between Nodes::
 * Setting up Org-roam::
-* Customizing Node Caching::
 * Creating and Linking Nodes::
 @end menu
 
@@ -645,35 +649,8 @@ To build the cache manually, run @code{M-x org-roam-db-sync}. Cache builds may
 take a while the first time, but subsequent builds are often instantaneous
 because they only reprocess modified files.
 
-@node Customizing Node Caching
-@section Customizing Node Caching
-
-By default, all nodes (any headline or file with an ID) are cached by Org-roam.
-There are instances where you may want to have headlines with ID, but not have
-them cached by Org-roam.
-
-To exclude a headline from the Org-roam database, set the @code{ROAM_EXCLUDE}
-property to a non-nil value. For example:
-
-@example
-* Foo
-  :PROPERTIES:
-  :ID:       foo
-  :ROAM_EXCLUDE: t
-  :END:
-@end example
-
-One can also set @code{org-roam-db-node-include-function}. For example, to exclude
-all headlines with the @code{ATTACH} tag from the Org-roam database, one can set:
-
-@example
-(setq org-roam-db-node-include-function
-      (lambda ()
-        (not (member "ATTACH" (org-get-tags)))))
-@end example
-
 @node Creating and Linking Nodes
-@section @strong{TODO} Creating and Linking Nodes
+@section Creating and Linking Nodes
 
 Org-roam makes it easy to create notes and link them together. There are 2 main
 functions for creating nodes:
@@ -708,6 +685,59 @@ brought through the node creation process.
 
 One can also conveniently insert links via the completion-at-point functions
 Org-roam provides (see @ref{Completion}).
+
+@node Customizing Node Caching
+@chapter Customizing Node Caching
+
+@menu
+* What to cache::
+* When to cache::
+@end menu
+
+@node What to cache
+@section What to cache
+
+By default, all nodes (any headline or file with an ID) are cached by Org-roam.
+There are instances where you may want to have headlines with ID, but not have
+them cached by Org-roam.
+
+To exclude a headline from the Org-roam database, set the @code{ROAM_EXCLUDE}
+property to a non-nil value. For example:
+
+@example
+* Foo
+  :PROPERTIES:
+  :ID:       foo
+  :ROAM_EXCLUDE: t
+  :END:
+@end example
+
+One can also set @code{org-roam-db-node-include-function}. For example, to exclude
+all headlines with the @code{ATTACH} tag from the Org-roam database, one can set:
+
+@example
+(setq org-roam-db-node-include-function
+      (lambda ()
+        (not (member "ATTACH" (org-get-tags)))))
+@end example
+
+@node When to cache
+@section When to cache
+
+By default, Org-roam is eager in caching: each time an Org-roam file is modified
+and saved, it updates the database for the corresponding file. This keeps the
+database up-to-date, causing the least surprise when using the interactive
+commands.
+
+However, depending on how large your Org files are, database updating can be a
+slow operation. You can disable the automatic updating of the database by
+setting @code{org-roam-db-update-on-save} to @code{nil}.
+
+@defvar org-roam-db-update-on-save
+@end defvar
+
+If t, update the Org-roam database upon saving the file. Disable this if your
+files are large and updating the database is slow.
 
 @node The Org-roam Buffer
 @chapter The Org-roam Buffer
