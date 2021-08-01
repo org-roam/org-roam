@@ -388,33 +388,7 @@ To build the cache manually, run ~M-x org-roam-db-sync~. Cache builds may
 take a while the first time, but subsequent builds are often instantaneous
 because they only reprocess modified files.
 
-** Customizing Node Caching
-
-By default, all nodes (any headline or file with an ID) are cached by Org-roam.
-There are instances where you may want to have headlines with ID, but not have
-them cached by Org-roam.
-
-To exclude a headline from the Org-roam database, set the ~ROAM_EXCLUDE~
-property to a non-nil value. For example:
-
-#+begin_src org
-,* Foo
-  :PROPERTIES:
-  :ID:       foo
-  :ROAM_EXCLUDE: t
-  :END:
-#+end_src
-
-One can also set ~org-roam-db-node-include-function~. For example, to exclude
-all headlines with the ~ATTACH~ tag from the Org-roam database, one can set:
-
-#+begin_src org
-(setq org-roam-db-node-include-function
-      (lambda ()
-        (not (member "ATTACH" (org-get-tags)))))
-#+end_src
-
-** TODO Creating and Linking Nodes
+** Creating and Linking Nodes
 
 Org-roam makes it easy to create notes and link them together. There are 2 main
 functions for creating nodes:
@@ -442,6 +416,48 @@ brought through the node creation process.
 
 One can also conveniently insert links via the completion-at-point functions
 Org-roam provides (see [[id:70083bfd-d1e3-42b9-bf83-5b05708791c0][Completion]]).
+* Customizing Node Caching
+** What to cache
+
+By default, all nodes (any headline or file with an ID) are cached by Org-roam.
+There are instances where you may want to have headlines with ID, but not have
+them cached by Org-roam.
+
+To exclude a headline from the Org-roam database, set the ~ROAM_EXCLUDE~
+property to a non-nil value. For example:
+
+#+begin_src org
+,* Foo
+  :PROPERTIES:
+  :ID:       foo
+  :ROAM_EXCLUDE: t
+  :END:
+#+end_src
+
+One can also set ~org-roam-db-node-include-function~. For example, to exclude
+all headlines with the ~ATTACH~ tag from the Org-roam database, one can set:
+
+#+begin_src org
+(setq org-roam-db-node-include-function
+      (lambda ()
+        (not (member "ATTACH" (org-get-tags)))))
+#+end_src
+
+** When to cache
+
+By default, Org-roam is eager in caching: each time an Org-roam file is modified
+and saved, it updates the database for the corresponding file. This keeps the
+database up-to-date, causing the least surprise when using the interactive
+commands.
+
+However, depending on how large your Org files are, database updating can be a
+slow operation. You can disable the automatic updating of the database by
+setting ~org-roam-db-update-on-save~ to ~nil~.
+
+- Variable: org-roam-db-update-on-save
+
+If t, update the Org-roam database upon saving the file. Disable this if your
+files are large and updating the database is slow.
 
 * The Org-roam Buffer
 
