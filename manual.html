@@ -1612,8 +1612,27 @@ accessors such as <code>org-roam-node-title</code> and <code>org-roam-node-level
 that is set before the capture process begins.
 
 </li><li> If none of the above applies, read a string using <code>completing-read</code>.
+<ul>
+<li> Org-roam also provides the <code>${foo=default_val}</code> syntax, where if a default
+value is provided, will be the initial value for the <code>foo</code> key during
+minibuffer completion.
+</li></ul>
 </li></ul>
 
+<p>One can check the list of available keys for nodes by inspecting the
+<code>org-roam-node</code> struct. At the time of writing, it is:
+</p>
+<div class="lisp">
+<pre class="lisp">(cl-defstruct (org-roam-node (:constructor org-roam-node-create)
+                             (:copier nil))
+  &quot;A heading or top level file with an assigned ID property.&quot;
+  file file-hash file-atime file-mtime
+  id level point todo priority scheduled deadline title properties olp
+  tags aliases refs)
+</pre></div>
+
+<p>This makes <code>${file}</code>, <code>${file-hash}</code> etc. all valid substitutions.
+</p>
 <hr>
 <span id="Graphing"></span><div class="header">
 <p>
