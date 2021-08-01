@@ -84,6 +84,13 @@ value like `most-positive-fixnum'."
   :type 'function
   :group 'org-roam)
 
+(defcustom org-roam-db-update-on-save t
+  "If t, update the Org-roam database upon saving the file.
+Disable this if your files are large and updating the database is
+slow."
+  :type 'boolean
+  :group 'org-roam)
+
 (defconst org-roam-db-version 16)
 (defconst org-roam--sqlite-available-p
   (with-demoted-errors "Org-roam initialization: %S"
@@ -523,9 +530,13 @@ If the file exists, update the cache with information."
           (org-roam-db-map-links
            (list #'org-roam-db-insert-link)))))))
 
+(defun org-roam-db--update-on-save ()
+  "."
+  (when org-roam-db-update-on-save (org-roam-db-update-file)))
+
 (defun org-roam-db--update-on-save-h ()
   "."
-  (add-hook 'after-save-hook #'org-roam-db-update-file nil t))
+  (add-hook 'after-save-hook #'org-roam-db--update-on-save nil t))
 
 (add-hook 'org-roam-find-file-hook #'org-roam-db--update-on-save-h)
 
