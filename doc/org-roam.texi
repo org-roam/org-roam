@@ -1369,7 +1369,27 @@ that is set before the capture process begins.
 
 @item
 If none of the above applies, read a string using @code{completing-read}.
+@itemize
+@item
+Org-roam also provides the @code{$@{foo=default_val@}} syntax, where if a default
+value is provided, will be the initial value for the @code{foo} key during
+minibuffer completion.
 @end itemize
+@end itemize
+
+One can check the list of available keys for nodes by inspecting the
+@code{org-roam-node} struct. At the time of writing, it is:
+
+@lisp
+(cl-defstruct (org-roam-node (:constructor org-roam-node-create)
+                             (:copier nil))
+  "A heading or top level file with an assigned ID property."
+  file file-hash file-atime file-mtime
+  id level point todo priority scheduled deadline title properties olp
+  tags aliases refs)
+@end lisp
+
+This makes @code{$@{file@}}, @code{$@{file-hash@}} etc. all valid substitutions.
 
 @node Graphing
 @chapter Graphing
