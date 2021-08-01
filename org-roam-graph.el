@@ -119,8 +119,15 @@ All other values including nil will have no effect."
 
 (defcustom org-roam-graph-link-builder 'org-roam-default-link-builder
   "Given a node name, return a string to be used for the link fed
- to the graph generation utililty."
+to the graph generation utility."
   :type 'function
+  :group 'org-roam)
+
+(defcustom org-roam-graph-generation-hook nil
+  "Hook run after the graph's been generated. Called with the
+filename containing the graph generation tool input as well
+as the generated graph."
+  :type 'hook
   :group 'org-roam)
 
 (defun org-roam-graph--dot-option (option &optional wrap-key wrap-val)
@@ -250,7 +257,9 @@ CALLBACK is passed the graph file as its sole argument."
      :sentinel (when callback
                  (lambda (process _event)
                    (when (= 0 (process-exit-status process))
-                     (funcall callback temp-graph)))))))
+                     (progn
+                       (funcall callback temp-graph)
+		       (run-hook-with-args 'org-roam-graph-generation-hook temp-dot temp-graph))))))))
 
 (defun org-roam-graph--open (file)
   "Open FILE using `org-roam-graph-viewer' with `view-file' as a fallback."
