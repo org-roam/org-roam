@@ -117,6 +117,12 @@ All other values including nil will have no effect."
           (const :tag "no" nil))
   :group 'org-roam)
 
+(defcustom org-roam-graph-link-builder 'org-roam-default-link-builder
+  "Given a node name, return a string to be used for the link fed
+ to the graph generation utililty."
+  :type 'function
+  :group 'org-roam)
+
 (defun org-roam-graph--dot-option (option &optional wrap-key wrap-val)
   "Return dot string of form KEY=VAL for OPTION cons.
 If WRAP-KEY is non-nil it wraps the KEY.
@@ -194,6 +200,11 @@ If ALL-NODES, include also nodes without edges."
       (insert "}")
       (buffer-string))))
 
+(defun org-roam-default-link-builder (node)
+  "Default org-roam link builder.  Generates an org-protocol link."
+  (concat "org-protocol://roam-node?node="
+          (url-hexify-string (org-roam-node-id node))))
+
 (defun org-roam-graph--format-node (node type)
   "Return a graphviz NODE with TYPE.
 Handles both Org-roam nodes, and string nodes (e.g. urls)."
@@ -207,8 +218,7 @@ Handles both Org-roam nodes, and string nodes (e.g. urls)."
                                    (_ title)))))
           (setq node-id (org-roam-node-id node)
                 node-properties `(("label"   . ,shortened-title)
-                                  ("URL"     . ,(concat "org-protocol://roam-node?node="
-                                                        (url-hexify-string (org-roam-node-id node))))
+                                  ("URL"     . ,(funcall org-roam-graph-link-builder node))
                                   ("tooltip" . ,(xml-escape-string title)))))
       (setq node-id node
             node-properties (append `(("label" . ,(concat type ":" node)))
