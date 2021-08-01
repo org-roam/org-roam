@@ -465,6 +465,8 @@ If UPDATE-P is non-nil, first remove the file in the database."
 
 (defun org-roam-db--file-hash (&optional file-path)
   "Compute the hash of FILE-PATH, a file or current buffer."
+  (when (and (not file-path) (equal "gpg" (file-name-extension (buffer-file-name))))
+    (setq file-path (buffer-file-name)))
   (if file-path
       (with-temp-buffer
         (set-buffer-multibyte nil)
