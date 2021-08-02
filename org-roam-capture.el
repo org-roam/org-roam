@@ -130,6 +130,10 @@ the following options:
        inserted at the start of the file. The datetree will be created,
        available options are day, week, month.
 
+   (node \"title or alias or ID of an existing node\")
+       The point will be placed for an existing node, based on either, its
+       title, alias or ID.
+
 The rest of the entry is a property list of additional options.  Recognized
 properties are:
 
