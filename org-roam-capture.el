@@ -635,7 +635,7 @@ Return the ID of the location."
        ;; first try to get ID, then try to get title/alias
        (let ((node (or (org-roam-node-from-id title-or-id)
                        (org-roam-node-from-title-or-alias title-or-id)
-                       (user-error "No node with title or id \"%s\" title-or-id"))))
+                       (user-error "No node with title or id \"%s\"" title-or-id))))
          (set-buffer (org-capture-target-buffer (org-roam-node-file node)))
          (goto-char (org-roam-node-point node))
          (setq p (org-roam-node-point node)))))
