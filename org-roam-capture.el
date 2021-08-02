@@ -43,14 +43,10 @@
 ;; (declare-function org-datetree-find-date-create "org-datetree" (date &optional keep-restriction))
 ;; (declare-function org-datetree-find-month-create "org-datetree" (d &optional keep-restriction))
 
-;;; Variables
-(defcustom org-roam-capture-new-node-hook (list #'org-roam-capture--insert-ref)
-  "Normal-mode hooks run when a new Org-roam node is created.
-The current point is the point of the new node.
-The hooks must not move the point."
-  :group 'org-roam
-  :type 'hook)
+;; REVIEW declarations
+;; (defvar org-roam-directory)
 
+;;; Options
 (defcustom org-roam-capture-templates
   '(("d" "default" plain "%?"
      :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
@@ -337,75 +333,48 @@ streamlined user experience in Org-roam."
                                          ((const :format "%v " :table-line-pos) (string))
                                          ((const :format "%v " :kill-buffer) (const t))))))))
 
-;; TODO Move to `org-roam-protocol'
-(defcustom org-roam-capture-ref-templates
-  '(("r" "ref" plain "%?"
-     :if-new (file+head "${slug}.org"
-                        "#+title: ${title}")
-     :unnarrowed t))
-  "The Org-roam templates used during a capture from the roam-ref protocol.
-See `org-roam-capture-templates' for the template documentation."
+(defcustom org-roam-capture-new-node-hook nil
+  "Normal-mode hooks run when a new Org-roam node is created.
+The current point is the point of the new node.
+The hooks must not move the point."
   :group 'org-roam
-  :type '(repeat
-          (choice (list :tag "Multikey description"
-                        (string :tag "Keys       ")
-                        (string :tag "Description"))
-                  (list :tag "Template entry"
-                        (string :tag "Keys           ")
-                        (string :tag "Description    ")
-                        (choice :tag "Capture Type   " :value entry
-                                (const :tag "Org entry" entry)
-                                (const :tag "Plain list item" item)
-                                (const :tag "Checkbox item" checkitem)
-                                (const :tag "Plain text" plain)
-                                (const :tag "Table line" table-line))
-                        (choice :tag "Template       "
-                                (string)
-                                (list :tag "File"
-                                      (const :format "" file)
-                                      (file :tag "Template file"))
-                                (list :tag "Function"
-                                      (const :format "" function)
-                                      (function :tag "Template function")))
-                        (plist :inline t
-                               ;; Give the most common options as checkboxes
-                               :options (((const :format "%v " :if-new)
-                                          (choice :tag "Node location"
-                                                  (list :tag "File"
-                                                        (const :format "" file)
-                                                        (string :tag "  File"))
-                                                  (list :tag "File & Head Content"
-                                                        (const :format "" file+head)
-                                                        (string :tag "  File")
-                                                        (string :tag "  Head Content"))
-                                                  (list :tag "File & Outline path"
-                                                        (const :format "" file+olp)
-                                                        (string :tag "  File")
-                                                        (list :tag "Outline path"
-                                                              (repeat (string :tag "Headline"))))
-                                                  (list :tag "File & Head Content & Outline path"
-                                                        (const :format "" file+head+olp)
-                                                        (string :tag "  File")
-                                                        (string :tag "  Head Content")
-                                                        (list :tag "Outline path"
-                                                              (repeat (string :tag "Headline"))))))
-                                         ((const :format "%v " :prepend) (const t))
-                                         ((const :format "%v " :immediate-finish) (const t))
-                                         ((const :format "%v " :jump-to-captured) (const t))
-                                         ((const :format "%v " :empty-lines) (const 1))
-                                         ((const :format "%v " :empty-lines-before) (const 1))
-                                         ((const :format "%v " :empty-lines-after) (const 1))
-                                         ((const :format "%v " :clock-in) (const t))
-                                         ((const :format "%v " :clock-keep) (const t))
-                                         ((const :format "%v " :clock-resume) (const t))
-                                         ((const :format "%v " :time-prompt) (const t))
-                                         ((const :format "%v " :tree-type) (const week))
-                                         ((const :format "%v " :unnarrowed) (const t))
-                                         ((const :format "%v " :table-line-pos) (string))
-                                         ((const :format "%v " :kill-buffer) (const t))))))))
+  :type 'hook)
 
-;; REVIEW declarations
-;; (defvar org-roam-directory)
+(defvar org-roam-capture-preface-hook nil
+  "Hook run when Org-roam tries to determine capture location of the node.
+If any hook returns a value (which should be an ID), all hooks
+after it are ignored.
+
+With this hook you can hijack controls over the location of the
+node for which the capture process is currently running for, or
+use to just perform an arbitrary side effect, e.g. modify the
+state related to the capture process. See `org-roam-protocol' and
+`org-roam-dailies' as examples for what and how this hook is used
+for.
+
+If you're trying to perform the hijack, it's mandatory for you to:
+  1. Set the currently active buffer for editing operations using
+     `org-capture-target-buffer'.
+  2. Place the point in this buffer from where the location starts
+     from (e.g. if it's a file based node it should be the BOB,
+     otherwise it should be the position from where the heading
+     based node starts from).
+  3. Return the ID (as a string) of the capturing node.
+
+If you use this hook for any other purpose, but not the hijack,
+it's mandatory that you should return nil as the return value; so
+the capture process would be able to setup the capture buffer.
+
+If you need to do something when you capture new nodes, use
+`org-roam-capture-new-node-hook' instead of this hook.
+
+WARNING: This hook is primarily designed for the usage by the
+extensions and packages, and requires understanding of the
+internal capture process. If you don't understand it, you should
+learn these internals before using this or use it at your own
+risk breaking things.")
+
+;;; Variables
 
 (defvar org-roam-capture--node nil
   "The node passed during an Org-roam capture.
@@ -417,16 +386,9 @@ during the Org-roam capture process.")
 This variable is populated dynamically, and is only non-nil
 during the Org-roam capture process.")
 
-;; TODO Decouple :override-default-time related stuff to `org-roam-dailies'
 (defconst org-roam-capture--template-keywords (list :if-new :id :link-description :call-location
-                                                    :region :override-default-time)
+                                                    :region)
   "Keywords used in `org-roam-capture-templates' specific to Org-roam.")
-
-;; TODO Move to `org-roam-protocol'
-(defun org-roam-capture--insert-ref ()
-  "Insert the ref if any."
-  (when-let ((ref (plist-get org-roam-capture--info :ref)))
-    (org-roam-ref-add ref)))
 
 ;;; Main entry point
 ;;;###autoload
@@ -486,23 +448,17 @@ the capture)."
     (setq org-capture-plist
           (plist-put org-capture-plist :org-roam p))))
 
-;;; Setup of the capture buffer
-(defun org-roam-capture--get-point ()
-  "Return exact point to file for org-capture-template.
-This function is used solely in Org-roam's capture templates: see
-`org-roam-capture-templates'."
-  ;; TODO Decouple :override-default-time related stuff to `org-roam-dailies'
-  (when (org-roam-capture--get :override-default-time)
-    (org-capture-put :default-time (org-roam-capture--get :override-default-time)))
-  ;; TODO Decouple :ref related stuff to `org-roam-protocol'
-  (let ((id (cond ((plist-get org-roam-capture--info :ref)
-                   (if-let ((node (org-roam-capture--get-node-from-ref
-                                   (plist-get org-roam-capture--info :ref))))
-                       (progn
-                         (set-buffer (org-capture-target-buffer (org-roam-node-file node)))
-                         (goto-char (org-roam-node-point node))
-                         (widen))
-                     (org-roam-capture--goto-location)))
+;;;; Capture target
+(defun org-roam-capture--prepare-buffer ()
+  "Prepare the capture buffer for the current Org-roam based capture template.
+This function will initialize and setup the capture buffer,
+create the target node (`:if-new') if it doesn't exist, and place
+the point for further processing by `org-capture'.
+
+Note: During the capture process this function is run by
+`org-capture-set-target-location', as a (function ...) based
+capture target."
+  (let ((id (cond ((run-hook-with-args-until-success 'org-roam-capture-preface-hook))
                   ((and (org-roam-node-file org-roam-capture--node)
                         (org-roam-node-point org-roam-capture--node))
                    (set-buffer (org-capture-target-buffer (org-roam-node-file org-roam-capture--node)))
@@ -510,7 +466,7 @@ This function is used solely in Org-roam's capture templates: see
                    (widen)
                    (org-roam-node-id org-roam-capture--node))
                   (t
-                   (org-roam-capture--goto-location)))))
+                   (org-roam-capture--setup-target-location)))))
     (org-roam-capture--adjust-point-for-capture-type)
     (org-capture-put :template
                      (org-roam-capture--fill-template (org-capture-get :template)))
@@ -518,25 +474,7 @@ This function is used solely in Org-roam's capture templates: see
     (org-roam-capture--put :finalize (or (org-capture-get :finalize)
                                          (org-roam-capture--get :finalize)))))
 
-;; TODO Move to `org-roam-protocol'
-(defun org-roam-capture--get-node-from-ref (ref)
-  "Return the node from reference REF."
-  (save-match-data
-    (when (string-match org-link-plain-re ref)
-      (let ((type (match-string 1 ref))
-            (path (match-string 2 ref)))
-        (when-let ((id (caar (org-roam-db-query
-                              [:select [nodes:id]
-                               :from refs
-                               :left-join nodes
-                               :on (= refs:node-id nodes:id)
-                               :where (= refs:type $s1)
-                               :and (= refs:ref $s2)
-                               :limit 1]
-                              type path))))
-          (org-roam-populate (org-roam-node-create :id id)))))))
-
-(defun org-roam-capture--goto-location ()
+(defun org-roam-capture--setup-target-location ()
   "Initialize the buffer, and goto the location of the new capture.
 Return the ID of the location."
   (let (p new-file-p)
@@ -824,7 +762,7 @@ properties to be added to the template."
            (if custom
                (setq org-roam-plist (plist-put org-roam-plist key val))
              (setq options (plist-put options key val)))))
-       (append `(,key ,desc ,type #'org-roam-capture--get-point ,body)
+       (append `(,key ,desc ,type #'org-roam-capture--prepare-buffer ,body)
                options
                (list :org-roam org-roam-plist))))
     (_

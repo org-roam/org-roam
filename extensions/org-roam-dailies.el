@@ -37,7 +37,6 @@
 ;; scratch notes and whatever else you can came up with.
 ;;
 ;;; Code:
-;;;; Dependencies
 (require 'f)
 (require 'dash)
 (require 'org-roam)
@@ -47,13 +46,13 @@
 ;; (defvar org-roam-file-extensions)
 ;; (declare-function org-roam-file-p        "org-roam")
 
-;;;; Faces
+;;; Faces
 (defface org-roam-dailies-calendar-note
   '((t :inherit (org-link) :underline nil))
   "Face for dates with a daily-note in the calendar."
   :group 'org-roam-faces)
 
-;;;; Customizable variables
+;;; Options
 (defcustom org-roam-dailies-directory "daily/"
   "Path to daily-notes.
 This path is relative to `org-roam-directory'."
@@ -133,37 +132,8 @@ See `org-roam-capture-templates' for the template documentation."
                                          ((const :format "%v " :table-line-pos) (string))
                                          ((const :format "%v " :kill-buffer) (const t))))))))
 
-;;;###autoload
-(defun org-roam-dailies-find-directory ()
-  "Find and open `org-roam-dailies-directory'."
-  (interactive)
-  (find-file (expand-file-name org-roam-dailies-directory org-roam-directory)))
-
-(defun org-roam-dailies--daily-note-p (&optional file)
-  "Return t if FILE is an Org-roam daily-note, nil otherwise.
-If FILE is not specified, use the current buffer's file-path."
-  (when-let ((path (expand-file-name
-                    (or file
-                        (buffer-file-name (buffer-base-buffer)))))
-             (directory (expand-file-name org-roam-dailies-directory org-roam-directory)))
-    (setq path (expand-file-name path))
-    (save-match-data
-      (and
-       (org-roam-file-p path)
-       (f-descendant-of-p path directory)))))
-
-(defun org-roam-dailies--capture (time &optional goto)
-  "Capture an entry in a daily-note for TIME, creating it if necessary.
-When GOTO is non-nil, go the note without creating an entry."
-  (let ((org-roam-directory (expand-file-name org-roam-dailies-directory org-roam-directory)))
-    (org-roam-capture- :goto (when goto '(4))
-                       :node (org-roam-node-create)
-                       :templates org-roam-dailies-capture-templates
-                       :props (list :override-default-time time)))
-  (when goto (run-hooks 'org-roam-dailies-find-file-hook)))
-
-;;;; Commands
-;;;;; Today
+;;; Commands
+;;;; Today
 ;;;###autoload
 (defun org-roam-dailies-capture-today (&optional goto)
   "Create an entry in the daily-note for today.
@@ -177,7 +147,7 @@ When GOTO is non-nil, go the note without creating an entry."
   (interactive)
   (org-roam-dailies-capture-today t))
 
-;;;;; Tomorrow
+;;;; Tomorrow
 ;;;###autoload
 (defun org-roam-dailies-capture-tomorrow (n &optional goto)
   "Create an entry in the daily-note for tomorrow.
@@ -198,7 +168,7 @@ future."
   (interactive "p")
   (org-roam-dailies-capture-tomorrow n t))
 
-;;;;; Yesterday
+;;;; Yesterday
 ;;;###autoload
 (defun org-roam-dailies-capture-yesterday (n &optional goto)
   "Create an entry in the daily-note for yesteday.
@@ -218,7 +188,7 @@ future."
   (interactive "p")
   (org-roam-dailies-capture-tomorrow (- n) t))
 
-;;;;; Date
+;;;; Date
 ;;;###autoload
 (defun org-roam-dailies-capture-date (&optional goto prefer-future)
   "Create an entry in the daily-note for a date using the calendar.
@@ -239,7 +209,7 @@ Prefer past dates, unless PREFER-FUTURE is non-nil."
   (interactive)
   (org-roam-dailies-capture-date t prefer-future))
 
-;;;;; Navigation
+;;;; Navigation
 (defun org-roam-dailies-goto-next-note (&optional n)
   "Find next daily-note.
 
@@ -290,7 +260,26 @@ EXTRA-FILES can be used to append extra files to the list."
                       (directory-files-recursively dir regexp))
             extra-files)))
 
-;;;; Calendar integration
+(defun org-roam-dailies--daily-note-p (&optional file)
+  "Return t if FILE is an Org-roam daily-note, nil otherwise.
+If FILE is not specified, use the current buffer's file-path."
+  (when-let ((path (expand-file-name
+                    (or file
+                        (buffer-file-name (buffer-base-buffer)))))
+             (directory (expand-file-name org-roam-dailies-directory org-roam-directory)))
+    (setq path (expand-file-name path))
+    (save-match-data
+      (and
+       (org-roam-file-p path)
+       (f-descendant-of-p path directory)))))
+
+;;;###autoload
+(defun org-roam-dailies-find-directory ()
+  "Find and open `org-roam-dailies-directory'."
+  (interactive)
+  (find-file (expand-file-name org-roam-dailies-directory org-roam-directory)))
+
+;;; Calendar integration
 (defun org-roam-dailies-calendar--file-to-date (file)
   "Convert FILE to date.
 Return (MONTH DAY YEAR) or nil if not an Org time-string."
@@ -319,8 +308,27 @@ Return (MONTH DAY YEAR) or nil if not an Org time-string."
 (add-hook 'calendar-today-visible-hook #'org-roam-dailies-calendar-mark-entries)
 (add-hook 'calendar-today-invisible-hook #'org-roam-dailies-calendar-mark-entries)
 
+;;; Capture implementation
+(add-to-list 'org-roam-capture--template-keywords :override-default-time)
 
-;;;; Bindings
+(defun org-roam-dailies--capture (time &optional goto)
+  "Capture an entry in a daily-note for TIME, creating it if necessary.
+When GOTO is non-nil, go the note without creating an entry."
+  (let ((org-roam-directory (expand-file-name org-roam-dailies-directory org-roam-directory)))
+    (org-roam-capture- :goto (when goto '(4))
+                       :node (org-roam-node-create)
+                       :templates org-roam-dailies-capture-templates
+                       :props (list :override-default-time time)))
+  (when goto (run-hooks 'org-roam-dailies-find-file-hook)))
+
+(add-hook 'org-roam-capture-preface-hook #'org-roam-dailies--override-capture-time-h)
+(defun org-roam-dailies--override-capture-time-h ()
+  "Override the `:default-time' with the time from `:override-default-time'."
+  (prog1 nil
+    (when (org-roam-capture--get :override-default-time)
+      (org-capture-put :default-time (org-roam-capture--get :override-default-time)))))
+
+;;; Bindings
 (defvar org-roam-dailies-map (make-sparse-keymap)
   "Keymap for `org-roam-dailies'.")
 

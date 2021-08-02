@@ -32,22 +32,90 @@
 ;; 1. "roam-node": This protocol simply opens the node given by the node ID
 ;; 2. "roam-ref": This protocol creates or opens the node with the given REF
 ;;
-;; The setup instructions for `org-protocol' can be found in its corresponding
-;; file that shipped with `org', org-protocol.el.
+;; You can find detailed instructions on how to setup the protocol in the
+;; documentation for Org-roam.
 ;;
 ;;; Code:
 (require 'org-protocol)
-(eval-when-compile
-  (require 'org-roam-macs))
 (require 'ol) ;; for org-link-decode
 (require 'org-roam)
 
+(eval-when-compile
+  (require 'org-roam-macs))
+
+;;; Options
 (defcustom org-roam-protocol-store-links nil
   "Whether to store links when capturing websites with `org-roam-protocol'."
   :type 'boolean
   :group 'org-roam)
 
-;;;; Functions
+(defcustom org-roam-capture-ref-templates
+  '(("r" "ref" plain "%?"
+     :if-new (file+head "${slug}.org"
+                        "#+title: ${title}")
+     :unnarrowed t))
+  "The Org-roam templates used during a capture from the roam-ref protocol.
+See `org-roam-capture-templates' for the template documentation."
+  :group 'org-roam
+  :type '(repeat
+          (choice (list :tag "Multikey description"
+                        (string :tag "Keys       ")
+                        (string :tag "Description"))
+                  (list :tag "Template entry"
+                        (string :tag "Keys           ")
+                        (string :tag "Description    ")
+                        (choice :tag "Capture Type   " :value entry
+                                (const :tag "Org entry" entry)
+                                (const :tag "Plain list item" item)
+                                (const :tag "Checkbox item" checkitem)
+                                (const :tag "Plain text" plain)
+                                (const :tag "Table line" table-line))
+                        (choice :tag "Template       "
+                                (string)
+                                (list :tag "File"
+                                      (const :format "" file)
+                                      (file :tag "Template file"))
+                                (list :tag "Function"
+                                      (const :format "" function)
+                                      (function :tag "Template function")))
+                        (plist :inline t
+                               ;; Give the most common options as checkboxes
+                               :options (((const :format "%v " :if-new)
+                                          (choice :tag "Node location"
+                                                  (list :tag "File"
+                                                        (const :format "" file)
+                                                        (string :tag "  File"))
+                                                  (list :tag "File & Head Content"
+                                                        (const :format "" file+head)
+                                                        (string :tag "  File")
+                                                        (string :tag "  Head Content"))
+                                                  (list :tag "File & Outline path"
+                                                        (const :format "" file+olp)
+                                                        (string :tag "  File")
+                                                        (list :tag "Outline path"
+                                                              (repeat (string :tag "Headline"))))
+                                                  (list :tag "File & Head Content & Outline path"
+                                                        (const :format "" file+head+olp)
+                                                        (string :tag "  File")
+                                                        (string :tag "  Head Content")
+                                                        (list :tag "Outline path"
+                                                              (repeat (string :tag "Headline"))))))
+                                         ((const :format "%v " :prepend) (const t))
+                                         ((const :format "%v " :immediate-finish) (const t))
+                                         ((const :format "%v " :jump-to-captured) (const t))
+                                         ((const :format "%v " :empty-lines) (const 1))
+                                         ((const :format "%v " :empty-lines-before) (const 1))
+                                         ((const :format "%v " :empty-lines-after) (const 1))
+                                         ((const :format "%v " :clock-in) (const t))
+                                         ((const :format "%v " :clock-keep) (const t))
+                                         ((const :format "%v " :clock-resume) (const t))
+                                         ((const :format "%v " :time-prompt) (const t))
+                                         ((const :format "%v " :tree-type) (const week))
+                                         ((const :format "%v " :unnarrowed) (const t))
+                                         ((const :format "%v " :table-line-pos) (string))
+                                         ((const :format "%v " :kill-buffer) (const t))))))))
+
+;;; Handlers
 (defun org-roam-protocol-open-ref (info)
   "Process an org-protocol://roam-ref?ref= style url with INFO.
 
@@ -102,6 +170,25 @@ org-protocol://roam-node?node=uuid"
       org-protocol-protocol-alist)
 (push '("org-roam-node"  :protocol "roam-node"   :function org-roam-protocol-open-node)
       org-protocol-protocol-alist)
+
+;;; Capture implementation
+(add-hook 'org-roam-capture-preface-hook #'org-roam-protocol--try-capture-to-ref-h)
+(defun org-roam-protocol--try-capture-to-ref-h ()
+  "Try to capture to an existing node that match the ref."
+  (when-let ((node (and (plist-get org-roam-capture--info :ref)
+                        (org-roam-node-from-ref
+                         (plist-get org-roam-capture--info :ref)))))
+    (set-buffer (org-capture-target-buffer (org-roam-node-file node)))
+    (goto-char (org-roam-node-point node))
+    (widen)
+    (org-roam-node-id node)))
+
+(add-hook 'org-roam-capture-new-node-hook #'org-roam-protocol--insert-captured-ref-h)
+(defun org-roam-protocol--insert-captured-ref-h ()
+  "Insert the ref if any."
+  (when-let ((ref (plist-get org-roam-capture--info :ref)))
+    (org-roam-ref-add ref)))
+
 
 (provide 'org-roam-protocol)
 

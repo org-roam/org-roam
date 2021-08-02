@@ -159,6 +159,24 @@ Throw an error if multiple choices exist."
      (t
       (user-error "Multiple nodes exist with title or alias \"%s\"" s)))))
 
+(defun org-roam-node-from-ref (ref)
+  "Return an `org-roam-node' from REF reference.
+Return nil if there's no node with such REF."
+  (save-match-data
+    (when (string-match org-link-plain-re ref)
+      (let ((type (match-string 1 ref))
+            (path (match-string 2 ref)))
+        (when-let ((id (caar (org-roam-db-query
+                              [:select [nodes:id]
+                               :from refs
+                               :left-join nodes
+                               :on (= refs:node-id nodes:id)
+                               :where (= refs:type $s1)
+                               :and (= refs:ref $s2)
+                               :limit 1]
+                              type path))))
+          (org-roam-populate (org-roam-node-create :id id)))))))
+
 (cl-defmethod org-roam-populate ((node org-roam-node))
   "Populate NODE from database.
 Uses the ID, and fetches remaining details from the database.
