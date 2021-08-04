@@ -479,8 +479,8 @@ If UPDATE-P is non-nil, first remove the file in the database."
   "Synchronize the cache state with the current Org files on-disk.
 If FORCE, force a rebuild of the cache from scratch."
   (interactive "P")
-  (when force (delete-file org-roam-db-location))
   (org-roam-db--close) ;; Force a reconnect
+  (when force (delete-file org-roam-db-location))
   (org-roam-db) ;; To initialize the database, no-op if already initialized
   (let* ((gc-cons-threshold org-roam-db-gc-threshold)
          (org-agenda-files nil)
