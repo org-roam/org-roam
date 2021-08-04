@@ -36,11 +36,10 @@
   (require 'org-roam-macs))
 (require 'org-roam)
 
-;;;; Declarations
 ;; REVIEW declarations
 ;; (defvar org-roam-directory)
 
-;;;; Options
+;;; Options
 (defcustom org-roam-graph-viewer (executable-find "firefox")
   "Method to view the org-roam graph.
 It may be one of the following:
@@ -119,46 +118,47 @@ All other values including nil will have no effect."
           (const :tag "no" nil))
   :group 'org-roam)
 
-(defun org-roam-graph--dot-option (option &optional wrap-key wrap-val)
-  "Return dot string of form KEY=VAL for OPTION cons.
-If WRAP-KEY is non-nil it wraps the KEY.
-If WRAP-VAL is non-nil it wraps the VAL."
-  (concat wrap-key (car option) wrap-key
-          "="
-          wrap-val (cdr option) wrap-val))
+;;; Interactive command
+;;;###autoload
+(defun org-roam-graph (&optional arg node)
+  "Build and possibly display a graph for NODE.
+ARG may be any of the following values:
+  - nil       show the graph.
+  - `\\[universal-argument]'     show the graph for NODE.
+  - `\\[universal-argument]' N   show the graph for NODE limiting nodes to N steps."
+  (interactive
+   (list current-prefix-arg
+         (and current-prefix-arg
+              (org-roam-node-at-point 'assert))))
+  (let ((graph (cl-typecase arg
+                 (null (org-roam-graph--dot nil 'all-nodes))
+                 (cons (org-roam-graph--dot (org-roam-graph--connected-component
+                                             (org-roam-node-id node) 0)))
+                 (integer (org-roam-graph--dot (org-roam-graph--connected-component
+                                                (org-roam-node-id node) (abs arg)))))))
+    (org-roam-graph--build graph #'org-roam-graph--open)))
 
-(defun org-roam-graph--connected-component (id distance)
-  "Return the edges for all nodes reachable from/connected to ID.
-DISTANCE is the maximum distance away from the root node."
-  (let* ((query
-          (if (= distance 0)
-              "
-WITH RECURSIVE
-  links_of(source, dest) AS
-  (SELECT source, dest FROM links UNION
-   SELECT dest, source FROM links),
-   connected_component(source) AS
-  (SELECT dest FROM links_of WHERE source = $s1 UNION
-   SELECT dest FROM links_of JOIN connected_component USING(source))
-SELECT source, dest, type FROM links WHERE source IN connected_component OR dest IN connected_component;"
-            "
-WITH RECURSIVE
-  links_of(source, dest) AS
-  (SELECT source, dest FROM links UNION
-   SELECT dest, source FROM links),
-  connected_component(source, trace) AS
-  (VALUES ($s1 , json_array($s1)) UNION
-   SELECT lo.dest, json_insert(cc.trace, '$[' || json_array_length(cc.trace) || ']', lo.dest) FROM
-   connected_component AS cc JOIN links_of AS lo USING(source)
-   WHERE (
-    -- Avoid cycles by only visiting each node once.
-    (SELECT count(*) FROM json_each(cc.trace) WHERE json_each.value == lo.dest) == 0
-    -- Note: BFS is cut off early here.
-    AND json_array_length(cc.trace) < $s2)),
-  nodes(source) as (SELECT DISTINCT source
-   FROM connected_component GROUP BY source ORDER BY min(json_array_length(trace)))
-SELECT source, dest, type FROM links WHERE source IN nodes OR dest IN nodes;")))
-    (org-roam-db-query query id distance)))
+;;; Generation and Build process
+(defun org-roam-graph--build (graph &optional callback)
+  "Generate the GRAPH, and execute CALLBACK when process exits successfully.
+CALLBACK is passed the graph file as its sole argument."
+  (unless (stringp org-roam-graph-executable)
+    (user-error "`org-roam-graph-executable' is not a string"))
+  (unless (executable-find org-roam-graph-executable)
+    (user-error (concat "Cannot find executable \"%s\" to generate the graph.  "
+                        "Please adjust `org-roam-graph-executable'")
+                org-roam-graph-executable))
+  (let* ((temp-dot   (make-temp-file "graph." nil ".dot" graph))
+         (temp-graph (make-temp-file "graph." nil (concat "." org-roam-graph-filetype))))
+    (org-roam-message "building graph")
+    (make-process
+     :name "*org-roam-graph--build-process*"
+     :buffer "*org-roam-graph--build-process*"
+     :command `(,org-roam-graph-executable ,temp-dot "-T" ,org-roam-graph-filetype "-o" ,temp-graph)
+     :sentinel (when callback
+                 (lambda (process _event)
+                   (when (= 0 (process-exit-status process))
+                     (funcall callback temp-graph)))))))
 
 (defun org-roam-graph--dot (&optional edges all-nodes)
   "Build the graphviz given the EDGES of the graph.
@@ -199,6 +199,47 @@ If ALL-NODES, include also nodes without edges."
       (insert "}")
       (buffer-string))))
 
+(defun org-roam-graph--connected-component (id distance)
+  "Return the edges for all nodes reachable from/connected to ID.
+DISTANCE is the maximum distance away from the root node."
+  (let* ((query
+          (if (= distance 0)
+              "
+WITH RECURSIVE
+  links_of(source, dest) AS
+  (SELECT source, dest FROM links UNION
+   SELECT dest, source FROM links),
+   connected_component(source) AS
+  (SELECT dest FROM links_of WHERE source = $s1 UNION
+   SELECT dest FROM links_of JOIN connected_component USING(source))
+SELECT source, dest, type FROM links WHERE source IN connected_component OR dest IN connected_component;"
+            "
+WITH RECURSIVE
+  links_of(source, dest) AS
+  (SELECT source, dest FROM links UNION
+   SELECT dest, source FROM links),
+  connected_component(source, trace) AS
+  (VALUES ($s1 , json_array($s1)) UNION
+   SELECT lo.dest, json_insert(cc.trace, '$[' || json_array_length(cc.trace) || ']', lo.dest) FROM
+   connected_component AS cc JOIN links_of AS lo USING(source)
+   WHERE (
+    -- Avoid cycles by only visiting each node once.
+    (SELECT count(*) FROM json_each(cc.trace) WHERE json_each.value == lo.dest) == 0
+    -- Note: BFS is cut off early here.
+    AND json_array_length(cc.trace) < $s2)),
+  nodes(source) as (SELECT DISTINCT source
+   FROM connected_component GROUP BY source ORDER BY min(json_array_length(trace)))
+SELECT source, dest, type FROM links WHERE source IN nodes OR dest IN nodes;")))
+    (org-roam-db-query query id distance)))
+
+(defun org-roam-graph--dot-option (option &optional wrap-key wrap-val)
+  "Return dot string of form KEY=VAL for OPTION cons.
+If WRAP-KEY is non-nil it wraps the KEY.
+If WRAP-VAL is non-nil it wraps the VAL."
+  (concat wrap-key (car option) wrap-key
+          "="
+          wrap-val (cdr option) wrap-val))
+
 (defun org-roam-graph--format-node (node type)
   "Return a graphviz NODE with TYPE.
 Handles both Org-roam nodes, and string nodes (e.g. urls)."
@@ -226,27 +267,6 @@ Handles both Org-roam nodes, and string nodes (e.g. urls)."
                        (append (cdr (assoc type org-roam-graph-node-extra-config))
                                node-properties) ","))))
 
-(defun org-roam-graph--build (graph &optional callback)
-  "Generate the GRAPH, and execute CALLBACK when process exits successfully.
-CALLBACK is passed the graph file as its sole argument."
-  (unless (stringp org-roam-graph-executable)
-    (user-error "`org-roam-graph-executable' is not a string"))
-  (unless (executable-find org-roam-graph-executable)
-    (user-error (concat "Cannot find executable \"%s\" to generate the graph.  "
-                        "Please adjust `org-roam-graph-executable'")
-                org-roam-graph-executable))
-  (let* ((temp-dot   (make-temp-file "graph." nil ".dot" graph))
-         (temp-graph (make-temp-file "graph." nil (concat "." org-roam-graph-filetype))))
-    (org-roam-message "building graph")
-    (make-process
-     :name "*org-roam-graph--build-process*"
-     :buffer "*org-roam-graph--build-process*"
-     :command `(,org-roam-graph-executable ,temp-dot "-T" ,org-roam-graph-filetype "-o" ,temp-graph)
-     :sentinel (when callback
-                 (lambda (process _event)
-                   (when (= 0 (process-exit-status process))
-                     (funcall callback temp-graph)))))))
-
 (defun org-roam-graph--open (file)
   "Open FILE using `org-roam-graph-viewer' with `view-file' as a fallback."
   (pcase org-roam-graph-viewer
@@ -259,26 +279,6 @@ CALLBACK is passed the graph file as its sole argument."
     ((pred functionp) (funcall org-roam-graph-viewer file))
     ('nil (view-file file))
     (_ (signal 'wrong-type-argument `((functionp stringp null) ,org-roam-graph-viewer)))))
-
-;;;; Commands
-;;;###autoload
-(defun org-roam-graph (&optional arg node)
-  "Build and possibly display a graph for NODE.
-ARG may be any of the following values:
-  - nil       show the graph.
-  - `\\[universal-argument]'     show the graph for NODE.
-  - `\\[universal-argument]' N   show the graph for NODE limiting nodes to N steps."
-  (interactive
-   (list current-prefix-arg
-         (and current-prefix-arg
-              (org-roam-node-at-point 'assert))))
-  (let ((graph (cl-typecase arg
-                 (null (org-roam-graph--dot nil 'all-nodes))
-                 (cons (org-roam-graph--dot (org-roam-graph--connected-component
-                                             (org-roam-node-id node) 0)))
-                 (integer (org-roam-graph--dot (org-roam-graph--connected-component
-                                                (org-roam-node-id node) (abs arg)))))))
-    (org-roam-graph--build graph #'org-roam-graph--open)))
 
 
 (provide 'org-roam-graph)
