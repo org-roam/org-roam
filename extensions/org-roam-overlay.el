@@ -31,7 +31,7 @@
 ;; asscoiated descriptor with an overlay that displays the node's current title.
 ;;
 ;;; Code:
-;;;; Dependencies
+(require 'org-roam)
 
 (defface org-roam-overlay
   '((((class color) (background light))

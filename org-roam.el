@@ -71,7 +71,6 @@
 ;; majority of them can be found at https://github.com/org-roam and MELPA.
 ;;
 ;;; Code:
-;;;; Dependencies
 (require 'f)
 (require 'dash)
 
@@ -90,7 +89,6 @@
 (require 'org-element)
 (require 'org-capture)
 
-;;;; Custom libraries
 (require 'org-roam-utils)
 (require 'org-roam-compat)
 

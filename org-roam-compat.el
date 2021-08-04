@@ -31,8 +31,6 @@
 ;; Emacsen and Org-roam versions.
 ;;
 ;;; Code:
-;;;; Dependencies
-
 ;;; Backports
 ;; REVIEW Remove when 26.x support is dropped. This is exact the same as
 ;; `directory-files-recursively' from Emacs 26, but with FOLLOW-SYMLINKS
