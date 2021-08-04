@@ -35,12 +35,8 @@
 ;;; Code:
 (require 'org-roam)
 
-;; REVIEW declarations
-;; (defvar org-roam-directory)
-;; (defvar org-roam-find-file-hook)
-
-;; REVIEW declarations
-;; (declare-function org-roam-node-at-point "org-roam")
+;;;; Declarations
+(defvar org-ref-buffer-hacked)
 
 ;;; Options
 (defcustom org-roam-mode-section-functions (list #'org-roam-backlinks-section
@@ -340,8 +336,6 @@ This section is made out of the next 2 `magit-section's:
       (oset section point point)
       (insert ?\n))))
 
-;; REVIEW declarations
-;; (defvar org-ref-buffer-hacked)
 (defun org-roam-fontify-like-in-org-mode (s)
   "Fontify string S like in Org mode.
 Like `org-fontify-like-in-org-mode', but supports `org-ref'."
@@ -650,7 +644,7 @@ window instead."
   "Extract entry text from MARKER, at most N-LINES lines.
 This will ignore drawers etc, just get the text.
 If INDENT is given, prefix every line with this string."
-  (let (txt drawer-re kwd-time-re ind)
+  (let (txt ind)
     (save-excursion
       (with-current-buffer (marker-buffer marker)
         (if (not (derived-mode-p 'org-mode))

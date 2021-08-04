@@ -36,9 +36,6 @@
   (require 'org-roam-macs))
 (require 'org-roam)
 
-;; REVIEW declarations
-;; (defvar org-roam-directory)
-
 ;;; Options
 (defcustom org-roam-graph-viewer (executable-find "firefox")
   "Method to view the org-roam graph.

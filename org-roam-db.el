@@ -39,19 +39,6 @@
   ;; For `org-with-wide-buffer'
   (require 'org-macs))
 
-;; REVIEW declarations
-;; (defvar org-roam-find-file-hook)
-;; (defvar org-roam-directory)
-;; (defvar org-roam-verbose)
-;; (defvar org-agenda-files)
-
-;; REVIEW declarations
-;; (declare-function org-roam-id-at-point "org-roam")
-;; (declare-function org-roam--list-all-files "org-roam")
-;; (declare-function org-roam-node-at-point "org-roam")
-;; (defvar org-ref-cite-types)
-;; (declare-function org-ref-split-and-strip-string "ext:org-ref-utils" (string))
-
 ;;; Options
 (defcustom org-roam-db-location (expand-file-name "org-roam.db" user-emacs-directory)
   "The full path to file where the Org-roam database is stored.

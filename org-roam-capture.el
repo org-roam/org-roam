@@ -38,13 +38,8 @@
   (require 'org-roam-macs)
   (require 'org-macs))
 
-;; REVIEW declarations
-;; (declare-function org-roam-ref-add "org-roam" (ref))
-;; (declare-function org-datetree-find-date-create "org-datetree" (date &optional keep-restriction))
-;; (declare-function org-datetree-find-month-create "org-datetree" (d &optional keep-restriction))
-
-;; REVIEW declarations
-;; (defvar org-roam-directory)
+;;;; Declarations
+(defvar org-end-time-was-given)
 
 ;;; Options
 (defcustom org-roam-capture-templates

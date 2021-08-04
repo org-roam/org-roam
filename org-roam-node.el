@@ -781,7 +781,7 @@ If region is active, then use it instead of the node at point."
     (org-id-get-create)
     (save-buffer)
     (org-roam-db-update-file)
-    (let* (template-info
+    (let* ((template-info nil)
            (node (org-roam-node-at-point))
            (template (org-roam-format
                       (string-trim (org-capture-fill-template org-roam-extract-new-file-path))

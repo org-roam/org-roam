@@ -41,11 +41,6 @@
 (require 'dash)
 (require 'org-roam)
 
-;; REVIEW declarations
-;; (defvar org-roam-directory)
-;; (defvar org-roam-file-extensions)
-;; (declare-function org-roam-file-p        "org-roam")
-
 ;;; Faces
 (defface org-roam-dailies-calendar-note
   '((t :inherit (org-link) :underline nil))
