@@ -73,14 +73,6 @@ When not specified, ELLIPSIS defaults to ‘...’."
          (setq ,v (pop ,plist-var))
          (setq ,plist (plist-put ,plist ,k (funcall ,fn ,k ,v)))))))
 
-(defun org-roam--list-interleave (lst separator)
-  "Interleaves elements in LST with SEPARATOR."
-  (when lst
-    (let ((new-lst (list (pop lst))))
-      (dolist (it lst)
-        (nconc new-lst (list separator it)))
-      new-lst)))
-
 ;;; File utilities
 (defmacro org-roam-with-file (file keep-buf-p &rest body)
   "Execute BODY within FILE.
