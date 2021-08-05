@@ -88,7 +88,7 @@ This function takes a single argument NODE, which is an `org-roam-node' construc
   :group 'org-roam
   :type 'hook)
 
-;;;; Linking
+;;;; Linkage
 (defcustom org-roam-link-auto-replace t
   "If non-nil, replace \"roam:\" links to existing nodes with \"id:\" links."
   :group 'org-roam
@@ -148,7 +148,7 @@ This function takes a single argument NODE, which is an `org-roam-node' construc
         (downcase slug)))))
 
 ;;; Nodes
-;;;; Grab or Fetch
+;;;; Getters
 (defun org-roam-node-at-point (&optional assert)
   "Return the node at point.
 If ASSERT, throw an error if there is no node at point.
@@ -349,7 +349,7 @@ GROUP BY id")))
                                                       :refs refs))
                               all-titles)))))
 
-;;;; Find or Visit
+;;;; Finders
 (defun org-roam-node-find-noselect (node)
   "Navigate to the point for NODE, and return the buffer."
   (unless (org-roam-node-file node)
@@ -523,7 +523,7 @@ COMPLETION-A and COMPLETION-B are items in the form of (node-title org-roam-node
 Returns empty string for annotations."
   "")
 
-;;;; Linking
+;;;; Linkage
 ;;;;; [id:] link
 ;;;###autoload
 (cl-defun org-roam-node-insert (&optional filter-fn &key templates)
@@ -680,7 +680,7 @@ This is a `completion-at-point' function, and is active when
   "Setup `org-roam-completion-functions' for `completion-at-point'."
   (add-hook 'completion-at-point-functions #'org-roam-complete-at-point nil t))
 
-;;;; Editing buffers
+;;;; Editing
 (defun org-roam-demote-entire-buffer ()
   "Convert an org buffer with any top level content to a single node.
 
@@ -810,7 +810,7 @@ If region is active, then use it instead of the node at point."
         (save-buffer)))))
 
 ;;; IDs
-;;;; Grab or Fetch
+;;;; Getters
 (defun org-roam-id-at-point ()
   "Return the ID at point, if any.
 Recursively traverses up the headline tree to find the
@@ -871,7 +871,7 @@ REF is assumed to be a propertized string."
     (when title
       (concat " " title))))
 
-;;;; Find or Visit
+;;;; Finders
 ;;;###autoload
 (defun org-roam-ref-find (&optional initial-input filter-fn)
   "Find and open an Org-roam node that's dedicated to a specific ref.
@@ -884,7 +884,7 @@ and when nil is returned the node will be filtered out."
     (find-file (org-roam-node-file node))
     (goto-char (org-roam-node-point node))))
 
-;;;; Editing buffers
+;;;; Editing
 (defun org-roam-ref-add (ref)
   "Add REF to the node at point."
   (interactive "sRef: ")
@@ -902,7 +902,7 @@ and when nil is returned the node will be filtered out."
       (org-roam-remove-property "ROAM_REFS" ref))))
 
 ;;; Tags
-;;;; Grab or Fetch
+;;;; Getters
 (defun org-roam-tag-completions ()
   "Return list of tags for completions within Org-roam."
   (let ((roam-tags (mapcar #'car (org-roam-db-query [:select :distinct [tag] :from tags])))
@@ -915,7 +915,7 @@ and when nil is returned the node will be filtered out."
                                    (_ nil)))))
     (seq-uniq (append roam-tags org-tags))))
 
-;;;; Editing buffers
+;;;; Editing
 (defun org-roam-tag-add (tags)
   "Add TAGS to the node at point."
   (interactive
@@ -953,13 +953,13 @@ and when nil is returned the node will be filtered out."
       tags)))
 
 ;;; Titles and Aliases
-;;;; Grab or Fetch
+;;;; Getters
 (defun org-roam--get-titles ()
   "Return all distinct titles and aliases in the Org-roam database."
   (mapcar #'car (org-roam-db-query [:select :distinct title :from nodes
                                     :union :select alias :from aliases])))
 
-;;;; Editing buffers
+;;;; Editing
 (defun org-roam-alias-add (alias)
   "Add ALIAS to the node at point."
   (interactive "sAlias: ")
