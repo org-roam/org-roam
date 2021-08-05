@@ -287,10 +287,6 @@ Return (MONTH DAY YEAR) or nil if not an Org time-string."
           (list m d y)))
     (t nil)))
 
-(defun org-roam-dailies-calendar--date-to-time (date)
-  "Convert DATE as returned from then calendar (MONTH DAY YEAR) to a time."
-  (encode-time 0 0 0 (nth 1 date) (nth 0 date) (nth 2 date)))
-
 (defun org-roam-dailies-calendar-mark-entries ()
   "Mark days in the calendar for which a daily-note is present."
   (when (file-exists-p (expand-file-name org-roam-dailies-directory org-roam-directory))
