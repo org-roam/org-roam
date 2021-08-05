@@ -34,20 +34,6 @@
 (require 'ansi-color) ; org-roam--list-files strip ANSI color codes
 
 ;;; String utilities
-(defun org-roam-truncate-string (s len &optional ellipsis)
-  "If S is longer than LEN, cut it down and add ELLIPSIS to the end.
-
-The resulting string, including ellipsis, will be LEN characters
-long.
-
-When not specified, ELLIPSIS defaults to ‘...’."
-  (declare (pure t) (side-effect-free t))
-  (unless ellipsis
-    (setq ellipsis "..."))
-  (if (> (length s) len)
-      (format "%s%s" (substring s 0 (- len (length ellipsis))) ellipsis)
-    s))
-
 ;; TODO Refactor this.
 (defun org-roam-replace (old new s)
   "Replace OLD with NEW in S."
