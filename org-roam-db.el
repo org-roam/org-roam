@@ -34,8 +34,7 @@
 
 ;;; Options
 (defcustom org-roam-db-location (expand-file-name "org-roam.db" user-emacs-directory)
-  "The full path to file where the Org-roam database is stored.
-If this is non-nil, the Org-roam sqlite database is saved here.
+  "The path to file where the Org-roam database is stored.
 
 It is the user's responsibility to set this correctly, especially
 when used with multiple Org-roam instances."
@@ -57,6 +56,7 @@ value like `most-positive-fixnum'."
   :type 'int
   :group 'org-roam)
 
+;; TODO Rewrite help message
 (defcustom org-roam-db-node-include-function (lambda () t)
   "A custom function to check if the headline at point is a node."
   :type 'function

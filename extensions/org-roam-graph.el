@@ -241,11 +241,12 @@ Handles both Org-roam nodes, and string nodes (e.g. urls)."
   (let (node-id node-properties)
     (if (org-roam-node-p node)
         (let* ((title (org-roam-quote-string (org-roam-node-title node)))
-               (shortened-title (org-roam-quote-string
-                                 (pcase org-roam-graph-shorten-titles
-                                   (`truncate (org-roam-truncate org-roam-graph-max-title-length title))
-                                   (`wrap (s-word-wrap org-roam-graph-max-title-length title))
-                                   (_ title)))))
+               (shortened-title
+                (org-roam-quote-string
+                 (pcase org-roam-graph-shorten-titles
+                   (`truncate (org-roam-truncate-string title org-roam-graph-max-title-length))
+                   (`wrap (s-word-wrap org-roam-graph-max-title-length title))
+                   (_ title)))))
           (setq node-id (org-roam-node-id node)
                 node-properties `(("label"   . ,shortened-title)
                                   ("URL"     . ,(concat "org-protocol://roam-node?node="

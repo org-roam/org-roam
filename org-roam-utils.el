@@ -34,7 +34,7 @@
 (require 'ansi-color) ; org-roam--list-files strip ANSI color codes
 
 ;;; String utilities
-(defun org-roam-truncate (len s &optional ellipsis)
+(defun org-roam-truncate-string (s len &optional ellipsis)
   "If S is longer than LEN, cut it down and add ELLIPSIS to the end.
 
 The resulting string, including ellipsis, will be LEN characters
@@ -48,6 +48,7 @@ When not specified, ELLIPSIS defaults to ‘...’."
       (format "%s%s" (substring s 0 (- len (length ellipsis))) ellipsis)
     s))
 
+;; TODO Refactor this.
 (defun org-roam-replace (old new s)
   "Replace OLD with NEW in S."
   (declare (pure t) (side-effect-free t))
@@ -395,6 +396,7 @@ If VAL is not specified, user is prompted to select a value."
     (apply #'message `(,(concat "(org-roam) " format-string) ,@args))))
 
 ;;; Diagnostics
+;; TODO Update this to also get commit hash
 ;;;###autoload
 (defun org-roam-version (&optional message)
   "Return `org-roam' version.

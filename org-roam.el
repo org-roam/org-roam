@@ -126,10 +126,9 @@ All Org files, at any level of nesting, are considered part of the Org-roam."
 
 (defcustom org-roam-file-extensions '("org")
   "Detected file extensions to include in the Org-roam ecosystem.
-The first item in the list is used as the default file extension.
-While the file extensions may be different, the file format needs
-to be an `org-mode' file, and it is the user's responsibility to
-ensure that."
+While a file extension different from \".org\" may be used, the
+file still needs to be an `org-mode' file, and it is the user's
+responsibility to ensure that."
   :type '(repeat string)
   :group 'org-roam)
 
@@ -172,7 +171,10 @@ By default, `executable-find' will be used to look up the path to the
 executable. If a custom path is required, it can be specified together with the
 method symbol as a cons cell. For example: '(find (rg . \"/path/to/rg\"))."
   :type '(set (const :tag "find" find)
-              (const :tag "rg" rg)))
+              (const :tag "fd" fd)
+              (const :tag "fdfind" fdfind)
+              (const :tag "rg" rg)
+              (const :tag "elisp" nil)))
 
 ;;; Session watcher
 ;;;###autoload
