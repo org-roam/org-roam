@@ -34,10 +34,6 @@
 ;;; Code:
 (require 'org-roam)
 
-(eval-when-compile
-  (require 'org-roam-macs)
-  (require 'org-macs))
-
 ;;;; Declarations
 (defvar org-end-time-was-given)
 

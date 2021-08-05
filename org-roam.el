@@ -89,6 +89,9 @@
 (require 'org-element)
 (require 'org-capture)
 
+(eval-when-compile
+  (require 'subr-x))
+
 (require 'org-roam-utils)
 (require 'org-roam-compat)
 

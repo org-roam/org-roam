@@ -30,14 +30,7 @@
 ;; This module provides the underlying database API to Org-roam.
 ;;
 ;;; Code:
-(eval-when-compile (require 'subr-x))
-
 (require 'org-roam)
-
-(eval-and-compile
-  (require 'org-roam-macs)
-  ;; For `org-with-wide-buffer'
-  (require 'org-macs))
 
 ;;; Options
 (defcustom org-roam-db-location (expand-file-name "org-roam.db" user-emacs-directory)

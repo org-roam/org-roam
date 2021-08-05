@@ -28,15 +28,10 @@
 ;;; Commentary:
 ;;
 ;; This library provides definitions for utilities that used throughout the
-;; whole package, including its extensions.
+;; whole package.
 ;;
 ;;; Code:
 (require 'ansi-color) ; org-roam--list-files strip ANSI color codes
-
-(eval-when-compile
-  (require 'subr-x)
-  (require 'org-roam-macs)
-  (require 'org-macs))
 
 ;;; String utilities
 (defun org-roam-truncate (len s &optional ellipsis)
@@ -65,6 +60,18 @@ When not specified, ELLIPSIS defaults to ‘...’."
     (org-roam-replace "\"" "\\\"")))
 
 ;;; List utilities
+(defmacro org-roam-plist-map! (fn plist)
+  "Map FN over PLIST, modifying it in-place."
+  (declare (indent 1))
+  (let ((plist-var (make-symbol "plist"))
+        (k (make-symbol "k"))
+        (v (make-symbol "v")))
+    `(let ((,plist-var (copy-sequence ,plist)))
+       (while ,plist-var
+         (setq ,k (pop ,plist-var))
+         (setq ,v (pop ,plist-var))
+         (setq ,plist (plist-put ,plist ,k (funcall ,fn ,k ,v)))))))
+
 (defun org-roam--list-interleave (lst separator)
   "Interleaves elements in LST with SEPARATOR."
   (when lst
@@ -73,7 +80,35 @@ When not specified, ELLIPSIS defaults to ‘...’."
         (nconc new-lst (list separator it)))
       new-lst)))
 
-;;; File functions and predicates
+;;; File utilities
+(defmacro org-roam-with-file (file keep-buf-p &rest body)
+  "Execute BODY within FILE.
+If FILE is nil, execute BODY in the current buffer.
+Kills the buffer if KEEP-BUF-P is nil, and FILE is not yet visited."
+  (declare (indent 2) (debug t))
+  `(let* (new-buf
+          (auto-mode-alist nil)
+          (buf (or (and (not ,file)
+                        (current-buffer)) ;If FILE is nil, use current buffer
+                   (find-buffer-visiting ,file) ; If FILE is already visited, find buffer
+                   (progn
+                     (setq new-buf t)
+                     (find-file-noselect ,file)))) ; Else, visit FILE and return buffer
+          res)
+     (with-current-buffer buf
+       (unless (equal major-mode 'org-mode)
+         (delay-mode-hooks
+           (let ((org-inhibit-startup t)
+                 (org-agenda-files nil))
+             (org-mode))))
+       (setq res (progn ,@body))
+       (unless (and new-buf (not ,keep-buf-p))
+         (save-buffer)))
+     (if (and new-buf (not ,keep-buf-p))
+         (when (find-buffer-visiting ,file)
+           (kill-buffer (find-buffer-visiting ,file))))
+     res))
+
 (defun org-roam-file-p (&optional file)
   "Return t if FILE is part of Org-roam system, nil otherwise.
 If FILE is not specified, use the current buffer's file-path."
@@ -178,7 +213,22 @@ E.g. (\".org\") => (\"*.org\" \"*.org.gpg\")"
                  (org-roam-file-p file))
         (push file result)))))
 
-;;; Buffer functions and predicates
+;;; Buffer utilities
+(defmacro org-roam-with-temp-buffer (file &rest body)
+  "Execute BODY within a temp buffer.
+Like `with-temp-buffer', but propagates `org-roam-directory'.
+If FILE, set `default-directory' to FILE's directory and insert its contents."
+  (declare (indent 1) (debug t))
+  (let ((current-org-roam-directory (make-symbol "current-org-roam-directory")))
+    `(let ((,current-org-roam-directory org-roam-directory))
+       (with-temp-buffer
+         (let ((org-roam-directory ,current-org-roam-directory))
+           (delay-mode-hooks (org-mode))
+           (when ,file
+             (insert-file-contents ,file)
+             (setq-local default-directory (file-name-directory ,file)))
+           ,@body)))))
+
 (defun org-roam-buffer-p (&optional buffer)
   "Return t if BUFFER is accessing a part of Org-roam system.
 If BUFFER is not specified, use the current buffer."
@@ -249,7 +299,7 @@ BEG and END are markers for the beginning and end regions."
                                              read-only t)
                             (marker-buffer beg))))
 
-;;; Org-mode
+;;; Org-mode utilities
 ;;;; Motions
 (defun org-roam-up-heading-or-point-min ()
   "Fixed version of Org's `org-up-heading-or-point-min'."

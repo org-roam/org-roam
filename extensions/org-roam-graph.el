@@ -32,8 +32,6 @@
 ;;
 ;;; Code:
 (require 'xml) ;xml-escape-string
-(eval-and-compile
-  (require 'org-roam-macs))
 (require 'org-roam)
 
 ;;; Options

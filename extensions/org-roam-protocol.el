@@ -40,9 +40,6 @@
 (require 'ol) ;; for org-link-decode
 (require 'org-roam)
 
-(eval-when-compile
-  (require 'org-roam-macs))
-
 ;;; Options
 (defcustom org-roam-protocol-store-links nil
   "Whether to store links when capturing websites with `org-roam-protocol'."
