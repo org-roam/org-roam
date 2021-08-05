@@ -477,38 +477,6 @@ Sorts by title."
    (row :initform nil)
    (col :initform nil)))
 
-(defun org-roam-file-at-point (&optional assert)
-  "Return the file at point.
-If ASSERT, throw an error."
-  (if-let ((file (magit-section-case
-                   (org-roam-node-section (org-roam-node-file (oref it node)))
-                   (org-roam-grep-section (oref it file))
-                   (org-roam-preview-section (oref it file)))))
-      file
-    (when assert
-      (user-error "No file at point"))))
-
-(defun org-roam-file-visit (file &optional other-window row col)
-  "Visits FILE.
-With a prefix argument OTHER-WINDOW, display the buffer in
-another window instead.
-If ROW, move to the row, and if COL move to the COL."
-  (interactive (list (org-roam-file-at-point t)
-                     current-prefix-arg
-                     (oref (magit-current-section) row)
-                     (oref (magit-current-section) col)))
-  (let ((buf (find-file-noselect file)))
-    (with-current-buffer buf
-      (widen)
-      (goto-char (point-min))
-      (when row
-        (forward-line (1- row)))
-      (when col
-        (forward-char (1- col))))
-    (funcall (if other-window
-                 #'switch-to-buffer-other-window
-               #'pop-to-buffer-same-window) buf)))
-
 (defvar org-roam-unlinked-references-result-re
   (rx (group (one-or-more anything))
       ":"
