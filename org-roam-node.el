@@ -72,7 +72,8 @@ This function takes a single argument NODE, which is an `org-roam-node' construc
 
 (defcustom org-roam-node-default-sort 'file-mtime
   "Default sort order for Org-roam node completions."
-  :type 'const
+  :type '(choice (const :tag "file-mtime" file-mtime)
+                 (const :tag "file-atime" file-atime))
   :group 'org-roam)
 
 ;;;; Completion-at-point
@@ -406,7 +407,7 @@ window instead."
 INITIAL-INPUT is the initial minibuffer prompt value.
 FILTER-FN is a function to filter out nodes: it takes an `org-roam-node',
 and when nil is returned the node will be filtered out.
-SORT-FN is a function to sort nodes. See `org-roam-node-sort-by-file-mtime'
+SORT-FN is a function to sort nodes. See `org-roam-node-read-sort-by-file-mtime'
 for an example sort function.
 If REQUIRE-MATCH, the minibuffer prompt will require a match."
   (let* ((nodes (org-roam-node-read--completions))
@@ -414,7 +415,8 @@ If REQUIRE-MATCH, the minibuffer prompt will require a match."
                                     (if filter-fn (funcall filter-fn (cdr n)) t)) nodes))
          (sort-fn (or sort-fn
                       (when org-roam-node-default-sort
-                        (intern (concat "org-roam-node-sort-by-" (symbol-name org-roam-node-default-sort))))))
+                        (intern (concat "org-roam-node-read-sort-by-"
+                                        (symbol-name org-roam-node-default-sort))))))
          (_ (when sort-fn (setq nodes (seq-sort sort-fn nodes))))
          (node (completing-read
                 "Node: "
@@ -499,7 +501,7 @@ Uses `org-roam-node-display-template' to format the entry."
                                       "")))))))))
               (cons format (+ fields-width string-width))))))
 
-(defun org-roam-node-sort-by-file-mtime (completion-a completion-b)
+(defun org-roam-node-read-sort-by-file-mtime (completion-a completion-b)
   "Sort files such that files modified more recently are shown first.
 COMPLETION-A and COMPLETION-B are items in the form of (node-title org-roam-node-struct)"
   (let ((node-a (cdr completion-a))
@@ -507,7 +509,7 @@ COMPLETION-A and COMPLETION-B are items in the form of (node-title org-roam-node
     (time-less-p (org-roam-node-file-mtime node-b)
                  (org-roam-node-file-mtime node-a))))
 
-(defun org-roam-node-sort-by-file-atime (completion-a completion-b)
+(defun org-roam-node-read-sort-by-file-atime (completion-a completion-b)
   "Sort files such that files accessed more recently are shown first.
 COMPLETION-A and COMPLETION-B are items in the form of (node-title org-roam-node-struct)"
   "Sort completions list by file modification time."

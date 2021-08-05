@@ -1990,7 +1990,7 @@ INITIAL-INPUT is the initial minibuffer prompt value. FILTER-FN
 is a function to filter out nodes: it takes a single argument (an
 @code{org-roam-node}), and when nil is returned the node will be
 filtered out.
-SORT-FN is a function to sort nodes. See @code{org-roam-node-sort-by-file-mtime}
+SORT-FN is a function to sort nodes. See @code{org-roam-node-read-sort-by-file-mtime}
 for an example sort function.
 If REQUIRE-MATCH, the minibuffer prompt will require a match.
 @end defun
