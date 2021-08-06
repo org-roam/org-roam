@@ -96,7 +96,7 @@ This will take a while. Are you sure you want to do this?")
     (org-roam-db-sync 'force)
 
     ;; Convert v1 to v2
-    (dolist (f (org-roam--list-all-files))
+    (dolist (f (org-roam-list-files))
       (org-roam-with-file f nil
         (org-roam-migrate-v1-to-v2)))
 
@@ -104,7 +104,7 @@ This will take a while. Are you sure you want to do this?")
     (org-roam-db-sync 'force)
 
     ;;Replace all file links with ID links
-    (dolist (f (org-roam--list-all-files))
+    (dolist (f (org-roam-list-files))
       (org-roam-with-file f nil
         (org-roam-migrate-replace-file-links-with-id)
         (save-buffer)))))

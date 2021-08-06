@@ -260,7 +260,7 @@ Normally FILE is an Org-roam file if:
                  (string-match-p org-roam-file-exclude-regexp path)))
        (f-descendant-of-p path (expand-file-name org-roam-directory))))))
 
-(defun org-roam--list-all-files ()
+(defun org-roam-list-files ()
   "Return a list of all Org-roam files under `org-roam-directory'.
 See `org-roam-file-p' for how each file is determined to be as
 part of Org-Roam."
