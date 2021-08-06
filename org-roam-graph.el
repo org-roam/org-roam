@@ -158,13 +158,28 @@ WITH RECURSIVE
 SELECT source, dest, type FROM links WHERE source IN nodes OR dest IN nodes;")))
     (org-roam-db-query query id distance)))
 
+(defun org-roam-graph--build-edges ()
+  "Build the edges for the Org-roam graph."
+  (let ((links (org-roam-db-query [:select :distinct [source dest type] :from links]))
+        (edges (list)))
+    (pcase-dolist (`(,link-source ,link-dest ,link-type) links)
+      (let ((link-ref (caar (org-roam-db-query [:select node-id
+                                                :from refs
+                                                :where (like ref $s1)
+                                                :limit 1]
+                                               link-dest))))
+        (if link-ref
+            (push (list link-source link-ref "id") edges )
+          (push (list link-source link-dest link-type) edges))))
+    edges))
+
 (defun org-roam-graph--dot (&optional edges all-nodes)
   "Build the graphviz given the EDGES of the graph.
 If ALL-NODES, include also nodes without edges."
   (let ((org-roam-directory-temp org-roam-directory)
         (nodes-table (org-roam--nodes-table))
         (seen-nodes (list))
-        (edges (or edges (org-roam-db-query [:select :distinct [source dest type] :from links]))))
+        (edges (or edges (org-roam-graph--build-edges))))
     (with-temp-buffer
       (setq-local org-roam-directory org-roam-directory-temp)
       (insert "digraph \"org-roam\" {\n")
