@@ -714,7 +714,7 @@ This function is to be called in the Org-capture finalization process."
 It expands ${var} occurrences in TEMPLATE. When ORG-CAPTURE-P,
 also run Org-capture's template expansion."
   (funcall (if org-capture-p #'org-capture-fill-template #'identity)
-           (org-roam-format
+           (org-roam-format-template
             template
             (lambda (key default-val)
               (let ((fn (intern key))

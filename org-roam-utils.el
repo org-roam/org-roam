@@ -104,7 +104,7 @@ If FILE, set `default-directory' to FILE's directory and insert its contents."
            ,@body)))))
 
 ;;; Formatting
-(defun org-roam-format (template replacer)
+(defun org-roam-format-template (template replacer)
   "Format TEMPLATE with the function REPLACER.
 The templates are of form ${foo} for variable foo, and
 ${foo=default} for variable foo with default value \"default\".

@@ -457,7 +457,7 @@ The displayed title is formatted according to `org-roam-node-display-template'."
 WIDTH is the width of the results list.
 Uses `org-roam-node-display-template' to format the entry."
   (let ((fmt (org-roam-node-read--process-display-format org-roam-node-display-template)))
-    (org-roam-format
+    (org-roam-format-template
      (car fmt)
      (lambda (field _default-val)
        (let* ((field (split-string field ":"))
@@ -491,7 +491,7 @@ Uses `org-roam-node-display-template' to format the entry."
             (let* ((fields-width 0)
                    (string-width
                     (string-width
-                     (org-roam-format
+                     (org-roam-format-template
                       format
                       (lambda (field _default-val)
                         (setq fields-width
@@ -785,7 +785,7 @@ If region is active, then use it instead of the node at point."
     (org-roam-db-update-file)
     (let* ((template-info nil)
            (node (org-roam-node-at-point))
-           (template (org-roam-format
+           (template (org-roam-format-template
                       (string-trim (org-capture-fill-template org-roam-extract-new-file-path))
                       (lambda (key default-val)
                         (let ((fn (intern key))
