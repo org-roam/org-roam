@@ -362,13 +362,14 @@ Like `org-fontify-like-in-org-mode', but supports `org-ref'."
       (org-font-lock-ensure)
       (buffer-string))))
 
-(defun org-roam-file-at-point (&optional assert)
-  "Return the file at point.
+(defun org-roam-buffer-file-at-point (&optional assert)
+  "Return the file at point in the current `org-roam-mode' based buffer.
 If ASSERT, throw an error."
   (if-let ((file (magit-section-case
                    (org-roam-node-section (org-roam-node-file (oref it node)))
                    (org-roam-grep-section (oref it file))
-                   (org-roam-preview-section (oref it file)))))
+                   (org-roam-preview-section (oref it file))
+                   (t (cl-assert (derived-mode-p 'org-roam-mode))))))
       file
     (when assert
       (user-error "No file at point"))))
@@ -405,7 +406,7 @@ The preview content comes from FILE, and the link as at POINT.")
   "Visit FILE at POINT.
 With prefix argument OTHER-WINDOW, visit the olp in another
 window instead."
-  (interactive (list (org-roam-file-at-point 'assert)
+  (interactive (list (org-roam-buffer-file-at-point 'assert)
                      (oref (magit-current-section) point)
                      current-prefix-arg))
   (let ((buf (find-file-noselect file)))
@@ -618,7 +619,7 @@ Sorts by title."
 With a prefix argument OTHER-WINDOW, display the buffer in
 another window instead.
 If ROW, move to the row, and if COL move to the COL."
-  (interactive (list (org-roam-file-at-point t)
+  (interactive (list (org-roam-buffer-file-at-point t)
                      current-prefix-arg
                      (oref (magit-current-section) row)
                      (oref (magit-current-section) col)))
