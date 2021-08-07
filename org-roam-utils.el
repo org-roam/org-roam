@@ -34,7 +34,7 @@
 
 ;;; String utilities
 ;; TODO Refactor this.
-(defun org-roam-replace (old new s)
+(defun org-roam-replace-string (old new s)
   "Replace OLD with NEW in S."
   (declare (pure t) (side-effect-free t))
   (replace-regexp-in-string (regexp-quote old) new s t t))
@@ -42,8 +42,8 @@
 (defun org-roam-quote-string (s)
   "Quotes string S."
   (->> s
-    (org-roam-replace "\\" "\\\\")
-    (org-roam-replace "\"" "\\\"")))
+    (org-roam-replace-string "\\" "\\\\")
+    (org-roam-replace-string "\"" "\\\"")))
 
 ;;; List utilities
 (defmacro org-roam-plist-map! (fn plist)
