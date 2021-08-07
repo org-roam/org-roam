@@ -404,14 +404,14 @@ window instead."
           (setq elem (org-element-property :parent elem)))
         (pcase (car elem)
           ('headline                    ; show subtree
-           (org-roam-preview-extract-entry-text (point-marker) most-positive-fixnum))
+           (org-roam-preview-get-entry-text (point-marker) most-positive-fixnum))
           (_
            (let ((begin (org-element-property :begin elem))
                  (end (org-element-property :end elem)))
              (or (string-trim (buffer-substring-no-properties begin end))
                  (org-element-property :raw-value elem)))))))))
 
-(defun org-roam-preview-extract-entry-text (marker n-lines &optional indent)
+(defun org-roam-preview-get-entry-text (marker n-lines &optional indent)
   "Extract entry text from MARKER, at most N-LINES lines.
 This will ignore drawers etc, just get the text.
 If INDENT is given, prefix every line with this string."
