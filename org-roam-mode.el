@@ -298,44 +298,6 @@ run at `post-command-hook'."
 
 ;;; Sections
 ;;;; Library
-(cl-defun org-roam-node-insert-section (&key source-node point properties)
-  "Insert section for a link from SOURCE-NODE to some other node.
-
-SOURCE-NODE is an `org-roam-node' that links or references some
-other node. Normally the other node is
-`org-roam-buffer-current-node'.
-
-POINT is the position in SOURCE-NODE's file where the link is
-located.
-
-PROPERTIES (a plist) contains additional information about the
-link.
-
-This section is made out of the next 2 `magit-section's:
-1. `org-roam-node-section' for a heading that describes
-   SOURCE-NODE.
-
-2. `org-roam-preview-section' for a preview content that comes
-   from SOURCE-NODE's file for the link (that references the
-   other node) at POINT."
-  (magit-insert-section section (org-roam-node-section)
-    (let ((outline (if-let ((outline (plist-get properties :outline)))
-                       (mapconcat #'org-link-display-format outline " > ")
-                     "Top")))
-      (insert (concat (propertize (org-roam-node-title source-node)
-                                  'font-lock-face 'org-roam-title)
-                      (format " (%s)"
-                              (propertize outline 'font-lock-face 'org-roam-olp)))))
-    (magit-insert-heading)
-    (oset section node source-node)
-    (magit-insert-section section (org-roam-preview-section)
-      (insert (org-roam-fontify-like-in-org-mode
-               (org-roam-get-preview (org-roam-node-file source-node) point))
-              "\n")
-      (oset section file (org-roam-node-file source-node))
-      (oset section point point)
-      (insert ?\n))))
-
 (defun org-roam-fontify-like-in-org-mode (s)
   "Fontify string S like in Org mode.
 Like `org-fontify-like-in-org-mode', but supports `org-ref'."
@@ -387,6 +349,47 @@ If ASSERT, throw an error."
    (node :initform nil))
   "A `magit-section' used by `org-roam-mode' to outline NODE in its own heading.")
 
+(cl-defun org-roam-node-insert-section (&key source-node point properties)
+  "Insert section for a link from SOURCE-NODE to some other node.
+The other node is normally `org-roam-buffer-current-node'.
+
+SOURCE-NODE is an `org-roam-node' that links or references with
+the other node.
+
+POINT is a character position where the link is located in
+SOURCE-NODE's file.
+
+PROPERTIES (a plist) contains additional information about the
+link.
+
+Despite the name, this function actually inserts 2 sections at
+the same time:
+
+1. `org-roam-node-section' for a heading that describes
+   SOURCE-NODE. Acts as a parent section of the following one.
+
+2. `org-roam-preview-section' for a preview content that comes
+   from SOURCE-NODE's file for the link (that references the
+   other node) at POINT. Acts a child section of the previous
+   one."
+  (magit-insert-section section (org-roam-node-section)
+    (let ((outline (if-let ((outline (plist-get properties :outline)))
+                       (mapconcat #'org-link-display-format outline " > ")
+                     "Top")))
+      (insert (concat (propertize (org-roam-node-title source-node)
+                                  'font-lock-face 'org-roam-title)
+                      (format " (%s)"
+                              (propertize outline 'font-lock-face 'org-roam-olp)))))
+    (magit-insert-heading)
+    (oset section node source-node)
+    (magit-insert-section section (org-roam-preview-section)
+      (insert (org-roam-fontify-like-in-org-mode
+               (org-roam-preview-get-contents (org-roam-node-file source-node) point))
+              "\n")
+      (oset section file (org-roam-node-file source-node))
+      (oset section point point)
+      (insert ?\n))))
+
 ;;;; Preview
 (defvar org-roam-preview-map
   (let ((map (make-sparse-keymap)))
@@ -417,7 +420,7 @@ window instead."
                  #'switch-to-buffer-other-window
                #'pop-to-buffer-same-window) buf)))
 
-(defun org-roam-get-preview (file point)
+(defun org-roam-preview-get-contents (file point)
   "Get preview content for FILE at POINT."
   (save-excursion
     (org-roam-with-temp-buffer file
