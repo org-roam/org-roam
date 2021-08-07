@@ -65,8 +65,8 @@ as many characters as possible and will be aligned accordingly."
   :type  'string)
 
 (defcustom org-roam-node-annotation-function #'org-roam-node-read--annotation
-  "The function used to return annotations in the minibuffer for Org-roam nodes.
-This function takes a single argument NODE, which is an `org-roam-node' construct."
+  "This function used to attach annotations for `org-roam-node-read'.
+It takes a single argument NODE, which is an `org-roam-node' construct."
   :group 'org-roam
   :type 'function)
 
@@ -75,6 +75,10 @@ This function takes a single argument NODE, which is an `org-roam-node' construc
   :type '(choice (const :tag "file-mtime" file-mtime)
                  (const :tag "file-atime" file-atime))
   :group 'org-roam)
+
+(defcustom org-roam-ref-annotation-function #'org-roam-ref-read--annotation
+  "This function used to attach annotations for `org-roam-ref-read'.
+It takes a single argument REF, which is a propertized string.")
 
 ;;;; Completion-at-point
 (defcustom org-roam-completion-everywhere nil
@@ -836,7 +840,9 @@ filtered out."
                                (lambda (string pred action)
                                  (if (eq action 'metadata)
                                      '(metadata
-                                       (annotation-function . org-roam-ref-read--annotation)
+                                       (annotation-function . (lambda (ref)
+                                                                (funcall org-roam-ref-annotation-function
+                                                                         ref)))
                                        (category . org-roam-ref))
                                    (complete-with-action action refs string pred)))
                                nil t initial-input)))
