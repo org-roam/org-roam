@@ -589,6 +589,17 @@ Assumes that the cursor was put where the link is."
 
 ;;;;; [roam:] link
 (org-link-set-parameters "roam" :follow #'org-roam-link-follow-link)
+(defun org-roam-link-follow-link (title-or-alias)
+  "Navigate \"roam:\" link to find and open the node with TITLE-OR-ALIAS.
+Assumes that the cursor was put where the link is."
+  (if-let ((node (org-roam-node-from-title-or-alias title-or-alias)))
+      (progn
+        (when org-roam-link-auto-replace
+          (org-roam-link-replace-at-point))
+        (org-id-goto (org-roam-node-id node)))
+    (org-roam-capture-
+     :node (org-roam-node-create :title title-or-alias)
+     :props '(:finalize find-file))))
 
 (defun org-roam-link-replace-at-point (&optional link)
   "Replace \"roam:\" LINK at point with an \"id:\" link."
@@ -619,18 +630,6 @@ Assumes that the cursor was put where the link is."
   (when org-roam-link-auto-replace
     (add-hook 'before-save-hook #'org-roam-link-replace-all nil t)))
 
-(defun org-roam-link-follow-link (title-or-alias)
-  "Navigate \"roam:\" link to find and open the node with TITLE-OR-ALIAS.
-Assumes that the cursor was put where the link is."
-  (if-let ((node (org-roam-node-from-title-or-alias title-or-alias)))
-      (progn
-        (when org-roam-link-auto-replace
-          (org-roam-link-replace-at-point))
-        (org-id-goto (org-roam-node-id node)))
-    (org-roam-capture-
-     :node (org-roam-node-create :title title-or-alias)
-     :props '(:finalize find-file))))
-
 ;;;;;; Completion-at-point interface
 (defconst org-roam-bracket-completion-re
   "\\[\\[\\(\\(?:roam:\\)?\\)\\([^z-a]*\\)]]"
@@ -638,25 +637,8 @@ Assumes that the cursor was put where the link is."
 We use this as a substitute for `org-link-bracket-re', because
 `org-link-bracket-re' requires content within the brackets for a match.")
 
-(defun org-roam-complete-everywhere ()
-  "Provides completions for links for any word at point.
-This is a `completion-at-point' function, and is active when
-`org-roam-completion-everywhere' is non-nil."
-  (when (and org-roam-completion-everywhere
-             (thing-at-point 'word)
-             (not (save-match-data (org-in-regexp org-link-any-re))))
-    (let ((bounds (bounds-of-thing-at-point 'word)))
-      (list (car bounds) (cdr bounds)
-            (completion-table-dynamic
-             (lambda (_)
-               (funcall #'org-roam--get-titles)))
-            :exit-function
-            (lambda (str _status)
-              (delete-char (- (length str)))
-              (insert "[[roam:" str "]]"))))))
-
 (defun org-roam-complete-link-at-point ()
-  "Do appropriate completion for the link at point."
+  "Complete \"roam:\" link at point to an existing Org-roam node."
   (let (roam-p start end)
     (when (org-in-regexp org-roam-bracket-completion-re 1)
       (setq roam-p (not (string-blank-p (match-string 1)))
@@ -672,6 +654,27 @@ This is a `completion-at-point' function, and is active when
               (insert (concat (unless roam-p "roam:")
                               str))
               (forward-char 2))))))
+
+(defun org-roam-complete-everywhere ()
+  "Complete symbol at point as a link completion to an Org-roam node.
+This is a `completion-at-point' function, and is active when
+`org-roam-completion-everywhere' is non-nil.
+
+Unlike `org-roam-complete-link-at-point' this will complete even
+outside of the bracket syntax for links (i.e. \"[[roam:|]]\"),
+hence \"everywhere\"."
+  (when (and org-roam-completion-everywhere
+             (thing-at-point 'word)
+             (not (save-match-data (org-in-regexp org-link-any-re))))
+    (let ((bounds (bounds-of-thing-at-point 'word)))
+      (list (car bounds) (cdr bounds)
+            (completion-table-dynamic
+             (lambda (_)
+               (funcall #'org-roam--get-titles)))
+            :exit-function
+            (lambda (str _status)
+              (delete-char (- (length str)))
+              (insert "[[roam:" str "]]"))))))
 
 (defun org-roam-complete-at-point ()
   "Try get completion candidates at point using `org-roam-completion-functions'."
