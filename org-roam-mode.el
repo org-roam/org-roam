@@ -187,14 +187,14 @@ buffer."
     (org-roam-mode)
     (setq-local default-directory org-roam-buffer-current-directory)
     (setq-local org-roam-directory org-roam-buffer-current-directory)
-    (org-roam-set-header-line-format
+    (org-roam-buffer-set-header-line-format
      (org-roam-node-title org-roam-buffer-current-node))
     (magit-insert-section (org-roam)
       (magit-insert-heading)
       (run-hook-with-args 'org-roam-mode-section-functions org-roam-buffer-current-node))
     (goto-char 0)))
 
-(defun org-roam-set-header-line-format (string)
+(defun org-roam-buffer-set-header-line-format (string)
   "Set the header-line using STRING.
 If the `face' property of any part of STRING is already set, then
 that takes precedence. Also pad the left side of STRING so that
