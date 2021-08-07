@@ -66,7 +66,7 @@
 ;; will be lazy-loaded through their own `autoload's.
 ;;
 ;; Org-roam also has other extensions that don't come together with this package.
-;; uch extensions are distributed as their own packages, while also
+;; Such extensions are distributed as their own packages, while also
 ;; authored and maintained by different people on distinct repositories. The
 ;; majority of them can be found at https://github.com/org-roam and MELPA.
 ;;
