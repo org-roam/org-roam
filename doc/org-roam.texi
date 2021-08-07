@@ -798,10 +798,10 @@ keybindings available. Here are several of the more useful ones:
 -@code{<TAB>}: @code{magit-section-toggle}
 @itemize
 @item
-@code{<RET>}: @code{org-roam-visit-thing}
+@code{<RET>}: @code{org-roam-buffer-visit-thing}
 @end itemize
 
-@code{org-roam-visit-thing} is a placeholder command, that is replaced by
+@code{org-roam-buffer-visit-thing} is a placeholder command, that is replaced by
 section-specific commands such as @code{org-roam-node-visit}.
 
 @node Configuring what is displayed in the buffer

@@ -108,6 +108,9 @@ recursion."
 (define-obsolete-function-alias
   'org-roam-buffer
   'org-roam-buffer-display-dedicated "org-roam 2.0")
+(define-obsolete-function-alias
+  'org-roam-visit-thing
+  'org-roam-buffer-visit-thing "org-roam 2.0")
 
 (define-obsolete-function-alias
   'org-roam-dailies-find-today

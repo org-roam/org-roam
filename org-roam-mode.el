@@ -132,8 +132,8 @@ and `:slant'."
 (defvar org-roam-mode-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map magit-section-mode-map)
-    (define-key map [C-return]  'org-roam-visit-thing)
-    (define-key map (kbd "C-m") 'org-roam-visit-thing)
+    (define-key map [C-return]  'org-roam-buffer-visit-thing)
+    (define-key map (kbd "C-m") 'org-roam-buffer-visit-thing)
     (define-key map [remap revert-buffer] 'org-roam-buffer-refresh)
     map)
   "Parent keymap for all keymaps of modes derived from `org-roam-mode'.")
@@ -165,7 +165,7 @@ Set both, locally and globally in the same way as `org-roam-buffer-current-node'
 (put 'org-roam-buffer-current-directory 'permanent-local t)
 
 ;;;; Library
-(defun org-roam-visit-thing ()
+(defun org-roam-buffer-visit-thing ()
   "This is a placeholder command.
 Where applicable, section-specific keymaps bind another command
 which visits the thing at point."
@@ -313,7 +313,7 @@ run at `post-command-hook'."
 (defvar org-roam-node-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map org-roam-mode-map)
-    (define-key map [remap org-roam-visit-thing] 'org-roam-node-visit)
+    (define-key map [remap org-roam-buffer-visit-thing] 'org-roam-node-visit)
     map)
   "Keymap for `org-roam-node-section's.")
 
@@ -367,7 +367,7 @@ the same time:
 (defvar org-roam-preview-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map org-roam-mode-map)
-    (define-key map [remap org-roam-visit-thing] 'org-roam-preview-visit)
+    (define-key map [remap org-roam-buffer-visit-thing] 'org-roam-preview-visit)
     map)
   "Keymap for `org-roam-preview-section's.")
 
@@ -579,7 +579,7 @@ Sorts by title."
 (defvar org-roam-grep-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map org-roam-mode-map)
-    (define-key map [remap org-roam-visit-thing] 'org-roam-grep-visit)
+    (define-key map [remap org-roam-buffer-visit-thing] 'org-roam-grep-visit)
     map)
   "Keymap for Org-roam grep result sections.")
 
