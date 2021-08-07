@@ -62,11 +62,11 @@
 ;;
 ;; This package also comes with a set of officially supported extensions that
 ;; provide extra features. You can find them in the "extensions/" subdirectory.
-;; When `org-roam` is loaded, they are not loaded along, but they still will be
-;; lazy-loaded through their own `autoload's.
+;; These extensions are not automatically loaded with `org-roam`, but they still
+;; will be lazy-loaded through their own `autoload's.
 ;;
-;; Org-roam also has other extensions that don't come together with the package
-;; itself. Such extensions are distributed as their own packages, while also
+;; Org-roam also has other extensions that don't come together with this package.
+;; uch extensions are distributed as their own packages, while also
 ;; authored and maintained by different people on distinct repositories. The
 ;; majority of them can be found at https://github.com/org-roam and MELPA.
 ;;
@@ -127,7 +127,7 @@ All Org files, at any level of nesting, are considered part of the Org-roam."
   :type 'hook)
 
 (defcustom org-roam-file-extensions '("org")
-  "Files matching these extensions will be attempted to be included by Org-Roam.
+  "List of file extensions to be included by Org-Roam.
 While a file extension different from \".org\" may be used, the
 file still needs to be an `org-mode' file, and it is the user's
 responsibility to ensure that."
@@ -240,10 +240,9 @@ OLD-FILE is cleared from the database, and NEW-FILE-OR-DIR is added."
 ;;;; Library
 (defun org-roam-file-p (&optional file)
   "Return t if FILE is an Org-roam file, nil otherwise.
-If it's not, return nil. If FILE is not specified, use the
-current buffer's file-path.
+If FILE is not specified, use the current buffer's file-path.
 
-Normally FILE is an Org-roam file if:
+FILE is an Org-roam file if:
 - It's located somewhere under `org-roam-directory'
 - It has a matching file extension (`org-roam-file-extensions')
 - It doesn't match excluded regexp (`org-roam-file-exclude-regexp')"

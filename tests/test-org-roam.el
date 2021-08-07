@@ -24,11 +24,34 @@
 (require 'buttercup)
 (require 'org-roam)
 
+(describe "org-roam-list-files"
+  (before-each
+    (setq org-roam-directory (expand-file-name "tests/roam-files")
+          org-roam-db-location (expand-file-name "org-roam.db" temporary-file-directory)
+          org-roam-file-extensions '("org")
+          org-roam-file-exclude-regexp nil))
+
+  (it "gets files correctly"
+    (expect (length (org-roam-list-files))
+            :to-equal 2))
+
+  (it "respects org-roam-file-extensions"
+    (setq org-roam-file-extensions '("md"))
+    (expect (length (org-roam-list-files)) :to-equal 1)
+    (setq org-roam-file-extensions '("org" "md"))
+    (expect (length (org-roam-list-files)) :to-equal 3))
+
+  (it "respects org-roam-file-exclude-regexp"
+    (setq org-roam-file-exclude-regexp (regexp-quote "foo.org"))
+    (expect (length (org-roam-list-files)) :to-equal 1)))
+
 (describe "org-roam-db-sync"
   (before-all
     (setq org-roam-directory (expand-file-name "tests/roam-files")
-          org-roam-db-location (expand-file-name "org-roam.db" temporary-file-directory))
-    (org-roam-setup))
+          org-roam-db-location (expand-file-name "org-roam.db" temporary-file-directory)
+          org-roam-file-extensions '("org")
+          org-roam-file-exclude-regexp nil)
+    (org-roam-db-sync))
 
   (after-all
     (org-roam-teardown)
