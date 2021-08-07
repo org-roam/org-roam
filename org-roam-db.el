@@ -43,22 +43,30 @@ when used with multiple Org-roam instances."
 
 (defcustom org-roam-db-gc-threshold gc-cons-threshold
   "The value to temporarily set the `gc-cons-threshold' threshold to.
-During large, heavy operations like `org-roam-db-sync',
-many GC operations happen because of the large number of
-temporary structures generated (e.g. parsed ASTs). Temporarily
-increasing `gc-cons-threshold' will help reduce the number of GC
-operations, at the cost of temporary memory usage.
+During `org-roam-db-sync', Emacs can pause multiple times to
+perform garbage collection because of the large number of
+temporary structures generated (e.g. parsed ASTs).
 
-This defaults to the original value of `gc-cons-threshold', but
-tweaking this number may lead to better overall performance. For
-example, to reduce the number of GCs, one may set it to a large
-value like `most-positive-fixnum'."
+`gc-cons-threshold' is temporarily set to
+`org-roam-db-gc-threshold' during this operation, and increasing
+`gc-cons-threshold' will help reduce the number of GC operations,
+at the cost of memory usage. Tweaking this value may lead to
+better overall performance.
+
+For example, to reduce the number of GCs to the minimum, on
+machines with large memory one may set it to
+`most-positive-fixnum'."
   :type 'int
   :group 'org-roam)
 
-;; TODO Rewrite help message
 (defcustom org-roam-db-node-include-function (lambda () t)
-  "A custom function to check if the headline at point is a node."
+  "A custom function to check if the point contains a valid node.
+This function is called each time a node (both file and headline)
+is about to be saved into the Org-roam database.
+
+If the function returns nil, Org-roam will skip the node. This
+function is useful for excluding certain nodes from the Org-roam
+database."
   :type 'function
   :group 'org-roam)
 
@@ -71,6 +79,8 @@ slow."
 
 ;;; Variables
 (defconst org-roam-db-version 16)
+
+;; TODO Rename this
 (defconst org-roam--sqlite-available-p
   (with-demoted-errors "Org-roam initialization: %S"
     (emacsql-sqlite-ensure-binary)
@@ -451,7 +461,7 @@ If UPDATE-P is non-nil, first remove the file in the database."
     (org-with-wide-buffer
      (secure-hash 'sha1 (current-buffer)))))
 
-;;;; Updating
+;;;; Interactives
 ;;;###autoload
 (defun org-roam-db-sync (&optional force)
   "Synchronize the cache state with the current Org files on-disk.
@@ -508,6 +518,7 @@ If the file exists, update the cache with information."
           (org-roam-db-map-links
            (list #'org-roam-db-insert-link)))))))
 
+;;;; Hook Setups
 (add-hook 'org-roam-find-file-hook #'org-roam-db--setup-update-on-save-h)
 (defun org-roam-db--setup-update-on-save-h ()
   "Setup the current buffer to update the DB after saving the current file."
@@ -522,7 +533,6 @@ If the file exists, update the cache with information."
   "Print information about node at point."
   (interactive)
   (prin1 (org-roam-node-at-point)))
-
 
 (provide 'org-roam-db)
 
