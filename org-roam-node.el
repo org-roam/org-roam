@@ -512,15 +512,13 @@ COMPLETION-A and COMPLETION-B are items in the form of (node-title org-roam-node
 (defun org-roam-node-read-sort-by-file-atime (completion-a completion-b)
   "Sort files such that files accessed more recently are shown first.
 COMPLETION-A and COMPLETION-B are items in the form of (node-title org-roam-node-struct)"
-  "Sort completions list by file modification time."
   (let ((node-a (cdr completion-a))
         (node-b (cdr completion-b)))
     (time-less-p (org-roam-node-file-atime node-b)
                  (org-roam-node-file-atime node-a))))
 
 (defun org-roam-node-read--annotation (_node)
-  "Dummy function.
-Returns empty string for annotations."
+  "Placeholder function. Return empty string for annotations."
   "")
 
 ;;;; Linkage
@@ -826,8 +824,7 @@ first encapsulating ID."
 ;;; Refs
 ;;;; Completing-read interface
 (defun org-roam-ref-read (&optional initial-input filter-fn)
-  "Read an Org-roam ref.
-Return a string, is propertized in `meta' with additional properties.
+  "Read an Org-roam ref and return a corresponding `org-roam-node'.
 INITIAL-INPUT is the initial prompt value.
 FILTER-FN is a function to filter out nodes: it takes an `org-roam-node',
 and when nil is returned the node will be filtered out.
@@ -848,7 +845,6 @@ filtered out."
 (defun org-roam-ref-read--completions ()
   "Return an alist for ref completion.
 The car is the ref, and the cdr is the corresponding node for the ref."
-  nil
   (let ((rows (org-roam-db-query
                [:select [id ref type nodes:file pos title]
                 :from refs
@@ -864,8 +860,7 @@ The car is the ref, and the cdr is the corresponding node for the ref."
                              node)))))
 
 (defun org-roam-ref-read--annotation (ref)
-  "Return the annotation for REF.
-REF is assumed to be a propertized string."
+  "Return the annotation for REF, which assumed to be a propertized string."
   (let* ((node (get-text-property 0 'node ref))
          (title (org-roam-node-title node)))
     (when title
