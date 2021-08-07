@@ -131,7 +131,34 @@ value (possibly nil). Adapted from `s-format'."
          t t)
       (set-match-data saved-match-data))))
 
-;;; Shielding regions
+;;; Fontification
+(defun org-roam-fontify-like-in-org-mode (s)
+  "Fontify string S like in Org mode.
+Like `org-fontify-like-in-org-mode', but supports `org-ref'."
+  ;; NOTE: pretend that the temporary buffer created by `org-fontify-like-in-org-mode' to
+  ;; fontify a `cite:' reference has been hacked by org-ref, whatever that means;
+  ;;
+  ;; `org-ref-cite-link-face-fn', which is used to supply a face for `cite:' links, calls
+  ;; `hack-dir-local-variables' rationalizing that `bibtex-completion' would throw some warnings
+  ;; otherwise.  This doesn't seem to be the case and calling this function just before
+  ;; `org-font-lock-ensure' (alias of `font-lock-ensure') actually instead of fixing the alleged
+  ;; warnings messes the things so badly that `font-lock-ensure' crashes with error and doesn't let
+  ;; org-roam to proceed further. I don't know what's happening there exactly but disabling this hackery
+  ;; fixes the crashing.  Fortunately, org-ref provides the `org-ref-buffer-hacked' switch, which we use
+  ;; here to make it believe that the buffer was hacked.
+  ;;
+  ;; This is a workaround for `cite:' links and does not have any effect on other ref types.
+  ;;
+  ;; `org-ref-buffer-hacked' is a buffer-local variable, therefore we inline
+  ;; `org-fontify-like-in-org-mode' here
+  (with-temp-buffer
+    (insert s)
+    (let ((org-ref-buffer-hacked t))
+      (org-mode)
+      (org-font-lock-ensure)
+      (buffer-string))))
+
+;;;; Shielding regions
 (defface org-roam-shielded
   '((t :inherit (warning)))
   "Face for regions that are shielded (marked as read-only).
