@@ -172,6 +172,18 @@ which visits the thing at point."
   (interactive)
   (user-error "There is no thing at point that could be visited"))
 
+(defun org-roam-buffer-file-at-point (&optional assert)
+  "Return the file at point in the current `org-roam-mode' based buffer.
+If ASSERT, throw an error."
+  (if-let ((file (magit-section-case
+                   (org-roam-node-section (org-roam-node-file (oref it node)))
+                   (org-roam-grep-section (oref it file))
+                   (org-roam-preview-section (oref it file))
+                   (t (cl-assert (derived-mode-p 'org-roam-mode))))))
+      file
+    (when assert
+      (user-error "No file at point"))))
+
 (defun org-roam-buffer-refresh ()
   "Refresh the contents of the currently selected Org-roam buffer."
   (interactive)
@@ -284,17 +296,17 @@ Has no effect when there's no `org-roam-node-at-point'."
   (setq-default org-roam-buffer-current-node nil
                 org-roam-buffer-current-directory nil))
 
+(add-hook 'org-roam-find-file-hook #'org-roam-buffer--setup-redisplay-h)
+(defun org-roam-buffer--setup-redisplay-h ()
+  "Setup automatic redisplay of the persistent `org-roam-buffer'."
+  (add-hook 'post-command-hook #'org-roam-buffer--redisplay-h nil t))
+
 (defun org-roam-buffer--redisplay-h ()
   "Reconstruct the persistent `org-roam-buffer'.
 This needs to be quick or infrequent, because this designed to
 run at `post-command-hook'."
   (and (get-buffer-window org-roam-buffer)
        (org-roam-buffer-persistent-redisplay)))
-
-(add-hook 'org-roam-find-file-hook #'org-roam-buffer--setup-redisplay-h)
-(defun org-roam-buffer--setup-redisplay-h ()
-  "Setup automatic redisplay of the persistent `org-roam-buffer'."
-  (add-hook 'post-command-hook #'org-roam-buffer--redisplay-h nil t))
 
 ;;; Sections
 ;;;; Library
@@ -323,18 +335,6 @@ Like `org-fontify-like-in-org-mode', but supports `org-ref'."
       (org-mode)
       (org-font-lock-ensure)
       (buffer-string))))
-
-(defun org-roam-buffer-file-at-point (&optional assert)
-  "Return the file at point in the current `org-roam-mode' based buffer.
-If ASSERT, throw an error."
-  (if-let ((file (magit-section-case
-                   (org-roam-node-section (org-roam-node-file (oref it node)))
-                   (org-roam-grep-section (oref it file))
-                   (org-roam-preview-section (oref it file))
-                   (t (cl-assert (derived-mode-p 'org-roam-mode))))))
-      file
-    (when assert
-      (user-error "No file at point"))))
 
 ;;;; Node
 (defvar org-roam-node-map
