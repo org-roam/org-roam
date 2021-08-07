@@ -33,17 +33,17 @@
 
   (it "gets files correctly"
     (expect (length (org-roam-list-files))
-            :to-equal 2))
+            :to-equal 3))
 
   (it "respects org-roam-file-extensions"
     (setq org-roam-file-extensions '("md"))
     (expect (length (org-roam-list-files)) :to-equal 1)
     (setq org-roam-file-extensions '("org" "md"))
-    (expect (length (org-roam-list-files)) :to-equal 3))
+    (expect (length (org-roam-list-files)) :to-equal 4))
 
   (it "respects org-roam-file-exclude-regexp"
     (setq org-roam-file-exclude-regexp (regexp-quote "foo.org"))
-    (expect (length (org-roam-list-files)) :to-equal 1)))
+    (expect (length (org-roam-list-files)) :to-equal 2)))
 
 (describe "org-roam-db-sync"
   (before-all
@@ -60,7 +60,7 @@
   (it "has the correct number of files"
     (expect (caar (org-roam-db-query [:select (funcall count) :from files]))
             :to-equal
-            2))
+            3))
 
   (it "has the correct number of nodes"
     (expect (caar (org-roam-db-query [:select (funcall count) :from nodes]))
@@ -70,7 +70,13 @@
   (it "has the correct number of links"
     (expect (caar (org-roam-db-query [:select (funcall count) :from links]))
             :to-equal
-            1)))
+            1))
+
+  (it "respects ROAM_EXCLUDE"
+    ;; The excluded node has ID "53fadc75-f48e-461e-be06-44a1e88b2abe"
+    (expect (mapcar #'car (org-roam-db-query [:select id :from nodes]))
+            :to-have-same-items-as
+            '("884b2341-b7fe-434d-848c-5282c0727861" "440795d0-70c1-4165-993d-aebd5eef7a24"))))
 
 (provide 'test-org-roam)
 

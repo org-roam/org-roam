@@ -1,0 +1,7 @@
+:PROPERTIES:
+:ID:       53fadc75-f48e-461e-be06-44a1e88b2abe
+:ROAM_EXCLUDE: t
+:END:
+#+TITLE: Excluded by Org-roam
+
+This node is excluded by declaring ~ROAM_EXCLUDE: t~.
