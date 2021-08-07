@@ -579,7 +579,7 @@ Sorts by title."
 (defvar org-roam-grep-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map org-roam-mode-map)
-    (define-key map [remap org-roam-visit-thing] 'org-roam-file-visit)
+    (define-key map [remap org-roam-visit-thing] 'org-roam-grep-visit)
     map)
   "Keymap for Org-roam grep result sections.")
 
@@ -590,11 +590,10 @@ Sorts by title."
    (col :initform nil))
   "A `magit-section' used by `org-roam-mode' to contain grep output.")
 
-(defun org-roam-file-visit (file &optional other-window row col)
-  "Visits FILE.
+(defun org-roam-grep-visit (file &optional other-window row col)
+  "Visits FILE. If ROW, move to the row, and if COL move to the COL.
 With a prefix argument OTHER-WINDOW, display the buffer in
-another window instead.
-If ROW, move to the row, and if COL move to the COL."
+another window instead."
   (interactive (list (org-roam-buffer-file-at-point t)
                      current-prefix-arg
                      (oref (magit-current-section) row)
