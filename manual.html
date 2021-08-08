@@ -963,10 +963,10 @@ keybindings available. Here are several of the more useful ones:
 </li></ul>
 <p>-<code>&lt;TAB&gt;</code>: <code>magit-section-toggle</code>
 </p><ul>
-<li> <code>&lt;RET&gt;</code>: <code>org-roam-visit-thing</code>
+<li> <code>&lt;RET&gt;</code>: <code>org-roam-buffer-visit-thing</code>
 </li></ul>
 
-<p><code>org-roam-visit-thing</code> is a placeholder command, that is replaced by
+<p><code>org-roam-buffer-visit-thing</code> is a placeholder command, that is replaced by
 section-specific commands such as <code>org-roam-node-visit</code>.
 </p>
 <hr>
@@ -2364,7 +2364,7 @@ INITIAL-INPUT is the initial minibuffer prompt value. FILTER-FN
 is a function to filter out nodes: it takes a single argument (an
 <code>org-roam-node</code>), and when nil is returned the node will be
 filtered out.
-SORT-FN is a function to sort nodes. See <code>org-roam-node-sort-by-file-mtime</code>
+SORT-FN is a function to sort nodes. See <code>org-roam-node-read-sort-by-file-mtime</code>
 for an example sort function.
 If REQUIRE-MATCH, the minibuffer prompt will require a match.
 </p></dd></dl>
@@ -2403,7 +2403,7 @@ instead. The exposed function to be used in extensions is <code>org-roam-capture
 <dd>
 <p>Main entry point.
 GOTO and KEYS correspond to &lsquo;org-capture&rsquo; arguments.
-INFO is an alist for filling up Org-roam&rsquo;s capture templates.
+INFO is a plist for filling up Org-roam&rsquo;s capture templates.
 NODE is an &lsquo;org-roam-node&rsquo; construct containing information about the node.
 PROPS is a plist containing additional Org-roam properties for each template.
 TEMPLATES is a list of org-roam templates.
