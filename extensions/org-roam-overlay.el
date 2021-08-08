@@ -1,4 +1,4 @@
-;;; org-roam-overlay.el --- Link overlay for Org-roam nodes -*- coding: utf-8; lexical-binding: t; -*-
+;;; org-roam-overlay.el --- Link overlay for [id:] links to Org-roam nodes -*- coding: utf-8; lexical-binding: t; -*-
 
 ;; Copyright © 2020-2021 Jethro Kuan <jethrokuan95@gmail.com>
 
@@ -6,7 +6,7 @@
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
 ;; Version: 2.0.0
-;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (org "9.4") (emacsql "3.0.0") (emacsql-sqlite "1.0.0") (magit-section "2.90.1"))
+;; Package-Requires: ((emacs "26.1") (org "9.4") (org-roam "2.0"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -27,13 +27,11 @@
 
 ;;; Commentary:
 ;;
-;; This library is an attempt at injecting Roam functionality into Org-mode.
-;; This is achieved primarily through building caches for forward links,
-;; backward links, and file titles.
-;;
+;; This extension provides allows to render [[id:]] links that don't have an
+;; asscoiated descriptor with an overlay that displays the node's current title.
 ;;
 ;;; Code:
-;;;; Dependencies
+(require 'org-roam)
 
 (defface org-roam-overlay
   '((((class color) (background light))

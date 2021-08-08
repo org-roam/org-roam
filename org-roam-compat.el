@@ -1,12 +1,12 @@
-;;; org-roam-compat.el --- Compatibility Code -*- coding: utf-8; lexical-binding: t; -*-
+;;; org-roam-compat.el --- Backward compatibility code -*- coding: utf-8; lexical-binding: t; -*-
 
-;; Copyright © 2020 Jethro Kuan <jethrokuan95@gmail.com>
+;; Copyright © 2020-2021 Jethro Kuan <jethrokuan95@gmail.com>
 
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
 ;; Version: 2.0.0
-;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (org "9.4") (emacsql "3.0.0") (emacsql-sqlite "1.0.0") (magit-section "2.90.1"))
+;; Package-Requires: ((emacs "26.1"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -27,12 +27,10 @@
 
 ;;; Commentary:
 ;;
-;; This file contains code needed for backward compatibility with older Emacsen
-;; and previous versions of org-roam.
+;; This file is dedicated to maintain backward compatibility with older older
+;; Emacsen and Org-roam versions.
 ;;
 ;;; Code:
-;;;; Library Requires
-
 ;;; Backports
 ;; REVIEW Remove when 26.x support is dropped. This is exact the same as
 ;; `directory-files-recursively' from Emacs 26, but with FOLLOW-SYMLINKS
@@ -110,6 +108,9 @@ recursion."
 (define-obsolete-function-alias
   'org-roam-buffer
   'org-roam-buffer-display-dedicated "org-roam 2.0")
+(define-obsolete-function-alias
+  'org-roam-visit-thing
+  'org-roam-buffer-visit-thing "org-roam 2.0")
 
 (define-obsolete-function-alias
   'org-roam-dailies-find-today

@@ -1,4 +1,4 @@
-;;; org-roam-graph.el --- Graphing API -*- coding: utf-8; lexical-binding: t; -*-
+;;; org-roam-graph.el --- Basic graphing functionality for Org-roam -*- coding: utf-8; lexical-binding: t; -*-
 
 ;; Copyright © 2020-2021 Jethro Kuan <jethrokuan95@gmail.com>
 
@@ -6,7 +6,7 @@
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
 ;; Version: 2.0.0
-;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (org "9.4") (emacsql "3.0.0") (emacsql-sqlite "1.0.0") (magit-section "2.90.1"))
+;; Package-Requires: ((emacs "26.1") (org "9.4") (org-roam "2.0"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -27,18 +27,14 @@
 
 ;;; Commentary:
 ;;
-;; This library provides graphing functionality for org-roam.
+;; This extension implements capability to build and generate graphs in Org-roam
+;; with the help of Graphviz.
 ;;
 ;;; Code:
 (require 'xml) ;xml-escape-string
-(eval-and-compile
-  (require 'org-roam-macs))
 (require 'org-roam)
 
-;;;; Declarations
-(defvar org-roam-directory)
-
-;;;; Options
+;;; Options
 (defcustom org-roam-graph-viewer (executable-find "firefox")
   "Method to view the org-roam graph.
 It may be one of the following:
@@ -117,13 +113,86 @@ All other values including nil will have no effect."
           (const :tag "no" nil))
   :group 'org-roam)
 
-(defun org-roam-graph--dot-option (option &optional wrap-key wrap-val)
-  "Return dot string of form KEY=VAL for OPTION cons.
-If WRAP-KEY is non-nil it wraps the KEY.
-If WRAP-VAL is non-nil it wraps the VAL."
-  (concat wrap-key (car option) wrap-key
-          "="
-          wrap-val (cdr option) wrap-val))
+;;; Interactive command
+;;;###autoload
+(defun org-roam-graph (&optional arg node)
+  "Build and possibly display a graph for NODE.
+ARG may be any of the following values:
+  - nil       show the graph.
+  - `\\[universal-argument]'     show the graph for NODE.
+  - `\\[universal-argument]' N   show the graph for NODE limiting nodes to N steps."
+  (interactive
+   (list current-prefix-arg
+         (and current-prefix-arg
+              (org-roam-node-at-point 'assert))))
+  (let ((graph (cl-typecase arg
+                 (null (org-roam-graph--dot nil 'all-nodes))
+                 (cons (org-roam-graph--dot (org-roam-graph--connected-component
+                                             (org-roam-node-id node) 0)))
+                 (integer (org-roam-graph--dot (org-roam-graph--connected-component
+                                                (org-roam-node-id node) (abs arg)))))))
+    (org-roam-graph--build graph #'org-roam-graph--open)))
+
+;;; Generation and Build process
+(defun org-roam-graph--build (graph &optional callback)
+  "Generate the GRAPH, and execute CALLBACK when process exits successfully.
+CALLBACK is passed the graph file as its sole argument."
+  (unless (stringp org-roam-graph-executable)
+    (user-error "`org-roam-graph-executable' is not a string"))
+  (unless (executable-find org-roam-graph-executable)
+    (user-error (concat "Cannot find executable \"%s\" to generate the graph.  "
+                        "Please adjust `org-roam-graph-executable'")
+                org-roam-graph-executable))
+  (let* ((temp-dot   (make-temp-file "graph." nil ".dot" graph))
+         (temp-graph (make-temp-file "graph." nil (concat "." org-roam-graph-filetype))))
+    (org-roam-message "building graph")
+    (make-process
+     :name "*org-roam-graph--build-process*"
+     :buffer "*org-roam-graph--build-process*"
+     :command `(,org-roam-graph-executable ,temp-dot "-T" ,org-roam-graph-filetype "-o" ,temp-graph)
+     :sentinel (when callback
+                 (lambda (process _event)
+                   (when (= 0 (process-exit-status process))
+                     (funcall callback temp-graph)))))))
+
+(defun org-roam-graph--dot (&optional edges all-nodes)
+  "Build the graphviz given the EDGES of the graph.
+If ALL-NODES, include also nodes without edges."
+  (let ((org-roam-directory-temp org-roam-directory)
+        (nodes-table (make-hash-table :test #'equal))
+        (seen-nodes (list))
+        (edges (or edges (org-roam-db-query [:select :distinct [source dest type] :from links]))))
+    (pcase-dolist (`(,id ,file ,title)
+                   (org-roam-db-query [:select [id file title] :from nodes]))
+      (puthash id (org-roam-node-create :file file :id id :title title) nodes-table))
+    (with-temp-buffer
+      (setq-local org-roam-directory org-roam-directory-temp)
+      (insert "digraph \"org-roam\" {\n")
+      (dolist (option org-roam-graph-extra-config)
+        (insert (org-roam-graph--dot-option option) ";\n"))
+      (insert (format " edge [%s];\n"
+                      (mapconcat (lambda (var)
+                                   (org-roam-graph--dot-option var nil "\""))
+                                 org-roam-graph-edge-extra-config
+                                 ",")))
+      (pcase-dolist (`(,source ,dest ,type) edges)
+        (unless (member type org-roam-graph-link-hidden-types)
+          (pcase-dolist (`(,node ,node-type) `((,source "id")
+                                               (,dest ,type)))
+            (unless (member node seen-nodes)
+              (insert (org-roam-graph--format-node
+                       (or (gethash node nodes-table) node) node-type))
+              (push node seen-nodes)))
+          (insert (format "  \"%s\" -> \"%s\";\n"
+                          (xml-escape-string source)
+                          (xml-escape-string dest)))))
+      (when all-nodes
+        (maphash (lambda (id node)
+                   (unless (member id seen-nodes)
+                     (insert (org-roam-graph--format-node node "id"))))
+                 nodes-table))
+      (insert "}")
+      (buffer-string))))
 
 (defun org-roam-graph--connected-component (id distance)
   "Return the edges for all nodes reachable from/connected to ID.
@@ -158,41 +227,13 @@ WITH RECURSIVE
 SELECT source, dest, type FROM links WHERE source IN nodes OR dest IN nodes;")))
     (org-roam-db-query query id distance)))
 
-(defun org-roam-graph--dot (&optional edges all-nodes)
-  "Build the graphviz given the EDGES of the graph.
-If ALL-NODES, include also nodes without edges."
-  (let ((org-roam-directory-temp org-roam-directory)
-        (nodes-table (org-roam--nodes-table))
-        (seen-nodes (list))
-        (edges (or edges (org-roam-db-query [:select :distinct [source dest type] :from links]))))
-    (with-temp-buffer
-      (setq-local org-roam-directory org-roam-directory-temp)
-      (insert "digraph \"org-roam\" {\n")
-      (dolist (option org-roam-graph-extra-config)
-        (insert (org-roam-graph--dot-option option) ";\n"))
-      (insert (format " edge [%s];\n"
-                      (mapconcat (lambda (var)
-                                   (org-roam-graph--dot-option var nil "\""))
-                                 org-roam-graph-edge-extra-config
-                                 ",")))
-      (pcase-dolist (`(,source ,dest ,type) edges)
-        (unless (member type org-roam-graph-link-hidden-types)
-          (pcase-dolist (`(,node ,node-type) `((,source "id")
-                                               (,dest ,type)))
-            (unless (member node seen-nodes)
-              (insert (org-roam-graph--format-node
-                       (or (gethash node nodes-table) node) node-type))
-              (push node seen-nodes)))
-          (insert (format "  \"%s\" -> \"%s\";\n"
-                          (xml-escape-string source)
-                          (xml-escape-string dest)))))
-      (when all-nodes
-        (maphash (lambda (id node)
-                   (unless (member id seen-nodes)
-                     (insert (org-roam-graph--format-node node "id"))))
-                 nodes-table))
-      (insert "}")
-      (buffer-string))))
+(defun org-roam-graph--dot-option (option &optional wrap-key wrap-val)
+  "Return dot string of form KEY=VAL for OPTION cons.
+If WRAP-KEY is non-nil it wraps the KEY.
+If WRAP-VAL is non-nil it wraps the VAL."
+  (concat wrap-key (car option) wrap-key
+          "="
+          wrap-val (cdr option) wrap-val))
 
 (defun org-roam-graph--format-node (node type)
   "Return a graphviz NODE with TYPE.
@@ -200,11 +241,12 @@ Handles both Org-roam nodes, and string nodes (e.g. urls)."
   (let (node-id node-properties)
     (if (org-roam-node-p node)
         (let* ((title (org-roam-quote-string (org-roam-node-title node)))
-               (shortened-title (org-roam-quote-string
-                                 (pcase org-roam-graph-shorten-titles
-                                   (`truncate (org-roam-truncate org-roam-graph-max-title-length title))
-                                   (`wrap (s-word-wrap org-roam-graph-max-title-length title))
-                                   (_ title)))))
+               (shortened-title
+                (org-roam-quote-string
+                 (pcase org-roam-graph-shorten-titles
+                   (`truncate (truncate-string-to-width title org-roam-graph-max-title-length nil nil "..."))
+                   (`wrap (s-word-wrap org-roam-graph-max-title-length title))
+                   (_ title)))))
           (setq node-id (org-roam-node-id node)
                 node-properties `(("label"   . ,shortened-title)
                                   ("URL"     . ,(concat "org-protocol://roam-node?node="
@@ -221,27 +263,6 @@ Handles both Org-roam nodes, and string nodes (e.g. urls)."
                        (append (cdr (assoc type org-roam-graph-node-extra-config))
                                node-properties) ","))))
 
-(defun org-roam-graph--build (graph &optional callback)
-  "Generate the GRAPH, and execute CALLBACK when process exits successfully.
-CALLBACK is passed the graph file as its sole argument."
-  (unless (stringp org-roam-graph-executable)
-    (user-error "`org-roam-graph-executable' is not a string"))
-  (unless (executable-find org-roam-graph-executable)
-    (user-error (concat "Cannot find executable \"%s\" to generate the graph.  "
-                        "Please adjust `org-roam-graph-executable'")
-                org-roam-graph-executable))
-  (let* ((temp-dot   (make-temp-file "graph." nil ".dot" graph))
-         (temp-graph (make-temp-file "graph." nil (concat "." org-roam-graph-filetype))))
-    (org-roam-message "building graph")
-    (make-process
-     :name "*org-roam-graph--build-process*"
-     :buffer "*org-roam-graph--build-process*"
-     :command `(,org-roam-graph-executable ,temp-dot "-T" ,org-roam-graph-filetype "-o" ,temp-graph)
-     :sentinel (when callback
-                 (lambda (process _event)
-                   (when (= 0 (process-exit-status process))
-                     (funcall callback temp-graph)))))))
-
 (defun org-roam-graph--open (file)
   "Open FILE using `org-roam-graph-viewer' with `view-file' as a fallback."
   (pcase org-roam-graph-viewer
@@ -254,26 +275,6 @@ CALLBACK is passed the graph file as its sole argument."
     ((pred functionp) (funcall org-roam-graph-viewer file))
     ('nil (view-file file))
     (_ (signal 'wrong-type-argument `((functionp stringp null) ,org-roam-graph-viewer)))))
-
-;;;; Commands
-;;;###autoload
-(defun org-roam-graph (&optional arg node)
-  "Build and possibly display a graph for NODE.
-ARG may be any of the following values:
-  - nil       show the graph.
-  - `\\[universal-argument]'     show the graph for NODE.
-  - `\\[universal-argument]' N   show the graph for NODE limiting nodes to N steps."
-  (interactive
-   (list current-prefix-arg
-         (and current-prefix-arg
-              (org-roam-node-at-point 'assert))))
-  (let ((graph (cl-typecase arg
-                 (null (org-roam-graph--dot nil 'all-nodes))
-                 (cons (org-roam-graph--dot (org-roam-graph--connected-component
-                                             (org-roam-node-id node) 0)))
-                 (integer (org-roam-graph--dot (org-roam-graph--connected-component
-                                                (org-roam-node-id node) (abs arg)))))))
-    (org-roam-graph--build graph #'org-roam-graph--open)))
 
 
 (provide 'org-roam-graph)

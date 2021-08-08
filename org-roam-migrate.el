@@ -27,16 +27,18 @@
 
 ;;; Commentary:
 ;;
-;;  To ease transition from v1 to v2, we provide various migration utilities.
-;;  This library helps convert v1 notes to v2, and informs the user.
+;; This is a special library provided for the v1 users of this package. It's
+;; purpose is to ease the transition from v1 to v2, by providing migration
+;; utilities to convert from v1 notes to v2 nodes.
 ;;
 ;;; Code:
-;;;; Dependencies
-;;;;
-;;; v1 breaking warning
-(require 'org-roam-db)
+(require 'org-roam)
 
-(defvar org-roam-v2-ack nil)
+;;; v1 breaking warning
+(defvar org-roam-v2-ack nil
+  "When set to t, won't display the annoying warning message about the upgrade.
+Need to be set before the package is loaded, otherwise won't take
+any affect.")
 
 (unless org-roam-v2-ack
   (lwarn 'org-roam :error "
@@ -74,7 +76,8 @@ To your init file.
 "
          "https://github.com/org-roam/org-roam/wiki/Hitchhiker's-Rough-Guide-to-Org-roam-V2"))
 
-;;;###autoload (autoload 'org-roam-migrate-wizard "org-roam" nil t)
+;;; Migration wizard (v1 -> v2)
+;;;###autoload
 (defun org-roam-migrate-wizard ()
   "Migrate all notes from to be compatible with Org-roam v2.
 1. Convert all notes from v1 format to v2.
@@ -93,7 +96,7 @@ This will take a while. Are you sure you want to do this?")
     (org-roam-db-sync 'force)
 
     ;; Convert v1 to v2
-    (dolist (f (org-roam--list-all-files))
+    (dolist (f (org-roam-list-files))
       (org-roam-with-file f nil
         (org-roam-migrate-v1-to-v2)))
 
@@ -101,7 +104,7 @@ This will take a while. Are you sure you want to do this?")
     (org-roam-db-sync 'force)
 
     ;;Replace all file links with ID links
-    (dolist (f (org-roam--list-all-files))
+    (dolist (f (org-roam-list-files))
       (org-roam-with-file f nil
         (org-roam-migrate-replace-file-links-with-id)
         (save-buffer)))))

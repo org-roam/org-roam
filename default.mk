@@ -44,16 +44,17 @@ HTMLDIRS  = $(PACKAGES)
 PDFFILES  = $(addsuffix .pdf,$(PACKAGES))
 EPUBFILES = $(addsuffix .epub,$(PACKAGES))
 
-ELS = org-roam-buffer.el
+ELS = org-roam.el
 ELS += org-roam-capture.el
 ELS += org-roam-compat.el
-ELS += org-roam-completion.el
-ELS += org-roam-dailies.el
 ELS += org-roam-db.el
-ELS += org-roam.el
-ELS += org-roam-graph.el
-ELS += org-roam-macs.el
-ELS += org-roam-protocol.el
+ELS += org-roam-mode.el
+ELS += org-roam-node.el
+ELS += org-roam-utils.el
+ELS += extensions/org-roam-dailies.el
+ELS += extensions/org-roam-graph.el
+ELS += extensions/org-roam-overlay.el
+ELS += extensions/org-roam-protocol.el
 ELCS = $(ELS:.el=.elc)
 ELMS = org-roam.el $(filter-out $(addsuffix .el,$(PACKAGES)),$(ELS))
 ELGS = org-roam-autoloads.el org-roam-version.el

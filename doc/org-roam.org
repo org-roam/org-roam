@@ -495,9 +495,9 @@ keybindings available. Here are several of the more useful ones:
 - ~M-{N}~: ~magit-section-show-level-{N}-all~
 - ~n~: ~magit-section-forward~
 -~<TAB>~: ~magit-section-toggle~
-- ~<RET>~: ~org-roam-visit-thing~
+- ~<RET>~: ~org-roam-buffer-visit-thing~
 
-~org-roam-visit-thing~ is a placeholder command, that is replaced by
+~org-roam-buffer-visit-thing~ is a placeholder command, that is replaced by
 section-specific commands such as ~org-roam-node-visit~.
 
 ** Configuring what is displayed in the buffer
@@ -1415,7 +1415,7 @@ method to access nodes is ~org-roam-node-at-point~ and ~org-roam-node-read~:
   is a function to filter out nodes: it takes a single argument (an
   ~org-roam-node~), and when nil is returned the node will be
   filtered out.
-  SORT-FN is a function to sort nodes. See ~org-roam-node-sort-by-file-mtime~
+  SORT-FN is a function to sort nodes. See ~org-roam-node-read-sort-by-file-mtime~
   for an example sort function.
   If REQUIRE-MATCH, the minibuffer prompt will require a match.
 
@@ -1447,7 +1447,7 @@ instead. The exposed function to be used in extensions is ~org-roam-capture-~:
 
   Main entry point.
   GOTO and KEYS correspond to `org-capture' arguments.
-  INFO is an alist for filling up Org-roam's capture templates.
+  INFO is a plist for filling up Org-roam's capture templates.
   NODE is an `org-roam-node' construct containing information about the node.
   PROPS is a plist containing additional Org-roam properties for each template.
   TEMPLATES is a list of org-roam templates.

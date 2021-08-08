@@ -1,5 +1,6 @@
-;;; org-roam-mode.el --- create and refresh Org-roam buffers -*- lexical-binding: t -*-
-;; Copyright © 2020 Jethro Kuan <jethrokuan95@gmail.com>
+;;; org-roam-mode.el --- Major mode for special Org-roam buffers -*- lexical-binding: t -*-
+
+;; Copyright © 2020-2021 Jethro Kuan <jethrokuan95@gmail.com>
 
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
 ;; URL: https://github.com/org-roam/org-roam
@@ -26,18 +27,26 @@
 
 ;;; Commentary:
 ;;
-;; This library implements the abstract major-mode `org-roam-mode', from which
-;; almost all other Org-roam major-modes derive.
+;; This module implements `org-roam-mode', which is a major mode that used by
+;; special Org-roam buffers to display various content in a section-like manner
+;; about the nodes and relevant to them information (e.g. backlinks) with which
+;; the user can interact with.
 ;;
 ;;; Code:
-(require 'magit-section)
+(require 'org-roam)
 
-(require 'org-roam-utils)
+;;;; Declarations
+(defvar org-ref-buffer-hacked)
 
-(defvar org-roam-directory)
-(defvar org-roam-find-file-hook)
-
-(declare-function org-roam-node-at-point "org-roam")
+;;; Options
+(defcustom org-roam-mode-section-functions (list #'org-roam-backlinks-section
+                                                 #'org-roam-reflinks-section)
+  "Functions that insert sections in the `org-roam-mode' based buffers.
+Each function is called with one argument, which is an
+`org-roam-node' for which the buffer will be constructed for.
+Normally this node is `org-roam-buffer-current-node'."
+  :group 'org-roam
+  :type 'hook)
 
 ;;; Faces
 (defface org-roam-header-line
@@ -119,7 +128,28 @@ and `:slant'."
   "Face for the dimmer part of the widgets."
   :group 'org-roam-faces)
 
-;;; Variables
+;;; Major mode
+(defvar org-roam-mode-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map magit-section-mode-map)
+    (define-key map [C-return]  'org-roam-buffer-visit-thing)
+    (define-key map (kbd "C-m") 'org-roam-buffer-visit-thing)
+    (define-key map [remap revert-buffer] 'org-roam-buffer-refresh)
+    map)
+  "Parent keymap for all keymaps of modes derived from `org-roam-mode'.")
+
+(define-derived-mode org-roam-mode magit-section-mode "Org-roam"
+  "Major mode for displaying relevant information about Org-roam nodes.
+This mode is used by special Org-roam buffers, such as persistent
+`org-roam-buffer' and dedicated Org-roam buffers
+\(`org-roam-buffer-display-dedicated'), which render the
+information in a section-like manner (see
+`org-roam-mode-section-functions'), with which the user can
+interact with."
+  :group 'org-roam
+  (face-remap-add-relative 'header-line 'org-roam-header-line))
+
+;;; Buffers
 (defvar org-roam-buffer-current-node nil
   "The node for which an `org-roam-mode' based buffer displays its contents.
 This set both, locally and globally. Normally the local value is
@@ -134,37 +164,25 @@ Set both, locally and globally in the same way as `org-roam-buffer-current-node'
 
 (put 'org-roam-buffer-current-directory 'permanent-local t)
 
-(defcustom org-roam-mode-section-functions (list #'org-roam-backlinks-section
-                                                 #'org-roam-reflinks-section)
-  "Functions that insert sections in the `org-roam-mode' based buffers.
-Each function is called with one argument, which is an
-`org-roam-node' for which the buffer will be constructed for.
-Normally this node is `org-roam-buffer-current-node'."
-  :group 'org-roam
-  :type 'hook)
-
-;;; The mode
-(defvar org-roam-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map magit-section-mode-map)
-    (define-key map [C-return]  'org-roam-visit-thing)
-    (define-key map (kbd "C-m") 'org-roam-visit-thing)
-    (define-key map [remap revert-buffer] 'org-roam-buffer-refresh)
-    map)
-  "Parent keymap for all keymaps of modes derived from `org-roam-mode'.")
-
-(define-derived-mode org-roam-mode magit-section-mode "Org-roam"
-  "Major mode for Org-roam's buffer."
-  :group 'org-roam
-  (face-remap-add-relative 'header-line 'org-roam-header-line))
-
-;;; Key functions
-(defun org-roam-visit-thing ()
+;;;; Library
+(defun org-roam-buffer-visit-thing ()
   "This is a placeholder command.
 Where applicable, section-specific keymaps bind another command
 which visits the thing at point."
   (interactive)
   (user-error "There is no thing at point that could be visited"))
+
+(defun org-roam-buffer-file-at-point (&optional assert)
+  "Return the file at point in the current `org-roam-mode' based buffer.
+If ASSERT, throw an error."
+  (if-let ((file (magit-section-case
+                   (org-roam-node-section (org-roam-node-file (oref it node)))
+                   (org-roam-grep-section (oref it file))
+                   (org-roam-preview-section (oref it file))
+                   (t (cl-assert (derived-mode-p 'org-roam-mode))))))
+      file
+    (when assert
+      (user-error "No file at point"))))
 
 (defun org-roam-buffer-refresh ()
   "Refresh the contents of the currently selected Org-roam buffer."
@@ -181,15 +199,24 @@ buffer."
     (org-roam-mode)
     (setq-local default-directory org-roam-buffer-current-directory)
     (setq-local org-roam-directory org-roam-buffer-current-directory)
-    (org-roam-set-header-line-format
+    (org-roam-buffer-set-header-line-format
      (org-roam-node-title org-roam-buffer-current-node))
     (magit-insert-section (org-roam)
       (magit-insert-heading)
       (run-hook-with-args 'org-roam-mode-section-functions org-roam-buffer-current-node))
     (goto-char 0)))
 
-;;; Dedicated buffer
-;;;###autoload (autoload 'org-roam-buffer-display-dedicated "org-roam" nil t)
+(defun org-roam-buffer-set-header-line-format (string)
+  "Set the header-line using STRING.
+If the `face' property of any part of STRING is already set, then
+that takes precedence. Also pad the left side of STRING so that
+it aligns with the text area."
+  (setq-local header-line-format
+              (concat (propertize " " 'display '(space :align-to 0))
+                      string)))
+
+;;;; Dedicated buffer
+;;;###autoload
 (defun org-roam-buffer-display-dedicated (node)
   "Launch NODE dedicated Org-roam buffer.
 Unlike the persistent `org-roam-buffer', the contents of this
@@ -223,7 +250,7 @@ If BUFFER is nil, default it to `current-buffer'."
   (string-match-p (concat "^" (regexp-quote "*org-roam: "))
                   (buffer-name buffer)))
 
-;;; Persistent buffer
+;;;; Persistent buffer
 (defvar org-roam-buffer "*org-roam*"
   "The persistent Org-roam buffer name. Must be surround with \"*\".
 The content inside of this buffer will be automatically updated
@@ -253,11 +280,6 @@ Valid states are 'visible, 'exists and 'none."
     ((get-buffer org-roam-buffer) 'exists)
     (t 'none))))
 
-(defun org-roam-buffer--persistent-cleanup-h ()
-  "Clean-up global state thats dedicated for the persistent `org-roam-buffer'."
-  (setq-default org-roam-buffer-current-node nil
-                org-roam-buffer-current-directory nil))
-
 (defun org-roam-buffer-persistent-redisplay ()
   "Recompute contents of the persistent `org-roam-buffer'.
 Has no effect when there's no `org-roam-node-at-point'."
@@ -269,6 +291,16 @@ Has no effect when there's no `org-roam-node-at-point'."
         (org-roam-buffer-render-contents)
         (add-hook 'kill-buffer-hook #'org-roam-buffer--persistent-cleanup-h nil t)))))
 
+(defun org-roam-buffer--persistent-cleanup-h ()
+  "Clean-up global state thats dedicated for the persistent `org-roam-buffer'."
+  (setq-default org-roam-buffer-current-node nil
+                org-roam-buffer-current-directory nil))
+
+(add-hook 'org-roam-find-file-hook #'org-roam-buffer--setup-redisplay-h)
+(defun org-roam-buffer--setup-redisplay-h ()
+  "Setup automatic redisplay of the persistent `org-roam-buffer'."
+  (add-hook 'post-command-hook #'org-roam-buffer--redisplay-h nil t))
+
 (defun org-roam-buffer--redisplay-h ()
   "Reconstruct the persistent `org-roam-buffer'.
 This needs to be quick or infrequent, because this designed to
@@ -276,13 +308,173 @@ run at `post-command-hook'."
   (and (get-buffer-window org-roam-buffer)
        (org-roam-buffer-persistent-redisplay)))
 
-(defun org-roam-buffer--setup-redisplay-h ()
-  "Setup automatic redisplay of the persistent `org-roam-buffer'."
-  (add-hook 'post-command-hook #'org-roam-buffer--redisplay-h nil t))
-
-(add-hook 'org-roam-find-file-hook #'org-roam-buffer--setup-redisplay-h)
-
 ;;; Sections
+;;;; Node
+(defvar org-roam-node-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map org-roam-mode-map)
+    (define-key map [remap org-roam-buffer-visit-thing] 'org-roam-node-visit)
+    map)
+  "Keymap for `org-roam-node-section's.")
+
+(defclass org-roam-node-section (magit-section)
+  ((keymap :initform 'org-roam-node-map)
+   (node :initform nil))
+  "A `magit-section' used by `org-roam-mode' to outline NODE in its own heading.")
+
+(cl-defun org-roam-node-insert-section (&key source-node point properties)
+  "Insert section for a link from SOURCE-NODE to some other node.
+The other node is normally `org-roam-buffer-current-node'.
+
+SOURCE-NODE is an `org-roam-node' that links or references with
+the other node.
+
+POINT is a character position where the link is located in
+SOURCE-NODE's file.
+
+PROPERTIES (a plist) contains additional information about the
+link.
+
+Despite the name, this function actually inserts 2 sections at
+the same time:
+
+1. `org-roam-node-section' for a heading that describes
+   SOURCE-NODE. Acts as a parent section of the following one.
+
+2. `org-roam-preview-section' for a preview content that comes
+   from SOURCE-NODE's file for the link (that references the
+   other node) at POINT. Acts a child section of the previous
+   one."
+  (magit-insert-section section (org-roam-node-section)
+    (let ((outline (if-let ((outline (plist-get properties :outline)))
+                       (mapconcat #'org-link-display-format outline " > ")
+                     "Top")))
+      (insert (concat (propertize (org-roam-node-title source-node)
+                                  'font-lock-face 'org-roam-title)
+                      (format " (%s)"
+                              (propertize outline 'font-lock-face 'org-roam-olp)))))
+    (magit-insert-heading)
+    (oset section node source-node)
+    (magit-insert-section section (org-roam-preview-section)
+      (insert (org-roam-fontify-like-in-org-mode
+               (org-roam-preview-get-contents (org-roam-node-file source-node) point))
+              "\n")
+      (oset section file (org-roam-node-file source-node))
+      (oset section point point)
+      (insert ?\n))))
+
+;;;; Preview
+(defvar org-roam-preview-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map org-roam-mode-map)
+    (define-key map [remap org-roam-buffer-visit-thing] 'org-roam-preview-visit)
+    map)
+  "Keymap for `org-roam-preview-section's.")
+
+(defclass org-roam-preview-section (magit-section)
+  ((keymap :initform 'org-roam-preview-map)
+   (file :initform nil)
+   (point :initform nil))
+  "A `magit-section' used by `org-roam-mode' to contain preview content.
+The preview content comes from FILE, and the link as at POINT.")
+
+(defun org-roam-preview-visit (file point &optional other-window)
+  "Visit FILE at POINT.
+With prefix argument OTHER-WINDOW, visit the olp in another
+window instead."
+  (interactive (list (org-roam-buffer-file-at-point 'assert)
+                     (oref (magit-current-section) point)
+                     current-prefix-arg))
+  (let ((buf (find-file-noselect file)))
+    (with-current-buffer buf
+      (widen)
+      (goto-char point))
+    (funcall (if other-window
+                 #'switch-to-buffer-other-window
+               #'pop-to-buffer-same-window) buf)))
+
+(defun org-roam-preview-get-contents (file point)
+  "Get preview content for FILE at POINT."
+  (save-excursion
+    (org-roam-with-temp-buffer file
+      (goto-char point)
+      (let ((elem (org-element-at-point)))
+        ;; We want the parent element always
+        (while (org-element-property :parent elem)
+          (setq elem (org-element-property :parent elem)))
+        (pcase (car elem)
+          ('headline                    ; show subtree
+           (org-roam-preview-get-entry-text (point-marker) most-positive-fixnum))
+          (_
+           (let ((begin (org-element-property :begin elem))
+                 (end (org-element-property :end elem)))
+             (or (string-trim (buffer-substring-no-properties begin end))
+                 (org-element-property :raw-value elem)))))))))
+
+(defun org-roam-preview-get-entry-text (marker n-lines &optional indent)
+  "Extract entry text from MARKER, at most N-LINES lines.
+This will ignore drawers etc, just get the text.
+If INDENT is given, prefix every line with this string."
+  (let (txt ind)
+    (save-excursion
+      (with-current-buffer (marker-buffer marker)
+        (if (not (derived-mode-p 'org-mode))
+            (setq txt "")
+          (org-with-wide-buffer
+           (goto-char marker)
+           (end-of-line 1)
+           (setq txt (buffer-substring
+                      (min (1+ (point)) (point-max))
+                      (progn (outline-next-heading) (point))))
+           (with-temp-buffer
+             (insert txt)
+             (goto-char (point-min))
+             (while (org-activate-links (point-max))
+               (goto-char (match-end 0)))
+             (goto-char (point-min))
+             (while (re-search-forward org-link-bracket-re (point-max) t)
+               (set-text-properties (match-beginning 0) (match-end 0)
+                                    nil))
+             (goto-char (point-min))
+             (while (re-search-forward org-drawer-regexp nil t)
+               (delete-region
+                (match-beginning 0)
+                (progn (re-search-forward
+                        "^[ \t]*:END:.*\n?" nil 'move)
+                       (point))))
+             (goto-char (point-min))
+             (goto-char (point-max))
+             (skip-chars-backward " \t\n")
+             (when (looking-at "[ \t\n]+\\'") (replace-match ""))
+
+             ;; find and remove min common indentation
+             (goto-char (point-min))
+             (untabify (point-min) (point-max))
+             (setq ind (current-indentation))
+             (while (not (eobp))
+               (unless (looking-at "[ \t]*$")
+                 (setq ind (min ind (current-indentation))))
+               (beginning-of-line 2))
+             (goto-char (point-min))
+             (while (not (eobp))
+               (unless (looking-at "[ \t]*$")
+                 (move-to-column ind)
+                 (delete-region (point-at-bol) (point)))
+               (beginning-of-line 2))
+             (goto-char (point-min))
+             (when indent
+               (while (and (not (eobp)) (re-search-forward "^" nil t))
+                 (replace-match indent t t)))
+             (goto-char (point-min))
+             (while (looking-at "[ \t]*\n") (replace-match ""))
+             (goto-char (point-max))
+             (when (> (org-current-line)
+                      n-lines)
+               (org-goto-line (1+ n-lines))
+               (backward-char 1))
+             (setq txt (buffer-substring (point-min) (point))))))))
+    txt))
+
 ;;;; Backlinks
 (cl-defstruct (org-roam-backlink (:constructor org-roam-backlink-create)
                                  (:copier nil))
@@ -383,11 +575,11 @@ Sorts by title."
            :properties (org-roam-reflink-properties reflink)))
         (insert ?\n)))))
 
-;;;; Unlinked references
+;;;; Grep
 (defvar org-roam-grep-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map org-roam-mode-map)
-    (define-key map [remap org-roam-visit-thing] 'org-roam-file-visit)
+    (define-key map [remap org-roam-buffer-visit-thing] 'org-roam-grep-visit)
     map)
   "Keymap for Org-roam grep result sections.")
 
@@ -395,25 +587,14 @@ Sorts by title."
   ((keymap :initform 'org-roam-grep-map)
    (file :initform nil)
    (row :initform nil)
-   (col :initform nil)))
+   (col :initform nil))
+  "A `magit-section' used by `org-roam-mode' to contain grep output.")
 
-(defun org-roam-file-at-point (&optional assert)
-  "Return the file at point.
-If ASSERT, throw an error."
-  (if-let ((file (magit-section-case
-                   (org-roam-node-section (org-roam-node-file (oref it node)))
-                   (org-roam-grep-section (oref it file))
-                   (org-roam-preview-section (oref it file)))))
-      file
-    (when assert
-      (user-error "No file at point"))))
-
-(defun org-roam-file-visit (file &optional other-window row col)
-  "Visits FILE.
+(defun org-roam-grep-visit (file &optional other-window row col)
+  "Visits FILE. If ROW, move to the row, and if COL move to the COL.
 With a prefix argument OTHER-WINDOW, display the buffer in
-another window instead.
-If ROW, move to the row, and if COL move to the COL."
-  (interactive (list (org-roam-file-at-point t)
+another window instead."
+  (interactive (list (org-roam-buffer-file-at-point t)
                      current-prefix-arg
                      (oref (magit-current-section) row)
                      (oref (magit-current-section) col)))
@@ -429,6 +610,7 @@ If ROW, move to the row, and if COL move to the COL."
                  #'switch-to-buffer-other-window
                #'pop-to-buffer-same-window) buf)))
 
+;;;; Unlinked references
 (defvar org-roam-unlinked-references-result-re
   (rx (group (one-or-more anything))
       ":"
