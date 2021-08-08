@@ -67,7 +67,7 @@ Org-roam provides these benefits over other tooling:
 
 Org-roam is a tool that will appear unfriendly to anyone unfamiliar with Emacs
 and Org-mode, but it is also extremely powerful to those willing to put effort
-inn mastering the intricacies. Org-roam stands on the shoulders of giants. Emacs
+in mastering the intricacies. Org-roam stands on the shoulders of giants. Emacs
 was first created in 1976, and remains the tool of choice for many for editing
 text and designing textual interfaces. The malleability of Emacs allowed the
 creation of Org-mode, an all-purpose plain-text system for maintaining TODO
@@ -300,7 +300,7 @@ is to use [[https://www.msys2.org/][MSYS2]] as at the time of this writing:
 1. Use the installer in the official website and install MSYS2
 2. Run MSYS2
 3. In the command-line tool, type the following and answer "Y" to proceed:
-   
+
    #+BEGIN_SRC bash
      pacman -S gcc
    #+END_SRC
@@ -994,10 +994,10 @@ ARG may be any of the following values:
   2. a function accepting a single argument: the graph file path.
 
   ~nil~ uses ~view-file~ to view the graph.
-  
+
   If you are using WSL2 and would like to open the graph in Windows, you can use
   the second option to set the browser and network file path:
-  
+
   #+BEGIN_SRC emacs-lisp
   (setq org-roam-graph-viewer
       (lambda (file)
@@ -1098,7 +1098,7 @@ There are also commands which allow you to use Emacs’s ~calendar~ to find the 
   Create an entry in the daily note for a date using the calendar.
 
   Prefer past dates, unless ~prefer-future~ is non-nil.
-  
+
   With a 'C-u' prefix or when ~goto~ is non-nil, go the note without
   creating an entry.
 
@@ -1531,7 +1531,7 @@ see the list.
 paren and run =M-x eval-last-sexp RET= or 2) Press =C-c C-c= with your cursor in
 an Org file code block (like =#+BEGIN_SRC emacs-lisp=).
 [fn:roam] To understand more about Roam, a collection of links are available in [[*Note-taking Workflows][Note-taking Workflows]].
- 
+
 # Local Variables:
 # eval: (require 'ol-info)
 # eval: (require 'ox-texinfo+ nil t)
