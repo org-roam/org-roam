@@ -54,7 +54,7 @@
     (org-roam-db-sync))
 
   (after-all
-    (org-roam-teardown)
+    (org-roam-db--close)
     (delete-file org-roam-db-location))
 
   (it "has the correct number of files"

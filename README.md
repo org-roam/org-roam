@@ -54,7 +54,7 @@ Here's a sample configuration with `use-package`:
              ;; Dailies
              ("C-c n j" . org-roam-dailies-capture-today))
       :config
-      (org-roam-setup)
+      (org-roam-db-autosync-mode)
       ;; If using org-roam-protocol
       (require 'org-roam-protocol))
 ```
