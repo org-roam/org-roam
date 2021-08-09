@@ -1,6 +1,6 @@
 ;;; org-roam-mode.el --- Major mode for special Org-roam buffers -*- lexical-binding: t -*-
 
-;; Copyright © 2020-2021 Jethro Kuan <jethrokuan95@gmail.com>
+;; Copyright ? 2020-2021 Jethro Kuan <jethrokuan95@gmail.com>
 
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
 ;; URL: https://github.com/org-roam/org-roam
@@ -397,11 +397,9 @@ window instead."
   "Get preview content for FILE at POINT."
   (save-excursion
     (org-roam-with-temp-buffer file
-      (goto-char point)
+      (goto-char point)                 
+      (org-up-heading-safe);; We want the parent element always
       (let ((elem (org-element-at-point)))
-        ;; We want the parent element always
-        (while (org-element-property :parent elem)
-          (setq elem (org-element-property :parent elem)))
         (pcase (car elem)
           ('headline                    ; show subtree
            (org-roam-preview-get-entry-text (point-marker) most-positive-fixnum))
@@ -422,10 +420,10 @@ If INDENT is given, prefix every line with this string."
             (setq txt "")
           (org-with-wide-buffer
            (goto-char marker)
-           (end-of-line 1)
            (setq txt (buffer-substring
-                      (min (1+ (point)) (point-max))
-                      (progn (outline-next-heading) (point))))
+                      (point)
+                      (progn (setq point_old (point)) (org-forward-heading-same-level 1 1) (setq point_new (point)) (if (eq point_old point_new) (point-max) point_new))
+                      ))
            (with-temp-buffer
              (insert txt)
              (goto-char (point-min))
