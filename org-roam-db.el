@@ -31,6 +31,7 @@
 ;;
 ;;; Code:
 (require 'org-roam)
+(defvar org-outline-path-cache)
 
 ;;; Options
 (defcustom org-roam-db-location (expand-file-name "org-roam.db" user-emacs-directory)
@@ -312,7 +313,7 @@ If UPDATE-P is non-nil, first remove the file in the database."
                (tags org-file-tags)
                (refs (org-entry-get (point) "ROAM_REFS"))
                (properties (org-entry-properties))
-               (olp (org-get-outline-path)))
+               (olp nil))
           (org-roam-db-query!
            (lambda (err)
              (lwarn 'org-roam :warning "%s for %s (%s) in %s"
@@ -371,7 +372,7 @@ If UPDATE-P is non-nil, first remove the file in the database."
                                     (1+ (- (point) (line-beginning-position))))
                              (cl-return-from org-roam-db-insert-node-data))))
            (properties (org-entry-properties))
-           (olp (org-get-outline-path))
+           (olp (org-get-outline-path nil 'use-cache))
            (title (org-link-display-format title)))
       (org-roam-db-query!
        (lambda (err)
@@ -425,7 +426,10 @@ If UPDATE-P is non-nil, first remove the file in the database."
     (goto-char (org-element-property :begin link))
     (let ((type (org-element-property :type link))
           (path (org-element-property :path link))
-          (properties (list :outline (org-get-outline-path)))
+          (properties (list :outline (condition-case nil
+                                         ;; This can error if link is not under any headline
+                                         (org-get-outline-path 'with-self 'use-cache)
+                                       (t nil))))
           (source (org-roam-id-at-point)))
       ;; For Org-ref links, we need to split the path into the cite keys
       (when (and (boundp 'org-ref-cite-types)
@@ -514,11 +518,13 @@ If the file exists, update the cache with information."
           (org-roam-db-clear-file)
           (org-roam-db-insert-file)
           (org-roam-db-insert-file-node)
+          (setq org-outline-path-cache nil)
           (org-roam-db-map-nodes
            (list #'org-roam-db-insert-node-data
                  #'org-roam-db-insert-aliases
                  #'org-roam-db-insert-tags
                  #'org-roam-db-insert-refs))
+          (setq org-outline-path-cache nil)
           (org-roam-db-map-links
            (list #'org-roam-db-insert-link)))))))
 
