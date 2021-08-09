@@ -481,12 +481,13 @@ Uses `org-roam-node-display-template' to format the entry."
          (if (not field-width)
              field-value
            (setq field-width (string-to-number field-width))
-           (truncate-string-to-width
-            field-value
-            (if (> field-width 0)
-                field-width
-              (- width (cdr fmt)))
-            0 ?\s)))))))
+           (propertize field-value
+                       'display (truncate-string-to-width
+                                 field-value
+                                 (if (> field-width 0)
+                                     field-width
+                                   (- width (cdr fmt)))
+                                 0 ?\s))))))))
 
 (defun org-roam-node-read--process-display-format (format)
   "Pre-calculate minimal widths needed by the FORMAT string."
