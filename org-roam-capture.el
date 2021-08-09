@@ -403,17 +403,19 @@ TEMPLATES is a list of org-roam templates."
     (org-capture goto keys)))
 
 ;;;###autoload
-(cl-defun org-roam-capture (&optional goto keys &key filter-fn templates)
+(cl-defun org-roam-capture (&optional goto keys &key filter-fn templates info)
   "Launches an `org-capture' process for a new or existing node.
 This uses the templates defined at `org-roam-capture-templates'.
 Arguments GOTO and KEYS see `org-capture'.
 FILTER-FN is a function to filter out nodes: it takes an `org-roam-node',
 and when nil is returned the node will be filtered out.
 The TEMPLATES, if provided, override the list of capture templates (see
-`org-roam-capture-'.)"
+`org-roam-capture-'.)
+The INFO, if provided, is passed along to the underlying `org-roam-capture-'."
   (interactive "P")
   (let ((node (org-roam-node-read nil filter-fn)))
     (org-roam-capture- :goto goto
+                       :info info
                        :keys keys
                        :templates templates
                        :node node
