@@ -610,6 +610,11 @@ Assumes that the cursor was put where the link is."
       (let* ((link (or link (org-element-context)))
              (type (org-element-property :type link))
              (path (org-element-property :path link))
+             (desc (and (org-element-property :contents-begin link)
+                        (org-element-property :contents-end link)
+                        (buffer-substring-no-properties
+                         (org-element-property :contents-begin link)
+                         (org-element-property :contents-end link))))
              node)
         (goto-char (org-element-property :begin link))
         (when (and (org-in-regexp org-link-any-re 1)
@@ -617,7 +622,7 @@ Assumes that the cursor was put where the link is."
                    (setq node (org-roam-node-from-title-or-alias path)))
           (replace-match (org-link-make-string
                           (concat "id:" (org-roam-node-id node))
-                          path)))))))
+                          (or desc path))))))))
 
 (defun org-roam-link-replace-all ()
   "Replace all \"roam:\" links in buffer with \"id:\" links."
