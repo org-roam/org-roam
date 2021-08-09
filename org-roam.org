@@ -134,7 +134,7 @@ A slip-box requires a method for quickly capturing ideas. These are called
 *fleeting notes*: they are simple reminders of information or ideas that will
 need to be processed later on, or trashed. This is typically accomplished using
 ~org-capture~ (see info:org#Capture), or using Org-roam's daily notes
-functionality (see [[id:4eae8552-95e1-4e4a-b7b7-2c53433730ea][Org-roam Dailies]]). This provides a central inbox for collecting
+functionality (see [[*Org-roam Dailies][Org-roam Dailies]]). This provides a central inbox for collecting
 thoughts, to be processed later into permanent notes.
 
 *Permanent notes*
@@ -415,7 +415,8 @@ node. If you instead entered a title that does not exist, you will once again be
 brought through the node creation process.
 
 One can also conveniently insert links via the completion-at-point functions
-Org-roam provides (see [[id:70083bfd-d1e3-42b9-bf83-5b05708791c0][Completion]]).
+Org-roam provides (see [[*Completion][Completion]]).
+
 * Customizing Node Caching
 ** What to cache
 
@@ -646,9 +647,6 @@ Org-roam also provides some functions to add or remove refs.
   Remove a ref from the node at point.
 
 * Completion
-:PROPERTIES:
-:ID:       70083bfd-d1e3-42b9-bf83-5b05708791c0
-:END:
 
 Completions for Org-roam are provided via ~completion-at-point~. Org-roam
 currently provides completions in two scenarios:
@@ -1032,9 +1030,6 @@ for customizable options.
   Example: ~'(("dir" . "back"))~
 
 * Org-roam Dailies
-:PROPERTIES:
-:ID:       4eae8552-95e1-4e4a-b7b7-2c53433730ea
-:END:
 
 Org-roam provides journaling capabilities akin to
 Org-journal with ~org-roam-dailies~.
