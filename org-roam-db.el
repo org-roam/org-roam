@@ -469,7 +469,32 @@ If UPDATE-P is non-nil, first remove the file in the database."
     (org-with-wide-buffer
      (secure-hash 'sha1 (current-buffer)))))
 
-;;;; Interactives
+;;;; Synchronization
+(defun org-roam-db-update-file (&optional file-path)
+  "Update Org-roam cache for FILE-PATH.
+If the file does not exist anymore, remove it from the cache.
+If the file exists, update the cache with information."
+  (setq file-path (or file-path (buffer-file-name (buffer-base-buffer))))
+  (let ((content-hash (org-roam-db--file-hash file-path))
+        (db-hash (caar (org-roam-db-query [:select hash :from files
+                                           :where (= file $s1)] file-path))))
+    (unless (string= content-hash db-hash)
+      (org-roam-with-file file-path nil
+        (save-excursion
+          (org-set-regexps-and-options 'tags-only)
+          (org-roam-db-clear-file)
+          (org-roam-db-insert-file)
+          (org-roam-db-insert-file-node)
+          (setq org-outline-path-cache nil)
+          (org-roam-db-map-nodes
+           (list #'org-roam-db-insert-node-data
+                 #'org-roam-db-insert-aliases
+                 #'org-roam-db-insert-tags
+                 #'org-roam-db-insert-refs))
+          (setq org-outline-path-cache nil)
+          (org-roam-db-map-links
+           (list #'org-roam-db-insert-link)))))))
+
 ;;;###autoload
 (defun org-roam-db-sync (&optional force)
   "Synchronize the cache state with the current Org files on-disk.
@@ -503,42 +528,90 @@ If FORCE, force a rebuild of the cache from scratch."
         (dolist (file modified-files)
           (org-roam-db-update-file file))))))
 
-(defun org-roam-db-update-file (&optional file-path)
-  "Update Org-roam cache for FILE-PATH.
-If the file does not exist anymore, remove it from the cache.
-If the file exists, update the cache with information."
-  (setq file-path (or file-path (buffer-file-name (buffer-base-buffer))))
-  (let ((content-hash (org-roam-db--file-hash file-path))
-        (db-hash (caar (org-roam-db-query [:select hash :from files
-                                           :where (= file $s1)] file-path))))
-    (unless (string= content-hash db-hash)
-      (org-roam-with-file file-path nil
-        (save-excursion
-          (org-set-regexps-and-options 'tags-only)
-          (org-roam-db-clear-file)
-          (org-roam-db-insert-file)
-          (org-roam-db-insert-file-node)
-          (setq org-outline-path-cache nil)
-          (org-roam-db-map-nodes
-           (list #'org-roam-db-insert-node-data
-                 #'org-roam-db-insert-aliases
-                 #'org-roam-db-insert-tags
-                 #'org-roam-db-insert-refs))
-          (setq org-outline-path-cache nil)
-          (org-roam-db-map-links
-           (list #'org-roam-db-insert-link)))))))
+;;;###autoload
+(define-minor-mode org-roam-db-autosync-mode
+  "Global minor mode to keep your Org-roam session automatically synchronized.
+Through the session this will continue to setup your
+buffers (that are Org-roam file visiting), keep track of the
+related changes, maintain cache consistency and incrementally
+update the currently active database.
 
-;;;; Hook Setups
-(add-hook 'org-roam-find-file-hook #'org-roam-db--setup-update-on-save-h)
-(defun org-roam-db--setup-update-on-save-h ()
+If you need to manually trigger resync of the currently active
+database, see `org-roam-db-sync' command."
+  :group 'org-roam
+  :global t
+  :init-value nil
+  (let ((enabled org-roam-db-autosync-mode))
+    (cond
+     (enabled
+      (add-hook 'find-file-hook  #'org-roam-db-autosync--setup-file-h)
+      (add-hook 'kill-emacs-hook #'org-roam-db--close-all)
+      (advice-add #'rename-file :after  #'org-roam-db-autosync--rename-file-a)
+      (advice-add #'delete-file :before #'org-roam-db-autosync--delete-file-a)
+      (org-roam-db-sync))
+     (t
+      (remove-hook 'find-file-hook  #'org-roam-db-autosync--setup-file-h)
+      (remove-hook 'kill-emacs-hook #'org-roam-db--close-all)
+      (advice-remove #'rename-file #'org-roam-db-autosync--rename-file-a)
+      (advice-remove #'delete-file #'org-roam-db-autosync--delete-file-a)
+      (org-roam-db--close-all)
+      ;; Disable local hooks for all org-roam buffers
+      (dolist (buf (org-roam-buffer-list))
+        (with-current-buffer buf
+          (remove-hook 'after-save-hook #'org-roam-db-autosync--try-update-on-save-h t)))))))
+
+;;;###autoload
+(defun org-roam-db-autosync-enable ()
+  "Activate `org-roam-db-autosync-mode'."
+  (org-roam-db-autosync-mode +1))
+
+(defun org-roam-db-autosync-disable ()
+  "Deactivate `org-roam-db-autosync-mode'."
+  (org-roam-db-autosync-mode -1))
+
+(defun org-roam-db-autosync-toggle ()
+  "Toggle `org-roam-db-autosync-mode' enabled/disabled."
+  (org-roam-db-autosync-mode 'toggle))
+
+(defun org-roam-db-autosync--delete-file-a (file &optional _trash)
+  "Maintain cache consistency when file deletes.
+FILE is removed from the database."
+  (when (and (not (auto-save-file-name-p file))
+             (not (backup-file-name-p file))
+             (org-roam-file-p file))
+    (org-roam-db-clear-file (expand-file-name file))))
+
+(defun org-roam-db-autosync--rename-file-a (old-file new-file-or-dir &rest _args)
+  "Maintain cache consistency of file rename.
+OLD-FILE is cleared from the database, and NEW-FILE-OR-DIR is added."
+  (let ((new-file (if (directory-name-p new-file-or-dir)
+                      (expand-file-name (file-name-nondirectory old-file) new-file-or-dir)
+                    new-file-or-dir)))
+    (setq new-file (expand-file-name new-file))
+    (setq old-file (expand-file-name old-file))
+    (when (and (not (auto-save-file-name-p old-file))
+               (not (auto-save-file-name-p new-file))
+               (not (backup-file-name-p old-file))
+               (not (backup-file-name-p new-file))
+               (org-roam-file-p old-file))
+      (org-roam-db-clear-file old-file))
+    (when (org-roam-file-p new-file)
+      (org-roam-db-update-file new-file))))
+
+(defun org-roam-db-autosync--setup-file-h ()
+  "Setup the current buffer if it visits an Org-roam file."
+  (when (org-roam-file-p) (run-hooks 'org-roam-find-file-hook)))
+
+(add-hook 'org-roam-find-file-hook #'org-roam-db-autosync--setup-update-on-save-h)
+(defun org-roam-db-autosync--setup-update-on-save-h ()
   "Setup the current buffer to update the DB after saving the current file."
-  (add-hook 'after-save-hook #'org-roam-db--try-update-on-save-h nil t))
+  (add-hook 'after-save-hook #'org-roam-db-autosync--try-update-on-save-h nil t))
 
-(defun org-roam-db--try-update-on-save-h ()
+(defun org-roam-db-autosync--try-update-on-save-h ()
   "If appropriate, update the database for the current file after saving buffer."
   (when org-roam-db-update-on-save (org-roam-db-update-file)))
 
-;; Diagnostic Interactives
+;;; Diagnostics
 (defun org-roam-db-diagnose-node ()
   "Print information about node at point."
   (interactive)

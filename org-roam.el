@@ -49,10 +49,10 @@
 ;;
 ;; -----------------------------------------------------------------------------
 ;;
-;; In order for the package to correctly work it's mandatory to add somewhere to
-;; your configuration the next form:
+;; In order for the package to correctly work through your interactive session
+;; it's mandatory to add somewhere to your configuration the next form:
 ;;
-;;     (org-roam-setup)
+;;     (org-roam-db-autosync-mode)
 ;;
 ;; The form can be called both, before or after loading the package, which is up
 ;; to your preferences. If you call this before the package is loaded, then it
@@ -178,66 +178,7 @@ method symbol as a cons cell. For example: '(find (rg . \"/path/to/rg\"))."
               (const :tag "rg" rg)
               (const :tag "elisp" nil)))
 
-;;; Session watcher
-;;;###autoload
-(defun org-roam-setup ()
-  "Setup Org-roam and initialize its database.
-This will install the needed hooks and advices to keep everything
-in sync with the connected databases."
-  (interactive)
-  (add-hook 'find-file-hook #'org-roam--file-setup-h)
-  (add-hook 'kill-emacs-hook #'org-roam-db--close-all)
-  (advice-add 'rename-file :after #'org-roam--rename-file-a)
-  (advice-add 'delete-file :before #'org-roam--delete-file-a)
-  (org-roam-db-sync))
-
-(defun org-roam-teardown ()
-  "Teardown Org-roam to completely disable it.
-This will remove all the hooks and advices installed by
-`org-roam-setup' and close all the database connections made by
-Org-roam."
-  (interactive)
-  (remove-hook 'find-file-hook #'org-roam--file-setup-h)
-  (remove-hook 'kill-emacs-hook #'org-roam-db--close-all)
-  (advice-remove 'rename-file #'org-roam--rename-file-a)
-  (advice-remove 'delete-file #'org-roam--delete-file-a)
-  (org-roam-db--close-all)
-  ;; Disable local hooks for all org-roam buffers
-  (dolist (buf (org-roam-buffer-list))
-    (with-current-buffer buf
-      (remove-hook 'after-save-hook #'org-roam-db--try-update-on-save-h t))))
-
-(defun org-roam--file-setup-h ()
-  "Setup an Org-roam file."
-  (when (org-roam-file-p)
-    (run-hooks 'org-roam-find-file-hook)))
-
-(defun org-roam--delete-file-a (file &optional _trash)
-  "Maintain cache consistency when file deletes.
-FILE is removed from the database."
-  (when (and (not (auto-save-file-name-p file))
-             (not (backup-file-name-p file))
-             (org-roam-file-p file))
-    (org-roam-db-clear-file (expand-file-name file))))
-
-(defun org-roam--rename-file-a (old-file new-file-or-dir &rest _args)
-  "Maintain cache consistency of file rename.
-OLD-FILE is cleared from the database, and NEW-FILE-OR-DIR is added."
-  (let ((new-file (if (directory-name-p new-file-or-dir)
-                      (expand-file-name (file-name-nondirectory old-file) new-file-or-dir)
-                    new-file-or-dir)))
-    (setq new-file (expand-file-name new-file))
-    (setq old-file (expand-file-name old-file))
-    (when (and (not (auto-save-file-name-p old-file))
-               (not (auto-save-file-name-p new-file))
-               (not (backup-file-name-p old-file))
-               (not (backup-file-name-p new-file))
-               (org-roam-file-p old-file))
-      (org-roam-db-clear-file old-file))
-    (when (org-roam-file-p new-file)
-      (org-roam-db-update-file new-file))))
-
-;;;; Library
+;;; Library
 (defun org-roam-file-p (&optional file)
   "Return t if FILE is an Org-roam file, nil otherwise.
 If FILE is not specified, use the current buffer's file-path.

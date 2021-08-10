@@ -96,6 +96,13 @@ recursion."
     (nconc result (nreverse files))))
 
 ;;; Obsolete aliases (remove after next major release)
+(define-obsolete-function-alias
+  'org-roam-setup
+  'org-roam-db-autosync-enable "org-roam 2.0")
+(define-obsolete-function-alias
+  'org-roam-teardown
+  'org-roam-db-autosync-disable "org-roam 2.0")
+
 (define-obsolete-variable-alias
   'org-roam-current-node
   'org-roam-buffer-current-node "org-roam 2.0")
