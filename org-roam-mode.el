@@ -396,20 +396,22 @@ window instead."
 (defun org-roam-preview-get-contents (file point)
   "Get preview content for FILE at POINT."
   (save-excursion
-    (org-roam-with-temp-buffer file
-      (goto-char point)
-      (let ((elem (org-element-at-point)))
-        ;; We want the parent element always
-        (while (org-element-property :parent elem)
-          (setq elem (org-element-property :parent elem)))
-        (pcase (car elem)
-          ('headline                    ; show subtree
-           (org-roam-preview-get-entry-text (point-marker) most-positive-fixnum))
-          (_
-           (let ((begin (org-element-property :begin elem))
-                 (end (org-element-property :end elem)))
-             (or (string-trim (buffer-substring-no-properties begin end))
-                 (org-element-property :raw-value elem)))))))))
+    (condition-case err
+        (org-roam-with-temp-buffer file
+          (goto-char point)
+          (let ((elem (org-element-at-point)))
+            ;; We want the parent element always
+            (while (org-element-property :parent elem)
+              (setq elem (org-element-property :parent elem)))
+            (pcase (car elem)
+              ('headline                    ; show subtree
+               (org-roam-preview-get-entry-text (point-marker) most-positive-fixnum))
+              (_
+               (let ((begin (org-element-property :begin elem))
+                     (end (org-element-property :end elem)))
+                 (or (string-trim (buffer-substring-no-properties begin end))
+                     (org-element-property :raw-value elem)))))))
+      (error  (message "Error reading file: %s" err) (error-message-string err)))))
 
 (defun org-roam-preview-get-entry-text (marker n-lines &optional indent)
   "Extract entry text from MARKER, at most N-LINES lines.
