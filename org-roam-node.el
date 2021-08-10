@@ -481,13 +481,21 @@ Uses `org-roam-node-display-template' to format the entry."
          (if (not field-width)
              field-value
            (setq field-width (string-to-number field-width))
-           (propertize field-value
-                       'display (truncate-string-to-width
-                                 field-value
-                                 (if (> field-width 0)
-                                     field-width
-                                   (- width (cdr fmt)))
-                                 0 ?\s))))))))
+           (let ((display-string (truncate-string-to-width
+                                  field-value
+                                  (if (> field-width 0)
+                                      field-width
+                                    (- width (cdr fmt)))
+                                  0 ?\s)))
+             ;; Setting the display (which would be padded out to the field length) for an
+             ;; empty string results in an empty string and misalignment for candidates that
+             ;; don't have some field. This uses the actual display string, made of spaces
+             ;; when the field-value is "" so that we actually take up space.
+             (if (not (equal field-value ""))
+                 ;; Remove properties from the full candidate string, otherwise the display
+                 ;; formatting with pre-prioritized field-values gets messed up.
+                 (propertize (substring-no-properties field-value) 'display display-string)
+               display-string))))))))
 
 (defun org-roam-node-read--process-display-format (format)
   "Pre-calculate minimal widths needed by the FORMAT string."
