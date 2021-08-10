@@ -672,7 +672,7 @@ is to use <a href="https://www.msys2.org/">MSYS2</a> as at the time of this writ
 <p>installer automatically takes care of it for you.
 </p>
 <ul>
-<li> Open Emacs and call <code>M-x org-roam-setup</code>
+<li> Open Emacs and call <code>M-x org-roam-db-autosync-mode</code>
 
 <p>This will automatically start compiling <code>emacsql-sqlite</code>; you should see a
 </p></li></ul>
@@ -777,12 +777,12 @@ for notes. This variable needs to be set before any calls to Org-roam functions.
 inside <code>org-roam-directory</code>: Org-roam does not resolve symbolic links.
 </p>
 <p>Next, we setup Org-roam to run functions on file changes to maintain cache
-consistency. This is achieved by running <code>M-x org-roam-setup</code>. To ensure that
-Org-roam is available on startup, place this in your Emacs configuration:
+consistency. This is achieved by running <code>M-x org-roam-db-autosync-mode~</code>.
+To ensure that Org-roam is available on startup, place this in your Emacs
+configuration:
 </p>
 <div class="lisp">
-<pre class="lisp">(require 'org-roam)
-(org-roam-setup)
+<pre class="lisp">(org-roam-db-autosync-mode)
 </pre></div>
 
 <p>To build the cache manually, run <code>M-x org-roam-db-sync</code>. Cache builds may
