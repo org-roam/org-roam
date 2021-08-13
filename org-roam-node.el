@@ -373,7 +373,8 @@ instead."
   (let ((buf (org-roam-node-find-noselect node)))
     (funcall (if other-window
                  #'switch-to-buffer-other-window
-               #'pop-to-buffer-same-window) buf)))
+               #'pop-to-buffer-same-window) buf)
+    (recenter-top-bottom 'top)))
 
 ;;;###autoload
 (cl-defun org-roam-node-find (&optional other-window initial-input filter-fn &key templates)
