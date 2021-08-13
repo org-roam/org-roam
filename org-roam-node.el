@@ -609,7 +609,8 @@ Assumes that the cursor was put where the link is."
       (progn
         (when org-roam-link-auto-replace
           (org-roam-link-replace-at-point))
-        (org-id-goto (org-roam-node-id node)))
+        (org-mark-ring-push)
+        (org-roam-node-visit node))
     (org-roam-capture-
      :node (org-roam-node-create :title title-or-alias)
      :props '(:finalize find-file))))
