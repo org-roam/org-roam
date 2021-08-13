@@ -379,19 +379,21 @@ the same time:
 The preview content comes from FILE, and the link as at POINT.")
 
 (defun org-roam-preview-visit (file point &optional other-window)
-  "Visit FILE at POINT.
-With prefix argument OTHER-WINDOW, visit the olp in another
-window instead."
+  "Visit FILE at POINT. With OTHER-WINDOW non-nil do so in another window.
+In interactive calls OTHER-WINDOW is set with
+`universal-argument'."
   (interactive (list (org-roam-buffer-file-at-point 'assert)
                      (oref (magit-current-section) point)
                      current-prefix-arg))
-  (let ((buf (find-file-noselect file)))
+  (let ((buf (find-file-noselect file))
+        (display-buffer-fn (if other-window
+                               #'switch-to-buffer-other-window
+                             #'pop-to-buffer-same-window)))
     (with-current-buffer buf
       (widen)
       (goto-char point))
-    (funcall (if other-window
-                 #'switch-to-buffer-other-window
-               #'pop-to-buffer-same-window) buf)))
+    (funcall display-buffer-fn buf)
+    (when (org-invisible-p) (org-show-context))))
 
 (defun org-roam-preview-get-contents (file point)
   "Get preview content for FILE at POINT."
@@ -592,13 +594,17 @@ Sorts by title."
 
 (defun org-roam-grep-visit (file &optional other-window row col)
   "Visits FILE. If ROW, move to the row, and if COL move to the COL.
-With a prefix argument OTHER-WINDOW, display the buffer in
-another window instead."
+With OTHER-WINDOW non-nil (in interactive calls set with
+`universal-argument') display the buffer in another window
+instead."
   (interactive (list (org-roam-buffer-file-at-point t)
                      current-prefix-arg
                      (oref (magit-current-section) row)
                      (oref (magit-current-section) col)))
-  (let ((buf (find-file-noselect file)))
+  (let ((buf (find-file-noselect file))
+        (display-buffer-fn (if other-window
+                               #'switch-to-buffer-other-window
+                             #'pop-to-buffer-same-window)))
     (with-current-buffer buf
       (widen)
       (goto-char (point-min))
@@ -606,9 +612,8 @@ another window instead."
         (forward-line (1- row)))
       (when col
         (forward-char (1- col))))
-    (funcall (if other-window
-                 #'switch-to-buffer-other-window
-               #'pop-to-buffer-same-window) buf)))
+    (funcall display-buffer-fn buf)
+    (when (org-invisible-p) (org-show-context))))
 
 ;;;; Unlinked references
 (defvar org-roam-unlinked-references-result-re
