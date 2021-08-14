@@ -267,7 +267,6 @@ To toggle its display use `org-roam-buffer-toggle' command.")
        (remove-hook 'post-command-hook #'org-roam-buffer--redisplay-h)))
     ((or 'exists 'none)
      (progn
-       (display-buffer (get-buffer-create org-roam-buffer))
        (org-roam-buffer-persistent-redisplay)))))
 
 (define-inline org-roam-buffer--visibility ()
@@ -287,9 +286,13 @@ Has no effect when there's no `org-roam-node-at-point'."
     (unless (equal node org-roam-buffer-current-node)
       (setq org-roam-buffer-current-node node
             org-roam-buffer-current-directory org-roam-directory)
-      (with-current-buffer (get-buffer-create org-roam-buffer)
-        (org-roam-buffer-render-contents)
-        (add-hook 'kill-buffer-hook #'org-roam-buffer--persistent-cleanup-h nil t)))))
+      (if (get-buffer-window org-roam-buffer)
+		  (delete-window (get-buffer-window org-roam-buffer)))
+      (let ((buffer (get-buffer-create org-roam-buffer)))
+		(with-current-buffer buffer
+		  (org-roam-buffer-render-contents)
+		  (add-hook 'kill-buffer-hook #'org-roam-buffer--persistent-cleanup-h nil t))
+		(display-buffer buffer)))))
 
 (defun org-roam-buffer--persistent-cleanup-h ()
   "Clean-up global state thats dedicated for the persistent `org-roam-buffer'."
