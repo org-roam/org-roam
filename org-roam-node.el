@@ -355,12 +355,14 @@ GROUP BY id")))
 
 ;;;; Finders
 (defun org-roam-node-find-noselect (node)
-  "Navigate to the point for NODE, and return the buffer."
+  "Navigate to the point for NODE if point is not already at NODE, and return the buffer."
   (unless (org-roam-node-file node)
     (user-error "Node does not have corresponding file"))
   (let ((buf (find-file-noselect (org-roam-node-file node))))
     (with-current-buffer buf
-      (goto-char (org-roam-node-point node)))
+      (unless (equal (org-roam-node-id node)
+                     (org-roam-id-at-point))
+        (goto-char (org-roam-node-point node))))
     buf))
 
 (defun org-roam-node-visit (node &optional other-window)
