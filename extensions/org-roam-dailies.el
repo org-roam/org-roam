@@ -278,14 +278,12 @@ If FILE is not specified, use the current buffer's file-path."
 (defun org-roam-dailies-calendar--file-to-date (file)
   "Convert FILE to date.
 Return (MONTH DAY YEAR) or nil if not an Org time-string."
-  (condition-case nil
-      (progn
-        (cl-destructuring-bind (_ _ _ d m y _ _ _)
-            (org-parse-time-string
-             (file-name-sans-extension
-              (file-name-nondirectory file)))
-          (list m d y)))
-    (t nil)))
+  (ignore-errors
+    (cl-destructuring-bind (_ _ _ d m y _ _ _)
+        (org-parse-time-string
+         (file-name-sans-extension
+          (file-name-nondirectory file)))
+      (list m d y))))
 
 (defun org-roam-dailies-calendar-mark-entries ()
   "Mark days in the calendar for which a daily-note is present."
