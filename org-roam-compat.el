@@ -130,7 +130,7 @@ passed to it."
                         (lwarn 'org-roam :error "
 --------
 WARNING: `org-id-locations-file' (%s) doesn't exist!
-         Org-roam unable to recreate it for you.
+         Org-roam is unable to recreate it for you.
 --------
 This happens when Emacs doesn't have permissions to create the path to your `org-id-locations-file'.
 Org-roam will now fallback storing the file in your current `org-roam-directory', but the warning
