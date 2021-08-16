@@ -847,6 +847,28 @@ first encapsulating ID."
    (when (org-roam-db-node-p)
      (org-id-get))))
 
+;;;###autoload
+(defun org-roam-update-org-id-locations (&rest directories)
+  "Scan Org-roam files to update `org-id' related state.
+This is like `org-id-update-id-locations', but will automatically
+use the currently bound `org-directory' and `org-roam-directory'
+along with DIRECTORIES (if any), where the lookup for files in
+these directories will be always recursive.
+
+Note: Org-roam doesn't have hard dependency on
+`org-id-locations-file' to lookup IDs for nodes that are stored
+in the database, but it still tries to properly integrates with
+`org-id'. This allows the user to cross-reference IDs outside of
+the current `org-roam-directory', and also link with \"id:\"
+links to headings/files within the current `org-roam-directory'
+that are excluded from identification in Org-roam as
+`org-roam-node's, e.g. with \"ROAM_EXCLUDE\" property."
+  (interactive)
+  (cl-loop with files for dir in (cons org-roam-directory directories)
+           for org-roam-directory = dir
+           nconc (org-roam-list-files) into files
+           finally (org-id-update-id-locations files org-roam-verbose)))
+
 ;;; Refs
 ;;;; Completing-read interface
 (defun org-roam-ref-read (&optional initial-input filter-fn)

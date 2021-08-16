@@ -95,6 +95,67 @@ recursion."
             (push (concat dir "/" file) files)))))
     (nconc result (nreverse files))))
 
+;;; Compatibility hacks and patches
+(advice-add #'org-id-add-location :around #'org-roam--handle-absent-org-id-locations-file-a)
+(defun org-roam--handle-absent-org-id-locations-file-a (fn &rest args)
+  "Gracefully handle errors related to absence of `org-id-locations-file'.
+FN is `org-id-locations-file' that comes from advice and ARGS are
+passed to it."
+  (let (result)
+    ;; Use `unwind-protect' over `condition-case' because `org-id' can produce various other errors, but all
+    ;; of its errors are generic ones, so trapping all of them isn't a good idea and preserving the correct
+    ;; backtrace is valuable.
+    (unwind-protect (setq result (apply fn args))
+      (unless result
+        (unless org-id-locations
+          ;; Pre-allocate the hash table to avoid weird access related errors during the regeneration.
+          (setq org-id-locations (make-hash-table :type 'equal)))
+        ;; `org-id' makes the assumption that `org-id-locations-file' will be stored in `user-emacs-directory'
+        ;; which always exist if you have Emacs, so it uses `with-temp-file' to write to the file. However,
+        ;; the users *do* change the path to this file and `with-temp-file' unable to create the file, if the
+        ;; path to it consists of directories that don't exist. We'll have to handle this ourselves.
+        (unless (file-exists-p (file-truename org-id-locations-file))
+          ;; If permissions allow that, try to create the user specified directory path to
+          ;; `org-id-locations-file' ourselves.
+          (condition-case _err
+              (progn (org-roam-message (concat "`org-id-locations-file' (%s) doesn't exist. "
+                                               "Trying to regenerate it (this may take a while)...")
+                                       org-id-locations-file)
+                     (make-directory (file-name-directory (file-truename org-id-locations-file)))
+                     (org-roam-update-org-id-locations)
+                     (apply fn args))
+            ;; In case of failure (lack of permissions), we'll patch it to at least handle the current session
+            ;; without errors.
+            (file-error (org-roam-message "Failed to regenerate `org-id-locations-file'")
+                        (lwarn 'org-roam :error "
+--------
+WARNING: `org-id-locations-file' (%s) doesn't exist!
+         Org-roam is unable to create it for you.
+--------
+
+This happens when Emacs doesn't have permissions to create the
+path to your `org-id-locations-file'. Org-roam will now fallback
+storing the file in your current `org-roam-directory', but the
+warning will keep popup with each new session.
+
+To stop this warning from popping up, set `org-id-locations-file'
+to the location you want and ensure that the path exists on your
+filesystem, then run M-x `org-roam-update-org-id-locations'.
+
+Note: While Org-roam doesn't depend on `org-id-locations-file' to
+lookup IDs for the nodes that are stored in the database, it
+still tries to keep it updated so IDs work across other files in
+Org-mode, so the IDs used in your `org-roam-directory' would be
+able to cross-reference outside of `org-roam-directory'. It also
+allows to keep linking with \"id:\" links within the current
+`org-roam-directory' to headings and files that are excluded from
+identification (e.g. with \"ROAM_EXCLUDE\" property) as Org-roam
+nodes." org-id-locations-file)
+                        (setq org-id-locations-file
+                              (expand-file-name ".orgids" (file-truename org-roam-directory)))
+                        (apply fn args)))))
+      result)))
+
 ;;; Obsolete aliases (remove after next major release)
 (define-obsolete-function-alias
   'org-roam-setup
