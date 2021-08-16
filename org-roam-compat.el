@@ -132,18 +132,24 @@ passed to it."
 WARNING: `org-id-locations-file' (%s) doesn't exist!
          Org-roam is unable to create it for you.
 --------
-This happens when Emacs doesn't have permissions to create the path to your `org-id-locations-file'.
-Org-roam will now fallback storing the file in your current `org-roam-directory', but the warning
-will keep popup with each new session.
 
-To stop this warning from popping up, set `org-id-locations-file' to the location you want and ensure
-that the path exists on your filesystem, then run M-x `org-roam-update-org-id-locations'.
+This happens when Emacs doesn't have permissions to create the
+path to your `org-id-locations-file'. Org-roam will now fallback
+storing the file in your current `org-roam-directory', but the
+warning will keep popup with each new session.
 
-Note: While Org-roam doesn't depend on `org-id-locations-file' to lookup IDs for the nodes that are stored in the database,
-it still tries to keep it updated so IDs work across other files in Org-mode, so the IDs used
-in your `org-roam-directory' would be able to cross-reference outside of `org-roam-directory'.
-It also allows to keep linking with \"id:\" links within the current `org-roam-directory' to headings
-and files that are excluded from identification (e.g. with \"ROAM_EXCLUDE\" property) as Org-roam
+To stop this warning from popping up, set `org-id-locations-file'
+to the location you want and ensure that the path exists on your
+filesystem, then run M-x `org-roam-update-org-id-locations'.
+
+Note: While Org-roam doesn't depend on `org-id-locations-file' to
+lookup IDs for the nodes that are stored in the database, it
+still tries to keep it updated so IDs work across other files in
+Org-mode, so the IDs used in your `org-roam-directory' would be
+able to cross-reference outside of `org-roam-directory'. It also
+allows to keep linking with \"id:\" links within the current
+`org-roam-directory' to headings and files that are excluded from
+identification (e.g. with \"ROAM_EXCLUDE\" property) as Org-roam
 nodes." org-id-locations-file)
                         (setq org-id-locations-file
                               (expand-file-name ".orgids" (file-truename org-roam-directory)))
