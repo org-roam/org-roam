@@ -110,7 +110,7 @@ passed to it."
         (unless org-id-locations
           ;; Pre-allocate the hash table to avoid weird access related errors during the regeneration.
           (setq org-id-locations (make-hash-table :type 'equal)))
-        ;; `org-id' makes assumption that the `org-id-locations-file' will be stored in `user-emacs-directory'
+        ;; `org-id' makes the assumption that `org-id-locations-file' will be stored in `user-emacs-directory'
         ;; which always exist if you have Emacs, so it uses `with-temp-file' to write to the file. However,
         ;; the users *do* change the path to this file and `with-temp-file' unable to create the file, if the
         ;; path to it consists of directories that don't exist. We'll have to handle this ourselves.
@@ -130,17 +130,17 @@ passed to it."
                         (lwarn 'org-roam :error "
 --------
 WARNING: `org-id-locations-file' (%s) doesn't exist!
-         Org-roam is unable to recreate it for you.
+         Org-roam is unable to create it for you.
 --------
 This happens when Emacs doesn't have permissions to create the path to your `org-id-locations-file'.
 Org-roam will now fallback storing the file in your current `org-roam-directory', but the warning
 will keep popup with each new session.
 
-To stop this warning to popup, set `org-id-locations-file' to the needed for you location and ensure
-that the path to it exist on your file system, then run M-x `org-roam-update-org-id-locations'.
+To stop this warning from popping up, set `org-id-locations-file' to the location you want and ensure
+that the path exists on your filesystem, then run M-x `org-roam-update-org-id-locations'.
 
-Note: While Org-roam doesn't have hard dependency on `org-id-locations-file' to lookup IDs for
-the nodes that are stored in the database, it still tries to integrate with it, so the IDs used
+Note: While Org-roam doesn't depend on `org-id-locations-file' to lookup IDs for the nodes that are stored in the database,
+it still tries to keep it updated so IDs work across other files in Org-mode, so the IDs used
 in your `org-roam-directory' would be able to cross-reference outside of `org-roam-directory'.
 It also allows to keep linking with \"id:\" links within the current `org-roam-directory' to headings
 and files that are excluded from identification (e.g. with \"ROAM_EXCLUDE\" property) as Org-roam
