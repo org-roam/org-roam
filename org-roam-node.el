@@ -364,7 +364,7 @@ GROUP BY id")))
     buf))
 
 (defun org-roam-node-visit (node &optional other-window)
-  "From the current buffer, visit NODE.
+  "From the current buffer, visit NODE. Return the visited buffer.
 
 Display the buffer in the selected window.  With a prefix
 argument OTHER-WINDOW display the buffer in another window
@@ -375,7 +375,8 @@ instead."
                                #'switch-to-buffer-other-window
                              #'pop-to-buffer-same-window)))
     (funcall display-buffer-fn buf)
-    (when (org-invisible-p) (org-show-context))))
+    (when (org-invisible-p) (org-show-context))
+    buf))
 
 ;;;###autoload
 (cl-defun org-roam-node-find (&optional other-window initial-input filter-fn &key templates)
