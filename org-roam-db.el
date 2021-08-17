@@ -31,6 +31,7 @@
 ;;
 ;;; Code:
 (require 'org-roam)
+(require 'filenotify)
 (defvar org-outline-path-cache)
 
 ;;; Options
@@ -592,7 +593,6 @@ database, see `org-roam-db-sync' command."
    (org-roam-db-autosync-mode ; enabled
     (pcase org-roam-db-autosync-update-method
       ('filenotify
-       (require 'filenotify)
        (cl-pushnew
         (cons org-roam-directory
               (file-notify-add-watch org-roam-directory '(change)
