@@ -76,6 +76,21 @@ It takes a single argument NODE, which is an `org-roam-node' construct."
                  (const :tag "file-atime" file-atime))
   :group 'org-roam)
 
+(defcustom org-roam-node-template-prefixes
+  '(("tags" . "#")
+    ("todo" . "t:"))
+  "Prefixes for each of the node's properties.
+This is used in conjunction with
+`org-roam-node-display-template': in minibuffer completions the
+node properties will be prefixed with strings in this variable,
+acting as a query language of sorts.
+
+For example, if a node has tags (\"foo\" \"bar\") and the alist
+has the entry (\"tags\" . \"#\"), these will appear as
+\"#foo #bar\"."
+  :group 'org-roam
+  :type  '(alist))
+
 (defcustom org-roam-ref-annotation-function #'org-roam-ref-read--annotation
   "This function used to attach annotations for `org-roam-ref-read'.
 It takes a single argument REF, which is a propertized string.")
@@ -455,50 +470,47 @@ The displayed title is formatted according to `org-roam-node-display-template'."
   (let ((candidate-main (org-roam-node-read--format-entry node (1- (frame-width)))))
     (cons (propertize candidate-main 'node node) node)))
 
-(defun org-roam-node-read--tags-to-str (tags)
-  "Convert list of TAGS into a string."
-  (mapconcat (lambda (s) (concat "#" s)) tags " "))
-
 (defun org-roam-node-read--format-entry (node width)
   "Formats NODE for display in the results list.
 WIDTH is the width of the results list.
 Uses `org-roam-node-display-template' to format the entry."
-  (let ((fmt (org-roam-node-read--process-display-format org-roam-node-display-template)))
+  (pcase-let ((`(,tmpl . ,tmpl-width)
+               (org-roam-node-read--process-display-format org-roam-node-display-template)))
     (org-roam-format-template
-     (car fmt)
+     tmpl
      (lambda (field _default-val)
-       (let* ((field (split-string field ":"))
-              (field-name (car field))
-              (field-width (cadr field))
-              (getter (intern (concat "org-roam-node-" field-name)))
-              (field-value (or (funcall getter node) "")))
-         (when (and (equal field-name "tags")
-                    field-value)
-           (setq field-value (org-roam-node-read--tags-to-str field-value)))
+       (pcase-let* ((`(,field-name ,field-width) (split-string field ":"))
+                    (getter (intern (concat "org-roam-node-" field-name)))
+                    (field-value (funcall getter node)))
          (when (and (equal field-name "file")
                     field-value)
            (setq field-value (file-relative-name field-value org-roam-directory)))
          (when (and (equal field-name "olp")
                     field-value)
            (setq field-value (string-join field-value " > ")))
-         (if (not field-width)
-             field-value
-           (setq field-width (string-to-number field-width))
-           (let ((display-string (truncate-string-to-width
-                                  field-value
-                                  (if (> field-width 0)
-                                      field-width
-                                    (- width (cdr fmt)))
-                                  0 ?\s)))
-             ;; Setting the display (which would be padded out to the field length) for an
-             ;; empty string results in an empty string and misalignment for candidates that
-             ;; don't have some field. This uses the actual display string, made of spaces
-             ;; when the field-value is "" so that we actually take up space.
-             (if (not (equal field-value ""))
-                 ;; Remove properties from the full candidate string, otherwise the display
-                 ;; formatting with pre-prioritized field-values gets messed up.
-                 (propertize (substring-no-properties field-value) 'display display-string)
-               display-string))))))))
+         (when (and field-value (not (listp field-value)))
+           (setq field-value (list field-value)))
+         (setq field-value (mapconcat
+                            (lambda (v)
+                              (concat (or (cdr (assoc field-name org-roam-node-template-prefixes))
+                                          "")
+                                      v))
+                            field-value " "))
+         (setq field-width (cond
+                            ((string-equal field-width "*")
+                             (- width tmpl-width))
+                            ((>= (string-to-number field-width) 0)
+                             (string-to-number field-width))))
+         ;; Setting the display (which would be padded out to the field length) for an
+         ;; empty string results in an empty string and misalignment for candidates that
+         ;; don't have some field. This uses the actual display string, made of spaces
+         ;; when the field-value is "" so that we actually take up space.
+         (let ((display-string (truncate-string-to-width field-value field-width 0 ?\s)))
+           (if (equal field-value "")
+               display-string
+             ;; Remove properties from the full candidate string, otherwise the display
+             ;; formatting with pre-prioritized field-values gets messed up.
+             (propertize (substring-no-properties field-value) 'display display-string))))))))
 
 (defun org-roam-node-read--process-display-format (format)
   "Pre-calculate minimal widths needed by the FORMAT string."
