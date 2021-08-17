@@ -72,43 +72,38 @@ database."
   :type 'function
   :group 'org-roam)
 
-(defcustom org-roam-db-update-method (if file-notify--library
-                                         'filenotify
-                                       'on-save)
-  "How to keep Org-roam's database updated.
-This supports the following values:
+(defcustom org-roam-db-autosync-update-method
+  (if file-notify--library 'filenotify 'on-save)
+  "What method to use to keep Org-roam's database updated.
 
   'filenotify
-    Update Org-roam upon detecting changes from the filesystem.
+    Update Org-roam upon detecting changes from the filesystem using
+    file watchers. Requires Emacs that's compiled with support for
+    file notifications.
 
   'on-save
-    Update the Org-roam database for the file that has changed.
+    Update the database whenever Emacs buffer that visits an Org-roam
+    file is saved. Unlike `filenotify' this won't be able to react to
+    external changes in the filesystem.
 
   nil
     Do not automatically update the Org-roam database."
-  :type '(choice (const :tag "On save" onsave)
-                 (const :tag "Filenotify" filenotify)
+  :type '(choice (const :tag "Filenotify" filenotify)
+                 (const :tag "On save" onsave)
                  (const :tag "Do not autoupdate" nil))
   :group 'org-roam)
 
-;;; Variables
+;;; Initialization
 (defconst org-roam-db-version 16)
 
-(defvar org-roam-db--fn-desc (list)
-  "Filenotify descriptors for Org-roam.
-This is an alist, where the key is the Org-roam directory being
-watched, and the value is the descriptor.")
+(defvar org-roam-db--connection (make-hash-table :test #'equal)
+  "Database connection to Org-roam database.")
 
-;; TODO Rename this
 (defconst org-roam--sqlite-available-p
   (with-demoted-errors "Org-roam initialization: %S"
     (emacsql-sqlite-ensure-binary)
     t))
 
-(defvar org-roam-db--connection (make-hash-table :test #'equal)
-  "Database connection to Org-roam database.")
-
-;;; Core Functions
 (defun org-roam-db--get-connection ()
   "Return the database connection, if any."
   (gethash (expand-file-name org-roam-directory)
@@ -546,16 +541,18 @@ If FORCE, force a rebuild of the cache from scratch."
         (dolist (file modified-files)
           (org-roam-db-update-file file))))))
 
-(defun org-roam-db-fn-callback (event)
-  "Handles filesystem EVENT.
-If Org-roam files are changed, we update the database
-accordingly."
-  (pcase event
-    (`(_ _ ,f)
-     (when (org-roam-file-p f) (org-roam-db-update-file f)))
-    (`(_ _ ,f ,f1)
-     (when (org-roam-file-p f) (org-roam-db-update-file f))
-     (when (org-roam-file-p f1) (org-roam-db-update-file f1)))))
+;;;###autoload
+(defun org-roam-db-autosync-enable ()
+  "Activate `org-roam-db-autosync-mode'."
+  (org-roam-db-autosync-mode +1))
+
+(defun org-roam-db-autosync-disable ()
+  "Deactivate `org-roam-db-autosync-mode'."
+  (org-roam-db-autosync-mode -1))
+
+(defun org-roam-db-autosync-toggle ()
+  "Toggle `org-roam-db-autosync-mode' enabled/disabled."
+  (org-roam-db-autosync-mode 'toggle))
 
 ;;;###autoload
 (define-minor-mode org-roam-db-autosync-mode
@@ -573,53 +570,64 @@ database, see `org-roam-db-sync' command."
   (let ((enabled org-roam-db-autosync-mode))
     (cond
      (enabled
-      (pcase org-roam-db-update-method
-        ('filenotify
-         (cl-pushnew
-          (cons org-roam-directory (file-notify-add-watch org-roam-directory
-                                                          '(change) #'org-roam-db-fn-callback))
-          org-roam-db--fn-desc))
-        ('on-save
-         (add-hook 'find-file-hook  #'org-roam-db-autosync--setup-file-h)
-         (advice-add #'rename-file :after  #'org-roam-db-autosync--rename-file-a)
-         (advice-add #'delete-file :before #'org-roam-db-autosync--delete-file-a))
-        ((pred nilp)
-         t))
+      (add-hook 'find-file-hook  #'org-roam-db-autosync--setup-file-h)
+      (org-roam-db-autosync--update-method)
       (add-hook 'kill-emacs-hook #'org-roam-db--close-all)
-
       (org-roam-db-sync))
      (t
-      (pcase org-roam-db-update-method
-        ('filenotify
-         (when-let ((desc (cdr (assq org-roam-directory org-roam-db--fn-desc))))
-           (file-notify-rm-watch desc)
-           (assq-delete-all org-roam-directory org-roam-db--fn-desc)))
-        ('on-save
-         (remove-hook 'find-file-hook  #'org-roam-db-autosync--setup-file-h)
-         (advice-remove #'rename-file #'org-roam-db-autosync--rename-file-a)
-         (advice-remove #'delete-file #'org-roam-db-autosync--delete-file-a))
-        ((pred nilp)
-         t))
+      (remove-hook 'find-file-hook  #'org-roam-db-autosync--setup-file-h)
+      (org-roam-db-autosync--update-method)
       (remove-hook 'kill-emacs-hook #'org-roam-db--close-all)
-
       (org-roam-db--close-all)
       ;; Disable local hooks for all org-roam buffers
       (dolist (buf (org-roam-buffer-list))
         (with-current-buffer buf
           (remove-hook 'after-save-hook #'org-roam-db-autosync--try-update-on-save-h t)))))))
 
-;;;###autoload
-(defun org-roam-db-autosync-enable ()
-  "Activate `org-roam-db-autosync-mode'."
-  (org-roam-db-autosync-mode +1))
+(defvar org-roam-db-autosync--filenotify-descriptors (list)
+  "An alist mapping watched Org-roam directories to `filenotify' descriptor.")
 
-(defun org-roam-db-autosync-disable ()
-  "Deactivate `org-roam-db-autosync-mode'."
-  (org-roam-db-autosync-mode -1))
+(defun org-roam-db-autosync--update-method ()
+  "Setup `org-roam-db-autosync-update-method' dependently on the mode's state."
+  (cond
+   (org-roam-db-autosync-mode ; enabled
+    (pcase org-roam-db-autosync-update-method
+      ('filenotify
+       (cl-pushnew
+        (cons org-roam-directory
+              (file-notify-add-watch org-roam-directory '(change)
+                                     #'org-roam-db-autosync--filenotify-update))
+        org-roam-db-autosync--filenotify-descriptors))
+      ('on-save
+       (add-hook 'org-roam-find-file-hook #'org-roam-db-autosync--setup-update-on-save-h)
+       (advice-add #'rename-file :after  #'org-roam-db-autosync--rename-file-a)
+       (advice-add #'delete-file :before #'org-roam-db-autosync--delete-file-a))
+      ((pred nilp)
+       t)
+      (_
+       (error "Unknown `org-roam-db-autosync-update-method': %s"))))
+   (t
+    (pcase org-roam-db-autosync-update-method
+      ('filenotify
+       (cl-loop for entry in org-roam-db-autosync--filenotify-descriptors
+                for _dir = (car entry)
+                for desc = (cdr entry)
+                do (file-notify-rm-watch desc))
+       (setq org-roam-db-autosync--filenotify-descriptors nil))
+      ('on-save
+       (remove-hook 'org-roam-find-file-hook #'org-roam-db-autosync--setup-update-on-save-h)
+       (advice-remove #'rename-file #'org-roam-db-autosync--rename-file-a)
+       (advice-remove #'delete-file #'org-roam-db-autosync--delete-file-a))
+      ((pred nilp)
+       t)
+      (_
+       (error "Unknown `org-roam-db-autosync-update-method': %s"))))))
 
-(defun org-roam-db-autosync-toggle ()
-  "Toggle `org-roam-db-autosync-mode' enabled/disabled."
-  (org-roam-db-autosync-mode 'toggle))
+(defun org-roam-db-autosync--filenotify-update (event)
+  "Update Org-roam's database according to EVENT sent by `filenotify'."
+  (cl-destructuring-bind (_descriptor _action &rest files) event
+    (mapc (lambda (f) (when (org-roam-file-p f) (org-roam-db-update-file f)))
+          files)))
 
 (defun org-roam-db-autosync--delete-file-a (file &optional _trash)
   "Maintain cache consistency when file deletes.
@@ -650,7 +658,6 @@ OLD-FILE is cleared from the database, and NEW-FILE-OR-DIR is added."
   "Setup the current buffer if it visits an Org-roam file."
   (when (org-roam-file-p) (run-hooks 'org-roam-find-file-hook)))
 
-(add-hook 'org-roam-find-file-hook #'org-roam-db-autosync--setup-update-on-save-h)
 (defun org-roam-db-autosync--setup-update-on-save-h ()
   "Setup the current buffer to update the DB after saving the current file."
   (add-hook 'after-save-hook #'org-roam-db-update-file nil t))
