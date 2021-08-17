@@ -170,6 +170,9 @@ nodes." org-id-locations-file)
 (define-obsolete-variable-alias
   'org-roam-current-directory
   'org-roam-buffer-current-directory "org-roam 2.0")
+(define-obsolete-variable-alias
+  'org-roam-db-update-on-save
+  'org-roam-db-update-method "org-roam 2.0")
 (define-obsolete-function-alias
   'org-roam-buffer-render
   'org-roam-buffer-render-contents "org-roam 2.0")
