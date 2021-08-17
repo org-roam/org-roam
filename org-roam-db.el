@@ -75,17 +75,17 @@ database."
 (defcustom org-roam-db-update-method (if file-notify--library
                                          'filenotify
                                        'on-save)
-  "How to keep Org-roam's database updated. This supports the
-following values:
+  "How to keep Org-roam's database updated.
+This supports the following values:
 
-  `on-save'
-    update the Org-roam database for the file that has changed.
+  'filenotify
+    Update Org-roam upon detecting changes from the filesystem.
 
-  `filenotify'
-   update Org-roam upon detecting changes from the filesystem.
+  'on-save
+    Update the Org-roam database for the file that has changed.
 
-  `nil'
-  Do not automatically update the Org-roam database."
+  nil
+    Do not automatically update the Org-roam database."
   :type '(choice (const :tag "On save" onsave)
                  (const :tag "Filenotify" filenotify)
                  (const :tag "Do not autoupdate" nil))
@@ -547,6 +547,9 @@ If FORCE, force a rebuild of the cache from scratch."
           (org-roam-db-update-file file))))))
 
 (defun org-roam-db-fn-callback (event)
+  "Handles filesystem EVENT.
+If Org-roam files are changed, we update the database
+accordingly."
   (pcase event
     (`(_ _ ,f)
      (when (org-roam-file-p f) (org-roam-db-update-file f)))
