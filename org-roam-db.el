@@ -6,7 +6,7 @@
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
 ;; Version: 2.0.0
-;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (org "9.4") (emacsql "3.0.0") (emacsql-sqlite "1.0.0") (magit-section "2.90.1"))
+;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (org "9.4") (emacsql "3.0.0") (emacsql-sqlite "1.0.0") (magit-section "2.90.1") (filenotify-recursive "0.0.1"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -32,6 +32,8 @@
 ;;; Code:
 (require 'org-roam)
 (require 'filenotify)
+(require 'filenotify-recursive)
+
 (defvar org-outline-path-cache)
 
 ;;; Options
@@ -585,7 +587,7 @@ database, see `org-roam-db-sync' command."
           (remove-hook 'after-save-hook #'org-roam-db-autosync--try-update-on-save-h t)))))))
 
 (defvar org-roam-db-autosync--filenotify-descriptors (list)
-  "An alist mapping watched Org-roam directories to `filenotify' descriptor.")
+  "An alist mapping watched Org-roam directories to `filenotify-recursive' uuid.")
 
 (defun org-roam-db-autosync--update-method ()
   "Setup `org-roam-db-autosync-update-method' dependently on the mode's state."
@@ -595,8 +597,7 @@ database, see `org-roam-db-sync' command."
       ('filenotify
        (cl-pushnew
         (cons org-roam-directory
-              (file-notify-add-watch org-roam-directory '(change)
-                                     #'org-roam-db-autosync--filenotify-update))
+              (fnr-add-watch org-roam-directory '(change) #'org-roam-db-autosync--filenotify-update))
         org-roam-db-autosync--filenotify-descriptors))
       ('on-save
        (add-hook 'org-roam-find-file-hook #'org-roam-db-autosync--setup-update-on-save-h)
@@ -611,8 +612,8 @@ database, see `org-roam-db-sync' command."
       ('filenotify
        (cl-loop for entry in org-roam-db-autosync--filenotify-descriptors
                 for _dir = (car entry)
-                for desc = (cdr entry)
-                do (file-notify-rm-watch desc))
+                for uuid = (cdr entry)
+                do (fnr-rm-watch uuid))
        (setq org-roam-db-autosync--filenotify-descriptors nil))
       ('on-save
        (remove-hook 'org-roam-find-file-hook #'org-roam-db-autosync--setup-update-on-save-h)
