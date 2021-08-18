@@ -288,17 +288,44 @@ If VAL is not specified, user is prompted to select a value."
   "Return `org-roam' version.
 Interactively, or when MESSAGE is non-nil, show in the echo area."
   (interactive)
-  (let* ((version
-          (with-temp-buffer
-            (insert-file-contents-literally (locate-library "org-roam.el"))
-            (goto-char (point-min))
-            (save-match-data
-              (if (re-search-forward "\\(?:;; Version: \\([^z-a]*?$\\)\\)" nil nil)
-                  (substring-no-properties (match-string 1))
-                "N/A")))))
+  (let* ((toplib (or load-file-name buffer-file-name))
+         gitdir topdir version)
+    (unless (and toplib (equal (file-name-nondirectory toplib) "org-roam-utils.el"))
+      (setq toplib (locate-library "org-roam-utils.el")))
+    (setq toplib (and toplib (org-roam--straight-chase-links toplib)))
+    (when toplib
+      (setq topdir (file-name-directory toplib)
+            gitdir (expand-file-name ".git" topdir)))
+    (when (file-exists-p gitdir)
+      (setq version
+            (let ((default-directory topdir))
+              (shell-command-to-string "git describe --tags --dirty --always"))))
+    (unless version
+      (setq version (with-temp-buffer
+                      (insert-file-contents-literally (locate-library "org-roam.el"))
+                      (goto-char (point-min))
+                      (save-match-data
+                        (if (re-search-forward "\\(?:;; Version: \\([^z-a]*?$\\)\\)" nil nil)
+                            (substring-no-properties (match-string 1))
+                          "N/A")))))
     (if (or message (called-interactively-p 'interactive))
         (message "%s" version)
       version)))
+
+(defun org-roam--straight-chase-links (filename)
+  "Chase links in FILENAME until a name that is not a link.
+
+This is the same as `file-chase-links', except that it also
+handles fake symlinks that are created by the package manager
+straight.el on Windows.
+
+See <https://github.com/raxod502/straight.el/issues/520>."
+  (when (and (bound-and-true-p straight-symlink-emulation-mode)
+             (fboundp 'straight-chase-emulated-symlink))
+    (when-let ((target (straight-chase-emulated-symlink filename)))
+      (unless (eq target 'broken)
+        (setq filename target))))
+  (file-chase-links filename))
 
 ;;;###autoload
 (defun org-roam-diagnostics ()
