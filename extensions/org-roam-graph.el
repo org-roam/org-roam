@@ -207,7 +207,8 @@ WITH RECURSIVE
    connected_component(source) AS
   (SELECT dest FROM links_of WHERE source = $s1 UNION
    SELECT dest FROM links_of JOIN connected_component USING(source))
-SELECT source, dest, type FROM links WHERE source IN connected_component OR dest IN connected_component;"
+SELECT DISTINCT source, dest, type FROM links
+WHERE source IN connected_component OR dest IN connected_component;"
             "
 WITH RECURSIVE
   links_of(source, dest) AS
@@ -224,7 +225,7 @@ WITH RECURSIVE
     AND json_array_length(cc.trace) < $s2)),
   nodes(source) as (SELECT DISTINCT source
    FROM connected_component GROUP BY source ORDER BY min(json_array_length(trace)))
-SELECT source, dest, type FROM links WHERE source IN nodes OR dest IN nodes;")))
+SELECT DISTINCT source, dest, type FROM links WHERE source IN nodes OR dest IN nodes;")))
     (org-roam-db-query query id distance)))
 
 (defun org-roam-graph--dot-option (option &optional wrap-key wrap-val)
