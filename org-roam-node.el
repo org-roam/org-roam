@@ -497,6 +497,8 @@ Uses `org-roam-node-display-template' to format the entry."
                                       v))
                             field-value " "))
          (setq field-width (cond
+                            ((not field-width)
+                             field-width)
                             ((string-equal field-width "*")
                              (- width tmpl-width))
                             ((>= (string-to-number field-width) 0)
@@ -505,7 +507,9 @@ Uses `org-roam-node-display-template' to format the entry."
          ;; empty string results in an empty string and misalignment for candidates that
          ;; don't have some field. This uses the actual display string, made of spaces
          ;; when the field-value is "" so that we actually take up space.
-         (let ((display-string (truncate-string-to-width field-value field-width 0 ?\s)))
+         (let ((display-string (if field-width
+                                   (truncate-string-to-width field-value field-width 0 ?\s)
+                                 field-value)))
            (if (equal field-value "")
                display-string
              ;; Remove properties from the full candidate string, otherwise the display
