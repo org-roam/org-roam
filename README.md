@@ -107,8 +107,8 @@ next sample will get you there:
 ```emacs-lisp
 (use-package org-roam
   :straight (:local-repo "/path/to/org-roam-fork"
-             :files (:defaults "extensions/*"
-             :build (:not compile)))
+             :files (:defaults "extensions/*")
+             :build (:not compile))
   ...)
 ```
 </details>
@@ -155,8 +155,8 @@ the next sample will get you there:
 ```emacs-lisp
 (package! org-roam
   :recipe (:local-repo "/path/to/org-roam-fork"
-           :files (:defaults "extensions/*"
-           :build (:not compile))))
+           :files (:defaults "extensions/*")
+           :build (:not compile)))
 ```
 </details>
 
