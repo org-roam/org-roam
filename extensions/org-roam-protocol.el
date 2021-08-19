@@ -160,7 +160,7 @@ It should contain the FILE key, pointing to the path of the file to open.
 org-protocol://roam-node?node=uuid"
   (when-let ((node (plist-get info :node)))
     (raise-frame)
-    (org-roam-node-visit (org-roam-populate (org-roam-node-create :id node))))
+    (org-roam-node-visit (org-roam-populate (org-roam-node-create :id node)) nil 'force))
   nil)
 
 (push '("org-roam-ref"  :protocol "roam-ref"   :function org-roam-protocol-open-ref)

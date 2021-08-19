@@ -369,23 +369,31 @@ GROUP BY id")))
                               all-titles)))))
 
 ;;;; Finders
-(defun org-roam-node-find-noselect (node)
-  "Navigate to the point for NODE, and return the buffer."
+(defun org-roam-node-find-noselect (node &optional force)
+  "Navigate to the point for NODE, and return the buffer.
+If NODE is already visited, this won't automatically move the
+point to the beginning of the NODE, unless FORCE is non-nil."
   (unless (org-roam-node-file node)
     (user-error "Node does not have corresponding file"))
   (let ((buf (find-file-noselect (org-roam-node-file node))))
     (with-current-buffer buf
-      (goto-char (org-roam-node-point node)))
+      (when (or force
+                (not (equal (org-roam-node-id node)
+                            (org-roam-id-at-point))))
+        (goto-char (org-roam-node-point node))))
     buf))
 
-(defun org-roam-node-visit (node &optional other-window)
+(defun org-roam-node-visit (node &optional other-window force)
   "From the current buffer, visit NODE. Return the visited buffer.
-
 Display the buffer in the selected window.  With a prefix
 argument OTHER-WINDOW display the buffer in another window
-instead."
-  (interactive (list (org-roam-node-at-point t) current-prefix-arg))
-  (let ((buf (org-roam-node-find-noselect node))
+instead.
+
+If NODE is already visited, this won't automatically move the
+point to the beginning of the NODE, unless FORCE is non-nil. In
+interactive calls FORCE always set to t."
+  (interactive (list (org-roam-node-at-point t) current-prefix-arg t))
+  (let ((buf (org-roam-node-find-noselect node 'force))
         (display-buffer-fn (if other-window
                                #'switch-to-buffer-other-window
                              #'pop-to-buffer-same-window)))
@@ -613,7 +621,7 @@ Assumes that the cursor was put where the link is."
         (cond
          ((org-roam-node-file node)
           (org-mark-ring-push)
-          (org-roam-node-visit node)
+          (org-roam-node-visit node nil 'force)
           t)
          (t nil))))))
 
@@ -627,7 +635,7 @@ Assumes that the cursor was put where the link is."
         (when org-roam-link-auto-replace
           (org-roam-link-replace-at-point))
         (org-mark-ring-push)
-        (org-roam-node-visit node))
+        (org-roam-node-visit node nil 'force))
     (org-roam-capture-
      :node (org-roam-node-create :title title-or-alias)
      :props '(:finalize find-file))))
