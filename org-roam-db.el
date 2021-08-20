@@ -597,7 +597,10 @@ database, see `org-roam-db-sync' command."
       ('filenotify
        (cl-pushnew
         (cons org-roam-directory
-              (fnr-add-watch org-roam-directory '(change) #'org-roam-db-autosync--filenotify-update))
+              (fnr-add-watch org-roam-directory
+                             '(change)
+                             #'org-roam-db-autosync--filenotify-update
+                             "\\`\\.")) ; Ignore directories that start with "."
         org-roam-db-autosync--filenotify-descriptors))
       ('on-save
        (add-hook 'org-roam-find-file-hook #'org-roam-db-autosync--setup-update-on-save-h)
