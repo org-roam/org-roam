@@ -1,9 +1,36 @@
 # Changelog
 
-## 1.2.4 (TBD)
-
+## 2.1.0
 ### Added
+- [#1709](https://github.com/org-roam/org-roam/pull/1709) added ability to specify default value in org-roam capture templates
+- [#1710](https://github.com/org-roam/org-roam/pull/1710) added `org-roam-extract-subtree`
+- [#1720](https://github.com/org-roam/org-roam/pull/1720) added `org-roam-db-update-on-save`
+- [#1758](https://github.com/org-roam/org-roam/pull/1758) added `org-roam-db-autosync-mode`, replacing `org-roam-setup` and `org-roam-teardown`
 
+### Removed
+- [#1716](https://github.com/org-roam/org-roam/pull/1716) helper function `org-roam-get-keyword` is now obsolete: prefer `org-collect-keywords`
+
+### Changed
+- [#1595](https://github.com/org-roam/org-roam/pull/1595), [#1724](https://github.com/org-roam/org-roam/pull/1724) Major refactoring and restructuring of the codebase
+- [#1655](https://github.com/org-roam/org-roam/pull/1655) improved org-roam contents preview
+- [#1741](https://github.com/org-roam/org-roam/pull/1741) expose `org-roam-capture-` keys in interactive commands
+- [#1786](https://github.com/org-roam/org-roam/pull/1786) org-roam-version now outputs commit hash if found
+- [#1788](https://github.com/org-roam/org-roam/pull/1788) the point is not moved if the node is already visited
+
+### Fixed
+- [#1608](https://github.com/org-roam/org-roam/pull/1608) migration: empty ROAM_REFS are now removed 
+- [#1609](https://github.com/org-roam/org-roam/pull/1609) migration: fixed file-link replacement
+- [#1653](https://github.com/org-roam/org-roam/pull/1653) migration: fixed tags migration
+- [#1694](https://github.com/org-roam/org-roam/pull/1694) core: nodes with no title are now skipped
+- [#1637](https://github.com/org-roam/org-roam/pull/1637) core: fix org-ref multi-cite links not being split
+- [#1651](https://github.com/org-roam/org-roam/pull/1651) core: fix org-roam-file-p crashing when there is no corresponding file
+- [#1705](https://github.com/org-roam/org-roam/pull/1705) core: fix for add/remove of file-level tags
+- [#1769](https://github.com/org-roam/org-roam/pull/1769) core: gracefully handle absence of `org-id-locations-file`
+- [#1713](https://github.com/org-roam/org-roam/pull/1713) capture: check for file-existence before template insertion
+- [#1725](https://github.com/org-roam/org-roam/pull/1725) db: always compute hash of encrypted file to prevent re-processing of encrypted files
+
+## 2.0.0
+### Added
 - [#1396](https://github.com/org-roam/org-roam/pull/1396) add option to choose between prepending, appending, and omitting `roam_tags` in file completion
 - [#1270](https://github.com/org-roam/org-roam/pull/1270) capture: create OLP if it does not exist. Removes need for OLP setup in `:head`.
 - [#1353](https://github.com/org-roam/org-roam/pull/1353) support file-level property drawers
@@ -28,7 +55,6 @@
 - [#1403](https://github.com/org-roam/org-roam/issues/1403) fixed inconsistency between how we write and read props like alias and tags
 - [#1409](https://github.com/org-roam/org-roam/issues/1398) prevent inclusion of non-org-roam files in `org-roam-dailies--list-files`
 - [#1542](https://github.com/org-roam/org-roam/issues/1542) fix files not excluded when `org-roam-list-files-commands` is nil
-- [#1705](https://github.com/org-roam/org-roam/pull/1705) fix for add/remove of file-level tags
 
 ## 1.2.3 (13-11-2020)
 
