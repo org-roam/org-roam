@@ -163,6 +163,9 @@ nodes." org-id-locations-file)
 (define-obsolete-function-alias
   'org-roam-teardown
   'org-roam-db-autosync-disable "org-roam 2.0")
+(define-obsolete-variable-alias
+  'org-roam-db-update-on-save
+  'org-roam-db-autosync-update-method "org-roam 2.0")
 
 (define-obsolete-variable-alias
   'org-roam-current-node
