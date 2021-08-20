@@ -7,7 +7,7 @@
 ;;      Leo Vivier <leo.vivier+dev@gmail.com>
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
-;; Version: 2.0.0
+;; Version: 2.1.0
 ;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (org-roam "2.0"))
 
 ;; This file is NOT part of GNU Emacs.
