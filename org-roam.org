@@ -8,13 +8,13 @@
 #+texinfo_dir_category: Emacs
 #+texinfo_dir_title: Org-roam: (org-roam).
 #+texinfo_dir_desc: Roam Research for Emacs.
-#+subtitle: for version 2.0.0
+#+subtitle: for version 2.1.0
 
 #+options: H:4 num:3 toc:nil creator:t ':t
 #+property: header-args :eval never
 #+texinfo: @noindent
 
-This manual is for Org-roam version 2.0.0.
+This manual is for Org-roam version 2.1.0.
 
 #+BEGIN_QUOTE
 Copyright (C) 2020-2021 Jethro Kuan <jethrokuan95@gmail.com>
