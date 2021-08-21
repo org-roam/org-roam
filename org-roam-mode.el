@@ -542,22 +542,20 @@ Sorts by title."
 
 (defun org-roam-reflinks-get (node)
   "Return the reflinks for NODE."
-  (let ((refs (org-roam-db-query [:select [ref] :from refs
-                                  :where (= node-id $s1)]
+  (let ((refs (org-roam-db-query [:select :distinct [refs:ref links:source links:pos links:properties]
+                                  :from refs
+                                  :left-join links
+                                  :where (= refs:node-id $s1)
+                                  :and (= links:dest refs:ref)]
                                  (org-roam-node-id node)))
         links)
-    (pcase-dolist (`(,ref) refs)
-      (pcase-dolist (`(,source-id ,pos ,properties) (org-roam-db-query
-                                                     [:select [source pos properties]
-                                                      :from links
-                                                      :where (= dest $s1)]
-                                                     ref))
-        (push (org-roam-populate
-               (org-roam-reflink-create
-                :source-node (org-roam-node-create :id source-id)
-                :ref ref
-                :point pos
-                :properties properties)) links)))
+    (pcase-dolist (`(,ref ,source-id ,pos ,properties) refs)
+      (push (org-roam-populate
+             (org-roam-reflink-create
+              :source-node (org-roam-node-create :id source-id)
+              :ref ref
+              :point pos
+              :properties properties)) links))
     links))
 
 (defun org-roam-reflinks-sort (a b)
