@@ -1,5 +1,13 @@
 # Changelog
 
+## TBD
+### Added
+### Removed
+### Changed
+- [#1795](https://github.com/org-roam/org-roam/pull/1795) buffer: optimized reflinks fetch
+
+### Fixed
+
 ## 2.1.0
 ### Added
 - [#1709](https://github.com/org-roam/org-roam/pull/1709) added ability to specify default value in org-roam capture templates
