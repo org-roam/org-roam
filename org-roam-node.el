@@ -180,7 +180,7 @@ populated."
                                     (magit-section-up)
                                     (org-roam-node-at-point)))
         (t (org-with-wide-buffer
-            (org-back-to-heading-or-point-min)
+            (org-back-to-heading-or-point-min t)
             (while (and (not (org-roam-db-node-p))
                         (not (bobp)))
               (org-roam-up-heading-or-point-min))
@@ -827,7 +827,7 @@ If region is active, then use it instead of the node at point."
   "Convert current subtree at point to a node, and extract it into a new file."
   (interactive)
   (save-excursion
-    (org-back-to-heading-or-point-min)
+    (org-back-to-heading-or-point-min t)
     (when (bobp) (user-error "Already a top-level node"))
     (org-id-get-create)
     (save-buffer)
@@ -865,7 +865,7 @@ If region is active, then use it instead of the node at point."
 Recursively traverses up the headline tree to find the
 first encapsulating ID."
   (org-with-wide-buffer
-   (org-back-to-heading-or-point-min)
+   (org-back-to-heading-or-point-min t)
    (while (and (not (org-roam-db-node-p))
                (not (bobp)))
      (org-roam-up-heading-or-point-min))
