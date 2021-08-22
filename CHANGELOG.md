@@ -11,6 +11,7 @@
 
 ## 2.1.0
 ### Added
+- [#1693](https://github.com/org-roam/org-roam/pull/1693) added `filter-fn` and `templates` parameter to `org-roam-capture`, `org-roam-node-find`, and `org-roam-node-insert`
 - [#1709](https://github.com/org-roam/org-roam/pull/1709) added ability to specify default value in org-roam capture templates
 - [#1710](https://github.com/org-roam/org-roam/pull/1710) added `org-roam-extract-subtree`
 - [#1720](https://github.com/org-roam/org-roam/pull/1720) added `org-roam-db-update-on-save`
@@ -27,7 +28,7 @@
 - [#1788](https://github.com/org-roam/org-roam/pull/1788) the point is not moved if the node is already visited
 
 ### Fixed
-- [#1608](https://github.com/org-roam/org-roam/pull/1608) migration: empty ROAM_REFS are now removed 
+- [#1608](https://github.com/org-roam/org-roam/pull/1608) migration: empty ROAM_REFS are now removed
 - [#1609](https://github.com/org-roam/org-roam/pull/1609) migration: fixed file-link replacement
 - [#1653](https://github.com/org-roam/org-roam/pull/1653) migration: fixed tags migration
 - [#1694](https://github.com/org-roam/org-roam/pull/1694) core: nodes with no title are now skipped
@@ -47,7 +48,7 @@
 ### Changed
 
 - [#1352](https://github.com/org-roam/org-roam/pull/1352) prefer lower-case for roam_tag and roam_alias in interactive commands
-- [#1513](https://github.com/org-roam/org-roam/pull/1513) replaced hardcoded "svg" with defcustom org-roam-graph-filetype 
+- [#1513](https://github.com/org-roam/org-roam/pull/1513) replaced hardcoded "svg" with defcustom org-roam-graph-filetype
 - [#1540](https://github.com/org-roam/org-roam/pull/1540) allow `roam_tag` and `roam_alias` to be specified on multiple lines
 
 ### Fixed
