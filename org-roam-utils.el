@@ -32,9 +32,6 @@
 ;;
 ;;; Code:
 
-(eval-when-compile
-  (require 'org-macs))
-
 ;;; String utilities
 ;; TODO Refactor this.
 (defun org-roam-replace-string (old new s)
