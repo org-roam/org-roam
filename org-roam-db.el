@@ -634,9 +634,36 @@ be on of the values from `org-roam-db-autosync-update-method'."
 
 (defun org-roam-db-autosync--filenotify-update (event)
   "Update Org-roam's database according to EVENT sent by `filenotify'."
-  (cl-destructuring-bind (_descriptor _action &rest files) event
-    (mapc (lambda (f) (when (org-roam-file-p f) (org-roam-db-update-file f)))
-          files)))
+  (cl-destructuring-bind (_descriptor action &rest files) event
+    (cond
+     ((cl-find-if #'org-roam-file-p files)
+      (mapc #'org-roam-db-update-file files))
+     ((memq action '(created deleted renamed))
+      (apply (intern (format "org-roam-db-autosync--update-%s-dir" action)) files)))))
+
+(defun org-roam-db-autosync--update-created-dir (dir)
+  "Add entries from Org-roam files under DIR to the database."
+  (when (file-directory-p dir)
+    (let ((files (let ((org-roam-directory dir))
+                   (org-roam-list-files))))
+      (emacsql-with-transaction (org-roam-db)
+        (mapc #'org-roam-db-update-file files)))))
+
+(defun org-roam-db-autosync--update-deleted-dir (dir)
+  "Invalidate entries related to Org-roam files under DIR from the database."
+  (let ((dir (thread-first dir
+               ;; Ensure that separator is present in the name
+               (directory-file-name)
+               (concat (f-path-separator))
+               ;; Follow the same format as the rest of the files in the database
+               (expand-file-name))))
+    (org-roam-db-query [:delete :from files :where (like file $s1)]
+                       (concat dir "%"))))
+
+(defun org-roam-db-autosync--update-renamed-dir (old-name new-name)
+  "Invalidate and then add files renamed from OLD-NAME directory to NEW-NAME."
+  (org-roam-db-autosync--update-deleted-dir old-name)
+  (org-roam-db-autosync--update-created-dir new-name))
 
 (defun org-roam-db-autosync--delete-file-a (file &optional _trash)
   "Maintain cache consistency when file deletes.
