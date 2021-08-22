@@ -569,16 +569,17 @@ database, see `org-roam-db-sync' command."
   :group 'org-roam
   :global t
   :init-value nil
-  (let ((enabled org-roam-db-autosync-mode))
+  (let ((enabled org-roam-db-autosync-mode)
+        (update-method org-roam-db-autosync-update-method))
     (cond
      (enabled
       (add-hook 'find-file-hook  #'org-roam-db-autosync--setup-file-h)
-      (org-roam-db-autosync--update-method)
+      (org-roam-db-autosync--update-method :enable update-method)
       (add-hook 'kill-emacs-hook #'org-roam-db--close-all)
       (org-roam-db-sync))
      (t
       (remove-hook 'find-file-hook  #'org-roam-db-autosync--setup-file-h)
-      (org-roam-db-autosync--update-method)
+      (org-roam-db-autosync--update-method :disable update-method)
       (remove-hook 'kill-emacs-hook #'org-roam-db--close-all)
       (org-roam-db--close-all)
       ;; Disable local hooks for all org-roam buffers
@@ -589,43 +590,47 @@ database, see `org-roam-db-sync' command."
 (defvar org-roam-db-autosync--filenotify-descriptors (list)
   "An alist mapping watched Org-roam directories to `filenotify-recursive' uuid.")
 
-(defun org-roam-db-autosync--update-method ()
-  "Setup `org-roam-db-autosync-update-method' dependently on the mode's state."
-  (cond
-   (org-roam-db-autosync-mode ; enabled
-    (pcase org-roam-db-autosync-update-method
-      ('filenotify
-       (cl-pushnew
-        (cons org-roam-directory
-              (fnr-add-watch org-roam-directory
-                             '(change)
-                             #'org-roam-db-autosync--filenotify-update
-                             "\\`\\.")) ; Ignore directories that start with "."
-        org-roam-db-autosync--filenotify-descriptors))
-      ('on-save
-       (add-hook 'org-roam-find-file-hook #'org-roam-db-autosync--setup-update-on-save-h)
-       (advice-add #'rename-file :after  #'org-roam-db-autosync--rename-file-a)
-       (advice-add #'delete-file :before #'org-roam-db-autosync--delete-file-a))
-      ((pred nilp)
-       t)
-      (_
-       (error "Unknown `org-roam-db-autosync-update-method': %s"))))
-   (t
-    (pcase org-roam-db-autosync-update-method
-      ('filenotify
-       (cl-loop for entry in org-roam-db-autosync--filenotify-descriptors
-                for _dir = (car entry)
-                for uuid = (cdr entry)
-                do (fnr-rm-watch uuid))
-       (setq org-roam-db-autosync--filenotify-descriptors nil))
-      ('on-save
-       (remove-hook 'org-roam-find-file-hook #'org-roam-db-autosync--setup-update-on-save-h)
-       (advice-remove #'rename-file #'org-roam-db-autosync--rename-file-a)
-       (advice-remove #'delete-file #'org-roam-db-autosync--delete-file-a))
-      ((pred nilp)
-       t)
-      (_
-       (error "Unknown `org-roam-db-autosync-update-method': %s"))))))
+(defun org-roam-db-autosync--update-method (state method)
+  "Change the current `org-roam-db-autosync-update-method' to METHOD.
+STATE should be either :enable or :disable, while METHOD should
+be on of the values from `org-roam-db-autosync-update-method'."
+  (unless (memq method '(filenotify on-save nil))
+    (user-error "Unknown `org-roam-db-autosync-update-method': %s" method))
+  (cl-ecase state
+    (:enable
+     (unless (eq method org-roam-db-autosync-update-method)
+       ;; Clean up the old method in case of hot swap.
+       (org-roam-db-autosync--update-method :disable org-roam-db-autosync-update-method))
+     (setq org-roam-db-autosync-update-method method)
+     (pcase method
+       ('filenotify
+        (cl-pushnew
+         (cons org-roam-directory
+               (fnr-add-watch org-roam-directory
+                              '(change)
+                              #'org-roam-db-autosync--filenotify-update
+                              "\\`\\.")) ; Ignore directories that start with "."
+         org-roam-db-autosync--filenotify-descriptors))
+       ('on-save
+        (add-hook 'org-roam-find-file-hook #'org-roam-db-autosync--setup-update-on-save-h)
+        (advice-add #'rename-file :after  #'org-roam-db-autosync--rename-file-a)
+        (advice-add #'delete-file :before #'org-roam-db-autosync--delete-file-a))
+       ((pred nilp)
+        t)))
+    (:disable
+     (pcase org-roam-db-autosync-update-method
+       ('filenotify
+        (cl-loop for entry in org-roam-db-autosync--filenotify-descriptors
+                 for _dir = (car entry)
+                 for uuid = (cdr entry)
+                 do (fnr-rm-watch uuid))
+        (setq org-roam-db-autosync--filenotify-descriptors nil))
+       ('on-save
+        (remove-hook 'org-roam-find-file-hook #'org-roam-db-autosync--setup-update-on-save-h)
+        (advice-remove #'rename-file #'org-roam-db-autosync--rename-file-a)
+        (advice-remove #'delete-file #'org-roam-db-autosync--delete-file-a))
+       ((pred nilp)
+        t)))))
 
 (defun org-roam-db-autosync--filenotify-update (event)
   "Update Org-roam's database according to EVENT sent by `filenotify'."
