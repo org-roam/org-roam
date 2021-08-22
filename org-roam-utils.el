@@ -32,6 +32,8 @@
 ;;
 ;;; Code:
 
+(require 'org-roam)
+
 ;;; String utilities
 ;; TODO Refactor this.
 (defun org-roam-replace-string (old new s)

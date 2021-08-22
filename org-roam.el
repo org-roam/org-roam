@@ -94,7 +94,6 @@
 (eval-when-compile
   (require 'subr-x))
 
-(require 'org-roam-utils)
 (require 'org-roam-compat)
 
 ;;; Options
@@ -310,6 +309,7 @@ E.g. (\".org\") => (\"*.org\" \"*.org.gpg\")"
 (provide 'org-roam)
 
 (cl-eval-when (load eval)
+  (require 'org-roam-utils)
   (require 'org-roam-db)
   (require 'org-roam-node)
   (require 'org-roam-capture)
