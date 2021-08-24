@@ -202,6 +202,10 @@ nodes." org-id-locations-file)
 ;;; Obsolete functions
 (make-obsolete 'org-roam-get-keyword 'org-collect-keywords "org-roam 2.0")
 
+;;; Obsolete variables
+(make-obsolete-variable 'org-roam-dailies-capture-templates 'org-roam-capture-templates "org-roam 2.1")
+(make-obsolete-variable 'org-roam-capture-ref-templates 'org-roam-capture-templates "org-roam 2.1")
+
 (provide 'org-roam-compat)
 
 ;;; org-roam-compat.el ends here

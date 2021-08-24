@@ -105,6 +105,29 @@ If FILE, set `default-directory' to FILE's directory and insert its contents."
              (setq-local default-directory (file-name-directory ,file)))
            ,@body)))))
 
+;;; Processing options
+(defun org-roam--valid-option-p (option choice)
+  "Return t if OPTION satisfies CHOICE, else nil.
+OPTION is a symbol, while CHOICE is either, a symbol or a list of
+symbols that can optionally start with `:not' keyword.
+
+If CHOICE is a list that indicates negation, then the function
+will return t if OPTION isn't in the list. Otherwise it will
+return t is OPTION is present in the CHOICE.
+
+When CHOICE is a symbol, it will behave like `eq', except of
+special 'any value, in which case it will always return t,
+independently OPTION's value.
+
+CHOICE as a list can too contain 'any, in which case any OPTION
+value will be considered as part of the CHOICE, with respect to
+negation."
+  (let* ((choices (-list choice))
+         (intersection (-intersection (list option 'any) choices))
+         (negation (eq :not (car choices))))
+    (or (and intersection (not negation))
+        (and (not intersection) negation))))
+
 ;;; Formatting
 (defun org-roam-format-template (template replacer)
   "Format TEMPLATE with the function REPLACER.

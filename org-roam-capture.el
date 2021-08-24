@@ -38,6 +38,33 @@
 (defvar org-end-time-was-given)
 
 ;;; Options
+(defcustom org-roam-capture-load-default-templates t
+  "Whether to include default Org-roam capture templates during the loading.
+The value will also affect default templates provided by
+Org-roam's extensions. It can be:
+
+  t
+    Include all the default capture templates provided by
+    Org-roam and its extensions.
+
+  nil
+    Don't include the default capture templates provided by
+    Org-roam and its extensions.
+
+  a list of symbols
+    Each symbol in the list corresponds to a `provide'd FEATURE,
+    for which the default capture templates will be automatically
+    included (if any). The list can start with a special value
+    `:not', in which case the logic will be inverted to
+    exclusion, e.g. (:not org-roam-dailies) won't include the
+    default templates provided by `org-roam-dailies', but will
+    include for other features."
+  :type '(choice
+          (const :tag "Yes" t)
+          (const :tag "No" nil)
+          (repeat :tag "List features" symbol))
+  :group 'org-roam)
+
 (defcustom org-roam-capture-templates
   '(("d" "default" plain "%?"
      :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
@@ -378,8 +405,17 @@ This variable is populated dynamically, and is only non-nil
 during the Org-roam capture process.")
 
 (defconst org-roam-capture--template-keywords (list :if-new :id :link-description :call-location
-                                                    :region)
+                                                    :region :kind :action)
   "Keywords used in `org-roam-capture-templates' specific to Org-roam.")
+
+(defun org-roam-capture--load-templates-p (feature)
+  "Return t if capture templates for FEATURE are allowed to be loaded.
+See `org-roam-capture-load-default-templates' for more details."
+  (let ((user-value org-roam-capture-load-default-templates))
+    (pcase user-value
+      ((pred consp) (org-roam--valid-option-p feature user-value))
+      ((pred null) nil)
+      ('t t))))
 
 ;;; Main entry point
 ;;;###autoload
@@ -390,11 +426,18 @@ INFO is a plist for filling up Org-roam's capture templates.
 NODE is an `org-roam-node' construct containing information about the node.
 PROPS is a plist containing additional Org-roam properties for each template.
 TEMPLATES is a list of org-roam templates."
-  (let* ((props (plist-put props :call-location (point-marker)))
+  (let* ((props (thread-first props
+                  (plist-put :call-location (point-marker))
+                  (plist-put :action  (or (plist-get props :action) (if goto 'goto 'capture)))
+                  (plist-put :kind (or (plist-get props :kind) 'normal))))
+         (templates (org-roam-capture-get-templates
+                     :action (plist-get props :action)
+                     :kind (plist-get props :kind)
+                     :templates (or templates org-roam-capture-templates)))
          (org-capture-templates
           (mapcar (lambda (template)
                     (org-roam-capture--convert-template template props))
-                  (or templates org-roam-capture-templates)))
+                  templates))
          (org-roam-capture--node node)
          (org-roam-capture--info info))
     (when (and (not keys)
@@ -428,6 +471,27 @@ This function is to only be called when `org-capture-plist' is
 valid for the capture (i.e. initialization, and finalization of
 the capture)."
   (plist-get org-capture-plist :org-roam))
+
+(cl-defun org-roam-capture-get-templates (&key (kind 'normal)
+                                               (action 'capture)
+                                               (templates org-roam-capture-templates))
+  "Return list of narrowed down capture TEMPLATES to a suitable KIND and ACTION."
+  (cl-loop for templ in templates
+           for templ-kind = (or (plist-get templ :kind) 'normal)
+           for templ-action = (or (plist-get templ :action) 'capture)
+           when (and (org-roam--valid-option-p kind templ-kind)
+                     (org-roam--valid-option-p action templ-action))
+           if (org-roam-capture--dull-template-p templ) collect it
+           else collect templ))
+
+(defun org-roam-capture--dull-template-p (template)
+  "Return prefix key declaration of TEMPLATE if it's a prefix key based one.
+Unlike `org-capture', in Org-roam such templates can also
+optionally specify dedicated `:kind' and `:action' values."
+  (cl-loop for property in (cddr template) by #'cddr
+           unless (memq property '(:kind :action))
+           return nil
+           finally return (cl-subseq template 0 2)))
 
 (defun org-roam-capture--get (keyword)
   "Get the value for KEYWORD from the `org-roam-capture-template'."
