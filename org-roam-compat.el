@@ -109,7 +109,7 @@ passed to it."
       (unless result
         (unless org-id-locations
           ;; Pre-allocate the hash table to avoid weird access related errors during the regeneration.
-          (setq org-id-locations (make-hash-table :type 'equal)))
+          (setq org-id-locations (make-hash-table :test 'equal)))
         ;; `org-id' makes the assumption that `org-id-locations-file' will be stored in `user-emacs-directory'
         ;; which always exist if you have Emacs, so it uses `with-temp-file' to write to the file. However,
         ;; the users *do* change the path to this file and `with-temp-file' unable to create the file, if the
