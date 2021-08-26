@@ -110,17 +110,23 @@ The following options are supported for the :target property:
        inserted if the node is a newly captured one.
 
    (file+olp \"path/to/file\" (\"h1\" \"h2\"))
-       The file will be created, prescribed an ID. The OLP (h1, h2) will be
-       created, and the point placed after.
+       The file will be created, prescribed an ID. If the file doesn't contain
+       the outline path (h1, h2), it will be automatically created. The point
+       will be adjusted to the last element in the OLP.
 
    (file+head+olp \"path/to/file\" \"head content\" (\"h1\" \"h2\"))
        The file will be created, prescribed an ID. Head content will be
        inserted at the start of the file if the node is a newly captured one.
-       The OLP (h1, h2) will be created,and the point placed after.
+       If the file doesn't contain the outline path (h1, h2), it will be
+       automatically created. The point will be adjusted to the last element in
+       the OLP.
 
-   (file+datetree \"path/to/file\" day)
-       The file will be created, prescribed an ID. The datetree will be
-       created. Available options are either, day, week or month.
+   (file+datetree \"path/to/file\" tree-type)
+       The file will be created, prescribed an ID. A date based outline path
+       will be created for today's date. The tree-type can be one of the
+       following symbols: day, week or month. The point will adjusted to the
+       last element in the tree. To prompt for date instead of using today's,
+       use the :time-prompt property.
 
    (node \"title or alias or ID of an existing node\")
        The point will be placed for an existing node, based on either, its
