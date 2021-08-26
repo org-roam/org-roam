@@ -161,7 +161,7 @@ nodes." org-id-locations-file)
   (advice-add 'org-roam-capture--get-target :around #'org-roam-capture--get-if-new-target-a)
   (let (warning-was-displayed)
     (defun org-roam-capture--get-if-new-target-a (fn &rest args)
-      "Get t"
+      "Get the current capture target using deprecated :if-new property."
       (if-let ((target (org-roam-capture--get :if-new)))
           (prog1 target
             (unless warning-was-displayed
