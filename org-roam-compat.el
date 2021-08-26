@@ -153,6 +153,29 @@ nodes." org-id-locations-file)
                            (expand-file-name ".orgids" (file-truename org-roam-directory)))
                      (apply fn args)))))))
 
+(with-eval-after-load 'org-roam-capture
+  (add-to-list 'org-roam-capture--template-keywords :if-new)
+
+  ;; REVIEW :if-new is deprecated since 2.1 in favor of :target.
+  (advice-add 'org-roam-capture--get-target :around #'org-roam-capture--get-if-new-target-a)
+  (let (warning-was-displayed)
+    (defun org-roam-capture--get-if-new-target-a (fn &rest args)
+      "Get t"
+      (if-let ((target (org-roam-capture--get :if-new)))
+          (prog1 target
+            (unless warning-was-displayed
+              (lwarn 'org-roam-capture :warning
+                     (mapconcat
+                      #'identity
+                      ["`:if-new' property is deprecated in favor of `:target' property."
+                       "Please, rename in your Org-roam based capture templates all the"
+                       "existing `:if-new' properties to `:target' in order to get of this"
+                       "warning."]
+                      "\n"))
+              ;; Don't irritate the user too much. Displaying the warning once per session should be enough.
+              (setq warning-was-displayed t)))
+        (apply fn args)))))
+
 ;;; Obsolete aliases (remove after next major release)
 (define-obsolete-function-alias
   'org-roam-setup

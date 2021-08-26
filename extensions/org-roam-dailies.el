@@ -62,7 +62,7 @@ This path is relative to `org-roam-directory'."
 (defcustom org-roam-dailies-capture-templates
   `(("d" "default" entry
      "* %?"
-     :if-new (file+head "%<%Y-%m-%d>.org"
+     :target (file+head "%<%Y-%m-%d>.org"
                         "#+title: %<%Y-%m-%d>\n")))
   "Capture templates for daily-notes in Org-roam.
 Note that for daily files to show up in the calendar, they have to be of format
@@ -92,7 +92,7 @@ See `org-roam-capture-templates' for the template documentation."
                                       (function :tag "Template function")))
                         (plist :inline t
                                ;; Give the most common options as checkboxes
-                               :options (((const :format "%v " :if-new)
+                               :options (((const :format "%v " :target)
                                           (choice :tag "Node location"
                                                   (list :tag "File"
                                                         (const :format "" file)

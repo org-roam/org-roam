@@ -1062,7 +1062,7 @@ extension in your Org-roam capture templates. For example:
 
 @lisp
 (setq org-roam-capture-templates '(("d" "default" plain "%?"
-     :if-new (file+head "$@{slug@}.org.gpg"
+     :target (file+head "$@{slug@}.org.gpg"
                         "#+title: $@{title@}\n")
      :unnarrowed t)))
 @end lisp
@@ -1305,7 +1305,7 @@ of the template are similar to @code{org-capture} templates.
 
 @lisp
 (("d" "default" plain "%?"
-  :if-new (file+head "%<%Y%m%d%H%M%S>-$@{slug@}.org"
+  :target (file+head "%<%Y%m%d%H%M%S>-$@{slug@}.org"
                      "#+title: $@{title@}\n")
   :unnarrowed t))
 @end lisp
@@ -1331,8 +1331,12 @@ here.
 This template means don't insert any content, but place the cursor here.
 
 @item
-@code{:if-new} is a compulsory specification in the Org-roam capture template.
-This indicates the location for the new node.
+@code{:target} is a compulsory specification in the Org-roam capture
+template. The first element of the list indicates the type of the
+target, the second element indicates the location of the captured
+node, and the rest of the elements indicate prefilled template that
+will be inserted and the position of the point will be adjusted for.
+The latter behavior various from type to type of the capture target.
 
 @item
 @code{:unnarrowed t} tells org-capture to show the contents for the whole file,
@@ -1519,7 +1523,7 @@ Here is a sane default configuration:
 (setq org-roam-dailies-capture-templates
       '(("d" "default" entry
          "* %?"
-         :if-new (file+head "%<%Y-%m-%d>.org"
+         :target (file+head "%<%Y-%m-%d>.org"
                             "#+title: %<%Y-%m-%d>\n"))))
 @end lisp
 
