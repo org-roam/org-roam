@@ -169,9 +169,9 @@ nodes." org-id-locations-file)
                      (mapconcat
                       #'identity
                       ["`:if-new' property is deprecated in favor of `:target' property."
-                       "Please, rename in your Org-roam based capture templates all the"
-                       "existing `:if-new' properties to `:target' in order to get of this"
-                       "warning."]
+                       "This warning will only popup once for each new session. In order"
+                       "to get rid of it, you need to rename all the related `:if-new'"
+                       "template properties to `:target'."]
                       "\n"))
               ;; Don't irritate the user too much. Displaying the warning once per session should be enough.
               (setq warning-was-displayed t)))
