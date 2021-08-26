@@ -6,7 +6,7 @@
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
 ;; Version: 2.1.0
-;; Package-Requires: ((emacs "26.1") (dash "2.13") (org "9.4") (magit-section "2.90.1"))
+;; Package-Requires: ((emacs "26.1") (dash "2.13") (org "9.4") (magit-section "3.0.0"))
 
 ;; This file is NOT part of GNU Emacs.
 
