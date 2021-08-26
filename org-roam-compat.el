@@ -154,9 +154,10 @@ nodes." org-id-locations-file)
                      (apply fn args)))))))
 
 (with-eval-after-load 'org-roam-capture
+  ;; :if-new capture template property is deprecated (starting from 2.2) in
+  ;; favor of :target property.
   (add-to-list 'org-roam-capture--template-keywords :if-new)
 
-  ;; REVIEW :if-new is deprecated since 2.1 in favor of :target.
   (advice-add 'org-roam-capture--get-target :around #'org-roam-capture--get-if-new-target-a)
   (let (warning-was-displayed)
     (defun org-roam-capture--get-if-new-target-a (fn &rest args)
