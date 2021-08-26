@@ -452,14 +452,7 @@ Note: During the capture process this function is run by
 `org-capture-set-target-location', as a (function ...) based
 capture target."
   (let ((id (cond ((run-hook-with-args-until-success 'org-roam-capture-preface-hook))
-                  ((and (org-roam-node-file org-roam-capture--node)
-                        (org-roam-node-point org-roam-capture--node))
-                   (set-buffer (org-capture-target-buffer (org-roam-node-file org-roam-capture--node)))
-                   (goto-char (org-roam-node-point org-roam-capture--node))
-                   (widen)
-                   (org-roam-node-id org-roam-capture--node))
-                  (t
-                   (org-roam-capture--setup-target-location)))))
+                  (t (org-roam-capture--setup-target-location)))))
     (org-roam-capture--adjust-point-for-capture-type)
     (org-capture-put :template
                      (org-roam-capture--fill-template (org-capture-get :template)))
@@ -474,19 +467,15 @@ Return the ID of the location."
     (pcase (or (org-roam-capture--get :if-new)
                (user-error "Template needs to specify `:if-new'"))
       (`(file ,path)
-       (setq path (expand-file-name
-                   (string-trim (org-roam-capture--fill-template path t))
-                   org-roam-directory))
-       (setq new-file-p (org-roam-capture--new-file-p path))
+       (setq path (org-roam-capture--target-truepath path)
+             new-file-p (org-roam-capture--new-file-p path))
        (when new-file-p (org-roam-capture--put :new-file path))
        (set-buffer (org-capture-target-buffer path))
        (widen)
        (setq p (goto-char (point-min))))
       (`(file+olp ,path ,olp)
-       (setq path (expand-file-name
-                   (string-trim (org-roam-capture--fill-template path t))
-                   org-roam-directory))
-       (setq new-file-p (org-roam-capture--new-file-p path))
+       (setq path (org-roam-capture--target-truepath path)
+             new-file-p (org-roam-capture--new-file-p path))
        (when new-file-p (org-roam-capture--put :new-file path))
        (set-buffer (org-capture-target-buffer path))
        (setq p (point-min))
@@ -494,10 +483,8 @@ Return the ID of the location."
          (goto-char m))
        (widen))
       (`(file+head ,path ,head)
-       (setq path (expand-file-name
-                   (string-trim (org-roam-capture--fill-template path t))
-                   org-roam-directory))
-       (setq new-file-p (org-roam-capture--new-file-p path))
+       (setq path (org-roam-capture--target-truepath path)
+             new-file-p (org-roam-capture--new-file-p path))
        (set-buffer (org-capture-target-buffer path))
        (when new-file-p
          (org-roam-capture--put :new-file path)
@@ -505,10 +492,8 @@ Return the ID of the location."
        (widen)
        (setq p (goto-char (point-min))))
       (`(file+head+olp ,path ,head ,olp)
-       (setq path (expand-file-name
-                   (string-trim (org-roam-capture--fill-template path t))
-                   org-roam-directory))
-       (setq new-file-p (org-roam-capture--new-file-p path))
+       (setq path (org-roam-capture--target-truepath path)
+             new-file-p (org-roam-capture--new-file-p path))
        (set-buffer (org-capture-target-buffer path))
        (widen)
        (when new-file-p
@@ -518,9 +503,7 @@ Return the ID of the location."
        (let ((m (org-roam-capture-find-or-create-olp olp)))
          (goto-char m)))
       (`(file+datetree ,path ,tree-type)
-       (setq path (expand-file-name
-                   (string-trim (org-roam-capture--fill-template path t))
-                   org-roam-directory))
+       (setq path (org-roam-capture--target-truepath path))
        (require 'org-datetree)
        (widen)
        (set-buffer (org-capture-target-buffer path))
@@ -580,6 +563,16 @@ Return the ID of the location."
       (prog1
           (org-id-get-create)
         (run-hooks 'org-roam-capture-new-node-hook)))))
+
+(defun org-roam-capture--target-truepath (path)
+  "From PATH get the correct path to the current capture target and return it.
+PATH is a string that can optionally contain templated text in
+it."
+  (or (org-roam-node-file org-roam-capture--node)
+      (thread-first path
+        (org-roam-capture--fill-template t)
+        (string-trim)
+        (expand-file-name org-roam-directory))))
 
 (defun org-roam-capture--new-file-p (path)
   "Return t if PATH is for a new file with no visiting buffer."
