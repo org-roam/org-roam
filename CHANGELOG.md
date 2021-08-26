@@ -5,6 +5,7 @@
 ### Removed
 ### Changed
 - [#1795](https://github.com/org-roam/org-roam/pull/1795) buffer: optimized reflinks fetch
+- [#1809](https://github.com/org-roam/org-roam/pull/1809) capture: the mandatory `:if-new` property of each capture template is now renamed to `:target`
 
 ### Fixed
 - [#1798](https://github.com/org-roam/org-roam/pull/1798) org-roam-node-at-point: do not skip invisible headings
