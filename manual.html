@@ -1273,7 +1273,7 @@ extension in your Org-roam capture templates. For example:
 </p>
 <div class="lisp">
 <pre class="lisp">(setq org-roam-capture-templates '((&quot;d&quot; &quot;default&quot; plain &quot;%?&quot;
-     :if-new (file+head &quot;${slug}.org.gpg&quot;
+     :target (file+head &quot;${slug}.org.gpg&quot;
                         &quot;#+title: ${title}\n&quot;)
      :unnarrowed t)))
 </pre></div>
@@ -1555,7 +1555,7 @@ of the template are similar to <code>org-capture</code> templates.
 </p>
 <div class="lisp">
 <pre class="lisp">((&quot;d&quot; &quot;default&quot; plain &quot;%?&quot;
-  :if-new (file+head &quot;%&lt;%Y%m%d%H%M%S&gt;-${slug}.org&quot;
+  :target (file+head &quot;%&lt;%Y%m%d%H%M%S&gt;-${slug}.org&quot;
                      &quot;#+title: ${title}\n&quot;)
   :unnarrowed t))
 </pre></div>
@@ -1575,8 +1575,12 @@ here.
 </li><li> <code>&quot;%?&quot;</code> is the template inserted on each call to <code>org-roam-capture-</code>.
 This template means don&rsquo;t insert any content, but place the cursor here.
 
-</li><li> <code>:if-new</code> is a compulsory specification in the Org-roam capture template.
-This indicates the location for the new node.
+</li><li> <code>:target</code> is a compulsory specification in the Org-roam capture
+template. The first element of the list indicates the type of the
+target, the second element indicates the location of the captured
+node, and the rest of the elements indicate prefilled template that
+will be inserted and the position of the point will be adjusted for.
+The latter behavior various from type to type of the capture target.
 
 </li><li> <code>:unnarrowed t</code> tells org-capture to show the contents for the whole file,
 rather than narrowing to just the entry. This is part of the Org-capture
@@ -1785,7 +1789,7 @@ Next: <a href="#Usage" accesskey="n" rel="next">Usage</a>, Up: <a href="#Org_002
 (setq org-roam-dailies-capture-templates
       '((&quot;d&quot; &quot;default&quot; entry
          &quot;* %?&quot;
-         :if-new (file+head &quot;%&lt;%Y-%m-%d&gt;.org&quot;
+         :target (file+head &quot;%&lt;%Y-%m-%d&gt;.org&quot;
                             &quot;#+title: %&lt;%Y-%m-%d&gt;\n&quot;))))
 </pre></div>
 

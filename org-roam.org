@@ -698,7 +698,7 @@ extension in your Org-roam capture templates. For example:
 
 #+begin_src emacs-lisp
 (setq org-roam-capture-templates '(("d" "default" plain "%?"
-     :if-new (file+head "${slug}.org.gpg"
+     :target (file+head "${slug}.org.gpg"
                         "#+title: ${title}\n")
      :unnarrowed t)))
 #+end_src
@@ -899,7 +899,7 @@ of the template are similar to ~org-capture~ templates.
 
 #+BEGIN_SRC emacs-lisp
 (("d" "default" plain "%?"
-  :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
+  :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
                      "#+title: ${title}\n")
   :unnarrowed t))
 #+END_SRC
@@ -913,8 +913,12 @@ of the template are similar to ~org-capture~ templates.
    here.
 5. ~"%?"~ is the template inserted on each call to ~org-roam-capture-~.
    This template means don't insert any content, but place the cursor here.
-6. ~:if-new~ is a compulsory specification in the Org-roam capture template.
-   This indicates the location for the new node.
+6. ~:target~ is a compulsory specification in the Org-roam capture template. The
+   first element of the list indicates the type of the target, the second
+   element indicates the location of the captured node, and the rest of the
+   elements indicate prefilled template that will be inserted and the position
+   of the point will be adjusted for. The latter behavior various from type to
+   type of the capture target.
 7. ~:unnarrowed t~ tells org-capture to show the contents for the whole file,
    rather than narrowing to just the entry. This is part of the Org-capture
    templates.
@@ -1054,7 +1058,7 @@ Here is a sane default configuration:
 (setq org-roam-dailies-capture-templates
       '(("d" "default" entry
          "* %?"
-         :if-new (file+head "%<%Y-%m-%d>.org"
+         :target (file+head "%<%Y-%m-%d>.org"
                             "#+title: %<%Y-%m-%d>\n"))))
 #+end_src
 
