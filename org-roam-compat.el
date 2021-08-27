@@ -158,7 +158,7 @@ nodes." org-id-locations-file)
   (add-to-list 'org-roam-capture--template-keywords :if-new)
 
   (advice-add 'org-roam-capture--get-target :around #'org-roam-capture--get-if-new-target-a)
-  (let (warning-was-displayed)
+  (let ((warning-was-displayed 'dont-display)) ; REVIEW Set this to nil close to next major release
     (defun org-roam-capture--get-if-new-target-a (fn &rest args)
       "Get the current capture target using deprecated :if-new property."
       (if-let ((target (org-roam-capture--get :if-new)))
