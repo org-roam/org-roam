@@ -154,8 +154,7 @@ nodes." org-id-locations-file)
                      (apply fn args)))))))
 
 (with-eval-after-load 'org-roam-capture
-  ;; :if-new capture template property is deprecated (starting from 2.2) in
-  ;; favor of :target property.
+  ;; :if-new capture template property is deprecated in favor of :target
   (add-to-list 'org-roam-capture--template-keywords :if-new)
 
   (advice-add 'org-roam-capture--get-target :around #'org-roam-capture--get-if-new-target-a)
@@ -168,10 +167,10 @@ nodes." org-id-locations-file)
               (lwarn 'org-roam-capture :warning
                      (mapconcat
                       #'identity
-                      ["`:if-new' property is deprecated in favor of `:target' property."
-                       "This warning will only popup once for each new session. In order"
-                       "to get rid of it, you need to rename all the related `:if-new'"
-                       "template properties to `:target'."]
+                      ["`:if-new' property is deprecated in favor of `:target'."
+                       "This warning will popup once per each session. In order to get"
+                       "rid of it, rename all the references to the `:if-new' property"
+                       "in your capture templates to `:target'."]
                       "\n"))
               ;; Don't irritate the user too much. Displaying the warning once per session should be enough.
               (setq warning-was-displayed t)))
