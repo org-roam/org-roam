@@ -40,7 +40,7 @@
 ;;; Options
 (defcustom org-roam-capture-templates
   '(("d" "default" plain "%?"
-     :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
+     :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
                         "#+title: ${title}\n")
      :unnarrowed t))
   "Templates for the creation of new entries within Org-roam.
@@ -92,30 +92,41 @@ template     The template for creating the capture item.
              in order to get a template from a file, or dynamically
              from a function.
 
-The template contains a compulsory :if-new property. This determines the
-location of the new node. The :if-new property contains a list, supporting
-the following options:
+The template contains a compulsory :target property. The :target property
+contains a list, where:
+  - The first element indicates the type of the target.
+  - The second element indicates the location of the captured node.
+  - And the rest of the list indicate the prefilled template, that will be
+    inserted and the position of the point will be adjusted for.
+    This behavior various from type to type.
+
+The following options are supported for the :target property:
 
    (file \"path/to/file\")
        The file will be created, and prescribed an ID.
 
    (file+head \"path/to/file\" \"head content\")
        The file will be created, prescribed an ID, and head content will be
-       inserted into the file.
+       inserted if the node is a newly captured one.
 
    (file+olp \"path/to/file\" (\"h1\" \"h2\"))
-       The file will be created, prescribed an ID. The OLP (h1, h2) will be
-       created, and the point placed after.
+       The file will be created, prescribed an ID. If the file doesn't contain
+       the outline path (h1, h2), it will be automatically created. The point
+       will be adjusted to the last element in the OLP.
 
    (file+head+olp \"path/to/file\" \"head content\" (\"h1\" \"h2\"))
        The file will be created, prescribed an ID. Head content will be
-       inserted at the start of the file. The OLP (h1, h2) will be created,
-       and the point placed after.
+       inserted at the start of the file if the node is a newly captured one.
+       If the file doesn't contain the outline path (h1, h2), it will be
+       automatically created. The point will be adjusted to the last element in
+       the OLP.
 
-   (file+datetree \"path/to/file\" day)
-       The file will be created, prescribed an ID. Head content will be
-       inserted at the start of the file. The datetree will be created,
-       available options are day, week, month.
+   (file+datetree \"path/to/file\" tree-type)
+       The file will be created, prescribed an ID. A date based outline path
+       will be created for today's date. The tree-type can be one of the
+       following symbols: day, week or month. The point will adjusted to the
+       last element in the tree. To prompt for date instead of using today's,
+       use the :time-prompt property.
 
    (node \"title or alias or ID of an existing node\")
        The point will be placed for an existing node, based on either, its
@@ -289,7 +300,7 @@ streamlined user experience in Org-roam."
                                       (function :tag "Template function")))
                         (plist :inline t
                                ;; Give the most common options as checkboxes
-                               :options (((const :format "%v " :if-new)
+                               :options (((const :format "%v " :target)
                                           (choice :tag "Node location"
                                                   (list :tag "File"
                                                         (const :format "" file)
@@ -377,7 +388,7 @@ during the Org-roam capture process.")
 This variable is populated dynamically, and is only non-nil
 during the Org-roam capture process.")
 
-(defconst org-roam-capture--template-keywords (list :if-new :id :link-description :call-location
+(defconst org-roam-capture--template-keywords (list :target :id :link-description :call-location
                                                     :region)
   "Keywords used in `org-roam-capture-templates' specific to Org-roam.")
 
@@ -445,8 +456,9 @@ the capture)."
 (defun org-roam-capture--prepare-buffer ()
   "Prepare the capture buffer for the current Org-roam based capture template.
 This function will initialize and setup the capture buffer,
-create the target node (`:if-new') if it doesn't exist, and place
-the point for further processing by `org-capture'.
+position the point to the current :target (and if necessary,
+create it if it doesn't exist), and place the point for further
+processing by `org-capture'.
 
 Note: During the capture process this function is run by
 `org-capture-set-target-location', as a (function ...) based
@@ -464,8 +476,7 @@ capture target."
   "Initialize the buffer, and goto the location of the new capture.
 Return the ID of the location."
   (let (p new-file-p)
-    (pcase (or (org-roam-capture--get :if-new)
-               (user-error "Template needs to specify `:if-new'"))
+    (pcase (org-roam-capture--get-target)
       (`(file ,path)
        (setq path (org-roam-capture--target-truepath path)
              new-file-p (org-roam-capture--new-file-p path))
@@ -563,6 +574,11 @@ Return the ID of the location."
       (prog1
           (org-id-get-create)
         (run-hooks 'org-roam-capture-new-node-hook)))))
+
+(defun org-roam-capture--get-target ()
+  "Get the current capture :target for the capture template in use."
+  (or (org-roam-capture--get :target)
+      (user-error "Template needs to specify `:target'")))
 
 (defun org-roam-capture--target-truepath (path)
   "From PATH get the correct path to the current capture target and return it.

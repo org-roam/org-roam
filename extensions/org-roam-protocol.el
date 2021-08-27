@@ -48,7 +48,7 @@
 
 (defcustom org-roam-capture-ref-templates
   '(("r" "ref" plain "%?"
-     :if-new (file+head "${slug}.org"
+     :target (file+head "${slug}.org"
                         "#+title: ${title}")
      :unnarrowed t))
   "The Org-roam templates used during a capture from the roam-ref protocol.
@@ -77,7 +77,7 @@ See `org-roam-capture-templates' for the template documentation."
                                       (function :tag "Template function")))
                         (plist :inline t
                                ;; Give the most common options as checkboxes
-                               :options (((const :format "%v " :if-new)
+                               :options (((const :format "%v " :target)
                                           (choice :tag "Node location"
                                                   (list :tag "File"
                                                         (const :format "" file)
