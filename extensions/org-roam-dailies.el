@@ -36,6 +36,18 @@
 ;; One can use dailies for various purposes, e.g. journaling, fleeting notes,
 ;; scratch notes and whatever else you can came up with.
 ;;
+;; To add new capture templates dedicated for dailies, specify ":kind daily" for
+;; each of such template in `org-roam-capture-templates', e.g.
+;;
+;;   (setq org-roam-capture-templates
+;;         '(("d" "daily" entry "* %?" :kind daily
+;;            :if-new (file+head "%<%Y-%m-%d>.org"
+;;                               "#+title: %<%Y-%m-%d>\n"))))
+;;
+;; Note that in order for your daily files to properly integrate with the
+;; calendar, each daily file should be named with a format understood by
+;; `org-parse-time-string'.
+;;
 ;;; Code:
 (require 'f)
 (require 'dash)
@@ -49,8 +61,9 @@
 
 ;;; Options
 (defcustom org-roam-dailies-directory "daily/"
-  "Path to daily-notes.
-This path is relative to `org-roam-directory'."
+  "Path to daily-notes. This path is relative to `org-roam-directory'.
+Daily based capture templates will automatically start from this
+path."
   :group 'org-roam
   :type 'string)
 
@@ -58,74 +71,6 @@ This path is relative to `org-roam-directory'."
   "Hook that is run right after navigating to a daily-note."
   :group 'org-roam
   :type 'hook)
-
-(defcustom org-roam-dailies-capture-templates
-  `(("d" "default" entry
-     "* %?"
-     :if-new (file+head "%<%Y-%m-%d>.org"
-                        "#+title: %<%Y-%m-%d>\n")))
-  "Capture templates for daily-notes in Org-roam.
-Note that for daily files to show up in the calendar, they have to be of format
-\"org-time-string.org\".
-See `org-roam-capture-templates' for the template documentation."
-  :group 'org-roam
-  :type '(repeat
-          (choice (list :tag "Multikey description"
-                        (string :tag "Keys       ")
-                        (string :tag "Description"))
-                  (list :tag "Template entry"
-                        (string :tag "Keys           ")
-                        (string :tag "Description    ")
-                        (choice :tag "Capture Type   " :value entry
-                                (const :tag "Org entry" entry)
-                                (const :tag "Plain list item" item)
-                                (const :tag "Checkbox item" checkitem)
-                                (const :tag "Plain text" plain)
-                                (const :tag "Table line" table-line))
-                        (choice :tag "Template       "
-                                (string)
-                                (list :tag "File"
-                                      (const :format "" file)
-                                      (file :tag "Template file"))
-                                (list :tag "Function"
-                                      (const :format "" function)
-                                      (function :tag "Template function")))
-                        (plist :inline t
-                               ;; Give the most common options as checkboxes
-                               :options (((const :format "%v " :if-new)
-                                          (choice :tag "Node location"
-                                                  (list :tag "File"
-                                                        (const :format "" file)
-                                                        (string :tag "  File"))
-                                                  (list :tag "File & Head Content"
-                                                        (const :format "" file+head)
-                                                        (string :tag "  File")
-                                                        (string :tag "  Head Content"))
-                                                  (list :tag "File & Outline path"
-                                                        (const :format "" file+olp)
-                                                        (string :tag "  File")
-                                                        (list :tag "Outline path"
-                                                              (repeat (string :tag "Headline"))))
-                                                  (list :tag "File & Head Content & Outline path"
-                                                        (const :format "" file+head+olp)
-                                                        (string :tag "  File")
-                                                        (string :tag "  Head Content")
-                                                        (list :tag "Outline path"
-                                                              (repeat (string :tag "Headline"))))))
-                                         ((const :format "%v " :prepend) (const t))
-                                         ((const :format "%v " :immediate-finish) (const t))
-                                         ((const :format "%v " :jump-to-captured) (const t))
-                                         ((const :format "%v " :empty-lines) (const 1))
-                                         ((const :format "%v " :empty-lines-before) (const 1))
-                                         ((const :format "%v " :empty-lines-after) (const 1))
-                                         ((const :format "%v " :clock-in) (const t))
-                                         ((const :format "%v " :clock-keep) (const t))
-                                         ((const :format "%v " :clock-resume) (const t))
-                                         ((const :format "%v " :time-prompt) (const t))
-                                         ((const :format "%v " :tree-type) (const week))
-                                         ((const :format "%v " :unnarrowed) (const t))
-                                         ((const :format "%v " :table-line-pos) (string))
-                                         ((const :format "%v " :kill-buffer) (const t))))))))
 
 ;;; Commands
 ;;;; Today
@@ -306,8 +251,8 @@ When GOTO is non-nil, go the note without creating an entry."
   (let ((org-roam-directory (expand-file-name org-roam-dailies-directory org-roam-directory)))
     (org-roam-capture- :goto (when goto '(4))
                        :node (org-roam-node-create)
-                       :templates org-roam-dailies-capture-templates
-                       :props (list :override-default-time time)))
+                       :props (list :kind 'daily
+                                    :override-default-time time)))
   (when goto (run-hooks 'org-roam-dailies-find-file-hook)))
 
 (add-hook 'org-roam-capture-preface-hook #'org-roam-dailies--override-capture-time-h)
@@ -316,6 +261,12 @@ When GOTO is non-nil, go the note without creating an entry."
   (prog1 nil
     (when (org-roam-capture--get :override-default-time)
       (org-capture-put :default-time (org-roam-capture--get :override-default-time)))))
+
+(when (org-roam-capture--load-templates-p 'org-roam-dailies)
+  (push '("d" "daily" entry "* %?" :kind daily
+          :if-new (file+head "%<%Y-%m-%d>.org"
+                             "#+title: %<%Y-%m-%d>\n"))
+        org-roam-capture-templates))
 
 ;;; Bindings
 (defvar org-roam-dailies-map (make-sparse-keymap)
