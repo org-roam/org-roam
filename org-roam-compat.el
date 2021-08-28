@@ -153,17 +153,18 @@ nodes." org-id-locations-file)
                            (expand-file-name ".orgids" (file-truename org-roam-directory)))
                      (apply fn args)))))))
 
+;;;; Deprecated :if-new capture template keyword
 (with-eval-after-load 'org-roam-capture
-  ;; :if-new capture template property is deprecated in favor of :target
-  (add-to-list 'org-roam-capture--template-keywords :if-new)
+  (add-to-list 'org-roam-capture--template-keywords :if-new))
 
-  (advice-add 'org-roam-capture--get-target :around #'org-roam-capture--get-if-new-target-a)
-  (let ((warning-was-displayed 'dont-display)) ; REVIEW Set this to nil close to next major release
-    (defun org-roam-capture--get-if-new-target-a (fn &rest args)
+(advice-add 'org-roam-capture--get-target :around #'org-roam-capture--get-if-new-target-a)
+(defalias 'org-roam-capture--get-if-new-target-a
+  (let ((inhibit-warning-p t)) ; REVIEW Set this to nil close to next major release
+    (lambda (fn &rest args)
       "Get the current capture target using deprecated :if-new property."
       (if-let ((target (org-roam-capture--get :if-new)))
           (prog1 target
-            (unless warning-was-displayed
+            (unless inhibit-warning-p
               (lwarn 'org-roam-capture :warning
                      (mapconcat
                       #'identity
@@ -173,7 +174,7 @@ nodes." org-id-locations-file)
                        "in your capture templates to `:target'."]
                       "\n"))
               ;; Don't irritate the user too much. Displaying the warning once per session should be enough.
-              (setq warning-was-displayed t)))
+              (setq inhibit-warning-p t)))
         (apply fn args)))))
 
 ;;; Obsolete aliases (remove after next major release)
