@@ -70,6 +70,7 @@ General Public License for more details.
 * Customizing Node Caching::
 * The Org-roam Buffer::
 * Node Properties::
+* Citations::
 * Completion::
 * Encryption::
 * Org-roam Protocol::
@@ -86,6 +87,7 @@ General Public License for more details.
 * Command Index::
 * Function Index::
 * Variable Index::
+* Bibliography: Bibliography (1). 
 
 @detailmenu
 --- The Detailed Node Listing ---
@@ -125,6 +127,11 @@ Node Properties
 * Titles and Aliases::
 * Tags::
 * Refs::
+
+Citations
+
+* Setup::
+* Using the Cached Information::
 
 Completion
 
@@ -250,7 +257,7 @@ available to Emacs.
 
 Org-roam is a tool that will appear unfriendly to anyone unfamiliar with Emacs
 and Org-mode, but it is also extremely powerful to those willing to put effort
-inn mastering the intricacies. Org-roam stands on the shoulders of giants. Emacs
+in mastering the intricacies. Org-roam stands on the shoulders of giants. Emacs
 was first created in 1976, and remains the tool of choice for many for editing
 text and designing textual interfaces. The malleability of Emacs allowed the
 creation of Org-mode, an all-purpose plain-text system for maintaining TODO
@@ -637,8 +644,8 @@ The @code{file-truename} function is only necessary when you use symbolic links
 inside @code{org-roam-directory}: Org-roam does not resolve symbolic links.
 
 Next, we setup Org-roam to run functions on file changes to maintain cache
-consistency. This is achieved by running @code{M-x org-roam-db-autosync-mode~}.
-To ensure that Org-roam is available on startup, place this in your Emacs
+consistency. This is achieved by running @code{M-x org-roam-db-autosync-mode}. To
+ensure that Org-roam is available on startup, place this in your Emacs
 configuration:
 
 @lisp
@@ -995,6 +1002,76 @@ ref to add.
 Remove a ref from the node at point.
 @end defun
 
+@node Citations
+@chapter Citations
+
+Since version 9.5, Org has first-class support for citations. Org-roam supports
+the caching of both these in-built citations (of form @code{[cite:@@key]}) and @uref{https://github.com/jkitchin/org-ref, org-ref}
+citations (of form (NO@math{_ITEM}@math{_DATA}:key)).
+
+@menu
+* Setup::
+* Using the Cached Information::
+@end menu
+
+@node Setup
+@section Setup
+
+@strong{org-ref}
+
+To ensure that org-ref citations are cached, @code{org-ref} must be loaded prior to
+calls of @code{org-roam-db-sync}. This can be achieved by placing @code{(require
+'org-ref)} before @code{org-roam} is loaded, for example in the @code{:init} block of the
+Org-roam use-package declaration:
+
+@lisp
+(use-package org-roam
+  :init
+  (require 'org-ref)
+  :config
+  ;;...
+  )
+@end lisp
+
+@strong{org-cite}
+
+Org-cite should be loaded by default, and no additional setup should be
+required.
+
+@node Using the Cached Information
+@section Using the Cached Information
+
+It is common to use take reference notes for academic papers. To designate the
+node to be the canonical node for the academic paper, we can use its unique
+citation key:
+
+@example
+* Probabilistic Robotics
+:PROPERTIES:
+:ID:       51b7b82c-bbb4-4822-875a-ed548cffda10
+:ROAM_REFS: @@thrun2005probabilistic
+:END:
+@end example
+
+for @code{org-cite}, or:
+
+@example
+* Probabilistic Robotics
+:PROPERTIES:
+:ID:       51b7b82c-bbb4-4822-875a-ed548cffda10
+:ROAM_REFS: cite:thrun2005probabilistic
+:END:
+@end example
+
+for @code{org-ref}.
+
+When another node has a citation for that key, we can see it using the
+@code{Reflinks} section of the Org-roam buffer.
+
+Extension developers may be interested in retrieving the citations within their
+notes. This information can be found within the @code{citation} table of the Org-roam
+database.
+
 @node Completion
 @chapter Completion
 
@@ -1331,12 +1408,12 @@ here.
 This template means don't insert any content, but place the cursor here.
 
 @item
-@code{:target} is a compulsory specification in the Org-roam capture
-template. The first element of the list indicates the type of the
-target, the second element indicates the location of the captured
-node, and the rest of the elements indicate prefilled template that
-will be inserted and the position of the point will be adjusted for.
-The latter behavior various from type to type of the capture target.
+@code{:target} is a compulsory specification in the Org-roam capture template. The
+first element of the list indicates the type of the target, the second
+element indicates the location of the captured node, and the rest of the
+elements indicate prefilled template that will be inserted and the position
+of the point will be adjusted for. The latter behavior various from type to
+type of the capture target.
 
 @item
 @code{:unnarrowed t} tells org-capture to show the contents for the whole file,
@@ -2120,6 +2197,11 @@ When GOTO is non-nil, go the note without creating an entry."
 @appendix Variable Index
 
 @printindex vr
+
+@node Bibliography (1)
+@chapter Bibliography
+
+NO@math{_ITEM}@math{_DATA}:key
 
 Emacs 28.0.50 (Org mode 9.5)
 @bye
