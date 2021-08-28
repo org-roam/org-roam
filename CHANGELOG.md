@@ -2,6 +2,8 @@
 
 ## TBD
 ### Added
+- [#1806](https://github.com/org-roam/org-roam/pull/1806) db: support caching and usage of Org 9.5's in-built citations
+
 ### Removed
 ### Changed
 - [#1795](https://github.com/org-roam/org-roam/pull/1795) buffer: optimized reflinks fetch
