@@ -418,9 +418,10 @@ If UPDATE-P is non-nil, first remove the file in the database."
                 (push (vector node-id (match-string 2 ref) (match-string 1 ref)) rows))
             (lwarn '(org-roam) :warning
                    "%s:%s\tInvalid ref %s, skipping..." (buffer-file-name) (point) ref))))
-      (org-roam-db-query [:insert :into refs
-                          :values $v1]
-                         rows))))
+      (when rows
+        (org-roam-db-query [:insert :into refs
+                            :values $v1]
+                           rows)))))
 
 (defun org-roam-db-insert-link (link)
   "Insert link data for LINK at current point into the Org-roam cache."
