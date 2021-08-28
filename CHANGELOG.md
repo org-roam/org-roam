@@ -11,6 +11,7 @@
 - [#1798](https://github.com/org-roam/org-roam/pull/1798) org-roam-node-at-point: do not skip invisible headings
 - [#1807](https://github.com/org-roam/org-roam/pull/1807) capture: always trigger `:if-new` template for existing nodes
 - [#1813](https://github.com/org-roam/org-roam/pull/1813) db: prevent empty ROAM_ALIASES from crashing db updates
+- [#1816](https://github.com/org-roam/org-roam/pull/1816) db: prevent invalid ROAM_REFS from crashing db updates
 
 ## 2.1.0
 ### Added
