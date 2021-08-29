@@ -546,7 +546,14 @@ Sorts by title."
                                   :from refs
                                   :left-join links
                                   :where (= refs:node-id $s1)
-                                  :and (= links:dest refs:ref)]
+                                  :and (= links:dest refs:ref)
+                                  :union
+                                  :select :distinct [refs:ref citations:node-id
+                                                     citations:pos citations:properties]
+                                  :from refs
+                                  :left-join citations
+                                  :where (= refs:node-id $s1)
+                                  :and (= citations:cite-key refs:ref)]
                                  (org-roam-node-id node)))
         links)
     (pcase-dolist (`(,ref ,source-id ,pos ,properties) refs)
@@ -566,16 +573,16 @@ Sorts by title."
 
 (defun org-roam-reflinks-section (node)
   "The reflinks section for NODE."
-  (when (org-roam-node-refs node)
-    (let* ((reflinks (seq-sort #'org-roam-reflinks-sort (org-roam-reflinks-get node))))
-      (magit-insert-section (org-roam-reflinks)
-        (magit-insert-heading "Reflinks:")
-        (dolist (reflink reflinks)
-          (org-roam-node-insert-section
-           :source-node (org-roam-reflink-source-node reflink)
-           :point (org-roam-reflink-point reflink)
-           :properties (org-roam-reflink-properties reflink)))
-        (insert ?\n)))))
+  (when-let ((refs (org-roam-node-refs node))
+             (reflinks (seq-sort #'org-roam-reflinks-sort (org-roam-reflinks-get node))))
+    (magit-insert-section (org-roam-reflinks)
+      (magit-insert-heading "Reflinks:")
+      (dolist (reflink reflinks)
+        (org-roam-node-insert-section
+         :source-node (org-roam-reflink-source-node reflink)
+         :point (org-roam-reflink-point reflink)
+         :properties (org-roam-reflink-properties reflink)))
+      (insert ?\n))))
 
 ;;;; Grep
 (defvar org-roam-grep-map
