@@ -31,6 +31,8 @@
 ;; Emacsen and Org-roam versions.
 ;;
 ;;; Code:
+(require 'org-roam)
+
 ;;; Backports
 ;; REVIEW Remove when 26.x support is dropped. This is exact the same as
 ;; `directory-files-recursively' from Emacs 26, but with FOLLOW-SYMLINKS
@@ -155,12 +157,11 @@ nodes." org-id-locations-file)
 
 ;;;; Deprecated :if-new capture template keyword
 (with-eval-after-load 'org-roam-capture
-  (add-to-list 'org-roam-capture--template-keywords :if-new))
+  (add-to-list 'org-roam-capture--template-keywords :if-new)
 
-(advice-add 'org-roam-capture--get-target :around #'org-roam-capture--get-if-new-target-a)
-(defalias 'org-roam-capture--get-if-new-target-a
   (let ((inhibit-warning-p t)) ; REVIEW Set this to nil close to next major release
-    (lambda (fn &rest args)
+    (advice-add 'org-roam-capture--get-target :around #'org-roam-capture--get-if-new-target-a)
+    (defun org-roam-capture--get-if-new-target-a (fn &rest args)
       "Get the current capture target using deprecated :if-new property."
       (if-let ((target (org-roam-capture--get :if-new)))
           (prog1 target
