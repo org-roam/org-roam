@@ -646,6 +646,49 @@ Org-roam also provides some functions to add or remove refs.
 
   Remove a ref from the node at point.
 
+* Citations
+
+Since version 9.5, Org has first-class support for citations. Org-roam supports
+the caching of both these in-built citations (of form ~[cite:@key]~) and [[https://github.com/jkitchin/org-ref][org-ref]]
+citations (of form cite:key).
+
+Org-roam attempts to load both the ~org-ref~ and ~org-cite~ package when
+indexing files, so no further setup from the user is required for citation
+support.
+
+** Using the Cached Information
+
+It is common to use take reference notes for academic papers. To designate the
+node to be the canonical node for the academic paper, we can use its unique
+citation key:
+
+#+begin_src org
+,* Probabilistic Robotics
+:PROPERTIES:
+:ID:       51b7b82c-bbb4-4822-875a-ed548cffda10
+:ROAM_REFS: @thrun2005probabilistic
+:END:
+#+end_src
+
+for ~org-cite~, or:
+
+#+begin_src org
+,* Probabilistic Robotics
+:PROPERTIES:
+:ID:       51b7b82c-bbb4-4822-875a-ed548cffda10
+:ROAM_REFS: cite:thrun2005probabilistic
+:END:
+#+end_src
+
+for ~org-ref~.
+
+When another node has a citation for that key, we can see it using the
+~Reflinks~ section of the Org-roam buffer.
+
+Extension developers may be interested in retrieving the citations within their
+notes. This information can be found within the ~citation~ table of the Org-roam
+database.
+
 * Completion
 
 Completions for Org-roam are provided via ~completion-at-point~. Org-roam
