@@ -652,28 +652,9 @@ Since version 9.5, Org has first-class support for citations. Org-roam supports
 the caching of both these in-built citations (of form ~[cite:@key]~) and [[https://github.com/jkitchin/org-ref][org-ref]]
 citations (of form cite:key).
 
-** Setup
-
-*org-ref*
-
-To ensure that org-ref citations are cached, ~org-ref~ must be loaded prior to
-calls of ~org-roam-db-sync~. This can be achieved by placing ~(require
-'org-ref)~ before ~org-roam~ is loaded, for example in the ~:init~ block of the
-Org-roam use-package declaration:
-
-#+begin_src emacs-lisp
-(use-package org-roam
-  :init
-  (require 'org-ref)
-  :config
-  ;;...
-  )
-#+end_src
-
-*org-cite*
-
-Org-cite should be loaded by default, and no additional setup should be
-required.
+Org-roam attempts to load both the ~org-ref~ and ~org-cite~ package when
+indexing files, so no further setup from the user is required for citation
+support.
 
 ** Using the Cached Information
 

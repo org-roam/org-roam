@@ -429,7 +429,8 @@ INFO is the org-element parsed buffer."
                                        (org-get-outline-path 'with-self 'use-cache)))))
       ;; For Org-ref links, we need to split the path into the cite keys
       (when (and source path)
-        (if (and (boundp 'org-ref-cite-types)
+        (if (and (require 'org-ref nil 'noerror)
+                 (boundp 'org-ref-cite-types)
                  (fboundp 'org-ref-split-and-strip-string)
                  (member type org-ref-cite-types))
             (progn
@@ -510,7 +511,7 @@ If the file exists, update the cache with information."
           (org-roam-db-map-links
            info
            (list #'org-roam-db-insert-link))
-          (when (require 'org-cite nil t)
+          (when (require 'org-cite nil 'noerror)
             (org-roam-db-map-citations
              info
              (list #'org-roam-db-insert-citation))))))))

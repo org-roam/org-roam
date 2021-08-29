@@ -130,7 +130,6 @@ Node Properties
 
 Citations
 
-* Setup::
 * Using the Cached Information::
 
 Completion
@@ -1009,34 +1008,13 @@ Since version 9.5, Org has first-class support for citations. Org-roam supports
 the caching of both these in-built citations (of form @code{[cite:@@key]}) and @uref{https://github.com/jkitchin/org-ref, org-ref}
 citations (of form (NO@math{_ITEM}@math{_DATA}:key)).
 
+Org-roam attempts to load both the @code{org-ref} and @code{org-cite} package when
+indexing files, so no further setup from the user is required for citation
+support.
+
 @menu
-* Setup::
 * Using the Cached Information::
 @end menu
-
-@node Setup
-@section Setup
-
-@strong{org-ref}
-
-To ensure that org-ref citations are cached, @code{org-ref} must be loaded prior to
-calls of @code{org-roam-db-sync}. This can be achieved by placing @code{(require
-'org-ref)} before @code{org-roam} is loaded, for example in the @code{:init} block of the
-Org-roam use-package declaration:
-
-@lisp
-(use-package org-roam
-  :init
-  (require 'org-ref)
-  :config
-  ;;...
-  )
-@end lisp
-
-@strong{org-cite}
-
-Org-cite should be loaded by default, and no additional setup should be
-required.
 
 @node Using the Cached Information
 @section Using the Cached Information
