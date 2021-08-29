@@ -393,7 +393,7 @@ If NODE is already visited, this won't automatically move the
 point to the beginning of the NODE, unless FORCE is non-nil. In
 interactive calls FORCE always set to t."
   (interactive (list (org-roam-node-at-point t) current-prefix-arg t))
-  (let ((buf (org-roam-node-find-noselect node 'force))
+  (let ((buf (org-roam-node-find-noselect node force))
         (display-buffer-fn (if other-window
                                #'switch-to-buffer-other-window
                              #'pop-to-buffer-same-window)))
