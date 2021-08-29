@@ -113,6 +113,18 @@ All other values including nil will have no effect."
           (const :tag "no" nil))
   :group 'org-roam)
 
+(defcustom org-roam-graph-exclude-nodes
+  (lambda (id fpath title) 'nil)
+  "Specify nodes to exclude from the graph.
+It must be a function, taking exactly three arguments: node id, file path, title.
+If the function returns non-nil, then the given node will not be shown.
+
+Example:
+ (lambda (id filepath title) (string-match \".*journal.*\" title))
+"
+  :type 'function
+  :group 'org-roam)
+
 ;;; Interactive command
 ;;;###autoload
 (defun org-roam-graph (&optional arg node)
@@ -161,10 +173,15 @@ If ALL-NODES, include also nodes without edges."
   (let ((org-roam-directory-temp org-roam-directory)
         (nodes-table (make-hash-table :test #'equal))
         (seen-nodes (list))
+	(exclude-ids (list))
         (edges (or edges (org-roam-db-query [:select :distinct [source dest type] :from links]))))
+    
     (pcase-dolist (`(,id ,file ,title)
                    (org-roam-db-query [:select [id file title] :from nodes]))
-      (puthash id (org-roam-node-create :file file :id id :title title) nodes-table))
+      ;; Exclude ids
+      (if (funcall org-roam-graph-exclude-nodes id file title)
+	  (push id exclude-ids)
+	(puthash id (org-roam-node-create :file file :id id :title title) nodes-table)))
     (with-temp-buffer
       (setq-local org-roam-directory org-roam-directory-temp)
       (insert "digraph \"org-roam\" {\n")
@@ -176,7 +193,9 @@ If ALL-NODES, include also nodes without edges."
                                  org-roam-graph-edge-extra-config
                                  ",")))
       (pcase-dolist (`(,source ,dest ,type) edges)
-        (unless (member type org-roam-graph-link-hidden-types)
+        (unless (or (member type org-roam-graph-link-hidden-types)
+		    (member source exclude-ids)
+		    (member dest exclude-ids))
           (pcase-dolist (`(,node ,node-type) `((,source "id")
                                                (,dest ,type)))
             (unless (member node seen-nodes)
