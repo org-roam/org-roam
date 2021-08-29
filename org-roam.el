@@ -94,8 +94,6 @@
 (eval-when-compile
   (require 'subr-x))
 
-(require 'org-roam-compat)
-
 ;;; Options
 (defgroup org-roam nil
   "A database abstraction layer for Org-mode."
@@ -309,6 +307,7 @@ E.g. (\".org\") => (\"*.org\" \"*.org.gpg\")"
 (provide 'org-roam)
 
 (cl-eval-when (load eval)
+  (require 'org-roam-compat)
   (require 'org-roam-utils)
   (require 'org-roam-db)
   (require 'org-roam-node)
