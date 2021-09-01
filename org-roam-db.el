@@ -495,26 +495,27 @@ If the file exists, update the cache with information."
         info)
     (unless (string= content-hash db-hash)
       (org-roam-with-file file-path nil
-        (save-excursion
-          (org-set-regexps-and-options 'tags-only)
-          (org-roam-db-clear-file)
-          (org-roam-db-insert-file)
-          (org-roam-db-insert-file-node)
-          (setq org-outline-path-cache nil)
-          (org-roam-db-map-nodes
-           (list #'org-roam-db-insert-node-data
-                 #'org-roam-db-insert-aliases
-                 #'org-roam-db-insert-tags
-                 #'org-roam-db-insert-refs))
-          (setq org-outline-path-cache nil)
-          (setq info (org-element-parse-buffer))
-          (org-roam-db-map-links
-           info
-           (list #'org-roam-db-insert-link))
-          (when (require 'org-cite nil 'noerror)
-            (org-roam-db-map-citations
+        (emacsql-with-transaction (org-roam-db)
+          (save-excursion
+            (org-set-regexps-and-options 'tags-only)
+            (org-roam-db-clear-file)
+            (org-roam-db-insert-file)
+            (org-roam-db-insert-file-node)
+            (setq org-outline-path-cache nil)
+            (org-roam-db-map-nodes
+             (list #'org-roam-db-insert-node-data
+                   #'org-roam-db-insert-aliases
+                   #'org-roam-db-insert-tags
+                   #'org-roam-db-insert-refs))
+            (setq org-outline-path-cache nil)
+            (setq info (org-element-parse-buffer))
+            (org-roam-db-map-links
              info
-             (list #'org-roam-db-insert-citation))))))))
+             (list #'org-roam-db-insert-link))
+            (when (require 'org-cite nil 'noerror)
+              (org-roam-db-map-citations
+               info
+               (list #'org-roam-db-insert-citation)))))))))
 
 ;;;###autoload
 (defun org-roam-db-sync (&optional force)
