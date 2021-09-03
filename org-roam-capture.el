@@ -611,9 +611,11 @@ you can catch it with `condition-case'."
     (org-with-wide-buffer
      (goto-char start)
      (dolist (heading olp)
-       (let ((re (format org-complex-heading-regexp-format
-                         (regexp-quote heading)))
-             (cnt 0))
+       (let* ((heading  (replace-regexp-in-string
+                         "\n$" "" (org-roam-capture--fill-template heading t)))
+              (re (format org-complex-heading-regexp-format
+                          (regexp-quote heading)))
+              (cnt 0))
          (while (re-search-forward re end t)
            (setq level (- (match-end 1) (match-beginning 1)))
            (when (and (>= level lmin) (<= level lmax))
