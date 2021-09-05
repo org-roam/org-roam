@@ -98,7 +98,7 @@ contains a list, where:
   - The second element indicates the location of the captured node.
   - And the rest of the list indicate the prefilled template, that will be
     inserted and the position of the point will be adjusted for.
-    This behavior various from type to type.
+    This behavior varies from type to type.
 
 The following options are supported for the :target property:
 
