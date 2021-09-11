@@ -512,7 +512,7 @@ If the file exists, update the cache with information."
             (org-roam-db-map-links
              info
              (list #'org-roam-db-insert-link))
-            (when (require 'org-cite nil 'noerror)
+            (when (require 'oc nil 'noerror)
               (org-roam-db-map-citations
                info
                (list #'org-roam-db-insert-citation)))))))))
