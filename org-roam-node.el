@@ -515,13 +515,11 @@ Uses `org-roam-node-display-template' to format the entry."
          ;; empty string results in an empty string and misalignment for candidates that
          ;; don't have some field. This uses the actual display string, made of spaces
          ;; when the field-value is "" so that we actually take up space.
-         (let ((display-string (if field-width
-                                   (truncate-string-to-width field-value field-width 0 ?\s)
-                                 field-value)))
-           (if (equal field-value "")
-               display-string
-             ;; Remove properties from the full candidate string, otherwise the display
-             ;; formatting with pre-prioritized field-values gets messed up.
+         (if (or (not field-width) (equal field-value ""))
+             field-value
+           ;; Remove properties from the full candidate string, otherwise the display
+           ;; formatting with pre-propertized field-values gets messed up.
+           (let ((display-string (truncate-string-to-width field-value field-width 0 ?\s)))
              (propertize (substring-no-properties field-value) 'display display-string))))))))
 
 (defun org-roam-node-read--process-display-format (format)
