@@ -260,7 +260,7 @@ If UPDATE-P is non-nil, first remove the file in the database."
          (attr (file-attributes file))
          (atime (file-attribute-access-time attr))
          (mtime (file-attribute-modification-time attr))
-         (hash (org-roam-db--file-hash)))
+         (hash (org-roam-db--file-hash file)))
     (org-roam-db-query
      [:insert :into files
       :values $v1]
