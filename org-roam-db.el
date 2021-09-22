@@ -291,14 +291,35 @@ If UPDATE-P is non-nil, first remove the file in the database."
          (dolist (fn fns)
            (funcall fn)))))))
 
-(defun org-roam-db-map-links (info fns)
-  "Run FNS over all links in the current buffer.
-INFO is the org-element parsed buffer."
+(defun org-roam-db-map-links (fns)
+  "Run FNS over all links in the current buffer."
   (org-with-point-at 1
-    (org-element-map info 'link
-      (lambda (link)
-        (dolist (fn fns)
-          (funcall fn link))))))
+    (while (re-search-forward org-link-any-re nil :no-error)
+      ;; `re-search-forward' let the cursor one character after the link, we need to go backward one char to
+      ;; make the point be on the link.
+      (backward-char)
+      (let (element link bounds)
+        (setq element (org-element-context))
+        (cond
+         ;; Links correctly recognized by Org Mode
+         ((eq (org-element-type element) 'link)
+          (setq link element))
+         ;; Links in property drawers. Recall that, as for Org Mode
+         ;; v9.4.4, the org-element-type of links within properties
+         ;; drawers is node-property.
+         ((and (eq (org-element-type element) 'node-property)
+               (setq bounds (org-in-regexp org-link-any-re))
+               (setq link (buffer-substring-no-properties
+                           (car bounds)
+                           (cdr bounds))))
+          (with-temp-buffer
+            (org-mode)
+            (insert link)
+            (goto-char 1)
+            (setq link (org-element-context)))))
+        (when link
+          (dolist (fn fns)
+            (funcall fn link)))))))
 
 (defun org-roam-db-map-citations (info fns)
   "Run FNS over all citations in the current buffer.
@@ -510,7 +531,6 @@ If the file exists, update the cache with information."
             (setq org-outline-path-cache nil)
             (setq info (org-element-parse-buffer))
             (org-roam-db-map-links
-             info
              (list #'org-roam-db-insert-link))
             (when (require 'org-cite nil 'noerror)
               (org-roam-db-map-citations
