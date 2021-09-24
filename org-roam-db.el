@@ -298,17 +298,18 @@ If UPDATE-P is non-nil, first remove the file in the database."
       ;; `re-search-forward' let the cursor one character after the link, we need to go backward one char to
       ;; make the point be on the link.
       (backward-char)
-      (let (element link bounds)
-        (setq element (org-element-context))
+      (let* ((element (org-element-context))
+             (type (org-element-type element))
+             link bounds)
         (cond
          ;; Links correctly recognized by Org Mode
-         ((eq (org-element-type element) 'link)
+         ((eq type 'link)
           (setq link element))
          ;; Links in property drawers. Recall that, as for Org Mode
          ;; v9.4.4, the org-element-type of links within properties
          ;; drawers is node-property.
-         ((and (or (eq (org-element-type element) 'node-property)
-                   (eq (org-element-type element) 'keyword))
+         ((and (or (eq type 'node-property)
+                   (eq type 'keyword))
                (setq bounds (org-in-regexp org-link-any-re))
                (setq link (buffer-substring-no-properties
                            (car bounds)
