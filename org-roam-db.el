@@ -307,7 +307,8 @@ If UPDATE-P is non-nil, first remove the file in the database."
          ;; Links in property drawers. Recall that, as for Org Mode
          ;; v9.4.4, the org-element-type of links within properties
          ;; drawers is node-property.
-         ((and (eq (org-element-type element) 'node-property)
+         ((and (or (eq (org-element-type element) 'node-property)
+                   (eq (org-element-type element) 'keyword))
                (setq bounds (org-in-regexp org-link-any-re))
                (setq link (buffer-substring-no-properties
                            (car bounds)
