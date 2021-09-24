@@ -313,7 +313,7 @@ If UPDATE-P is non-nil, first remove the file in the database."
                            (car bounds)
                            (cdr bounds))))
           (with-temp-buffer
-            (org-mode)
+            (delay-mode-hooks (org-mode))
             (insert link)
             (goto-char 1)
             (setq link (org-element-context)))))
