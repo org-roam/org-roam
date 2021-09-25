@@ -848,7 +848,8 @@ If region is active, then use it instead of the node at point."
                            (t (let ((r (completing-read (format "%s: " key) nil nil nil default-val)))
                                 (plist-put template-info ksym r)
                                 r)))))))
-           (file-path (read-file-name "Extract node to: " org-roam-directory template nil template)))
+           (file-path (read-file-name "Extract node to: "
+                                      (file-name-as-directory org-roam-directory) template nil template)))
       (when (file-exists-p file-path)
         (user-error "%s exists. Aborting" file-path))
       (org-cut-subtree)
