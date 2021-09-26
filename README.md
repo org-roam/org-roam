@@ -39,7 +39,7 @@ detailed information, please read the [manual][docs].
 
 ### Using `package.el`
 <details>
-<summary>Toggle instuctions</summary>
+<summary>Toggle instructions</summary>
 
 You can install `org-roam` from [MELPA](https://melpa.org/) or [MELPA
 Stable](https://stable.melpa.org/) using `package.el`:
@@ -75,7 +75,7 @@ to the directory.
 
 ### Using `straight.el`
 <details>
-<summary>Toggle instuctions</summary>
+<summary>Toggle instructions</summary>
 
 Installation from MELPA or MELPA Stable using `straight.el`:
 
@@ -115,7 +115,7 @@ next sample will get you there:
 
 ### Using Doom Emacs
 <details>
-<summary>Toggle instuctions</summary>
+<summary>Toggle instructions</summary>
 
 Doom's `:lang org` module comes with support for `org-roam`, but it's not
 enabled by default. To activate it pass `+roam2` flag to `org` module in your
