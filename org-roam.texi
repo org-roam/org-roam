@@ -1355,7 +1355,7 @@ will be no prompt for template selection.
 @section Template Walkthrough
 
 To demonstrate the additions made to org-capture templates. Here, we explain
-the default template, reproduced below. You will find some most of the elements
+the default template, reproduced below. You will find most of the elements
 of the template are similar to @code{org-capture} templates.
 
 @lisp
@@ -1390,7 +1390,7 @@ This template means don't insert any content, but place the cursor here.
 first element of the list indicates the type of the target, the second
 element indicates the location of the captured node, and the rest of the
 elements indicate prefilled template that will be inserted and the position
-of the point will be adjusted for. The latter behavior various from type to
+of the point will be adjusted for. The latter behavior varies from type to
 type of the capture target.
 
 @item
