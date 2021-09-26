@@ -466,8 +466,11 @@ capture target."
   (let ((id (cond ((run-hook-with-args-until-success 'org-roam-capture-preface-hook))
                   (t (org-roam-capture--setup-target-location)))))
     (org-roam-capture--adjust-point-for-capture-type)
-    (org-capture-put :template
-                     (org-roam-capture--fill-template (org-capture-get :template)))
+    (let ((template (org-capture-get :template)))
+      (when (stringp template)
+        (org-capture-put
+         :template
+         (org-roam-capture--fill-template template))))
     (org-roam-capture--put :id id)
     (org-roam-capture--put :finalize (or (org-capture-get :finalize)
                                          (org-roam-capture--get :finalize)))))
