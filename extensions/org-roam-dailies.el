@@ -192,9 +192,9 @@ With a `C-u' prefix or when GOTO is non-nil, go the note without
 creating an entry."
   (interactive "P")
   (let ((time (let ((org-read-date-prefer-future prefer-future))
-                (org-read-date t t nil (if goto
-                                           "Find daily-note: "
-                                         "Capture to daily-note: ")))))
+                (org-read-date nil t nil (if goto
+                                             "Find daily-note: "
+                                           "Capture to daily-note: ")))))
     (org-roam-dailies--capture time goto)))
 
 ;;;###autoload
