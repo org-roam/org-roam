@@ -441,8 +441,10 @@ SORT-FN is a function to sort nodes. See `org-roam-node-read-sort-by-file-mtime'
 for an example sort function.
 If REQUIRE-MATCH, the minibuffer prompt will require a match."
   (let* ((nodes (org-roam-node-read--completions))
-         (nodes (cl-remove-if-not (lambda (n)
-                                    (if filter-fn (funcall filter-fn (cdr n)) t)) nodes))
+         (nodes (if filter-fn
+                    (cl-remove-if-not
+                     (lambda (n) (funcall filter-fn (cdr n)) t))
+                  nodes))
          (sort-fn (or sort-fn
                       (when org-roam-node-default-sort
                         (intern (concat "org-roam-node-read-sort-by-"
