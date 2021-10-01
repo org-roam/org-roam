@@ -443,7 +443,8 @@ If REQUIRE-MATCH, the minibuffer prompt will require a match."
   (let* ((nodes (org-roam-node-read--completions))
          (nodes (if filter-fn
                     (cl-remove-if-not
-                     (lambda (n) (funcall filter-fn (cdr n)) t))
+                     (lambda (n) (funcall filter-fn (cdr n)))
+                     nodes)
                   nodes))
          (sort-fn (or sort-fn
                       (when org-roam-node-default-sort
