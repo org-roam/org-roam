@@ -362,6 +362,7 @@ GROUP BY id")))
                                                       :scheduled scheduled
                                                       :deadline deadline
                                                       :title temp-title
+                                                      :aliases aliases
                                                       :properties properties
                                                       :olp olp
                                                       :tags tags
