@@ -534,7 +534,7 @@ If the file exists, update the cache with information."
             (setq info (org-element-parse-buffer))
             (org-roam-db-map-links
              (list #'org-roam-db-insert-link))
-            (when (require 'org-cite nil 'noerror)
+            (when (require 'oc nil 'noerror)
               (org-roam-db-map-citations
                info
                (list #'org-roam-db-insert-citation)))))))))
