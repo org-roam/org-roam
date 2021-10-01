@@ -81,7 +81,7 @@ Example:
                ("fillcolor"  . "#EEEEEE")
                ("color"      . "#C9C9C9")
                ("fontcolor"  . "#0A97A6")))
-    ("https" . (("shape"      . "rounded,filled")
+    ("https" . (("style"      . "rounded,filled")
                 ("fillcolor"  . "#EEEEEE")
                 ("color"      . "#C9C9C9")
                 ("fontcolor"  . "#0A97A6"))))
