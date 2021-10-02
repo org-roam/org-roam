@@ -53,6 +53,8 @@ Here's a very basic sample for configuration of `org-roam` using `use-package`:
 ```emacs-lisp
 (use-package org-roam
   :ensure t
+  :init
+  (org-roam-db-autosync-mode)
   :custom
   (org-roam-directory (file-truename "/path/to/org-files/"))
   :bind (("C-c n l" . org-roam-buffer-toggle)
@@ -63,7 +65,6 @@ Here's a very basic sample for configuration of `org-roam` using `use-package`:
          ;; Dailies
          ("C-c n j" . org-roam-dailies-capture-today))
   :config
-  (org-roam-db-autosync-mode)
   ;; If using org-roam-protocol
   (require 'org-roam-protocol))
 ```
@@ -91,6 +92,8 @@ Or with `use-package`:
   ...)
 ```
 
+Other than `straight t` replacing `ensure t`, you can copy all the options from the `use-package` example with `package.el`.
+  
 If you need to install the package directly from the source repository, instead
 of from MELPA, the next sample shows how to do so:
 
