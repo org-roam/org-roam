@@ -495,7 +495,7 @@ keybindings available. Here are several of the more useful ones:
 
 - ~M-{N}~: ~magit-section-show-level-{N}-all~
 - ~n~: ~magit-section-forward~
--~<TAB>~: ~magit-section-toggle~
+- ~<TAB>~: ~magit-section-toggle~
 - ~<RET>~: ~org-roam-buffer-visit-thing~
 
 ~org-roam-buffer-visit-thing~ is a placeholder command, that is replaced by
