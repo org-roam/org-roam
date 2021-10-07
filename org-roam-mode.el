@@ -677,7 +677,7 @@ References from FILE are excluded."
                     col (string-to-number (match-string 3 line))
                     match (match-string 4 line))
               (when (and match
-                         (not (f-equal-p (org-roam-node-file node) f))
+                         (not (file-equal-p (org-roam-node-file node) f))
                          (member (downcase match) (mapcar #'downcase titles)))
                 (magit-insert-section section (org-roam-grep-section)
                   (oset section file f)

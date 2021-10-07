@@ -6,7 +6,7 @@
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
 ;; Version: 2.1.0
-;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (org "9.4") (emacsql "3.0.0") (emacsql-sqlite "1.0.0") (magit-section "3.0.0"))
+;; Package-Requires: ((emacs "26.1") (dash "2.13") (org "9.4") (emacsql "3.0.0") (emacsql-sqlite "1.0.0") (magit-section "3.0.0"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -71,7 +71,6 @@
 ;; majority of them can be found at https://github.com/org-roam and MELPA.
 ;;
 ;;; Code:
-(require 'f)
 (require 'dash)
 
 (require 'rx)
@@ -195,7 +194,7 @@ FILE is an Org-roam file if:
        (member ext org-roam-file-extensions)
        (not (and org-roam-file-exclude-regexp
                  (string-match-p org-roam-file-exclude-regexp path)))
-       (f-descendant-of-p path (expand-file-name org-roam-directory))))))
+       (file-in-directory-p path (expand-file-name org-roam-directory))))))
 
 (defun org-roam-list-files ()
   "Return a list of all Org-roam files under `org-roam-directory'.
