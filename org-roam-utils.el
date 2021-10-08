@@ -129,7 +129,9 @@ value (possibly nil). Adapted from `s-format'."
                             (funcall replacer var default-val))))
                    (if v (format "%s" v) (signal 'org-roam-format-resolve md)))
                (set-match-data replacer-match-data))))
-         template
+         (if (functionp template)
+             (funcall template)
+           template)
          ;; Need literal to make sure it works
          t t)
       (set-match-data saved-match-data))))
