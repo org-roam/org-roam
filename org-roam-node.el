@@ -60,9 +60,13 @@ field. If it's not specified, the field will be inserted as is,
 i.e. it won't be aligned nor trimmed. If it's an integer, the
 field will be aligned accordingly and all the exceeding
 characters will be trimmed out. If it's \"*\", the field will use
-as many characters as possible and will be aligned accordingly."
+as many characters as possible and will be aligned accordingly.
+
+A closure can also be assigned to this variable in which case the
+closure is evaluated and the return value is used as the
+template. The closure must evaluate to a valid template string."
   :group 'org-roam
-  :type  'string)
+  :type  '(string function))
 
 (defcustom org-roam-node-annotation-function #'org-roam-node-read--annotation
   "This function used to attach annotations for `org-roam-node-read'.
