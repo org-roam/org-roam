@@ -463,6 +463,10 @@ If REQUIRE-MATCH, the minibuffer prompt will require a match."
                 (lambda (string pred action)
                   (if (eq action 'metadata)
                       `(metadata
+                        ;; Preserve sorting in the completion UI if a sort-fn is used
+                        ,@(when sort-fn
+                            '((display-sort-function . identity)
+                              (cycle-sort-function . identity)))
                         (annotation-function
                          . ,(lambda (title)
                               (funcall org-roam-node-annotation-function
