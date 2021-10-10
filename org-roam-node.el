@@ -702,9 +702,7 @@ We use this as a substitute for `org-link-bracket-re', because
             start (match-beginning 2)
             end (match-end 2))
       (list start end
-            (completion-table-dynamic
-             (lambda (_)
-               (funcall #'org-roam--get-titles)))
+            (org-roam--get-titles)
             :exit-function
             (lambda (str &rest _)
               (delete-char (- 0 (length str)))
@@ -725,9 +723,7 @@ hence \"everywhere\"."
              (not (save-match-data (org-in-regexp org-link-any-re))))
     (let ((bounds (bounds-of-thing-at-point 'word)))
       (list (car bounds) (cdr bounds)
-            (completion-table-dynamic
-             (lambda (_)
-               (funcall #'org-roam--get-titles)))
+            (org-roam--get-titles)
             :exit-function
             (lambda (str _status)
               (delete-char (- (length str)))
