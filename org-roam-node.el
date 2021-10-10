@@ -462,10 +462,11 @@ If REQUIRE-MATCH, the minibuffer prompt will require a match."
                 "Node: "
                 (lambda (string pred action)
                   (if (eq action 'metadata)
-                      '(metadata
-                        (annotation-function . (lambda (title)
-                                                 (funcall org-roam-node-annotation-function
-                                                          (get-text-property 0 'node title))))
+                      `(metadata
+                        (annotation-function
+                         . ,(lambda (title)
+                              (funcall org-roam-node-annotation-function
+                                       (get-text-property 0 'node title))))
                         (category . org-roam-node))
                     (complete-with-action action nodes string pred)))
                 nil require-match initial-input)))
@@ -917,10 +918,9 @@ filtered out."
          (ref (completing-read "Ref: "
                                (lambda (string pred action)
                                  (if (eq action 'metadata)
-                                     '(metadata
-                                       (annotation-function . (lambda (ref)
-                                                                (funcall org-roam-ref-annotation-function
-                                                                         ref)))
+                                     `(metadata
+                                       (annotation-function
+                                        . ,org-roam-ref-annotation-function)
                                        (category . org-roam-ref))
                                    (complete-with-action action refs string pred)))
                                nil t initial-input)))
