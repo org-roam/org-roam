@@ -76,8 +76,10 @@ It takes a single argument NODE, which is an `org-roam-node' construct."
 
 (defcustom org-roam-node-default-sort 'file-mtime
   "Default sort order for Org-roam node completions."
-  :type '(choice (const :tag "file-mtime" file-mtime)
-                 (const :tag "file-atime" file-atime))
+  :type '(choice
+          (const :tag "none" nil)
+          (const :tag "file-mtime" file-mtime)
+          (const :tag "file-atime" file-atime))
   :group 'org-roam)
 
 (defcustom org-roam-node-template-prefixes
@@ -460,10 +462,15 @@ If REQUIRE-MATCH, the minibuffer prompt will require a match."
                 "Node: "
                 (lambda (string pred action)
                   (if (eq action 'metadata)
-                      '(metadata
-                        (annotation-function . (lambda (title)
-                                                 (funcall org-roam-node-annotation-function
-                                                          (get-text-property 0 'node title))))
+                      `(metadata
+                        ;; Preserve sorting in the completion UI if a sort-fn is used
+                        ,@(when sort-fn
+                            '((display-sort-function . identity)
+                              (cycle-sort-function . identity)))
+                        (annotation-function
+                         . ,(lambda (title)
+                              (funcall org-roam-node-annotation-function
+                                       (get-text-property 0 'node title))))
                         (category . org-roam-node))
                     (complete-with-action action nodes string pred)))
                 nil require-match initial-input)))
@@ -695,9 +702,7 @@ We use this as a substitute for `org-link-bracket-re', because
             start (match-beginning 2)
             end (match-end 2))
       (list start end
-            (completion-table-dynamic
-             (lambda (_)
-               (funcall #'org-roam--get-titles)))
+            (org-roam--get-titles)
             :exit-function
             (lambda (str &rest _)
               (delete-char (- 0 (length str)))
@@ -718,9 +723,7 @@ hence \"everywhere\"."
              (not (save-match-data (org-in-regexp org-link-any-re))))
     (let ((bounds (bounds-of-thing-at-point 'word)))
       (list (car bounds) (cdr bounds)
-            (completion-table-dynamic
-             (lambda (_)
-               (funcall #'org-roam--get-titles)))
+            (org-roam--get-titles)
             :exit-function
             (lambda (str _status)
               (delete-char (- (length str)))
@@ -915,10 +918,9 @@ filtered out."
          (ref (completing-read "Ref: "
                                (lambda (string pred action)
                                  (if (eq action 'metadata)
-                                     '(metadata
-                                       (annotation-function . (lambda (ref)
-                                                                (funcall org-roam-ref-annotation-function
-                                                                         ref)))
+                                     `(metadata
+                                       (annotation-function
+                                        . ,org-roam-ref-annotation-function)
                                        (category . org-roam-ref))
                                    (complete-with-action action refs string pred)))
                                nil t initial-input)))

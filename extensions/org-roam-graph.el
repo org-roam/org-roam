@@ -147,8 +147,8 @@ CALLBACK is passed the graph file as its sole argument."
          (temp-graph (make-temp-file "graph." nil (concat "." org-roam-graph-filetype))))
     (org-roam-message "building graph")
     (make-process
-     :name "*org-roam-graph--build-process*"
-     :buffer "*org-roam-graph--build-process*"
+     :name "*org-roam-graph*"
+     :buffer " *org-roam-graph*"
      :command `(,org-roam-graph-executable ,temp-dot "-T" ,org-roam-graph-filetype "-o" ,temp-graph)
      :sentinel (when callback
                  (lambda (process _event)
