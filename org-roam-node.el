@@ -76,8 +76,10 @@ It takes a single argument NODE, which is an `org-roam-node' construct."
 
 (defcustom org-roam-node-default-sort 'file-mtime
   "Default sort order for Org-roam node completions."
-  :type '(choice (const :tag "file-mtime" file-mtime)
-                 (const :tag "file-atime" file-atime))
+  :type '(choice
+          (const :tag "none" nil)
+          (const :tag "file-mtime" file-mtime)
+          (const :tag "file-atime" file-atime))
   :group 'org-roam)
 
 (defcustom org-roam-node-template-prefixes
