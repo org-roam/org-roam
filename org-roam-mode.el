@@ -684,7 +684,7 @@ References from FILE are excluded."
                   (oset section row row)
                   (oset section col col)
                   (insert (propertize (format "%s:%s:%s"
-                                              (truncate-string-to-width (file-name-base f) 15 nil nil "...")
+                                              (truncate-string-to-width (file-name-base f) 15 nil nil t)
                                               row col) 'font-lock-face 'org-roam-dim)
                           " "
                           (org-roam-fontify-like-in-org-mode
