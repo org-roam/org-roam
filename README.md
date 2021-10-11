@@ -249,6 +249,6 @@ General Public License, Version 3.
 [release]: https://github.com/org-roam/org-roam/releases
 [docs]: https://www.orgroam.com/manual.html
 [discourse]: https://org-roam.discourse.group/
-[slack]: https://join.slack.com/t/orgroam/shared_invite/zt-deoqamys-043YQ~s5Tay3iJ5QRI~Lxg
+[slack]: https://join.slack.com/t/orgroam/shared_invite/zt-wuoize1z-x3UyQnQ0WHF0RhuEQ2NLnQ
 [issues]: https://github.com/org-roam/org-roam/issues
 [faq]: https://www.orgroam.com/manual.html#FAQ
