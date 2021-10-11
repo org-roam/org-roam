@@ -1322,12 +1322,6 @@ All files within that directory will be treated as their own separate set of
 Org-roam files. Remember to run ~org-roam-db-sync~ from a file within
 that directory, at least once.
 
-** How do I migrate from Roam Research?
-
-Fabio has produced a command-line tool that converts markdown files exported
-from Roam Research into Org-roam compatible markdown. More instructions are
-provided [[https://github.com/fabioberger/roam-migration][in the repository]].
-
 ** How do I create a note whose title already matches one of the candidates?
 
 This situation arises when, for example, one would like to create a note titled
@@ -1348,26 +1342,33 @@ you don't want them to be (e.g. when tangling an Org file), check the value you
 have set for ~org-id-link-to-org-use-id~: setting it to ~'create-if-interactive~
 is a popular option.
 
-* Migrating from Org-roam v1
+** How do I migrate from Roam Research?
+
+Fabio has produced a command-line tool that converts markdown files exported
+from Roam Research into Org-roam compatible markdown. More instructions are
+provided [[https://github.com/fabioberger/roam-migration][in the repository]].
+
+** How to migrate from Org-roam v1?
 
 Those coming from Org-roam v1 will do well treating v2 as entirely new software.
 V2 has a smaller core and fewer moving parts, while retaining the bulk of its
 functionality. It is recommended to read the documentation above about nodes.
 
-It is still desirable to migrate notes collected in v1 to v2. To migrate your v1
-notes to v2, you may use the migration script provided in [[https://gist.github.com/jethrokuan/02f41028fb4a6f81787dc420fb99b6e4][this gist]], or [[https://gist.github.com/jethrokuan/02f41028fb4a6f81787dc420fb99b6e4#gistcomment-3737019][this
-gist]], the latter being better tested. [[https://d12frosted.io/posts/2021-06-11-path-to-org-roam-v2.html][This blog post]] provides a good overview of
-what's new in v2 and how to migrate.
+It is still desirable to migrate notes collected in v1 to v2.
+To migrate your v1 notes to v2, use =M-x org-roam-migrate-wizard=.
+[[https://d12frosted.io/posts/2021-06-11-path-to-org-roam-v2.html][This blog post]]
+provides a good overview of what's new in v2 and how to migrate.
 
-Simply put, to migrate notes from v1 to v2, one must:
+Essentially, to migrate notes from v1 to v2, one must:
 
-1. Add IDs to all existing notes. These are located in top-level property
-   drawers (Although note that in v2, not all files need to have IDs)
+1. Add IDs to all existing notes.
+   These are located in top-level property drawers
+   (Although note that in v2, not all files need to have IDs).
 2. Update the Org-roam database to conform to the new schema.
 3. Replace ~#+ROAM_KEY~ into the ~ROAM_REFS~ property
 4. Replace ~#+ROAM_ALIAS~ into the ~ROAM_ALIASES~ property
-5. Move ~#+ROAM_TAGS~ into the ~#+FILETAGS~ property for file-level nodes, and
-   the ~ROAM_TAGS~ property for headline nodes
+5. Move ~#+ROAM_TAGS~ into the ~#+FILETAGS~ property for file-level nodes,
+   and the ~ROAM_TAGS~ property for headline nodes
 6. Replace existing file links with ID links.
 
 * Developer's Guide to Org-roam
