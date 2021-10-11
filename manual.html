@@ -113,8 +113,6 @@ General Public License for more details.
 </td></tr>
 <tr><td align="left" valign="top">&bull; <a href="#FAQ">FAQ</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
-<tr><td align="left" valign="top">&bull; <a href="#Migrating-from-Org_002droam-v1">Migrating from Org-roam v1</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
 <tr><td align="left" valign="top">&bull; <a href="#Developer_0027s-Guide-to-Org_002droam">Developer's Guide to Org-roam</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
 <tr><td align="left" valign="top">&bull; <a href="#Appendix">Appendix</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
@@ -126,8 +124,6 @@ General Public License for more details.
 <tr><td align="left" valign="top">&bull; <a href="#Function-Index" rel="index">Function Index</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
 <tr><td align="left" valign="top">&bull; <a href="#Variable-Index" rel="index">Variable Index</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top">&bull; <a href="#Bibliography-_00281_0029">Bibliography</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
 <tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
 
@@ -281,11 +277,13 @@ FAQ
 
 </pre></th></tr><tr><td align="left" valign="top">&bull; <a href="#How-do-I-have-more-than-one-Org_002droam-directory_003f">How do I have more than one Org-roam directory?</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
-<tr><td align="left" valign="top">&bull; <a href="#How-do-I-migrate-from-Roam-Research_003f">How do I migrate from Roam Research?</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
 <tr><td align="left" valign="top">&bull; <a href="#How-do-I-create-a-note-whose-title-already-matches-one-of-the-candidates_003f">How do I create a note whose title already matches one of the candidates?</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
 <tr><td align="left" valign="top">&bull; <a href="#How-can-I-stop-Org_002droam-from-creating-IDs-everywhere_003f">How can I stop Org-roam from creating IDs everywhere?</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#How-do-I-migrate-from-Roam-Research_003f">How do I migrate from Roam Research?</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#How-to-migrate-from-Org_002droam-v1_003f">How to migrate from Org-roam v1?</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
 <tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
 
@@ -970,10 +968,10 @@ keybindings available. Here are several of the more useful ones:
 <li> <code>M-{N}</code>: <code>magit-section-show-level-{N}-all</code>
 
 </li><li> <code>n</code>: <code>magit-section-forward</code>
-</li></ul>
-<p>-<code>&lt;TAB&gt;</code>: <code>magit-section-toggle</code>
-</p><ul>
-<li> <code>&lt;RET&gt;</code>: <code>org-roam-buffer-visit-thing</code>
+
+</li><li> <code>&lt;TAB&gt;</code>: <code>magit-section-toggle</code>
+
+</li><li> <code>&lt;RET&gt;</code>: <code>org-roam-buffer-visit-thing</code>
 </li></ul>
 
 <p><code>org-roam-buffer-visit-thing</code> is a placeholder command, that is replaced by
@@ -1208,7 +1206,7 @@ Next: <a href="#Completion" accesskey="n" rel="next">Completion</a>, Previous: <
 
 <p>Since version 9.5, Org has first-class support for citations. Org-roam supports
 the caching of both these in-built citations (of form <code>[cite:@key]</code>) and <a href="https://github.com/jkitchin/org-ref">org-ref</a>
-citations (of form (NO<em>_ITEM</em><em>_DATA</em>:key)).
+citations (of form cite:key).
 </p>
 <p>Org-roam attempts to load both the <code>org-ref</code> and <code>org-cite</code> package when
 indexing files, so no further setup from the user is required for citation
@@ -2174,25 +2172,27 @@ Org-mode, and sync your cards to Anki via <a href="https://github.com/FooSoft/an
 <hr>
 <span id="FAQ"></span><div class="header">
 <p>
-Next: <a href="#Migrating-from-Org_002droam-v1" accesskey="n" rel="next">Migrating from Org-roam v1</a>, Previous: <a href="#The-Org_002dmode-Ecosystem" accesskey="p" rel="prev">The Org-mode Ecosystem</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+Next: <a href="#Developer_0027s-Guide-to-Org_002droam" accesskey="n" rel="next">Developer's Guide to Org-roam</a>, Previous: <a href="#The-Org_002dmode-Ecosystem" accesskey="p" rel="prev">The Org-mode Ecosystem</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
 <span id="FAQ-1"></span><h2 class="chapter">18 FAQ</h2>
 
 <table class="menu" border="0" cellspacing="0">
 <tr><td align="left" valign="top">&bull; <a href="#How-do-I-have-more-than-one-Org_002droam-directory_003f" accesskey="1">How do I have more than one Org-roam directory?</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
-<tr><td align="left" valign="top">&bull; <a href="#How-do-I-migrate-from-Roam-Research_003f" accesskey="2">How do I migrate from Roam Research?</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+<tr><td align="left" valign="top">&bull; <a href="#How-do-I-create-a-note-whose-title-already-matches-one-of-the-candidates_003f" accesskey="2">How do I create a note whose title already matches one of the candidates?</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
-<tr><td align="left" valign="top">&bull; <a href="#How-do-I-create-a-note-whose-title-already-matches-one-of-the-candidates_003f" accesskey="3">How do I create a note whose title already matches one of the candidates?</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+<tr><td align="left" valign="top">&bull; <a href="#How-can-I-stop-Org_002droam-from-creating-IDs-everywhere_003f" accesskey="3">How can I stop Org-roam from creating IDs everywhere?</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
-<tr><td align="left" valign="top">&bull; <a href="#How-can-I-stop-Org_002droam-from-creating-IDs-everywhere_003f" accesskey="4">How can I stop Org-roam from creating IDs everywhere?</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+<tr><td align="left" valign="top">&bull; <a href="#How-do-I-migrate-from-Roam-Research_003f" accesskey="4">How do I migrate from Roam Research?</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#How-to-migrate-from-Org_002droam-v1_003f" accesskey="5">How to migrate from Org-roam v1?</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
 </table>
 
 <hr>
 <span id="How-do-I-have-more-than-one-Org_002droam-directory_003f"></span><div class="header">
 <p>
-Next: <a href="#How-do-I-migrate-from-Roam-Research_003f" accesskey="n" rel="next">How do I migrate from Roam Research?</a>, Up: <a href="#FAQ" accesskey="u" rel="up">FAQ</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+Next: <a href="#How-do-I-create-a-note-whose-title-already-matches-one-of-the-candidates_003f" accesskey="n" rel="next">How do I create a note whose title already matches one of the candidates?</a>, Up: <a href="#FAQ" accesskey="u" rel="up">FAQ</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
 <span id="How-do-I-have-more-than-one-Org_002droam-directory_003f-1"></span><h3 class="section">18.1 How do I have more than one Org-roam directory?</h3>
 
@@ -2214,22 +2214,11 @@ Org-roam files. Remember to run <code>org-roam-db-sync</code> from a file within
 that directory, at least once.
 </p>
 <hr>
-<span id="How-do-I-migrate-from-Roam-Research_003f"></span><div class="header">
-<p>
-Next: <a href="#How-do-I-create-a-note-whose-title-already-matches-one-of-the-candidates_003f" accesskey="n" rel="next">How do I create a note whose title already matches one of the candidates?</a>, Previous: <a href="#How-do-I-have-more-than-one-Org_002droam-directory_003f" accesskey="p" rel="prev">How do I have more than one Org-roam directory?</a>, Up: <a href="#FAQ" accesskey="u" rel="up">FAQ</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
-</div>
-<span id="How-do-I-migrate-from-Roam-Research_003f-1"></span><h3 class="section">18.2 How do I migrate from Roam Research?</h3>
-
-<p>Fabio has produced a command-line tool that converts markdown files exported
-from Roam Research into Org-roam compatible markdown. More instructions are
-provided <a href="https://github.com/fabioberger/roam-migration">in the repository</a>.
-</p>
-<hr>
 <span id="How-do-I-create-a-note-whose-title-already-matches-one-of-the-candidates_003f"></span><div class="header">
 <p>
-Next: <a href="#How-can-I-stop-Org_002droam-from-creating-IDs-everywhere_003f" accesskey="n" rel="next">How can I stop Org-roam from creating IDs everywhere?</a>, Previous: <a href="#How-do-I-migrate-from-Roam-Research_003f" accesskey="p" rel="prev">How do I migrate from Roam Research?</a>, Up: <a href="#FAQ" accesskey="u" rel="up">FAQ</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+Next: <a href="#How-can-I-stop-Org_002droam-from-creating-IDs-everywhere_003f" accesskey="n" rel="next">How can I stop Org-roam from creating IDs everywhere?</a>, Previous: <a href="#How-do-I-have-more-than-one-Org_002droam-directory_003f" accesskey="p" rel="prev">How do I have more than one Org-roam directory?</a>, Up: <a href="#FAQ" accesskey="u" rel="up">FAQ</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="How-do-I-create-a-note-whose-title-already-matches-one-of-the-candidates_003f-1"></span><h3 class="section">18.3 How do I create a note whose title already matches one of the candidates?</h3>
+<span id="How-do-I-create-a-note-whose-title-already-matches-one-of-the-candidates_003f-1"></span><h3 class="section">18.2 How do I create a note whose title already matches one of the candidates?</h3>
 
 <p>This situation arises when, for example, one would like to create a note titled
 &ldquo;bar&rdquo; when &ldquo;barricade&rdquo; already exists.
@@ -2248,9 +2237,9 @@ the candidate list.
 <hr>
 <span id="How-can-I-stop-Org_002droam-from-creating-IDs-everywhere_003f"></span><div class="header">
 <p>
-Previous: <a href="#How-do-I-create-a-note-whose-title-already-matches-one-of-the-candidates_003f" accesskey="p" rel="prev">How do I create a note whose title already matches one of the candidates?</a>, Up: <a href="#FAQ" accesskey="u" rel="up">FAQ</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+Next: <a href="#How-do-I-migrate-from-Roam-Research_003f" accesskey="n" rel="next">How do I migrate from Roam Research?</a>, Previous: <a href="#How-do-I-create-a-note-whose-title-already-matches-one-of-the-candidates_003f" accesskey="p" rel="prev">How do I create a note whose title already matches one of the candidates?</a>, Up: <a href="#FAQ" accesskey="u" rel="up">FAQ</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="How-can-I-stop-Org_002droam-from-creating-IDs-everywhere_003f-1"></span><h3 class="section">18.4 How can I stop Org-roam from creating IDs everywhere?</h3>
+<span id="How-can-I-stop-Org_002droam-from-creating-IDs-everywhere_003f-1"></span><h3 class="section">18.3 How can I stop Org-roam from creating IDs everywhere?</h3>
 
 <p>Other than the interactive commands that Org-roam provides, Org-roam does not
 create IDs everywhere. If you are noticing that IDs are being created even when
@@ -2259,26 +2248,38 @@ have set for <code>org-id-link-to-org-use-id</code>: setting it to <code>'create
 is a popular option.
 </p>
 <hr>
-<span id="Migrating-from-Org_002droam-v1"></span><div class="header">
+<span id="How-do-I-migrate-from-Roam-Research_003f"></span><div class="header">
 <p>
-Next: <a href="#Developer_0027s-Guide-to-Org_002droam" accesskey="n" rel="next">Developer's Guide to Org-roam</a>, Previous: <a href="#FAQ" accesskey="p" rel="prev">FAQ</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+Next: <a href="#How-to-migrate-from-Org_002droam-v1_003f" accesskey="n" rel="next">How to migrate from Org-roam v1?</a>, Previous: <a href="#How-can-I-stop-Org_002droam-from-creating-IDs-everywhere_003f" accesskey="p" rel="prev">How can I stop Org-roam from creating IDs everywhere?</a>, Up: <a href="#FAQ" accesskey="u" rel="up">FAQ</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="Migrating-from-Org_002droam-v1-1"></span><h2 class="chapter">19 Migrating from Org-roam v1</h2>
+<span id="How-do-I-migrate-from-Roam-Research_003f-1"></span><h3 class="section">18.4 How do I migrate from Roam Research?</h3>
+
+<p>Fabio has produced a command-line tool that converts markdown files exported
+from Roam Research into Org-roam compatible markdown. More instructions are
+provided <a href="https://github.com/fabioberger/roam-migration">in the repository</a>.
+</p>
+<hr>
+<span id="How-to-migrate-from-Org_002droam-v1_003f"></span><div class="header">
+<p>
+Previous: <a href="#How-do-I-migrate-from-Roam-Research_003f" accesskey="p" rel="prev">How do I migrate from Roam Research?</a>, Up: <a href="#FAQ" accesskey="u" rel="up">FAQ</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+</div>
+<span id="How-to-migrate-from-Org_002droam-v1_003f-1"></span><h3 class="section">18.5 How to migrate from Org-roam v1?</h3>
 
 <p>Those coming from Org-roam v1 will do well treating v2 as entirely new software.
 V2 has a smaller core and fewer moving parts, while retaining the bulk of its
 functionality. It is recommended to read the documentation above about nodes.
 </p>
-<p>It is still desirable to migrate notes collected in v1 to v2. To migrate your v1
-notes to v2, you may use the migration script provided in <a href="https://gist.github.com/jethrokuan/02f41028fb4a6f81787dc420fb99b6e4">this gist</a>, or <a href="https://gist.github.com/jethrokuan/02f41028fb4a6f81787dc420fb99b6e4#gistcomment-3737019">this
-gist</a>, the latter being better tested. <a href="https://d12frosted.io/posts/2021-06-11-path-to-org-roam-v2.html">This blog post</a> provides a good overview of
-what&rsquo;s new in v2 and how to migrate.
+<p>It is still desirable to migrate notes collected in v1 to v2.
+To migrate your v1 notes to v2, use &lsquo;<samp>M-x org-roam-migrate-wizard</samp>&rsquo;.
+<a href="https://d12frosted.io/posts/2021-06-11-path-to-org-roam-v2.html">This blog post</a>
+provides a good overview of what&rsquo;s new in v2 and how to migrate.
 </p>
-<p>Simply put, to migrate notes from v1 to v2, one must:
+<p>Essentially, to migrate notes from v1 to v2, one must:
 </p>
 <ul>
-<li> Add IDs to all existing notes. These are located in top-level property
-drawers (Although note that in v2, not all files need to have IDs)
+<li> Add IDs to all existing notes.
+These are located in top-level property drawers
+(Although note that in v2, not all files need to have IDs).
 
 </li><li> Update the Org-roam database to conform to the new schema.
 
@@ -2286,8 +2287,8 @@ drawers (Although note that in v2, not all files need to have IDs)
 
 </li><li> Replace <code>#+ROAM_ALIAS</code> into the <code>ROAM_ALIASES</code> property
 
-</li><li> Move <code>#+ROAM_TAGS</code> into the <code>#+FILETAGS</code> property for file-level nodes, and
-the <code>ROAM_TAGS</code> property for headline nodes
+</li><li> Move <code>#+ROAM_TAGS</code> into the <code>#+FILETAGS</code> property for file-level nodes,
+and the <code>ROAM_TAGS</code> property for headline nodes
 
 </li><li> Replace existing file links with ID links.
 </li></ul>
@@ -2295,9 +2296,9 @@ the <code>ROAM_TAGS</code> property for headline nodes
 <hr>
 <span id="Developer_0027s-Guide-to-Org_002droam"></span><div class="header">
 <p>
-Next: <a href="#Appendix" accesskey="n" rel="next">Appendix</a>, Previous: <a href="#Migrating-from-Org_002droam-v1" accesskey="p" rel="prev">Migrating from Org-roam v1</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+Next: <a href="#Appendix" accesskey="n" rel="next">Appendix</a>, Previous: <a href="#FAQ" accesskey="p" rel="prev">FAQ</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="Developer_0027s-Guide-to-Org_002droam-1"></span><h2 class="chapter">20 Developer&rsquo;s Guide to Org-roam</h2>
+<span id="Developer_0027s-Guide-to-Org_002droam-1"></span><h2 class="chapter">19 Developer&rsquo;s Guide to Org-roam</h2>
 
 <table class="menu" border="0" cellspacing="0">
 <tr><td align="left" valign="top">&bull; <a href="#Org_002droam_0027s-Design-Principle" accesskey="1">Org-roam's Design Principle</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
@@ -2311,7 +2312,7 @@ Next: <a href="#Appendix" accesskey="n" rel="next">Appendix</a>, Previous: <a hr
 <p>
 Next: <a href="#Building-Extensions-and-Advanced-Customization-of-Org_002droam" accesskey="n" rel="next">Building Extensions and Advanced Customization of Org-roam</a>, Up: <a href="#Developer_0027s-Guide-to-Org_002droam" accesskey="u" rel="up">Developer's Guide to Org-roam</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="Org_002droam_0027s-Design-Principle-1"></span><h3 class="section">20.1 Org-roam&rsquo;s Design Principle</h3>
+<span id="Org_002droam_0027s-Design-Principle-1"></span><h3 class="section">19.1 Org-roam&rsquo;s Design Principle</h3>
 
 <p>Org-roam is primarily motivated by the need for a dual representation. We
 (humans) love operating in a plain-text environment. The syntax rules of
@@ -2356,7 +2357,7 @@ queries on their Org files.
 <p>
 Previous: <a href="#Org_002droam_0027s-Design-Principle" accesskey="p" rel="prev">Org-roam's Design Principle</a>, Up: <a href="#Developer_0027s-Guide-to-Org_002droam" accesskey="u" rel="up">Developer's Guide to Org-roam</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="Building-Extensions-and-Advanced-Customization-of-Org_002droam-1"></span><h3 class="section">20.2 Building Extensions and Advanced Customization of Org-roam</h3>
+<span id="Building-Extensions-and-Advanced-Customization-of-Org_002droam-1"></span><h3 class="section">19.2 Building Extensions and Advanced Customization of Org-roam</h3>
 
 <p>Because Org-roam&rsquo;s core functionality is small, it is possible and sometimes
 desirable to build extensions on top of it. These extensions may one or more of
@@ -2395,7 +2396,7 @@ load when support is available.
 <p>
 Next: <a href="#Accessing-and-Modifying-Nodes" accesskey="n" rel="next">Accessing and Modifying Nodes</a>, Up: <a href="#Building-Extensions-and-Advanced-Customization-of-Org_002droam" accesskey="u" rel="up">Building Extensions and Advanced Customization of Org-roam</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="Accessing-the-Database-1"></span><h4 class="subsection">20.2.1 Accessing the Database</h4>
+<span id="Accessing-the-Database-1"></span><h4 class="subsection">19.2.1 Accessing the Database</h4>
 
 <p>Access to the database is provided singularly by <code>org-roam-db-query</code>, for
 example:
@@ -2415,7 +2416,7 @@ that extensions/customizations are robust to change, extensions should only use
 <p>
 Next: <a href="#Extending-the-Capture-System" accesskey="n" rel="next">Extending the Capture System</a>, Previous: <a href="#Accessing-the-Database" accesskey="p" rel="prev">Accessing the Database</a>, Up: <a href="#Building-Extensions-and-Advanced-Customization-of-Org_002droam" accesskey="u" rel="up">Building Extensions and Advanced Customization of Org-roam</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="Accessing-and-Modifying-Nodes-1"></span><h4 class="subsection">20.2.2 Accessing and Modifying Nodes</h4>
+<span id="Accessing-and-Modifying-Nodes-1"></span><h4 class="subsection">19.2.2 Accessing and Modifying Nodes</h4>
 
 <p>The node interface is cleanly defined using <code>cl-defstruct</code>. The primary
 method to access nodes is <code>org-roam-node-at-point</code> and <code>org-roam-node-read</code>:
@@ -2464,7 +2465,7 @@ making it available for use in capture templates.
 <p>
 Previous: <a href="#Accessing-and-Modifying-Nodes" accesskey="p" rel="prev">Accessing and Modifying Nodes</a>, Up: <a href="#Building-Extensions-and-Advanced-Customization-of-Org_002droam" accesskey="u" rel="up">Building Extensions and Advanced Customization of Org-roam</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="Extending-the-Capture-System-1"></span><h4 class="subsection">20.2.3 Extending the Capture System</h4>
+<span id="Extending-the-Capture-System-1"></span><h4 class="subsection">19.2.3 Extending the Capture System</h4>
 
 <p>Org-roam applies some patching over Org&rsquo;s capture system to smooth out the user
 experience, and sometimes it is desirable to use Org-roam&rsquo;s capturing system
@@ -2501,7 +2502,7 @@ When GOTO is non-nil, go the note without creating an entry.&quot;
 <p>
 Next: <a href="#Keystroke-Index" accesskey="n" rel="next">Keystroke Index</a>, Previous: <a href="#Developer_0027s-Guide-to-Org_002droam" accesskey="p" rel="prev">Developer's Guide to Org-roam</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="Appendix-1"></span><h2 class="chapter">21 Appendix</h2>
+<span id="Appendix-1"></span><h2 class="chapter">20 Appendix</h2>
 
 <table class="menu" border="0" cellspacing="0">
 <tr><td align="left" valign="top">&bull; <a href="#Note_002dtaking-Workflows" accesskey="1">Note-taking Workflows</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
@@ -2515,7 +2516,7 @@ Next: <a href="#Keystroke-Index" accesskey="n" rel="next">Keystroke Index</a>, P
 <p>
 Next: <a href="#Ecosystem" accesskey="n" rel="next">Ecosystem</a>, Up: <a href="#Appendix" accesskey="u" rel="up">Appendix</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="Note_002dtaking-Workflows-1"></span><h3 class="section">21.1 Note-taking Workflows</h3>
+<span id="Note_002dtaking-Workflows-1"></span><h3 class="section">20.1 Note-taking Workflows</h3>
 
 <ul>
 <li> Books<ul>
@@ -2548,7 +2549,7 @@ Next: <a href="#Ecosystem" accesskey="n" rel="next">Ecosystem</a>, Up: <a href="
 <p>
 Previous: <a href="#Note_002dtaking-Workflows" accesskey="p" rel="prev">Note-taking Workflows</a>, Up: <a href="#Appendix" accesskey="u" rel="up">Appendix</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="Ecosystem-1"></span><h3 class="section">21.2 Ecosystem</h3>
+<span id="Ecosystem-1"></span><h3 class="section">20.2 Ecosystem</h3>
 
 <hr>
 <span id="Keystroke-Index"></span><div class="header">
@@ -2608,7 +2609,7 @@ Next: <a href="#Variable-Index" accesskey="n" rel="next">Variable Index</a>, Pre
 <hr>
 <span id="Variable-Index"></span><div class="header">
 <p>
-Next: <a href="#Bibliography-_00281_0029" accesskey="n" rel="next">Bibliography (1)</a>, Previous: <a href="#Function-Index" accesskey="p" rel="prev">Function Index</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+Previous: <a href="#Function-Index" accesskey="p" rel="prev">Function Index</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
 <span id="Variable-Index-1"></span><h2 class="appendix">Appendix D Variable Index</h2>
 
@@ -2635,16 +2636,7 @@ Next: <a href="#Bibliography-_00281_0029" accesskey="n" rel="next">Bibliography 
  &nbsp; 
 </td></tr></table>
 
-<hr>
-<span id="Bibliography-_00281_0029"></span><div class="header">
-<p>
-Previous: <a href="#Variable-Index" accesskey="p" rel="prev">Variable Index</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
-</div>
-<span id="Bibliography-2"></span><h2 class="chapter">E Bibliography</h2>
-
-<p>NO<em>_ITEM</em><em>_DATA</em>:key
-</p>
-<p>Emacs 28.0.50 (Org mode 9.5)
+<p>Emacs 28.0.50 (Org mode N/A)
 </p><div class="footnote">
 <hr>
 <h4 class="footnotes-heading">Footnotes</h4>
