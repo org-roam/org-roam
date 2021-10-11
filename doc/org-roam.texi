@@ -80,14 +80,12 @@ General Public License for more details.
 * Performance Optimization::
 * The Org-mode Ecosystem::
 * FAQ::
-* Migrating from Org-roam v1::
 * Developer's Guide to Org-roam::
 * Appendix::
 * Keystroke Index::
 * Command Index::
 * Function Index::
 * Variable Index::
-* Bibliography: Bibliography (1). 
 
 @detailmenu
 --- The Detailed Node Listing ---
@@ -182,9 +180,10 @@ The Org-mode Ecosystem
 FAQ
 
 * How do I have more than one Org-roam directory?::
-* How do I migrate from Roam Research?::
 * How do I create a note whose title already matches one of the candidates?::
 * How can I stop Org-roam from creating IDs everywhere?::
+* How do I migrate from Roam Research?::
+* How to migrate from Org-roam v1?::
 
 Developer's Guide to Org-roam
 
@@ -800,9 +799,10 @@ keybindings available. Here are several of the more useful ones:
 
 @item
 @code{n}: @code{magit-section-forward}
-@end itemize
--@code{<TAB>}: @code{magit-section-toggle}
-@itemize
+
+@item
+@code{<TAB>}: @code{magit-section-toggle}
+
 @item
 @code{<RET>}: @code{org-roam-buffer-visit-thing}
 @end itemize
@@ -1006,7 +1006,7 @@ Remove a ref from the node at point.
 
 Since version 9.5, Org has first-class support for citations. Org-roam supports
 the caching of both these in-built citations (of form @code{[cite:@@key]}) and @uref{https://github.com/jkitchin/org-ref, org-ref}
-citations (of form (NO@math{_ITEM}@math{_DATA}:key)).
+citations (of form cite:key).
 
 Org-roam attempts to load both the @code{org-ref} and @code{org-cite} package when
 indexing files, so no further setup from the user is required for citation
@@ -1828,9 +1828,10 @@ Org-mode, and sync your cards to Anki via @uref{https://github.com/FooSoft/anki-
 
 @menu
 * How do I have more than one Org-roam directory?::
-* How do I migrate from Roam Research?::
 * How do I create a note whose title already matches one of the candidates?::
 * How can I stop Org-roam from creating IDs everywhere?::
+* How do I migrate from Roam Research?::
+* How to migrate from Org-roam v1?::
 @end menu
 
 @node How do I have more than one Org-roam directory?
@@ -1852,13 +1853,6 @@ contain:
 All files within that directory will be treated as their own separate set of
 Org-roam files. Remember to run @code{org-roam-db-sync} from a file within
 that directory, at least once.
-
-@node How do I migrate from Roam Research?
-@section How do I migrate from Roam Research?
-
-Fabio has produced a command-line tool that converts markdown files exported
-from Roam Research into Org-roam compatible markdown. More instructions are
-provided @uref{https://github.com/fabioberger/roam-migration, in the repository}.
 
 @node How do I create a note whose title already matches one of the candidates?
 @section How do I create a note whose title already matches one of the candidates?
@@ -1888,24 +1882,32 @@ you don't want them to be (e.g. when tangling an Org file), check the value you
 have set for @code{org-id-link-to-org-use-id}: setting it to @code{'create-if-interactive}
 is a popular option.
 
-@node Migrating from Org-roam v1
-@chapter Migrating from Org-roam v1
+@node How do I migrate from Roam Research?
+@section How do I migrate from Roam Research?
+
+Fabio has produced a command-line tool that converts markdown files exported
+from Roam Research into Org-roam compatible markdown. More instructions are
+provided @uref{https://github.com/fabioberger/roam-migration, in the repository}.
+
+@node How to migrate from Org-roam v1?
+@section How to migrate from Org-roam v1?
 
 Those coming from Org-roam v1 will do well treating v2 as entirely new software.
 V2 has a smaller core and fewer moving parts, while retaining the bulk of its
 functionality. It is recommended to read the documentation above about nodes.
 
-It is still desirable to migrate notes collected in v1 to v2. To migrate your v1
-notes to v2, you may use the migration script provided in @uref{https://gist.github.com/jethrokuan/02f41028fb4a6f81787dc420fb99b6e4, this gist}, or @uref{https://gist.github.com/jethrokuan/02f41028fb4a6f81787dc420fb99b6e4#gistcomment-3737019, this
-gist}, the latter being better tested. @uref{https://d12frosted.io/posts/2021-06-11-path-to-org-roam-v2.html, This blog post} provides a good overview of
-what's new in v2 and how to migrate.
+It is still desirable to migrate notes collected in v1 to v2.
+To migrate your v1 notes to v2, use @samp{M-x org-roam-migrate-wizard}.
+@uref{https://d12frosted.io/posts/2021-06-11-path-to-org-roam-v2.html, This blog post}
+provides a good overview of what's new in v2 and how to migrate.
 
-Simply put, to migrate notes from v1 to v2, one must:
+Essentially, to migrate notes from v1 to v2, one must:
 
 @itemize
 @item
-Add IDs to all existing notes. These are located in top-level property
-drawers (Although note that in v2, not all files need to have IDs)
+Add IDs to all existing notes.
+These are located in top-level property drawers
+(Although note that in v2, not all files need to have IDs).
 
 @item
 Update the Org-roam database to conform to the new schema.
@@ -1917,8 +1919,8 @@ Replace @code{#+ROAM_KEY} into the @code{ROAM_REFS} property
 Replace @code{#+ROAM_ALIAS} into the @code{ROAM_ALIASES} property
 
 @item
-Move @code{#+ROAM_TAGS} into the @code{#+FILETAGS} property for file-level nodes, and
-the @code{ROAM_TAGS} property for headline nodes
+Move @code{#+ROAM_TAGS} into the @code{#+FILETAGS} property for file-level nodes,
+and the @code{ROAM_TAGS} property for headline nodes
 
 @item
 Replace existing file links with ID links.
@@ -2176,10 +2178,5 @@ When GOTO is non-nil, go the note without creating an entry."
 
 @printindex vr
 
-@node Bibliography (1)
-@chapter Bibliography
-
-NO@math{_ITEM}@math{_DATA}:key
-
-Emacs 28.0.50 (Org mode 9.5)
+Emacs 28.0.50 (Org mode N/A)
 @bye
