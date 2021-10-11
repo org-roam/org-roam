@@ -727,16 +727,17 @@ hence \"everywhere\"."
             :exit-function
             (lambda (str _status)
               (delete-char (- (length str)))
-              (insert "[[roam:" str "]]"))))))
-
-(defun org-roam-complete-at-point ()
-  "Try get completion candidates at point using `org-roam-completion-functions'."
-  (run-hook-with-args-until-success 'org-roam-completion-functions))
+              (insert "[[roam:" str "]]"))
+            ;; Proceed with the next completion function if the returned titles
+            ;; do not match. This allows the default Org capfs or custom capfs
+            ;; of lower priority to run.
+            :exclusive 'no))))
 
 (add-hook 'org-roam-find-file-hook #'org-roam--register-completion-functions-h)
 (defun org-roam--register-completion-functions-h ()
   "Setup `org-roam-completion-functions' for `completion-at-point'."
-  (add-hook 'completion-at-point-functions #'org-roam-complete-at-point nil t))
+  (dolist (f org-roam-completion-functions)
+    (add-hook 'completion-at-point-functions f nil t)))
 
 ;;;; Editing
 (defun org-roam-demote-entire-buffer ()
