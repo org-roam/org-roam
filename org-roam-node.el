@@ -855,7 +855,7 @@ If region is active, then use it instead of the node at point."
                             (funcall fn node))
                            ((fboundp node-fn)
                             (funcall node-fn node))
-                           (t (let ((r (completing-read (format "%s: " key) nil nil nil default-val)))
+                           (t (let ((r (read-from-minibuffer (format "%s: " key) default-val)))
                                 (plist-put template-info ksym r)
                                 r)))))))
            (file-path (read-file-name "Extract node to: "

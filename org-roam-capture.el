@@ -741,7 +741,7 @@ also run Org-capture's template expansion."
                   (funcall node-fn org-roam-capture--node))
                  ((plist-get org-roam-capture--info ksym)
                   (plist-get org-roam-capture--info ksym))
-                 (t (let ((r (completing-read (format "%s: " key) nil nil nil default-val)))
+                 (t (let ((r (read-from-minibuffer (format "%s: " key) default-val)))
                       (plist-put org-roam-capture--info ksym r)
                       r))))))))
 
