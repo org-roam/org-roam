@@ -124,6 +124,12 @@ It takes a single argument REF, which is a propertized string.")
   :group 'org-roam
   :type 'string)
 
+(defvar org-roam-node-history nil
+  "Minibuffer history of nodes.")
+
+(defvar org-roam-ref-history nil
+  "Minibuffer history of refs.")
+
 ;;; Definition
 (cl-defstruct (org-roam-node (:constructor org-roam-node-create)
                              (:copier nil))
@@ -473,7 +479,7 @@ If REQUIRE-MATCH, the minibuffer prompt will require a match."
                                        (get-text-property 0 'node title))))
                         (category . org-roam-node))
                     (complete-with-action action nodes string pred)))
-                nil require-match initial-input)))
+                nil require-match initial-input 'org-roam-node-history)))
     (or (cdr (assoc node nodes))
         (org-roam-node-create :title node))))
 
@@ -855,7 +861,7 @@ If region is active, then use it instead of the node at point."
                             (funcall fn node))
                            ((fboundp node-fn)
                             (funcall node-fn node))
-                           (t (let ((r (completing-read (format "%s: " key) nil nil nil default-val)))
+                           (t (let ((r (read-from-minibuffer (format "%s: " key) default-val)))
                                 (plist-put template-info ksym r)
                                 r)))))))
            (file-path (read-file-name "Extract node to: "
@@ -924,7 +930,7 @@ filtered out."
                                         . ,org-roam-ref-annotation-function)
                                        (category . org-roam-ref))
                                    (complete-with-action action refs string pred)))
-                               nil t initial-input)))
+                               nil t initial-input 'org-roam-ref-history)))
     (cdr (assoc ref refs))))
 
 (defun org-roam-ref-read--completions ()
