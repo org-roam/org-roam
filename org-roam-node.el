@@ -532,11 +532,7 @@ Uses `org-roam-node-display-template' to format the entry."
                              (- width tmpl-width))
                             ((>= (string-to-number field-width) 0)
                              (string-to-number field-width))))
-         ;; Setting the display (which would be padded out to the field length) for an
-         ;; empty string results in an empty string and misalignment for candidates that
-         ;; don't have some field. This uses the actual display string, made of spaces
-         ;; when the field-value is "" so that we actually take up space.
-         (unless (or (not field-width) (equal field-value ""))
+         (when field-width
            (let* ((truncated (truncate-string-to-width field-value field-width 0 ?\s))
                   (tlen (length truncated))
                   (len (length field-value)))
