@@ -127,7 +127,9 @@ value (possibly nil). Adapted from `s-format'."
                  (let ((v (progn
                             (set-match-data saved-match-data)
                             (funcall replacer var default-val))))
-                   (if v (format "%s" v) (signal 'org-roam-format-resolve md)))
+                   (if v
+                       (format (apply #'propertize "%s" (text-properties-at 0 var)) v)
+                     (signal 'org-roam-format-resolve md)))
                (set-match-data replacer-match-data))))
          (if (functionp template)
              (funcall template)
