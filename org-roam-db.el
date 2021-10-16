@@ -34,6 +34,27 @@
 (defvar org-outline-path-cache)
 
 ;;; Options
+(defcustom org-roam-database-connector 'sqlite
+  "The database connector used by Org-roam.
+This must be set before `org-roam' is loaded. To use an
+alternative connector you must install the respective package
+explicitly. When `sqlite', then use the `emacsql-sqlite' library
+that is being maintained in the same repository as `emacsql'
+itself. When `libsqlite3', then use the `emacsql-libsqlite3'
+library, which itself uses a module provided by the `sqlite3'
+package. This is still experimental. When `sqlite3', then use the
+`emacsql-sqlite3' library, which uses the official `sqlite3'
+command-line tool, which I do not recommended because it is not
+suitable to be used like this, but has the advantage that you
+likely don't need a compiler. See
+https://nullprogram.com/blog/2014/02/06/."
+  :package-version '(org-roam . "2.2.0")
+  :group 'forge
+  :type '(choice (const sqlite)
+                 (const libsqlite3)
+                 (const sqlite3)
+                 (symbol :tag "other")))
+
 (defcustom org-roam-db-location (expand-file-name "org-roam.db" user-emacs-directory)
   "The path to file where the Org-roam database is stored.
 
@@ -96,6 +117,21 @@ slow."
   (gethash (expand-file-name org-roam-directory)
            org-roam-db--connection))
 
+(defun org-roam-db--conn-fn ()
+  (cl-case org-roam-database-connector
+    (sqlite
+     (progn
+       (require 'emacsql-sqlite)
+       #'emacsql-sqlite))
+    (libsqlite3
+     (progn
+       (require 'emacsql-libsqlite3)
+       #'emacsql-libsqlite3))
+    (sqlite3
+     (progn
+       (require 'emacsql-sqlite3)
+       #'emacsql-sqlite3))))
+
 (defun org-roam-db ()
   "Entrypoint to the Org-roam sqlite database.
 Initializes and stores the database, and the database connection.
@@ -104,8 +140,9 @@ Performs a database upgrade when required."
                (emacsql-live-p (org-roam-db--get-connection)))
     (let ((init-db (not (file-exists-p org-roam-db-location))))
       (make-directory (file-name-directory org-roam-db-location) t)
-      (let ((conn (emacsql-sqlite org-roam-db-location)))
-        (set-process-query-on-exit-flag (emacsql-process conn) nil)
+      (let ((conn (funcall (org-roam-db--conn-fn) org-roam-db-location)))
+        (when-let ((process (emacsql-process conn)))
+          (set-process-query-on-exit-flag process nil))
         (puthash (expand-file-name org-roam-directory)
                  conn
                  org-roam-db--connection)
