@@ -68,6 +68,7 @@ Kills the buffer if KEEP-BUF-P is nil, and FILE is not yet visited."
   (declare (indent 2) (debug t))
   `(let* (new-buf
           (auto-mode-alist nil)
+          (find-file-hook nil)
           (buf (or (and (not ,file)
                         (current-buffer)) ;If FILE is nil, use current buffer
                    (find-buffer-visiting ,file) ; If FILE is already visited, find buffer
