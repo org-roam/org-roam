@@ -43,11 +43,10 @@ that is being maintained in the same repository as `emacsql'
 itself. When `libsqlite3', then use the `emacsql-libsqlite3'
 library, which itself uses a module provided by the `sqlite3'
 package. This is still experimental. When `sqlite3', then use the
-`emacsql-sqlite3' library, which uses the official `sqlite3'
-command-line tool, which I do not recommended because it is not
-suitable to be used like this, but has the advantage that you
-likely don't need a compiler. See
-https://nullprogram.com/blog/2014/02/06/."
+`emacsql-sqlite3' library, which uses the official `sqlite3' cli
+tool, which is not recommended because it is not suitable to be
+used like this, but has the advantage that you likely don't need
+a compiler. See https://nullprogram.com/blog/2014/02/06/."
   :package-version '(org-roam . "2.2.0")
   :group 'forge
   :type '(choice (const sqlite)
@@ -118,6 +117,7 @@ slow."
            org-roam-db--connection))
 
 (defun org-roam-db--conn-fn ()
+  "Return the function for creating the database connection."
   (cl-case org-roam-database-connector
     (sqlite
      (progn
