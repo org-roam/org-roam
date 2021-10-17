@@ -418,6 +418,51 @@ One can also conveniently insert links via the completion-at-point functions
 Org-roam provides (see [[*Completion][Completion]]).
 
 * Customizing Node Caching
+** How to cache
+
+Org-roam uses a sqlite database to perform caching, but there are multiple Emacs
+libraries that can be used. The default used by Org-roam is ~emacs-sqlite~.
+Below the pros and cons of each package is used:
+
+[[https://github.com/skeeto/emacsql][**emacs-sqlite**]]
+
+The default option used by Org-roam. This library is the most mature and
+well-supported and is imported by default in Org-roam.
+
+One downside of using ~emacs-sqlite~ is that using it requires compilation and
+can cause issues in some environments (especially Windows). If you have issues
+producing the customized binary required by ~emacs-sqlite~, consider using
+~emacs-sqlite3~.
+
+[[https://github.com/cireu/emacsql-sqlite3][**emacs-sqlite3**]]
+
+~emacs-sqlite3~ uses the official sqlite3 binary that can be obtained from your
+system's package manager. This is useful if you have issues producing the
+~sqlite3~ binary required by the other packages. However, it is not recommended
+because it has some compatibility issues with Emacs, but should work for most
+regular cases. See [[https://nullprogram.com/blog/2014/02/06/][Chris Wellon's blog post]] for more information.
+
+To use ~emacsql-sqlite3~, ensure that the package is installed, and set:
+
+#+begin_src emacs-lisp
+  (setq org-roam-database-connector 'sqlite3)
+#+end_src
+
+[[https://github.com/emacscollective/emacsql-libsqlite3/][**emacsql-libsqlite3**]]
+
+~emacs-libsqlite3~ is a relatively young package which uses an Emacs module that
+exposes parts of the SQLite C API to Emacs Lisp, instead of using subprocess as
+~emacsql-sqlite~ does. It is expected to be a more performant drop-in
+replacement for ~emacs-sqlite~.
+
+At the moment it is experimental and does not work well with the SQL query load
+required by Org-roam, but you may still try it by ensuring the package is
+installed and setting:
+
+#+begin_src emacs-lisp
+  (setq org-roam-database-connector 'libsqlite3)
+#+end_src
+
 ** What to cache
 
 By default, all nodes (any headline or file with an ID) are cached by Org-roam.

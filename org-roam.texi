@@ -86,6 +86,7 @@ General Public License for more details.
 * Command Index::
 * Function Index::
 * Variable Index::
+* Bibliography: Bibliography (1). 
 
 @detailmenu
 --- The Detailed Node Listing ---
@@ -109,6 +110,7 @@ Getting Started
 
 Customizing Node Caching
 
+* How to cache::
 * What to cache::
 * When to cache::
 
@@ -695,9 +697,56 @@ Org-roam provides (see @ref{Completion}).
 @chapter Customizing Node Caching
 
 @menu
+* How to cache::
 * What to cache::
 * When to cache::
 @end menu
+
+@node How to cache
+@section How to cache
+
+Org-roam uses a sqlite database to perform caching, but there are multiple Emacs
+libraries that can be used. The default used by Org-roam is @code{emacs-sqlite}.
+Below the pros and cons of each package is used:
+
+@uref{https://github.com/skeeto/emacsql, @strong{@strong{emacs-sqlite}}}
+
+The default option used by Org-roam. This library is the most mature and
+well-supported and is imported by default in Org-roam.
+
+One downside of using @code{emacs-sqlite} is that using it requires compilation and
+can cause issues in some environments (especially Windows). If you have issues
+producing the customized binary required by @code{emacs-sqlite}, consider using
+@code{emacs-sqlite3}.
+
+@uref{https://github.com/cireu/emacsql-sqlite3, @strong{@strong{emacs-sqlite3}}}
+
+@code{emacs-sqlite3} uses the official sqlite3 binary that can be obtained from your
+system's package manager. This is useful if you have issues producing the
+@code{sqlite3} binary required by the other packages. However, it is not recommended
+because it has some compatibility issues with Emacs, but should work for most
+regular cases. See @uref{https://nullprogram.com/blog/2014/02/06/, Chris Wellon's blog post} for more information.
+
+To use @code{emacsql-sqlite3}, ensure that the package is installed, and set:
+
+@lisp
+(setq org-roam-database-connector 'sqlite3)
+@end lisp
+
+@uref{https://github.com/emacscollective/emacsql-libsqlite3/, @strong{@strong{emacsql-libsqlite3}}}
+
+@code{emacs-libsqlite3} is a relatively young package which uses an Emacs module that
+exposes parts of the SQLite C API to Emacs Lisp, instead of using subprocess as
+@code{emacsql-sqlite} does. It is expected to be a more performant drop-in
+replacement for @code{emacs-sqlite}.
+
+At the moment it is experimental and does not work well with the SQL query load
+required by Org-roam, but you may still try it by ensuring the package is
+installed and setting:
+
+@lisp
+(setq org-roam-database-connector 'libsqlite3)
+@end lisp
 
 @node What to cache
 @section What to cache
@@ -1006,7 +1055,7 @@ Remove a ref from the node at point.
 
 Since version 9.5, Org has first-class support for citations. Org-roam supports
 the caching of both these in-built citations (of form @code{[cite:@@key]}) and @uref{https://github.com/jkitchin/org-ref, org-ref}
-citations (of form cite:key).
+citations (of form (NO@math{_ITEM}@math{_DATA}:key)).
 
 Org-roam attempts to load both the @code{org-ref} and @code{org-cite} package when
 indexing files, so no further setup from the user is required for citation
@@ -2177,6 +2226,11 @@ When GOTO is non-nil, go the note without creating an entry."
 @appendix Variable Index
 
 @printindex vr
+
+@node Bibliography (1)
+@chapter Bibliography
+
+NO@math{_ITEM}@math{_DATA}:key
 
 Emacs 28.0.50 (Org mode N/A)
 @bye

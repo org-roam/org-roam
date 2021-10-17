@@ -125,6 +125,8 @@ General Public License for more details.
 </td></tr>
 <tr><td align="left" valign="top">&bull; <a href="#Variable-Index" rel="index">Variable Index</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Bibliography-_00281_0029">Bibliography</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
 <tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
 
 </pre></th></tr><tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">&mdash; The Detailed Node Listing &mdash;
@@ -159,7 +161,9 @@ Getting Started
 
 Customizing Node Caching
 
-</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="#What-to-cache">What to cache</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="#How-to-cache">How to cache</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#What-to-cache">What to cache</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
 <tr><td align="left" valign="top">&bull; <a href="#When-to-cache">When to cache</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
@@ -843,18 +847,70 @@ Next: <a href="#The-Org_002droam-Buffer" accesskey="n" rel="next">The Org-roam B
 <span id="Customizing-Node-Caching-1"></span><h2 class="chapter">6 Customizing Node Caching</h2>
 
 <table class="menu" border="0" cellspacing="0">
-<tr><td align="left" valign="top">&bull; <a href="#What-to-cache" accesskey="1">What to cache</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+<tr><td align="left" valign="top">&bull; <a href="#How-to-cache" accesskey="1">How to cache</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
-<tr><td align="left" valign="top">&bull; <a href="#When-to-cache" accesskey="2">When to cache</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+<tr><td align="left" valign="top">&bull; <a href="#What-to-cache" accesskey="2">What to cache</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#When-to-cache" accesskey="3">When to cache</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
 </table>
 
 <hr>
+<span id="How-to-cache"></span><div class="header">
+<p>
+Next: <a href="#What-to-cache" accesskey="n" rel="next">What to cache</a>, Up: <a href="#Customizing-Node-Caching" accesskey="u" rel="up">Customizing Node Caching</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+</div>
+<span id="How-to-cache-1"></span><h3 class="section">6.1 How to cache</h3>
+
+<p>Org-roam uses a sqlite database to perform caching, but there are multiple Emacs
+libraries that can be used. The default used by Org-roam is <code>emacs-sqlite</code>.
+Below the pros and cons of each package is used:
+</p>
+<p><a href="https://github.com/skeeto/emacsql"><strong><strong>emacs-sqlite</strong></strong></a>
+</p>
+<p>The default option used by Org-roam. This library is the most mature and
+well-supported and is imported by default in Org-roam.
+</p>
+<p>One downside of using <code>emacs-sqlite</code> is that using it requires compilation and
+can cause issues in some environments (especially Windows). If you have issues
+producing the customized binary required by <code>emacs-sqlite</code>, consider using
+<code>emacs-sqlite3</code>.
+</p>
+<p><a href="https://github.com/cireu/emacsql-sqlite3"><strong><strong>emacs-sqlite3</strong></strong></a>
+</p>
+<p><code>emacs-sqlite3</code> uses the official sqlite3 binary that can be obtained from your
+system&rsquo;s package manager. This is useful if you have issues producing the
+<code>sqlite3</code> binary required by the other packages. However, it is not recommended
+because it has some compatibility issues with Emacs, but should work for most
+regular cases. See <a href="https://nullprogram.com/blog/2014/02/06/">Chris Wellon&rsquo;s blog post</a> for more information.
+</p>
+<p>To use <code>emacsql-sqlite3</code>, ensure that the package is installed, and set:
+</p>
+<div class="lisp">
+<pre class="lisp">(setq org-roam-database-connector 'sqlite3)
+</pre></div>
+
+<p><a href="https://github.com/emacscollective/emacsql-libsqlite3/"><strong><strong>emacsql-libsqlite3</strong></strong></a>
+</p>
+<p><code>emacs-libsqlite3</code> is a relatively young package which uses an Emacs module that
+exposes parts of the SQLite C API to Emacs Lisp, instead of using subprocess as
+<code>emacsql-sqlite</code> does. It is expected to be a more performant drop-in
+replacement for <code>emacs-sqlite</code>.
+</p>
+<p>At the moment it is experimental and does not work well with the SQL query load
+required by Org-roam, but you may still try it by ensuring the package is
+installed and setting:
+</p>
+<div class="lisp">
+<pre class="lisp">(setq org-roam-database-connector 'libsqlite3)
+</pre></div>
+
+<hr>
 <span id="What-to-cache"></span><div class="header">
 <p>
-Next: <a href="#When-to-cache" accesskey="n" rel="next">When to cache</a>, Up: <a href="#Customizing-Node-Caching" accesskey="u" rel="up">Customizing Node Caching</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+Next: <a href="#When-to-cache" accesskey="n" rel="next">When to cache</a>, Previous: <a href="#How-to-cache" accesskey="p" rel="prev">How to cache</a>, Up: <a href="#Customizing-Node-Caching" accesskey="u" rel="up">Customizing Node Caching</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="What-to-cache-1"></span><h3 class="section">6.1 What to cache</h3>
+<span id="What-to-cache-1"></span><h3 class="section">6.2 What to cache</h3>
 
 <p>By default, all nodes (any headline or file with an ID) are cached by Org-roam.
 There are instances where you may want to have headlines with ID, but not have
@@ -885,7 +941,7 @@ all headlines with the <code>ATTACH</code> tag from the Org-roam database, one c
 <p>
 Previous: <a href="#What-to-cache" accesskey="p" rel="prev">What to cache</a>, Up: <a href="#Customizing-Node-Caching" accesskey="u" rel="up">Customizing Node Caching</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<span id="When-to-cache-1"></span><h3 class="section">6.2 When to cache</h3>
+<span id="When-to-cache-1"></span><h3 class="section">6.3 When to cache</h3>
 
 <p>By default, Org-roam is eager in caching: each time an Org-roam file is modified
 and saved, it updates the database for the corresponding file. This keeps the
@@ -1206,7 +1262,7 @@ Next: <a href="#Completion" accesskey="n" rel="next">Completion</a>, Previous: <
 
 <p>Since version 9.5, Org has first-class support for citations. Org-roam supports
 the caching of both these in-built citations (of form <code>[cite:@key]</code>) and <a href="https://github.com/jkitchin/org-ref">org-ref</a>
-citations (of form cite:key).
+citations (of form (NO<em>_ITEM</em><em>_DATA</em>:key)).
 </p>
 <p>Org-roam attempts to load both the <code>org-ref</code> and <code>org-cite</code> package when
 indexing files, so no further setup from the user is required for citation
@@ -2609,7 +2665,7 @@ Next: <a href="#Variable-Index" accesskey="n" rel="next">Variable Index</a>, Pre
 <hr>
 <span id="Variable-Index"></span><div class="header">
 <p>
-Previous: <a href="#Function-Index" accesskey="p" rel="prev">Function Index</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+Next: <a href="#Bibliography-_00281_0029" accesskey="n" rel="next">Bibliography (1)</a>, Previous: <a href="#Function-Index" accesskey="p" rel="prev">Function Index</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
 <span id="Variable-Index-1"></span><h2 class="appendix">Appendix D Variable Index</h2>
 
@@ -2636,6 +2692,15 @@ Previous: <a href="#Function-Index" accesskey="p" rel="prev">Function Index</a>,
  &nbsp; 
 </td></tr></table>
 
+<hr>
+<span id="Bibliography-_00281_0029"></span><div class="header">
+<p>
+Previous: <a href="#Variable-Index" accesskey="p" rel="prev">Variable Index</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+</div>
+<span id="Bibliography-2"></span><h2 class="chapter">E Bibliography</h2>
+
+<p>NO<em>_ITEM</em><em>_DATA</em>:key
+</p>
 <p>Emacs 28.0.50 (Org mode N/A)
 </p><div class="footnote">
 <hr>
