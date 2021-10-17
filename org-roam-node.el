@@ -82,6 +82,16 @@ It takes a single argument NODE, which is an `org-roam-node' construct."
           (const :tag "file-atime" file-atime))
   :group 'org-roam)
 
+(defcustom org-roam-node-formatter nil
+  "The link description for node insertion.
+If a function is provided, the function should take a single
+argument, an `org-roam-node', and return a string.
+
+If a string is provided, it is a template string expanded by
+`org-roam-node--format-entry'."
+  :group 'org-roam
+  :type '(string function))
+
 (defcustom org-roam-node-template-prefixes
   '(("tags" . "#")
     ("todo" . "t:"))
@@ -177,6 +187,16 @@ It takes a single argument REF, which is a propertized string.")
                       ("_$" . "")))                   ;; remove ending underscore
              (slug (-reduce-from #'cl-replace (strip-nonspacing-marks title) pairs)))
         (downcase slug)))))
+
+(cl-defmethod org-roam-node-formatted ((node org-roam-node))
+  "Return a formatted string for NODE."
+  (pcase org-roam-node-formatter
+    ((pred functionp)
+     (funcall org-roam-node-formatter node))
+    ((pred stringp)
+     (org-roam-node--format-entry (org-roam-node--process-display-format org-roam-node-formatter) node))
+    (_
+     (org-roam-node-title node))))
 
 ;;; Nodes
 ;;;; Getters
@@ -483,28 +503,30 @@ If REQUIRE-MATCH, the minibuffer prompt will require a match."
     (or (cdr (assoc node nodes))
         (org-roam-node-create :title node))))
 
-(defvar org-roam-node-read--cached-display-format nil)
-
 (defun org-roam-node-read--completions ()
   "Return an alist for node completion.
 The car is the displayed title or alias for the node, and the cdr
 is the `org-roam-node'.
 The displayed title is formatted according to `org-roam-node-display-template'."
-  (setq org-roam-node-read--cached-display-format nil)
-  (let ((nodes (org-roam-node-list)))
-    (mapcar #'org-roam-node-read--to-candidate nodes)))
+  (let ((template (org-roam-node--process-display-format org-roam-node-display-template))
+        (nodes (org-roam-node-list)))
+    (mapcar (lambda (node)
+              (org-roam-node-read--to-candidate node template)) nodes)))
 
-(defun org-roam-node-read--to-candidate (node)
-  "Return a minibuffer completion candidate given NODE."
-  (let ((candidate-main (org-roam-node-read--format-entry node (1- (frame-width)))))
+(defun org-roam-node-read--to-candidate (node template)
+  "Return a minibuffer completion candidate given NODE.
+TEMPLATE is the processed template used to format the entry."
+  (let ((candidate-main (org-roam-node--format-entry
+                         template
+                         node
+                         (1- (frame-width)))))
     (cons (propertize candidate-main 'node node) node)))
 
-(defun org-roam-node-read--format-entry (node width)
+(defun org-roam-node--format-entry (template node &optional width)
   "Formats NODE for display in the results list.
 WIDTH is the width of the results list.
-Uses `org-roam-node-display-template' to format the entry."
-  (pcase-let ((`(,tmpl . ,tmpl-width)
-               (org-roam-node-read--process-display-format org-roam-node-display-template)))
+TEMPLATE is the processed template used to format the entry."
+  (pcase-let ((`(,tmpl . ,tmpl-width) template))
     (org-roam-format-template
      tmpl
      (lambda (field _default-val)
@@ -529,7 +551,9 @@ Uses `org-roam-node-display-template' to format the entry."
                             ((not field-width)
                              field-width)
                             ((string-equal field-width "*")
-                             (- width tmpl-width))
+                             (if width
+                                 (- width tmpl-width)
+                               tmpl-width))
                             ((>= (string-to-number field-width) 0)
                              (string-to-number field-width))))
          (when field-width
@@ -547,22 +571,20 @@ Uses `org-roam-node-display-template' to format the entry."
                (setq field-value truncated))))
          field-value)))))
 
-(defun org-roam-node-read--process-display-format (format)
+(defun org-roam-node--process-display-format (format)
   "Pre-calculate minimal widths needed by the FORMAT string."
-  (or org-roam-node-read--cached-display-format
-      (setq org-roam-node-read--cached-display-format
-            (let* ((fields-width 0)
-                   (string-width
-                    (string-width
-                     (org-roam-format-template
-                      format
-                      (lambda (field _default-val)
-                        (setq fields-width
-                              (+ fields-width
-                                 (string-to-number
-                                  (or (cadr (split-string field ":"))
-                                      "")))))))))
-              (cons format (+ fields-width string-width))))))
+  (let* ((fields-width 0)
+         (string-width
+          (string-width
+           (org-roam-format-template
+            format
+            (lambda (field _default-val)
+              (setq fields-width
+                    (+ fields-width
+                       (string-to-number
+                        (or (cadr (split-string field ":"))
+                            "")))))))))
+    (cons format (+ fields-width string-width))))
 
 (defun org-roam-node-read-sort-by-file-mtime (completion-a completion-b)
   "Sort files such that files modified more recently are shown first.
@@ -606,7 +628,7 @@ The INFO, if provided, is passed to the underlying `org-roam-capture-'."
                     (setq region-text (org-link-display-format (buffer-substring-no-properties beg end)))))
                (node (org-roam-node-read region-text filter-fn))
                (description (or region-text
-                                (org-roam-node-title node))))
+                                (org-roam-node-formatted node))))
           (if (org-roam-node-id node)
               (progn
                 (when region-text
