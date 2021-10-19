@@ -44,8 +44,8 @@
 (defun org-roam-quote-string (s)
   "Quotes string S."
   (->> s
-    (org-roam-replace-string "\\" "\\\\")
-    (org-roam-replace-string "\"" "\\\"")))
+       (org-roam-replace-string "\\" "\\\\")
+       (org-roam-replace-string "\"" "\\\"")))
 
 ;;; List utilities
 (defmacro org-roam-plist-map! (fn plist)
