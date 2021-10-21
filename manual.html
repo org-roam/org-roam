@@ -227,6 +227,12 @@ Installation
 </td></tr>
 <tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
 
+Mac OS
+
+</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="#Testing-org_002dprotocol">Testing org-protocol</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+
 The Templating System
 
 </pre></th></tr><tr><td align="left" valign="top">&bull; <a href="#Template-Walkthrough">Template Walkthrough</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
@@ -1565,6 +1571,40 @@ the default handler instead, run:
 </pre></div>
 
 <p>Then restart your computer.
+</p>
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Testing-org_002dprotocol" accesskey="1">Testing org-protocol</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr>
+<span id="Testing-org_002dprotocol"></span><div class="header">
+<p>
+Up: <a href="#Mac-OS" accesskey="u" rel="up">Mac OS</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+</div>
+<span id="Testing-org_002dprotocol-1"></span><h4 class="unnumberedsubsubsec">Testing org-protocol</h4>
+
+<p>To test that you have the handler setup and registered properly from the command
+line you can run:
+</p>
+<div class="example">
+<pre class="example">open org-protocol://roam-ref\?template=r\&amp;ref=test\&amp;title=this
+</pre></div>
+
+<p>If you get an error similar too this or the wrong handler is run:
+</p>
+<blockquote>
+<p>No application knows how to open URL org-protocol://roam-ref?template=r&amp;ref=test&amp;title=this (Error Domain=NSOSStatusErrorDomain Code=-10814 &ldquo;kLSApplicationNotFoundErr: E.g. no application claims the file&rdquo; UserInfo={<em>_LSLine</em>=1489, _LSFunction=runEvaluator}).
+</p>
+</blockquote>
+
+<p>You may need to manually register your handler, like this:
+</p>
+<div class="example">
+<pre class="example">/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/LaunchServices.framework/Versions/A/Support/lsregister -R  -f /Applications/OrgProtocolClient.app
+</pre></div>
+
+<p>Here is a link to the lsregister command that is really useful: <a href="https://eclecticlight.co/2019/03/25/lsregister-a-valuable-undocumented-command-for-launchservices/">https://eclecticlight.co/2019/03/25/lsregister-a-valuable-undocumented-command-for-launchservices/</a>
 </p>
 <hr>
 <span id="Windows"></span><div class="header">

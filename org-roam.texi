@@ -149,6 +149,10 @@ Installation
 * Mac OS::
 * Windows::
 
+Mac OS
+
+* Testing org-protocol::
+
 The Templating System
 
 * Template Walkthrough::
@@ -1319,6 +1323,35 @@ defaults write com.apple.LaunchServices/com.apple.launchservices.secure LSHandle
 @end example
 
 Then restart your computer.
+
+@menu
+* Testing org-protocol::
+@end menu
+
+@node Testing org-protocol
+@unnumberedsubsubsec Testing org-protocol
+
+To test that you have the handler setup and registered properly from the command
+line you can run:
+
+@example
+open org-protocol://roam-ref\?template=r\&ref=test\&title=this
+@end example
+
+If you get an error similar too this or the wrong handler is run:
+
+@quotation
+No application knows how to open URL org-protocol://roam-ref?template=r&ref=test&title=this (Error Domain=NSOSStatusErrorDomain Code=-10814 ``kLSApplicationNotFoundErr: E.g. no application claims the file'' UserInfo=@{@math{_LSLine}=1489, _LSFunction=runEvaluator@}).
+
+@end quotation
+
+You may need to manually register your handler, like this:
+
+@example
+/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/LaunchServices.framework/Versions/A/Support/lsregister -R  -f /Applications/OrgProtocolClient.app
+@end example
+
+Here is a link to the lsregister command that is really useful: @uref{https://eclecticlight.co/2019/03/25/lsregister-a-valuable-undocumented-command-for-launchservices/}
 
 @node Windows
 @subsection Windows
