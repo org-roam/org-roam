@@ -141,12 +141,13 @@ It opens or creates a note with the given ref.
                                                               (plist-get info :ref)))
                         :initial (or (plist-get info :body) ""))
   (raise-frame)
-  (org-roam-capture-
-   :keys (plist-get info :template)
-   :node (org-roam-node-create :title (plist-get info :title))
-   :info (list :ref (plist-get info :ref)
-               :body (plist-get info :body))
-   :templates org-roam-capture-ref-templates)
+  (let ((org-capture-link-is-already-stored t))
+    (org-roam-capture-
+     :keys (plist-get info :template)
+     :node (org-roam-node-create :title (plist-get info :title))
+     :info (list :ref (plist-get info :ref)
+                 :body (plist-get info :body))
+     :templates org-roam-capture-ref-templates))
   nil)
 
 (defun org-roam-protocol-open-node (info)
