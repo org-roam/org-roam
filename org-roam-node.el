@@ -255,9 +255,15 @@ Throw an error if multiple choices exist."
   "Return an `org-roam-node' from REF reference.
 Return nil if there's no node with such REF."
   (save-match-data
-    (when (string-match org-link-plain-re ref)
-      (let ((type (match-string 1 ref))
-            (path (match-string 2 ref)))
+    (let (type path)
+      (cond
+       ((string-match org-link-plain-re ref)
+        (setq type (match-string 1 ref)
+              path (match-string 2 ref)))
+       ((string-equal (substring ref 0 1) "@")
+        (setq type "cite"
+              path (substring ref 1))))
+      (when (and type path)
         (when-let ((id (caar (org-roam-db-query
                               [:select [nodes:id]
                                :from refs
