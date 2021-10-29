@@ -828,7 +828,7 @@ If region is active, then use it instead of the node at point."
                    (find-file-noselect file)))
          level reversed)
     (if (equal (org-roam-node-at-point) node)
-        (user-error "Target is the same as current node.")
+        (user-error "Target is the same as current node")
       (if regionp
           (progn
             (org-kill-new (buffer-substring region-start region-end))
