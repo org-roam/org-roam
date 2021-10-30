@@ -360,6 +360,40 @@ If UPDATE-P is non-nil, first remove the file in the database."
           (dolist (fn fns)
             (funcall fn link)))))))
 
+(defun org-roam-db-insert-links ()
+  "Run FNS over all links in the current buffer."
+  (let ((org-ref-enabled (and (require 'org-ref nil 'noerror)
+                              (boundp 'org-ref-cite-types)
+                              (fboundp 'org-ref-split-and-strip-string))))
+    (org-with-point-at 1
+      (while (re-search-forward org-link-any-re nil :no-error)
+        ;; `re-search-forward' let the cursor one character after the link, we need to go backward one char to
+        ;; make the point be on the link.
+        (backward-char)
+        (let* ((element (org-element-context))
+               (type (org-element-type element))
+               link bounds)
+          (cond
+           ;; Links correctly recognized by Org Mode
+           ((eq type 'link)
+            (setq link element))
+           ;; Links in property drawers and lines starting with #+. Recall that, as for Org Mode v9.4.4, the
+           ;; org-element-type of links within properties drawers is "node-property" and for lines starting with
+           ;; #+ is "keyword".
+           ((and (or (eq type 'node-property)
+                     (eq type 'keyword))
+                 (setq bounds (org-in-regexp org-link-any-re))
+                 (setq link (buffer-substring-no-properties
+                             (car bounds)
+                             (cdr bounds))))
+            (with-temp-buffer
+              (delay-mode-hooks (org-mode))
+              (insert link)
+              (goto-char 1)
+              (setq link (org-element-context)))))
+          (when link
+            (org-roam-db-insert-link org-ref-enabled link)))))))
+
 (defun org-roam-db-map-citations (info fns)
   "Run FNS over all citations in the current buffer.
 INFO is the org-element parsed buffer."
@@ -477,8 +511,9 @@ INFO is the org-element parsed buffer."
                             :values $v1]
                            rows)))))
 
-(defun org-roam-db-insert-link (link)
-  "Insert link data for LINK at current point into the Org-roam cache."
+(defun org-roam-db-insert-link (org-ref-enabled link)
+  "Insert link data for LINK at current point into the Org-roam cache, ORG-REF-ENABLED indicates where org-ref has been required before."
+
   (save-excursion
     (goto-char (org-element-property :begin link))
     (let ((type (org-element-property :type link))
@@ -489,9 +524,7 @@ INFO is the org-element parsed buffer."
                                        (org-get-outline-path 'with-self 'use-cache)))))
       ;; For Org-ref links, we need to split the path into the cite keys
       (when (and source path)
-        (if (and (require 'org-ref nil 'noerror)
-                 (boundp 'org-ref-cite-types)
-                 (fboundp 'org-ref-split-and-strip-string)
+        (if (and org-ref-enabled
                  (member type org-ref-cite-types))
             (progn
               (setq path (org-ref-split-and-strip-string path))
@@ -551,7 +584,7 @@ If the file exists, update the cache with information."
   (setq file-path (or file-path (buffer-file-name (buffer-base-buffer))))
   (let ((content-hash (org-roam-db--file-hash file-path))
         (db-hash (caar (org-roam-db-query [:select hash :from files
-                                           :where (= file $s1)] file-path)))
+                                                   :where (= file $s1)] file-path)))
         info)
     (unless (string= content-hash db-hash)
       (org-roam-with-file file-path nil
@@ -569,8 +602,7 @@ If the file exists, update the cache with information."
                    #'org-roam-db-insert-refs))
             (setq org-outline-path-cache nil)
             (setq info (org-element-parse-buffer))
-            (org-roam-db-map-links
-             (list #'org-roam-db-insert-link))
+            (org-roam-db-insert-links)
             (when (fboundp 'org-cite-insert)
               (require 'oc)             ;ensure feature is loaded
               (org-roam-db-map-citations
