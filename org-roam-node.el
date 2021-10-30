@@ -1009,7 +1009,7 @@ and when nil is returned the node will be filtered out."
   (let ((node (org-roam-node-at-point 'assert)))
     (save-excursion
       (goto-char (org-roam-node-point node))
-      (org-roam-add-property ref "ROAM_REFS"))))
+      (org-roam-property-add "ROAM_REFS" ref))))
 
 (defun org-roam-ref-remove (&optional ref)
   "Remove a REF from the node at point."
@@ -1017,7 +1017,7 @@ and when nil is returned the node will be filtered out."
   (let ((node (org-roam-node-at-point 'assert)))
     (save-excursion
       (goto-char (org-roam-node-point node))
-      (org-roam-remove-property "ROAM_REFS" ref))))
+      (org-roam-property-remove "ROAM_REFS" ref))))
 
 ;;; Tags
 ;;;; Getters
