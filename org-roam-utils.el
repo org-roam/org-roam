@@ -228,6 +228,41 @@ If BOUND, scan up to BOUND bytes of the buffer."
       (when (re-search-forward re bound t)
         (buffer-substring-no-properties (match-beginning 1) (match-end 1))))))
 
+(defun org-roam-end-of-meta-data (&optional full)
+  "Like `org-end-of-meta-data', but supports file-level metadata.
+
+When optional argument FULL is t, also skip planning information,
+clocking lines and any kind of drawer.
+
+When FULL is non-nil but not t, skip planning information,
+properties, clocking lines and logbook drawers."
+  (org-back-to-heading-or-point-min t)
+  ;; Skip planning information.
+  (when (looking-at-p org-planning-line-re) (forward-line))
+  ;; Skip property drawer.
+  (when (looking-at org-property-drawer-re)
+    (goto-char (match-end 0))
+    (forward-line))
+  ;; When FULL is not nil, skip more.
+  (when (and full (not (org-at-heading-p)))
+    (catch 'exit
+      (let ((end (save-excursion (outline-next-heading) (point)))
+            (re (concat "[ \t]*$" "\\|" org-clock-line-re)))
+        (while (not (eobp))
+          (cond ;; Skip clock lines.
+           ((looking-at-p re) (forward-line))
+           ;; Skip logbook drawer.
+           ((looking-at-p org-logbook-drawer-re)
+            (if (re-search-forward "^[ \t]*:END:[ \t]*$" end t)
+                (forward-line)
+              (throw 'exit t)))
+           ;; When FULL is t, skip regular drawer too.
+           ((and (eq full t) (looking-at-p org-drawer-regexp))
+            (if (re-search-forward "^[ \t]*:END:[ \t]*$" end t)
+                (forward-line)
+              (throw 'exit t)))
+           (t (throw 'exit t))))))))
+
 (defun org-roam-set-keyword (key value)
   "Set keyword KEY to VALUE.
 If the property is already set, it's value is replaced."
@@ -237,14 +272,13 @@ If the property is already set, it's value is replaced."
           (if (string-blank-p value)
               (kill-whole-line)
             (replace-match (concat " " value) 'fixedcase nil nil 1))
-        (while (and (not (eobp))
-                    (looking-at "^[#:]"))
-          (if (save-excursion (end-of-line) (eobp))
-              (progn
-                (end-of-line)
-                (insert "\n"))
-            (forward-line)
-            (beginning-of-line)))
+        (org-roam-end-of-meta-data)
+        (if (save-excursion (end-of-line) (eobp))
+            (progn
+              (end-of-line)
+              (insert "\n"))
+          (forward-line)
+          (beginning-of-line))
         (insert "#+" key ": " value "\n")))))
 
 (defun org-roam-erase-keyword (keyword)
