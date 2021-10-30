@@ -221,6 +221,14 @@ nodes." org-id-locations-file)
   'org-roam-dailies-find-date
   'org-roam-dailies-goto-date "org-roam 2.0")
 
+(define-obsolete-function-alias
+  'org-roam-add-property
+  'org-roam-property-add "org-roam 2.1")
+
+(define-obsolete-function-alias
+  'org-roam-remove-property
+  'org-roam-property-remove "org-roam 2.1")
+
 ;;; Obsolete functions
 (make-obsolete 'org-roam-get-keyword 'org-collect-keywords "org-roam 2.0")
 
