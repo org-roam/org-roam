@@ -489,8 +489,7 @@ INFO is the org-element parsed buffer."
                                        (org-get-outline-path 'with-self 'use-cache)))))
       ;; For Org-ref links, we need to split the path into the cite keys
       (when (and source path)
-        (if (and (require 'org-ref nil 'noerror)
-                 (boundp 'org-ref-cite-types)
+        (if (and (boundp 'org-ref-cite-types)
                  (fboundp 'org-ref-split-and-strip-string)
                  (member type org-ref-cite-types))
             (progn
@@ -499,7 +498,6 @@ INFO is the org-element parsed buffer."
                [:insert :into citations
                 :values $v1]
                (mapcar (lambda (p) (vector source p (point) properties)) path)))
-
           (org-roam-db-query
            [:insert :into links
             :values $v1]
@@ -544,16 +542,24 @@ INFO is the org-element parsed buffer."
      (secure-hash 'sha1 (current-buffer)))))
 
 ;;;; Synchronization
-(defun org-roam-db-update-file (&optional file-path)
+(defun org-roam-db-update-file (&optional file-path no-require)
   "Update Org-roam cache for FILE-PATH.
+
 If the file does not exist anymore, remove it from the cache.
-If the file exists, update the cache with information."
+
+If the file exists, update the cache with information.
+
+If NO-REQUIRE, don't require optional libraries. Set NO-REQUIRE
+when the libraries are already required at some toplevel, e.g.
+in `org-roam-db-sync'."
   (setq file-path (or file-path (buffer-file-name (buffer-base-buffer))))
   (let ((content-hash (org-roam-db--file-hash file-path))
         (db-hash (caar (org-roam-db-query [:select hash :from files
                                            :where (= file $s1)] file-path)))
         info)
     (unless (string= content-hash db-hash)
+      (unless no-require
+        (org-roam-require '(org-ref oc)))
       (org-roam-with-file file-path nil
         (emacsql-with-transaction (org-roam-db)
           (save-excursion
@@ -585,6 +591,7 @@ If FORCE, force a rebuild of the cache from scratch."
   (org-roam-db--close) ;; Force a reconnect
   (when force (delete-file org-roam-db-location))
   (org-roam-db) ;; To initialize the database, no-op if already initialized
+  (org-roam-require '(org-ref oc))
   (let* ((gc-cons-threshold org-roam-db-gc-threshold)
          (org-agenda-files nil)
          (org-roam-files (org-roam-list-files))
@@ -606,7 +613,7 @@ If FORCE, force a rebuild of the cache from scratch."
       (if (fboundp 'dolist-with-progress-reporter)
           (dolist-with-progress-reporter (file modified-files)
               "Processing modified files..."
-            (org-roam-db-update-file file))
+            (org-roam-db-update-file file 'no-require))
         (dolist (file modified-files)
           (org-roam-db-update-file file))))))
 

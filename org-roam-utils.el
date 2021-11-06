@@ -34,6 +34,11 @@
 
 (require 'org-roam)
 
+(defun org-roam-require (libs)
+  "Require LIBS."
+  (dolist (lib libs)
+    (require lib nil 'noerror)))
+
 ;;; String utilities
 ;; TODO Refactor this.
 (defun org-roam-replace-string (old new s)
