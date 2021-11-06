@@ -113,7 +113,7 @@ slow."
 ;;; Core Functions
 (defun org-roam-db--get-connection ()
   "Return the database connection, if any."
-  (gethash (expand-file-name org-roam-directory)
+  (gethash (expand-file-name (file-name-as-directory org-roam-directory))
            org-roam-db--connection))
 
 (defun org-roam-db--conn-fn ()
@@ -143,7 +143,7 @@ Performs a database upgrade when required."
       (let ((conn (funcall (org-roam-db--conn-fn) org-roam-db-location)))
         (when-let ((process (emacsql-process conn)))
           (set-process-query-on-exit-flag process nil))
-        (puthash (expand-file-name org-roam-directory)
+        (puthash (expand-file-name (file-name-as-directory org-roam-directory))
                  conn
                  org-roam-db--connection)
         (when init-db
