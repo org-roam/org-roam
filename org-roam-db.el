@@ -342,6 +342,10 @@ If UPDATE-P is non-nil, first remove the file in the database."
          ;; Links correctly recognized by Org Mode
          ((eq type 'link)
           (setq link element))
+         ;; Prevent self-referencing links in ROAM_REFS
+         ((and (eq type 'node-property)
+               (string-equal (org-element-property :key element) "ROAM_REFS"))
+          nil)
          ;; Links in property drawers and lines starting with #+. Recall that, as for Org Mode v9.4.4, the
          ;; org-element-type of links within properties drawers is "node-property" and for lines starting with
          ;; #+ is "keyword".
@@ -354,7 +358,7 @@ If UPDATE-P is non-nil, first remove the file in the database."
           (with-temp-buffer
             (delay-mode-hooks (org-mode))
             (insert link)
-            (goto-char 1)
+            (point-min)
             (setq link (org-element-context)))))
         (when link
           (dolist (fn fns)
