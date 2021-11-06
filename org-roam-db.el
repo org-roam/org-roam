@@ -550,7 +550,7 @@ If the file does not exist anymore, remove it from the cache.
 If the file exists, update the cache with information.
 
 If NO-REQUIRE, don't require optional libraries. Set NO-REQUIRE
-when the libraries are already required at some top-level, e.g.
+when the libraries are already required at some toplevel, e.g.
 in `org-roam-db-sync'."
   (setq file-path (or file-path (buffer-file-name (buffer-base-buffer))))
   (let ((content-hash (org-roam-db--file-hash file-path))
