@@ -316,7 +316,7 @@ If UPDATE-P is non-nil, first remove the file in the database."
 (defun org-roam-db-node-p ()
   "Return t if headline at point is an Org-roam node, else return nil."
   (and (org-id-get)
-       (not (cdr (assoc "ROAM_EXCLUDE" (org-entry-properties))))
+       (not (org-entry-get (point) "ROAM_EXCLUDE"))
        (funcall org-roam-db-node-include-function)))
 
 (defun org-roam-db-map-nodes (fns)
