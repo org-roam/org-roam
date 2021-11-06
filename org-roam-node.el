@@ -727,7 +727,7 @@ Assumes that the cursor was put where the link is."
 
 ;;;;;; Completion-at-point interface
 (defconst org-roam-bracket-completion-re
-  "\\[\\[\\(\\(?:roam:\\)?\\)\\([^z-a]*\\)]]"
+  "\\[\\[\\(\\(?:roam:\\)?\\)\\([^z-a]*?\\)]]"
   "Regex for completion within link brackets.
 We use this as a substitute for `org-link-bracket-re', because
 `org-link-bracket-re' requires content within the brackets for a match.")
