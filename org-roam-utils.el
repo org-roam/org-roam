@@ -52,6 +52,13 @@
     (org-roam-replace-string "\\" "\\\\")
     (org-roam-replace-string "\"" "\\\"")))
 
+(defun org-roam-string-equal (s1 s2)
+  "Return t if S1 and S2 are equal.
+Like `string-equal', but case-insensitive."
+  (and (= (length s1) (length s2))
+       (or (string-equal s1 s2)
+           (string-equal (downcase s1) (downcase s2)))))
+
 ;;; List utilities
 (defmacro org-roam-plist-map! (fn plist)
   "Map FN over PLIST, modifying it in-place."
