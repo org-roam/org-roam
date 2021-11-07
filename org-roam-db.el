@@ -344,7 +344,7 @@ If UPDATE-P is non-nil, first remove the file in the database."
           (setq link element))
          ;; Prevent self-referencing links in ROAM_REFS
          ((and (eq type 'node-property)
-               (string-equal (org-element-property :key element) "ROAM_REFS"))
+               (org-roam-string-equal (org-element-property :key element) "ROAM_REFS"))
           nil)
          ;; Links in property drawers and lines starting with #+. Recall that, as for Org Mode v9.4.4, the
          ;; org-element-type of links within properties drawers is "node-property" and for lines starting with
