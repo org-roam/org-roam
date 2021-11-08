@@ -382,7 +382,8 @@ INFO is the org-element parsed buffer."
                (title (org-link-display-format
                        (or (cadr (assoc "TITLE" (org-collect-keywords '("title"))
                                         #'string-equal))
-                           (file-relative-name file org-roam-directory))))
+                           (file-name-sans-extension
+                            (file-relative-name file org-roam-directory)))))
                (pos (point))
                (todo nil)
                (priority nil)
