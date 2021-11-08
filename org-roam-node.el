@@ -260,7 +260,7 @@ Return nil if there's no node with such REF."
        ((string-match org-link-plain-re ref)
         (setq type (match-string 1 ref)
               path (match-string 2 ref)))
-       ((string-equal (substring ref 0 1) "@")
+       ((string-prefix-p "@" ref)
         (setq type "cite"
               path (substring ref 1))))
       (when (and type path)
