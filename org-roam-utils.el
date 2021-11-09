@@ -243,12 +243,13 @@ If BOUND, scan up to BOUND bytes of the buffer."
 (defun org-roam-end-of-meta-data (&optional full)
   "Like `org-end-of-meta-data', but supports file-level metadata.
 
-When optional argument FULL is t, also skip planning information,
-clocking lines and any kind of drawer.
-
 When FULL is non-nil but not t, skip planning information,
-properties, clocking lines and logbook drawers."
+properties, clocking lines and logbook drawers.
+
+When optional argument FULL is t, skip everything above, and also
+skip keywords."
   (org-back-to-heading-or-point-min t)
+  (when (org-at-heading-p) (forward-line))
   ;; Skip planning information.
   (when (looking-at-p org-planning-line-re) (forward-line))
   ;; Skip property drawer.
@@ -268,11 +269,14 @@ properties, clocking lines and logbook drawers."
             (if (re-search-forward "^[ \t]*:END:[ \t]*$" end t)
                 (forward-line)
               (throw 'exit t)))
-           ;; When FULL is t, skip regular drawer too.
-           ((and (eq full t) (looking-at-p org-drawer-regexp))
+           ((looking-at-p org-drawer-regexp)
             (if (re-search-forward "^[ \t]*:END:[ \t]*$" end t)
                 (forward-line)
               (throw 'exit t)))
+           ;; When FULL is t, skip keywords too.
+           ((and (eq full t)
+                 (looking-at-p org-keyword-regexp))
+            (forward-line))
            (t (throw 'exit t))))))))
 
 (defun org-roam-set-keyword (key value)
@@ -284,7 +288,7 @@ If the property is already set, it's value is replaced."
           (if (string-blank-p value)
               (kill-whole-line)
             (replace-match (concat " " value) 'fixedcase nil nil 1))
-        (org-roam-end-of-meta-data)
+        (org-roam-end-of-meta-data 'drawers)
         (if (save-excursion (end-of-line) (eobp))
             (progn
               (end-of-line)

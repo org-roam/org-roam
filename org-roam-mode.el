@@ -397,23 +397,17 @@ In interactive calls OTHER-WINDOW is set with
     (when (org-invisible-p) (org-show-context))
     buf))
 
-(defun org-roam-preview-get-contents (file point)
-  "Get preview content for FILE at POINT."
+(defun org-roam-preview-get-contents (file pt)
+  "Get preview content for FILE at PT."
   (save-excursion
     (org-roam-with-temp-buffer file
-      (goto-char point)
-      (let ((elem (org-element-at-point)))
-        ;; We want the parent element always
-        (while (org-element-property :parent elem)
-          (setq elem (org-element-property :parent elem)))
-        (pcase (car elem)
-          ('headline                    ; show subtree
-           (org-roam-preview-get-entry-text (point-marker) most-positive-fixnum))
-          (_
-           (let ((begin (org-element-property :begin elem))
-                 (end (org-element-property :end elem)))
-             (or (string-trim (buffer-substring-no-properties begin end))
-                 (org-element-property :raw-value elem)))))))))
+      (org-with-wide-buffer
+       (goto-char pt)
+       (let ((beg (progn (org-roam-end-of-meta-data t)
+                         (point)))
+             (end (progn (org-next-visible-heading 1)
+                         (point))))
+         (string-trim (buffer-substring-no-properties beg end)))))))
 
 (defun org-roam-preview-get-entry-text (marker n-lines &optional indent)
   "Extract entry text from MARKER, at most N-LINES lines.
