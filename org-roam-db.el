@@ -569,6 +569,7 @@ in `org-roam-db-sync'."
         (emacsql-with-transaction (org-roam-db)
           (save-excursion
             (org-set-regexps-and-options 'tags-only)
+            (org-refresh-category-properties)
             (org-roam-db-clear-file)
             (org-roam-db-insert-file)
             (org-roam-db-insert-file-node)
