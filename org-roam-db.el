@@ -470,7 +470,7 @@ INFO is the org-element parsed buffer."
     (let (rows)
       (dolist (ref refs)
         (save-match-data
-          (cond ((string-equal (substring ref 0 1) "@")
+          (cond ((string-prefix-p "@" ref)
                  (push (vector node-id (substring ref 1) "cite") rows))
                 ((string-match org-link-plain-re ref)
                  (push (vector node-id (match-string 2 ref) (match-string 1 ref)) rows))
