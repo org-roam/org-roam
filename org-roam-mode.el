@@ -160,7 +160,8 @@ value shows the current node in the persistent `org-roam-buffer'.")
 
 (defvar org-roam-buffer-current-directory nil
   "The `org-roam-directory' value of `org-roam-buffer-current-node'.
-Set both, locally and globally in the same way as `org-roam-buffer-current-node'.")
+Set both, locally and globally in the same way as
+`org-roam-buffer-current-node'.")
 
 (put 'org-roam-buffer-current-directory 'permanent-local t)
 

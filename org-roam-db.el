@@ -116,6 +116,10 @@ slow."
   (gethash (expand-file-name (file-name-as-directory org-roam-directory))
            org-roam-db--connection))
 
+(declare-function emacsql-sqlite "ext:emacsql-sqlite")
+(declare-function emacsql-libsqlite3 "ext:emacsql-libsqlite3")
+(declare-function emacsql-sqlite3 "ext:emacsql-sqlite3")
+
 (defun org-roam-db--conn-fn ()
   "Return the function for creating the database connection."
   (cl-case org-roam-database-connector

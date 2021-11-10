@@ -205,7 +205,8 @@ be replaced with content and expanded:
               introduced with %[pathname] are expanded this way.  Since this
               happens after expanding non-interactive %-escapes, those can
               be used to fill the expression.
-  %<...>      The result of `format-time-string' on the ... format specification.
+  %<...>      The result of `format-time-string' on the ... format
+              specification.
   %t          Time stamp, date only.  The time stamp is the current time,
               except when called from agendas with `\\[org-agenda-capture]' or
               with `org-capture-use-agenda-date' set.

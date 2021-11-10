@@ -152,6 +152,8 @@ value (possibly nil). Adapted from `s-format'."
       (set-match-data saved-match-data))))
 
 ;;; Fontification
+(defvar org-ref-buffer-hacked)
+
 (defun org-roam-fontify-like-in-org-mode (s)
   "Fontify string S like in Org mode.
 Like `org-fontify-like-in-org-mode', but supports `org-ref'."
