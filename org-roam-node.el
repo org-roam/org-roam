@@ -109,7 +109,9 @@ has the entry (\"tags\" . \"#\"), these will appear as
 
 (defcustom org-roam-ref-annotation-function #'org-roam-ref-read--annotation
   "This function used to attach annotations for `org-roam-ref-read'.
-It takes a single argument REF, which is a propertized string.")
+It takes a single argument REF, which is a propertized string."
+  :group 'org-roam
+  :type  '(function))
 
 ;;;; Completion-at-point
 (defcustom org-roam-completion-everywhere nil
@@ -594,7 +596,8 @@ TEMPLATE is the processed template used to format the entry."
 
 (defun org-roam-node-read-sort-by-file-mtime (completion-a completion-b)
   "Sort files such that files modified more recently are shown first.
-COMPLETION-A and COMPLETION-B are items in the form of (node-title org-roam-node-struct)"
+COMPLETION-A and COMPLETION-B are items in the form of
+\(node-title org-roam-node-struct)"
   (let ((node-a (cdr completion-a))
         (node-b (cdr completion-b)))
     (time-less-p (org-roam-node-file-mtime node-b)
@@ -602,7 +605,8 @@ COMPLETION-A and COMPLETION-B are items in the form of (node-title org-roam-node
 
 (defun org-roam-node-read-sort-by-file-atime (completion-a completion-b)
   "Sort files such that files accessed more recently are shown first.
-COMPLETION-A and COMPLETION-B are items in the form of (node-title org-roam-node-struct)"
+COMPLETION-A and COMPLETION-B are items in the form of
+\(node-title org-roam-node-struct)"
   (let ((node-a (cdr completion-a))
         (node-b (cdr completion-b)))
     (time-less-p (org-roam-node-file-atime node-b)
@@ -940,7 +944,7 @@ links to headings/files within the current `org-roam-directory'
 that are excluded from identification in Org-roam as
 `org-roam-node's, e.g. with \"ROAM_EXCLUDE\" property."
   (interactive)
-  (cl-loop with files for dir in (cons org-roam-directory directories)
+  (cl-loop for dir in (cons org-roam-directory directories)
            for org-roam-directory = dir
            nconc (org-roam-list-files) into files
            finally (org-id-update-id-locations files org-roam-verbose)))
@@ -1084,7 +1088,7 @@ and when nil is returned the node will be filtered out."
   (let ((node (org-roam-node-at-point 'assert)))
     (save-excursion
       (goto-char (org-roam-node-point node))
-      (org-roam-add-property alias "ROAM_ALIASES"))))
+      (org-roam-property-add "ROAM_ALIASES" alias))))
 
 (defun org-roam-alias-remove (&optional alias)
   "Remove an ALIAS from the node at point."
@@ -1092,7 +1096,7 @@ and when nil is returned the node will be filtered out."
   (let ((node (org-roam-node-at-point 'assert)))
     (save-excursion
       (goto-char (org-roam-node-point node))
-      (org-roam-remove-property "ROAM_ALIASES" alias))))
+      (org-roam-property-remove "ROAM_ALIASES" alias))))
 
 
 (provide 'org-roam-node)

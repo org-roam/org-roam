@@ -48,7 +48,7 @@ tool, which is not recommended because it is not suitable to be
 used like this, but has the advantage that you likely don't need
 a compiler. See https://nullprogram.com/blog/2014/02/06/."
   :package-version '(org-roam . "2.2.0")
-  :group 'forge
+  :group 'org-roam
   :type '(choice (const sqlite)
                  (const libsqlite3)
                  (const sqlite3)
@@ -115,6 +115,10 @@ slow."
   "Return the database connection, if any."
   (gethash (expand-file-name (file-name-as-directory org-roam-directory))
            org-roam-db--connection))
+
+(declare-function emacsql-sqlite "ext:emacsql-sqlite")
+(declare-function emacsql-libsqlite3 "ext:emacsql-libsqlite3")
+(declare-function emacsql-sqlite3 "ext:emacsql-sqlite3")
 
 (defun org-roam-db--conn-fn ()
   "Return the function for creating the database connection."

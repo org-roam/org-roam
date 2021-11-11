@@ -292,6 +292,8 @@ E.g. (\".org\") => (\"*.org\" \"*.org.gpg\")"
                                              ,@(mapcar (lambda (glob) (concat "-g " glob)) globs)) " ")))
     (org-roam--shell-command-files command)))
 
+(declare-function org-roam--directory-files-recursively "org-roam-compat")
+
 (defun org-roam--list-files-elisp (dir)
   "Return all Org-roam files under DIR, using Elisp based implementation."
   (let ((regex (concat "\\.\\(?:"(mapconcat
