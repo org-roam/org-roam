@@ -60,17 +60,15 @@ Like `string-equal', but case-insensitive."
            (string-equal (downcase s1) (downcase s2)))))
 
 ;;; List utilities
-(defmacro org-roam-plist-map! (fn plist)
-  "Map FN over PLIST, modifying it in-place."
-  (declare (indent 1))
-  (let ((plist-var (make-symbol "plist"))
-        (k (make-symbol "k"))
-        (v (make-symbol "v")))
-    `(let ((,plist-var (copy-sequence ,plist)))
-       (while ,plist-var
-         (setq ,k (pop ,plist-var))
-         (setq ,v (pop ,plist-var))
-         (setq ,plist (plist-put ,plist ,k (funcall ,fn ,k ,v)))))))
+(defun org-roam-plist-map! (fn plist)
+  "Map FN over PLIST, modifying it in-place and returning it.
+FN must take two arguments: the key and the value."
+  (let ((plist-index plist))
+    (while plist-index
+      (let ((key (pop plist-index)))
+        (setf (car plist-index) (funcall fn key (car plist-index))
+              plist-index (cdr plist-index)))))
+  plist)
 
 ;;; File utilities
 (defmacro org-roam-with-file (file keep-buf-p &rest body)
