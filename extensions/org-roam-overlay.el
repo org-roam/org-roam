@@ -27,8 +27,8 @@
 
 ;;; Commentary:
 ;;
-;; This extension provides allows to render [[id:]] links that don't have an
-;; asscoiated descriptor with an overlay that displays the node's current title.
+;; This extension allows to render [[id:]] links that don't have an associated
+;; descriptor with an overlay that displays the node's current title.
 ;;
 ;;; Code:
 (require 'org-roam)
