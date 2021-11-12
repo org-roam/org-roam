@@ -297,7 +297,7 @@ If FILE is nil, clear the current buffer."
 ;;;; Updating tables
 
 (defun org-roam-db--file-title ()
-  "In current org document, get the title.
+  "In current Org buffer, get the title.
 If there is no title, return the file name relative to
 `org-roam-directory'."
   (org-link-display-format
