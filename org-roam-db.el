@@ -99,7 +99,7 @@ slow."
   :group 'org-roam)
 
 ;;; Variables
-(defconst org-roam-db-version 17)
+(defconst org-roam-db-version 18)
 
 ;; TODO Rename this
 (defconst org-roam--sqlite-available-p
@@ -186,6 +186,7 @@ The query is expected to be able to fail, in this situation, run HANDLER."
 (defconst org-roam-db--table-schemata
   '((files
      [(file :unique :primary-key)
+      title
       (hash :not-null)
       (atime :not-null)
       (mtime :not-null)])
@@ -294,10 +295,22 @@ If FILE is nil, clear the current buffer."
                      file))
 
 ;;;; Updating tables
+
+(defun org-roam-db--file-title ()
+  "In current Org buffer, get the title.
+If there is no title, return the file name relative to
+`org-roam-directory'."
+  (org-link-display-format
+   (or (cadr (assoc "TITLE" (org-collect-keywords '("title"))))
+       (file-name-sans-extension (file-relative-name
+                                  (buffer-file-name (buffer-base-buffer))
+                                  org-roam-directory)))))
+
 (defun org-roam-db-insert-file ()
   "Update the files table for the current buffer.
 If UPDATE-P is non-nil, first remove the file in the database."
   (let* ((file (buffer-file-name))
+         (file-title (org-roam-db--file-title))
          (attr (file-attributes file))
          (atime (file-attribute-access-time attr))
          (mtime (file-attribute-modification-time attr))
@@ -305,7 +318,7 @@ If UPDATE-P is non-nil, first remove the file in the database."
     (org-roam-db-query
      [:insert :into files
       :values $v1]
-     (list (vector file hash atime mtime)))))
+     (list (vector file file-title hash atime mtime)))))
 
 (defun org-roam-db-get-scheduled-time ()
   "Return the scheduled time at point in ISO8601 format."
@@ -383,11 +396,7 @@ INFO is the org-element parsed buffer."
                (org-roam-db-node-p))
       (when-let ((id (org-id-get)))
         (let* ((file (buffer-file-name (buffer-base-buffer)))
-               (title (org-link-display-format
-                       (or (cadr (assoc "TITLE" (org-collect-keywords '("title"))
-                                        #'string-equal))
-                           (file-name-sans-extension
-                            (file-relative-name file org-roam-directory)))))
+               (title (org-roam-db--file-title))
                (pos (point))
                (todo nil)
                (priority nil)

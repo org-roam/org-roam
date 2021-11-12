@@ -146,7 +146,7 @@ It takes a single argument REF, which is a propertized string."
 (cl-defstruct (org-roam-node (:constructor org-roam-node-create)
                              (:copier nil))
   "A heading or top level file with an assigned ID property."
-  file file-hash file-atime file-mtime
+  file file-title file-hash file-atime file-mtime
   id level point todo priority scheduled deadline title properties olp
   tags aliases refs)
 
@@ -289,10 +289,10 @@ nodes."
                                                  :limit 1]
                                                 (org-roam-node-id node)))))
     (pcase-let* ((`(,file ,level ,pos ,todo ,priority ,scheduled ,deadline ,title ,properties ,olp) node-info)
-                 (`(,atime ,mtime) (car (org-roam-db-query [:select [atime mtime]
-                                                            :from files
-                                                            :where (= file $s1)]
-                                                           file)))
+                 (`(,atime ,mtime ,file-title) (car (org-roam-db-query [:select [atime mtime title]
+                                                                        :from files
+                                                                        :where (= file $s1)]
+                                                                       file)))
                  (tag-info (mapcar #'car (org-roam-db-query [:select [tag] :from tags
                                                              :where (= node-id $s1)]
                                                             (org-roam-node-id node))))
@@ -303,6 +303,7 @@ nodes."
                                                               :where (= node-id $s1)]
                                                              (org-roam-node-id node)))))
       (setf (org-roam-node-file node) file
+            (org-roam-node-file-title node) file-title
             (org-roam-node-file-atime node) atime
             (org-roam-node-file-mtime node) mtime
             (org-roam-node-level node) level
@@ -325,6 +326,7 @@ nodes."
                "SELECT
   id,
   file,
+  filetitle,
   \"level\",
   todo,
   pos,
@@ -344,6 +346,7 @@ FROM
   SELECT
     id,
     file,
+    filetitle,
     \"level\",
     todo,
     pos,
@@ -374,6 +377,7 @@ FROM
       nodes.olp as olp,
       files.atime as atime,
       files.mtime as mtime,
+      files.title as filetitle,
       tags.tag as tags,
       aliases.alias as aliases,
       '(' || group_concat(RTRIM (refs.\"type\", '\"') || ':' || LTRIM(refs.ref, '\"'), ' ') || ')' as refs
@@ -386,13 +390,14 @@ FROM
   GROUP BY id, tags )
 GROUP BY id")))
     (cl-loop for row in rows
-             append (pcase-let* ((`(,id ,file ,level ,todo ,pos ,priority ,scheduled ,deadline
+             append (pcase-let* ((`(,id ,file ,file-title ,level ,todo ,pos ,priority ,scheduled ,deadline
                                         ,title ,properties ,olp ,atime ,mtime ,tags ,aliases ,refs)
                                   row)
                                  (all-titles (cons title aliases)))
                       (mapcar (lambda (temp-title)
                                 (org-roam-node-create :id id
                                                       :file file
+                                                      :file-title file-title
                                                       :file-atime atime
                                                       :file-mtime mtime
                                                       :level level
