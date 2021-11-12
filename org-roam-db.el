@@ -186,8 +186,7 @@ The query is expected to be able to fail, in this situation, run HANDLER."
 (defconst org-roam-db--table-schemata
   '((files
      [(file :unique :primary-key)
-      ;; "file-title" would be converted to "file_title"
-      filetitle
+      title
       (hash :not-null)
       (atime :not-null)
       (mtime :not-null)])

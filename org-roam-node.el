@@ -289,7 +289,7 @@ nodes."
                                                  :limit 1]
                                                 (org-roam-node-id node)))))
     (pcase-let* ((`(,file ,level ,pos ,todo ,priority ,scheduled ,deadline ,title ,properties ,olp) node-info)
-                 (`(,atime ,mtime ,file-title) (car (org-roam-db-query [:select [atime mtime filetitle]
+                 (`(,atime ,mtime ,file-title) (car (org-roam-db-query [:select [atime mtime title]
                                                             :from files
                                                             :where (= file $s1)]
                                                            file)))
@@ -377,7 +377,7 @@ FROM
       nodes.olp as olp,
       files.atime as atime,
       files.mtime as mtime,
-      files.filetitle as filetitle,
+      files.title as filetitle,
       tags.tag as tags,
       aliases.alias as aliases,
       '(' || group_concat(RTRIM (refs.\"type\", '\"') || ':' || LTRIM(refs.ref, '\"'), ' ') || ')' as refs
