@@ -666,19 +666,19 @@ The INFO, if provided, is passed to the underlying `org-roam-capture-'."
   (add-hook 'org-open-at-point-functions #'org-roam-open-id-at-point nil t))
 
 (defun org-roam-open-id-at-point ()
-  "Try to navigate \"id:\" link to find and visit node with an assigned ID.
-Assumes that the cursor was put where the link is."
-  (let* ((context (org-element-context))
-         (type (org-element-property :type context))
-         (id (org-element-property :path context)))
-    (when (string= type "id")
-      (let ((node (org-roam-populate (org-roam-node-create :id id))))
-        (cond
-         ((org-roam-node-file node)
-          (org-mark-ring-push)
-          (org-roam-node-visit node nil 'force)
-          t)
-         (t nil))))))
+  "Navigate to \"id:\" link at point using the Org-roam database."
+  (when (org-in-regexp org-link-any-re)
+    (let ((link (match-string 2))
+          id)
+      (when (string-prefix-p "id:" link)
+        (setq id (substring-no-properties link 3))
+        (let ((node (org-roam-populate (org-roam-node-create :id id))))
+          (cond
+           ((org-roam-node-file node)
+            (org-mark-ring-push)
+            (org-roam-node-visit node nil 'force)
+            t)
+           (t nil)))))))
 
 ;;;;; [roam:] link
 (org-link-set-parameters "roam" :follow #'org-roam-link-follow-link)
