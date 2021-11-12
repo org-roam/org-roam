@@ -290,9 +290,9 @@ nodes."
                                                 (org-roam-node-id node)))))
     (pcase-let* ((`(,file ,level ,pos ,todo ,priority ,scheduled ,deadline ,title ,properties ,olp) node-info)
                  (`(,atime ,mtime ,file-title) (car (org-roam-db-query [:select [atime mtime title]
-                                                            :from files
-                                                            :where (= file $s1)]
-                                                           file)))
+                                                                        :from files
+                                                                        :where (= file $s1)]
+                                                                       file)))
                  (tag-info (mapcar #'car (org-roam-db-query [:select [tag] :from tags
                                                              :where (= node-id $s1)]
                                                             (org-roam-node-id node))))
