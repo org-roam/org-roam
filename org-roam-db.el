@@ -375,7 +375,7 @@ If UPDATE-P is non-nil, first remove the file in the database."
           (with-temp-buffer
             (delay-mode-hooks (org-mode))
             (insert link)
-            (point-min)
+            (goto-char (point-min))
             (setq link (org-element-context)))))
         (when link
           (dolist (fn fns)
