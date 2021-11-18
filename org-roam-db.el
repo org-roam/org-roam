@@ -507,10 +507,11 @@ INFO is the org-element parsed buffer."
       ;; For Org-ref links, we need to split the path into the cite keys
       (when (and source path)
         (if (and (boundp 'org-ref-cite-types)
-                 (fboundp 'org-ref-split-and-strip-string)
-                 (member type org-ref-cite-types))
+                 (assoc type org-ref-cite-types))
             (progn
-              (setq path (org-ref-split-and-strip-string path))
+              ;; For Org-ref V3's syntax, remove the prefix ampersand "&". V3 also supports V2 syntax; hence
+              ;; the `when' conditional.
+              (when (string-prefix-p "&" path) (setq path (substring path 1)))
               (org-roam-db-query
                [:insert :into citations
                 :values $v1]
