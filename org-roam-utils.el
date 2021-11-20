@@ -355,6 +355,16 @@ If VAL is not specified, user is prompted to select a value."
       (org-delete-property prop))
     prop-to-remove))
 
+;;; Refs
+(defun org-roam-org-ref-path-to-keys (path)
+  "Return a list of keys given an org-ref cite: PATH.
+Accounts for both v2 and v3."
+  (cond ((fboundp 'org-ref-parse-cite-path)
+         (mapcar (lambda (cite) (plist-get cite :key))
+                 (plist-get (org-ref-parse-cite-path path) :references)))
+        ((fboundp 'org-ref-split-and-strip-string)
+         (org-ref-split-and-strip-string path))))
+
 ;;; Logs
 (defvar org-roam-verbose)
 (defun org-roam-message (format-string &rest args)
