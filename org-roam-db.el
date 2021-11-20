@@ -486,7 +486,13 @@ INFO is the org-element parsed buffer."
           (cond ((string-prefix-p "@" ref)
                  (push (vector node-id (substring ref 1) "cite") rows))
                 ((string-match org-link-plain-re ref)
-                 (push (vector node-id (match-string 2 ref) (match-string 1 ref)) rows))
+                 (let ((link-type (match-string 1 ref))
+                       (path (match-string 2 ref)))
+                   (if (and (boundp 'org-ref-cite-types)
+                            (or (assoc link-type org-ref-cite-types)
+                                (member link-type org-ref-cite-types)))
+                       (dolist (key (org-roam-org-ref-path-to-keys path))
+                         (push (vector node-id key link-type) rows)))))
                 (t
                  (lwarn '(org-roam) :warning
                         "%s:%s\tInvalid ref %s, skipping..." (buffer-file-name) (point) ref)))))
@@ -508,14 +514,13 @@ INFO is the org-element parsed buffer."
       ;; For Org-ref links, we need to split the path into the cite keys
       (when (and source path)
         (if (and (boundp 'org-ref-cite-types)
-                 (fboundp 'org-ref-split-and-strip-string)
-                 (member type org-ref-cite-types))
-            (progn
-              (setq path (org-ref-split-and-strip-string path))
-              (org-roam-db-query
-               [:insert :into citations
-                :values $v1]
-               (mapcar (lambda (p) (vector source p (point) properties)) path)))
+                 (or (assoc type org-ref-cite-types)
+                     (member type org-ref-cite-types)))
+            (org-roam-db-query
+             [:insert :into citations
+              :values $v1]
+             (mapcar (lambda (k) (vector source k (point) properties))
+                     (org-roam-org-ref-path-to-keys path)))
           (org-roam-db-query
            [:insert :into links
             :values $v1]
