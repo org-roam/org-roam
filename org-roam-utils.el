@@ -87,7 +87,7 @@ Kills the buffer if KEEP-BUF-P is nil, and FILE is not yet visited."
                      (find-file-noselect ,file)))) ; Else, visit FILE and return buffer
           res)
      (with-current-buffer buf
-       (unless (equal major-mode 'org-mode)
+       (unless (derived-mode-p 'org-mode)
          (delay-mode-hooks
            (let ((org-inhibit-startup t)
                  (org-agenda-files nil))
