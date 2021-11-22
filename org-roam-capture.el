@@ -445,13 +445,13 @@ the capture)."
   "Get the value for KEYWORD from the `org-roam-capture-template'."
   (plist-get (plist-get org-capture-plist :org-roam) keyword))
 
-(defun org-roam-capture--put (&rest stuff)
-  "Put properties from STUFF into the `org-roam-capture-template'."
+(defun org-roam-capture--put (prop value)
+  "Set property PROP to VALUE in the `org-roam-capture-template'."
   (let ((p (plist-get org-capture-plist :org-roam)))
-    (while stuff
-      (setq p (plist-put p (pop stuff) (pop stuff))))
     (setq org-capture-plist
-          (plist-put org-capture-plist :org-roam p))))
+          (plist-put org-capture-plist
+                     :org-roam
+                     (plist-put p prop value)))))
 
 ;;;; Capture target
 (defun org-roam-capture--prepare-buffer ()
