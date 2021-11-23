@@ -70,6 +70,23 @@ FN must take two arguments: the key and the value."
               plist-index (cdr plist-index)))))
   plist)
 
+(defmacro org-roam-dolist-with-progress (spec msg &rest body)
+  "Loop over a list and report progress in the echo area.
+Like `dolist-with-progress-reporter', but falls back to `dolist'
+if the function does not yet exist.
+
+Evaluate BODY with VAR bound to each car from LIST, in turn.
+Then evaluate RESULT to get return value, default nil.
+
+MSG is a progress reporter object or a string.  In the latter
+case, use this string to create a progress reporter.
+
+SPEC is a list, as per `dolist'."
+  (declare (indent 2))
+  (if (fboundp 'dolist-with-progress-reporter)
+      `(dolist-with-progress-reporter ,spec ,msg ,@body)
+    `(dolist ,spec ,@body)))
+
 ;;; File utilities
 (defmacro org-roam-with-file (file keep-buf-p &rest body)
   "Execute BODY within FILE.

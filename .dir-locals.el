@@ -5,6 +5,7 @@
   (elisp-lint-indent-specs . ((describe . 1)
                               (it . 1)
                               (org-element-map . defun)
+                              (org-roam-dolist-with-progress . 2)
                               (org-roam-with-temp-buffer . 1)
                               (org-with-point-at . 1)
                               (magit-insert-section . defun)
