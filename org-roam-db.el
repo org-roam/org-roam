@@ -636,9 +636,19 @@ If FORCE, force a rebuild of the cache from scratch."
       (if (fboundp 'dolist-with-progress-reporter)
           (dolist-with-progress-reporter (file modified-files)
               "Processing modified files..."
-            (org-roam-db-update-file file 'no-require))
+            (condition-case err
+              (org-roam-db-update-file file 'no-require)
+              (error
+               (org-roam-db-clear-file file)
+               (lwarn 'org-roam :error "Failed to process %s with error %s, skipping..."
+                      file (error-message-string err)))))
         (dolist (file modified-files)
-          (org-roam-db-update-file file))))))
+          (condition-case err
+              (org-roam-db-update-file file 'no-require)
+            (error
+             (org-roam-db-clear-file file)
+             (lwarn 'org-roam :error "Failed to process %s with error %s, skipping..."
+                    file (error-message-string err)))))))))
 
 ;;;###autoload
 (define-minor-mode org-roam-db-autosync-mode
