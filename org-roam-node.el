@@ -150,6 +150,17 @@ It takes a single argument REF, which is a propertized string."
   id level point todo priority scheduled deadline title properties olp
   tags aliases refs)
 
+;; Shim `string-glyph-compose' and `string-glyph-decompose' for Emacs versions that do not have it.
+;; The functions were introduced in emacs commit 3f096eb3405b2fce7c35366eb2dcf025dda55783 and the
+;; (original) functions behind them aren't autoloaded anymore.
+(dolist (sym.replace
+         '((string-glyph-compose . ucs-normalize-NFC-region)
+           (string-glyph-decompose . ucs-normalize-NFD-region)))
+  (let ((emacs-29-symbol (car sym.replace))
+        (previous-implementation (cdr sym.replace)))
+    (unless (fboundp emacs-29-symbol)
+      (defalias emacs-29-symbol previous-implementation))))
+
 (cl-defmethod org-roam-node-slug ((node org-roam-node))
   "Return the slug of NODE."
   (let ((title (org-roam-node-title node))
@@ -178,9 +189,9 @@ It takes a single argument REF, which is a propertized string."
     (cl-flet* ((nonspacing-mark-p (char)
                                   (memq char slug-trim-chars))
                (strip-nonspacing-marks (s)
-                                       (ucs-normalize-NFC-string
+                                       (string-glyph-compose
                                         (apply #'string (seq-remove #'nonspacing-mark-p
-                                                                    (ucs-normalize-NFD-string s)))))
+                                                                    (string-glyph-decompose s)))))
                (cl-replace (title pair)
                            (replace-regexp-in-string (car pair) (cdr pair) title)))
       (let* ((pairs `(("[^[:alnum:][:digit:]]" . "_") ;; convert anything not alphanumeric
