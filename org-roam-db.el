@@ -627,28 +627,17 @@ If FORCE, force a rebuild of the cache from scratch."
           (push file modified-files)))
       (remhash file current-files))
     (emacsql-with-transaction (org-roam-db)
-      (if (fboundp 'dolist-with-progress-reporter)
-          (dolist-with-progress-reporter (file (hash-table-keys current-files))
-              "Clearing removed files..."
-            (org-roam-db-clear-file file))
-        (dolist (file (hash-table-keys current-files))
-          (org-roam-db-clear-file file)))
-      (if (fboundp 'dolist-with-progress-reporter)
-          (dolist-with-progress-reporter (file modified-files)
-              "Processing modified files..."
-            (condition-case err
-              (org-roam-db-update-file file 'no-require)
-              (error
-               (org-roam-db-clear-file file)
-               (lwarn 'org-roam :error "Failed to process %s with error %s, skipping..."
-                      file (error-message-string err)))))
-        (dolist (file modified-files)
-          (condition-case err
-              (org-roam-db-update-file file 'no-require)
-            (error
-             (org-roam-db-clear-file file)
-             (lwarn 'org-roam :error "Failed to process %s with error %s, skipping..."
-                    file (error-message-string err)))))))))
+      (org-roam-dolist-with-progress (file (hash-table-keys current-files))
+          "Clearing removed files..."
+        (org-roam-db-clear-file file))
+      (org-roam-dolist-with-progress (file modified-files)
+          "Processing modified files..."
+        (condition-case err
+            (org-roam-db-update-file file 'no-require)
+          (error
+           (org-roam-db-clear-file file)
+           (lwarn 'org-roam :error "Failed to process %s with error %s, skipping..."
+                  file (error-message-string err))))))))
 
 ;;;###autoload
 (define-minor-mode org-roam-db-autosync-mode
