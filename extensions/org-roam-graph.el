@@ -113,6 +113,21 @@ All other values including nil will have no effect."
           (const :tag "no" nil))
   :group 'org-roam)
 
+(defcustom org-roam-graph-link-builder 'org-roam-default-link-builder
+  "Given a node name, return a string to be used for the link fed to the graph generation utility."
+  :type 'function
+  :group 'org-roam)
+
+(defcustom org-roam-graph-generation-hook nil
+  "Hook run after the graph's been generated. Called with the filename containing the graph generation tool
+input as well as the generated graph."
+  :type 'hook
+  :group 'org-roam)
+
+(defun org-roam-default-link-builder (node)
+  "Default org-roam link builder.  Generates an org-protocol link."
+  (concat "org-protocol://roam-node?node=" (url-hexify-string (org-roam-node-id node))))
+
 ;;; Interactive command
 ;;;###autoload
 (defun org-roam-graph (&optional arg node)
@@ -153,7 +168,8 @@ CALLBACK is passed the graph file as its sole argument."
      :sentinel (when callback
                  (lambda (process _event)
                    (when (= 0 (process-exit-status process))
-                     (funcall callback temp-graph)))))))
+                     (progn (funcall callback temp-graph)
+                            (run-hook-with-args 'org-roam-graph-generation-hook temp-dot temp-graph))))))))
 
 (defun org-roam-graph--dot (&optional edges all-nodes)
   "Build the graphviz given the EDGES of the graph.
@@ -250,8 +266,7 @@ Handles both Org-roam nodes, and string nodes (e.g. urls)."
                    (_ title)))))
           (setq node-id (org-roam-node-id node)
                 node-properties `(("label"   . ,shortened-title)
-                                  ("URL"     . ,(concat "org-protocol://roam-node?node="
-                                                        (url-hexify-string (org-roam-node-id node))))
+                                  ("URL"     . ,(funcall org-roam-graph-link-builder node))
                                   ("tooltip" . ,(xml-escape-string title)))))
       (setq node-id node
             node-properties (append `(("label" . ,(concat type ":" node)))
