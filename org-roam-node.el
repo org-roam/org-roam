@@ -154,8 +154,8 @@ It takes a single argument REF, which is a propertized string."
 ;; The functions were introduced in emacs commit 3f096eb3405b2fce7c35366eb2dcf025dda55783 and the
 ;; (original) functions behind them aren't autoloaded anymore.
 (dolist (sym.replace
-         '((string-glyph-compose . ucs-normalize-NFC-region)
-           (string-glyph-decompose . ucs-normalize-NFD-region)))
+         '((string-glyph-compose . ucs-normalize-NFC-string)
+           (string-glyph-decompose . ucs-normalize-NFD-string)))
   (let ((emacs-29-symbol (car sym.replace))
         (previous-implementation (cdr sym.replace)))
     (unless (fboundp emacs-29-symbol)
