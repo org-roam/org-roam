@@ -49,8 +49,8 @@
 (defun org-roam-quote-string (s)
   "Quotes string S."
   (->> s
-    (org-roam-replace-string "\\" "\\\\")
-    (org-roam-replace-string "\"" "\\\"")))
+       (org-roam-replace-string "\\" "\\\\")
+       (org-roam-replace-string "\"" "\\\"")))
 
 (defun org-roam-string-equal (s1 s2)
   "Return t if S1 and S2 are equal.
@@ -58,6 +58,17 @@ Like `string-equal', but case-insensitive."
   (and (= (length s1) (length s2))
        (or (string-equal s1 s2)
            (string-equal (downcase s1) (downcase s2)))))
+
+(defun org-roam-strip-comments (s)
+  "Strip Org comments from string S."
+  (with-temp-buffer
+    (insert s)
+    (goto-char (point-min))
+    (while (not (eobp))
+      (if (org-at-comment-p)
+          (delete-region (point-at-bol) (progn (forward-line) (point)))
+        (forward-line)))
+    (buffer-string)))
 
 ;;; List utilities
 (defun org-roam-plist-map! (fn plist)
