@@ -229,7 +229,7 @@ buffer."
     (magit-insert-section (org-roam)
       (magit-insert-heading)
       (run-hook-with-args 'org-roam-mode-section-functions org-roam-buffer-current-node))
-    (run-hooks org-roam-buffer-postrender-functions)
+    (run-hooks 'org-roam-buffer-postrender-functions)
     (goto-char 0)))
 
 (defun org-roam-buffer-set-header-line-format (string)
