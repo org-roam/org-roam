@@ -119,13 +119,13 @@ All other values including nil will have no effect."
   :group 'org-roam)
 
 (defcustom org-roam-graph-generation-hook nil
-  "Hook run after the graph's been generated. Called with the filename containing the graph generation tool
-input as well as the generated graph."
+  "Create a Hook run after the graph's been generated. Called with the
+filename containing the graph generation tool input as well as the generated graph."
   :type 'hook
   :group 'org-roam)
 
 (defun org-roam-default-link-builder (node)
-  "Default org-roam link builder.  Generates an org-protocol link."
+  "Default org-roam link builder.  Generate an org-protocol link using NODE."
   (concat "org-protocol://roam-node?node=" (url-hexify-string (org-roam-node-id node))))
 
 ;;; Interactive command
