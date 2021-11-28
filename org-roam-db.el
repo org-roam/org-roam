@@ -491,7 +491,8 @@ INFO is the org-element parsed buffer."
                             (or (assoc link-type org-ref-cite-types)
                                 (member link-type org-ref-cite-types)))
                        (dolist (key (org-roam-org-ref-path-to-keys path))
-                         (push (vector node-id key link-type) rows)))))
+                         (push (vector node-id key link-type) rows))
+                     (push (vector node-id path link-type) rows))))
                 (t
                  (lwarn '(org-roam) :warning
                         "%s:%s\tInvalid ref %s, skipping..." (buffer-file-name) (point) ref)))))
