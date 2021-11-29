@@ -489,7 +489,7 @@ window instead."
                          other-window)))
 
 ;;;; Completing-read interface
-(defun org-roam-node-read (&optional initial-input filter-fn sort-fn require-match)
+(defun org-roam-node-read (&optional initial-input filter-fn sort-fn require-match prompt)
   "Read and return an `org-roam-node'.
 INITIAL-INPUT is the initial minibuffer prompt value.
 FILTER-FN is a function to filter out nodes: it takes an `org-roam-node',
@@ -508,8 +508,9 @@ If REQUIRE-MATCH, the minibuffer prompt will require a match."
                         (intern (concat "org-roam-node-read-sort-by-"
                                         (symbol-name org-roam-node-default-sort))))))
          (_ (when sort-fn (setq nodes (seq-sort sort-fn nodes))))
+         (prompt (or prompt "Node: "))
          (node (completing-read
-                "Node: "
+                prompt
                 (lambda (string pred action)
                   (if (eq action 'metadata)
                       `(metadata
