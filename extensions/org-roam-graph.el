@@ -113,9 +113,10 @@ All other values including nil will have no effect."
           (const :tag "no" nil))
   :group 'org-roam)
 
-(defcustom org-roam-graph-link-builder 'org-roam-default-link-builder
-  "Given a node name, return a string to be used for the link fed
-to the graph generation utility."
+(defcustom org-roam-graph-link-builder 'org-roam-org-protocol-link-builder
+  "Function used to build the Org-roam graph links.
+Given a node name, return a string to be used for the link fed to
+the graph generation utility."
   :type 'function
   :group 'org-roam)
 
@@ -126,9 +127,10 @@ containing the graph generation tool, and the generated graph."
   :type 'hook
   :group 'org-roam)
 
-(defun org-roam-default-link-builder (node)
+(defun org-roam-org-protocol-link-builder (node)
   "Default org-roam link builder.  Generate an org-protocol link using NODE."
-  (concat "org-protocol://roam-node?node=" (url-hexify-string (org-roam-node-id node))))
+  (concat "org-protocol://roam-node?node="
+          (url-hexify-string (org-roam-node-id node))))
 
 ;;; Interactive command
 ;;;###autoload
