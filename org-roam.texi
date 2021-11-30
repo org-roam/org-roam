@@ -86,7 +86,6 @@ General Public License for more details.
 * Command Index::
 * Function Index::
 * Variable Index::
-* Bibliography: Bibliography (1). 
 
 @detailmenu
 --- The Detailed Node Listing ---
@@ -190,6 +189,13 @@ FAQ
 * How can I stop Org-roam from creating IDs everywhere?::
 * How do I migrate from Roam Research?::
 * How to migrate from Org-roam v1?::
+* How do I publish my notes with an Internet-friendly graph?::
+
+How do I publish my notes with an Internet-friendly graph?
+
+* Configure org-mode for publishing::
+* Overriding the default link creation function::
+* Copying the generated file to the export directory::
 
 Developer's Guide to Org-roam
 
@@ -1059,7 +1065,7 @@ Remove a ref from the node at point.
 
 Since version 9.5, Org has first-class support for citations. Org-roam supports
 the caching of both these in-built citations (of form @code{[cite:@@key]}) and @uref{https://github.com/jkitchin/org-ref, org-ref}
-citations (of form (NO@math{_ITEM}@math{_DATA}:key)).
+citations (of form @uref{key}).
 
 Org-roam attempts to load both the @code{org-ref} and @code{org-cite} package when
 indexing files, so no further setup from the user is required for citation
@@ -1914,6 +1920,7 @@ Org-mode, and sync your cards to Anki via @uref{https://github.com/FooSoft/anki-
 * How can I stop Org-roam from creating IDs everywhere?::
 * How do I migrate from Roam Research?::
 * How to migrate from Org-roam v1?::
+* How do I publish my notes with an Internet-friendly graph?::
 @end menu
 
 @node How do I have more than one Org-roam directory?
@@ -2007,6 +2014,109 @@ and the @code{ROAM_TAGS} property for headline nodes
 @item
 Replace existing file links with ID links.
 @end itemize
+
+@node How do I publish my notes with an Internet-friendly graph?
+@section How do I publish my notes with an Internet-friendly graph?
+
+The default graph builder creates a graph with an @uref{https://orgmode.org/worg/org-contrib/org-protocol.html, org-protocol}
+handler which is convenient when you're working locally but
+inconvenient when you want to publish your notes for remote access.
+Likewise, it defaults to displaying the graph in Emacs which has the
+exact same caveats.  This problem is solvable in the following way
+using org-mode's native @uref{https://orgmode.org/manual/Publishing.html, publishing} capability:
+
+@itemize
+@item
+configure org-mode to publish your org-roam notes as a project.
+
+@item
+create a function that overrides the default org-protocol link
+creation function(@samp{org-roam-default-link-builder}).
+
+@item
+create a hook that's called at the end of graph creation to copy
+the generated graph to the appropriate place.
+@end itemize
+
+The example code below is used to publish to a local directory where a
+separate shell script copies the files to the remote site.
+
+@menu
+* Configure org-mode for publishing::
+* Overriding the default link creation function::
+* Copying the generated file to the export directory::
+@end menu
+
+@node Configure org-mode for publishing
+@subsection Configure org-mode for publishing
+
+This has two steps:
+@itemize
+@item
+Setting of a @emph{roam} project that publishes your notes.
+
+@item
+Configuring the @emph{sitemap.html} generation.
+
+@item
+Setting up @samp{org-publish} to generate the graph.
+@end itemize
+
+This will require code like the following:
+@lisp
+(defun roam-sitemap (title list)
+  (concat "#+OPTIONS: ^:nil author:nil html-postamble:nil\n"
+          "#+SETUPFILE: ./simple_inline.theme\n"
+          "#+TITLE: " title "\n\n"
+          (org-list-to-org list) "\nfile:sitemap.svg"))
+
+(setq my-publish-time 0)   ; see the next section for context
+(defun roam-publication-wrapper (plist filename pubdir)
+  (org-roam-graph)
+  (org-html-publish-to-html plist filename pubdir)
+  (setq my-publish-time (cadr (current-time))))
+
+(setq org-publish-project-alist
+  '(("roam"
+     :base-directory "~/roam"
+     :auto-sitemap t
+     :sitemap-function roam-sitemap
+     :sitemap-title "Roam notes"
+     :publishing-function roam-publication-wrapper
+     :publishing-directory "~/roam-export"
+     :section-number nil
+     :table-of-contents nil
+     :style "<link rel=\"stylesheet\" href=\"../other/mystyle.cs\" type=\"text/css\">")))
+@end lisp
+
+@node Overriding the default link creation function
+@subsection Overriding the default link creation function
+
+The code below will generate a link to the generated html file instead
+of the default org-protocol link.
+@lisp
+(defun org-roam-custom-link-builder (node)
+  (let ((file (org-roam-node-file node)))
+    (concat (file-name-base file) ".html")))
+
+(setq org-roam-graph-link-builder 'org-roam-custom-link-builder)
+@end lisp
+
+@node Copying the generated file to the export directory
+@subsection Copying the generated file to the export directory
+
+The default behavior of @samp{org-roam-graph} is to generate the graph and
+display it in Emacs.  There is an @samp{org-roam-graph-generation-hook}
+available that provides access to the file names so they can be copied
+to the publishing directory.  Example code follows:
+
+@lisp
+(add-hook 'org-roam-graph-generation-hook
+          (lambda (dot svg) (if (< (- (cadr (current-time)) my-publish-time) 5)
+                                (progn (copy-file svg "~/roam-export/sitemap.svg" 't)
+                                       (kill-buffer (file-name-nondirectory svg))
+                                       (setq my-publish-time 0)))))
+@end lisp
 
 @node Developer's Guide to Org-roam
 @chapter Developer's Guide to Org-roam
@@ -2260,10 +2370,5 @@ When GOTO is non-nil, go the note without creating an entry."
 
 @printindex vr
 
-@node Bibliography (1)
-@chapter Bibliography
-
-NO@math{_ITEM}@math{_DATA}:key
-
-Emacs 28.0.50 (Org mode N/A)
+Emacs 29.0.50 (Org mode 9.6)
 @bye

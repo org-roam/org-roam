@@ -125,8 +125,6 @@ General Public License for more details.
 </td></tr>
 <tr><td align="left" valign="top">&bull; <a href="#Variable-Index" rel="index">Variable Index</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
-<tr><td align="left" valign="top">&bull; <a href="#Bibliography-_00281_0029">Bibliography</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
 <tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
 
 </pre></th></tr><tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">&mdash; The Detailed Node Listing &mdash;
@@ -294,6 +292,18 @@ FAQ
 <tr><td align="left" valign="top">&bull; <a href="#How-do-I-migrate-from-Roam-Research_003f">How do I migrate from Roam Research?</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
 <tr><td align="left" valign="top">&bull; <a href="#How-to-migrate-from-Org_002droam-v1_003f">How to migrate from Org-roam v1?</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#How-do-I-publish-my-notes-with-an-Internet_002dfriendly-graph_003f">How do I publish my notes with an Internet-friendly graph?</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+
+How do I publish my notes with an Internet-friendly graph?
+
+</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="#Configure-org_002dmode-for-publishing">Configure org-mode for publishing</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Overriding-the-default-link-creation-function">Overriding the default link creation function</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Copying-the-generated-file-to-the-export-directory">Copying the generated file to the export directory</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
 <tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
 
@@ -1268,7 +1278,7 @@ Next: <a href="#Completion" accesskey="n" rel="next">Completion</a>, Previous: <
 
 <p>Since version 9.5, Org has first-class support for citations. Org-roam supports
 the caching of both these in-built citations (of form <code>[cite:@key]</code>) and <a href="https://github.com/jkitchin/org-ref">org-ref</a>
-citations (of form (NO<em>_ITEM</em><em>_DATA</em>:key)).
+citations (of form <a href="key">key</a>).
 </p>
 <p>Org-roam attempts to load both the <code>org-ref</code> and <code>org-cite</code> package when
 indexing files, so no further setup from the user is required for citation
@@ -2283,6 +2293,8 @@ Next: <a href="#Developer_0027s-Guide-to-Org_002droam" accesskey="n" rel="next">
 </td></tr>
 <tr><td align="left" valign="top">&bull; <a href="#How-to-migrate-from-Org_002droam-v1_003f" accesskey="5">How to migrate from Org-roam v1?</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#How-do-I-publish-my-notes-with-an-Internet_002dfriendly-graph_003f" accesskey="6">How do I publish my notes with an Internet-friendly graph?</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
 </table>
 
 <hr>
@@ -2357,7 +2369,7 @@ provided <a href="https://github.com/fabioberger/roam-migration">in the reposito
 <hr>
 <span id="How-to-migrate-from-Org_002droam-v1_003f"></span><div class="header">
 <p>
-Previous: <a href="#How-do-I-migrate-from-Roam-Research_003f" accesskey="p" rel="prev">How do I migrate from Roam Research?</a>, Up: <a href="#FAQ" accesskey="u" rel="up">FAQ</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+Next: <a href="#How-do-I-publish-my-notes-with-an-Internet_002dfriendly-graph_003f" accesskey="n" rel="next">How do I publish my notes with an Internet-friendly graph?</a>, Previous: <a href="#How-do-I-migrate-from-Roam-Research_003f" accesskey="p" rel="prev">How do I migrate from Roam Research?</a>, Up: <a href="#FAQ" accesskey="u" rel="up">FAQ</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
 <span id="How-to-migrate-from-Org_002droam-v1_003f-1"></span><h3 class="section">18.5 How to migrate from Org-roam v1?</h3>
 
@@ -2388,6 +2400,122 @@ and the <code>ROAM_TAGS</code> property for headline nodes
 
 </li><li> Replace existing file links with ID links.
 </li></ul>
+
+<hr>
+<span id="How-do-I-publish-my-notes-with-an-Internet_002dfriendly-graph_003f"></span><div class="header">
+<p>
+Previous: <a href="#How-to-migrate-from-Org_002droam-v1_003f" accesskey="p" rel="prev">How to migrate from Org-roam v1?</a>, Up: <a href="#FAQ" accesskey="u" rel="up">FAQ</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+</div>
+<span id="How-do-I-publish-my-notes-with-an-Internet_002dfriendly-graph_003f-1"></span><h3 class="section">18.6 How do I publish my notes with an Internet-friendly graph?</h3>
+
+<p>The default graph builder creates a graph with an <a href="https://orgmode.org/worg/org-contrib/org-protocol.html">org-protocol</a>
+handler which is convenient when you&rsquo;re working locally but
+inconvenient when you want to publish your notes for remote access.
+Likewise, it defaults to displaying the graph in Emacs which has the
+exact same caveats.  This problem is solvable in the following way
+using org-mode&rsquo;s native <a href="https://orgmode.org/manual/Publishing.html">publishing</a> capability:
+</p>
+<ul>
+<li> configure org-mode to publish your org-roam notes as a project.
+
+</li><li> create a function that overrides the default org-protocol link
+creation function(&lsquo;<samp>org-roam-default-link-builder</samp>&rsquo;).
+
+</li><li> create a hook that&rsquo;s called at the end of graph creation to copy
+the generated graph to the appropriate place.
+</li></ul>
+
+<p>The example code below is used to publish to a local directory where a
+separate shell script copies the files to the remote site.
+</p>
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Configure-org_002dmode-for-publishing" accesskey="1">Configure org-mode for publishing</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Overriding-the-default-link-creation-function" accesskey="2">Overriding the default link creation function</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Copying-the-generated-file-to-the-export-directory" accesskey="3">Copying the generated file to the export directory</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr>
+<span id="Configure-org_002dmode-for-publishing"></span><div class="header">
+<p>
+Next: <a href="#Overriding-the-default-link-creation-function" accesskey="n" rel="next">Overriding the default link creation function</a>, Up: <a href="#How-do-I-publish-my-notes-with-an-Internet_002dfriendly-graph_003f" accesskey="u" rel="up">How do I publish my notes with an Internet-friendly graph?</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+</div>
+<span id="Configure-org_002dmode-for-publishing-1"></span><h4 class="subsection">18.6.1 Configure org-mode for publishing</h4>
+
+<p>This has two steps:
+</p><ul>
+<li> Setting of a <em>roam</em> project that publishes your notes.
+
+</li><li> Configuring the <em>sitemap.html</em> generation.
+
+</li><li> Setting up &lsquo;<samp>org-publish</samp>&rsquo; to generate the graph.
+</li></ul>
+
+<p>This will require code like the following:
+</p><div class="lisp">
+<pre class="lisp">(defun roam-sitemap (title list)
+  (concat &quot;#+OPTIONS: ^:nil author:nil html-postamble:nil\n&quot;
+          &quot;#+SETUPFILE: ./simple_inline.theme\n&quot;
+          &quot;#+TITLE: &quot; title &quot;\n\n&quot;
+          (org-list-to-org list) &quot;\nfile:sitemap.svg&quot;))
+
+(setq my-publish-time 0)   ; see the next section for context
+(defun roam-publication-wrapper (plist filename pubdir)
+  (org-roam-graph)
+  (org-html-publish-to-html plist filename pubdir)
+  (setq my-publish-time (cadr (current-time))))
+
+(setq org-publish-project-alist
+  '((&quot;roam&quot;
+     :base-directory &quot;~/roam&quot;
+     :auto-sitemap t
+     :sitemap-function roam-sitemap
+     :sitemap-title &quot;Roam notes&quot;
+     :publishing-function roam-publication-wrapper
+     :publishing-directory &quot;~/roam-export&quot;
+     :section-number nil
+     :table-of-contents nil
+     :style &quot;&lt;link rel=\&quot;stylesheet\&quot; href=\&quot;../other/mystyle.cs\&quot; type=\&quot;text/css\&quot;&gt;&quot;)))
+</pre></div>
+
+<hr>
+<span id="Overriding-the-default-link-creation-function"></span><div class="header">
+<p>
+Next: <a href="#Copying-the-generated-file-to-the-export-directory" accesskey="n" rel="next">Copying the generated file to the export directory</a>, Previous: <a href="#Configure-org_002dmode-for-publishing" accesskey="p" rel="prev">Configure org-mode for publishing</a>, Up: <a href="#How-do-I-publish-my-notes-with-an-Internet_002dfriendly-graph_003f" accesskey="u" rel="up">How do I publish my notes with an Internet-friendly graph?</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+</div>
+<span id="Overriding-the-default-link-creation-function-1"></span><h4 class="subsection">18.6.2 Overriding the default link creation function</h4>
+
+<p>The code below will generate a link to the generated html file instead
+of the default org-protocol link.
+</p><div class="lisp">
+<pre class="lisp">(defun org-roam-custom-link-builder (node)
+  (let ((file (org-roam-node-file node)))
+    (concat (file-name-base file) &quot;.html&quot;)))
+
+(setq org-roam-graph-link-builder 'org-roam-custom-link-builder)
+</pre></div>
+
+<hr>
+<span id="Copying-the-generated-file-to-the-export-directory"></span><div class="header">
+<p>
+Previous: <a href="#Overriding-the-default-link-creation-function" accesskey="p" rel="prev">Overriding the default link creation function</a>, Up: <a href="#How-do-I-publish-my-notes-with-an-Internet_002dfriendly-graph_003f" accesskey="u" rel="up">How do I publish my notes with an Internet-friendly graph?</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+</div>
+<span id="Copying-the-generated-file-to-the-export-directory-1"></span><h4 class="subsection">18.6.3 Copying the generated file to the export directory</h4>
+
+<p>The default behavior of &lsquo;<samp>org-roam-graph</samp>&rsquo; is to generate the graph and
+display it in Emacs.  There is an &lsquo;<samp>org-roam-graph-generation-hook</samp>&rsquo;
+available that provides access to the file names so they can be copied
+to the publishing directory.  Example code follows:
+</p>
+<div class="lisp">
+<pre class="lisp">(add-hook 'org-roam-graph-generation-hook
+          (lambda (dot svg) (if (&lt; (- (cadr (current-time)) my-publish-time) 5)
+                                (progn (copy-file svg &quot;~/roam-export/sitemap.svg&quot; 't)
+                                       (kill-buffer (file-name-nondirectory svg))
+                                       (setq my-publish-time 0)))))
+</pre></div>
 
 <hr>
 <span id="Developer_0027s-Guide-to-Org_002droam"></span><div class="header">
@@ -2705,7 +2833,7 @@ Next: <a href="#Variable-Index" accesskey="n" rel="next">Variable Index</a>, Pre
 <hr>
 <span id="Variable-Index"></span><div class="header">
 <p>
-Next: <a href="#Bibliography-_00281_0029" accesskey="n" rel="next">Bibliography (1)</a>, Previous: <a href="#Function-Index" accesskey="p" rel="prev">Function Index</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+Previous: <a href="#Function-Index" accesskey="p" rel="prev">Function Index</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
 <span id="Variable-Index-1"></span><h2 class="appendix">Appendix D Variable Index</h2>
 
@@ -2732,16 +2860,7 @@ Next: <a href="#Bibliography-_00281_0029" accesskey="n" rel="next">Bibliography 
  &nbsp; 
 </td></tr></table>
 
-<hr>
-<span id="Bibliography-_00281_0029"></span><div class="header">
-<p>
-Previous: <a href="#Variable-Index" accesskey="p" rel="prev">Variable Index</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
-</div>
-<span id="Bibliography-2"></span><h2 class="chapter">E Bibliography</h2>
-
-<p>NO<em>_ITEM</em><em>_DATA</em>:key
-</p>
-<p>Emacs 28.0.50 (Org mode N/A)
+<p>Emacs 29.0.50 (Org mode 9.6)
 </p><div class="footnote">
 <hr>
 <h4 class="footnotes-heading">Footnotes</h4>
