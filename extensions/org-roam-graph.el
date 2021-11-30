@@ -114,13 +114,15 @@ All other values including nil will have no effect."
   :group 'org-roam)
 
 (defcustom org-roam-graph-link-builder 'org-roam-default-link-builder
-  "Given a node name, return a string to be used for the link fed to the graph generation utility."
+  "Given a node name, return a string to be used for the link fed
+to the graph generation utility."
   :type 'function
   :group 'org-roam)
 
 (defcustom org-roam-graph-generation-hook nil
-  "Create a Hook run after the graph's been generated. Called with the
-filename containing the graph generation tool input as well as the generated graph."
+  "Functions to run after the graph has been generated.
+Each function is called with two arguments: the filename
+containing the graph generation tool, and the generated graph."
   :type 'hook
   :group 'org-roam)
 
