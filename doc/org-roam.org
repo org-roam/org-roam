@@ -1439,6 +1439,82 @@ Essentially, to migrate notes from v1 to v2, one must:
    and the ~ROAM_TAGS~ property for headline nodes
 6. Replace existing file links with ID links.
 
+** How do I publish my notes with an Internet-friendly graph?
+
+The default graph builder creates a graph with an [[https://orgmode.org/worg/org-contrib/org-protocol.html][org-protocol]]
+handler which is convenient when you're working locally but
+inconvenient when you want to publish your notes for remote access.
+Likewise, it defaults to displaying the graph in Emacs which has the
+exact same caveats.  This problem is solvable in the following way
+using org-mode's native [[https://orgmode.org/manual/Publishing.html][publishing]] capability:
+
+1. configure org-mode to publish your org-roam notes as a project.
+2. create a function that overrides the default org-protocol link
+   creation function(=org-roam-default-link-builder=).
+3. create a hook that's called at the end of graph creation to copy
+   the generated graph to the appropriate place.
+
+The example code below is used to publish to a local directory where a
+separate shell script copies the files to the remote site.
+
+*** Configure org-mode for publishing
+This has two steps:
+1. Setting of a /roam/ project that publishes your notes.
+2. Configuring the /sitemap.html/ generation.
+3. Setting up =org-publish= to generate the graph.
+  
+This will require code like the following:
+#+begin_src emacs-lisp
+  (defun roam-sitemap (title list)
+    (concat "#+OPTIONS: ^:nil author:nil html-postamble:nil\n"
+            "#+SETUPFILE: ./simple_inline.theme\n"
+            "#+TITLE: " title "\n\n"
+            (org-list-to-org list) "\nfile:sitemap.svg"))
+
+  (setq my-publish-time 0)   ; see the next section for context
+  (defun roam-publication-wrapper (plist filename pubdir)
+    (org-roam-graph)
+    (org-html-publish-to-html plist filename pubdir)
+    (setq my-publish-time (cadr (current-time))))
+
+  (setq org-publish-project-alist
+    '(("roam"
+       :base-directory "~/roam"
+       :auto-sitemap t
+       :sitemap-function roam-sitemap
+       :sitemap-title "Roam notes"
+       :publishing-function roam-publication-wrapper
+       :publishing-directory "~/roam-export"
+       :section-number nil
+       :table-of-contents nil
+       :style "<link rel=\"stylesheet\" href=\"../other/mystyle.cs\" type=\"text/css\">")))
+#+end_src
+
+*** Overriding the default link creation function
+The code below will generate a link to the generated html file instead
+of the default org-protocol link.
+#+begin_src emacs-lisp
+  (defun org-roam-custom-link-builder (node)
+    (let ((file (org-roam-node-file node)))
+      (concat (file-name-base file) ".html")))
+
+  (setq org-roam-graph-link-builder 'org-roam-custom-link-builder)
+#+end_src
+
+*** Copying the generated file to the export directory
+The default behavior of =org-roam-graph= is to generate the graph and
+display it in Emacs.  There is an =org-roam-graph-generation-hook=
+available that provides access to the file names so they can be copied
+to the publishing directory.  Example code follows:
+
+#+begin_src emacs-lisp
+  (add-hook 'org-roam-graph-generation-hook
+            (lambda (dot svg) (if (< (- (cadr (current-time)) my-publish-time) 5)
+                                  (progn (copy-file svg "~/roam-export/sitemap.svg" 't)
+                                         (kill-buffer (file-name-nondirectory svg))
+                                         (setq my-publish-time 0)))))
+#+end_src
+
 * Developer's Guide to Org-roam
 ** Org-roam's Design Principle
 
