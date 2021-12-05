@@ -1086,7 +1086,7 @@ and when nil is returned the node will be filtered out."
                                   (org-make-tag-string (seq-difference current-tags tags #'string-equal))))
         (let* ((current-tags (or (org-get-tags)
                                  (user-error "No tag to remove")))
-               (tags (completing-read-multiple "Tag: " current-tags)))
+               (tags (or tags (completing-read-multiple "Tag: " current-tags))))
           (org-set-tags (seq-difference current-tags tags #'string-equal))))
       tags)))
 
