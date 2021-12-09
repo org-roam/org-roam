@@ -496,7 +496,8 @@ FILTER-FN is a function to filter out nodes: it takes an `org-roam-node',
 and when nil is returned the node will be filtered out.
 SORT-FN is a function to sort nodes. See `org-roam-node-read-sort-by-file-mtime'
 for an example sort function.
-If REQUIRE-MATCH, the minibuffer prompt will require a match."
+If REQUIRE-MATCH, the minibuffer prompt will require a match.
+PROMPT is a string to show at the beginning of the mini-buffer, defaulting to \"Node: \""
   (let* ((nodes (org-roam-node-read--completions))
          (nodes (if filter-fn
                     (cl-remove-if-not
