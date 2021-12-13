@@ -1935,8 +1935,21 @@ variable using directory-local variables. This is what @code{.dir-locals.el} may
 contain:
 
 @lisp
-((nil . ((org-roam-directory . (expand-file-name "."))
-         (org-roam-db-location . (expand-file-name "./org-roam.db")))))
+((nil . ((org-roam-directory . "/path/to/alt/org-roam/dir/org-roam-dir")
+         (org-roam-db-location . "/path/to/alt/org-roam-dir/org-roam.db"))))
+@end lisp
+
+Note @code{org-roam-directory} and @code{org-roam-db-location} should be an absolute path, not relative.
+
+Alternatively, use @code{eval} if you wish to call functions:
+
+@lisp
+((nil . ((eval . (setq-local
+                  org-roam-directory (expand-file-name (locate-dominating-file
+                                                        default-directory ".dir-locals.el"))))
+         (eval . (setq-local
+                  org-roam-db-location (expand-file-name "org-roam.db"
+                                                         org-roam-directory))))))
 @end lisp
 
 All files within that directory will be treated as their own separate set of
