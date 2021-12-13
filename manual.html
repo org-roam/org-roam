@@ -2313,8 +2313,21 @@ variable using directory-local variables. This is what <code>.dir-locals.el</cod
 contain:
 </p>
 <div class="lisp">
-<pre class="lisp">((nil . ((org-roam-directory . (expand-file-name &quot;.&quot;))
-         (org-roam-db-location . (expand-file-name &quot;./org-roam.db&quot;)))))
+<pre class="lisp">((nil . ((org-roam-directory . &quot;/path/to/alt/org-roam/dir/org-roam-dir&quot;)
+         (org-roam-db-location . &quot;/path/to/alt/org-roam-dir/org-roam.db&quot;))))
+</pre></div>
+
+<p>Note <code>org-roam-directory</code> and <code>org-roam-db-location</code> should be an absolute path, not relative.
+</p>
+<p>Alternatively, use <code>eval</code> if you wish to call functions:
+</p>
+<div class="lisp">
+<pre class="lisp">((nil . ((eval . (setq-local
+                  org-roam-directory (expand-file-name (locate-dominating-file
+                                                        default-directory &quot;.dir-locals.el&quot;))))
+         (eval . (setq-local
+                  org-roam-db-location (expand-file-name &quot;org-roam.db&quot;
+                                                         org-roam-directory))))))
 </pre></div>
 
 <p>All files within that directory will be treated as their own separate set of

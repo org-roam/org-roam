@@ -1382,8 +1382,21 @@ variable using directory-local variables. This is what ~.dir-locals.el~ may
 contain:
 
 #+BEGIN_SRC emacs-lisp
-  ((nil . ((org-roam-directory . (expand-file-name "."))
-           (org-roam-db-location . (expand-file-name "./org-roam.db")))))
+  ((nil . ((org-roam-directory . "/path/to/alt/org-roam/dir/org-roam-dir")
+           (org-roam-db-location . "/path/to/alt/org-roam-dir/org-roam.db"))))
+#+END_SRC
+
+Note ~org-roam-directory~ and ~org-roam-db-location~ should be an absolute path, not relative.
+
+Alternatively, use ~eval~ if you wish to call functions:
+
+#+BEGIN_SRC emacs-lisp
+  ((nil . ((eval . (setq-local
+                    org-roam-directory (expand-file-name (locate-dominating-file
+                                                          default-directory ".dir-locals.el"))))
+           (eval . (setq-local
+                    org-roam-db-location (expand-file-name "org-roam.db"
+                                                           org-roam-directory))))))
 #+END_SRC
 
 All files within that directory will be treated as their own separate set of
