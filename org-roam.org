@@ -1382,7 +1382,7 @@ variable using directory-local variables. This is what ~.dir-locals.el~ may
 contain:
 
 #+BEGIN_SRC emacs-lisp
-  ((nil . ((org-roam-directory . "/path/to/alt/org-roam/dir/org-roam-dir")
+  ((nil . ((org-roam-directory . "/path/to/alt/org-roam-dir")
            (org-roam-db-location . "/path/to/alt/org-roam-dir/org-roam.db"))))
 #+END_SRC
 

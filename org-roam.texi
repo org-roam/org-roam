@@ -1935,7 +1935,7 @@ variable using directory-local variables. This is what @code{.dir-locals.el} may
 contain:
 
 @lisp
-((nil . ((org-roam-directory . "/path/to/alt/org-roam/dir/org-roam-dir")
+((nil . ((org-roam-directory . "/path/to/alt/org-roam-dir")
          (org-roam-db-location . "/path/to/alt/org-roam-dir/org-roam.db"))))
 @end lisp
 
