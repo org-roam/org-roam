@@ -34,48 +34,6 @@
 ;;; Code:
 (require 'org-roam)
 
-;;; v1 breaking warning
-(defvar org-roam-v2-ack nil
-  "When set to t, won't display the annoying warning message about the upgrade.
-Need to be set before the package is loaded, otherwise won't take
-any affect.")
-
-(unless org-roam-v2-ack
-  (lwarn 'org-roam :error "
-------------------------------------
-WARNING: You're now on Org-roam v2!
-------------------------------------
-
-You may have arrived here from a package upgrade. Please read the
-wiki entry at
-%s
-for an overview of the major changes.
-
-Notes taken in v1 are incompatible with v2, but you can upgrade
-them to the v2 format via a simple command. To migrate your
-notes, first make sure you're on at least Org 9.4 (check with
-C-h v org-version) and set your org-roam-directory to your notes:
-
-(setq org-roam-directory \"path/to/org/files\")
-
-then, run:
-
-  M-x org-roam-migrate-wizard
-
-If you wish to stay on v1, v1 is unfortunately not distributed on
-MELPA. See org-roam/org-roam-v1 on GitHub on how to install v1.
-
-If you've gone through the migration steps (if necessary), and
-know what you're doing set `org-roam-v2-ack' to `t' to disable
-this warning. You can do so by adding:
-
-(setq org-roam-v2-ack t)
-
-To your init file.
-
-"
-         "https://github.com/org-roam/org-roam/wiki/Hitchhiker's-Rough-Guide-to-Org-roam-V2"))
-
 ;;; Migration wizard (v1 -> v2)
 ;;;###autoload
 (defun org-roam-migrate-wizard ()
