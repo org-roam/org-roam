@@ -338,12 +338,12 @@ If UPDATE-P is non-nil, first remove the file in the database."
 
 (defun org-roam-db-map-nodes (fns)
   "Run FNS over all nodes in the current buffer."
-  (org-with-point-at 1
-    (org-map-entries
-     (lambda ()
-       (when (org-roam-db-node-p)
-         (dolist (fn fns)
-           (funcall fn)))))))
+  (org-map-region
+   (lambda ()
+     (when (org-roam-db-node-p)
+       (dolist (fn fns)
+         (funcall fn))))
+   (point-min) (point-max)))
 
 (defun org-roam-db-map-links (fns)
   "Run FNS over all links in the current buffer."
