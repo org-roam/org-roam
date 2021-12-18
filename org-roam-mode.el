@@ -461,13 +461,18 @@ headline, up to the next headline."
 
 (defun org-roam-backlinks-get (node)
   "Return the backlinks for NODE."
-  (let ((backlinks (org-roam-db-query
-                    [:select [source dest pos properties]
-                     :from links
-                     :where (= dest $s1)
-                     :and (or (= type "id")
-                              (= type "notmuch"))]
-                    (org-roam-node-id node))))
+  (let ((backlinks (append (org-roam-db-query
+                            [:select [source dest pos properties]
+                             :from links
+                             :where (= dest $s1)
+                             :and (= type "id")]
+                            (org-roam-node-id node))
+                           (org-roam-db-query
+                            [:select [source dest pos properties]
+                             :from links
+                             :where (= dest $s1)
+                             :and (= type "notmuch")]
+                            (org-roam-node-id node)))))
     (cl-loop for backlink in backlinks
              collect (pcase-let ((`(,source-id ,dest-id ,pos ,properties) backlink))
                        (org-roam-populate
