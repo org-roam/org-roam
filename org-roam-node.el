@@ -234,6 +234,13 @@ populated."
                (org-roam-node-create
                 :id id
                 :point (point)))))))
+      (and (derived-mode-p 'notmuch-show-mode)
+           (org-roam-populate
+            (org-roam-node-create
+             :id (notmuch-show-get-message-id)
+             :title (notmuch-show-get-subject)
+             :point (point))))
+      (notmuch-show-get-message-id)
       (and assert (user-error "No node at point"))))
 
 (defun org-roam-node-from-id (id)

@@ -465,7 +465,8 @@ headline, up to the next headline."
                     [:select [source dest pos properties]
                      :from links
                      :where (= dest $s1)
-                     :and (= type "id")]
+                     :and (or (= type "id")
+                              (= type "notmuch"))]
                     (org-roam-node-id node))))
     (cl-loop for backlink in backlinks
              collect (pcase-let ((`(,source-id ,dest-id ,pos ,properties) backlink))

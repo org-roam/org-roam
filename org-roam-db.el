@@ -657,12 +657,14 @@ database, see `org-roam-db-sync' command."
     (cond
      (enabled
       (add-hook 'find-file-hook  #'org-roam-db-autosync--setup-file-h)
+      (add-hook 'notmuch-show-hook  #'org-roam-db-autosync--setup-file-h)
       (add-hook 'kill-emacs-hook #'org-roam-db--close-all)
       (advice-add #'rename-file :after  #'org-roam-db-autosync--rename-file-a)
       (advice-add #'delete-file :before #'org-roam-db-autosync--delete-file-a)
       (org-roam-db-sync))
      (t
       (remove-hook 'find-file-hook  #'org-roam-db-autosync--setup-file-h)
+      (remove-hook 'notmuch-show-hook  #'org-roam-db-autosync--setup-file-h)
       (remove-hook 'kill-emacs-hook #'org-roam-db--close-all)
       (advice-remove #'rename-file #'org-roam-db-autosync--rename-file-a)
       (advice-remove #'delete-file #'org-roam-db-autosync--delete-file-a)
@@ -712,7 +714,10 @@ OLD-FILE is cleared from the database, and NEW-FILE-OR-DIR is added."
 
 (defun org-roam-db-autosync--setup-file-h ()
   "Setup the current buffer if it visits an Org-roam file."
-  (when (org-roam-file-p) (run-hooks 'org-roam-find-file-hook)))
+  (when (or (org-roam-file-p)
+            (eq 'notmuch-show-mode major-mode))
+    (message "foo")
+    (run-hooks 'org-roam-find-file-hook)))
 
 (add-hook 'org-roam-find-file-hook #'org-roam-db-autosync--setup-update-on-save-h)
 (defun org-roam-db-autosync--setup-update-on-save-h ()
