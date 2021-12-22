@@ -634,7 +634,10 @@ If FORCE, force a rebuild of the cache from scratch."
       (org-roam-dolist-with-progress (file modified-files)
           "Processing modified files..."
         (condition-case err
-            (org-roam-db-update-file file 'no-require)
+            (progn
+                (run-hooks 'org-roam-after-db-sync-hook)
+                (org-roam-db-update-file file 'no-require)
+            )
           (error
            (org-roam-db-clear-file file)
            (lwarn 'org-roam :error "Failed to process %s with error %s, skipping..."

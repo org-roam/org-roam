@@ -123,6 +123,12 @@ All Org files, at any level of nesting, are considered part of the Org-roam."
   :group 'org-roam
   :type 'hook)
 
+(defcustom org-roam-after-db-sync-hook nil
+  "Hook run just after a successfull db sync."
+  :group 'org-roam
+  :type 'hook)
+
+
 (defcustom org-roam-file-extensions '("org")
   "List of file extensions to be included by Org-Roam.
 While a file extension different from \".org\" may be used, the
