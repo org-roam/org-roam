@@ -100,6 +100,10 @@ Installation Troubleshooting
 
 * C Compiler::
 
+C Compiler
+
+* C Compiler for Windows::
+
 Getting Started
 
 * The Org-roam Node::
@@ -535,42 +539,39 @@ in your Emacs environment as a prerequisite for Org-roam when you install it.
 @code{emacsql-sqlite} requires a C compiler (e.g. @code{gcc} or @code{clang}) to be present in
 your computer. How to install a C compiler depends on the OS that you use.
 
-@itemize
-@item
-For Windows:
-@end itemize
+@menu
+* C Compiler for Windows::
+@end menu
 
-There are various ways to install one, depending on how you have installed
-Emacs. If you use Emacs within a Cygwin or MinGW environment, then you should
-install a compiler using their respective package manager.
+@node C Compiler for Windows
+@unnumberedsubsubsec C Compiler for Windows
 
-If you have installed your Emacs from the @uref{https://www.gnu.org/software/emacs/, GNU Emacs website}, then the easiest way
-is to use @uref{https://www.msys2.org/, MSYS2} as at the time of this writing:
+One of the easiest ways to install a C compiler in Windows is to use @uref{https://www.msys2.org/, MSYS2} as at the time of this writing:
 
 @itemize
 @item
-Use the installer in the official website and install MSYS2
+Download and use the installer in the official MSYS2 website
 
 @item
-Run MSYS2
-
-@item
-In the command-line tool, type the following and answer ``Y'' to proceed:
+Run MSYS2 and in its terminal, type the following and answer ``Y'' to
+proceed -- this will install @code{gcc} in your PC:
 
 @example
 pacman -S gcc
 @end example
 
-Note that you do not need to manually set the PATH for MSYS2; the
-@end itemize
-installer automatically takes care of it for you.
 
-@itemize
 @item
-Open Emacs and call @code{M-x org-roam-db-autosync-mode}
+On Windows, add @code{C:\msys64\usr\bin} (command @samp{where gcc} in MSYS2 terminal
+can tell you the correct path) to @code{PATH} in your environmental variables
+
+
+@item
+Launch Emacs and call @code{M-x org-roam-db-autosync-mode} (launch Emacs after
+defining the path, so that Emacs can recognize it)
+@end itemize
 
 This will automatically start compiling @code{emacsql-sqlite}; you should see a
-@end itemize
 message in minibuffer. It may take a while until compilation completes. Once
 complete, you should see a new file @code{emacsql-sqlite.exe} created in a subfolder
 named @code{sqlite} under @code{emacsql-sqlite} installation folder. It's typically in
