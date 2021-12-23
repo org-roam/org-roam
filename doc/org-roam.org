@@ -288,29 +288,25 @@ in your Emacs environment as a prerequisite for Org-roam when you install it.
 ~emacsql-sqlite~ requires a C compiler (e.g. ~gcc~ or ~clang~) to be present in
 your computer. How to install a C compiler depends on the OS that you use.
 
-- For Windows:
+**** C Compiler for Windows
 
-There are various ways to install one, depending on how you have installed
-Emacs. If you use Emacs within a Cygwin or MinGW environment, then you should
-install a compiler using their respective package manager.
+One of the easiest ways to install a C compiler in Windows is to use [[https://www.msys2.org/][MSYS2]] as at the time of this writing:
 
-If you have installed your Emacs from the [[https://www.gnu.org/software/emacs/][GNU Emacs website]], then the easiest way
-is to use [[https://www.msys2.org/][MSYS2]] as at the time of this writing:
-
-1. Use the installer in the official website and install MSYS2
-2. Run MSYS2
-3. In the command-line tool, type the following and answer "Y" to proceed:
+1. Download and use the installer in the official MSYS2 website
+2. Run MSYS2 and in its terminal, type the following and answer "Y" to
+   proceed -- this will install ~gcc~ in your PC:
 
    #+BEGIN_SRC bash
      pacman -S gcc
    #+END_SRC
 
-   Note that you do not need to manually set the PATH for MSYS2; the
-installer automatically takes care of it for you.
+4. On Windows, add ~C:\msys64\usr\bin~ (command =where gcc= in MSYS2 terminal
+   can tell you the correct path) to ~PATH~ in your environmental variables
 
-4. Open Emacs and call ~M-x org-roam-db-autosync-mode~
+5. Launch Emacs and call ~M-x org-roam-db-autosync-mode~ (launch Emacs after
+   defining the path, so that Emacs can recognize it)
 
-   This will automatically start compiling ~emacsql-sqlite~; you should see a
+This will automatically start compiling ~emacsql-sqlite~; you should see a
 message in minibuffer. It may take a while until compilation completes. Once
 complete, you should see a new file ~emacsql-sqlite.exe~ created in a subfolder
 named ~sqlite~ under ~emacsql-sqlite~ installation folder. It's typically in
