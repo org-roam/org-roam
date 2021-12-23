@@ -145,6 +145,12 @@ Installation Troubleshooting
 </td></tr>
 <tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
 
+C Compiler
+
+</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="#C-Compiler-for-Windows">C Compiler for Windows</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+
 Getting Started
 
 </pre></th></tr><tr><td align="left" valign="top">&bull; <a href="#The-Org_002droam-Node">The Org-roam Node</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
@@ -673,38 +679,41 @@ in your Emacs environment as a prerequisite for Org-roam when you install it.
 <p><code>emacsql-sqlite</code> requires a C compiler (e.g. <code>gcc</code> or <code>clang</code>) to be present in
 your computer. How to install a C compiler depends on the OS that you use.
 </p>
-<ul>
-<li> For Windows:
-</li></ul>
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#C-Compiler-for-Windows" accesskey="1">C Compiler for Windows</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
 
-<p>There are various ways to install one, depending on how you have installed
-Emacs. If you use Emacs within a Cygwin or MinGW environment, then you should
-install a compiler using their respective package manager.
+<hr>
+<span id="C-Compiler-for-Windows"></span><div class="header">
+<p>
+Up: <a href="#C-Compiler" accesskey="u" rel="up">C Compiler</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+</div>
+<span id="C-Compiler-for-Windows-1"></span><h4 class="unnumberedsubsubsec">C Compiler for Windows</h4>
+
+<p>One of the easiest ways to install a C compiler in Windows is to use <a href="https://www.msys2.org/">MSYS2</a> as at the time of this writing:
 </p>
-<p>If you have installed your Emacs from the <a href="https://www.gnu.org/software/emacs/">GNU Emacs website</a>, then the easiest way
-is to use <a href="https://www.msys2.org/">MSYS2</a> as at the time of this writing:
-</p>
 <ul>
-<li> Use the installer in the official website and install MSYS2
+<li> Download and use the installer in the official MSYS2 website
 
-</li><li> Run MSYS2
-
-</li><li> In the command-line tool, type the following and answer &ldquo;Y&rdquo; to proceed:
+</li><li> Run MSYS2 and in its terminal, type the following and answer &ldquo;Y&rdquo; to
+proceed &ndash; this will install <code>gcc</code> in your PC:
 
 <div class="example">
 <pre class="example">pacman -S gcc
 </pre></div>
 
-<p>Note that you do not need to manually set the PATH for MSYS2; the
-</p></li></ul>
-<p>installer automatically takes care of it for you.
-</p>
-<ul>
-<li> Open Emacs and call <code>M-x org-roam-db-autosync-mode</code>
+
+</li><li> On Windows, add <code>C:\msys64\usr\bin</code> (command &lsquo;<samp>where gcc</samp>&rsquo; in MSYS2 terminal
+can tell you the correct path) to <code>PATH</code> in your environmental variables
+
+
+</li><li> Launch Emacs and call <code>M-x org-roam-db-autosync-mode</code> (launch Emacs after
+defining the path, so that Emacs can recognize it)
+</li></ul>
 
 <p>This will automatically start compiling <code>emacsql-sqlite</code>; you should see a
-</p></li></ul>
-<p>message in minibuffer. It may take a while until compilation completes. Once
+message in minibuffer. It may take a while until compilation completes. Once
 complete, you should see a new file <code>emacsql-sqlite.exe</code> created in a subfolder
 named <code>sqlite</code> under <code>emacsql-sqlite</code> installation folder. It&rsquo;s typically in
 your Emacs configuration folder like this:
