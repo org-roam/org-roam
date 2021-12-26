@@ -54,7 +54,7 @@ a compiler. See https://nullprogram.com/blog/2014/02/06/."
                  (const sqlite3)
                  (symbol :tag "other")))
 
-(defcustom org-roam-db-location (expand-file-name "org-roam.db" user-emacs-directory)
+(defcustom org-roam-db-location (locate-user-emacs-file "org-roam.db")
   "The path to file where the Org-roam database is stored.
 
 It is the user's responsibility to set this correctly, especially
