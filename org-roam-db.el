@@ -145,6 +145,7 @@ Performs a database upgrade when required."
     (let ((init-db (not (file-exists-p org-roam-db-location))))
       (make-directory (file-name-directory org-roam-db-location) t)
       (let ((conn (funcall (org-roam-db--conn-fn) org-roam-db-location)))
+        (emacsql conn [:pragma (= foreign_keys ON)])
         (when-let ((process (emacsql-process conn)))
           (set-process-query-on-exit-flag process nil))
         (puthash (expand-file-name (file-name-as-directory org-roam-directory))
