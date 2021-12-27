@@ -711,6 +711,16 @@ citation key:
 :END:
 #+end_src
 
+or
+
+#+begin_src org
+,* Probabilistic Robotics
+:PROPERTIES:
+:ID:       51b7b82c-bbb4-4822-875a-ed548cffda10
+:ROAM_REFS: [cite:@thrun2005probabilistic]
+:END:
+#+end_src
+
 for ~org-cite~, or:
 
 #+begin_src org
