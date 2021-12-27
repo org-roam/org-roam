@@ -495,7 +495,7 @@ INFO is the org-element parsed buffer."
                              (push (vector node-id key "cite") rows)))))
                    (error
                     (lwarn '(org-roam) :warning
-                        "%s:%s\tInvalid cite %s, skipping..." (buffer-file-name) (point) ref))))
+                           "%s:%s\tInvalid cite %s, skipping..." (buffer-file-name) (point) ref))))
                 (;; https://google.com, cite:citeKey
                  ;; Note: we use string-match here because it matches any link: e.g. [[cite:abc][abc]]
                  ;; But this form of matching is loose, and can accept invalid links e.g. [[cite:abc]
