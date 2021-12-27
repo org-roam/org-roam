@@ -482,9 +482,24 @@ INFO is the org-element parsed buffer."
     (let (rows)
       (dolist (ref refs)
         (save-match-data
-          (cond ((string-prefix-p "@" ref)
+          (cond (;; @citeKey
+                 (string-prefix-p "@" ref)
                  (push (vector node-id (substring ref 1) "cite") rows))
-                ((string-match org-link-plain-re ref)
+                (;; [cite:@citeKey]
+                 (string-prefix-p "[cite:" ref)
+                 (condition-case nil
+                     (let ((cite-obj (org-cite-parse-objects ref)))
+                       (org-element-map cite-obj 'citation-reference
+                         (lambda (cite)
+                           (let ((key (org-element-property :key cite)))
+                             (push (vector node-id key "cite") rows)))))
+                   (error
+                    (lwarn '(org-roam) :warning
+                        "%s:%s\tInvalid cite %s, skipping..." (buffer-file-name) (point) ref))))
+                (;; https://google.com, cite:citeKey
+                 ;; Note: we use string-match here because it matches any link: e.g. [[cite:abc][abc]]
+                 ;; But this form of matching is loose, and can accept invalid links e.g. [[cite:abc]
+                 (string-match org-link-plain-re ref)
                  (let ((link-type (match-string 1 ref))
                        (path (match-string 2 ref)))
                    (if (and (boundp 'org-ref-cite-types)
