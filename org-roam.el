@@ -279,8 +279,8 @@ E.g. (\".org\") => (\"*.org\" \"*.org.gpg\")"
 (defun org-roam--list-files-fd (executable dir)
   "Return all Org-roam files under DIR, using \"fd\", provided as EXECUTABLE."
   (let* ((globs (org-roam--list-files-search-globs org-roam-file-extensions))
-         (extensions (string-join (mapcar (lambda (glob) (substring glob 2 -1)) globs) " -e "))
-         (command (string-join `(,executable "-L" ,dir "--type file" ,extensions) " ")))
+         (extensions (string-join (mapcar (lambda (glob) (concat "-e " (substring glob 2 -1))) globs) " "))
+         (command (string-join `(,executable "-L" "--type file" ,extensions "." ,dir) " ")))
     (org-roam--shell-command-files command)))
 
 (defalias 'org-roam--list-files-fdfind #'org-roam--list-files-fd)
