@@ -496,11 +496,15 @@ title/filename/link titles."
     (save-buffer)
 
     ;; Rename current buffer
-    (let* ((fname (buffer-file-name))
-	   (newreg (format "\\1-%s.org" newtitle))
-	   (newfname (s-replace-regexp "\\([0-9]+\\)\\-.+\.org" newreg fname)))
+    (let* ((orif (buffer-file-name))
+	   (dir (file-name-directory orif))
+	   (file (file-name-nondirectory orif))
+	   (titlenoslash (s-replace-regexp "/" "_" (downcase newtitle)))
+	   (newreg (format "\\1-%s.org" titlenoslash))
+	   (nfile (s-replace-regexp "\\([0-9]+\\)\\-.+\.org" newreg file))
+	   (newfname (concat dir nfile)))
       (progn
-	(rename-file fname newfname)
+	(rename-file orif newfname)
 	(rename-buffer newfname)
 	(set-visited-file-name newfname)
 	(set-buffer-modified-p nil)))
@@ -517,7 +521,6 @@ title/filename/link titles."
 	  (replace-match newlink))
 	(save-buffer)
 	(kill-buffer (current-buffer))))))
-
 
 ;;;###autoload
 (defun org-roam-node-random (&optional other-window)
