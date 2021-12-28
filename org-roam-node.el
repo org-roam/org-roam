@@ -477,6 +477,49 @@ The TEMPLATES, if provided, override the list of capture templates (see
        :props '(:finalize find-file)))))
 
 ;;;###autoload
+(defun org-roam-node-rename ()
+  "Prompts for new name for current node. Renames the node minding
+title/filename/link titles."
+  (interactive)
+  (unless (org-roam-buffer-p) (error "Not in an org-roam buffer."))
+  (save-some-buffers t)
+  (let* ((id (org-entry-get (point) "ID"))
+	 (node (org-roam-node-from-id id))
+	 (title (org-roam-get-keyword "title"))
+	 (newtitle (read-string "New title: " title)))
+    (when (null id) (error "Failed to fetch ID"))
+    (when (org-roam-node-from-title-or-alias newtitle)
+      (error (format "Node %s already exists" newtitle)))
+
+    ;; Set new title
+    (org-roam-set-keyword "title" newtitle) 
+    (save-buffer)
+
+    ;; Rename current buffer
+    (let* ((fname (buffer-file-name))
+	   (newreg (format "\\1-%s.org" newtitle))
+	   (newfname (s-replace-regexp "\\([0-9]+\\)\\-.+\.org" newreg fname)))
+      (progn
+	(rename-file fname newfname)
+	(rename-buffer newfname)
+	(set-visited-file-name newfname)
+	(set-buffer-modified-p nil)))
+
+    ;; Modify Links
+    (let* ((bkl (org-roam-backlinks-get (org-roam-node-from-id id)))
+	   (files (mapcar (lambda (b) (org-roam-node-file (org-roam-backlink-source-node b))) bkl))
+	   (reg (format "\\[\\[id:%s\\]\\[[^][]+\\]\\]" id))
+	   (newlink (format "[[id:%s][%s]]" id newtitle)))
+      (dolist (file files)
+	(find-file file)
+	(goto-char (point-min))
+	(while (re-search-forward reg nil t)
+	  (replace-match newlink))
+	(save-buffer)
+	(kill-buffer (current-buffer))))))
+
+
+;;;###autoload
 (defun org-roam-node-random (&optional other-window)
   "Find and open a random Org-roam node.
 With prefix argument OTHER-WINDOW, visit the node in another
