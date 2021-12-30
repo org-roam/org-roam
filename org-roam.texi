@@ -1906,6 +1906,9 @@ documents (PDF, EPUB etc.) within Org-mode.
 @node Bibliography
 @section Bibliography
 
+Org 9.5 added native citation and bibliography functionality, called ``org-cite'',
+which org-roam supports.
+
 @uref{https://github.com/org-roam/org-roam-bibtex, org-roam-bibtex} offers tight integration between @uref{https://github.com/jkitchin/org-ref, org-ref}, @uref{https://github.com/tmalsburg/helm-bibtex, helm-bibtex} and
 @code{org-roam}. This helps you manage your bibliographic notes under @code{org-roam}.
 
