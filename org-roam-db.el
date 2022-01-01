@@ -101,13 +101,6 @@ slow."
 ;;; Variables
 (defconst org-roam-db-version 18)
 
-;; TODO Rename this
-(defconst org-roam--sqlite-available-p
-  (when (equal org-roam-database-connector 'sqlite)
-    (with-demoted-errors "Org-roam initialization: %S"
-      (emacsql-sqlite-ensure-binary)
-      t)))
-
 (defvar org-roam-db--connection (make-hash-table :test #'equal)
   "Database connection to Org-roam database.")
 
