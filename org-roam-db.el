@@ -101,12 +101,6 @@ slow."
 ;;; Variables
 (defconst org-roam-db-version 18)
 
-;; TODO Rename this
-(defconst org-roam--sqlite-available-p
-  (with-demoted-errors "Org-roam initialization: %S"
-    (emacsql-sqlite-ensure-binary)
-    t))
-
 (defvar org-roam-db--connection (make-hash-table :test #'equal)
   "Database connection to Org-roam database.")
 
@@ -145,6 +139,7 @@ Performs a database upgrade when required."
     (let ((init-db (not (file-exists-p org-roam-db-location))))
       (make-directory (file-name-directory org-roam-db-location) t)
       (let ((conn (funcall (org-roam-db--conn-fn) org-roam-db-location)))
+        (emacsql conn [:pragma (= foreign_keys ON)])
         (when-let ((process (emacsql-process conn)))
           (set-process-query-on-exit-flag process nil))
         (puthash (expand-file-name (file-name-as-directory org-roam-directory))
@@ -243,7 +238,6 @@ The query is expected to be able to fail, in this situation, run HANDLER."
 
 (defun org-roam-db--init (db)
   "Initialize database DB with the correct schema and user version."
-  (emacsql db [:pragma (= foreign_keys ON)])
   (emacsql-with-transaction db
     (pcase-dolist (`(,table ,schema) org-roam-db--table-schemata)
       (emacsql db [:create-table $i1 $S2] table schema))
