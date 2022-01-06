@@ -130,11 +130,14 @@ See `org-roam-capture-templates' for the template documentation."
 ;;; Commands
 ;;;; Today
 ;;;###autoload
-(defun org-roam-dailies-capture-today (&optional goto)
+(defun org-roam-dailies-capture-today (&optional goto keys)
   "Create an entry in the daily-note for today.
-When GOTO is non-nil, go the note without creating an entry."
+When GOTO is non-nil, go the note without creating an entry.
+
+ELisp programs can set KEYS to a string associated with a template.
+In this case, interactive selection will be bypassed."
   (interactive "P")
-  (org-roam-dailies--capture (current-time) goto))
+  (org-roam-dailies--capture (current-time) goto keys))
 
 ;;;###autoload
 (defun org-roam-dailies-goto-today ()
@@ -300,11 +303,15 @@ Return (MONTH DAY YEAR) or nil if not an Org time-string."
 ;;; Capture implementation
 (add-to-list 'org-roam-capture--template-keywords :override-default-time)
 
-(defun org-roam-dailies--capture (time &optional goto)
+(defun org-roam-dailies--capture (time &optional goto keys)
   "Capture an entry in a daily-note for TIME, creating it if necessary.
-When GOTO is non-nil, go the note without creating an entry."
+When GOTO is non-nil, go the note without creating an entry.
+
+ELisp programs can set KEYS to a string associated with a template.
+In this case, interactive selection will be bypassed."
   (let ((org-roam-directory (expand-file-name org-roam-dailies-directory org-roam-directory)))
     (org-roam-capture- :goto (when goto '(4))
+                       :keys keys
                        :node (org-roam-node-create)
                        :templates org-roam-dailies-capture-templates
                        :props (list :override-default-time time)))
