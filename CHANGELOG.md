@@ -3,6 +3,7 @@
 ## TBD
 ### Added
 - [#1806](https://github.com/org-roam/org-roam/pull/1806) db: support caching and usage of Org 9.5's in-built citations
+- [#1806](https://github.com/org-roam/org-roam/pull/2028) dailies: add `keys` argument to `org-roam-dailies-capture-today` and `org-roam-dailies--capture` functions to give the abilty to get into a capture buffer bypassing the selection screen
 
 ### Removed
 ### Changed
