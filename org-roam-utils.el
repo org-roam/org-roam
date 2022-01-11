@@ -119,7 +119,8 @@ Kills the buffer if KEEP-BUF-P is nil, and FILE is not yet visited."
          (delay-mode-hooks
            (let ((org-inhibit-startup t)
                  (org-agenda-files nil))
-             (org-mode))))
+             (org-mode)
+             (hack-local-variables))))
        (setq res (progn ,@body))
        (unless (and new-buf (not ,keep-buf-p))
          (save-buffer)))
