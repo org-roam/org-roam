@@ -1,6 +1,6 @@
 # Changelog
 
-## TBD
+## 2.2.0
 ### Added
 - [#1806](https://github.com/org-roam/org-roam/pull/1806), [#2017](https://github.com/org-roam/org-roam/pull/2017) db: support caching and usage of Org 9.5's in-built citations
 - [#1963](https://github.com/org-roam/org-roam/pull/1963) db: cache file title into files table
