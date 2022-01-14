@@ -1,11 +1,11 @@
 ;;; org-roam-utils.el --- Utilities for Org-roam -*- lexical-binding: t; -*-
 
-;; Copyright © 2020-2021 Jethro Kuan <jethrokuan95@gmail.com>
+;; Copyright © 2020-2022 Jethro Kuan <jethrokuan95@gmail.com>
 
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
-;; Version: 2.1.0
+;; Version: 2.2.0
 ;; Package-Requires: ((emacs "26.1") (dash "2.13") (org "9.4"))
 
 ;; This file is NOT part of GNU Emacs.
