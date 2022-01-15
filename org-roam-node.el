@@ -545,7 +545,7 @@ TEMPLATE is the processed template used to format the entry."
   (let ((candidate-main (org-roam-node--format-entry
                          template
                          node
-                         (1- (frame-width)))))
+                         (1- (window-width)))))
     (cons (propertize candidate-main 'node node) node)))
 
 (defun org-roam-node--format-entry (template node &optional width)
