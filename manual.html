@@ -966,6 +966,39 @@ all headlines with the <code>ATTACH</code> tag from the Org-roam database, one c
         (not (member &quot;ATTACH&quot; (org-get-tags)))))
 </pre></div>
 
+<p>Org-roam relied on the obtained Org AST for the buffer to parse links. However,
+links appearing in some places (e.g. within property drawers) are not considered
+by the Org AST to be links. Therefore, Org-roam takes special care of
+additionally trying to process these links. Use
+<code>org-roam-db-extra-links-elements</code> to specify which additional Org AST element
+types to consider.
+</p>
+<dl>
+<dt id="index-org_002droam_002ddb_002dextra_002dlinks_002delements">Variable: <strong>org-roam-db-extra-links-elements</strong></dt>
+<dd>
+<p>The list of Org element types to include for parsing by Org-roam.
+</p>
+<p>By default, when parsing Org&rsquo;s AST, links within keywords and
+property drawers are not parsed as links. Sometimes however, it
+is desirable to parse and cache these links (e.g. hiding links in
+a property drawer).
+</p></dd></dl>
+
+<p>Additionally, one may want to ignore certain keys from being excluded within
+property drawers. For example, we would not want <code>ROAM_REFS</code> links to be
+self-referential. Hence, to exclude specific keys, we use
+<code>org-roam-db-extra-links-exclude-keys</code>.
+</p>
+<dl>
+<dt id="index-org_002droam_002ddb_002dextra_002dlinks_002dexclude_002dkeys">Variable: <strong>org-roam-db-extra-links-exclude-keys</strong></dt>
+<dd>
+<p>Keys to ignore when mapping over links.
+</p>
+<p>The car of the association list is the Org element type (e.g. keyword). The
+cdr is a list of case-insensitive strings to exclude from being treated as
+links.
+</p></dd></dl>
+
 <hr>
 <span id="When-to-cache"></span><div class="header">
 <p>
@@ -2887,6 +2920,8 @@ Previous: <a href="#Function-Index" accesskey="p" rel="prev">Function Index</a>,
 <tr><td></td><td valign="top"><a href="#index-org_002droam_002dcompletion_002deverywhere"><code>org-roam-completion-everywhere</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Completing-anywhere">Completing anywhere</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-org_002droam_002ddailies_002dcapture_002dtemplates"><code><code>org-roam-dailies-capture-templates</code></code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Configuration">Configuration</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-org_002droam_002ddailies_002ddirectory"><code><code>org-roam-dailies-directory</code></code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Configuration">Configuration</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-org_002droam_002ddb_002dextra_002dlinks_002delements"><code>org-roam-db-extra-links-elements</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#What-to-cache">What to cache</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-org_002droam_002ddb_002dextra_002dlinks_002dexclude_002dkeys"><code>org-roam-db-extra-links-exclude-keys</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#What-to-cache">What to cache</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-org_002droam_002ddb_002dupdate_002don_002dsave"><code>org-roam-db-update-on-save</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#When-to-cache">When to cache</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-org_002droam_002dgraph_002dedge_002dextra_002dconfig"><code>org-roam-graph-edge-extra-config</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Graph-Options">Graph Options</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-org_002droam_002dgraph_002dexecutable"><code>org-roam-graph-executable</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Graphing">Graphing</a></td></tr>
