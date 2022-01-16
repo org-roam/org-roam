@@ -1,4 +1,10 @@
 # Changelog
+## TBD
+### Added
+### Removed
+### Fixed
+### Changed
+- [#2040](https://github.com/org-roam/org-roam/pull/2040) completions: fix completions display-width for Helm users
 
 ## 2.2.0
 ### Added
