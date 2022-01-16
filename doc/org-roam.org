@@ -369,7 +369,12 @@ For this tutorial, create an empty directory, and set ~org-roam-directory~:
 #+END_SRC
 
 The ~file-truename~ function is only necessary when you use symbolic links
-inside ~org-roam-directory~: Org-roam does not resolve symbolic links.
+inside ~org-roam-directory~: Org-roam does not resolve symbolic links. One can
+however instruct Emacs to always resolve symlinks, at a performance cost:
+
+#+begin_src emacs-lisp
+  (setq find-file-visit-truename t)
+#+end_src
 
 Next, we setup Org-roam to run functions on file changes to maintain cache
 consistency. This is achieved by running ~M-x org-roam-db-autosync-mode~. To
