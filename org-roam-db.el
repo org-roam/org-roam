@@ -98,6 +98,32 @@ slow."
   :type 'boolean
   :group 'org-roam)
 
+(defcustom org-roam-db-extra-links-elements '(node-property keyword)
+  "The list of Org element types to include for parsing by Org-roam.
+
+By default, when parsing Org's AST, links within keywords and
+property drawers are not parsed as links. Sometimes however, it
+is desirable to parse and cache these links (e.g. hiding links in
+a property drawer)."
+  :package-version '(org-roam . "2.2.0")
+  :group 'org-roam
+  :type '(set (const :tag "keywords" keyword)
+              (const :tag "property drawers" node-property)))
+
+(defcustom org-roam-db-extra-links-exclude-keys '((node-property . ("ROAM_REFS"))
+                                                  (keyword . ("transclude")))
+  "Keys to ignore when mapping over links.
+
+The car of the association list is the Org element type (e.g.
+keyword). The cdr is a list of case-insensitive strings to
+exclude from being treated as links.
+
+For example, we use this to prevent self-referential links in
+ROAM_REFS."
+  :package-version '(org-roam . "2.2.0")
+  :group 'org-roam
+  :type '(alist))
+
 ;;; Variables
 (defconst org-roam-db-version 18)
 
@@ -353,15 +379,12 @@ If UPDATE-P is non-nil, first remove the file in the database."
          ;; Links correctly recognized by Org Mode
          ((eq type 'link)
           (setq link element))
-         ;; Prevent self-referencing links in ROAM_REFS
-         ((and (eq type 'node-property)
-               (org-roam-string-equal (org-element-property :key element) "ROAM_REFS"))
-          nil)
          ;; Links in property drawers and lines starting with #+. Recall that, as for Org Mode v9.4.4, the
          ;; org-element-type of links within properties drawers is "node-property" and for lines starting with
          ;; #+ is "keyword".
-         ((and (or (eq type 'node-property)
-                   (eq type 'keyword))
+         ((and (member type org-roam-db-extra-links-elements)
+               (not (member-ignore-case (org-element-property :key element)
+                                        (cdr (assoc type org-roam-db-extra-links-exclude-keys))))
                (setq bounds (org-in-regexp org-link-any-re))
                (setq link (buffer-substring-no-properties
                            (car bounds)

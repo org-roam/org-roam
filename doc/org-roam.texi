@@ -791,6 +791,37 @@ all headlines with the @code{ATTACH} tag from the Org-roam database, one can set
         (not (member "ATTACH" (org-get-tags)))))
 @end example
 
+Org-roam relied on the obtained Org AST for the buffer to parse links. However,
+links appearing in some places (e.g. within property drawers) are not considered
+by the Org AST to be links. Therefore, Org-roam takes special care of
+additionally trying to process these links. Use
+@code{org-roam-db-extra-links-elements} to specify which additional Org AST element
+types to consider.
+
+@defvar org-roam-db-extra-links-elements
+
+The list of Org element types to include for parsing by Org-roam.
+
+By default, when parsing Org's AST, links within keywords and
+property drawers are not parsed as links. Sometimes however, it
+is desirable to parse and cache these links (e.g. hiding links in
+a property drawer).
+@end defvar
+
+Additionally, one may want to ignore certain keys from being excluded within
+property drawers. For example, we would not want @code{ROAM_REFS} links to be
+self-referential. Hence, to exclude specific keys, we use
+@code{org-roam-db-extra-links-exclude-keys}.
+
+@defvar org-roam-db-extra-links-exclude-keys
+
+Keys to ignore when mapping over links.
+
+The car of the association list is the Org element type (e.g. keyword). The
+cdr is a list of case-insensitive strings to exclude from being treated as
+links.
+@end defvar
+
 @node When to cache
 @section When to cache
 
