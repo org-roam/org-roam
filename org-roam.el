@@ -259,7 +259,8 @@ If no files are found, an empty list is returned."
        (shell-command-to-string it)
        (ansi-color-filter-apply it)
        (split-string it "\n")
-       (seq-filter #'s-present? it)))
+       (seq-filter (lambda (s)
+                     (or (null s) (string= "" s))) it)))
 
 (defun org-roam--list-files-search-globs (exts)
   "Given EXTS, return a list of search globs.
