@@ -652,7 +652,12 @@ For this tutorial, create an empty directory, and set @code{org-roam-directory}:
 @end lisp
 
 The @code{file-truename} function is only necessary when you use symbolic links
-inside @code{org-roam-directory}: Org-roam does not resolve symbolic links.
+inside @code{org-roam-directory}: Org-roam does not resolve symbolic links. One can
+however instruct Emacs to always resolve symlinks, at a performance cost:
+
+@lisp
+(setq find-file-visit-truename t)
+@end lisp
 
 Next, we setup Org-roam to run functions on file changes to maintain cache
 consistency. This is achieved by running @code{M-x org-roam-db-autosync-mode}. To
