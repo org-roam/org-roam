@@ -71,7 +71,6 @@
 ;; majority of them can be found at https://github.com/org-roam and MELPA.
 ;;
 ;;; Code:
-(require 'f)
 (require 'dash)
 
 (require 'rx)
