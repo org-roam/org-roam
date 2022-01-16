@@ -52,6 +52,16 @@
        (org-roam-replace-string "\\" "\\\\")
        (org-roam-replace-string "\"" "\\\"")))
 
+(defun org-roam-word-wrap (len s)
+  "If S is longer than LEN, wrap the words with newlines."
+  (declare (side-effect-free t))
+  (save-match-data
+    (with-temp-buffer
+      (insert s)
+      (let ((fill-column len))
+        (fill-region (point-min) (point-max)))
+      (buffer-substring (point-min) (point-max)))))
+
 (defun org-roam-string-equal (s1 s2)
   "Return t if S1 and S2 are equal.
 Like `string-equal', but case-insensitive."
@@ -99,6 +109,12 @@ SPEC is a list, as per `dolist'."
     `(dolist ,spec ,@body)))
 
 ;;; File utilities
+(defun org-roam-descendant-of-p (a b)
+  "Return t if A is descendant of B."
+  (unless (equal (file-truename a) (file-truename b))
+    (string-prefix-p (expand-file-name b)
+                     (expand-file-name a))))
+
 (defmacro org-roam-with-file (file keep-buf-p &rest body)
   "Execute BODY within FILE.
 If FILE is nil, execute BODY in the current buffer.

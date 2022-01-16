@@ -8,7 +8,7 @@
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
 ;; Version: 2.2.0
-;; Package-Requires: ((emacs "26.1") (dash "2.13") (f "0.17.2") (org-roam "2.1"))
+;; Package-Requires: ((emacs "26.1") (dash "2.13") (org-roam "2.1"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -269,7 +269,7 @@ If FILE is not specified, use the current buffer's file-path."
     (save-match-data
       (and
        (org-roam-file-p path)
-       (f-descendant-of-p path directory)))))
+       (org-roam-descendant-of-p path directory)))))
 
 ;;;###autoload
 (defun org-roam-dailies-find-directory ()

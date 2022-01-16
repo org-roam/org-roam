@@ -266,7 +266,7 @@ Handles both Org-roam nodes, and string nodes (e.g. urls)."
                 (org-roam-quote-string
                  (pcase org-roam-graph-shorten-titles
                    (`truncate (truncate-string-to-width title org-roam-graph-max-title-length nil nil "..."))
-                   (`wrap (s-word-wrap org-roam-graph-max-title-length title))
+                   (`wrap (org-roam-word-wrap org-roam-graph-max-title-length title))
                    (_ title)))))
           (setq node-id (org-roam-node-id node)
                 node-properties `(("label"   . ,shortened-title)
