@@ -269,7 +269,7 @@ If FILE is not specified, use the current buffer's file-path."
     (save-match-data
       (and
        (org-roam-file-p path)
-       (f-descendant-of-p path directory)))))
+       (org-roam-descendant-of-p path directory)))))
 
 ;;;###autoload
 (defun org-roam-dailies-find-directory ()
