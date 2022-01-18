@@ -34,7 +34,7 @@
 ;; each file named after certain date and stored in `org-roam-dailies-directory'.
 ;;
 ;; One can use dailies for various purposes, e.g. journaling, fleeting notes,
-;; scratch notes and whatever else you can came up with.
+;; scratch notes or whatever else you can think of.
 ;;
 ;;; Code:
 (require 'f)
