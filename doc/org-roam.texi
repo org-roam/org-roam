@@ -110,6 +110,7 @@ Getting Started
 * Links between Nodes::
 * Setting up Org-roam::
 * Creating and Linking Nodes::
+* Customizing Node Completions::
 
 Customizing Node Caching
 
@@ -586,6 +587,7 @@ your Emacs configuration folder like this:
 * Links between Nodes::
 * Setting up Org-roam::
 * Creating and Linking Nodes::
+* Customizing Node Completions::
 @end menu
 
 @node The Org-roam Node
@@ -708,6 +710,55 @@ brought through the node creation process.
 
 One can also conveniently insert links via the completion-at-point functions
 Org-roam provides (see @ref{Completion}).
+
+@node Customizing Node Completions
+@section Customizing Node Completions
+
+Node selection is achieved via the @code{completing-read} interface, typically
+through `org-roam-node-read`. The presentation of these nodes are governed by
+@code{org-roam-node-display-template}.
+
+@defvar org-roam-node-display-template
+
+Configures display formatting for Org-roam node.
+
+Patterns of form ``$@{field-name:length@}'' are interpolated based
+on the current node.
+
+Each ``field-name'' is replaced with the return value of each
+corresponding accessor function for org-roam-node, e.g.
+``$@{title@}'' will be interpolated by the result of
+org-roam-node-title. You can also define custom accessors using
+cl-defmethod. For example, you can define:
+
+(cl-defmethod org-roam-node-my-title ((node org-roam-node))
+  (concat ``My '' (org-roam-node-title node)))
+
+and then reference it here or in the capture templates as
+``$@{my-title@}''.
+
+``length'' is an optional specifier and declares how many
+characters can be used to display the value of the corresponding
+field. If it's not specified, the field will be inserted as is,
+i.e. it won't be aligned nor trimmed. If it's an integer, the
+field will be aligned accordingly and all the exceeding
+characters will be trimmed out. If it's ``*'', the field will use
+as many characters as possible and will be aligned accordingly.
+
+A closure can also be assigned to this variable in which case the
+closure is evaluated and the return value is used as the
+template. The closure must evaluate to a valid template string.
+@end defvar
+
+The default template is optimized for vertical completion frameworks, such as
+Ivy and Selectrum. The additional space injected into the node completions may
+confuse users that aren't using these frameworks. To remove the additional
+spacing from the completions, set the node display template to something
+simpler, such as:
+
+@lisp
+(setq org-roam-node-display-template "$@{title@}")
+@end lisp
 
 @node Customizing Node Caching
 @chapter Customizing Node Caching
