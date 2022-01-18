@@ -161,6 +161,8 @@ Getting Started
 </td></tr>
 <tr><td align="left" valign="top">&bull; <a href="#Creating-and-Linking-Nodes">Creating and Linking Nodes</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Customizing-Node-Completions">Customizing Node Completions</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
 <tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
 
 Customizing Node Caching
@@ -735,6 +737,8 @@ Next: <a href="#Customizing-Node-Caching" accesskey="n" rel="next">Customizing N
 </td></tr>
 <tr><td align="left" valign="top">&bull; <a href="#Creating-and-Linking-Nodes" accesskey="4">Creating and Linking Nodes</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Customizing-Node-Completions" accesskey="5">Customizing Node Completions</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
 </table>
 
 <hr>
@@ -834,7 +838,7 @@ because they only reprocess modified files.
 <hr>
 <span id="Creating-and-Linking-Nodes"></span><div class="header">
 <p>
-Previous: <a href="#Setting-up-Org_002droam" accesskey="p" rel="prev">Setting up Org-roam</a>, Up: <a href="#Getting-Started" accesskey="u" rel="up">Getting Started</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+Next: <a href="#Customizing-Node-Completions" accesskey="n" rel="next">Customizing Node Completions</a>, Previous: <a href="#Setting-up-Org_002droam" accesskey="p" rel="prev">Setting up Org-roam</a>, Up: <a href="#Getting-Started" accesskey="u" rel="up">Getting Started</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
 </div>
 <span id="Creating-and-Linking-Nodes-1"></span><h3 class="section">5.4 Creating and Linking Nodes</h3>
 
@@ -869,6 +873,60 @@ brought through the node creation process.
 <p>One can also conveniently insert links via the completion-at-point functions
 Org-roam provides (see <a href="#Completion">Completion</a>).
 </p>
+<hr>
+<span id="Customizing-Node-Completions"></span><div class="header">
+<p>
+Previous: <a href="#Creating-and-Linking-Nodes" accesskey="p" rel="prev">Creating and Linking Nodes</a>, Up: <a href="#Getting-Started" accesskey="u" rel="up">Getting Started</a> &nbsp; [<a href="#Keystroke-Index" title="Index" rel="index">Index</a>]</p>
+</div>
+<span id="Customizing-Node-Completions-1"></span><h3 class="section">5.5 Customizing Node Completions</h3>
+
+<p>Node selection is achieved via the <code>completing-read</code> interface, typically
+through &lsquo;org-roam-node-read&lsquo;. The presentation of these nodes are governed by
+<code>org-roam-node-display-template</code>.
+</p>
+<dl>
+<dt id="index-org_002droam_002dnode_002ddisplay_002dtemplate">Variable: <strong>org-roam-node-display-template</strong></dt>
+<dd>
+<p>Configures display formatting for Org-roam node.
+</p>
+<p>Patterns of form &ldquo;${field-name:length}&rdquo; are interpolated based
+on the current node.
+</p>
+<p>Each &ldquo;field-name&rdquo; is replaced with the return value of each
+corresponding accessor function for org-roam-node, e.g.
+&ldquo;${title}&rdquo; will be interpolated by the result of
+org-roam-node-title. You can also define custom accessors using
+cl-defmethod. For example, you can define:
+</p>
+<p>(cl-defmethod org-roam-node-my-title ((node org-roam-node))
+  (concat &ldquo;My &rdquo; (org-roam-node-title node)))
+</p>
+<p>and then reference it here or in the capture templates as
+&ldquo;${my-title}&rdquo;.
+</p>
+<p>&ldquo;length&rdquo; is an optional specifier and declares how many
+characters can be used to display the value of the corresponding
+field. If it&rsquo;s not specified, the field will be inserted as is,
+i.e. it won&rsquo;t be aligned nor trimmed. If it&rsquo;s an integer, the
+field will be aligned accordingly and all the exceeding
+characters will be trimmed out. If it&rsquo;s &ldquo;*&rdquo;, the field will use
+as many characters as possible and will be aligned accordingly.
+</p>
+<p>A closure can also be assigned to this variable in which case the
+closure is evaluated and the return value is used as the
+template. The closure must evaluate to a valid template string.
+</p></dd></dl>
+
+<p>The default template is optimized for vertical completion frameworks, such as
+Ivy and Selectrum. The additional space injected into the node completions may
+confuse users that aren&rsquo;t using these frameworks. To remove the additional
+spacing from the completions, set the node display template to something
+simpler, such as:
+</p>
+<div class="lisp">
+<pre class="lisp">(setq org-roam-node-display-template &quot;${title}&quot;)
+</pre></div>
+
 <hr>
 <span id="Customizing-Node-Caching"></span><div class="header">
 <p>
@@ -2929,6 +2987,7 @@ Previous: <a href="#Function-Index" accesskey="p" rel="prev">Function Index</a>,
 <tr><td></td><td valign="top"><a href="#index-org_002droam_002dgraph_002dfiletype"><code>org-roam-graph-filetype</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Graph-Options">Graph Options</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-org_002droam_002dgraph_002dnode_002dextra_002dconfig"><code>org-roam-graph-node-extra-config</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Graph-Options">Graph Options</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-org_002droam_002dgraph_002dviewer"><code>org-roam-graph-viewer</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Graphing">Graphing</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-org_002droam_002dnode_002ddisplay_002dtemplate"><code>org-roam-node-display-template</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Customizing-Node-Completions">Customizing Node Completions</a></td></tr>
 <tr><td colspan="4"> <hr></td></tr>
 </table>
 <table><tr><th valign="top">Jump to: &nbsp; </th><td><a class="summary-letter" href="#Variable-Index_vr_letter-O"><b>O</b></a>
