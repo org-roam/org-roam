@@ -407,6 +407,8 @@ TEMPLATES is a list of org-roam templates."
           (mapcar (lambda (template)
                     (org-roam-capture--convert-template template props))
                   (or templates org-roam-capture-templates)))
+         (_ (setf (org-roam-node-id node) (or (org-roam-node-id node)
+                                              (org-id-new))))
          (org-roam-capture--node node)
          (org-roam-capture--info info))
     (when (and (not keys)
@@ -572,12 +574,10 @@ Return the ID of the location."
     ;; caller.
     (save-excursion
       (goto-char p)
-      (when-let* ((node org-roam-capture--node)
-                  (id (org-roam-node-id node)))
-        (org-entry-put p "ID" id))
-      (prog1
-          (org-id-get-create)
-        (run-hooks 'org-roam-capture-new-node-hook)))))
+      (if-let ((id (org-entry-get p "ID")))
+          (setf (org-roam-node-id org-roam-capture--node) id)
+        (org-entry-put p "ID" (org-roam-node-id org-roam-capture--node)))
+      (run-hooks 'org-roam-capture-new-node-hook))))
 
 (defun org-roam-capture--get-target ()
   "Get the current capture :target for the capture template in use."

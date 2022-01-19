@@ -1,7 +1,8 @@
 # Changelog
 ## TBD
 ### Added
-- [#2042](https://github.com/org-roam/org-roam/pull/2042) Add `org-roam-db-extra-links-elements` and `org-roam-db-extra-links-exclude-keys` for fine-grained control over additional link parsing.
+- [#2042](https://github.com/org-roam/org-roam/pull/2042) db: add `org-roam-db-extra-links-elements` and `org-roam-db-extra-links-exclude-keys` for fine-grained control over additional link parsing
+- [#2049](https://github.com/org-roam/org-roam/pull/2049) capture: allow ID to be used as part of `org-roam-capture-templates` 
 ### Removed
 ### Fixed
 ### Changed
