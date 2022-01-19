@@ -477,16 +477,16 @@ The TEMPLATES, if provided, override the list of capture templates (see
        :props '(:finalize find-file)))))
 
 ;;;###autoload
-(defun org-roam-node-random (&optional other-window)
+(defun org-roam-node-random (filter-fn &optional other-window)
   "Find and open a random Org-roam node.
 With prefix argument OTHER-WINDOW, visit the node in another
-window instead."
+window instead.
+FILTER-FN is a function to filter out nodes: it takes an `org-roam-node',
+and when nil is returned the node will be filtered out."
   (interactive current-prefix-arg)
-  (let ((random-row (seq-random-elt (org-roam-db-query [:select [id file pos] :from nodes]))))
-    (org-roam-node-visit (org-roam-node-create :id (nth 0 random-row)
-                                               :file (nth 1 random-row)
-                                               :point (nth 2 random-row))
-                         other-window)))
+  (org-roam-node-visit
+   (cdr (seq-random-elt (org-roam-node-read--completions filter-fn)))
+   other-window))
 
 ;;;; Completing-read interface
 (defun org-roam-node-read (&optional initial-input filter-fn sort-fn require-match prompt)
@@ -498,17 +498,7 @@ SORT-FN is a function to sort nodes. See `org-roam-node-read-sort-by-file-mtime'
 for an example sort function.
 If REQUIRE-MATCH, the minibuffer prompt will require a match.
 PROMPT is a string to show at the beginning of the mini-buffer, defaulting to \"Node: \""
-  (let* ((nodes (org-roam-node-read--completions))
-         (nodes (if filter-fn
-                    (cl-remove-if-not
-                     (lambda (n) (funcall filter-fn (cdr n)))
-                     nodes)
-                  nodes))
-         (sort-fn (or sort-fn
-                      (when org-roam-node-default-sort
-                        (intern (concat "org-roam-node-read-sort-by-"
-                                        (symbol-name org-roam-node-default-sort))))))
-         (_ (when sort-fn (setq nodes (seq-sort sort-fn nodes))))
+  (let* ((nodes (org-roam-node-read--completions filter-fn sort-fn))
          (prompt (or prompt "Node: "))
          (node (completing-read
                 prompt
@@ -529,15 +519,31 @@ PROMPT is a string to show at the beginning of the mini-buffer, defaulting to \"
     (or (cdr (assoc node nodes))
         (org-roam-node-create :title node))))
 
-(defun org-roam-node-read--completions ()
+(defun org-roam-node-read--completions (&optional filter-fn sort-fn)
   "Return an alist for node completion.
 The car is the displayed title or alias for the node, and the cdr
 is the `org-roam-node'.
+FILTER-FN is a function to filter out nodes: it takes an `org-roam-node',
+and when nil is returned the node will be filtered out.
+SORT-FN is a function to sort nodes. See `org-roam-node-read-sort-by-file-mtime'
+for an example sort function.
 The displayed title is formatted according to `org-roam-node-display-template'."
-  (let ((template (org-roam-node--process-display-format org-roam-node-display-template))
-        (nodes (org-roam-node-list)))
-    (mapcar (lambda (node)
-              (org-roam-node-read--to-candidate node template)) nodes)))
+  (let* ((template (org-roam-node--process-display-format org-roam-node-display-template))
+         (nodes (org-roam-node-list))
+         (nodes (mapcar (lambda (node)
+                          (org-roam-node-read--to-candidate node template)) nodes))
+         (nodes (if filter-fn
+                    (cl-remove-if-not
+                     (lambda (n) (funcall filter-fn (cdr n)))
+                     nodes)
+                  nodes))
+         (sort-fn (or sort-fn
+                      (when org-roam-node-default-sort
+                        (intern (concat "org-roam-node-read-sort-by-"
+                                        (symbol-name org-roam-node-default-sort))))))
+         (nodes (if sort-fn (seq-sort sort-fn nodes)
+                  nodes)))
+    nodes))
 
 (defun org-roam-node-read--to-candidate (node template)
   "Return a minibuffer completion candidate given NODE.
