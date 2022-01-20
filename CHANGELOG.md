@@ -1,5 +1,15 @@
 # Changelog
 ## TBD
+### Breaking
+- [#2054](https://github.com/org-roam/org-roam/pull/2054) node: simplify default `org-roam-node-display-template`.
+  This was done so completions work fine by default on all completion systems. To restore the tabular vertical completion interface, set this in your configuration:
+  
+  ```emacs-lisp
+  (setq org-roam-node-display-template
+        (concat "${title:*} "
+                (propertize "${tags:10}" 'face 'org-tag)))
+  ```
+
 ### Added
 - [#2042](https://github.com/org-roam/org-roam/pull/2042) db: add `org-roam-db-extra-links-elements` and `org-roam-db-extra-links-exclude-keys` for fine-grained control over additional link parsing
 - [#2049](https://github.com/org-roam/org-roam/pull/2049) capture: allow ID to be used as part of `org-roam-capture-templates`

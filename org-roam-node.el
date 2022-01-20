@@ -36,8 +36,7 @@
 
 ;;; Options
 ;;;; Completing-read
-(defcustom org-roam-node-display-template
-  (concat "${title:*} " (propertize "${tags:10}" 'face 'org-tag))
+(defcustom org-roam-node-display-template "${title}"
   "Configures display formatting for Org-roam node.
 Patterns of form \"${field-name:length}\" are interpolated based
 on the current node.

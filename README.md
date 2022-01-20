@@ -47,30 +47,6 @@ Stable](https://stable.melpa.org/) using `package.el`:
 ```
 M-x package-install RET org-roam RET
 ```
-
-Here's a very basic sample for configuration of `org-roam` using `use-package`:
-
-```emacs-lisp
-(use-package org-roam
-  :ensure t
-  :custom
-  (org-roam-directory (file-truename "/path/to/org-files/"))
-  :bind (("C-c n l" . org-roam-buffer-toggle)
-         ("C-c n f" . org-roam-node-find)
-         ("C-c n g" . org-roam-graph)
-         ("C-c n i" . org-roam-node-insert)
-         ("C-c n c" . org-roam-capture)
-         ;; Dailies
-         ("C-c n j" . org-roam-dailies-capture-today))
-  :config
-  (org-roam-db-autosync-mode)
-  ;; If using org-roam-protocol
-  (require 'org-roam-protocol))
-```
-
-Note that the `file-truename` function is only necessary when you use symbolic
-link to `org-roam-directory`. Org-roam won't automatically resolve symbolic link
-to the directory.
 </details>
 
 ### Using `straight.el`
@@ -198,6 +174,33 @@ Org-roam also comes with `.texi` files to integrate with Emacs' built-in Info
 system. Read the manual to find more details for how to install them manually.
 </details>
 
+## Configuration
+
+Here's a very basic sample for configuration of `org-roam` using `use-package`:
+
+```emacs-lisp
+(use-package org-roam
+  :ensure t
+  :custom
+  (org-roam-directory (file-truename "/path/to/org-files/"))
+  :bind (("C-c n l" . org-roam-buffer-toggle)
+         ("C-c n f" . org-roam-node-find)
+         ("C-c n g" . org-roam-graph)
+         ("C-c n i" . org-roam-node-insert)
+         ("C-c n c" . org-roam-capture)
+         ;; Dailies
+         ("C-c n j" . org-roam-dailies-capture-today))
+  :config
+  ;; If you're using a vertical completion framework, you might want a more informative completion interface
+  (setq org-roam-node-display-template (concat "${title:*} " (propertize "${tags:10}" 'face 'org-tag)))
+  (org-roam-db-autosync-mode)
+  ;; If using org-roam-protocol
+  (require 'org-roam-protocol))
+```
+
+Note that the `file-truename` function is only necessary when you use symbolic
+link to `org-roam-directory`. Org-roam won't automatically resolve symbolic link
+to the directory.
 ## Getting Started
 
 [David Wilson](https://github.com/daviwil) of [System
