@@ -339,11 +339,12 @@ In this case, interactive selection will be bypassed."
   (when goto (run-hooks 'org-roam-dailies-find-file-hook)))
 
 (add-hook 'org-roam-capture-preface-hook #'org-roam-dailies--override-capture-time-h)
+
 (defun org-roam-dailies--override-capture-time-h ()
   "Override the `:default-time' with the time from `:override-default-time'."
-  (prog1 nil
-    (when (org-roam-capture--get :override-default-time)
-      (org-capture-put :default-time (org-roam-capture--get :override-default-time)))))
+  (when (org-roam-capture--get :override-default-time)
+    (org-capture-put :default-time (org-roam-capture--get :override-default-time)))
+  nil)
 
 ;;; Bindings
 (defvar org-roam-dailies-map (make-sparse-keymap)
