@@ -917,14 +917,15 @@ closure is evaluated and the return value is used as the
 template. The closure must evaluate to a valid template string.
 </p></dd></dl>
 
-<p>The default template is optimized for vertical completion frameworks, such as
-Ivy and Selectrum. The additional space injected into the node completions may
-confuse users that aren&rsquo;t using these frameworks. To remove the additional
-spacing from the completions, set the node display template to something
-simpler, such as:
+<p>If you&rsquo;re using a vertical completion framework, such as Ivy and Selectrum,
+Org-roam supports the generation of an aligned, tabular completion interface.
+For example, to include a column for tags up to 10 character widths wide, one
+can set <code>org-roam-node-display-template</code> as such:
 </p>
 <div class="lisp">
-<pre class="lisp">(setq org-roam-node-display-template &quot;${title}&quot;)
+<pre class="lisp">(setq org-roam-node-display-template
+      (concat &quot;${title:*} &quot;
+              (propertize &quot;${tags:10}&quot; 'face 'org-tag)))
 </pre></div>
 
 <hr>

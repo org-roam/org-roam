@@ -750,14 +750,15 @@ closure is evaluated and the return value is used as the
 template. The closure must evaluate to a valid template string.
 @end defvar
 
-The default template is optimized for vertical completion frameworks, such as
-Ivy and Selectrum. The additional space injected into the node completions may
-confuse users that aren't using these frameworks. To remove the additional
-spacing from the completions, set the node display template to something
-simpler, such as:
+If you're using a vertical completion framework, such as Ivy and Selectrum,
+Org-roam supports the generation of an aligned, tabular completion interface.
+For example, to include a column for tags up to 10 character widths wide, one
+can set @code{org-roam-node-display-template} as such:
 
 @lisp
-(setq org-roam-node-display-template "$@{title@}")
+(setq org-roam-node-display-template
+      (concat "$@{title:*@} "
+              (propertize "$@{tags:10@}" 'face 'org-tag)))
 @end lisp
 
 @node Customizing Node Caching
