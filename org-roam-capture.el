@@ -577,7 +577,9 @@ Return the ID of the location."
       (if-let ((id (org-entry-get p "ID")))
           (setf (org-roam-node-id org-roam-capture--node) id)
         (org-entry-put p "ID" (org-roam-node-id org-roam-capture--node)))
-      (run-hooks 'org-roam-capture-new-node-hook))))
+      (prog1
+          (org-id-get)
+        (run-hooks 'org-roam-capture-new-node-hook)))))
 
 (defun org-roam-capture--get-target ()
   "Get the current capture :target for the capture template in use."
