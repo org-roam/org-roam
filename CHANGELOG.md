@@ -16,6 +16,7 @@
 - [#2050](https://github.com/org-roam/org-roam/pull/2050) core: add `FILTER-FN` to `org-roam-node-random`
 ### Removed
 ### Fixed
+- [#2055](https://github.com/org-roam/org-roam/pull/2055) dailies: removed stray f require, which was causing require and compilation errors
 ### Changed
 - [#2040](https://github.com/org-roam/org-roam/pull/2040) completions: fix completions display-width for Helm users
 - [#2025](https://github.com/org-roam/org-roam/pull/2025) chore: removed the dependencies on f.el and s.el

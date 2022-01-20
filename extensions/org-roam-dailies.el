@@ -37,7 +37,6 @@
 ;; scratch notes or whatever else you can think of.
 ;;
 ;;; Code:
-(require 'f)
 (require 'dash)
 (require 'org-roam)
 
