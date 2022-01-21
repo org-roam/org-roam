@@ -18,6 +18,7 @@
 ### Fixed
 - [#2055](https://github.com/org-roam/org-roam/pull/2055) dailies: removed stray f require, which was causing require and compilation errors
 ### Changed
+- [#2060](https://github.com/org-roam/org-roam/pull/2060) node: added double acute accent normalization for Unicode characters in titles
 - [#2040](https://github.com/org-roam/org-roam/pull/2040) completions: fix completions display-width for Helm users
 - [#2025](https://github.com/org-roam/org-roam/pull/2025) chore: removed the dependencies on f.el and s.el
 
