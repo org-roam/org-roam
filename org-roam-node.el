@@ -477,7 +477,7 @@ The TEMPLATES, if provided, override the list of capture templates (see
        :props '(:finalize find-file)))))
 
 ;;;###autoload
-(defun org-roam-node-random (filter-fn &optional other-window)
+(defun org-roam-node-random (&optional other-window filter-fn)
   "Find and open a random Org-roam node.
 With prefix argument OTHER-WINDOW, visit the node in another
 window instead.
