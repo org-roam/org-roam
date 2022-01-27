@@ -140,7 +140,10 @@ In this case, interactive selection will be bypassed."
 
 ;;;###autoload
 (defun org-roam-dailies-goto-today (&optional keys)
-  "Find the daily-note for today, creating it if necessary."
+  "Find the daily-note for today, creating it if necessary.
+
+ELisp programs can set KEYS to a string associated with a template.
+In this case, interactive selection will be bypassed."
   (interactive)
   (org-roam-dailies-capture-today t keys))
 
@@ -152,7 +155,10 @@ In this case, interactive selection will be bypassed."
 With numeric argument N, use the daily-note N days in the future.
 
 With a `C-u' prefix or when GOTO is non-nil, go the note without
-creating an entry."
+creating an entry.
+
+ELisp programs can set KEYS to a string associated with a template.
+In this case, interactive selection will be bypassed."
   (interactive "p")
   (org-roam-dailies--capture (time-add (* n 86400) (current-time)) goto keys))
 
@@ -161,7 +167,10 @@ creating an entry."
   "Find the daily-note for tomorrow, creating it if necessary.
 
 With numeric argument N, use the daily-note N days in the
-future."
+future.
+
+ELisp programs can set KEYS to a string associated with a template.
+In this case, interactive selection will be bypassed."
   (interactive "p")
   (org-roam-dailies-capture-tomorrow n t keys))
 
@@ -172,7 +181,10 @@ future."
 
 With numeric argument N, use the daily-note N days in the past.
 
-When GOTO is non-nil, go the note without creating an entry."
+When GOTO is non-nil, go the note without creating an entry.
+
+ELisp programs can set KEYS to a string associated with a template.
+In this case, interactive selection will be bypassed."
   (interactive "p")
   (org-roam-dailies-capture-tomorrow (- n) goto keys))
 
@@ -181,7 +193,10 @@ When GOTO is non-nil, go the note without creating an entry."
   "Find the daily-note for yesterday, creating it if necessary.
 
 With numeric argument N, use the daily-note N days in the
-future."
+future.
+
+ELisp programs can set KEYS to a string associated with a template.
+In this case, interactive selection will be bypassed."
   (interactive "p")
   (org-roam-dailies-capture-tomorrow (- n) t keys))
 
@@ -191,7 +206,10 @@ future."
   "Create an entry in the daily-note for a date using the calendar.
 Prefer past dates, unless PREFER-FUTURE is non-nil.
 With a `C-u' prefix or when GOTO is non-nil, go the note without
-creating an entry."
+creating an entry.
+
+ELisp programs can set KEYS to a string associated with a template.
+In this case, interactive selection will be bypassed."
   (interactive "P")
   (let ((time (let ((org-read-date-prefer-future prefer-future))
                 (org-read-date nil t nil (if goto
@@ -202,7 +220,10 @@ creating an entry."
 ;;;###autoload
 (defun org-roam-dailies-goto-date (&optional prefer-future keys)
   "Find the daily-note for a date using the calendar, creating it if necessary.
-Prefer past dates, unless PREFER-FUTURE is non-nil."
+Prefer past dates, unless PREFER-FUTURE is non-nil.
+
+ELisp programs can set KEYS to a string associated with a template.
+In this case, interactive selection will be bypassed."
   (interactive)
   (org-roam-dailies-capture-date t prefer-future keys))
 
