@@ -139,7 +139,7 @@ In this case, interactive selection will be bypassed."
   (org-roam-dailies--capture (current-time) goto keys))
 
 ;;;###autoload
-(defun org-roam-dailies-goto-today (keys)
+(defun org-roam-dailies-goto-today (&optional keys)
   "Find the daily-note for today, creating it if necessary."
   (interactive)
   (org-roam-dailies-capture-today t keys))
@@ -157,7 +157,7 @@ creating an entry."
   (org-roam-dailies--capture (time-add (* n 86400) (current-time)) goto keys))
 
 ;;;###autoload
-(defun org-roam-dailies-goto-tomorrow (n keys)
+(defun org-roam-dailies-goto-tomorrow (n &optional keys)
   "Find the daily-note for tomorrow, creating it if necessary.
 
 With numeric argument N, use the daily-note N days in the
@@ -177,7 +177,7 @@ When GOTO is non-nil, go the note without creating an entry."
   (org-roam-dailies-capture-tomorrow (- n) goto keys))
 
 ;;;###autoload
-(defun org-roam-dailies-goto-yesterday (n keys)
+(defun org-roam-dailies-goto-yesterday (n &optional keys)
   "Find the daily-note for yesterday, creating it if necessary.
 
 With numeric argument N, use the daily-note N days in the
