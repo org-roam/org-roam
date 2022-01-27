@@ -14,6 +14,7 @@
 - [#2042](https://github.com/org-roam/org-roam/pull/2042) db: add `org-roam-db-extra-links-elements` and `org-roam-db-extra-links-exclude-keys` for fine-grained control over additional link parsing
 - [#2049](https://github.com/org-roam/org-roam/pull/2049) capture: allow ID to be used as part of `org-roam-capture-templates`
 - [#2050](https://github.com/org-roam/org-roam/pull/2050) core: add `FILTER-FN` to `org-roam-node-random`
+- [#2065](https://github.com/org-roam/org-roam/pull/2065) dailies: add `keys` argument to the remaining dailies functions `org-roam-dailies-goto-yesterday`/`-today`/`-tomorrow`/`-date` and `org-roam-dailies-capture-yesterday`/`-tomorrow`/`-date` to give the abilty to get into a capture buffer bypassing the selection screen in all dailies commands. Extension of #2055
 ### Removed
 ### Fixed
 - [#2055](https://github.com/org-roam/org-roam/pull/2055) dailies: removed stray f require, which was causing require and compilation errors
