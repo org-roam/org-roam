@@ -793,7 +793,7 @@ citation key:
 :END:
 #+end_src
 
-or
+or:
 
 #+begin_src org
 ,* Probabilistic Robotics
@@ -803,7 +803,7 @@ or
 :END:
 #+end_src
 
-for ~org-cite~, or:
+or, for ~org-cite~:
 
 #+begin_src org
 ,* Probabilistic Robotics
@@ -812,8 +812,6 @@ for ~org-cite~, or:
 :ROAM_REFS: cite:thrun2005probabilistic
 :END:
 #+end_src
-
-for ~org-ref~.
 
 When another node has a citation for that key, we can see it using the
 ~Reflinks~ section of the Org-roam buffer.

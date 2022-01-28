@@ -1179,7 +1179,7 @@ citation key:
 :END:
 @end example
 
-or
+or:
 
 @example
 * Probabilistic Robotics
@@ -1189,7 +1189,7 @@ or
 :END:
 @end example
 
-for @code{org-cite}, or:
+or, for @code{org-cite}:
 
 @example
 * Probabilistic Robotics
@@ -1198,8 +1198,6 @@ for @code{org-cite}, or:
 :ROAM_REFS: cite:thrun2005probabilistic
 :END:
 @end example
-
-for @code{org-ref}.
 
 When another node has a citation for that key, we can see it using the
 @code{Reflinks} section of the Org-roam buffer.
