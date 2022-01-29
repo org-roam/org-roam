@@ -139,72 +139,93 @@ In this case, interactive selection will be bypassed."
   (org-roam-dailies--capture (current-time) goto keys))
 
 ;;;###autoload
-(defun org-roam-dailies-goto-today ()
-  "Find the daily-note for today, creating it if necessary."
+(defun org-roam-dailies-goto-today (&optional keys)
+  "Find the daily-note for today, creating it if necessary.
+
+ELisp programs can set KEYS to a string associated with a template.
+In this case, interactive selection will be bypassed."
   (interactive)
-  (org-roam-dailies-capture-today t))
+  (org-roam-dailies-capture-today t keys))
 
 ;;;; Tomorrow
 ;;;###autoload
-(defun org-roam-dailies-capture-tomorrow (n &optional goto)
+(defun org-roam-dailies-capture-tomorrow (n &optional goto keys)
   "Create an entry in the daily-note for tomorrow.
 
 With numeric argument N, use the daily-note N days in the future.
 
 With a `C-u' prefix or when GOTO is non-nil, go the note without
-creating an entry."
+creating an entry.
+
+ELisp programs can set KEYS to a string associated with a template.
+In this case, interactive selection will be bypassed."
   (interactive "p")
-  (org-roam-dailies--capture (time-add (* n 86400) (current-time)) goto))
+  (org-roam-dailies--capture (time-add (* n 86400) (current-time)) goto keys))
 
 ;;;###autoload
-(defun org-roam-dailies-goto-tomorrow (n)
+(defun org-roam-dailies-goto-tomorrow (n &optional keys)
   "Find the daily-note for tomorrow, creating it if necessary.
 
 With numeric argument N, use the daily-note N days in the
-future."
+future.
+
+ELisp programs can set KEYS to a string associated with a template.
+In this case, interactive selection will be bypassed."
   (interactive "p")
-  (org-roam-dailies-capture-tomorrow n t))
+  (org-roam-dailies-capture-tomorrow n t keys))
 
 ;;;; Yesterday
 ;;;###autoload
-(defun org-roam-dailies-capture-yesterday (n &optional goto)
+(defun org-roam-dailies-capture-yesterday (n &optional goto keys)
   "Create an entry in the daily-note for yesteday.
 
 With numeric argument N, use the daily-note N days in the past.
 
-When GOTO is non-nil, go the note without creating an entry."
+When GOTO is non-nil, go the note without creating an entry.
+
+ELisp programs can set KEYS to a string associated with a template.
+In this case, interactive selection will be bypassed."
   (interactive "p")
-  (org-roam-dailies-capture-tomorrow (- n) goto))
+  (org-roam-dailies-capture-tomorrow (- n) goto keys))
 
 ;;;###autoload
-(defun org-roam-dailies-goto-yesterday (n)
+(defun org-roam-dailies-goto-yesterday (n &optional keys)
   "Find the daily-note for yesterday, creating it if necessary.
 
 With numeric argument N, use the daily-note N days in the
-future."
+future.
+
+ELisp programs can set KEYS to a string associated with a template.
+In this case, interactive selection will be bypassed."
   (interactive "p")
-  (org-roam-dailies-capture-tomorrow (- n) t))
+  (org-roam-dailies-capture-tomorrow (- n) t keys))
 
 ;;;; Date
 ;;;###autoload
-(defun org-roam-dailies-capture-date (&optional goto prefer-future)
+(defun org-roam-dailies-capture-date (&optional goto prefer-future keys)
   "Create an entry in the daily-note for a date using the calendar.
 Prefer past dates, unless PREFER-FUTURE is non-nil.
 With a `C-u' prefix or when GOTO is non-nil, go the note without
-creating an entry."
+creating an entry.
+
+ELisp programs can set KEYS to a string associated with a template.
+In this case, interactive selection will be bypassed."
   (interactive "P")
   (let ((time (let ((org-read-date-prefer-future prefer-future))
                 (org-read-date nil t nil (if goto
                                              "Find daily-note: "
                                            "Capture to daily-note: ")))))
-    (org-roam-dailies--capture time goto)))
+    (org-roam-dailies--capture time goto keys)))
 
 ;;;###autoload
-(defun org-roam-dailies-goto-date (&optional prefer-future)
+(defun org-roam-dailies-goto-date (&optional prefer-future keys)
   "Find the daily-note for a date using the calendar, creating it if necessary.
-Prefer past dates, unless PREFER-FUTURE is non-nil."
+Prefer past dates, unless PREFER-FUTURE is non-nil.
+
+ELisp programs can set KEYS to a string associated with a template.
+In this case, interactive selection will be bypassed."
   (interactive)
-  (org-roam-dailies-capture-date t prefer-future))
+  (org-roam-dailies-capture-date t prefer-future keys))
 
 ;;;; Navigation
 (defun org-roam-dailies-goto-next-note (&optional n)
