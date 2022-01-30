@@ -195,6 +195,7 @@ FAQ
 * How do I migrate from Roam Research?::
 * How to migrate from Org-roam v1?::
 * How do I publish my notes with an Internet-friendly graph?::
+* I'm seeing this ``Selecting deleted buffer'' error. What do I do?: I'm seeing this ``Selecting deleted buffer'' error What do I do?. 
 
 How do I publish my notes with an Internet-friendly graph?
 
@@ -2023,6 +2024,7 @@ Org-mode, and sync your cards to Anki via @uref{https://github.com/FooSoft/anki-
 * How do I migrate from Roam Research?::
 * How to migrate from Org-roam v1?::
 * How do I publish my notes with an Internet-friendly graph?::
+* I'm seeing this ``Selecting deleted buffer'' error. What do I do?: I'm seeing this ``Selecting deleted buffer'' error What do I do?. 
 @end menu
 
 @node How do I have more than one Org-roam directory?
@@ -2232,6 +2234,27 @@ to the publishing directory.  Example code follows:
                                        (kill-buffer (file-name-nondirectory svg))
                                        (setq my-publish-time 0)))))
 @end lisp
+
+@node I'm seeing this ``Selecting deleted buffer'' error What do I do?
+@section I'm seeing this ``Selecting deleted buffer'' error. What do I do?
+
+The ``selecting deleted buffer'' error usually occurs when you don't have a
+working @code{emacsql-sqlite} executable. Org-roam relies on this executable to
+function properly, and doesn't catch this error. This issue is most commonly
+seen on Windows setups. You can browse through the various GitHub issues posted
+about this @uref{https://github.com/org-roam/org-roam/issues?q=is%3Aissue+selecting+deleted, here}.
+
+To fix this, you can try the following:
+
+@itemize
+@item
+If on Windows, try replacing your system binary with @uref{https://github.com/nobiot/emacsql-sqlite.exe, this one} that has been proven
+to work
+
+@item
+Use the @code{emacsql-sqlite3} option rather than compiling your own emacsql
+binary (see @ref{How to cache}).
+@end itemize
 
 @node Developer's Guide to Org-roam
 @chapter Developer's Guide to Org-roam
