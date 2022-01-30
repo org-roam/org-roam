@@ -468,6 +468,9 @@ can set ~org-roam-node-display-template~ as such:
 
 * Customizing Node Caching
 ** How to cache
+:PROPERTIES:
+:ID:       280bfca8-83f3-4371-bc3a-25478d25129c
+:END:
 
 Org-roam uses a sqlite database to perform caching, but there are multiple Emacs
 libraries that can be used. The default used by Org-roam is ~emacs-sqlite~.
@@ -1618,6 +1621,20 @@ to the publishing directory.  Example code follows:
                                          (kill-buffer (file-name-nondirectory svg))
                                          (setq my-publish-time 0)))))
 #+end_src
+** I'm seeing this "Selecting deleted buffer" error. What do I do?
+
+The "selecting deleted buffer" error usually occurs when you don't have a
+working ~emacsql-sqlite~ executable. Org-roam relies on this executable to
+function properly, and doesn't catch this error. This issue is most commonly
+seen on Windows setups. You can browse through the various GitHub issues posted
+about this [[https://github.com/org-roam/org-roam/issues?q=is%3Aissue+selecting+deleted][here]].
+
+To fix this, you can try the following:
+
+1. If on Windows, try replacing your system binary with [[https://github.com/nobiot/emacsql-sqlite.exe][this one]] that has been proven
+   to work
+2. Use the ~emacsql-sqlite3~ option rather than compiling your own emacsql
+   binary (see [[id:280bfca8-83f3-4371-bc3a-25478d25129c][How to cache]]).
 
 * Developer's Guide to Org-roam
 ** Org-roam's Design Principle
