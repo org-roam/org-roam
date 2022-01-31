@@ -18,6 +18,7 @@
 ### Removed
 ### Fixed
 - [#2055](https://github.com/org-roam/org-roam/pull/2055) dailies: removed stray f require, which was causing require and compilation errors
+- [#2056](https://github.com/org-roam/org-roam/pull/2056) capture: IDs are now created for entries in capture templates
 ### Changed
 - [#2060](https://github.com/org-roam/org-roam/pull/2060) node: added double acute accent normalization for Unicode characters in titles
 - [#2040](https://github.com/org-roam/org-roam/pull/2040) completions: fix completions display-width for Helm users
