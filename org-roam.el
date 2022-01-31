@@ -313,6 +313,7 @@ E.g. (\".org\") => (\"*.org\" \"*.org.gpg\")"
   (require 'org-roam-utils)
   (require 'org-roam-db)
   (require 'org-roam-node)
+  (require 'org-roam-id)
   (require 'org-roam-capture)
   (require 'org-roam-mode)
   (require 'org-roam-migrate))
