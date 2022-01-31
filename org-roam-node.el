@@ -437,7 +437,7 @@ GROUP BY id")))
 
 (defun org-roam-node-open (node &optional cmd force)
   "Go to the node NODE.
-CMD is the display-buffer command used. If not provided,
+CMD is the command used to display the buffer. If not provided,
 `org-link-frame-setup' is respected. Assumes that the node is
 fully populated, with file and point. If NODE is already visited,
 this won't automatically move the point to the beginning of the
