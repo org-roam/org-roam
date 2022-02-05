@@ -169,25 +169,6 @@ org-protocol://roam-node?node=uuid"
 (push '("org-roam-node"  :protocol "roam-node"   :function org-roam-protocol-open-node)
       org-protocol-protocol-alist)
 
-;;; Capture implementation
-(add-hook 'org-roam-capture-preface-hook #'org-roam-protocol--try-capture-to-ref-h)
-(defun org-roam-protocol--try-capture-to-ref-h ()
-  "Try to capture to an existing node that match the ref."
-  (when-let ((node (and (plist-get org-roam-capture--info :ref)
-                        (org-roam-node-from-ref
-                         (plist-get org-roam-capture--info :ref)))))
-    (set-buffer (org-capture-target-buffer (org-roam-node-file node)))
-    (goto-char (org-roam-node-point node))
-    (widen)
-    (org-roam-node-id node)))
-
-(add-hook 'org-roam-capture-new-node-hook #'org-roam-protocol--insert-captured-ref-h)
-(defun org-roam-protocol--insert-captured-ref-h ()
-  "Insert the ref if any."
-  (when-let ((ref (plist-get org-roam-capture--info :ref)))
-    (org-roam-ref-add ref)))
-
-
 (provide 'org-roam-protocol)
 
 ;;; org-roam-protocol.el ends here
