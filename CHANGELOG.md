@@ -19,6 +19,7 @@
 
 ### Removed
 ### Fixed
+- [#2082](https://github.com/org-roam/org-roam/pull/2082) buffer: don't destroy window if `org-roam-node-toggle` reuses window
 - [#2080](https://github.com/org-roam/org-roam/pull/2080) dailies: prevent multiple "dailies/" subdir expansions
 - [#2055](https://github.com/org-roam/org-roam/pull/2055) dailies: removed stray f require, which was causing require and compilation errors
 ### Changed
