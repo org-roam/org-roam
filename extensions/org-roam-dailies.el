@@ -329,7 +329,8 @@ When GOTO is non-nil, go the note without creating an entry.
 
 ELisp programs can set KEYS to a string associated with a template.
 In this case, interactive selection will be bypassed."
-  (let ((org-roam-directory (expand-file-name org-roam-dailies-directory org-roam-directory)))
+  (let ((org-roam-directory (expand-file-name org-roam-dailies-directory org-roam-directory))
+        (org-roam-dailies-directory "./"))
     (org-roam-capture- :goto (when goto '(4))
                        :keys keys
                        :node (org-roam-node-create)
