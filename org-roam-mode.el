@@ -289,7 +289,7 @@ To toggle its display use `org-roam-buffer-toggle' command.")
   (pcase (org-roam-buffer--visibility)
     ('visible
      (progn
-       (delete-window (get-buffer-window org-roam-buffer))
+       (quit-window nil (get-buffer-window org-roam-buffer))
        (remove-hook 'post-command-hook #'org-roam-buffer--redisplay-h)))
     ((or 'exists 'none)
      (progn
