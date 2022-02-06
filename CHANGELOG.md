@@ -3,7 +3,7 @@
 ### Breaking
 - [#2054](https://github.com/org-roam/org-roam/pull/2054) node: simplify default `org-roam-node-display-template`.
   This was done so completions work fine by default on all completion systems. To restore the tabular vertical completion interface, set this in your configuration:
-  
+
   ```emacs-lisp
   (setq org-roam-node-display-template
         (concat "${title:*} "
@@ -15,6 +15,8 @@
 - [#2049](https://github.com/org-roam/org-roam/pull/2049) capture: allow ID to be used as part of `org-roam-capture-templates`
 - [#2050](https://github.com/org-roam/org-roam/pull/2050) core: add `FILTER-FN` to `org-roam-node-random`
 - [#2065](https://github.com/org-roam/org-roam/pull/2065) dailies: add `keys` argument to the remaining dailies functions `org-roam-dailies-goto-yesterday`/`-today`/`-tomorrow`/`-date` and `org-roam-dailies-capture-yesterday`/`-tomorrow`/`-date` to give the abilty to get into a capture buffer bypassing the selection screen in all dailies commands. Extension of #2055
+- [#2079](https://github.com/org-roam/org-roam/pull/2079) capture: ensure that `:ref` info captured in all cases.
+
 ### Removed
 ### Fixed
 - [#2080](https://github.com/org-roam/org-roam/pull/2080) dailies: prevent multiple "dailies/" subdir expansions

@@ -679,6 +679,24 @@ the current value of `point'."
             (goto-char (org-entry-end-position))))))))
   (point))
 
+;;; Capture implementation
+(add-hook 'org-roam-capture-preface-hook #'org-roam-capture--try-capture-to-ref-h)
+(defun org-roam-capture--try-capture-to-ref-h ()
+  "Try to capture to an existing node that match the ref."
+  (when-let ((node (and (plist-get org-roam-capture--info :ref)
+                        (org-roam-node-from-ref
+                         (plist-get org-roam-capture--info :ref)))))
+    (set-buffer (org-capture-target-buffer (org-roam-node-file node)))
+    (goto-char (org-roam-node-point node))
+    (widen)
+    (org-roam-node-id node)))
+
+(add-hook 'org-roam-capture-new-node-hook #'org-roam-capture--insert-captured-ref-h)
+(defun org-roam-capture--insert-captured-ref-h ()
+  "Insert the ref if any."
+  (when-let ((ref (plist-get org-roam-capture--info :ref)))
+    (org-roam-ref-add ref)))
+
 ;;;; Finalizers
 (add-hook 'org-capture-prepare-finalize-hook #'org-roam-capture--install-finalize-h)
 (defun org-roam-capture--install-finalize-h ()
