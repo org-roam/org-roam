@@ -111,9 +111,10 @@ SPEC is a list, as per `dolist'."
 ;;; File utilities
 (defun org-roam-descendant-of-p (a b)
   "Return t if A is descendant of B."
-  (unless (equal (file-truename a) (file-truename b))
-    (string-prefix-p (expand-file-name b)
-                     (expand-file-name a))))
+  (let ((a (file-truename a))
+        (b (file-truename b)))
+    (unless (equal a b)
+      (string-prefix-p b a))))
 
 (defmacro org-roam-with-file (file keep-buf-p &rest body)
   "Execute BODY within FILE.
