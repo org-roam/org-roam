@@ -826,21 +826,42 @@ Any top level properties drawers are incorporated into the new heading."
     (org-roam-erase-keyword "title")
     (org-roam-erase-keyword "filetags")))
 
+(defun org-roam--heading-levels ()
+  (org-map-entries (lambda () (org-current-level))
+                   nil 'file))
+
+(defun org-roam--can-promote-p ()
+  "Verify that this buffer is promoteable:
+There is a single level-1 heading
+and no extra content before the first heading.
+"
+  (let ((level-1-headings-count (-count (lambda (level) (eq 1 level)) (org-roam--heading-levels)))
+        (is-top-content-empty (org-with-point-at 1
+                                (org-at-heading-p))))
+    (and
+     (eq level-1-headings-count 1)
+     is-top-content-empty)))
+
 (defun org-roam-promote-entire-buffer ()
   "Promote the current buffer.
-Converts a file containing a headline node at the top to a file
+Converts a file containing a single level-1 headline node to a file
 node."
   (interactive)
-  (org-with-point-at 1
-    (org-map-entries (lambda ()
-                       (when (> (org-outline-level) 1)
-                         (org-do-promote))))
-    (let ((title (nth 4 (org-heading-components)))
-          (tags (nth 5 (org-heading-components))))
-      (beginning-of-line)
-      (kill-line 1)
-      (org-roam-set-keyword "title" title)
-      (when tags (org-roam-set-keyword "filetags" tags)))))
+  (save-buffer) ;; org-map-entries calls break if the buffer is unsaved
+  (if (org-roam--can-promote-p)
+      (org-with-point-at 1
+        (let ((title (nth 4 (org-heading-components)))
+              (tags (nth 5 (org-heading-components))))
+          (org-map-entries (lambda ()
+                             (when (> (org-outline-level) 1)
+                               (org-do-promote)))
+                           nil 'file)
+          (kill-whole-line)
+          (org-roam-end-of-meta-data 'drawers)
+          (insert "#+title: " title "\n\n")
+          (when tags (org-roam-set-keyword "filetags" tags))
+          (org-roam-db-update-file)))
+    (user-error "Cannot promote. Can't find unique root heading or there is extra file-level text.")))
 
 ;;;###autoload
 (defun org-roam-refile ()
@@ -934,6 +955,7 @@ If region is active, then use it instead of the node at point."
       (save-buffer)
       (with-current-buffer (find-file-noselect file-path)
         (org-paste-subtree)
+        (while (> (org-current-level) 1) (org-promote-subtree))
         (org-roam-promote-entire-buffer)
         (save-buffer)))))
 
