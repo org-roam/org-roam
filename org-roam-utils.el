@@ -108,14 +108,6 @@ SPEC is a list, as per `dolist'."
       `(dolist-with-progress-reporter ,spec ,msg ,@body)
     `(dolist ,spec ,@body)))
 
-;;; File utilities
-(defun org-roam-descendant-of-p (a b)
-  "Return t if A is descendant of B."
-  (let ((a (file-truename a))
-        (b (file-truename b)))
-    (unless (equal a b)
-      (string-prefix-p b a))))
-
 (defmacro org-roam-with-file (file keep-buf-p &rest body)
   "Execute BODY within FILE.
 If FILE is nil, execute BODY in the current buffer.
