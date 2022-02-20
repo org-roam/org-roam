@@ -194,7 +194,7 @@ FILE is an Org-roam file if:
        (member ext org-roam-file-extensions)
        (not (and org-roam-file-exclude-regexp
                  (string-match-p org-roam-file-exclude-regexp path)))
-       (org-roam-descendant-of-p path (expand-file-name org-roam-directory))))))
+       (file-in-directory-p path (expand-file-name org-roam-directory))))))
 
 (defun org-roam-list-files ()
   "Return a list of all Org-roam files under `org-roam-directory'.
