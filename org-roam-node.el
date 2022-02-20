@@ -131,8 +131,8 @@ It takes a single argument REF, which is a propertized string."
   :type 'boolean)
 
 (defcustom org-roam-extract-new-file-path "%<%Y%m%d%H%M%S>-${slug}.org"
-  "The file path template (relative to `org-roam-directory') to use
-when a node is extracted to its own file."
+  "The file path template to use when a node is extracted to its own file.
+This path is relative to `org-roam-directory'."
   :group 'org-roam
   :type 'string)
 
@@ -187,14 +187,12 @@ when a node is extracted to its own file."
                            816 ; U+0330 COMBINING TILDE BELOW
                            817 ; U+0331 COMBINING MACRON BELOW
                            )))
-    (cl-flet* ((nonspacing-mark-p (char)
-                                  (memq char slug-trim-chars))
-               (strip-nonspacing-marks (s)
-                                       (string-glyph-compose
-                                        (apply #'string (seq-remove #'nonspacing-mark-p
-                                                                    (string-glyph-decompose s)))))
-               (cl-replace (title pair)
-                           (replace-regexp-in-string (car pair) (cdr pair) title)))
+    (cl-flet* ((nonspacing-mark-p (char) (memq char slug-trim-chars))
+               (strip-nonspacing-marks (s) (string-glyph-compose
+                                            (apply #'string
+                                                   (seq-remove #'nonspacing-mark-p
+                                                               (string-glyph-decompose s)))))
+               (cl-replace (title pair) (replace-regexp-in-string (car pair) (cdr pair) title)))
       (let* ((pairs `(("[^[:alnum:][:digit:]]" . "_") ;; convert anything not alphanumeric
                       ("__*" . "_")                   ;; remove sequential underscores
                       ("^_" . "")                     ;; remove starting underscore

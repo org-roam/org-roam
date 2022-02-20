@@ -591,7 +591,8 @@ Return the ID of the location."
 PATH is a string that can optionally contain templated text in
 it."
   (or (org-roam-node-file org-roam-capture--node)
-      (thread-first path
+      (thread-first
+        path
         (org-roam-capture--fill-template t)
         (string-trim)
         (expand-file-name org-roam-directory))))
