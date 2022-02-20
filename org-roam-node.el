@@ -131,7 +131,8 @@ It takes a single argument REF, which is a propertized string."
   :type 'boolean)
 
 (defcustom org-roam-extract-new-file-path "%<%Y%m%d%H%M%S>-${slug}.org"
-  "The file path to use when a node is extracted to its own file."
+  "The file path template (relative to `org-roam-directory') to use
+when a node is extracted to its own file."
   :group 'org-roam
   :type 'string)
 
@@ -926,8 +927,11 @@ If region is active, then use it instead of the node at point."
                            (t (let ((r (read-from-minibuffer (format "%s: " key) default-val)))
                                 (plist-put template-info ksym r)
                                 r)))))))
-           (file-path (read-file-name "Extract node to: "
-                                      (file-name-as-directory org-roam-directory) template nil template)))
+           (file-path
+            (expand-file-name
+             (read-file-name "Extract node to: "
+                             (file-name-as-directory org-roam-directory) template nil template)
+             org-roam-directory)))
       (when (file-exists-p file-path)
         (user-error "%s exists. Aborting" file-path))
       (org-cut-subtree)
