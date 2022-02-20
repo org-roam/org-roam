@@ -131,8 +131,8 @@ It takes a single argument REF, which is a propertized string."
   :type 'boolean)
 
 (defcustom org-roam-extract-new-file-path "%<%Y%m%d%H%M%S>-${slug}.org"
-  "The file path template (relative to `org-roam-directory') to use
-when a node is extracted to its own file."
+  "The file path template to use when a node is extracted to its own file.
+This path is relative to `org-roam-directory'. "
   :group 'org-roam
   :type 'string)
 

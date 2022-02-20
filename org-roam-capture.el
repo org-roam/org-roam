@@ -592,9 +592,9 @@ PATH is a string that can optionally contain templated text in
 it."
   (or (org-roam-node-file org-roam-capture--node)
       (thread-first path
-        (org-roam-capture--fill-template t)
-        (string-trim)
-        (expand-file-name org-roam-directory))))
+                    (org-roam-capture--fill-template t)
+                    (string-trim)
+                    (expand-file-name org-roam-directory))))
 
 (defun org-roam-capture--new-file-p (path)
   "Return t if PATH is for a new file with no visiting buffer."
