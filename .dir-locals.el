@@ -4,6 +4,7 @@
   (elisp-lint-ignored-validators . ("byte-compile" "package-lint"))
   (elisp-lint-indent-specs . ((describe . 1)
                               (it . 1)
+                              (thread-first . 0)
                               (cl-flet . 1)
                               (cl-flet* . 1)
                               (org-element-map . defun)
