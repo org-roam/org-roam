@@ -710,8 +710,8 @@ the current value of `point'."
   (when-let ((region (org-roam-capture--get :region)))
     (org-roam-unshield-region (car region) (cdr region)))
   (if org-note-abort
-      (when-let ((new-file (org-roam-capture--get :new-file)))
-        (org-roam-message "Deleting file for aborted capture %s" new-file)
+      (when-let ((new-file (org-roam-capture--get :new-file))
+                 (_ (yes-or-no-p "Delete file for aborted capture?")))
         (when (find-buffer-visiting new-file)
           (kill-buffer (find-buffer-visiting new-file)))
         (delete-file new-file))
