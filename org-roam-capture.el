@@ -716,7 +716,7 @@ the current value of `point'."
           (kill-buffer (find-buffer-visiting new-file)))
         (delete-file new-file))
     (when-let* ((buffer (plist-get org-capture-plist :buffer))
-		(file (buffer-file-name buffer)))
+                (file (buffer-file-name buffer)))
       (org-id-add-location (org-roam-capture--get :id) file))
     (when-let* ((finalize (org-roam-capture--get :finalize))
                 (org-roam-finalize-fn (intern (concat "org-roam-capture--finalize-"
