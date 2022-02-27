@@ -816,7 +816,8 @@ Any tags declared on #+FILETAGS: are transferred to tags on the new top heading.
 Any top level properties drawers are incorporated into the new heading."
   (interactive)
   (org-with-point-at 1
-    (org-map-entries 'org-do-demote)
+    (org-map-region #'org-do-demote
+                    (point-min) (point-max))
     (insert "* "
             (org-roam--get-keyword "title")
             "\n")
@@ -831,9 +832,11 @@ Converts a file containing a headline node at the top to a file
 node."
   (interactive)
   (org-with-point-at 1
-    (org-map-entries (lambda ()
-                       (when (> (org-outline-level) 1)
-                         (org-do-promote))))
+    (org-map-region
+     (lambda ()
+       (when (> (org-outline-level) 1)
+         (org-do-promote)))
+     (point-min) (point-max))
     (let ((title (nth 4 (org-heading-components)))
           (tags (nth 5 (org-heading-components))))
       (beginning-of-line)
