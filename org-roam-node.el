@@ -698,8 +698,7 @@ The INFO, if provided, is passed to the underlying `org-roam-capture-'."
              :props (append
                      (when (and beg end)
                        (list :region (cons beg end)))
-                     (list :insert-at (point-marker)
-                           :link-description description
+                     (list :link-description description
                            :finalize 'insert-link))))))
     (deactivate-mark)))
 
