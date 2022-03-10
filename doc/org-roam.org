@@ -902,7 +902,16 @@ file:
 #+END_SRC
 
 We also need to set up ~org-protocol~: the instructions for setting up
-~org-protocol~ are reproduced below.
+~org-protocol~ are reproduced here.
+
+On a high-level, external calls are passed to Emacs via ~emacsclient~.
+~org-protocol~ intercepts these and runs custom actions based on the protocols
+registered. Hence, to use ~org-protocol~, once must:
+
+1. launch the ~emacsclient~ process
+2. Register ~org-protocol://~ as a valid scheme-handler
+
+The instructions for the latter for each operating system is detailed below.
 
 *** Linux
 For Linux users, create a desktop application in

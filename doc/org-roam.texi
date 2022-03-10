@@ -1309,7 +1309,21 @@ file:
 @end lisp
 
 We also need to set up @code{org-protocol}: the instructions for setting up
-@code{org-protocol} are reproduced below.
+@code{org-protocol} are reproduced here.
+
+On a high-level, external calls are passed to Emacs via @code{emacsclient}.
+@code{org-protocol} intercepts these and runs custom actions based on the protocols
+registered. Hence, to use @code{org-protocol}, once must:
+
+@itemize
+@item
+launch the @code{emacsclient} process
+
+@item
+Register @code{org-protocol://} as a valid scheme-handler
+@end itemize
+
+The instructions for the latter for each operating system is detailed below.
 
 @menu
 * Linux::
