@@ -23,6 +23,8 @@
 - [#2082](https://github.com/org-roam/org-roam/pull/2082) buffer: don't destroy window if `org-roam-node-toggle` reuses window
 - [#2080](https://github.com/org-roam/org-roam/pull/2080) dailies: prevent multiple "dailies/" subdir expansions
 - [#2055](https://github.com/org-roam/org-roam/pull/2055) dailies: removed stray f require, which was causing require and compilation errors
+- [#2117](https://github.com/org-roam/org-roam/pull/2117) capture: preserve trailing whitespace content in capture templates
+
 ### Changed
 - [#2060](https://github.com/org-roam/org-roam/pull/2060) node: added double acute accent normalization for Unicode characters in titles
 - [#2040](https://github.com/org-roam/org-roam/pull/2040) completions: fix completions display-width for Helm users

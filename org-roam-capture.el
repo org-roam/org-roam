@@ -505,7 +505,7 @@ Return the ID of the location."
        (set-buffer (org-capture-target-buffer path))
        (when new-file-p
          (org-roam-capture--put :new-file path)
-         (insert (org-roam-capture--fill-template head t)))
+         (insert (org-roam-capture--fill-template head 'ensure-newline)))
        (widen)
        (setq p (goto-char (point-min))))
       (`(file+head+olp ,path ,head ,olp)
@@ -515,7 +515,7 @@ Return the ID of the location."
        (widen)
        (when new-file-p
          (org-roam-capture--put :new-file path)
-         (insert (org-roam-capture--fill-template head t)))
+         (insert (org-roam-capture--fill-template head 'ensure-newline)))
        (setq p (point-min))
        (let ((m (org-roam-capture-find-or-create-olp olp)))
          (goto-char m)))
@@ -593,7 +593,7 @@ it."
   (or (org-roam-node-file org-roam-capture--node)
       (thread-first
         path
-        (org-roam-capture--fill-template t)
+        (org-roam-capture--fill-template)
         (string-trim)
         (expand-file-name org-roam-directory))))
 
@@ -618,7 +618,7 @@ you can catch it with `condition-case'."
     (org-with-wide-buffer
      (goto-char start)
      (dolist (heading olp)
-       (setq heading (org-roam-capture--fill-template heading t))
+       (setq heading (org-roam-capture--fill-template heading))
        (let ((re (format org-complex-heading-regexp-format
                          (regexp-quote heading)))
              (cnt 0))
@@ -752,43 +752,40 @@ This function is to be called in the Org-capture finalization process."
             (insert link)))))))
 
 ;;;; Processing of the capture templates
-(defun org-roam-capture--fill-template (template &optional org-capture-p newline)
+(defun org-roam-capture--fill-template (template &optional ensure-newline)
   "Expand TEMPLATE and return it.
-It expands ${var} occurrences in TEMPLATE. When ORG-CAPTURE-P,
-also run Org-capture's template expansion.
-If NEWLINE, ensure that the template returned ends with a newline."
-  (setq template (org-roam-format-template
-                  template
-                  (lambda (key default-val)
-                    (let ((fn (intern key))
-                          (node-fn (intern (concat "org-roam-node-" key)))
-                          (ksym (intern (concat ":" key))))
-                      (cond
-                       ((fboundp fn)
-                        (funcall fn org-roam-capture--node))
-                       ((fboundp node-fn)
-                        (funcall node-fn org-roam-capture--node))
-                       ((plist-get org-roam-capture--info ksym)
-                        (plist-get org-roam-capture--info ksym))
-                       (t (let ((r (read-from-minibuffer (format "%s: " key) default-val)))
-                            (plist-put org-roam-capture--info ksym r)
-                            r)))))))
-  ;; WARNING:
-  ;; `org-capture-fill-template' fills the template, but post-processes whitespace such that the resultant
-  ;; template does not start with any whitespace, and only ends with a single newline
-  ;;
-  ;; In most cases where we rely on `org-capture-fill-template' to populate non-org-capture-related templates,
-  ;; (e.g. in OLPs), we strip the final newline, obtaining a template that seems to be string-trimmed.
-  ;;
-  ;; This means that if the original passed template has newlines, and ORG-CAPTURE-P is true, then the extra
-  ;; whitespace specified in the template will be ignored.
-  (when org-capture-p
+It expands ${var} occurrences in TEMPLATE, and then runs
+org-capture's template expansion.
+When ENSURE-NEWLINE, always ensure there's a newline behind."
+  (let ((template-whitespace-content (org-roam-whitespace-content template)))
     (setq template
-          (replace-regexp-in-string "\n$" "" (org-capture-fill-template template))))
-  (when (and newline
-             (not (string-suffix-p "\n" template)))
-    (setq template (concat template "\n")))
-  template)
+          (org-roam-format-template
+           template
+           (lambda (key default-val)
+             (let ((fn (intern key))
+                   (node-fn (intern (concat "org-roam-node-" key)))
+                   (ksym (intern (concat ":" key))))
+               (cond
+                ((fboundp fn)
+                 (funcall fn org-roam-capture--node))
+                ((fboundp node-fn)
+                 (funcall node-fn org-roam-capture--node))
+                ((plist-get org-roam-capture--info ksym)
+                 (plist-get org-roam-capture--info ksym))
+                (t (let ((r (read-from-minibuffer (format "%s: " key) default-val)))
+                     (plist-put org-roam-capture--info ksym r)
+                     r)))))))
+    ;; WARNING:
+    ;; `org-capture-fill-template' fills the template, but post-processes whitespace such that the resultant
+    ;; template does not start with any whitespace, and only ends with a single newline
+    ;;
+    ;; Instead, we restore the whitespace in the original template.
+    (setq template (replace-regexp-in-string "\n$" "" (org-capture-fill-template template)))
+    (when (and ensure-newline
+               (string-equal template-whitespace-content ""))
+      (setq template-whitespace-content "\n"))
+    (setq template (concat template template-whitespace-content))
+    template))
 
 (defun org-roam-capture--convert-template (template &optional props)
   "Convert TEMPLATE from Org-roam syntax to `org-capture-templates' syntax.

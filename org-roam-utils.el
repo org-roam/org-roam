@@ -69,6 +69,15 @@ Like `string-equal', but case-insensitive."
        (or (string-equal s1 s2)
            (string-equal (downcase s1) (downcase s2)))))
 
+(defun org-roam-whitespace-content (s)
+  "Return the whitespace content at the end of S."
+  (with-temp-buffer
+    (let ((c 0))
+      (insert s)
+      (skip-chars-backward " \t\n")
+      (buffer-substring-no-properties
+       (point) (point-max)))))
+
 (defun org-roam-strip-comments (s)
   "Strip Org comments from string S."
   (with-temp-buffer
