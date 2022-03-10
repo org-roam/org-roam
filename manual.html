@@ -1573,7 +1573,19 @@ file:
 </pre></div>
 
 <p>We also need to set up <code>org-protocol</code>: the instructions for setting up
-<code>org-protocol</code> are reproduced below.
+<code>org-protocol</code> are reproduced here.
+</p>
+<p>On a high-level, external calls are passed to Emacs via <code>emacsclient</code>.
+<code>org-protocol</code> intercepts these and runs custom actions based on the protocols
+registered. Hence, to use <code>org-protocol</code>, once must:
+</p>
+<ul>
+<li> launch the <code>emacsclient</code> process
+
+</li><li> Register <code>org-protocol://</code> as a valid scheme-handler
+</li></ul>
+
+<p>The instructions for the latter for each operating system is detailed below.
 </p>
 <table class="menu" border="0" cellspacing="0">
 <tr><td align="left" valign="top">&bull; <a href="#Linux" accesskey="1">Linux</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
