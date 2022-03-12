@@ -1187,6 +1187,16 @@ title/alias but are not linked
 
 <p>Note that computing unlinked references may be slow, and has not been added in by default.
 </p>
+<p>Or, if you want to render unique sources for backlinks (and also keep rendering reference links), set <code>org-roam-mode-section-functions</code> as follows:
+</p>
+<div class="lisp">
+<pre class="lisp">  (setq org-roam-mode-section-functions
+        (list
+         (lambda (node) (org-roam-backlinks-section node :unique t))
+         #'org-roam-reflinks-section))
+</pre></div>
+
+
 <hr>
 <span id="Configuring-the-Org_002droam-buffer-display"></span><div class="header">
 <p>
