@@ -459,14 +459,23 @@ headline, up to the next headline."
         (org-roam-populate (org-roam-backlink-target-node backlink)))
   backlink)
 
-(defun org-roam-backlinks-get (node)
-  "Return the backlinks for NODE."
-  (let ((backlinks (org-roam-db-query
-                    [:select [source dest pos properties]
-                     :from links
-                     :where (= dest $s1)
-                     :and (= type "id")]
-                    (org-roam-node-id node))))
+(cl-defun org-roam-backlinks-get (node &key unique)
+  "Return the backlinks for NODE.
+
+ When UNIQUE is nil, show all positions where references are found.
+ When UNIQUE is t, limit to unique sources."
+  (let* ((sql (if unique
+                  [:select :distinct [source dest pos properties]
+                   :from links
+                   :where (= dest $s1)
+                   :and (= type "id")
+                   :group :by source
+                   :having (funcall min pos)]
+                [:select [source dest pos properties]
+                 :from links
+                 :where (= dest $s1)
+                 :and (= type "id")]))
+         (backlinks (org-roam-db-query sql (org-roam-node-id node))))
     (cl-loop for backlink in backlinks
              collect (pcase-let ((`(,source-id ,dest-id ,pos ,properties) backlink))
                        (org-roam-populate
@@ -482,9 +491,12 @@ Sorts by title."
   (string< (org-roam-node-title (org-roam-backlink-source-node a))
            (org-roam-node-title (org-roam-backlink-source-node b))))
 
-(defun org-roam-backlinks-section (node)
-  "The backlinks section for NODE."
-  (when-let ((backlinks (seq-sort #'org-roam-backlinks-sort (org-roam-backlinks-get node))))
+(cl-defun org-roam-backlinks-section (node &key (unique nil))
+  "The backlinks section for NODE.
+
+When UNIQUE is nil, show all positions where references are found.
+When UNIQUE is t, limit to unique sources."
+  (when-let ((backlinks (seq-sort #'org-roam-backlinks-sort (org-roam-backlinks-get node :unique unique))))
     (magit-insert-section (org-roam-backlinks)
       (magit-insert-heading "Backlinks:")
       (dolist (backlink backlinks)
