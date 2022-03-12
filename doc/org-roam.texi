@@ -997,6 +997,15 @@ Or, if you want to render unique sources for backlinks (and also keep rendering 
          #'org-roam-reflinks-section))
 @end lisp
 
+Alternatively, you can set @code{org-roam-backlinks-section-unique-sources} and use the default @code{org-roam-mode-section-functions}.
+
+@lisp
+  (setq org-roam-backlinks-section-unique-sources t)
+  (setq org-roam-mode-section-functions
+	(list
+	 #'org-roam-backlinks-section
+	 #'org-roam-reflinks-section))
+@end lisp
 
 @node Configuring the Org-roam buffer display
 @section Configuring the Org-roam buffer display

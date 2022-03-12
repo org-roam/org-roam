@@ -657,6 +657,16 @@ Or, if you want to render unique sources for backlinks (and also keep rendering 
          #'org-roam-reflinks-section))
 #+end_src
 
+Alternatively, you can set ~org-roam-backlinks-section-unique-sources~ and use the default ~org-roam-mode-section-functions~.
+
+#+begin_src emacs-lisp
+  (setq org-roam-backlinks-section-unique-sources t)
+  (setq org-roam-mode-section-functions
+	(list
+	 #'org-roam-backlinks-section
+	 #'org-roam-reflinks-section))
+#+end_src
+
 ** Configuring the Org-roam buffer display
 
 Org-roam does not control how the pop-up buffer is displayed: this is left to

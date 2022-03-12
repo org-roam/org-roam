@@ -72,6 +72,18 @@ applied in order of appearance in the list."
   :group 'org-roam
   :type 'hook)
 
+(defcustom org-roam-backlinks-section-unique-sources nil
+  "If non-nil, render one backlink per source.
+
+When non-nil `org-roam-backlinks-section' renders unique
+sources, using the first pos of the backlink reference.
+
+When nil, renders each reference source.  If a node references
+another node 5 times, it will render each of those five
+references (along with position and properties)."
+  :group 'org-roam
+  :type 'boolean)
+
 ;;; Faces
 (defface org-roam-header-line
   `((((class color) (background light))
@@ -491,12 +503,15 @@ Sorts by title."
   (string< (org-roam-node-title (org-roam-backlink-source-node a))
            (org-roam-node-title (org-roam-backlink-source-node b))))
 
-(cl-defun org-roam-backlinks-section (node &key (unique nil))
+(cl-defun org-roam-backlinks-section (node &key (unique org-roam-backlinks-section-unique-sources))
   "The backlinks section for NODE.
 
 When UNIQUE is nil, show all positions where references are found.
 When UNIQUE is t, limit to unique sources."
-  (when-let ((backlinks (seq-sort #'org-roam-backlinks-sort (org-roam-backlinks-get node :unique unique))))
+  (when-let ((backlinks (seq-sort #'org-roam-backlinks-sort
+                                  (org-roam-backlinks-get
+                                   node
+                                   :unique unique))))
     (magit-insert-section (org-roam-backlinks)
       (magit-insert-heading "Backlinks:")
       (dolist (backlink backlinks)
