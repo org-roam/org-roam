@@ -988,15 +988,15 @@ To configure what sections are displayed in the buffer, set @code{org-roam-mode-
 
 Note that computing unlinked references may be slow, and has not been added in by default.
 
-Or, if you want to render unique sources for backlinks (and also keep rendering reference links), set @code{org-roam-mode-section-functions} as follows:
+For each section function, you can pass args along to modify its behaviour. For
+example, if you want to render unique sources for backlinks (and also keep
+rendering reference links), set @code{org-roam-mode-section-functions} as follows:
 
 @lisp
-  (setq org-roam-mode-section-functions
-        (list
-         (lambda (node) (org-roam-backlinks-section node :unique t))
-         #'org-roam-reflinks-section))
+(setq org-roam-mode-section-functions
+      '((org-roam-backlinks-section :unique t)
+        org-roam-reflinks-section))
 @end lisp
-
 
 @node Configuring the Org-roam buffer display
 @section Configuring the Org-roam buffer display
