@@ -39,14 +39,28 @@
 (defvar org-ref-buffer-hacked)
 
 ;;; Options
-(defcustom org-roam-mode-section-functions (list #'org-roam-backlinks-section
-                                                 #'org-roam-reflinks-section)
-  "Functions that insert sections in the `org-roam-mode' based buffers.
-Each function is called with one argument, which is an
-`org-roam-node' for which the buffer will be constructed for.
-Normally this node is `org-roam-buffer-current-node'."
+(defcustom org-roam-mode-sections (list #'org-roam-backlinks-section
+                                        #'org-roam-reflinks-section)
+  "A list of sections for the `org-roam-mode' based buffers.
+Each section is a function that is passed the an `org-roam-node'
+for which the section will be constructed for as the first
+argument. Normally this node is `org-roam-buffer-current-node'.
+The function may also accept other optional arguments. Each item
+in the list is either:
+
+1. A function, which is called only with the `org-roam-node' as the argument
+2. A list, containing the function and the optional arguments.
+
+For example, one can add
+
+    (org-roam-backlinks-section :unique t)
+
+to the list to pass :unique t to the section-rendering function."
   :group 'org-roam
-  :type 'hook)
+  :type `(repeat (choice (symbol :tag "Function")
+                         (list :tag "Function with arguments"
+                               (symbol :tag "Function")
+                               (repeat :tag "Arguments" :inline t (sexp :tag "Arg"))))))
 
 (defcustom org-roam-buffer-postrender-functions (list)
   "Functions to run after the Org-roam buffer is rendered.
@@ -168,7 +182,7 @@ This mode is used by special Org-roam buffers, such as persistent
 `org-roam-buffer' and dedicated Org-roam buffers
 \(`org-roam-buffer-display-dedicated'), which render the
 information in a section-like manner (see
-`org-roam-mode-section-functions'), with which the user can
+`org-roam-mode-sections'), with which the user can
 interact with."
   :group 'org-roam
   (face-remap-add-relative 'header-line 'org-roam-header-line))
@@ -228,14 +242,14 @@ buffer."
      (org-roam-node-title org-roam-buffer-current-node))
     (magit-insert-section (org-roam)
       (magit-insert-heading)
-      (dolist (section-fn org-roam-mode-section-functions)
-        (pcase section-fn
+      (dolist (section org-roam-mode-sections)
+        (pcase section
           ((pred functionp)
-           (funcall section-fn org-roam-buffer-current-node))
+           (funcall section org-roam-buffer-current-node))
           (`(,fn . ,args)
            (apply fn (cons org-roam-buffer-current-node args)))
           (_
-           (user-error "Invalid `org-roam-mode-section-functions specification.'")))))
+           (user-error "Invalid `org-roam-mode-sections' specification")))))
     (run-hooks 'org-roam-buffer-postrender-functions)
     (goto-char 0)))
 

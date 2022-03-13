@@ -16,6 +16,7 @@
 - [#2050](https://github.com/org-roam/org-roam/pull/2050) core: add `FILTER-FN` to `org-roam-node-random`
 - [#2065](https://github.com/org-roam/org-roam/pull/2065) dailies: add `keys` argument to the remaining dailies functions `org-roam-dailies-goto-yesterday`/`-today`/`-tomorrow`/`-date` and `org-roam-dailies-capture-yesterday`/`-tomorrow`/`-date` to give the abilty to get into a capture buffer bypassing the selection screen in all dailies commands. Extension of #2055
 - [#2079](https://github.com/org-roam/org-roam/pull/2079) capture: ensure that `:ref` info captured in all cases.
+- [#2121](https://github.com/org-roam/org-roam/pull/2121) buffer: add unique option to `org-roam-backlinks-section`
 
 ### Removed
 ### Fixed
@@ -30,6 +31,7 @@
 - [#2040](https://github.com/org-roam/org-roam/pull/2040) completions: fix completions display-width for Helm users
 - [#2025](https://github.com/org-roam/org-roam/pull/2025) chore: removed the dependencies on f.el and s.el
 - [#2109](https://github.com/org-roam/org-roam/pull/2109) capture: `org-roam-node-insert` places cursor after inserted link where appropriate
+- [#2123](https://github.com/org-roam/org-roam/pull/2123), [#2124](https://github.com/org-roam/org-roam/pull/2124) buffer: `org-roam-mode-section-functions` renamed to `org-roam-mode-sections`, supports passing args into the section-rendering function
 
 ## 2.2.0
 ### Added
