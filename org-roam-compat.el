@@ -229,6 +229,10 @@ nodes." org-id-locations-file)
   'org-roam-remove-property
   'org-roam-property-remove "org-roam 2.1")
 
+(define-obsolete-variable-alias
+  'org-roam-mode-section-functions
+  'org-roam-mode-sections "org-roam 2.2.0")
+
 ;;; Obsolete functions
 (make-obsolete 'org-roam-get-keyword 'org-collect-keywords "org-roam 2.0")
 
