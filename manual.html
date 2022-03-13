@@ -1175,10 +1175,10 @@ Next: <a href="#Configuring-the-Org_002droam-buffer-display" accesskey="n" rel="
 title/alias but are not linked
 </li></ul>
 
-<p>To configure what sections are displayed in the buffer, set <code>org-roam-mode-section-functions</code>.
+<p>To configure what sections are displayed in the buffer, set ~org-roam-mode-sections.
 </p>
 <div class="lisp">
-<pre class="lisp">(setq org-roam-mode-section-functions
+<pre class="lisp">(setq org-roam-mode-sections
       (list #'org-roam-backlinks-section
             #'org-roam-reflinks-section
             ;; #'org-roam-unlinked-references-section
@@ -1189,10 +1189,10 @@ title/alias but are not linked
 </p>
 <p>For each section function, you can pass args along to modify its behaviour. For
 example, if you want to render unique sources for backlinks (and also keep
-rendering reference links), set <code>org-roam-mode-section-functions</code> as follows:
+rendering reference links), set <code>org-roam-mode-sections</code> as follows:
 </p>
 <div class="lisp">
-<pre class="lisp">(setq org-roam-mode-section-functions
+<pre class="lisp">(setq org-roam-mode-sections
       '((org-roam-backlinks-section :unique t)
         org-roam-reflinks-section))
 </pre></div>
