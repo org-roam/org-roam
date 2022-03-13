@@ -228,7 +228,14 @@ buffer."
      (org-roam-node-title org-roam-buffer-current-node))
     (magit-insert-section (org-roam)
       (magit-insert-heading)
-      (run-hook-with-args 'org-roam-mode-section-functions org-roam-buffer-current-node))
+      (dolist (section-fn org-roam-mode-section-functions)
+        (pcase section-fn
+          ((pred functionp)
+           (funcall section-fn org-roam-buffer-current-node))
+          (`(,fn . ,args)
+           (apply fn (cons org-roam-buffer-current-node args)))
+          (_
+           (user-error "Invalid `org-roam-mode-section-functions specification.'")))))
     (run-hooks 'org-roam-buffer-postrender-functions)
     (goto-char 0)))
 
