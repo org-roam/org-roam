@@ -122,6 +122,13 @@ All Org files, at any level of nesting, are considered part of the Org-roam."
   :group 'org-roam
   :type 'hook)
 
+(defcustom org-roam-post-node-insert-hook '()
+  "Hook run when an Org-roam node is insert.
+The first parameter is the id of the node's link,
+The second parameter is the link's description"
+  :group 'org-roam
+  :type 'hook)
+
 (defcustom org-roam-file-extensions '("org")
   "List of file extensions to be included by Org-Roam.
 While a file extension different from \".org\" may be used, the

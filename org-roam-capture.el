@@ -744,12 +744,17 @@ This function is to be called in the Org-capture finalization process."
         (delete-region (car region) (cdr region))
         (set-marker (car region) nil)
         (set-marker (cdr region) nil))
-      (let ((link (org-link-make-string (concat "id:" (org-roam-capture--get :id))
-                                        (org-roam-capture--get :link-description))))
+      (let* ((id (org-roam-capture--get :id))
+             (description (org-roam-capture--get :link-description))
+             (link (org-link-make-string (concat "id:" id)
+                                         description)))
         (if (eq (point) (marker-position mkr))
             (insert link)
           (org-with-point-at mkr
-            (insert link)))))))
+            (insert link)))
+        (run-hook-with-args 'org-roam-post-node-insert-hook
+                            id
+                            description)))))
 
 ;;;; Processing of the capture templates
 (defun org-roam-capture--fill-template (template &optional ensure-newline)

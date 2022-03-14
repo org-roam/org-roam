@@ -688,9 +688,13 @@ The INFO, if provided, is passed to the underlying `org-roam-capture-'."
                   (delete-region beg end)
                   (set-marker beg nil)
                   (set-marker end nil))
-                (insert (org-link-make-string
-                         (concat "id:" (org-roam-node-id node))
-                         description)))
+                (let ((id (org-roam-node-id node)))
+                  (insert (org-link-make-string
+                           (concat "id:" id)
+                           description))
+                  (run-hook-with-args 'org-roam-post-node-insert-hook
+                                      id
+                                      description)))
             (org-roam-capture-
              :node node
              :info info
