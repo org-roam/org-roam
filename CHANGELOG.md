@@ -1,5 +1,5 @@
 # Changelog
-## TBD
+## 2.2.1
 ### Breaking
 - [#2054](https://github.com/org-roam/org-roam/pull/2054) node: simplify default `org-roam-node-display-template`.
   This was done so completions work fine by default on all completion systems. To restore the tabular vertical completion interface, set this in your configuration:
