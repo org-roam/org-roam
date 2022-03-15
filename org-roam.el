@@ -122,7 +122,7 @@ All Org files, at any level of nesting, are considered part of the Org-roam."
   :group 'org-roam
   :type 'hook)
 
-(defcustom org-roam-post-node-insert-hook '()
+(defcustom org-roam-post-node-insert-hook nil
   "Hook run when an Org-roam node is insert.
 The first parameter is the id of the node's link,
 The second parameter is the link's description"
