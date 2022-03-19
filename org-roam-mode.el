@@ -655,7 +655,7 @@ References from FILE are excluded."
                                 (shell-command-to-string "rg --pcre2-version"))))
     (let* ((titles (cons (org-roam-node-title node)
                          (org-roam-node-aliases node)))
-           (rg-command (concat "rg -o --vimgrep -P -i "
+           (rg-command (concat "rg -L -o --vimgrep -P -i "
                                (mapconcat (lambda (glob) (concat "-g " glob))
                                           (org-roam--list-files-search-globs org-roam-file-extensions)
                                           " ")
