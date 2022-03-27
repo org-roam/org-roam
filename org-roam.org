@@ -134,7 +134,7 @@ A slip-box requires a method for quickly capturing ideas. These are called
 *fleeting notes*: they are simple reminders of information or ideas that will
 need to be processed later on, or trashed. This is typically accomplished using
 ~org-capture~ (see info:org#Capture), or using Org-roam's daily notes
-functionality (see [[*Org-roam Dailies][Org-roam Dailies]]). This provides a central inbox for collecting
+functionality (see [[*org-roam-dailies][org-roam-dailies]]). This provides a central inbox for collecting
 thoughts, to be processed later into permanent notes.
 
 *Permanent notes*
@@ -765,7 +765,7 @@ With the above example, if another node links to https://www.google.com/, it
 will show up as a “reference backlink”.
 
 These keys also come in useful for when taking website notes, using the
- ~roam-ref~ protocol (see [[*Org-roam Protocol][Roam Protocol]]).
+ ~roam-ref~ protocol (see [[*org-roam-protocol][org-roam-protocol]]).
 
 You may assign multiple refs to a single node, for example when you want
 multiple papers in a series to share the same note, or an article has a citation
@@ -896,211 +896,6 @@ Note that the Org-roam database stores metadata information in plain-text
 (headline text, for example), so if this information is private to you then you
 should also ensure the database is encrypted.
 
-* Org-roam Protocol
-
-Org-roam provides extensions for capturing content from external applications
-such as the browser, via ~org-protocol~. Org-roam extends ~org-protocol~ with 2
-protocols: the ~roam-node~ and ~roam-ref~ protocols.
-
-** Installation
-
-To enable Org-roam's protocol extensions, simply add the following to your init
-file:
-
-#+BEGIN_SRC emacs-lisp
-(require 'org-roam-protocol)
-#+END_SRC
-
-We also need to set up ~org-protocol~: the instructions for setting up
-~org-protocol~ are reproduced here.
-
-On a high-level, external calls are passed to Emacs via ~emacsclient~.
-~org-protocol~ intercepts these and runs custom actions based on the protocols
-registered. Hence, to use ~org-protocol~, once must:
-
-1. launch the ~emacsclient~ process
-2. Register ~org-protocol://~ as a valid scheme-handler
-
-The instructions for the latter for each operating system is detailed below.
-
-*** Linux
-For Linux users, create a desktop application in
-~~/.local/share/applications/org-protocol.desktop~:
-
-#+begin_example
-[Desktop Entry]
-Name=Org-Protocol
-Exec=emacsclient %u
-Icon=emacs-icon
-Type=Application
-Terminal=false
-MimeType=x-scheme-handler/org-protocol
-#+end_example
-
-Associate ~org-protocol://~ links with the desktop application by
-running in your shell:
-
-#+BEGIN_SRC bash
-xdg-mime default org-protocol.desktop x-scheme-handler/org-protocol
-#+END_SRC
-
-To disable the "confirm" prompt in Chrome, you can also make Chrome show a
-checkbox to tick, so that the ~Org-Protocol Client~ app will be used without
-confirmation. To do this, run in a shell:
-
-#+BEGIN_SRC bash
-sudo mkdir -p /etc/opt/chrome/policies/managed/
-sudo tee /etc/opt/chrome/policies/managed/external_protocol_dialog.json >/dev/null <<'EOF'
-{
-  "ExternalProtocolDialogShowAlwaysOpenCheckbox": true
-}
-EOF
-sudo chmod 644 /etc/opt/chrome/policies/managed/external_protocol_dialog.json
-#+END_SRC
-
-and then restart Chrome (for example, by navigating to <chrome://restart>) to
-make the new policy take effect.
-
-See [[https://www.chromium.org/administrators/linux-quick-start][here]] for more info on the ~/etc/opt/chrome/policies/managed~ directory and
-[[https://cloud.google.com/docs/chrome-enterprise/policies/?policy=ExternalProtocolDialogShowAlwaysOpenCheckbox][here]] for information on the ~ExternalProtocolDialogShowAlwaysOpenCheckbox~ policy.
-
-*** Mac OS
-For Mac OS, we need to create our own application.
-
-1. Launch Script Editor
-2. Use the following script, paying attention to the path to ~emacsclient~:
-
-#+begin_src emacs-lisp
-  on open location this_URL
-      set EC to "/usr/local/bin/emacsclient --no-wait "
-      set filePath to quoted form of this_URL
-      do shell script EC & filePath
-      tell application "Emacs" to activate
-  end open location
-#+end_src
-
-3. Save the script in ~/Applications/OrgProtocolClient.app~, changing the script type to
-   "Application", rather than "Script".
-4. Edit ~/Applications/OrgProtocolClient.app/Contents/Info.plist~, adding the
-   following before the last ~</dict>~ tag:
-
-#+begin_src text
-  <key>CFBundleURLTypes</key>
-  <array>
-    <dict>
-      <key>CFBundleURLName</key>
-      <string>org-protocol handler</string>
-      <key>CFBundleURLSchemes</key>
-      <array>
-        <string>org-protocol</string>
-      </array>
-    </dict>
-  </array>
-#+end_src
-
-5. Save the file, and run the ~OrgProtocolClient.app~ to register the protocol.
-
-To disable the "confirm" prompt in Chrome, you can also make Chrome
-show a checkbox to tick, so that the ~OrgProtocol~ app will be used
-without confirmation. To do this, run in a shell:
-
-#+BEGIN_SRC bash
-defaults write com.google.Chrome ExternalProtocolDialogShowAlwaysOpenCheckbox -bool true
-#+END_SRC
-
-If you're using [[https://github.com/railwaycat/homebrew-emacsmacport][Emacs Mac Port]], it registered its `Emacs.app` as the default
-handler for the URL scheme `org-protocol`. To make ~OrgProtocol.app~
-the default handler instead, run:
-
-#+BEGIN_SRC bash
-defaults write com.apple.LaunchServices/com.apple.launchservices.secure LSHandlers -array-add \
-'{"LSHandlerPreferredVersions" = { "LSHandlerRoleAll" = "-"; }; LSHandlerRoleAll = "org.yourusername.OrgProtocol"; LSHandlerURLScheme = "org-protocol";}'
-#+END_SRC
-
-Then restart your computer.
-
-**** Testing org-protocol
-
-To test that you have the handler setup and registered properly from the command
-line you can run:
-
-#+begin_src bash
-  open org-protocol://roam-ref\?template=r\&ref=test\&title=this
-#+end_src
-
-If you get an error similar too this or the wrong handler is run:
-
-#+begin_quote
-No application knows how to open URL org-protocol://roam-ref?template=r&ref=test&title=this (Error Domain=NSOSStatusErrorDomain Code=-10814 "kLSApplicationNotFoundErr: E.g. no application claims the file" UserInfo={_LSLine=1489, _LSFunction=runEvaluator}).
-
-#+end_quote
-
-You may need to manually register your handler, like this:
-
-#+begin_src bash
-/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/LaunchServices.framework/Versions/A/Support/lsregister -R  -f /Applications/OrgProtocolClient.app
-#+end_src
-
-Here is a link to the lsregister command that is really useful: https://eclecticlight.co/2019/03/25/lsregister-a-valuable-undocumented-command-for-launchservices/
-*** Windows
-For Windows, create a temporary ~org-protocol.reg~ file:
-
-#+BEGIN_SRC text
-REGEDIT4
-
-[HKEY_CLASSES_ROOT\org-protocol]
-@="URL:Org Protocol"
-"URL Protocol"=""
-[HKEY_CLASSES_ROOT\org-protocol\shell]
-[HKEY_CLASSES_ROOT\org-protocol\shell\open]
-[HKEY_CLASSES_ROOT\org-protocol\shell\open\command]
-@="\"C:\\Windows\\System32\\wsl.exe\" emacsclient \"%1\""
-#+END_SRC
-
-The above will forward the protocol to WSL. If you run Emacs natively on
-Windows, replace the last line with:
-
-#+BEGIN_SRC text
-@="\"c:\\path\\to\\emacs\\bin\\emacsclientw.exe\"  \"%1\""
-#+END_SRC
-
-After executing the .reg file, the protocol is registered and you can delete the
-file.
-
-** The roam-node protocol
-
-The roam-node protocol opens the node with ID specified by the ~node~ key (e.g.
-~org-protocol://roam-node?node=node-id~). ~org-roam-graph~ uses this to make the
-graph navigable.
-
-** The roam-ref protocol
-
-This protocol finds or creates a new note with a given ~ROAM_REFS~:
-
-[[file:images/roam-ref.gif]]
-
-To use this, create the following [[https://en.wikipedia.org/wiki/Bookmarklet][bookmarklet]] in your browser:
-
-#+BEGIN_SRC javascript
-  javascript:location.href =
-      'org-protocol://roam-ref?template=r&ref='
-      + encodeURIComponent(location.href)
-      + '&title='
-      + encodeURIComponent(document.title)
-      + '&body='
-      + encodeURIComponent(window.getSelection())
-#+END_SRC
-
-or as a keybinding in ~qutebrowser~ in , using the ~config.py~ file (see
-[[https://github.com/qutebrowser/qutebrowser/blob/master/doc/help/configuring.asciidoc][Configuring qutebrowser]]):
-
-#+BEGIN_SRC python
-  config.bind("<Ctrl-r>", "open javascript:location.href='org-protocol://roam-ref?template=r&ref='+encodeURIComponent(location.href)+'&title='+encodeURIComponent(document.title)")
-#+END_SRC
-
-where ~template~ is the template key for a template in
-~org-roam-capture-ref-templates~ (see [[*The Templating System][The Templating System]]).
-
 * The Templating System
 
 Org-roam extends the ~org-capture~ system, providing a smoother note-taking
@@ -1182,12 +977,217 @@ One can check the list of available keys for nodes by inspecting the
 
 This makes ~${file}~, ~${file-hash}~ etc. all valid substitutions.
 
-* Graphing
+* Extensions
+** org-roam-protocol
+
+Org-roam provides extensions for capturing content from external applications
+such as the browser, via ~org-protocol~. Org-roam extends ~org-protocol~ with 2
+protocols: the ~roam-node~ and ~roam-ref~ protocols.
+
+*** Installation
+
+To enable Org-roam's protocol extensions, simply add the following to your init
+file:
+
+#+BEGIN_SRC emacs-lisp
+(require 'org-roam-protocol)
+#+END_SRC
+
+We also need to set up ~org-protocol~: the instructions for setting up
+~org-protocol~ are reproduced here.
+
+On a high-level, external calls are passed to Emacs via ~emacsclient~.
+~org-protocol~ intercepts these and runs custom actions based on the protocols
+registered. Hence, to use ~org-protocol~, once must:
+
+1. launch the ~emacsclient~ process
+2. Register ~org-protocol://~ as a valid scheme-handler
+
+The instructions for the latter for each operating system is detailed below.
+
+**** Linux
+For Linux users, create a desktop application in
+~~/.local/share/applications/org-protocol.desktop~:
+
+#+begin_example
+[Desktop Entry]
+Name=Org-Protocol
+Exec=emacsclient %u
+Icon=emacs-icon
+Type=Application
+Terminal=false
+MimeType=x-scheme-handler/org-protocol
+#+end_example
+
+Associate ~org-protocol://~ links with the desktop application by
+running in your shell:
+
+#+BEGIN_SRC bash
+xdg-mime default org-protocol.desktop x-scheme-handler/org-protocol
+#+END_SRC
+
+To disable the "confirm" prompt in Chrome, you can also make Chrome show a
+checkbox to tick, so that the ~Org-Protocol Client~ app will be used without
+confirmation. To do this, run in a shell:
+
+#+BEGIN_SRC bash
+sudo mkdir -p /etc/opt/chrome/policies/managed/
+sudo tee /etc/opt/chrome/policies/managed/external_protocol_dialog.json >/dev/null <<'EOF'
+{
+  "ExternalProtocolDialogShowAlwaysOpenCheckbox": true
+}
+EOF
+sudo chmod 644 /etc/opt/chrome/policies/managed/external_protocol_dialog.json
+#+END_SRC
+
+and then restart Chrome (for example, by navigating to <chrome://restart>) to
+make the new policy take effect.
+
+See [[https://www.chromium.org/administrators/linux-quick-start][here]] for more info on the ~/etc/opt/chrome/policies/managed~ directory and
+[[https://cloud.google.com/docs/chrome-enterprise/policies/?policy=ExternalProtocolDialogShowAlwaysOpenCheckbox][here]] for information on the ~ExternalProtocolDialogShowAlwaysOpenCheckbox~ policy.
+
+**** Mac OS
+For Mac OS, we need to create our own application.
+
+1. Launch Script Editor
+2. Use the following script, paying attention to the path to ~emacsclient~:
+
+#+begin_src emacs-lisp
+  on open location this_URL
+      set EC to "/usr/local/bin/emacsclient --no-wait "
+      set filePath to quoted form of this_URL
+      do shell script EC & filePath
+      tell application "Emacs" to activate
+  end open location
+#+end_src
+
+3. Save the script in ~/Applications/OrgProtocolClient.app~, changing the script type to
+   "Application", rather than "Script".
+4. Edit ~/Applications/OrgProtocolClient.app/Contents/Info.plist~, adding the
+   following before the last ~</dict>~ tag:
+
+#+begin_src text
+  <key>CFBundleURLTypes</key>
+  <array>
+    <dict>
+      <key>CFBundleURLName</key>
+      <string>org-protocol handler</string>
+      <key>CFBundleURLSchemes</key>
+      <array>
+        <string>org-protocol</string>
+      </array>
+    </dict>
+  </array>
+#+end_src
+
+5. Save the file, and run the ~OrgProtocolClient.app~ to register the protocol.
+
+To disable the "confirm" prompt in Chrome, you can also make Chrome
+show a checkbox to tick, so that the ~OrgProtocol~ app will be used
+without confirmation. To do this, run in a shell:
+
+#+BEGIN_SRC bash
+defaults write com.google.Chrome ExternalProtocolDialogShowAlwaysOpenCheckbox -bool true
+#+END_SRC
+
+If you're using [[https://github.com/railwaycat/homebrew-emacsmacport][Emacs Mac Port]], it registered its `Emacs.app` as the default
+handler for the URL scheme `org-protocol`. To make ~OrgProtocol.app~
+the default handler instead, run:
+
+#+BEGIN_SRC bash
+defaults write com.apple.LaunchServices/com.apple.launchservices.secure LSHandlers -array-add \
+'{"LSHandlerPreferredVersions" = { "LSHandlerRoleAll" = "-"; }; LSHandlerRoleAll = "org.yourusername.OrgProtocol"; LSHandlerURLScheme = "org-protocol";}'
+#+END_SRC
+
+Then restart your computer.
+
+***** Testing org-protocol
+
+To test that you have the handler setup and registered properly from the command
+line you can run:
+
+#+begin_src bash
+  open org-protocol://roam-ref\?template=r\&ref=test\&title=this
+#+end_src
+
+If you get an error similar too this or the wrong handler is run:
+
+#+begin_quote
+No application knows how to open URL org-protocol://roam-ref?template=r&ref=test&title=this (Error Domain=NSOSStatusErrorDomain Code=-10814 "kLSApplicationNotFoundErr: E.g. no application claims the file" UserInfo={_LSLine=1489, _LSFunction=runEvaluator}).
+
+#+end_quote
+
+You may need to manually register your handler, like this:
+
+#+begin_src bash
+/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/LaunchServices.framework/Versions/A/Support/lsregister -R  -f /Applications/OrgProtocolClient.app
+#+end_src
+
+Here is a link to the lsregister command that is really useful: https://eclecticlight.co/2019/03/25/lsregister-a-valuable-undocumented-command-for-launchservices/
+**** Windows
+For Windows, create a temporary ~org-protocol.reg~ file:
+
+#+BEGIN_SRC text
+REGEDIT4
+
+[HKEY_CLASSES_ROOT\org-protocol]
+@="URL:Org Protocol"
+"URL Protocol"=""
+[HKEY_CLASSES_ROOT\org-protocol\shell]
+[HKEY_CLASSES_ROOT\org-protocol\shell\open]
+[HKEY_CLASSES_ROOT\org-protocol\shell\open\command]
+@="\"C:\\Windows\\System32\\wsl.exe\" emacsclient \"%1\""
+#+END_SRC
+
+The above will forward the protocol to WSL. If you run Emacs natively on
+Windows, replace the last line with:
+
+#+BEGIN_SRC text
+@="\"c:\\path\\to\\emacs\\bin\\emacsclientw.exe\"  \"%1\""
+#+END_SRC
+
+After executing the .reg file, the protocol is registered and you can delete the
+file.
+
+*** The roam-node protocol
+
+The roam-node protocol opens the node with ID specified by the ~node~ key (e.g.
+~org-protocol://roam-node?node=node-id~). ~org-roam-graph~ uses this to make the
+graph navigable.
+
+*** The roam-ref protocol
+
+This protocol finds or creates a new note with a given ~ROAM_REFS~:
+
+[[file:images/roam-ref.gif]]
+
+To use this, create the following [[https://en.wikipedia.org/wiki/Bookmarklet][bookmarklet]] in your browser:
+
+#+BEGIN_SRC javascript
+  javascript:location.href =
+      'org-protocol://roam-ref?template=r&ref='
+      + encodeURIComponent(location.href)
+      + '&title='
+      + encodeURIComponent(document.title)
+      + '&body='
+      + encodeURIComponent(window.getSelection())
+#+END_SRC
+
+or as a keybinding in ~qutebrowser~ in , using the ~config.py~ file (see
+[[https://github.com/qutebrowser/qutebrowser/blob/master/doc/help/configuring.asciidoc][Configuring qutebrowser]]):
+
+#+BEGIN_SRC python
+  config.bind("<Ctrl-r>", "open javascript:location.href='org-protocol://roam-ref?template=r&ref='+encodeURIComponent(location.href)+'&title='+encodeURIComponent(document.title)")
+#+END_SRC
+
+where ~template~ is the template key for a template in
+~org-roam-capture-ref-templates~ (see [[*The Templating System][The Templating System]]).
+
+** org-roam-graph
 
 Org-roam provides basic graphing capabilities to explore interconnections
 between notes, in ~org-roam-graph~. This is done by performing SQL queries and
-generating images using [[https://graphviz.org/][Graphviz]]. The graph can also be navigated: see [[*Org-roam Protocol][Roam
-Protocol]].
+generating images using [[https://graphviz.org/][Graphviz]]. The graph can also be navigated: see [[*org-roam-protocol][org-roam-protocol]].
 
 The entry point to graph creation is ~org-roam-graph~.
 
@@ -1228,7 +1228,7 @@ ARG may be any of the following values:
           (org-roam-graph--open (concat "file://///wsl$/Ubuntu" file)))))
   #+END_SRC
 
-** Graph Options
+*** Graph Options
 
 Graphviz provides many options for customizing the graph output, and Org-roam
 supports some of them. See https://graphviz.gitlab.io/_pages/doc/info/attrs.html
@@ -1254,12 +1254,12 @@ for customizable options.
   Extra options for edges in the graphviz output (The "E" attributes).
   Example: ~'(("dir" . "back"))~
 
-* Org-roam Dailies
+** org-roam-dailies
 
 Org-roam provides journaling capabilities akin to
 Org-journal with ~org-roam-dailies~.
 
-** Configuration
+*** Configuration
 
 For ~org-roam-dailies~ to work, you need to define two variables:
 
@@ -1285,7 +1285,7 @@ Here is a sane default configuration:
 
 See [[*The Templating System][The Templating System]] for creating new templates.
 
-** Usage
+*** Usage
 
 ~org-roam-dailies~ provides these interactive functions:
 
@@ -1339,6 +1339,18 @@ There are also commands which allow you to use Emacs’s ~calendar~ to find the 
 - Function: ~org-roam-dailies-goto-next-note~
 
   When in an daily-note, find the next one.
+** org-roam-export
+
+Because Org-roam files are plain org files, they can be exported easily using
+~org-export~ to a variety of formats, including ~html~ and ~pdf~. However,
+Org-roam relies heavily on ID links, which Org's html export has poor support
+of. To fix this, Org-roam provides a bunch of overrides to better support
+export. To use them, simply run:
+
+#+begin_src emacs-lisp
+  (require 'org-roam-export)
+#+end_src
+
 * Performance Optimization
 ** Garbage Collection
 
@@ -1412,7 +1424,7 @@ The Deft interface can slow down quickly when the number of files get huge.
 
 [[https://github.com/bastibe/org-journal][Org-journal]] provides journaling capabilities to Org-mode. A lot of its
 functionalities have been incorporated into Org-roam under the name
-[[*Org-roam Dailies][~org-roam-dailies~]]. It remains a good tool if you want to isolate your verbose
+[[*org-roam-dailies][~org-roam-dailies~]]. It remains a good tool if you want to isolate your verbose
 journal entries from the ideas you would write on a scratchpad.
 
 #+BEGIN_SRC emacs-lisp
