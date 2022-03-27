@@ -2,6 +2,8 @@
 ## TBD
 ### Breaking
 ### Added
+- [#2138](https://github.com/org-roam/org-roam/pull/2138) export: add new module
+
 ### Removed
 ### Fixed
 - [#2130](https://github.com/org-roam/org-roam/pull/2130) buffer: unlinked-references section now also searches within symlinked directories
