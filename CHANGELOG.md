@@ -1,4 +1,13 @@
 # Changelog
+## TBD
+### Breaking
+### Added
+### Removed
+### Fixed
+- [#2130](https://github.com/org-roam/org-roam/pull/2130) buffer: unlinked-references section now also searches within symlinked directories
+
+### Changed
+
 ## 2.2.1
 ### Breaking
 - [#2054](https://github.com/org-roam/org-roam/pull/2054) node: simplify default `org-roam-node-display-template`.
