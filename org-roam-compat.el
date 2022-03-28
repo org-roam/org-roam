@@ -5,7 +5,7 @@
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
-;; Version: 2.2.0
+;; Version: 2.2.1
 ;; Package-Requires: ((emacs "26.1"))
 
 ;; This file is NOT part of GNU Emacs.
@@ -228,6 +228,10 @@ nodes." org-id-locations-file)
 (define-obsolete-function-alias
   'org-roam-remove-property
   'org-roam-property-remove "org-roam 2.1")
+
+(define-obsolete-variable-alias
+  'org-roam-mode-section-functions
+  'org-roam-mode-sections "org-roam 2.2.0")
 
 ;;; Obsolete functions
 (make-obsolete 'org-roam-get-keyword 'org-collect-keywords "org-roam 2.0")

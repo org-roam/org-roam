@@ -5,7 +5,7 @@
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
-;; Version: 2.2.0
+;; Version: 2.2.1
 ;; Package-Requires: ((emacs "26.1") (dash "2.13") (org "9.4") (emacsql "3.0.0") (emacsql-sqlite "1.0.0") (magit-section "3.0.0"))
 
 ;; This file is NOT part of GNU Emacs.
@@ -119,6 +119,12 @@ All Org files, at any level of nesting, are considered part of the Org-roam."
 
 (defcustom org-roam-find-file-hook nil
   "Hook run when an Org-roam file is visited."
+  :group 'org-roam
+  :type 'hook)
+
+(defcustom org-roam-post-node-insert-hook nil
+  "Hook run when an Org-roam node is inserted as an Org link.
+Each function takes two arguments: the id of the node, and the link description."
   :group 'org-roam
   :type 'hook)
 
@@ -260,7 +266,7 @@ If no files are found, an empty list is returned."
        (ansi-color-filter-apply it)
        (split-string it "\n")
        (seq-filter (lambda (s)
-                     (or (null s) (string= "" s))) it)))
+                     (not (or (null s) (string= "" s)))) it)))
 
 (defun org-roam--list-files-search-globs (exts)
   "Given EXTS, return a list of search globs.

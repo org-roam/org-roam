@@ -5,7 +5,7 @@
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
-;; Version: 2.2.0
+;; Version: 2.2.1
 ;; Package-Requires: ((emacs "26.1") (dash "2.13") (org "9.4") (emacsql "3.0.0") (emacsql-sqlite "1.0.0") (magit-section "3.0.0"))
 
 ;; This file is NOT part of GNU Emacs.
@@ -39,14 +39,28 @@
 (defvar org-ref-buffer-hacked)
 
 ;;; Options
-(defcustom org-roam-mode-section-functions (list #'org-roam-backlinks-section
-                                                 #'org-roam-reflinks-section)
-  "Functions that insert sections in the `org-roam-mode' based buffers.
-Each function is called with one argument, which is an
-`org-roam-node' for which the buffer will be constructed for.
-Normally this node is `org-roam-buffer-current-node'."
+(defcustom org-roam-mode-sections (list #'org-roam-backlinks-section
+                                        #'org-roam-reflinks-section)
+  "A list of sections for the `org-roam-mode' based buffers.
+Each section is a function that is passed the an `org-roam-node'
+for which the section will be constructed for as the first
+argument. Normally this node is `org-roam-buffer-current-node'.
+The function may also accept other optional arguments. Each item
+in the list is either:
+
+1. A function, which is called only with the `org-roam-node' as the argument
+2. A list, containing the function and the optional arguments.
+
+For example, one can add
+
+    (org-roam-backlinks-section :unique t)
+
+to the list to pass :unique t to the section-rendering function."
   :group 'org-roam
-  :type 'hook)
+  :type `(repeat (choice (symbol :tag "Function")
+                         (list :tag "Function with arguments"
+                               (symbol :tag "Function")
+                               (repeat :tag "Arguments" :inline t (sexp :tag "Arg"))))))
 
 (defcustom org-roam-buffer-postrender-functions (list)
   "Functions to run after the Org-roam buffer is rendered.
@@ -168,7 +182,7 @@ This mode is used by special Org-roam buffers, such as persistent
 `org-roam-buffer' and dedicated Org-roam buffers
 \(`org-roam-buffer-display-dedicated'), which render the
 information in a section-like manner (see
-`org-roam-mode-section-functions'), with which the user can
+`org-roam-mode-sections'), with which the user can
 interact with."
   :group 'org-roam
   (face-remap-add-relative 'header-line 'org-roam-header-line))
@@ -228,7 +242,14 @@ buffer."
      (org-roam-node-title org-roam-buffer-current-node))
     (magit-insert-section (org-roam)
       (magit-insert-heading)
-      (run-hook-with-args 'org-roam-mode-section-functions org-roam-buffer-current-node))
+      (dolist (section org-roam-mode-sections)
+        (pcase section
+          ((pred functionp)
+           (funcall section org-roam-buffer-current-node))
+          (`(,fn . ,args)
+           (apply fn (cons org-roam-buffer-current-node args)))
+          (_
+           (user-error "Invalid `org-roam-mode-sections' specification")))))
     (run-hooks 'org-roam-buffer-postrender-functions)
     (goto-char 0)))
 
@@ -459,14 +480,23 @@ headline, up to the next headline."
         (org-roam-populate (org-roam-backlink-target-node backlink)))
   backlink)
 
-(defun org-roam-backlinks-get (node)
-  "Return the backlinks for NODE."
-  (let ((backlinks (org-roam-db-query
-                    [:select [source dest pos properties]
-                     :from links
-                     :where (= dest $s1)
-                     :and (= type "id")]
-                    (org-roam-node-id node))))
+(cl-defun org-roam-backlinks-get (node &key unique)
+  "Return the backlinks for NODE.
+
+ When UNIQUE is nil, show all positions where references are found.
+ When UNIQUE is t, limit to unique sources."
+  (let* ((sql (if unique
+                  [:select :distinct [source dest pos properties]
+                   :from links
+                   :where (= dest $s1)
+                   :and (= type "id")
+                   :group :by source
+                   :having (funcall min pos)]
+                [:select [source dest pos properties]
+                 :from links
+                 :where (= dest $s1)
+                 :and (= type "id")]))
+         (backlinks (org-roam-db-query sql (org-roam-node-id node))))
     (cl-loop for backlink in backlinks
              collect (pcase-let ((`(,source-id ,dest-id ,pos ,properties) backlink))
                        (org-roam-populate
@@ -482,9 +512,12 @@ Sorts by title."
   (string< (org-roam-node-title (org-roam-backlink-source-node a))
            (org-roam-node-title (org-roam-backlink-source-node b))))
 
-(defun org-roam-backlinks-section (node)
-  "The backlinks section for NODE."
-  (when-let ((backlinks (seq-sort #'org-roam-backlinks-sort (org-roam-backlinks-get node))))
+(cl-defun org-roam-backlinks-section (node &key (unique nil))
+  "The backlinks section for NODE.
+
+When UNIQUE is nil, show all positions where references are found.
+When UNIQUE is t, limit to unique sources."
+  (when-let ((backlinks (seq-sort #'org-roam-backlinks-sort (org-roam-backlinks-get node :unique unique))))
     (magit-insert-section (org-roam-backlinks)
       (magit-insert-heading "Backlinks:")
       (dolist (backlink backlinks)
@@ -622,7 +655,7 @@ References from FILE are excluded."
                                 (shell-command-to-string "rg --pcre2-version"))))
     (let* ((titles (cons (org-roam-node-title node)
                          (org-roam-node-aliases node)))
-           (rg-command (concat "rg -o --vimgrep -P -i "
+           (rg-command (concat "rg -L -o --vimgrep -P -i "
                                (mapconcat (lambda (glob) (concat "-g " glob))
                                           (org-roam--list-files-search-globs org-roam-file-extensions)
                                           " ")

@@ -5,7 +5,7 @@
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
-;; Version: 2.2.0
+;; Version: 2.2.1
 ;; Package-Requires: ((emacs "26.1") (dash "2.13") (org "9.4") (magit-section "3.0.0"))
 
 ;; This file is NOT part of GNU Emacs.
@@ -131,7 +131,8 @@ It takes a single argument REF, which is a propertized string."
   :type 'boolean)
 
 (defcustom org-roam-extract-new-file-path "%<%Y%m%d%H%M%S>-${slug}.org"
-  "The file path to use when a node is extracted to its own file."
+  "The file path template to use when a node is extracted to its own file.
+This path is relative to `org-roam-directory'."
   :group 'org-roam
   :type 'string)
 
@@ -186,14 +187,12 @@ It takes a single argument REF, which is a propertized string."
                            816 ; U+0330 COMBINING TILDE BELOW
                            817 ; U+0331 COMBINING MACRON BELOW
                            )))
-    (cl-flet* ((nonspacing-mark-p (char)
-                                  (memq char slug-trim-chars))
-               (strip-nonspacing-marks (s)
-                                       (string-glyph-compose
-                                        (apply #'string (seq-remove #'nonspacing-mark-p
-                                                                    (string-glyph-decompose s)))))
-               (cl-replace (title pair)
-                           (replace-regexp-in-string (car pair) (cdr pair) title)))
+    (cl-flet* ((nonspacing-mark-p (char) (memq char slug-trim-chars))
+               (strip-nonspacing-marks (s) (string-glyph-compose
+                                            (apply #'string
+                                                   (seq-remove #'nonspacing-mark-p
+                                                               (string-glyph-decompose s)))))
+               (cl-replace (title pair) (replace-regexp-in-string (car pair) (cdr pair) title)))
       (let* ((pairs `(("[^[:alnum:][:digit:]]" . "_") ;; convert anything not alphanumeric
                       ("__*" . "_")                   ;; remove sequential underscores
                       ("^_" . "")                     ;; remove starting underscore
@@ -689,9 +688,13 @@ The INFO, if provided, is passed to the underlying `org-roam-capture-'."
                   (delete-region beg end)
                   (set-marker beg nil)
                   (set-marker end nil))
-                (insert (org-link-make-string
-                         (concat "id:" (org-roam-node-id node))
-                         description)))
+                (let ((id (org-roam-node-id node)))
+                  (insert (org-link-make-string
+                           (concat "id:" id)
+                           description))
+                  (run-hook-with-args 'org-roam-post-node-insert-hook
+                                      id
+                                      description)))
             (org-roam-capture-
              :node node
              :info info
@@ -699,8 +702,7 @@ The INFO, if provided, is passed to the underlying `org-roam-capture-'."
              :props (append
                      (when (and beg end)
                        (list :region (cons beg end)))
-                     (list :insert-at (point-marker)
-                           :link-description description
+                     (list :link-description description
                            :finalize 'insert-link))))))
     (deactivate-mark)))
 
@@ -817,7 +819,8 @@ Any tags declared on #+FILETAGS: are transferred to tags on the new top heading.
 Any top level properties drawers are incorporated into the new heading."
   (interactive)
   (org-with-point-at 1
-    (org-map-entries 'org-do-demote)
+    (org-map-region #'org-do-demote
+                    (point-min) (point-max))
     (insert "* "
             (org-roam--get-keyword "title")
             "\n")
@@ -847,21 +850,21 @@ and no extra content before the first heading.
 Converts a file containing a single level-1 headline node to a file
 node."
   (interactive)
-  (save-buffer) ;; org-map-entries calls break if the buffer is unsaved
+  (save-buffer)
   (if (org-roam--can-promote-p)
       (org-with-point-at 1
-        (let ((title (nth 4 (org-heading-components)))
-              (tags (nth 5 (org-heading-components))))
-          (org-map-entries (lambda ()
-                             (when (> (org-outline-level) 1)
-                               (org-do-promote)))
-                           nil 'file)
-          (kill-whole-line)
-          (org-roam-end-of-meta-data 'drawers)
-          (insert "#+title: " title "\n\n")
-          (when tags (org-roam-set-keyword "filetags" tags))
-          (org-roam-db-update-file)))
-    (user-error "Cannot promote. Can't find unique root heading or there is extra file-level text.")))
+        (org-map-region
+         (lambda ()
+           (when (> (org-outline-level) 1)
+             (org-do-promote))
+           (point-min) (point-max))
+         (let ((title (nth 4 (org-heading-components)))
+               (tags (nth 5 (org-heading-components))))
+           (kill-whole-line)
+           (org-roam-end-of-meta-data 'drawers)
+           (org-roam-set-keyword "title" title)
+           (when tags (org-roam-set-keyword "filetags" tags))))
+        (user-error "Cannot promote. Can't find unique root heading or there is extra file-level text."))))
 
 ;;;###autoload
 (defun org-roam-refile ()
@@ -947,8 +950,11 @@ If region is active, then use it instead of the node at point."
                            (t (let ((r (read-from-minibuffer (format "%s: " key) default-val)))
                                 (plist-put template-info ksym r)
                                 r)))))))
-           (file-path (read-file-name "Extract node to: "
-                                      (file-name-as-directory org-roam-directory) template nil template)))
+           (file-path
+            (expand-file-name
+             (read-file-name "Extract node to: "
+                             (file-name-as-directory org-roam-directory) template nil template)
+             org-roam-directory)))
       (when (file-exists-p file-path)
         (user-error "%s exists. Aborting" file-path))
       (org-cut-subtree)

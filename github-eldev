@@ -1,0 +1,11 @@
+#! /bin/sh
+set -e
+
+ELDEV_BIN_DIR=~/.local/bin
+
+# `$GITHUB_PATH' is a magic file which contents is translated to environment variable `$PATH'.
+echo "$ELDEV_BIN_DIR" >> $GITHUB_PATH
+
+mkdir -p $ELDEV_BIN_DIR
+curl -fsSL https://raw.githubusercontent.com/doublep/eldev/f111d19cda305e5e8fcb70a5675b87173041cb68/bin/eldev > $ELDEV_BIN_DIR/eldev
+chmod a+x $ELDEV_BIN_DIR/eldev

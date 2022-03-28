@@ -5,7 +5,7 @@
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
-;; Version: 2.2.0
+;; Version: 2.2.1
 ;; Package-Requires: ((emacs "26.1") (dash "2.13") (org "9.4"))
 
 ;; This file is NOT part of GNU Emacs.
@@ -69,6 +69,15 @@ Like `string-equal', but case-insensitive."
        (or (string-equal s1 s2)
            (string-equal (downcase s1) (downcase s2)))))
 
+(defun org-roam-whitespace-content (s)
+  "Return the whitespace content at the end of S."
+  (with-temp-buffer
+    (let ((c 0))
+      (insert s)
+      (skip-chars-backward " \t\n")
+      (buffer-substring-no-properties
+       (point) (point-max)))))
+
 (defun org-roam-strip-comments (s)
   "Strip Org comments from string S."
   (with-temp-buffer
@@ -112,8 +121,8 @@ SPEC is a list, as per `dolist'."
 (defun org-roam-descendant-of-p (a b)
   "Return t if A is descendant of B."
   (unless (equal (file-truename a) (file-truename b))
-    (string-prefix-p (expand-file-name b)
-                     (expand-file-name a))))
+    (string-prefix-p (replace-regexp-in-string "^\\([A-Za-z]\\):" 'downcase (expand-file-name b) t t)
+                     (replace-regexp-in-string "^\\([A-Za-z]\\):" 'downcase (expand-file-name a) t t))))
 
 (defmacro org-roam-with-file (file keep-buf-p &rest body)
   "Execute BODY within FILE.
