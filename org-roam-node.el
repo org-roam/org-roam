@@ -845,6 +845,14 @@ and no extra content before the first heading.
      (eq level-1-headings-count 1)
      is-top-content-empty)))
 
+(defun my/org-roam--outdent-headings ()
+  "Promote all the headings lower than level 1."
+  (org-map-region
+   (lambda ()
+     (when (> (org-outline-level) 1)
+       (org-do-promote)))
+   (point-min) (point-max)))
+
 (defun org-roam-promote-entire-buffer ()
   "Promote the current buffer.
 Converts a file containing a single level-1 headline node to a file
@@ -853,18 +861,17 @@ node."
   (save-buffer)
   (if (org-roam--can-promote-p)
       (org-with-point-at 1
-        (org-map-region
-         (lambda ()
-           (when (> (org-outline-level) 1)
-             (org-do-promote))
-           (point-min) (point-max))
-         (let ((title (nth 4 (org-heading-components)))
-               (tags (nth 5 (org-heading-components))))
-           (kill-whole-line)
-           (org-roam-end-of-meta-data 'drawers)
-           (org-roam-set-keyword "title" title)
-           (when tags (org-roam-set-keyword "filetags" tags))))
-        (user-error "Cannot promote. Can't find unique root heading or there is extra file-level text."))))
+        (let ((title (nth 4 (org-heading-components)))
+              (tags (nth 5 (org-heading-components))))
+          (my/org-roam--outdent-headings)
+          (kill-whole-line)
+          (org-roam-end-of-meta-data)
+          ;;(org-roam-set-keyword "title" title)
+          ;;(when tags (org-roam-set-keyword "filetags" tags))))
+          (insert "#+title: " title "\n")
+          (when tags (insert "#+filetags: " tags "\n")))
+          (org-roam-db-update-file))
+    (user-error "Cannot promote. Can't find unique root heading or there is extra file-level text.")))
 
 ;;;###autoload
 (defun org-roam-refile ()
