@@ -870,9 +870,9 @@ node."
           ;;(org-roam-set-keyword "title" title)
           ;;(when tags (org-roam-set-keyword "filetags" tags))))
           (insert "#+title: " title "\n")
-          (when tags (insert "#+filetags: " tags "\n")))
-          (org-roam-db-update-file))
-    (user-error "Cannot promote. Can't find unique root heading or there is extra file-level text.")))
+          (when tags (insert "#+filetags: " tags "\n"))
+          (org-roam-db-update-file)))
+    (user-error "Cannot promote: Multiple root headings or there is extra file-level text")))
 
 ;;;###autoload
 (defun org-roam-refile ()
