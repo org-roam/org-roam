@@ -830,14 +830,14 @@ Any top level properties drawers are incorporated into the new heading."
     (org-roam-erase-keyword "filetags")))
 
 (defun org-roam--heading-levels ()
+  "Extract the heading level structure from the current file."
   (org-map-entries (lambda () (org-current-level))
                    nil 'file))
 
 (defun org-roam--can-promote-p ()
   "Verify that this buffer is promoteable:
 There is a single level-1 heading
-and no extra content before the first heading.
-"
+and no extra content before the first heading."
   (let ((level-1-headings-count (-count (lambda (level) (eq 1 level)) (org-roam--heading-levels)))
         (is-top-content-empty (org-with-point-at 1
                                 (org-at-heading-p))))
@@ -855,6 +855,7 @@ and no extra content before the first heading.
 
 (defun org-roam-promote-entire-buffer ()
   "Promote the current buffer.
+
 Converts a file containing a single level-1 headline node to a file
 node."
   (interactive)
