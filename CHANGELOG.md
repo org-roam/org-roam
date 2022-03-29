@@ -25,7 +25,6 @@
 - [#2159](https://github.com/org-roam/org-roam/pull/2159) db: fix db syncs on narrowed buffers
 - [#2156](https://github.com/org-roam/org-roam/pull/2157) capture: templates with functions are handled correctly to avoid signaling `char-or-string-p`
 
-
 ### Changed
 - [#2160](https://github.com/org-roam/org-roam/pull/2160) core: ignore files in `org-attach-id-dir` by default
 
