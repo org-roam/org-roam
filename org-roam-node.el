@@ -829,50 +829,43 @@ Any top level properties drawers are incorporated into the new heading."
     (org-roam-erase-keyword "title")
     (org-roam-erase-keyword "filetags")))
 
-(defun org-roam--heading-levels ()
-  "Extract the heading level structure from the current file."
-  (org-map-entries (lambda () (org-current-level))
-                   nil 'file))
+(defun org-roam--h1-count ()
+  "Count level-1 headings in the current file."
+  (let ((h1-count 0))
+    (save-restriction
+      (widen)
+      (org-map-region (lambda ()
+                        (if (= (org-current-level) 1)
+                            (setq h1-count (+ h1-count 1))))
+                      (point-min) (point-max))
+      h1-count
+      ))
+  )
 
-(defun org-roam--can-promote-p ()
+(defun org-roam--buffer-promoteable-p ()
   "Verify that this buffer is promoteable:
 There is a single level-1 heading
 and no extra content before the first heading."
-  (let ((level-1-headings-count (-count (lambda (level) (eq 1 level)) (org-roam--heading-levels)))
-        (is-top-content-empty (org-with-point-at 1
-                                (org-at-heading-p))))
-    (and
-     (eq level-1-headings-count 1)
-     is-top-content-empty)))
-
-(defun my/org-roam--outdent-headings ()
-  "Promote all the headings lower than level 1."
-  (org-map-region
-   (lambda ()
-     (when (> (org-outline-level) 1)
-       (org-do-promote)))
-   (point-min) (point-max)))
+  (and
+   (= (org-roam--h1-count) 1)
+   (org-with-point-at 1 (org-at-heading-p))))
 
 (defun org-roam-promote-entire-buffer ()
   "Promote the current buffer.
-
 Converts a file containing a single level-1 headline node to a file
 node."
   (interactive)
-  (save-buffer)
-  (if (org-roam--can-promote-p)
-      (org-with-point-at 1
-        (let ((title (nth 4 (org-heading-components)))
-              (tags (nth 5 (org-heading-components))))
-          (my/org-roam--outdent-headings)
-          (kill-whole-line)
-          (org-roam-end-of-meta-data)
-          ;;(org-roam-set-keyword "title" title)
-          ;;(when tags (org-roam-set-keyword "filetags" tags))))
-          (insert "#+title: " title "\n")
-          (when tags (insert "#+filetags: " tags "\n"))
-          (org-roam-db-update-file)))
-    (user-error "Cannot promote: Multiple root headings or there is extra file-level text")))
+  (if (not (org-roam--buffer-promoteable-p))
+      (user-error "Cannot promote: Multiple root headings or there is extra file-level text")
+    (org-with-point-at 1
+      (let ((title (nth 4 (org-heading-components)))
+            (tags (org-get-tags)))
+        (kill-whole-line)
+        (org-roam-end-of-meta-data)
+        (insert "#+title: " title "\n")
+        (when tags (org-roam-tag-add tags))
+        (org-map-region #'org-promote (point-min) (point-max))
+        (org-roam-db-update-file)))))
 
 ;;;###autoload
 (defun org-roam-refile ()
