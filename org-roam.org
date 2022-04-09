@@ -468,9 +468,6 @@ can set ~org-roam-node-display-template~ as such:
 
 * Customizing Node Caching
 ** How to cache
-:PROPERTIES:
-:ID:       280bfca8-83f3-4371-bc3a-25478d25129c
-:END:
 
 Org-roam uses a sqlite database to perform caching, but there are multiple Emacs
 libraries that can be used. The default used by Org-roam is ~emacs-sqlite~.
@@ -1665,7 +1662,7 @@ To fix this, you can try the following:
 1. If on Windows, try replacing your system binary with [[https://github.com/nobiot/emacsql-sqlite.exe][this one]] that has been proven
    to work
 2. Use the ~emacsql-sqlite3~ option rather than compiling your own emacsql
-   binary (see [[id:280bfca8-83f3-4371-bc3a-25478d25129c][How to cache]]).
+   binary (see [[*How to cache][How to cache]]).
 
 * Developer's Guide to Org-roam
 ** Org-roam's Design Principle
