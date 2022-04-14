@@ -762,7 +762,10 @@ This function is to be called in the Org-capture finalization process."
 It expands ${var} occurrences in TEMPLATE, and then runs
 org-capture's template expansion.
 When ENSURE-NEWLINE, always ensure there's a newline behind."
-  (let ((template-whitespace-content (org-roam-whitespace-content template)))
+  (let* ((template (if (functionp template)
+                       (funcall template)
+                     template))
+         (template-whitespace-content (org-roam-whitespace-content template)))
     (setq template
           (org-roam-format-template
            template
