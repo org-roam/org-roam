@@ -3,12 +3,19 @@
 ### Breaking
 ### Added
 - [#2138](https://github.com/org-roam/org-roam/pull/2138) export: add new module
+- [#2158](https://github.com/org-roam/org-roam/pull/2158) db: support emacsql-sqlite-builtin and emacsql-sqlite-module
+- [#2160](https://github.com/org-roam/org-roam/pull/2160) core: support a list of `org-roam-file-exclude-regexp`
 
 ### Removed
 ### Fixed
-- [#2130](https://github.com/org-roam/org-roam/pull/2130) buffer: unlinked-references section now also searches within symlinked directories
 - [#2091](https://github.com/org-roam/org-roam/pull/2091) node: fix org-roam-promote-entire-buffer structural errors
+- [#2130](https://github.com/org-roam/org-roam/pull/2130) buffer: unlinked-references section now also searches within symlinked directories
+- [#2152](https://github.com/org-roam/org-roam/pull/2152) org-roam-preview-default-function: doesn't copy copy content of next heading node when current node's content is empty
+- [#2159](https://github.com/org-roam/org-roam/pull/2159) db: fix db syncs on narrowed buffers
+- [#2156](https://github.com/org-roam/org-roam/pull/2157) capture: templates with functions are handled correctly to avoid signaling `char-or-string-p`
+
 ### Changed
+- [#2160](https://github.com/org-roam/org-roam/pull/2160) core: ignore files in `org-attach-id-dir` by default
 
 ## 2.2.1
 ### Breaking

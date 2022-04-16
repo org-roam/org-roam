@@ -449,10 +449,12 @@ In interactive calls OTHER-WINDOW is set with
 
 This function returns the all contents under the current
 headline, up to the next headline."
-  (let ((beg (progn (org-roam-end-of-meta-data t)
-                    (point)))
-        (end (progn (org-next-visible-heading 1)
-                    (point))))
+  (let ((beg (save-excursion
+               (org-roam-end-of-meta-data t)
+               (point)))
+        (end (save-excursion
+               (org-next-visible-heading 1)
+               (point))))
     (string-trim (buffer-substring-no-properties beg end))))
 
 (defun org-roam-preview-get-contents (file pt)

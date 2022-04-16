@@ -46,6 +46,11 @@
      :to-equal "foo\n\n")
     (expect
      (org-roam-capture--fill-template "foo\n\t\n")
-     :to-equal "foo\n\t\n")))
+     :to-equal "foo\n\t\n"))
+
+  (it "expands templates when it's a function"
+    (expect
+     (org-roam-capture--fill-template (lambda () "foo"))
+     :to-equal "foo")))
 
 (provide 'test-org-roam-capture)
