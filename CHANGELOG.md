@@ -4,6 +4,7 @@
 ### Added
 - [#2138](https://github.com/org-roam/org-roam/pull/2138) export: add new module
 - [#2158](https://github.com/org-roam/org-roam/pull/2158) db: support emacsql-sqlite-builtin and emacsql-sqlite-module
+- [#2160](https://github.com/org-roam/org-roam/pull/2160) core: support a list of `org-roam-file-exclude-regexp`
 
 ### Removed
 ### Fixed
@@ -13,6 +14,7 @@
 - [#2156](https://github.com/org-roam/org-roam/pull/2157) capture: templates with functions are handled correctly to avoid signaling `char-or-string-p`
 
 ### Changed
+- [#2160](https://github.com/org-roam/org-roam/pull/2160) core: ignore files in `org-attach-id-dir` by default
 
 ## 2.2.1
 ### Breaking
