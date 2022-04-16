@@ -7,7 +7,7 @@
 ### Removed
 ### Fixed
 - [#2130](https://github.com/org-roam/org-roam/pull/2130) buffer: unlinked-references section now also searches within symlinked directories
-
+- [#2091](https://github.com/org-roam/org-roam/pull/2091) node: fix org-roam-promote-entire-buffer structural errors
 ### Changed
 
 ## 2.2.1
