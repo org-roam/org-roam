@@ -832,15 +832,12 @@ Any top level properties drawers are incorporated into the new heading."
 (defun org-roam--h1-count ()
   "Count level-1 headings in the current file."
   (let ((h1-count 0))
-    (save-restriction
-      (widen)
-      (org-map-region (lambda ()
-                        (if (= (org-current-level) 1)
-                            (setq h1-count (+ h1-count 1))))
-                      (point-min) (point-max))
-      h1-count
-      ))
-  )
+    (org-with-wide-buffer
+     (org-map-region (lambda ()
+                       (if (= (org-current-level) 1)
+                           (incf h1-count)))
+                     (point-min) (point-max))
+     h1-count)))
 
 (defun org-roam--buffer-promoteable-p ()
   "Verify that this buffer is promoteable:
@@ -855,17 +852,17 @@ and no extra content before the first heading."
 Converts a file containing a single level-1 headline node to a file
 node."
   (interactive)
-  (if (not (org-roam--buffer-promoteable-p))
-      (user-error "Cannot promote: Multiple root headings or there is extra file-level text")
-    (org-with-point-at 1
-      (let ((title (nth 4 (org-heading-components)))
-            (tags (org-get-tags)))
-        (kill-whole-line)
-        (org-roam-end-of-meta-data)
-        (insert "#+title: " title "\n")
-        (when tags (org-roam-tag-add tags))
-        (org-map-region #'org-promote (point-min) (point-max))
-        (org-roam-db-update-file)))))
+  (unless (org-roam--buffer-promoteable-p)
+    (user-error "Cannot promote: multiple root headings or there is extra file-level text"))
+  (org-with-point-at 1
+    (let ((title (nth 4 (org-heading-components)))
+          (tags (org-get-tags)))
+      (kill-whole-line)
+      (org-roam-end-of-meta-data)
+      (insert "#+title: " title "\n")
+      (when tags (org-roam-tag-add tags))
+      (org-map-region #'org-promote (point-min) (point-max))
+      (org-roam-db-update-file))))
 
 ;;;###autoload
 (defun org-roam-refile ()
