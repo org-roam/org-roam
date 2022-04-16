@@ -618,26 +618,26 @@ in `org-roam-db-sync'."
       (org-roam-with-file file-path nil
         (emacsql-with-transaction (org-roam-db)
           (org-with-wide-buffer
-            (org-set-regexps-and-options 'tags-only)
-            (org-refresh-category-properties)
-            (org-roam-db-clear-file)
-            (org-roam-db-insert-file)
-            (org-roam-db-insert-file-node)
-            (setq org-outline-path-cache nil)
-            (org-roam-db-map-nodes
-             (list #'org-roam-db-insert-node-data
-                   #'org-roam-db-insert-aliases
-                   #'org-roam-db-insert-tags
-                   #'org-roam-db-insert-refs))
-            (setq org-outline-path-cache nil)
-            (setq info (org-element-parse-buffer))
-            (org-roam-db-map-links
-             (list #'org-roam-db-insert-link))
-            (when (fboundp 'org-cite-insert)
-              (require 'oc)             ;ensure feature is loaded
-              (org-roam-db-map-citations
-               info
-               (list #'org-roam-db-insert-citation)))))))))
+           (org-set-regexps-and-options 'tags-only)
+           (org-refresh-category-properties)
+           (org-roam-db-clear-file)
+           (org-roam-db-insert-file)
+           (org-roam-db-insert-file-node)
+           (setq org-outline-path-cache nil)
+           (org-roam-db-map-nodes
+            (list #'org-roam-db-insert-node-data
+                  #'org-roam-db-insert-aliases
+                  #'org-roam-db-insert-tags
+                  #'org-roam-db-insert-refs))
+           (setq org-outline-path-cache nil)
+           (setq info (org-element-parse-buffer))
+           (org-roam-db-map-links
+            (list #'org-roam-db-insert-link))
+           (when (fboundp 'org-cite-insert)
+             (require 'oc)             ;ensure feature is loaded
+             (org-roam-db-map-citations
+              info
+              (list #'org-roam-db-insert-citation)))))))))
 
 ;;;###autoload
 (defun org-roam-db-sync (&optional force)
