@@ -617,7 +617,7 @@ in `org-roam-db-sync'."
         (org-roam-require '(org-ref oc)))
       (org-roam-with-file file-path nil
         (emacsql-with-transaction (org-roam-db)
-          (save-excursion
+          (org-with-wide-buffer
             (org-set-regexps-and-options 'tags-only)
             (org-refresh-category-properties)
             (org-roam-db-clear-file)
