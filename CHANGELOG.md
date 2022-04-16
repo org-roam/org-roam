@@ -3,6 +3,7 @@
 ### Breaking
 ### Added
 - [#2138](https://github.com/org-roam/org-roam/pull/2138) export: add new module
+- [#2158](https://github.com/org-roam/org-roam/pull/2158) db: support emacsql-sqlite-builtin and emacsql-sqlite-module
 
 ### Removed
 ### Fixed
