@@ -163,11 +163,11 @@ ROAM_REFS."
        #'emacsql-sqlite))
     (sqlite-builtin
      (progn
-       (require 'emacs-sqlite-builtin)
+       (require 'emacsql-sqlite-builtin)
        #'emacsql-sqlite-builtin))
     (sqlite-module
      (progn
-       (require 'emacs-sqlite-module)
+       (require 'emacsql-sqlite-module)
        #'emacsql-sqlite-module))
     (libsqlite3
      (progn
@@ -188,7 +188,8 @@ Performs a database upgrade when required."
       (make-directory (file-name-directory org-roam-db-location) t)
       (let ((conn (funcall (org-roam-db--conn-fn) org-roam-db-location)))
         (emacsql conn [:pragma (= foreign_keys ON)])
-        (when-let ((process (emacsql-process conn)))
+        (when-let* ((process (emacsql-process conn))
+                    (_ (processp process)))
           (set-process-query-on-exit-flag process nil))
         (puthash (expand-file-name (file-name-as-directory org-roam-directory))
                  conn
