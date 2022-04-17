@@ -8,6 +8,7 @@
 
 ### Removed
 ### Fixed
+- [#2091](https://github.com/org-roam/org-roam/pull/2091) node: fix org-roam-promote-entire-buffer structural errors
 - [#2130](https://github.com/org-roam/org-roam/pull/2130) buffer: unlinked-references section now also searches within symlinked directories
 - [#2152](https://github.com/org-roam/org-roam/pull/2152) org-roam-preview-default-function: doesn't copy copy content of next heading node when current node's content is empty
 - [#2159](https://github.com/org-roam/org-roam/pull/2159) db: fix db syncs on narrowed buffers

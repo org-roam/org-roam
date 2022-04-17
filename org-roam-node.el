@@ -829,23 +829,40 @@ Any top level properties drawers are incorporated into the new heading."
     (org-roam-erase-keyword "title")
     (org-roam-erase-keyword "filetags")))
 
+(defun org-roam--h1-count ()
+  "Count level-1 headings in the current file."
+  (let ((h1-count 0))
+    (org-with-wide-buffer
+     (org-map-region (lambda ()
+                       (if (= (org-current-level) 1)
+                           (incf h1-count)))
+                     (point-min) (point-max))
+     h1-count)))
+
+(defun org-roam--buffer-promoteable-p ()
+  "Verify that this buffer is promoteable:
+There is a single level-1 heading
+and no extra content before the first heading."
+  (and
+   (= (org-roam--h1-count) 1)
+   (org-with-point-at 1 (org-at-heading-p))))
+
 (defun org-roam-promote-entire-buffer ()
   "Promote the current buffer.
-Converts a file containing a headline node at the top to a file
+Converts a file containing a single level-1 headline node to a file
 node."
   (interactive)
+  (unless (org-roam--buffer-promoteable-p)
+    (user-error "Cannot promote: multiple root headings or there is extra file-level text"))
   (org-with-point-at 1
-    (org-map-region
-     (lambda ()
-       (when (> (org-outline-level) 1)
-         (org-do-promote)))
-     (point-min) (point-max))
     (let ((title (nth 4 (org-heading-components)))
-          (tags (nth 5 (org-heading-components))))
-      (beginning-of-line)
-      (kill-line 1)
-      (org-roam-set-keyword "title" title)
-      (when tags (org-roam-set-keyword "filetags" tags)))))
+          (tags (org-get-tags)))
+      (kill-whole-line)
+      (org-roam-end-of-meta-data)
+      (insert "#+title: " title "\n")
+      (when tags (org-roam-tag-add tags))
+      (org-map-region #'org-promote (point-min) (point-max))
+      (org-roam-db-update-file))))
 
 ;;;###autoload
 (defun org-roam-refile ()
@@ -942,6 +959,7 @@ If region is active, then use it instead of the node at point."
       (save-buffer)
       (with-current-buffer (find-file-noselect file-path)
         (org-paste-subtree)
+        (while (> (org-current-level) 1) (org-promote-subtree))
         (org-roam-promote-entire-buffer)
         (save-buffer)))))
 
