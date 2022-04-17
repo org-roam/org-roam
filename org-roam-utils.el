@@ -486,7 +486,8 @@ See <https://github.com/raxod502/straight.el/issues/520>."
                                          '("Doom" "Spacemacs" "N/A" "I don't know"))
                       (quit "N/A"))))
     (insert (format "- Org: %s\n" (org-version nil 'full)))
-    (insert (format "- Org-roam: %s" (org-roam-version)))))
+    (insert (format "- Org-roam: %s" (org-roam-version)))
+    (insert (format "- sqlite-connector: %s" org-roam-database-connector))))
 
 
 (provide 'org-roam-utils)
