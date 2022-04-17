@@ -39,5 +39,3 @@ Example:
 ### Environment
 
 <!-- Please M-x org-roam-diagnostics and paste results here -->
-
-- Org-roam commit: https://github.com/jethrokuan/org-roam/commit/commithashhere
