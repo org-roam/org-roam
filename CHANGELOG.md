@@ -14,6 +14,8 @@
 - [#2152](https://github.com/org-roam/org-roam/pull/2152) org-roam-preview-default-function: doesn't copy copy content of next heading node when current node's content is empty
 - [#2159](https://github.com/org-roam/org-roam/pull/2159) db: fix db syncs on narrowed buffers
 - [#2156](https://github.com/org-roam/org-roam/pull/2157) capture: templates with functions are handled correctly to avoid signaling `char-or-string-p`
+- [#2168](https://github.com/org-roam/org-roam/pull/2168) (perf)node-read: filter nodes before mapping --to-candidate
+
 
 ### Changed
 - [#2160](https://github.com/org-roam/org-roam/pull/2160) core: ignore files in `org-attach-id-dir` by default
