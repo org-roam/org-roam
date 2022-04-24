@@ -336,6 +336,7 @@ E.g. (\".org\") => (\"*.org\" \"*.org.gpg\")"
   (require 'org-roam-id)
   (require 'org-roam-capture)
   (require 'org-roam-mode)
+  (require 'org-roam-log)
   (require 'org-roam-migrate))
 
 ;;; org-roam.el ends here
