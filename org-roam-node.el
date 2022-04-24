@@ -1,6 +1,6 @@
 ;;; org-roam-node.el --- Interfacing and interacting with nodes -*- lexical-binding: t; -*-
 
-;; Copyright © 2020-2021 Jethro Kuan <jethrokuan95@gmail.com>
+;; Copyright © 2020-2022 Jethro Kuan <jethrokuan95@gmail.com>
 
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
 ;; URL: https://github.com/org-roam/org-roam
@@ -802,6 +802,8 @@ hence \"everywhere\"."
             :exclusive 'no))))
 
 (add-hook 'org-roam-find-file-hook #'org-roam--register-completion-functions-h)
+(add-hook 'org-roam-indirect-buffer-hook #'org-roam--register-completion-functions-h)
+
 (defun org-roam--register-completion-functions-h ()
   "Setup `org-roam-completion-functions' for `completion-at-point'."
   (dolist (f org-roam-completion-functions)

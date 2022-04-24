@@ -1,6 +1,6 @@
 ;;; org-roam-overlay.el --- Link overlay for [id:] links to Org-roam nodes -*- coding: utf-8; lexical-binding: t; -*-
 
-;; Copyright © 2020-2021 Jethro Kuan <jethrokuan95@gmail.com>
+;; Copyright © 2020-2022 Jethro Kuan <jethrokuan95@gmail.com>
 
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
 ;; URL: https://github.com/org-roam/org-roam
