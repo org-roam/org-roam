@@ -1,8 +1,9 @@
 # Changelog
-## TBD
+## 2.2.2
 ### Breaking
 ### Added
 - [#2138](https://github.com/org-roam/org-roam/pull/2138) export: add new module
+- [#2170](https://github.com/org-roam/org-roam/pull/2170) log: add new module for working with org logs
 - [#2158](https://github.com/org-roam/org-roam/pull/2158) db: support emacsql-sqlite-builtin and emacsql-sqlite-module
 - [#2160](https://github.com/org-roam/org-roam/pull/2160) core: support a list of `org-roam-file-exclude-regexp`
 

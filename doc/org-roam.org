@@ -17,7 +17,7 @@
 This manual is for Org-roam version 2.2.1.
 
 #+BEGIN_QUOTE
-Copyright (C) 2020-2021 Jethro Kuan <jethrokuan95@gmail.com>
+Copyright (C) 2020-2022 Jethro Kuan <jethrokuan95@gmail.com>
 
 You can redistribute this document and/or modify it under the terms of the GNU
 General Public License as published by the Free Software Foundation, either
@@ -1809,7 +1809,7 @@ When GOTO is non-nil, go the note without creating an entry."
 :END:
 
 #+BEGIN_QUOTE
-Copyright (C) 2020-2021 Jethro Kuan <jethrokuan95@gmail.com>
+Copyright (C) 2020-2022 Jethro Kuan <jethrokuan95@gmail.com>
 
 You can redistribute this document and/or modify it under the terms
 of the GNU General Public License as published by the Free Software
