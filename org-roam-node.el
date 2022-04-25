@@ -548,13 +548,13 @@ for an example sort function.
 The displayed title is formatted according to `org-roam-node-display-template'."
   (let* ((template (org-roam-node--process-display-format org-roam-node-display-template))
          (nodes (org-roam-node-list))
-         (nodes (mapcar (lambda (node)
-                          (org-roam-node-read--to-candidate node template)) nodes))
          (nodes (if filter-fn
                     (cl-remove-if-not
-                     (lambda (n) (funcall filter-fn (cdr n)))
+                     (lambda (n) (funcall filter-fn n))
                      nodes)
                   nodes))
+         (nodes (mapcar (lambda (node)
+                          (org-roam-node-read--to-candidate node template)) nodes))
          (sort-fn (or sort-fn
                       (when org-roam-node-default-sort
                         (intern (concat "org-roam-node-read-sort-by-"
