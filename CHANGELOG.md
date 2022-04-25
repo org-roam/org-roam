@@ -1,4 +1,12 @@
 # Changelog
+## TBD
+### Breaking
+### Added
+### Removed
+### Fixed
+- [#2168](https://github.com/org-roam/org-roam/pull/2168) (perf)node-read: filter nodes before mapping --to-candidate
+### Changed
+
 ## 2.2.2
 ### Breaking
 ### Added
