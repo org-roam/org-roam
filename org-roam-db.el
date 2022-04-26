@@ -695,6 +695,19 @@ If FORCE, force a rebuild of the cache from scratch."
            (lwarn 'org-roam :error "Failed to process %s with error %s, skipping..."
                   file (error-message-string err))))))))
 
+(defun org-roam-db--update-file-atime-h ()
+  "Update atime in the files table on file-access."
+  (let* ((f (buffer-file-name (buffer-base-buffer)))
+         (file-in-db-p (> (caar (org-roam-db-query [:select (funcall count file) :from files
+                                                    :where (= file $s1)] f)) 0))
+         (new-atime (file-attribute-access-time (file-attributes f))))
+    (when file-in-db-p
+      (org-roam-db-query [:update (atime)
+                          :in files
+                          :values $v1
+                          :where (= file $s2)]
+                         [new-atime] f))))
+
 ;;;###autoload
 (define-minor-mode org-roam-db-autosync-mode
   "Global minor mode to keep your Org-roam session automatically synchronized.
@@ -712,12 +725,14 @@ database, see `org-roam-db-sync' command."
     (cond
      (enabled
       (add-hook 'find-file-hook  #'org-roam-db-autosync--setup-file-h)
+      (add-hook 'find-file-hook #'org-roam-db--update-file-atime-h)
       (add-hook 'kill-emacs-hook #'org-roam-db--close-all)
       (advice-add #'rename-file :after  #'org-roam-db-autosync--rename-file-a)
       (advice-add #'delete-file :before #'org-roam-db-autosync--delete-file-a)
       (org-roam-db-sync))
      (t
       (remove-hook 'find-file-hook  #'org-roam-db-autosync--setup-file-h)
+      (remove-hook 'find-file-hook #'org-roam-db--update-file-atime-h)
       (remove-hook 'kill-emacs-hook #'org-roam-db--close-all)
       (advice-remove #'rename-file #'org-roam-db-autosync--rename-file-a)
       (advice-remove #'delete-file #'org-roam-db-autosync--delete-file-a)
