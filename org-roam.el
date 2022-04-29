@@ -203,11 +203,11 @@ FILE is an Org-roam file if:
           (cond
            ((not org-roam-file-exclude-regexp) nil)
            ((stringp org-roam-file-exclude-regexp)
-            (string-match-p org-roam-file-exclude-regexp path))
+            (string-match-p org-roam-file-exclude-regexp (file-relative-name path org-roam-directory)))
            ((listp org-roam-file-exclude-regexp)
             (let (is-match)
               (dolist (exclude-re org-roam-file-exclude-regexp)
-                (setq is-match (or is-match (string-match-p exclude-re path))))
+                (setq is-match (or is-match (string-match-p exclude-re (file-relative-name path org-roam-directory)))))
               is-match)))))
     (save-match-data
       (and
