@@ -44,7 +44,7 @@ General Public License for more details.
 
 @noindent
 
-This manual is for Org-roam version 2.2.1.
+This manual is for Org-roam version 2.2.2.
 
 @quotation
 Copyright (C) 2020-2022 Jethro Kuan <jethrokuan95@@gmail.com>
