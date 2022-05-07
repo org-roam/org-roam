@@ -5,7 +5,7 @@
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
-;; Version: 2.2.1
+;; Version: 2.2.2
 ;; Package-Requires: ((emacs "26.1") (dash "2.13") (org "9.4") (emacsql "3.0.0") (emacsql-sqlite "1.0.0") (magit-section "3.0.0"))
 
 ;; This file is NOT part of GNU Emacs.
@@ -193,6 +193,7 @@ FILE is an Org-roam file if:
 - It has a matching file extension (`org-roam-file-extensions')
 - It doesn't match excluded regexp (`org-roam-file-exclude-regexp')"
   (let* ((path (or file (buffer-file-name (buffer-base-buffer))))
+         (relative-path (file-relative-name path org-roam-directory))
          (ext (when path (org-roam--file-name-extension path)))
          (ext (if (string= ext "gpg")
                   (org-roam--file-name-extension (file-name-sans-extension path))
@@ -203,11 +204,11 @@ FILE is an Org-roam file if:
           (cond
            ((not org-roam-file-exclude-regexp) nil)
            ((stringp org-roam-file-exclude-regexp)
-            (string-match-p org-roam-file-exclude-regexp path))
+            (string-match-p org-roam-file-exclude-regexp relative-path))
            ((listp org-roam-file-exclude-regexp)
             (let (is-match)
               (dolist (exclude-re org-roam-file-exclude-regexp)
-                (setq is-match (or is-match (string-match-p exclude-re path))))
+                (setq is-match (or is-match (string-match-p exclude-re relative-path))))
               is-match)))))
     (save-match-data
       (and
