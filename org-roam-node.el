@@ -837,7 +837,7 @@ Any top level properties drawers are incorporated into the new heading."
     (org-with-wide-buffer
      (org-map-region (lambda ()
                        (if (= (org-current-level) 1)
-                           (incf h1-count)))
+                           (cl-incf h1-count)))
                      (point-min) (point-max))
      h1-count)))
 
