@@ -837,7 +837,7 @@ Any top level properties drawers are incorporated into the new heading."
     (org-with-wide-buffer
      (org-map-region (lambda ()
                        (if (= (org-current-level) 1)
-                           (incf h1-count)))
+                           (cl-incf h1-count)))
                      (point-min) (point-max))
      h1-count)))
 
@@ -962,6 +962,7 @@ If region is active, then use it instead of the node at point."
       (with-current-buffer (find-file-noselect file-path)
         (org-paste-subtree)
         (while (> (org-current-level) 1) (org-promote-subtree))
+        (save-buffer)
         (org-roam-promote-entire-buffer)
         (save-buffer)))))
 
