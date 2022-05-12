@@ -73,7 +73,7 @@ It takes a single argument NODE, which is an `org-roam-node' construct."
   :group 'org-roam
   :type 'function)
 
-(defcustom org-roam-node-default-sort 'file-atime
+(defcustom org-roam-node-default-sort 'file-mtime
   "Default sort order for Org-roam node completions."
   :type '(choice
           (const :tag "none" nil)
