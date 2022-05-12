@@ -962,6 +962,7 @@ If region is active, then use it instead of the node at point."
       (with-current-buffer (find-file-noselect file-path)
         (org-paste-subtree)
         (while (> (org-current-level) 1) (org-promote-subtree))
+        (save-buffer)
         (org-roam-promote-entire-buffer)
         (save-buffer)))))
 
