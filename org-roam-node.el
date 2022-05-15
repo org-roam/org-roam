@@ -224,9 +224,13 @@ populated."
                                     (magit-section-up)
                                     (org-roam-node-at-point)))
         (t (org-with-wide-buffer
-            (org-back-to-heading-or-point-min t)
-            (while (and (not (org-roam-db-node-p))
-                        (not (bobp)))
+            (while (not (or (org-roam-db-node-p)
+                            (bobp)
+                            ;; Handle case where top-level is a heading
+                            (= (funcall outline-level)
+                               (save-excursion
+                                 (org-roam-up-heading-or-point-min)
+                                 (funcall outline-level)))))
               (org-roam-up-heading-or-point-min))
             (when-let ((id (org-id-get)))
               (org-roam-populate
