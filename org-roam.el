@@ -194,6 +194,7 @@ FILE is an Org-roam file if:
 - It doesn't match excluded regexp (`org-roam-file-exclude-regexp')"
   (when (or file (buffer-file-name (buffer-base-buffer)))
     (let* ((path (or file (buffer-file-name (buffer-base-buffer))))
+           (relative-path (file-relative-name path org-roam-directory))
            (ext (org-roam--file-name-extension path))
            (ext (if (string= ext "gpg")
                     (org-roam--file-name-extension (file-name-sans-extension path))
@@ -204,11 +205,11 @@ FILE is an Org-roam file if:
             (cond
              ((not org-roam-file-exclude-regexp) nil)
              ((stringp org-roam-file-exclude-regexp)
-              (string-match-p org-roam-file-exclude-regexp path))
+              (string-match-p org-roam-file-exclude-regexp relative-path))
              ((listp org-roam-file-exclude-regexp)
               (let (is-match)
                 (dolist (exclude-re org-roam-file-exclude-regexp)
-                  (setq is-match (or is-match (string-match-p exclude-re path))))
+                  (setq is-match (or is-match (string-match-p exclude-re relative-path))))
                 is-match)))))
       (save-match-data
         (and
