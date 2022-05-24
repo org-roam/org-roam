@@ -788,7 +788,7 @@ When ENSURE-NEWLINE, always ensure there's a newline behind."
     ;; template does not start with any whitespace, and only ends with a single newline
     ;;
     ;; Instead, we restore the whitespace in the original template.
-    (setq template (replace-regexp-in-string "\n$" "" (org-capture-fill-template template)))
+    (setq template (replace-regexp-in-string "[\n]*\\'" "" (org-capture-fill-template template)))
     (when (and ensure-newline
                (string-equal template-whitespace-content ""))
       (setq template-whitespace-content "\n"))
