@@ -50,8 +50,8 @@
 
   (it "fills template without deleting newlines in its body"
     (expect
-     (org-roam-capture--fill-template "foo\n\nbar\n\n")
-     :to-equal "foo\n\nbar\n\n"))
+     (org-roam-capture--fill-template "foo\n\n\nbar\n\n")
+     :to-equal "foo\n\n\nbar\n\n"))
 
   (it "expands templates when it's a function"
     (expect
