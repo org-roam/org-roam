@@ -8,7 +8,7 @@
 
 @copying
 @quotation
-Copyright (C) 2020-2021 Jethro Kuan <jethrokuan95@@gmail.com>
+Copyright (C) 2020-2022 Jethro Kuan <jethrokuan95@@gmail.com>
 
 You can redistribute this document and/or modify it under the terms
 of the GNU General Public License as published by the Free Software
@@ -44,10 +44,10 @@ General Public License for more details.
 
 @noindent
 
-This manual is for Org-roam version 2.2.1.
+This manual is for Org-roam version 2.2.2.
 
 @quotation
-Copyright (C) 2020-2021 Jethro Kuan <jethrokuan95@@gmail.com>
+Copyright (C) 2020-2022 Jethro Kuan <jethrokuan95@@gmail.com>
 
 You can redistribute this document and/or modify it under the terms of the GNU
 General Public License as published by the Free Software Foundation, either
