@@ -1006,8 +1006,10 @@ The car is the ref, and the cdr is the corresponding node for the ref."
                                                               :file file
                                                               :point pos
                                                               :title title)))
-                       (cons (propertize ref 'node node 'type type)
-                             node)))))
+                       (cons
+                        (concat (propertize ref 'node node 'type type)
+                                (propertize id 'invisible t))
+                        node)))))
 
 (defun org-roam-ref-read--annotation (ref)
   "Return the annotation for REF, which assumed to be a propertized string."
