@@ -59,7 +59,7 @@ This uses the third-party `emacsql-sqlite3' package, which uses
 the official `sqlite3' cli tool, which is not intended
 to be used like this.  See https://nullprogram.com/blog/2014/02/06/."
   :package-version '(forge . "0.3.0")
-  :group 'forge
+  :group 'org-roam
   :type '(choice (const sqlite)
                  (const sqlite-builtin)
                  (const sqlite-module)
