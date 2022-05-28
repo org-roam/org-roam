@@ -481,7 +481,7 @@ interactive calls FORCE always set to t."
                       force))
 
 ;;;###autoload
-(cl-defun org-roam-node-find (&optional other-window initial-input filter-fn &key templates)
+(cl-defun org-roam-node-find (&optional other-window initial-input filter-fn pred &key templates)
   "Find and open an Org-roam node by its title or alias.
 INITIAL-INPUT is the initial input for the prompt.
 FILTER-FN is a function to filter out nodes: it takes an `org-roam-node',
@@ -490,7 +490,7 @@ If OTHER-WINDOW, visit the NODE in another window.
 The TEMPLATES, if provided, override the list of capture templates (see
 `org-roam-capture-'.)"
   (interactive current-prefix-arg)
-  (let ((node (org-roam-node-read initial-input filter-fn)))
+  (let ((node (org-roam-node-read initial-input filter-fn pred)))
     (if (org-roam-node-file node)
         (org-roam-node-visit node other-window)
       (org-roam-capture-
