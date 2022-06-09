@@ -364,26 +364,14 @@ If the property is already set, it's value is replaced."
 (defun org-roam-add-property (val prop)
   "Add VAL value to PROP property for the node at point.
 Both, VAL and PROP are strings."
-  (let* ((p (org-entry-get (point) prop))
-         (lst (when p (split-string-and-unquote p)))
-         (lst (if (memq val lst) lst (cons val lst)))
-         (lst (seq-uniq lst)))
-    (org-set-property prop (combine-and-quote-strings lst))
-    val))
+  (org-roam-property-add prop val))
 
 (defun org-roam-remove-property (prop &optional val)
   "Remove VAL value from PROP property for the node at point.
 Both VAL and PROP are strings.
 
 If VAL is not specified, user is prompted to select a value."
-  (let* ((p (org-entry-get (point) prop))
-         (lst (when p (split-string-and-unquote p)))
-         (prop-to-remove (or val (completing-read "Remove: " lst)))
-         (lst (delete prop-to-remove lst)))
-    (if lst
-        (org-set-property prop (combine-and-quote-strings lst))
-      (org-delete-property prop))
-    prop-to-remove))
+  (org-roam-property-remove prop val))
 
 (defun org-roam-property-add (prop val)
   "Add VAL value to PROP property for the node at point.
