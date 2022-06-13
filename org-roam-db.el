@@ -349,15 +349,16 @@ If there is no title, return the file name relative to
                                   (buffer-file-name (buffer-base-buffer))
                                   org-roam-directory)))))
 
-(defun org-roam-db-insert-file ()
+(defun org-roam-db-insert-file (&optional hash)
   "Update the files table for the current buffer.
-If UPDATE-P is non-nil, first remove the file in the database."
+If UPDATE-P is non-nil, first remove the file in the database.
+If HASH is non-nil, use that as the file's hash without recalculating it."
   (let* ((file (buffer-file-name))
          (file-title (org-roam-db--file-title))
          (attr (file-attributes file))
          (atime (file-attribute-access-time attr))
          (mtime (file-attribute-modification-time attr))
-         (hash (org-roam-db--file-hash)))
+         (hash (or hash (org-roam-db--file-hash file))))
     (org-roam-db-query
      [:insert :into files
       :values $v1]
@@ -606,19 +607,12 @@ INFO is the org-element parsed buffer."
       (puthash (car row) (cadr row) ht))
     ht))
 
-(defun org-roam-db--file-hash (&optional file-path)
-  "Compute the hash of FILE-PATH, a file or current buffer."
-  ;; If it is a GPG encrypted file, we always want to compute the hash
-  ;; for the GPG encrypted file (undecrypted)
-  (when (and (not file-path) (equal "gpg" (file-name-extension (buffer-file-name))))
-    (setq file-path (buffer-file-name)))
-  (if file-path
-      (with-temp-buffer
-        (set-buffer-multibyte nil)
-        (insert-file-contents-literally file-path)
-        (secure-hash 'sha1 (current-buffer)))
-    (org-with-wide-buffer
-     (secure-hash 'sha1 (current-buffer)))))
+(defun org-roam-db--file-hash (file-path)
+  "Compute the hash of FILE-PATH."
+  (with-temp-buffer
+    (set-buffer-multibyte nil)
+    (insert-file-contents-literally file-path)
+    (secure-hash 'sha1 (current-buffer))))
 
 ;;;; Synchronization
 (defun org-roam-db-update-file (&optional file-path no-require)
@@ -645,7 +639,7 @@ in `org-roam-db-sync'."
            (org-set-regexps-and-options 'tags-only)
            (org-refresh-category-properties)
            (org-roam-db-clear-file)
-           (org-roam-db-insert-file)
+           (org-roam-db-insert-file content-hash)
            (org-roam-db-insert-file-node)
            (setq org-outline-path-cache nil)
            (org-roam-db-map-nodes
