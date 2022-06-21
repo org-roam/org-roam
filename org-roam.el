@@ -107,6 +107,11 @@
   :group 'org-roam
   :group 'faces)
 
+(defface org-roam-link-face
+  `((t :inherit org-link)))
+  "Customizable face to make id: links stand out from other org links")
+(org-link-set-parameters "id" :face 'org-roam-link-face)
+
 (defcustom org-roam-verbose t
   "Echo messages that are not errors."
   :type 'boolean
