@@ -218,6 +218,7 @@ FILE is an Org-roam file if:
          valid-file-ext-p
          (not match-exclude-regexp-p))))))
 
+;;;###autoload
 (defun org-roam-list-files ()
   "Return a list of all Org-roam files under `org-roam-directory'.
 See `org-roam-file-p' for how each file is determined to be as
