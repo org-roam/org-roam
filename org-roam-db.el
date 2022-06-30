@@ -397,7 +397,8 @@ If HASH is non-nil, use that as the file's hash without recalculating it."
       ;; `re-search-forward' let the cursor one character after the link, we need to go backward one char to
       ;; make the point be on the link.
       (backward-char)
-      (let* ((element (org-element-context))
+      (let* ((begin (match-beginning 0))
+             (element (org-element-context))
              (type (org-element-type element))
              link bounds)
         (cond
@@ -410,14 +411,9 @@ If HASH is non-nil, use that as the file's hash without recalculating it."
          ((and (member type org-roam-db-extra-links-elements)
                (not (member-ignore-case (org-element-property :key element)
                                         (cdr (assoc type org-roam-db-extra-links-exclude-keys))))
-               (setq bounds (org-in-regexp org-link-any-re))
-               (setq link (buffer-substring-no-properties
-                           (car bounds)
-                           (cdr bounds))))
-          (with-temp-buffer
-            (delay-mode-hooks (org-mode))
-            (insert link)
-            (setq link (org-element-context)))))
+               (setq link (save-excursion
+                            (goto-char begin)
+                            (save-match-data (org-element-link-parser)))))))
         (when link
           (dolist (fn fns)
             (funcall fn link)))))))
