@@ -662,14 +662,16 @@ COMPLETION-A and COMPLETION-B are items in the form of
 ;;;; Linkage
 ;;;;; [id:] link
 ;;;###autoload
-(cl-defun org-roam-node-insert (&optional filter-fn &key templates info)
+(cl-defun org-roam-node-insert (force-capture &optional filter-fn &key templates info)
   "Find an Org-roam node and insert (where the point is) an \"id:\" link to it.
+If the node does not exist capture to it. If prefix arg FORCE-CAPTURE is
+non-nil, capture even the node already exists.
 FILTER-FN is a function to filter out nodes: it takes an `org-roam-node',
 and when nil is returned the node will be filtered out.
 The TEMPLATES, if provided, override the list of capture templates (see
 `org-roam-capture-'.)
 The INFO, if provided, is passed to the underlying `org-roam-capture-'."
-  (interactive)
+  (interactive "P")
   (unwind-protect
       ;; Group functions together to avoid inconsistent state on quit
       (atomic-change-group
@@ -682,7 +684,8 @@ The INFO, if provided, is passed to the underlying `org-roam-capture-'."
                (node (org-roam-node-read region-text filter-fn))
                (description (or region-text
                                 (org-roam-node-formatted node))))
-          (if (org-roam-node-id node)
+          (if (and (org-roam-node-id node)
+                   (not force-capture))
               (progn
                 (when region-text
                   (delete-region beg end)
