@@ -230,7 +230,7 @@ Like `org-fontify-like-in-org-mode', but supports `org-ref'."
     (let ((org-ref-buffer-hacked t)
           (org-fold-core-style 'overlays))
       (org-mode)
-      (org-font-lock-ensure)
+      (font-lock-ensure)
       (buffer-string))))
 
 ;;;; Shielding regions
