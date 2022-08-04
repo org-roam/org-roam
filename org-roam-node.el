@@ -864,7 +864,7 @@ node."
     (let ((title (nth 4 (org-heading-components)))
           (tags (org-get-tags)))
       (kill-whole-line)
-      (org-roam-end-of-meta-data)
+      (org-roam-end-of-meta-data t)
       (insert "#+title: " title "\n")
       (when tags (org-roam-tag-add tags))
       (org-map-region #'org-promote (point-min) (point-max))
