@@ -417,7 +417,9 @@ If HASH is non-nil, use that as the file's hash without recalculating it."
           (with-temp-buffer
             (delay-mode-hooks (org-mode))
             (insert link)
-            (setq link (org-element-context)))))
+            (setq link (org-element-context))
+            (org-element-put-property link :begin (car bounds))
+            (org-element-put-property link :end (cdr bounds)))))
         (when link
           (dolist (fn fns)
             (funcall fn link)))))))
