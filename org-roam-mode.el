@@ -339,7 +339,7 @@ Has no effect when there's no `org-roam-node-at-point'."
         (add-hook 'kill-buffer-hook #'org-roam-buffer--persistent-cleanup-h nil t)))))
 
 (defun org-roam-buffer--persistent-cleanup-h ()
-  "Clean-up global state thats dedicated for the persistent `org-roam-buffer'."
+  "Clean-up global state that's dedicated for the persistent `org-roam-buffer'."
   (setq-default org-roam-buffer-current-node nil
                 org-roam-buffer-current-directory nil))
 
