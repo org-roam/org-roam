@@ -1300,7 +1300,7 @@ There are variants of those commands for ~-yesterday~ and ~-tomorrow~:
 
 - Function: ~org-roam-dailies-capture-yesterday~ n &optional goto
 
-  Create an entry in the daily note for yesteday.
+  Create an entry in the daily note for yesterday.
 
   With numeric argument ~n~, use the daily note ~n~ days in the past.
 

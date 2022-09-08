@@ -1826,7 +1826,7 @@ There are variants of those commands for @code{-yesterday} and @code{-tomorrow}:
 
 @defun @code{org-roam-dailies-capture-yesterday} n &optional goto
 
-Create an entry in the daily note for yesteday.
+Create an entry in the daily note for yesterday.
 
 With numeric argument @code{n}, use the daily note @code{n} days in the past.
 @end defun
