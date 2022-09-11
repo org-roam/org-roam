@@ -178,18 +178,7 @@ archives to =package-archives=:
 #+END_SRC
 
 Org-roam also depends on a recent version of Org, which can be obtained in Org's
-package repository (see info:org#Installation). To use Org's ELPA archive:
-
-#+BEGIN_SRC emacs-lisp
-(add-to-list 'package-archives '("org" . "https://orgmode.org/elpa/") t)
-#+END_SRC
-
-Once you have added your preferred archive, you need to update the
-local package list using:
-
-#+BEGIN_EXAMPLE
-  M-x package-refresh-contents RET
-#+END_EXAMPLE
+package repository (see info:org#Installation).
 
 Once you have done that, you can install Org-roam and its dependencies
 using:
