@@ -916,6 +916,8 @@ If region is active, then use it instead of the node at point."
          (delete-region
           (and (org-back-to-heading t) (point))
           (min (1+ (buffer-size)) (org-end-of-subtree t t) (point)))))
+      (save-buffer)
+      (with-current-buffer nbuf (save-buffer))
       ;; If the buffer end-up empty after the refile, kill it and delete its
       ;; associated file.
       (when (eq (buffer-size) 0)
