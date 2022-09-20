@@ -922,7 +922,7 @@ If region is active, then use it instead of the node at point."
         (if (buffer-file-name)
             (delete-file (buffer-file-name)))
         (set-buffer-modified-p nil)
-        ;; In this was done during capture, abort the capture process.
+        ;; If this was done during capture, abort the capture process.
         (when (and org-capture-mode
                    (buffer-base-buffer (current-buffer)))
           (org-capture-kill))
