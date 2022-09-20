@@ -344,7 +344,7 @@ If FILE is nil, clear the current buffer."
 If there is no title, return the file name relative to
 `org-roam-directory'."
   (org-link-display-format
-   (or (cadr (assoc "TITLE" (org-collect-keywords '("title"))))
+   (or (string-join (cdr (assoc "TITLE" (org-collect-keywords '("title")))) " ")
        (file-name-sans-extension (file-relative-name
                                   (buffer-file-name (buffer-base-buffer))
                                   org-roam-directory)))))
