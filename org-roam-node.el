@@ -1064,7 +1064,8 @@ and when nil is returned the node will be filtered out."
 (defun org-roam-tag-add (tags)
   "Add TAGS to the node at point."
   (interactive
-   (list (completing-read-multiple "Tag: " (org-roam-tag-completions))))
+   (list (let ((crm-separator "[ 	]*:[ 	]*"))
+           (completing-read-multiple "Tag: " (org-roam-tag-completions)))))
   (let ((node (org-roam-node-at-point 'assert)))
     (save-excursion
       (goto-char (org-roam-node-point node))
