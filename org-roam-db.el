@@ -541,9 +541,14 @@ INFO is the org-element parsed buffer."
                 (;; https://google.com, cite:citeKey
                  ;; Note: we use string-match here because it matches any link: e.g. [[cite:abc][abc]]
                  ;; But this form of matching is loose, and can accept invalid links e.g. [[cite:abc]
-                 (string-match org-link-plain-re ref)
-                 (let ((link-type (match-string 1 ref))
-                       (path (match-string 2 ref)))
+                 (setq ref (org-link-encode ref '(#x20))
+                 (string-match org-link-any-re ref) ;; clear url-type for backward compatible.
+                 (let ((ref-url (url-generic-parse-url (or (match-string 2 ref) (match-string 0 ref))))
+                        (link-type ())
+                       (path ()))
+                   (setq link-type (url-type ref-url))
+                   (setf (url-type ref-url) nil)
+                   (setq path (org-link-decode (url-recreate-url ref-url)))
                    (if (and (boundp 'org-ref-cite-types)
                             (or (assoc link-type org-ref-cite-types)
                                 (member link-type org-ref-cite-types)))
