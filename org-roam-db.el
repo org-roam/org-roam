@@ -31,6 +31,8 @@
 ;;
 ;;; Code:
 (require 'org-roam)
+(require 'url-parse)
+(require 'ol)
 (defvar org-outline-path-cache)
 
 ;;; Options
