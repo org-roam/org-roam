@@ -543,10 +543,10 @@ INFO is the org-element parsed buffer."
                 (;; https://google.com, cite:citeKey
                  ;; Note: we use string-match here because it matches any link: e.g. [[cite:abc][abc]]
                  ;; But this form of matching is loose, and can accept invalid links e.g. [[cite:abc]
-                 (setq ref (org-link-encode ref '(#x20))
-                 (string-match org-link-any-re ref) ;; clear url-type for backward compatible.
+                 (string-match org-link-any-re (org-link-encode ref '(#x20)))
+                 (setq ref (org-link-encode ref '(#x20)))
                  (let ((ref-url (url-generic-parse-url (or (match-string 2 ref) (match-string 0 ref))))
-                        (link-type ())
+                       (link-type ()) ;; clear url-type for backward compatible.
                        (path ()))
                    (setq link-type (url-type ref-url))
                    (setf (url-type ref-url) nil)
