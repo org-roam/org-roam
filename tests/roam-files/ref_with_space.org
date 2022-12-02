@@ -1,0 +1,7 @@
+:PROPERTIES:
+:ROAM_REFS: "http://site.net/docs/01. introduction - hello world.html"
+:ID: 5b9a7400-f59c-4ef9-acbb-045b69af98f1
+:END:
+#+title: ref with space
+* Note
+hello

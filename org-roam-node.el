@@ -1036,7 +1036,9 @@ and when nil is returned the node will be filtered out."
   (let ((node (org-roam-node-at-point 'assert)))
     (save-excursion
       (goto-char (org-roam-node-point node))
-      (org-roam-property-add "ROAM_REFS" ref))))
+      (org-roam-property-add "ROAM_REFS" (if (memq " " (string-to-list ref))
+                                             (concat "\"" ref "\"")
+                                           ref)))))
 
 (defun org-roam-ref-remove (&optional ref)
   "Remove a REF from the node at point."
