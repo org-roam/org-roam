@@ -653,6 +653,7 @@ This is the ROW within FILE."
   "The unlinked references section for NODE.
 References from FILE are excluded."
   (when (and (executable-find "rg")
+             (org-roam-node-title node)
              (not (string-match "PCRE2 is not available"
                                 (shell-command-to-string "rg --pcre2-version"))))
     (let* ((titles (cons (org-roam-node-title node)
