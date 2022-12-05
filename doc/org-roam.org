@@ -644,6 +644,19 @@ rendering reference links), set ~org-roam-mode-sections~ as follows:
           org-roam-reflinks-section))
 #+end_src
 
+The backlinks section ~org-roam-backlinks-section~ also supports a
+predicate to filter backlinks, ~:show-backlink-p~.  This can be used
+as follows:
+
+#+begin_src emacs-lisp
+  (defun my-org-roam-show-backlink-p (backlink)
+    (not (member "daily" (org-roam-node-tags (org-roam-backlink-source-node backlink)))))
+
+  (setq org-roam-mode-sections
+        '((org-roam-backlinks-section :unique t :show-backlink-p my/org-roam-show-backlink-p)
+          org-roam-reflinks-section))
+#+end_src
+
 ** Configuring the Org-roam buffer display
 
 Org-roam does not control how the pop-up buffer is displayed: this is left to

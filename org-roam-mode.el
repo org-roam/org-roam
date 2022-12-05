@@ -514,19 +514,25 @@ Sorts by title."
   (string< (org-roam-node-title (org-roam-backlink-source-node a))
            (org-roam-node-title (org-roam-backlink-source-node b))))
 
-(cl-defun org-roam-backlinks-section (node &key (unique nil))
+(cl-defun org-roam-backlinks-section (node &key (unique nil) (show-backlink-p nil))
   "The backlinks section for NODE.
 
 When UNIQUE is nil, show all positions where references are found.
-When UNIQUE is t, limit to unique sources."
+When UNIQUE is t, limit to unique sources.
+
+When SHOW-BACKLINK-P is not null, only show backlinks for which
+this predicate is not nil."
   (when-let ((backlinks (seq-sort #'org-roam-backlinks-sort (org-roam-backlinks-get node :unique unique))))
     (magit-insert-section (org-roam-backlinks)
       (magit-insert-heading "Backlinks:")
       (dolist (backlink backlinks)
-        (org-roam-node-insert-section
-         :source-node (org-roam-backlink-source-node backlink)
-         :point (org-roam-backlink-point backlink)
-         :properties (org-roam-backlink-properties backlink)))
+        (when (or (null show-backlink-p)
+                  (and (not (null show-backlink-p))
+                       (funcall show-backlink-p backlink)))
+          (org-roam-node-insert-section
+           :source-node (org-roam-backlink-source-node backlink)
+           :point (org-roam-backlink-point backlink)
+           :properties (org-roam-backlink-properties backlink))))
       (insert ?\n))))
 
 ;;;; Reflinks
