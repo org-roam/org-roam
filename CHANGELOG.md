@@ -7,6 +7,7 @@
 - [#2264](https://github.com/org-roam/org-roam/pull/2264) Support multi-line org titles
 - [#2165](https://github.com/org-roam/org-roam/pull/2165) (fix)org-roam-file-p: don't exclude org-roam-directory
 - [#2168](https://github.com/org-roam/org-roam/pull/2168) (perf)node-read: filter nodes before mapping --to-candidate
+- [#2219](https://github.com/org-roam/org-roam/pull/2219) (node) [Fix #2188] Insert Org ID links in org-roam-completion
 ### Changed
 
 ## 2.2.2
