@@ -31,7 +31,7 @@ General Public License for more details.
 @finalout
 @titlepage
 @title Org-roam User Manual
-@subtitle for version 2.2.1
+@subtitle for version 2.2.2
 @author Jethro Kuan
 @page
 @vskip 0pt plus 1filll
@@ -401,18 +401,7 @@ To use Melpa-Stable:
 @end lisp
 
 Org-roam also depends on a recent version of Org, which can be obtained in Org's
-package repository (see @ref{Installation,,,org,}). To use Org's ELPA archive:
-
-@lisp
-(add-to-list 'package-archives '("org" . "https://orgmode.org/elpa/") t)
-@end lisp
-
-Once you have added your preferred archive, you need to update the
-local package list using:
-
-@example
-M-x package-refresh-contents RET
-@end example
+package repository (see @ref{Installation,,,org,}).
 
 Once you have done that, you can install Org-roam and its dependencies
 using:
@@ -803,19 +792,25 @@ To use @code{emacsql-sqlite3}, ensure that the package is installed, and set:
 (setq org-roam-database-connector 'sqlite3)
 @end lisp
 
-@uref{https://github.com/emacscollective/emacsql-libsqlite3/, @strong{@strong{emacsql-libsqlite3}}}
+@uref{https://melpa.org/#/emacsql-sqlite-module, @strong{@strong{emacssql-sqlite-module}}} (previously emacsql-libsqlite3)
 
-@code{emacs-libsqlite3} is a relatively young package which uses an Emacs module that
+@code{emacs-sqlite-module} is a relatively young package which uses an Emacs module that
 exposes parts of the SQLite C API to Emacs Lisp, instead of using subprocess as
 @code{emacsql-sqlite} does. It is expected to be a more performant drop-in
 replacement for @code{emacs-sqlite}.
 
-At the moment it is experimental and does not work well with the SQL query load
-required by Org-roam, but you may still try it by ensuring the package is
-installed and setting:
+@lisp
+(setq org-roam-database-connector 'sqlite-module)
+@end lisp
+
+@uref{https://melpa.org/#/emacsql-sqlite-builtin, @strong{@strong{emacsql-sqlite-builtin}}}
+
+@code{emacsql-sqlite-builtin} uses the in-built SQLite support for Emacs 29 and
+later. This is the recommended option if you are using a version of Emacs that
+supports it.
 
 @lisp
-(setq org-roam-database-connector 'libsqlite3)
+(setq org-roam-database-connector 'sqlite-builtin)
 @end lisp
 
 @node What to cache
