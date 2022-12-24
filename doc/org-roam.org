@@ -486,19 +486,25 @@ To use ~emacsql-sqlite3~, ensure that the package is installed, and set:
   (setq org-roam-database-connector 'sqlite3)
 #+end_src
 
-[[https://github.com/emacscollective/emacsql-libsqlite3/][**emacsql-libsqlite3**]]
+[[https://melpa.org/#/emacsql-sqlite-module][**emacssql-sqlite-module**]] (previously emacsql-libsqlite3)
 
-~emacs-libsqlite3~ is a relatively young package which uses an Emacs module that
+~emacs-sqlite-module~ is a relatively young package which uses an Emacs module that
 exposes parts of the SQLite C API to Emacs Lisp, instead of using subprocess as
 ~emacsql-sqlite~ does. It is expected to be a more performant drop-in
 replacement for ~emacs-sqlite~.
 
-At the moment it is experimental and does not work well with the SQL query load
-required by Org-roam, but you may still try it by ensuring the package is
-installed and setting:
+#+begin_src emacs-lisp
+  (setq org-roam-database-connector 'sqlite-module)
+#+end_src
+
+[[https://melpa.org/#/emacsql-sqlite-builtin][**emacsql-sqlite-builtin**]]
+
+~emacsql-sqlite-builtin~ uses the in-built SQLite support for Emacs 29 and
+later. This is the recommended option if you are using a version of Emacs that
+supports it.
 
 #+begin_src emacs-lisp
-  (setq org-roam-database-connector 'libsqlite3)
+  (setq org-roam-database-connector 'sqlite-builtin)
 #+end_src
 
 ** What to cache
