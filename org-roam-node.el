@@ -770,7 +770,8 @@ We use this as a substitute for `org-link-bracket-re', because
   "Complete \"roam:\" link at point to an existing Org-roam node."
   (let (roam-p start end)
     (when (org-in-regexp org-roam-bracket-completion-re 1)
-      (setq roam-p (not (string-blank-p (match-string 1)))
+      (setq roam-p (not (or (org-in-src-block-p)
+                            (string-blank-p (match-string 1))))
             start (match-beginning 2)
             end (match-end 2))
       (list start end
@@ -792,6 +793,7 @@ outside of the bracket syntax for links (i.e. \"[[roam:|]]\"),
 hence \"everywhere\"."
   (when (and org-roam-completion-everywhere
              (thing-at-point 'word)
+             (not (org-in-src-block-p))
              (not (save-match-data (org-in-regexp org-link-any-re))))
     (let ((bounds (bounds-of-thing-at-point 'word)))
       (list (car bounds) (cdr bounds)
