@@ -36,7 +36,12 @@
 (defvar org-outline-path-cache)
 
 ;;; Options
-(defcustom org-roam-database-connector 'sqlite
+(defcustom org-roam-database-connector (if (and (progn
+                                                  (require 'emacsql-sqlite-builtin nil t)
+                                                  (functionp 'emacsql-sqlite-builtin))
+                                                (functionp 'sqlite-open))
+                                           'sqlite-builtin
+                                         'sqlite)
   "The database connector used by Org-roam.
 This must be set before `org-roam' is loaded.  To use an alternative
 connector you must install the respective package explicitly.
