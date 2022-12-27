@@ -210,6 +210,10 @@ This path is relative to `org-roam-directory'."
     (_
      (org-roam-node-title node))))
 
+(cl-defmethod org-roam-node-category ((node org-roam-node))
+  "Return the category for NODE."
+  (cdr (assoc-string "CATEGORY" (org-roam-node-properties node))))
+
 ;;; Nodes
 ;;;; Getters
 (defun org-roam-node-at-point (&optional assert)
