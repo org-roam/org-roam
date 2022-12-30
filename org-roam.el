@@ -161,18 +161,18 @@ The Elisp implementation is used if no command in the list is found.
   `find'
     Use find as the file search method.
     Example command:
-    find /path/to/dir -type f \( -name \"*.org\" -o -name \"*.org.gpg\" \)
+    find /path/to/dir -type f \( -name \"*.org\" -o -name \"*.org.gpg\" -name \"*.org.age\" \)
 
   `fd'
     Use fd as the file search method.
-    Example command: fd /path/to/dir/ --type file -e \".org\" -e \".org.gpg\"
+    Example command: fd /path/to/dir/ --type file -e \".org\" -e \".org.gpg\" -e \".org.age\"
 
   `fdfind'
     Same as `fd'. It's an alias that used in some OSes (e.g. Debian, Ubuntu)
 
   `rg'
     Use ripgrep as the file search method.
-    Example command: rg /path/to/dir/ --files -g \"*.org\" -g \"*.org.gpg\"
+    Example command: rg /path/to/dir/ --files -g \"*.org\" -g \"*.org.gpg\" -g \"*.org.age\"
 
 By default, `executable-find' will be used to look up the path to the
 executable. If a custom path is required, it can be specified together with the
@@ -196,7 +196,8 @@ FILE is an Org-roam file if:
     (let* ((path (or file (buffer-file-name (buffer-base-buffer))))
            (relative-path (file-relative-name path org-roam-directory))
            (ext (org-roam--file-name-extension path))
-           (ext (if (string= ext "gpg")
+           (ext (if (or (string= ext "gpg")
+                        (string= ext "age"))
                     (org-roam--file-name-extension (file-name-sans-extension path))
                   ext))
            (org-roam-dir-p (org-roam-descendant-of-p path org-roam-directory))
@@ -290,7 +291,8 @@ If no files are found, an empty list is returned."
 E.g. (\".org\") => (\"*.org\" \"*.org.gpg\")"
   (cl-loop for e in exts
            append (list (format "\"*.%s\"" e)
-                        (format "\"*.%s.gpg\"" e))))
+                        (format "\"*.%s.gpg\"" e)
+                        (format "\"*.%s.age\"" e))))
 
 (defun org-roam--list-files-find (executable dir)
   "Return all Org-roam files under DIR, using \"find\", provided as EXECUTABLE."
@@ -321,7 +323,7 @@ E.g. (\".org\") => (\"*.org\" \"*.org.gpg\")"
   "Return all Org-roam files under DIR, using Elisp based implementation."
   (let ((regex (concat "\\.\\(?:"(mapconcat
                                   #'regexp-quote org-roam-file-extensions
-                                  "\\|" )"\\)\\(?:\\.gpg\\)?\\'"))
+                                  "\\|" )"\\)\\(?:\\.gpg\\|\\.age\\)?\\'"))
         result)
     (dolist (file (org-roam--directory-files-recursively dir regex nil nil t) result)
       (when (and (file-readable-p file)
