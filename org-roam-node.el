@@ -300,6 +300,34 @@ Return nil if there's no node with such REF."
                               type path))))
           (org-roam-populate (org-roam-node-create :id id)))))))
 
+(defun org-roam-nodes-from-ref (ref)
+  "Return a a list of `org-roam-node's from REF reference.
+Return nil if there's no node with such REF."
+  (save-match-data
+    (let (type path)
+      (cond
+       ((string-match org-link-plain-re ref)
+        (setq type (match-string 1 ref)
+              path (match-string 2 ref)))
+       ((string-prefix-p "@" ref)
+        (setq type "cite"
+              path (substring ref 1))))
+      (when (and type path)
+        (when-let ((ids
+                    (mapcar
+                     #'car
+                     (org-roam-db-query
+                      [:select [nodes:id]
+                       :from refs
+                       :left-join nodes
+                       :on (= refs:node-id nodes:id)
+                       :where (= refs:type $s1)
+                       :and (= refs:ref $s2)]
+                      type path))))
+          (mapcar
+           (lambda (id) (org-roam-populate (org-roam-node-create :id id)))
+           ids))))))
+
 (cl-defmethod org-roam-populate ((node org-roam-node))
   "Populate NODE from database.
 Uses the ID, and fetches remaining details from the database.
