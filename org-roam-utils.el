@@ -120,7 +120,7 @@ SPEC is a list, as per `dolist'."
 ;;; File utilities
 (defun org-roam-descendant-of-p (a b)
   "Return t if A is descendant of B."
-  (unless (equal (file-truename a) (file-truename b))
+  (unless (and a b (equal (file-truename a) (file-truename b)))
     (string-prefix-p (replace-regexp-in-string "^\\([A-Za-z]\\):" 'downcase (expand-file-name b) t t)
                      (replace-regexp-in-string "^\\([A-Za-z]\\):" 'downcase (expand-file-name a) t t))))
 
