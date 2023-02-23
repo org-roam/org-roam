@@ -112,6 +112,12 @@ It takes a single argument REF, which is a propertized string."
   :group 'org-roam
   :type  '(function))
 
+(defcustom org-roam-ref-prompt-function nil
+  "Function to prompt for ref strings in `org-roam-ref-add'.
+Should take no arguments, prompt the user, and return a string."
+  :group 'org-roam
+  :type 'function)
+
 ;;;; Completion-at-point
 (defcustom org-roam-completion-everywhere nil
   "When non-nil, provide link completion matching outside of Org links."
@@ -1038,7 +1044,9 @@ and when nil is returned the node will be filtered out."
 ;;;; Editing
 (defun org-roam-ref-add (ref)
   "Add REF to the node at point."
-  (interactive "sRef: ")
+  (interactive `(,(if org-roam-ref-prompt-function
+                      (funcall org-roam-ref-prompt-function)
+                    (read-string "Ref: "))))
   (let ((node (org-roam-node-at-point 'assert)))
     (save-excursion
       (goto-char (org-roam-node-point node))
