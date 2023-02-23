@@ -152,31 +152,40 @@ responsibility to ensure that."
     '(find fd fdfind rg))
   "Commands that will be used to find Org-roam files.
 
-It should be a list of symbols or cons cells representing any of the following
-supported file search methods.
+It should be a list of symbols or cons cells representing any of
+the following supported file search methods.
 
-The commands will be tried in order until an executable for a command is found.
-The Elisp implementation is used if no command in the list is found.
+The commands will be tried in order until an executable for a
+command is found. The Elisp implementation is used if no command
+in the list is found.
 
   `find'
+
     Use find as the file search method.
     Example command:
-    find /path/to/dir -type f \( -name \"*.org\" -o -name \"*.org.gpg\" -name \"*.org.age\" \)
+      find /path/to/dir -type f \
+        \( -name \"*.org\" -o -name \"*.org.gpg\" -name \"*.org.age\" \)
 
   `fd'
+
     Use fd as the file search method.
-    Example command: fd /path/to/dir/ --type file -e \".org\" -e \".org.gpg\" -e \".org.age\"
+    Example command:
+      fd /path/to/dir/ --type file -e \".org\" -e \".org.gpg\" -e \".org.age\"
 
   `fdfind'
+
     Same as `fd'. It's an alias that used in some OSes (e.g. Debian, Ubuntu)
 
   `rg'
-    Use ripgrep as the file search method.
-    Example command: rg /path/to/dir/ --files -g \"*.org\" -g \"*.org.gpg\" -g \"*.org.age\"
 
-By default, `executable-find' will be used to look up the path to the
-executable. If a custom path is required, it can be specified together with the
-method symbol as a cons cell. For example: '(find (rg . \"/path/to/rg\"))."
+    Use ripgrep as the file search method.
+    Example command:
+       rg /path/to/dir/ --files -g \"*.org\" -g \"*.org.gpg\" -g \"*.org.age\"
+
+By default, `executable-find' will be used to look up the path to
+the executable. If a custom path is required, it can be specified
+together with the method symbol as a cons cell. For example:
+'(find (rg . \"/path/to/rg\"))."
   :type '(set (const :tag "find" find)
               (const :tag "fd" fd)
               (const :tag "fdfind" fdfind)
