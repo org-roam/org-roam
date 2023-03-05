@@ -227,9 +227,9 @@ Like `org-fontify-like-in-org-mode', but supports `org-ref'."
   ;; `org-fontify-like-in-org-mode' here
   (with-temp-buffer
     (insert s)
-    (let ((org-ref-buffer-hacked t)
-          (org-fold-core-style 'overlays))
+    (let ((org-ref-buffer-hacked t))
       (org-mode)
+      (setq-local org-fold-core-style 'overlays)
       (font-lock-ensure)
       (buffer-string))))
 
