@@ -236,11 +236,10 @@ populated."
         (t (org-with-wide-buffer
             (while (not (or (org-roam-db-node-p)
                             (bobp)
-                            ;; Handle case where top-level is a heading
-                            (= (funcall outline-level)
-                               (save-excursion
-                                 (org-roam-up-heading-or-point-min)
-                                 (funcall outline-level)))))
+                            (eq (funcall outline-level)
+                                (save-excursion
+                                  (org-roam-up-heading-or-point-min)
+                                  (funcall outline-level)))))
               (org-roam-up-heading-or-point-min))
             (when-let ((id (org-id-get)))
               (org-roam-populate
