@@ -5,8 +5,8 @@
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
-;; Version: 2.2.1
-;; Package-Requires: ((emacs "26.1") (dash "2.13") (org "9.4") (emacsql "3.0.0") (emacsql-sqlite "1.0.0") (magit-section "3.0.0"))
+;; Version: 2.2.2
+;; Package-Requires: ((emacs "26.1") (dash "2.13") (org "9.4") (emacsql "20230228") (magit-section "3.0.0"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -339,7 +339,7 @@ Has no effect when there's no `org-roam-node-at-point'."
         (add-hook 'kill-buffer-hook #'org-roam-buffer--persistent-cleanup-h nil t)))))
 
 (defun org-roam-buffer--persistent-cleanup-h ()
-  "Clean-up global state thats dedicated for the persistent `org-roam-buffer'."
+  "Clean-up global state that's dedicated for the persistent `org-roam-buffer'."
   (setq-default org-roam-buffer-current-node nil
                 org-roam-buffer-current-directory nil))
 
@@ -514,19 +514,25 @@ Sorts by title."
   (string< (org-roam-node-title (org-roam-backlink-source-node a))
            (org-roam-node-title (org-roam-backlink-source-node b))))
 
-(cl-defun org-roam-backlinks-section (node &key (unique nil))
+(cl-defun org-roam-backlinks-section (node &key (unique nil) (show-backlink-p nil))
   "The backlinks section for NODE.
 
 When UNIQUE is nil, show all positions where references are found.
-When UNIQUE is t, limit to unique sources."
+When UNIQUE is t, limit to unique sources.
+
+When SHOW-BACKLINK-P is not null, only show backlinks for which
+this predicate is not nil."
   (when-let ((backlinks (seq-sort #'org-roam-backlinks-sort (org-roam-backlinks-get node :unique unique))))
     (magit-insert-section (org-roam-backlinks)
       (magit-insert-heading "Backlinks:")
       (dolist (backlink backlinks)
-        (org-roam-node-insert-section
-         :source-node (org-roam-backlink-source-node backlink)
-         :point (org-roam-backlink-point backlink)
-         :properties (org-roam-backlink-properties backlink)))
+        (when (or (null show-backlink-p)
+                  (and (not (null show-backlink-p))
+                       (funcall show-backlink-p backlink)))
+          (org-roam-node-insert-section
+           :source-node (org-roam-backlink-source-node backlink)
+           :point (org-roam-backlink-point backlink)
+           :properties (org-roam-backlink-properties backlink))))
       (insert ?\n))))
 
 ;;;; Reflinks
@@ -653,6 +659,7 @@ This is the ROW within FILE."
   "The unlinked references section for NODE.
 References from FILE are excluded."
   (when (and (executable-find "rg")
+             (org-roam-node-title node)
              (not (string-match "PCRE2 is not available"
                                 (shell-command-to-string "rg --pcre2-version"))))
     (let* ((titles (cons (org-roam-node-title node)

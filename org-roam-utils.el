@@ -5,7 +5,7 @@
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
-;; Version: 2.2.1
+;; Version: 2.2.2
 ;; Package-Requires: ((emacs "26.1") (dash "2.13") (org "9.4"))
 
 ;; This file is NOT part of GNU Emacs.
@@ -120,7 +120,7 @@ SPEC is a list, as per `dolist'."
 ;;; File utilities
 (defun org-roam-descendant-of-p (a b)
   "Return t if A is descendant of B."
-  (unless (equal (file-truename a) (file-truename b))
+  (unless (and a b (equal (file-truename a) (file-truename b)))
     (string-prefix-p (replace-regexp-in-string "^\\([A-Za-z]\\):" 'downcase (expand-file-name b) t t)
                      (replace-regexp-in-string "^\\([A-Za-z]\\):" 'downcase (expand-file-name a) t t))))
 
@@ -229,7 +229,8 @@ Like `org-fontify-like-in-org-mode', but supports `org-ref'."
     (insert s)
     (let ((org-ref-buffer-hacked t))
       (org-mode)
-      (org-font-lock-ensure)
+      (setq-local org-fold-core-style 'overlays)
+      (font-lock-ensure)
       (buffer-string))))
 
 ;;;; Shielding regions
@@ -364,26 +365,14 @@ If the property is already set, it's value is replaced."
 (defun org-roam-add-property (val prop)
   "Add VAL value to PROP property for the node at point.
 Both, VAL and PROP are strings."
-  (let* ((p (org-entry-get (point) prop))
-         (lst (when p (split-string-and-unquote p)))
-         (lst (if (memq val lst) lst (cons val lst)))
-         (lst (seq-uniq lst)))
-    (org-set-property prop (combine-and-quote-strings lst))
-    val))
+  (org-roam-property-add prop val))
 
 (defun org-roam-remove-property (prop &optional val)
   "Remove VAL value from PROP property for the node at point.
 Both VAL and PROP are strings.
 
 If VAL is not specified, user is prompted to select a value."
-  (let* ((p (org-entry-get (point) prop))
-         (lst (when p (split-string-and-unquote p)))
-         (prop-to-remove (or val (completing-read "Remove: " lst)))
-         (lst (delete prop-to-remove lst)))
-    (if lst
-        (org-set-property prop (combine-and-quote-strings lst))
-      (org-delete-property prop))
-    prop-to-remove))
+  (org-roam-property-remove prop val))
 
 (defun org-roam-property-add (prop val)
   "Add VAL value to PROP property for the node at point.

@@ -36,4 +36,27 @@
      (org-roam-whitespace-content "foo\n\t\n")
      :to-equal "\n\t\n")))
 
+(describe "org-roam-db--file-title"
+  (it "supports normal titles"
+    (expect
+     (with-temp-buffer
+       (insert "#+title:normal title")
+       (org-roam-db--file-title))
+     :to-equal "normal title"))
+  (it "supports multi-line titles"
+    (expect
+     (with-temp-buffer
+       (insert "#+title: title:\n#+title: separated by newline")
+       (org-roam-db--file-title))
+     :to-equal "title: separated by newline"))
+  (it "supports file-name based titles"
+    (progn
+      (setq org-roam-directory temporary-file-directory
+            org-roam-db-location (expand-file-name "org-roam.db" temporary-file-directory)
+            org-roam-file-extensions '("org"))
+      (with-temp-buffer
+        (write-file (expand-file-name "test file.org" org-roam-directory))
+        (org-roam-db--file-title)))
+    :to-equal "test file"))
+
 (provide 'test-org-roam-utils)
