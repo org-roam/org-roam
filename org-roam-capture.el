@@ -321,7 +321,8 @@ streamlined user experience in Org-roam."
                                                         (string :tag "  Head Content")
                                                         (list :tag "Outline path"
                                                               (repeat (string :tag "Headline"))))))
-                                         ((const :format "%v " :prepend) (const t))
+                                         ((const :format "%v " :prepend) (choice (const t)
+                                                                                 (const after-subtree)))
                                          ((const :format "%v " :immediate-finish) (const t))
                                          ((const :format "%v " :jump-to-captured) (const t))
                                          ((const :format "%v " :empty-lines) (const 1))
@@ -666,18 +667,22 @@ the current value of `point'."
       (`plain
        (cl-case location-type
          (beginning-of-file
-          (if (org-capture-get :prepend)
-              (let ((el (org-element-at-point)))
-                (while (and (not (eobp))
-                            (memq (org-element-type el)
-                                  '(drawer property-drawer keyword comment comment-block horizontal-rule)))
-                  (goto-char (org-element-property :end el))
-                  (setq el (org-element-at-point))))
-            (goto-char (save-excursion (org-end-of-subtree t t) (point)))))
-         (heading-at-point
-          (if (org-capture-get :prepend)
-              (org-end-of-meta-data t)
-            (goto-char (save-excursion (org-end-of-subtree t t) (point)))))))))
+          (pcase (org-capture-get :prepend)
+            (after-subtree
+             (goto-char (save-excursion (org-end-of-subtree t t) (point))))
+            ((pred null) (goto-char (org-entry-end-position)))
+            (_ (let ((el (org-element-at-point)))
+                 (while (and (not (eobp))
+                             (memq (org-element-type el)
+                                   '(drawer property-drawer keyword comment comment-block horizontal-rule)))
+                   (goto-char (org-element-property :end el))
+                   (setq el (org-element-at-point)))))))
+          (heading-at-point
+           (pcase (org-capture-get :prepend)
+             (after-subtree
+              (goto-char (save-excursion (org-end-of-subtree t t) (point))))
+             ((pred null) (goto-char (org-entry-end-position)))
+             (_ (org-end-of-meta-data t))))))))
   (point))
 
 ;;; Capture implementation
