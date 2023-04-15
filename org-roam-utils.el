@@ -179,6 +179,18 @@ value (possibly nil). Adapted from `s-format'."
 ;;; Fontification
 (defvar org-ref-buffer-hacked)
 
+(defvar org-roam-fontification-buffer "*org-roam-fontification-buffer*"
+  "The buffer helps to increase the speed of org-roam-buffer
+fontification.")
+
+(defun org-roam-get-fontification-buffer-create ()
+  "Get or create the `org-roam-fontification-buffer'. Ensures the
+org-mode is activated."
+  (with-current-buffer (get-buffer-create org-roam-fontification-buffer)
+    (unless (derived-mode-p 'org-mode)
+      (org-mode))
+    (current-buffer)))
+
 (defun org-roam-fontify-like-in-org-mode (s)
   "Fontify string S like in Org mode.
 Like `org-fontify-like-in-org-mode', but supports `org-ref'."
@@ -198,10 +210,10 @@ Like `org-fontify-like-in-org-mode', but supports `org-ref'."
   ;;
   ;; `org-ref-buffer-hacked' is a buffer-local variable, therefore we inline
   ;; `org-fontify-like-in-org-mode' here
-  (with-temp-buffer
+  (with-current-buffer (org-roam-get-fontification-buffer-create)
+    (erase-buffer)
     (insert s)
     (let ((org-ref-buffer-hacked t))
-      (org-mode)
       (setq-local org-fold-core-style 'overlays)
       (font-lock-ensure)
       (buffer-string))))
