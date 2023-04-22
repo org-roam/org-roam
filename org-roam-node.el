@@ -33,6 +33,7 @@
 ;;
 ;;; Code:
 (require 'org-roam)
+(require 'org-roam-db)
 
 ;;; Options
 ;;;; Completing-read
@@ -343,7 +344,7 @@ nodes."
             (org-roam-node-aliases node) alias-info)))
   node)
 
-(defun org-roam-node-list ()
+(defun org-roam-node--get-list ()
   "Return all nodes stored in the database as a list of `org-roam-node's."
   (let ((rows (org-roam-db-query
                "SELECT
@@ -436,6 +437,22 @@ GROUP BY id")))
                                                       :tags tags
                                                       :refs refs))
                               all-titles)))))
+
+(defvar org-roam-node--list nil
+  "Last value of the nodes.")
+(defvar org-roam-node--list-mtime nil
+  "Last time `org-roam-node--list' was changed.")
+(defun org-roam-node-list (&optional force-refresh)
+  "Return all nodes stored in the database as a list of `org-roam-node's.
+
+Returns `org-roam-node--list' if the database didn't change."
+  (if (and (not force-refresh)
+           org-roam-node--list-mtime
+           (time-less-p (org-roam-db--get-mtime) org-roam-node--list-mtime))
+      org-roam-node--list
+    (setq org-roam-node--list (org-roam-node--get-list))
+    (setq org-roam-node--list-mtime (current-time))
+    org-roam-node--list))
 
 ;;;; Finders
 (defun org-roam-node-marker (node)
@@ -550,6 +567,12 @@ PROMPT is a string to show at the beginning of the mini-buffer, defaulting to \"
     (or (cdr (assoc node nodes))
         (org-roam-node-create :title node))))
 
+(defvar org-roam-node--candidate-list nil
+  "List with last value of the nodes formatted as candidates.")
+(defvar org-roam-node--candidate-list-mtime nil
+  "Last time `org-roam-node--candidate-list' was changed.")
+(defvar org-roam-node--candidate-list-prev-filter-fn nil
+  "Last value of parameter `filter-fn' of `org-roam-node-read--completions'.")
 (defun org-roam-node-read--completions (&optional filter-fn sort-fn)
   "Return an alist for node completion.
 The car is the displayed title or alias for the node, and the cdr
@@ -559,15 +582,27 @@ and when nil is returned the node will be filtered out.
 SORT-FN is a function to sort nodes. See `org-roam-node-read-sort-by-file-mtime'
 for an example sort function.
 The displayed title is formatted according to `org-roam-node-display-template'."
-  (let* ((template (org-roam-node--process-display-format org-roam-node-display-template))
-         (nodes (org-roam-node-list))
-         (nodes (if filter-fn
-                    (cl-remove-if-not
-                     (lambda (n) (funcall filter-fn n))
-                     nodes)
-                  nodes))
-         (nodes (mapcar (lambda (node)
-                          (org-roam-node-read--to-candidate node template)) nodes))
+  ;; update `org-roam-node--candidate-list' if needed
+  (let ((nodes (org-roam-node-list)))
+    (unless (and (eq filter-fn org-roam-node--candidate-list-prev-filter-fn)
+                 org-roam-node--candidate-list-mtime
+                 org-roam-node--list-mtime
+                 (time-less-p org-roam-node--list-mtime
+                              org-roam-node--candidate-list-mtime))
+      (let* ((template (org-roam-node--process-display-format org-roam-node-display-template))
+             (nodes (if filter-fn
+                        (cl-remove-if-not
+                         (lambda (n) (funcall filter-fn n))
+                         nodes)
+                      nodes))
+             (nodes (mapcar (lambda (node)
+                              (org-roam-node-read--to-candidate node template)) nodes)))
+        (setq org-roam-node--candidate-list nodes)
+        (setq org-roam-node--candidate-list-mtime (current-time))
+        (setq org-roam-node--candidate-list-prev-filter-fn filter-fn)
+        org-roam-node--candidate-list)))
+
+  (let* ((nodes org-roam-node--candidate-list)
          (sort-fn (or sort-fn
                       (when org-roam-node-default-sort
                         (intern (concat "org-roam-node-read-sort-by-"
