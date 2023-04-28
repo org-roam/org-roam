@@ -114,7 +114,8 @@ It takes a single argument REF, which is a propertized string."
 
 (defcustom org-roam-ref-prompt-function nil
   "Function to prompt for ref strings in `org-roam-ref-add'.
-Should take no arguments, prompt the user, and return a string."
+Should take no arguments, prompt the user, and return a string or
+a list of strings, which are passed to `org-roam-ref-add'."
   :group 'org-roam
   :type 'function)
 
@@ -1069,17 +1070,22 @@ and when nil is returned the node will be filtered out."
     (org-roam-node-visit node)))
 
 ;;;; Editing
-(defun org-roam-ref-add (ref)
-  "Add REF to the node at point."
+(defun org-roam-ref-add (ref-or-refs)
+  "Add REF-OR-REFS to the node at point.
+
+REF-OR-REFS is either a string or a list of strings. If a list,
+each string will be added in order."
   (interactive `(,(if org-roam-ref-prompt-function
                       (funcall org-roam-ref-prompt-function)
                     (read-string "Ref: "))))
   (let ((node (org-roam-node-at-point 'assert)))
-    (save-excursion
-      (goto-char (org-roam-node-point node))
-      (org-roam-property-add "ROAM_REFS" (if (memq " " (string-to-list ref))
-                                             (concat "\"" ref "\"")
-                                           ref)))))
+    (dolist (ref (if (listp ref-or-refs) ref-or-refs `(,ref-or-refs)))
+      (save-excursion
+        (goto-char (org-roam-node-point node))
+        (org-roam-property-add "ROAM_REFS"
+                               (if (memq " " (string-to-list ref))
+                                   (concat "\"" ref "\"")
+                                 ref))))))
 
 (defun org-roam-ref-remove (&optional ref)
   "Remove a REF from the node at point."
