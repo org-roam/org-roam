@@ -86,6 +86,15 @@ applied in order of appearance in the list."
   :group 'org-roam
   :type 'hook)
 
+(defcustom org-roam-unlinked-references-word-boundary-re "|(\\b%1$s\\b)"
+  "The word bounday regex used by ripgrep for unlinked references.
+
+In some languages such as CJK, the regex's word boundary does not
+correctly determine how words and phrases should be tokenized.
+This custom variable allows users to extend regex in those cases."
+  :group 'org-roam
+  :type 'string)
+
 ;;; Faces
 (defface org-roam-header-line
   `((((class color) (background light))
@@ -670,7 +679,8 @@ References from FILE are excluded."
                                           " ")
                                (format " '\\[([^[]]++|(?R))*\\]%s' "
                                        (mapconcat (lambda (title)
-                                                    (format "|(\\b%s\\b)" (shell-quote-argument title)))
+                                                    (format org-roam-unlinked-references-word-boundary-re
+                                                            (shell-quote-argument title)))
                                                   titles ""))
                                org-roam-directory))
            (results (split-string (shell-command-to-string rg-command) "\n"))
