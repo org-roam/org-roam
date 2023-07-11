@@ -677,27 +677,34 @@ References from FILE are excluded."
            f row col match)
       (magit-insert-section (unlinked-references)
         (magit-insert-heading "Unlinked References:")
-        (dolist (line results)
-          (save-match-data
-            (when (string-match org-roam-unlinked-references-result-re line)
-              (setq f (match-string 1 line)
-                    row (string-to-number (match-string 2 line))
-                    col (string-to-number (match-string 3 line))
-                    match (match-string 4 line))
-              (when (and match
-                         (not (file-equal-p (org-roam-node-file node) f))
-                         (member (downcase match) (mapcar #'downcase titles)))
-                (magit-insert-section section (org-roam-grep-section)
-                  (oset section file f)
-                  (oset section row row)
-                  (oset section col col)
-                  (insert (propertize (format "%s:%s:%s"
-                                              (truncate-string-to-width (file-name-base f) 15 nil nil t)
-                                              row col) 'font-lock-face 'org-roam-dim)
-                          " "
-                          (org-roam-fontify-like-in-org-mode
-                           (org-roam-unlinked-references-preview-line f row))
-                          "\n"))))))
+        (let ((f_prev nil)
+              (row_prev nil))
+         (dolist (line results)
+           (save-match-data
+             (when (string-match org-roam-unlinked-references-result-re line)
+               (setq f (match-string 1 line)
+                     row (string-to-number (match-string 2 line))
+                     col (string-to-number (match-string 3 line))
+                     match (match-string 4 line))
+               (when (and match
+                          (not (file-equal-p (org-roam-node-file node) f))
+                          (member (downcase match) (mapcar #'downcase titles)))
+                 (magit-insert-section section (org-roam-grep-section)
+                   (oset section file f)
+                   (oset section row row)
+                   (oset section col col)
+                   (insert (propertize (format "%s:%s:%s"
+                                               (truncate-string-to-width (file-name-base f) 15 nil nil t)
+                                               row col) 'font-lock-face 'org-roam-dim)
+                           " "
+                           (if (and (string= f f_prev)
+                                    (= row row_prev))
+                               "..."
+                             (org-roam-fontify-like-in-org-mode
+                              (org-roam-unlinked-references-preview-line f row)))
+                           "\n"))
+                 (setq f_prev f
+                       row_prev row))))))
         (insert ?\n)))))
 
 (provide 'org-roam-mode)
