@@ -118,6 +118,11 @@ Should take no arguments, prompt the user, and return a string."
   :group 'org-roam
   :type 'function)
 
+(defcustom org-roam-post-extraction-functions ()
+  "List of functions to be run when a node is extracted to a separate file."
+  :group 'org-roam
+  :type 'hook)
+
 ;;;; Completion-at-point
 (defcustom org-roam-completion-everywhere nil
   "When non-nil, provide link completion matching outside of Org links."
@@ -939,16 +944,30 @@ If region is active, then use it instead of the node at point."
           (org-capture-kill))
         (kill-buffer (current-buffer))))))
 
+(defun org-roam--prepare-for-extract ()
+  "Ensure that the current file is ready for the node to be extracted."
+  (org-back-to-heading-or-point-min t)
+  (when (bobp) (user-error "Already a top-level node"))
+  (org-id-get-create)
+  (save-buffer)
+  (org-roam-db-update-file))
+
+(defun org-roam--create-extracted-node (file-path)
+  "Create a new file-level node in FILE-PATH with contents of the clipboard."
+  (with-current-buffer (find-file-noselect file-path)
+    (org-paste-subtree)
+    (while (> (org-current-level) 1) (org-promote-subtree))
+    (save-buffer)
+    (org-roam-promote-entire-buffer)
+    (save-buffer)
+    (org-roam-node-at-point)))
+
 ;;;###autoload
 (defun org-roam-extract-subtree ()
   "Convert current subtree at point to a node, and extract it into a new file."
   (interactive)
   (save-excursion
-    (org-back-to-heading-or-point-min t)
-    (when (bobp) (user-error "Already a top-level node"))
-    (org-id-get-create)
-    (save-buffer)
-    (org-roam-db-update-file)
+    (org-roam--prepare-for-extract)
     (let* ((template-info nil)
            (node (org-roam-node-at-point))
            (template (org-roam-format-template
@@ -974,12 +993,8 @@ If region is active, then use it instead of the node at point."
         (user-error "%s exists. Aborting" file-path))
       (org-cut-subtree)
       (save-buffer)
-      (with-current-buffer (find-file-noselect file-path)
-        (org-paste-subtree)
-        (while (> (org-current-level) 1) (org-promote-subtree))
-        (save-buffer)
-        (org-roam-promote-entire-buffer)
-        (save-buffer)))))
+      (setq node (org-roam--create-extracted-node file-path))
+      (run-hook-with-args 'org-roam-extract-subtree-functions node))))
 
 ;;; Refs
 ;;;; Completing-read interface
@@ -1079,7 +1094,7 @@ and when nil is returned the node will be filtered out."
 (defun org-roam-tag-add (tags)
   "Add TAGS to the node at point."
   (interactive
-   (list (let ((crm-separator "[ 	]*:[ 	]*"))
+   (list (let ((crm-separator "[  ]*:[  ]*"))
            (completing-read-multiple "Tag: " (org-roam-tag-completions)))))
   (let ((node (org-roam-node-at-point 'assert)))
     (save-excursion
