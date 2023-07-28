@@ -1,6 +1,6 @@
-;;; test-org-roam.el --- Tests for Org-roam -*- lexical-binding: t; -*-
+;;; test-org-roam-extract.el --- Tests for Org-roam -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2020 Jethro Kuan
+;; Copyright (C) 2023 Jethro Kuan
 
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
 ;; Package-Requires: ((buttercup))
@@ -36,16 +36,18 @@
                  source-file (expand-file-name "extract-test.org" org-roam-directory)
                  target-file (expand-file-name "extracted.org" org-roam-directory)
                  )
+
+           (copy-file template-file source-file)
+           (org-roam-db-sync)
            )
           (after-each
            (delete-file source-file)
            (delete-file target-file)
+           (org-roam-db-sync)
            (delete-file org-roam-db-location)
            )
 
           (it "extracts an existing node"
-              (copy-file template-file source-file)
-              (org-roam-db-sync)
               (expect (caar (org-roam-db-query [:select (funcall count) :from nodes :where (= id "unique-id-1")]))
                       :to-equal
                       1)
@@ -76,9 +78,6 @@
               )
 
           (it "converts a heading to a node before extracting"
-              (copy-file template-file source-file)
-              (org-roam-db-sync)
-
               (with-current-buffer (find-file source-file)
                 (org-goto-marker-or-bmk (org-find-exact-headline-in-buffer "Heading without ID"))
                 (expect
@@ -92,6 +91,7 @@
                 (expect
                  (org-find-exact-headline-in-buffer "Heading without ID")
                  :to-be nil)
+                (kill-buffer)
                 )
               (with-current-buffer (find-file target-file)
                 (expect
@@ -99,9 +99,30 @@
                  :not :to-be nil)
                 (expect (org-roam-db--file-title)
                         :to-equal "Heading without ID")
+                (kill-buffer)
                 )
               )
 
+          (it "calls optional hook function after extraction"
+              (setf (symbol-function 'test-hook)
+                    (lambda (node)
+                      ;; no-op
+                      nil))
+              (spy-on 'test-hook)
+
+              (add-hook 'org-roam-post-extraction-functions #'test-hook)
+
+              (with-current-buffer (find-file source-file)
+                (org-goto-marker-or-bmk (org-find-exact-headline-in-buffer "Node to be extracted"))
+                (org-roam--extract-node target-file)
+                (kill-buffer)
+                )
+              (with-current-buffer (find-file target-file)
+                (expect 'test-hook :to-have-been-called-with (org-roam-node-at-point))
+                (kill-buffer)
+                )
+              (remove-hook 'org-roam-post-extraction-functions #'test-hook)
+              )
           )
 
 (provide 'test-org-roam-extract)

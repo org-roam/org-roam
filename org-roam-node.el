@@ -1005,7 +1005,7 @@ If region is active, then use it instead of the node at point."
       (save-buffer)
       (org-roam-db-update-file)
       (setq node (org-roam--create-extracted-node file-path))
-      (run-hook-with-args 'org-roam-extract-subtree-functions node)
+      (run-hook-with-args 'org-roam-post-extraction-functions node)
       )))
 
 ;;; Refs
