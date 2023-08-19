@@ -905,6 +905,7 @@ If region is active, then use it instead of the node at point."
             (org-kill-new (buffer-substring region-start region-end))
             (org-save-markers-in-region region-start region-end))
         (progn
+          (goto-char (org-roam-node-point node))
           (if (org-before-first-heading-p)
               (org-roam-demote-entire-buffer))
           (org-copy-subtree 1 nil t)))
