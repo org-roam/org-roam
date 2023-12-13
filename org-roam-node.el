@@ -261,7 +261,7 @@ Return nil if a node with ID does not exist."
 Return nil if the node does not exist.
 Throw an error if multiple choices exist.
 
-If NOCASE is t, the query is case insensitive.  It is case sensitive otherwise."
+If NOCASE is non-nil, the query is case insensitive.  It is case sensitive otherwise."
   (let ((matches (seq-uniq
                   (append
 	           (org-roam-db-query (vconcat [:select [id] :from nodes
