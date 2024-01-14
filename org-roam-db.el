@@ -143,6 +143,31 @@ ROAM_REFS."
   :group 'org-roam
   :type '(alist))
 
+(defcustom org-roam-db-extra-links-type-filters nil
+  "Apply include or exclude filters to links in Org-roam cache.
+
+The car of the association list is the Org element link
+type (e.g. http). The cdr is a plist of either `:exclude' or
+`:include' case-sensitive strings to reject/keep from being
+treated as links.
+
+For example, to reject all telephone URIs, to reject all https
+links except those that match `gnu', but to keep all http
+links except those that match `mail', then one would define:
+
+'((\"tel\" :exclude)
+  (\"https\" :include (\"gnu\"))
+  (\"http\" :exclude (\"mail\")))
+
+i.e. if `:include' is defined, then exclude is assumed to be the
+normal operation, and vice versa. Both cannot be defined at the
+same time.
+"
+  :package-version '(org-roam . "2.2.0")
+  :group 'org-roam
+  :type '(alist))
+
+
 ;;; Variables
 (defconst org-roam-db-version 18)
 
@@ -575,9 +600,36 @@ INFO is the org-element parsed buffer."
           (source (org-roam-id-at-point))
           (properties (list :outline (ignore-errors
                                        ;; This can error if link is not under any headline
-                                       (org-get-outline-path 'with-self 'use-cache)))))
+                                       (org-get-outline-path 'with-self 'use-cache))))
+          (link-valid t))
+      ;; Check for unwanted link types
+      (let ((link-filter-for-type (cdr (assoc type org-roam-db-extra-links-type-filters))))
+        (if link-filter-for-type
+            (setq link-valid
+                  (let ((excludes (plist-get link-filter-for-type :exclude ))
+                        (includes (plist-get link-filter-for-type :include )))
+                    (cond ((not excludes)
+                           ;; Implicit exclude rule, reject all except includes
+                           ;; if car is non-nil, then found at least one include -- link valid
+                           (car (seq-filter
+                                 (lambda (x) (not x))
+                                 (mapcar (lambda (x) (string-match-p x path)) includes))))
+                          ((not includes)
+                           ;; Implicit include rule, keep all except excludes
+                           ;; if car is non-nil, then found at least one exclude -- link invalid
+                           (not
+                            (car (seq-filter
+                                  #'identity
+                                  (mapcar (lambda (x) (string-match-p x path)) excludes)))))
+                          ((member :exclude link-filter-for-type)
+                           ;; Neither explicit include or exclude rules given for this type.
+                           ;; Check if an exclude alone has been given, and reject outright
+                           nil)
+                          (t
+                           ;; Otherwise we assume it should be included
+                           t))))))
       ;; For Org-ref links, we need to split the path into the cite keys
-      (when (and source path)
+      (when (and link-valid source path)
         (if (and (boundp 'org-ref-cite-types)
                  (or (assoc type org-ref-cite-types)
                      (member type org-ref-cite-types)))
