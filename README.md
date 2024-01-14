@@ -230,6 +230,7 @@ it has not already been addressed on [GitHub][issues] or on
   ([Source](https://github.com/jethrokuan/braindump/tree/master/org))
 - [Alexey Shmalko](https://www.alexeyshmalko.com/)
 - [Sidharth Arya](https://sidhartharya.github.io/braindump/index.html)
+- [Martin Edström](https://edstrom.dev/)
 
 ## Contributing
 
