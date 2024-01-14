@@ -307,7 +307,7 @@ To toggle its display use `org-roam-buffer-toggle' command.")
 (defun org-roam-buffer-toggle ()
   "Toggle display of the persistent `org-roam-buffer'."
   (interactive)
-  (pcase (org-roam-buffer--visibility)
+  (pcase (funcall org-roam-buffer-visibility-fn)
     ('visible
      (progn
        (quit-window nil (get-buffer-window org-roam-buffer))
@@ -317,15 +317,16 @@ To toggle its display use `org-roam-buffer-toggle' command.")
        (display-buffer (get-buffer-create org-roam-buffer))
        (org-roam-buffer-persistent-redisplay)))))
 
-(define-inline org-roam-buffer--visibility ()
+(defun org-roam-buffer--visibility ()
   "Return the current visibility state of the persistent `org-roam-buffer'.
 Valid states are 'visible, 'exists and 'none."
   (declare (side-effect-free t))
-  (inline-quote
-   (cond
-    ((get-buffer-window org-roam-buffer) 'visible)
-    ((get-buffer org-roam-buffer) 'exists)
-    (t 'none))))
+  (cond
+   ((get-buffer-window org-roam-buffer) 'visible)
+   ((get-buffer org-roam-buffer) 'exists)
+   (t 'none)))
+
+(defvar org-roam-buffer-visibility-fn 'org-roam-buffer--visibility)
 
 (defun org-roam-buffer-persistent-redisplay ()
   "Recompute contents of the persistent `org-roam-buffer'.
@@ -352,7 +353,7 @@ Has no effect when there's no `org-roam-node-at-point'."
   "Reconstruct the persistent `org-roam-buffer'.
 This needs to be quick or infrequent, because this designed to
 run at `post-command-hook'."
-  (and (get-buffer-window org-roam-buffer)
+  (and (eq (funcall org-roam-buffer-visibility-fn) 'visible)
        (org-roam-buffer-persistent-redisplay)))
 
 ;;; Sections
