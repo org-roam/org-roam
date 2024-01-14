@@ -2,6 +2,7 @@
 ## TBD
 ### Breaking
 ### Added
+- [#2333](https://github.com/org-roam/org-roam/pull/2333) buffer: allow a custom heading for a backlink section
 ### Removed
 ### Fixed
 - [#2264](https://github.com/org-roam/org-roam/pull/2264) Support multi-line org titles
