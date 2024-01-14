@@ -225,13 +225,19 @@ Like `org-fontify-like-in-org-mode', but supports `org-ref'."
   ;;
   ;; `org-ref-buffer-hacked' is a buffer-local variable, therefore we inline
   ;; `org-fontify-like-in-org-mode' here
-  (with-temp-buffer
-    (insert s)
-    (let ((org-ref-buffer-hacked t))
-      (org-mode)
-      (setq-local org-fold-core-style 'overlays)
-      (font-lock-ensure)
-      (buffer-string))))
+  ;;
+  ;; NOTE: we have to use `save-excursion', because after calling `org-mode' in temp buffer, the point in the "main" buffer
+  ;; might change to 1 for unknown reason, which we want to avoid. It's somehow related to using `page-break-lines-mode',
+  ;; `display-line-numbers-mode' and the corresponding global versions of those modes.
+  ;; See <https://github.com/org-roam/org-roam/issues/1732>.
+  (save-excursion
+    (with-temp-buffer
+      (insert s)
+      (let ((org-ref-buffer-hacked t))
+        (org-mode)
+        (setq-local org-fold-core-style 'overlays)
+        (font-lock-ensure)
+        (buffer-string)))))
 
 ;;;; Shielding regions
 (defface org-roam-shielded
