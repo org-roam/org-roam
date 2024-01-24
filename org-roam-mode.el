@@ -677,7 +677,7 @@ References from FILE are excluded."
                                (mapconcat (lambda (glob) (concat "-g " glob))
                                           (org-roam--list-files-search-globs org-roam-file-extensions)
                                           " ")
-                               (format " '\\[([^[]]++|(?R))*\\]%s' "
+                               (format " \"\\[([^[]]++|(?R))*\\]%s\" "
                                        (mapconcat (lambda (title)
                                                     (format org-roam-unlinked-references-word-boundary-re
                                                             (shell-quote-argument title)))
