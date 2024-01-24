@@ -30,9 +30,9 @@
     (setq org-roam-directory "/tmp/org roam"))
 
   (it "returns the correct rg command for unlinked references"
-    (expect (org-roam-unlinked-references--rg-command '("foo" "bar"))
+    (expect (org-roam-unlinked-references--rg-command '("foo" "bar") "/tmp/regex")
             :to-equal
-            "rg --follow --only-matching --vimgrep --pcre2 --ignore-case --glob \"*.org\" --glob \"*.org.gpg\" --glob \"*.org.age\" '\\[([^[]]++|(?R))*\\]|(\\bfoo\\b)|(\\bbar\\b)' /tmp/org\\ roam")))
+            "rg --follow --only-matching --vimgrep --pcre2 --ignore-case --glob \"*.org\" --glob \"*.org.gpg\" --glob \"*.org.age\" --file /tmp/regex /tmp/org\\ roam")))
 
 (provide 'test-org-roam-mode)
 
