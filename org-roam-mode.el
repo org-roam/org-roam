@@ -672,7 +672,7 @@ References from FILE are excluded."
                                        (mapconcat (lambda (title)
                                                     (format "|(\\b%s\\b)" (shell-quote-argument title)))
                                                   titles ""))
-                               org-roam-directory))
+                               (shell-quote-argument org-roam-directory)))
            (results (split-string (shell-command-to-string rg-command) "\n"))
            f row col match)
       (magit-insert-section (unlinked-references)
