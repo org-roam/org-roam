@@ -569,7 +569,9 @@ Return the ID of the location."
                        (user-error "No node with title or id \"%s\"" title-or-id))))
          (set-buffer (org-capture-target-buffer (org-roam-node-file node)))
          (goto-char (org-roam-node-point node))
-         (setq p (org-roam-node-point node)))))
+         (setq p (org-roam-node-point node))))
+      (t (error "Invalid org-roam capture specification %S" (org-roam-capture--get-target)))
+      )
     ;; Setup `org-id' for the current capture target and return it back to the
     ;; caller.
     (save-excursion
