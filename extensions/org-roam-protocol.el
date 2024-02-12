@@ -96,7 +96,12 @@ See `org-roam-capture-templates' for the template documentation."
                                                         (string :tag "  File")
                                                         (string :tag "  Head Content")
                                                         (list :tag "Outline path"
-                                                              (repeat (string :tag "Headline"))))))
+                                                              (repeat (string :tag "Headline"))))
+                                                  (list :tag "File & Reference & Title"
+                                                        (const :format "" file+ref+title)
+                                                        (string :tag "  File")
+                                                        (string :tag "  Reference")
+                                                        (string :tag "  Title"))))
                                          ((const :format "%v " :prepend) (const t))
                                          ((const :format "%v " :immediate-finish) (const t))
                                          ((const :format "%v " :jump-to-captured) (const t))
