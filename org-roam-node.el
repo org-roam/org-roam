@@ -280,9 +280,10 @@ If NOCASE is non-nil, the query is case insensitive.  It is case sensitive other
      (t
       (user-error "Multiple nodes exist with title or alias \"%s\"" s)))))
 
-(defun org-roam-node-from-ref (ref)
+(cl-defun org-roam-node-from-ref (ref &key file)
   "Return an `org-roam-node' from REF reference.
-Return nil if there's no node with such REF."
+Return nil if there's no node with such REF.
+If FILE is specified, limit search to nodes contained in that file."
   (save-match-data
     (let (type path)
       (cond
@@ -294,14 +295,16 @@ Return nil if there's no node with such REF."
               path (substring ref 1))))
       (when (and type path)
         (when-let ((id (caar (org-roam-db-query
-                              [:select [nodes:id]
-                               :from refs
-                               :left-join nodes
-                               :on (= refs:node-id nodes:id)
-                               :where (= refs:type $s1)
-                               :and (= refs:ref $s2)
-                               :limit 1]
-                              type path))))
+                              (vconcat
+                               [:select [nodes:id]
+                                :from refs
+                                :left-join nodes
+                                :on (= refs:node-id nodes:id)
+                                :where (= refs:type $s1)
+                                :and (= refs:ref $s2)]
+                               (if file [:and (= nodes:file $s3)])
+                               [:limit 1])
+                              type path file))))
           (org-roam-populate (org-roam-node-create :id id)))))))
 
 (cl-defmethod org-roam-populate ((node org-roam-node))
