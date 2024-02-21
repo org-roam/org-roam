@@ -218,11 +218,17 @@ If ALL-NODES, include also nodes without edges."
         ;; Process edges, excluding those connected to excluded nodes
         (pcase-dolist (`(,source ,dest ,type) edges)
           (unless (or (member source excluded-nodes)
-                      (member dest excluded-nodes)
-                      (member type org-roam-graph-link-hidden-types))
+                  (member dest excluded-nodes)
+                  (member type org-roam-graph-link-hidden-types))
+            (pcase-dolist (`(,node ,node-type) `((,source "id")
+                             (,dest ,type)))
+              (unless (member node seen-nodes)
+            (insert (org-roam-graph--format-node
+                 (or (gethash node nodes-table) node) node-type))
+            (push node seen-nodes)))
             (insert (format "  \"%s\" -> \"%s\";\n"
-                            (xml-escape-string source)
-                            (xml-escape-string dest)))))
+                    (xml-escape-string source)
+                    (xml-escape-string dest)))))
 
         ;; Process nodes, excluding those in the excluded list
         (maphash (lambda (id node)
