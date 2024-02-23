@@ -1061,7 +1061,7 @@ For Mac OS, we need to create our own application.
   on open location this_URL
       set EC to "/usr/local/bin/emacsclient --no-wait "
       set filePath to quoted form of this_URL
-      do shell script EC & filePath
+      do shell script EC & filePath & " &> /dev/null &"
       tell application "Emacs" to activate
   end open location
 #+end_src
