@@ -393,7 +393,7 @@ This variable is populated dynamically, and is only non-nil
 during the Org-roam capture process.")
 
 (defconst org-roam-capture--template-keywords (list :target :id :link-description :call-location
-                                                    :region)
+                                                    :region :create-file)
   "Keywords used in `org-roam-capture-templates' specific to Org-roam.")
 
 ;;; Main entry point
@@ -515,18 +515,37 @@ capture target."
     )
   
   (let* (position!  ;; mutable value
-                    ;; will contain return value
-         ;; read the node to use for this template
+                    ;; will contain return position
          ;; get the path parameter
          (path (nth 1 (org-roam-capture--get-target)))
          ;; convert to actual path
          (true-path (org-roam-capture--target-truepath path))
          ;; is it new
          (new-file-p (org-roam-capture--new-file-p true-path))
+         ;; get create-file option from template
+         (create-file  (org-roam-capture--get :create-file))
          )
+    ;; Some error checking
     (when (not path)
       (error "template did not have a path parameter %S" (org-roam-capture--get-target))
       )
+    ;; check create-file option. 
+    (when create-file
+      (when (not (or (eq create-file 'no)
+                     (eq create-file 'yes)))
+        (error "Template has illegal create option [%S]. It should either yes or no" create-file)
+        )
+      ;; file does not exist and create-file no
+      (when (and new-file-p
+                 (equal create-file 'no))
+        (error "Template :create-file option [%S] requires destination file must exist [%S]" (org-roam-capture--get :create-file) true-path)
+        )
+      ;; file exist and create-file yes
+      (when (and (not new-file-p)
+                 (equal create-file 'yes)
+                 )
+        (error "Template :create-file option [%S] requires destination file does not exist [%S], but it does." (org-roam-capture--get :create-file) true-path)
+        ))
     (when new-file-p (org-roam-capture--put :new-file true-path))
     (set-buffer (org-capture-target-buffer true-path))
 
