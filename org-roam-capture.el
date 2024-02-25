@@ -548,10 +548,10 @@ capture target."
        (setq position! (goto-char (point-min))))
       
       (`(file+head+olp ,path ,head ,olp)
-       (widen)
+       (setq position! (point-min))
+       ;(widen)
        (when new-file-p
          (insert (org-roam-capture--fill-template head 'ensure-newline)))
-       (setq position! (point-min))
        (let ((m (org-roam-capture-find-or-create-olp olp)))
          (goto-char m)))
       
@@ -605,20 +605,28 @@ capture target."
 
 (defun org-roam-capture--setup-target-location-node ()
   "Sets up a destination when the node is known (either by id, title or alias)"
-  (let ((node (org-roam-node-create )) )
+  (let* ((title-or-id    (nth 1 (org-roam-capture--get-target)) )
+         ;; first try to get ID, then try to get title/alias
+         (node (or (org-roam-node-from-id title-or-id)
+                  (org-roam-node-from-title-or-alias title-or-id)
+                  (user-error "No node with title or id \"%s\"" title-or-id)))
+        (position! nil)
+        )
+    (setq org-roam-capture--node node)
+    (set-buffer (org-capture-target-buffer (org-roam-node-file node)))
     (pcase (org-roam-capture--get-target)
       (`(node ,title-or-id)
-   ;; first try to get ID, then try to get title/alias
-       (let ((node (or (org-roam-node-from-id title-or-id)
-                       (org-roam-node-from-title-or-alias title-or-id)
-                       (user-error "No node with title or id \"%s\"" title-or-id))))
-         (set-buffer (org-capture-target-buffer (org-roam-node-file node)))
-         (goto-char (org-roam-node-point node))
-         )
-       )
+       (widen)
+       (setq position! (goto-char (point-min))))
+      (`(node+olp ,title-or-id ,olp)
+       (setq position! (point-min))
+       (let ((m (org-roam-capture-find-or-create-olp olp)))
+         (goto-char m))
+       (widen))
+      
       (_ (error "Invalid org-roam capture specification %S" (org-roam-capture--get-target)))
       )
-    (org-roam-node-point node)
+    position!
     )
   )
 
@@ -630,7 +638,11 @@ Return the ID of the location."
   (let (
         ;; different processing to node or non-node
         ;; node does not ask for node
-        (position (if (equal (car (org-roam-capture--get-target)) "node")
+        (position (if (or (string= (car (org-roam-capture--get-target))
+                                   "node")
+                          (string= (car (org-roam-capture--get-target))
+                                   "node+olp")
+                          )
                       (org-roam-capture--setup-target-location-node)
                     (org-roam-capture--setup-target-location-file)
              ))
