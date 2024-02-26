@@ -503,10 +503,14 @@ capture target."
   "set up a template destination when a file is required.
    this function is for cases when we need to ask for the name of the node"
   
+  ;; with the new create-file option, this can be forced with
+  ;;    org-roam-node-read
   ;; set the node if missing
   (when (not org-roam-capture--node)
     ;; ask for the node
-    (let ((node (org-roam-node-read nil (org-roam-capture--get :filter-fn)))
+    (let ((node (org-roam-node-read nil (org-roam-capture--get :filter-fn)
+                                    nil (eq (org-roam-capture--get :create-file) 'no)
+                                    ))
           )
       (setf (org-roam-node-id node) (or (org-roam-node-id node)
                                         (org-id-new)))
@@ -622,13 +626,24 @@ capture target."
     )    
   )
 
+(defun org-roam-capture--find-node-title-id (title-or-id)
+  (if title-or-id
+      ;; either find the node by id or title
+    (or (org-roam-node-from-id title-or-id)
+          (org-roam-node-from-title-or-alias title-or-id)
+          (user-error "No node with title or id \"%s\"" title-or-id)
+          )
+    ;; else if not title provided, ask for it
+    ;; the node must exist
+    (org-roam-node-read nil (org-roam-capture--get :filter-fn) nil t)
+    )
+  )
+
 (defun org-roam-capture--setup-target-location-node ()
   "Sets up a destination when the node is known (either by id, title or alias)"
   (let* ((title-or-id    (nth 1 (org-roam-capture--get-target)) )
          ;; first try to get ID, then try to get title/alias
-         (node (or (org-roam-node-from-id title-or-id)
-                  (org-roam-node-from-title-or-alias title-or-id)
-                  (user-error "No node with title or id \"%s\"" title-or-id)))
+         (node (org-roam-capture--find-node-title-id title-or-id))
         (position! nil)
         )
     (setq org-roam-capture--node node)
