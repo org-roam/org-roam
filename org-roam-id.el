@@ -63,32 +63,10 @@ With optional argument MARKERP, return the position as a new marker."
         (cons (org-roam-node-file node)
               (org-roam-node-point node))))))
 
-(defun org-roam-id-open (id _)
-  "Go to the entry with id ID.
-Like `org-id-open', but additionally uses the Org-roam database."
-  (org-mark-ring-push)
-  (let ((m (or (org-roam-id-find id 'marker)
-               (org-id-find id 'marker)))
-        cmd)
-    (unless m
-      (error "Cannot find entry with ID \"%s\"" id))
-    ;; Use a buffer-switching command in analogy to finding files
-    (setq cmd
-          (or
-           (cdr
-            (assq
-             (cdr (assq 'file org-link-frame-setup))
-             '((find-file . switch-to-buffer)
-               (find-file-other-window . switch-to-buffer-other-window)
-               (find-file-other-frame . switch-to-buffer-other-frame))))
-           'switch-to-buffer-other-window))
-    (if (not (equal (current-buffer) (marker-buffer m)))
-        (funcall cmd (marker-buffer m)))
-    (goto-char m)
-    (move-marker m nil)
-    (org-show-context)))
+(defalias 'org-roam-id-open 'org-id-open
+  "Obsolete alias - use `org-id-open' directly.")
 
-(org-link-set-parameters "id" :follow #'org-roam-id-open)
+(advice-add 'org-id-find :before-until #'org-roam-id-find)
 
 ;;;###autoload
 (defun org-roam-update-org-id-locations (&rest directories)
