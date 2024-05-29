@@ -142,6 +142,11 @@ This path is relative to `org-roam-directory'."
   :group 'org-roam
   :type 'string)
 
+(defcustom org-roam-link-type "roam"
+  "Link type for org-roam nodes. Replaced by `id' automatically when `org-roam-link-auto-replace' is non-nil."
+  :group 'org-roam
+  :type 'string)
+
 (defvar org-roam-node-history nil
   "Minibuffer history of nodes.")
 
@@ -265,11 +270,11 @@ If NOCASE is non-nil, the query is case insensitive.  It is case sensitive other
   (let ((matches (seq-uniq
                   (append
 	           (org-roam-db-query (vconcat [:select [id] :from nodes
-						        :where (= title $s1)]
+						:where (= title $s1)]
 				               (if nocase [ :collate NOCASE ]))
 			              s)
 	           (org-roam-db-query (vconcat [:select [node-id] :from aliases
-						        :where (= alias $s1)]
+						:where (= alias $s1)]
 				               (if nocase [ :collate NOCASE ]))
 			              s)))))
     (cond
@@ -310,7 +315,7 @@ Uses the ID, and fetches remaining details from the database.
 This can be quite costly: avoid, unless dealing with very few
 nodes."
   (when-let ((node-info (car (org-roam-db-query [:select [file level pos todo priority
-                                                          scheduled deadline title properties olp]
+                                                               scheduled deadline title properties olp]
                                                  :from nodes
                                                  :where (= id $s1)
                                                  :limit 1]
@@ -418,7 +423,7 @@ FROM
 GROUP BY id")))
     (cl-loop for row in rows
              append (pcase-let* ((`(,id ,file ,file-title ,level ,todo ,pos ,priority ,scheduled ,deadline
-                                        ,title ,properties ,olp ,atime ,mtime ,tags ,aliases ,refs)
+                                    ,title ,properties ,olp ,atime ,mtime ,tags ,aliases ,refs)
                                   row)
                                  (all-titles (cons title aliases)))
                       (mapcar (lambda (temp-title)
@@ -724,7 +729,9 @@ The INFO, if provided, is passed to the underlying `org-roam-capture-'."
     (deactivate-mark)))
 
 ;;;;; [roam:] link
-(org-link-set-parameters "roam" :follow #'org-roam-link-follow-link)
+(org-link-set-parameters
+ org-roam-link-type
+ :follow #'org-roam-link-follow-link)
 (defun org-roam-link-follow-link (title-or-alias)
   "Navigate \"roam:\" link to find and open the node with TITLE-OR-ALIAS.
 Assumes that the cursor was put where the link is."
@@ -762,9 +769,12 @@ Assumes that the cursor was put where the link is."
 (defun org-roam-link-replace-all ()
   "Replace all \"roam:\" links in buffer with \"id:\" links."
   (interactive)
-  (org-with-point-at 1
-    (while (re-search-forward org-link-bracket-re nil t)
-      (org-roam-link-replace-at-point))))
+  (let ((org-roam-link-prefix (format "%s:"
+                                      org-roam-link-type)))
+    (org-with-point-at 1
+      (while (re-search-forward org-link-bracket-re nil t)
+        (when (s-starts-with-p org-roam-link-prefix (match-string 1))
+          (org-roam-link-replace-at-point))))))
 
 (add-hook 'org-roam-find-file-hook #'org-roam--replace-roam-links-on-save-h)
 (defun org-roam--replace-roam-links-on-save-h ()
