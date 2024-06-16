@@ -54,8 +54,8 @@
     (save-match-data
       (let* ((type (org-element-property :type link))
              (id (org-element-property :path link))
-             (pos (org-element-property :end link))
-             (desc-p (org-element-property :contents-begin link))
+             (pos (org-roam-element-end link))
+             (desc-p (org-roam-element-contents-begin link))
              node)
         (when (and (string-equal type "id")
                    (setq node (org-roam-node-from-id id))

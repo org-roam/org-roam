@@ -671,7 +671,7 @@ the current value of `point'."
                 (while (and (not (eobp))
                             (memq (org-element-type el)
                                   '(drawer property-drawer keyword comment comment-block horizontal-rule)))
-                  (goto-char (org-element-property :end el))
+                  (goto-char (org-roam-element-end el))
                   (setq el (org-element-at-point))))
             (goto-char (org-entry-end-position))))
          (heading-at-point
