@@ -265,11 +265,11 @@ If NOCASE is non-nil, the query is case insensitive.  It is case sensitive other
   (let ((matches (seq-uniq
                   (append
 	           (org-roam-db-query (vconcat [:select [id] :from nodes
-						        :where (= title $s1)]
+						:where (= title $s1)]
 				               (if nocase [ :collate NOCASE ]))
 			              s)
 	           (org-roam-db-query (vconcat [:select [node-id] :from aliases
-						        :where (= alias $s1)]
+						:where (= alias $s1)]
 				               (if nocase [ :collate NOCASE ]))
 			              s)))))
     (cond
@@ -310,7 +310,7 @@ Uses the ID, and fetches remaining details from the database.
 This can be quite costly: avoid, unless dealing with very few
 nodes."
   (when-let ((node-info (car (org-roam-db-query [:select [file level pos todo priority
-                                                          scheduled deadline title properties olp]
+                                                               scheduled deadline title properties olp]
                                                  :from nodes
                                                  :where (= id $s1)
                                                  :limit 1]
@@ -418,7 +418,7 @@ FROM
 GROUP BY id")))
     (cl-loop for row in rows
              append (pcase-let* ((`(,id ,file ,file-title ,level ,todo ,pos ,priority ,scheduled ,deadline
-                                        ,title ,properties ,olp ,atime ,mtime ,tags ,aliases ,refs)
+                                    ,title ,properties ,olp ,atime ,mtime ,tags ,aliases ,refs)
                                   row)
                                  (all-titles (cons title aliases)))
                       (mapcar (lambda (temp-title)
@@ -1117,6 +1117,38 @@ and when nil is returned the node will be filtered out."
           (org-set-tags (seq-difference current-tags tags #'string-equal))))
       tags)))
 
+(defun org-roam-list-all-tags ()
+  "List all tags used in Org-roam files, sorted by frequency, listed in buffer."
+  (interactive)
+  (let* ((tags (org-roam-db-query
+                [:select :distinct [tags:tag nodes:id]
+                 :from tags
+                 :left-join nodes :on (= tags:node-id nodes:id)
+                 :where (notnull tags:tag)]))
+         (tag-counts (make-hash-table :test 'equal))
+         (sorted-tags nil))
+
+    ;; Count occurrences of each tag
+    (dolist (tag tags)
+      (let ((tag-name (car tag)))
+        (puthash tag-name (1+ (gethash tag-name tag-counts 0)) tag-counts)))
+
+    ;; Convert hash table to list and sort
+    (maphash (lambda (k v) (push (cons k v) sorted-tags)) tag-counts)
+    (setq sorted-tags (sort sorted-tags (lambda (a b) (> (cdr a) (cdr b)))))
+
+    ;; Display results
+    (with-current-buffer (get-buffer-create "*Org-Roam Tags*")
+      (erase-buffer)
+      (org-mode)
+      (insert "* All Org-Roam Tags (sorted by frequency)\n\n")
+      (let ((max-tag-length (apply #'max (mapcar (lambda (tag) (length (car tag))) sorted-tags))))
+        (dolist (tag sorted-tags)
+          (insert (format (format "%%-%ds [%%d]\n" (+ max-tag-length 2))
+                          (car tag) (cdr tag)))))
+      (pop-to-buffer (current-buffer)))))
+
+
 ;;; Titles and Aliases
 ;;;; Getters
 (defun org-roam--get-titles ()
@@ -1140,7 +1172,6 @@ and when nil is returned the node will be filtered out."
     (save-excursion
       (goto-char (org-roam-node-point node))
       (org-roam-property-remove "ROAM_ALIASES" alias))))
-
 
 (provide 'org-roam-node)
 ;;; org-roam-node.el ends here
