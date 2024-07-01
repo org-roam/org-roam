@@ -873,7 +873,7 @@ Similarly, the completion candidates are the titles and aliases for all Org-roam
 nodes, and upon choosing a candidate a ~roam:Title~ link will be inserted
 linking to the node of choice.
 
-This is disable by default. To enable it, set ~org-roam-completion-everywhere~
+This is disabled by default. To enable it, set ~org-roam-completion-everywhere~
 to ~t~:
 
 #+begin_src emacs-lisp
@@ -1710,7 +1710,7 @@ queries on their Org files.
 ** Building Extensions and Advanced Customization of Org-roam
 
 Because Org-roam's core functionality is small, it is possible and sometimes
-desirable to build extensions on top of it. These extensions may one or more of
+desirable to build extensions on top of it. These extensions may use one or more of
 the following functionalities:
 
 - Access to Org-roam's database

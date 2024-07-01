@@ -42,8 +42,8 @@
 (defcustom org-roam-mode-sections (list #'org-roam-backlinks-section
                                         #'org-roam-reflinks-section)
   "A list of sections for the `org-roam-mode' based buffers.
-Each section is a function that is passed the an `org-roam-node'
-for which the section will be constructed for as the first
+Each section is a function that is passed the `org-roam-node'
+for which the section will be constructed as the first
 argument. Normally this node is `org-roam-buffer-current-node'.
 The function may also accept other optional arguments. Each item
 in the list is either:
