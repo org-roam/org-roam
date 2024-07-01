@@ -1106,6 +1106,21 @@ defaults write com.apple.LaunchServices/com.apple.launchservices.secure LSHandle
 
 Then restart your computer.
 
+If you're using the [[https://formulae.brew.sh/formula/emacs][Emacs Homebrew formula]], you may need one of the following additional configurations:
+
+a) Add option `-c` to `emacsclient` in the script, and start emacs from command line with `emacs --daemon`
+
+#+begin_src emacs-lisp
+  on open location this_URL
+      set EC to "/usr/local/bin/emacsclient -c --no-wait "
+      set filePath to quoted form of this_URL
+      do shell script EC & filePath & " &> /dev/null &"
+      tell application "Emacs" to activate
+  end open location
+#+end_src
+
+b) Add `(server-start)` in .emacs (in this case you do not need option `-c` for `emacsclient` in the script, and you do not need to start emacs with `emacs --daemon`
+
 ***** Testing org-protocol
 
 To test that you have the handler setup and registered properly from the command
