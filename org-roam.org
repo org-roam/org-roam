@@ -659,7 +659,7 @@ as follows:
     (not (member "daily" (org-roam-node-tags (org-roam-backlink-source-node backlink)))))
 
   (setq org-roam-mode-sections
-        '((org-roam-backlinks-section :unique t :show-backlink-p my/org-roam-show-backlink-p)
+        '((org-roam-backlinks-section :unique t :show-backlink-p my-org-roam-show-backlink-p)
           org-roam-reflinks-section))
 #+end_src
 
