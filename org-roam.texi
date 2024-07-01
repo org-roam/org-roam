@@ -1261,7 +1261,7 @@ Similarly, the completion candidates are the titles and aliases for all Org-roam
 nodes, and upon choosing a candidate a @code{roam:Title} link will be inserted
 linking to the node of choice.
 
-This is disable by default. To enable it, set @code{org-roam-completion-everywhere}
+This is disabled by default. To enable it, set @code{org-roam-completion-everywhere}
 to @code{t}:
 
 @lisp
@@ -2354,7 +2354,7 @@ queries on their Org files.
 @section Building Extensions and Advanced Customization of Org-roam
 
 Because Org-roam's core functionality is small, it is possible and sometimes
-desirable to build extensions on top of it. These extensions may one or more of
+desirable to build extensions on top of it. These extensions may use one or more of
 the following functionalities:
 
 @itemize
