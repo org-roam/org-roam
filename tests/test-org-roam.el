@@ -33,17 +33,17 @@
 
   (it "gets files correctly"
     (expect (length (org-roam-list-files))
-            :to-equal 4))
+            :to-equal 5))
 
   (it "respects org-roam-file-extensions"
     (setq org-roam-file-extensions '("md"))
     (expect (length (org-roam-list-files)) :to-equal 1)
     (setq org-roam-file-extensions '("org" "md"))
-    (expect (length (org-roam-list-files)) :to-equal 5))
+    (expect (length (org-roam-list-files)) :to-equal 6))
 
   (it "respects org-roam-file-exclude-regexp"
     (setq org-roam-file-exclude-regexp (regexp-quote "foo.org"))
-    (expect (length (org-roam-list-files)) :to-equal 3)))
+    (expect (length (org-roam-list-files)) :to-equal 4)))
 
 (describe "org-roam-db-sync"
   (before-all
@@ -60,12 +60,12 @@
   (it "has the correct number of files"
     (expect (caar (org-roam-db-query [:select (funcall count) :from files]))
             :to-equal
-            4))
+            5))
 
   (it "has the correct number of nodes"
     (expect (caar (org-roam-db-query [:select (funcall count) :from nodes]))
             :to-equal
-            3))
+            7))
 
   (it "has the correct number of links"
     (expect (caar (org-roam-db-query [:select (funcall count) :from links]))
@@ -76,7 +76,13 @@
     ;; The excluded node has ID "53fadc75-f48e-461e-be06-44a1e88b2abe"
     (expect (mapcar #'car (org-roam-db-query [:select id :from nodes]))
             :to-have-same-items-as
-            '("884b2341-b7fe-434d-848c-5282c0727861" "440795d0-70c1-4165-993d-aebd5eef7a24" "5b9a7400-f59c-4ef9-acbb-045b69af98f1")))
+            '("884b2341-b7fe-434d-848c-5282c0727861"
+              "440795d0-70c1-4165-993d-aebd5eef7a24"
+              "5b9a7400-f59c-4ef9-acbb-045b69af98f1"
+              "0fa5bb3e-3d8c-4966-8bc9-78d32e505d69"
+              "5fb4fdc5-b6d2-4f75-8d54-e60053e467ec"
+              "77a90980-1994-464e-901f-7e3d3df07fd3"
+              "998b2341-b7fe-434d-848c-5282c0727870")))
 
   (it "reads ref in quotes correctly"
     (expect (mapcar #'car (org-roam-db-query [:select [ref] :from refs]))
