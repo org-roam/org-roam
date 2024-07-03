@@ -83,6 +83,13 @@
             :to-have-same-items-as
             '("//site.net/docs/01. introduction - hello world.html"))))
 
+(describe "org-roam--list-files-search-globs"
+
+  (it "returns the correct list of globs"
+    (expect (org-roam--list-files-search-globs org-roam-file-extensions)
+            :to-have-same-items-as
+            '("\"*.org\"" "\"*.org.gpg\"" "\"*.org.age\""))))
+
 (provide 'test-org-roam)
 
 ;;; test-org-roam.el ends here
