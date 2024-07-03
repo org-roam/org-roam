@@ -42,8 +42,8 @@
 (defcustom org-roam-mode-sections (list #'org-roam-backlinks-section
                                         #'org-roam-reflinks-section)
   "A list of sections for the `org-roam-mode' based buffers.
-Each section is a function that is passed the an `org-roam-node'
-for which the section will be constructed for as the first
+Each section is a function that is passed the `org-roam-node'
+for which the section will be constructed as the first
 argument. Normally this node is `org-roam-buffer-current-node'.
 The function may also accept other optional arguments. Each item
 in the list is either:
@@ -657,6 +657,18 @@ This is the ROW within FILE."
        (end-of-line)
        (point)))))
 
+(defun org-roam-unlinked-references--rg-command (titles)
+  "Return the ripgrep command searching for TITLES."
+  (concat "rg --follow --only-matching --vimgrep --pcre2 --ignore-case "
+          (mapconcat (lambda (glob) (concat "--glob " glob))
+                     (org-roam--list-files-search-globs org-roam-file-extensions)
+                     " ")
+          (format " '\\[([^[]]++|(?R))*\\]%s' "
+                  (mapconcat (lambda (title)
+                               (format "|(\\b%s\\b)" (shell-quote-argument title)))
+                             titles ""))
+          (shell-quote-argument org-roam-directory)))
+
 (defun org-roam-unlinked-references-section (node)
   "The unlinked references section for NODE.
 References from FILE are excluded."
@@ -666,15 +678,7 @@ References from FILE are excluded."
                                 (shell-command-to-string "rg --pcre2-version"))))
     (let* ((titles (cons (org-roam-node-title node)
                          (org-roam-node-aliases node)))
-           (rg-command (concat "rg -L -o --vimgrep -P -i "
-                               (mapconcat (lambda (glob) (concat "-g " glob))
-                                          (org-roam--list-files-search-globs org-roam-file-extensions)
-                                          " ")
-                               (format " '\\[([^[]]++|(?R))*\\]%s' "
-                                       (mapconcat (lambda (title)
-                                                    (format "|(\\b%s\\b)" (shell-quote-argument title)))
-                                                  titles ""))
-                               org-roam-directory))
+           (rg-command (org-roam-unlinked-references--rg-command titles))
            (results (split-string (shell-command-to-string rg-command) "\n"))
            f row col match)
       (magit-insert-section (unlinked-references)

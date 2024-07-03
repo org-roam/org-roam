@@ -3,11 +3,13 @@
 ### Breaking
 ### Added
 - [#2333](https://github.com/org-roam/org-roam/pull/2333) buffer: allow a custom heading for a backlink section
+- [#2449](https://github.com/org-roam/org-roam/pull/2449) extract rg-command builder function from unlinked-references
 ### Removed
 ### Fixed
 - [#2264](https://github.com/org-roam/org-roam/pull/2264) Support multi-line org titles
 - [#2165](https://github.com/org-roam/org-roam/pull/2165) (fix)org-roam-file-p: don't exclude org-roam-directory
 - [#2168](https://github.com/org-roam/org-roam/pull/2168) (perf)node-read: filter nodes before mapping --to-candidate
+- [#2411](https://github.com/org-roam/org-roam/pull/2411) fix for `org-roam-directory` having spaces and Unlinked References not working
 ### Changed
 
 ## 2.2.2
