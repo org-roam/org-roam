@@ -2,6 +2,7 @@
 ## TBD
 ### Breaking
 ### Added
+- [#2333](https://github.com/org-roam/org-roam/pull/2333) buffer: allow a custom heading for a backlink section
 - [#2449](https://github.com/org-roam/org-roam/pull/2449) extract rg-command builder function from unlinked-references
 ### Removed
 ### Fixed

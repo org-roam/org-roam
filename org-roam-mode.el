@@ -514,17 +514,20 @@ Sorts by title."
   (string< (org-roam-node-title (org-roam-backlink-source-node a))
            (org-roam-node-title (org-roam-backlink-source-node b))))
 
-(cl-defun org-roam-backlinks-section (node &key (unique nil) (show-backlink-p nil))
+(cl-defun org-roam-backlinks-section (node &key (unique nil) (show-backlink-p nil)
+                                           (section-heading "Backlinks:"))
   "The backlinks section for NODE.
 
 When UNIQUE is nil, show all positions where references are found.
 When UNIQUE is t, limit to unique sources.
 
 When SHOW-BACKLINK-P is not null, only show backlinks for which
-this predicate is not nil."
+this predicate is not nil.
+
+SECTION-HEADING is the string used as a heading for the backlink section."
   (when-let ((backlinks (seq-sort #'org-roam-backlinks-sort (org-roam-backlinks-get node :unique unique))))
     (magit-insert-section (org-roam-backlinks)
-      (magit-insert-heading "Backlinks:")
+      (magit-insert-heading section-heading)
       (dolist (backlink backlinks)
         (when (or (null show-backlink-p)
                   (and (not (null show-backlink-p))
