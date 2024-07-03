@@ -514,7 +514,8 @@ Sorts by title."
   (string< (org-roam-node-title (org-roam-backlink-source-node a))
            (org-roam-node-title (org-roam-backlink-source-node b))))
 
-(cl-defun org-roam-backlinks-section (node &key (unique nil) (show-backlink-p nil) (section-heading "Backlinks:"))
+(cl-defun org-roam-backlinks-section (node &key (unique nil) (show-backlink-p nil)
+                                           (section-heading "Backlinks:"))
   "The backlinks section for NODE.
 
 When UNIQUE is nil, show all positions where references are found.
