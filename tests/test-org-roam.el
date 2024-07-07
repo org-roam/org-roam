@@ -31,6 +31,10 @@
           org-roam-file-extensions '("org")
           org-roam-file-exclude-regexp nil))
 
+  (after-all
+    (org-roam-db--close)
+    (delete-file org-roam-db-location))
+
   (it "gets files correctly"
     (expect (length (org-roam-list-files))
             :to-equal 5))
