@@ -24,13 +24,42 @@
 (require 'buttercup)
 (require 'org-roam)
 
-(describe "org-roam-id-find"
-  (before-each
+(defvar root-directory default-directory)
+
+(describe "org-roam-id-at-point"
+  (before-all
     (setq org-roam-directory (expand-file-name "tests/roam-files")
           org-roam-db-location (expand-file-name "org-roam.db" temporary-file-directory)
           org-roam-file-extensions '("org")
           org-roam-file-exclude-regexp nil)
     (org-roam-db-sync))
+
+  (after-all
+    (org-roam-db--close)
+    (delete-file org-roam-db-location)
+    (cd root-directory))
+
+  (it "returns the correct node ids"
+    (find-file "tests/roam-files/family.org" nil)
+    (expect (org-roam-id-at-point) :to-equal "998b2341-b7fe-434d-848c-5282c0727870")
+
+    (search-forward "Grand")
+    (expect (org-roam-id-at-point) :to-equal "77a90980-1994-464e-901f-7e3d3df07fd3")
+
+    (search-forward "Child")
+    (expect (org-roam-id-at-point) :to-equal "5fb4fdc5-b6d2-4f75-8d54-e60053e467ec")))
+
+(describe "org-roam-id-find"
+  (before-all
+    (setq org-roam-directory (expand-file-name "tests/roam-files")
+          org-roam-db-location (expand-file-name "org-roam.db" temporary-file-directory)
+          org-roam-file-extensions '("org")
+          org-roam-file-exclude-regexp nil)
+    (org-roam-db-sync))
+
+  (after-all
+    (org-roam-db--close)
+    (delete-file org-roam-db-location))
 
   (it "finds nothing for non-existing node"
     (expect (org-roam-id-find "non-existing") :to-equal nil))
