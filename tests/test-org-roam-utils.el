@@ -60,3 +60,5 @@
     :to-equal "test file"))
 
 (provide 'test-org-roam-utils)
+
+;;; test-org-roam-utils.el ends here

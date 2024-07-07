@@ -57,6 +57,23 @@
     (find-file "tests/roam-files/promoteable.org" nil)
     (expect (org-roam--buffer-promoteable-p) :to-equal t)))
 
+(describe "org-roam--get-titles"
+  (before-all
+    (setq org-roam-directory (expand-file-name "tests/roam-files")
+          org-roam-db-location (expand-file-name "org-roam.db" temporary-file-directory)
+          org-roam-file-extensions '("org")
+          org-roam-file-exclude-regexp nil)
+    (org-roam-db-sync))
+
+  (after-all
+    (org-roam-db--close)
+    (delete-file org-roam-db-location))
+
+  (it "returns the list of titles and aliases"
+    (expect (org-roam--get-titles)
+            :to-have-same-items-as
+            `("Bar" "Child" "Family" "Foo" "Grand-Parent" "Parent" "ref with space"))))
+
 (provide 'test-org-roam-node)
 
 ;;; test-org-roam-node.el ends here
