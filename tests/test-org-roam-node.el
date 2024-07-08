@@ -26,6 +26,52 @@
 
 (defvar root-directory default-directory)
 
+(describe "org-roam-node-from-id"
+  (before-all
+    (setq org-roam-directory (expand-file-name "tests/roam-files")
+          org-roam-db-location (expand-file-name "org-roam.db" temporary-file-directory)
+          org-roam-file-extensions '("org")
+          org-roam-file-exclude-regexp nil)
+    (org-roam-db-sync))
+
+  (after-all
+    (org-roam-db--close)
+    (delete-file org-roam-db-location))
+
+  (it "returns nil for unknown id"
+    (expect (org-roam-node-from-id "non-existing") :to-equal nil))
+
+  (it "returns correct node from id"
+    (let ((node (org-roam-node-from-id "884b2341-b7fe-434d-848c-5282c0727861")))
+      (expect (org-roam-node-title node) :to-equal "Foo"))))
+
+(describe "org-roam-node-from-title-or-alias"
+  (before-all
+    (setq org-roam-directory (expand-file-name "tests/roam-files")
+          org-roam-db-location (expand-file-name "org-roam.db" temporary-file-directory)
+          org-roam-file-extensions '("org")
+          org-roam-file-exclude-regexp nil)
+    (org-roam-db-sync))
+
+  (after-all
+    (org-roam-db--close)
+    (delete-file org-roam-db-location))
+
+  (it "returns nil for unknown title"
+    (expect (org-roam-node-from-title-or-alias "non-existing") :to-equal nil))
+
+  (it "returns correct node from title"
+    (let ((node (org-roam-node-from-title-or-alias "Foo")))
+      (expect (org-roam-node-title node) :to-equal "Foo")))
+
+  (it "returns correct node from alias"
+    (let ((node (org-roam-node-from-title-or-alias "Batman")))
+      (expect (org-roam-node-title node) :to-equal "Bruce Wayne")))
+
+  (it "returns correct node from alias with nocase"
+    (let ((node (org-roam-node-from-title-or-alias "batman" t)))
+      (expect (org-roam-node-title node) :to-equal "Bruce Wayne"))))
+
 (describe "org-roam--h1-count"
   (after-each
     (cd root-directory))
@@ -72,7 +118,7 @@
   (it "returns the list of titles and aliases"
     (expect (org-roam--get-titles)
             :to-have-same-items-as
-            `("Bar" "Child" "Family" "Foo" "Grand-Parent" "Parent" "ref with space"))))
+            `("Bar" "Batman" "Bruce Wayne" "Child" "Family" "Foo" "Grand-Parent" "Parent" "ref with space"))))
 
 (provide 'test-org-roam-node)
 
