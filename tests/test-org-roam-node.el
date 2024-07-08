@@ -120,6 +120,33 @@
             :to-have-same-items-as
             `("Bar" "Batman" "Bruce Wayne" "Child" "Family" "Foo" "Grand-Parent" "Parent" "ref with space"))))
 
+(describe "org-roam-alias"
+  (before-all
+    (setq org-roam-directory (expand-file-name "tests/roam-files")
+          org-roam-db-location (expand-file-name "org-roam.db" temporary-file-directory)
+          org-roam-file-extensions '("org")
+          org-roam-file-exclude-regexp nil)
+    (org-roam-db-sync))
+
+  (after-all
+    (org-roam-db--close)
+    (delete-file org-roam-db-location)
+    (cd root-directory))
+
+  (it "adds an alias to a node"
+    (cd root-directory)
+    (find-file "tests/roam-files/foo.org" nil)
+    (org-roam-alias-add "qux")
+    (expect (buffer-substring-no-properties (point) (point-max))
+            :to-equal ":PROPERTIES:\n:ID:       884b2341-b7fe-434d-848c-5282c0727861\n:ROAM_ALIASES: qux\n:END:\n#+title: Foo\n"))
+
+  (it "removes an alias from a node"
+    (cd root-directory)
+    (find-file "tests/roam-files/with-alias.org" nil)
+    (org-roam-alias-remove "Batman")
+    (expect (buffer-substring-no-properties (point) (point-max))
+            :to-equal ":PROPERTIES:\n:ID: 57FF3CE7-5BDA-4825-8FCA-C09F523E87BA\n:END:\n#+title: Bruce Wayne\n")))
+
 (provide 'test-org-roam-node)
 
 ;;; test-org-roam-node.el ends here
