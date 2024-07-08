@@ -36,17 +36,17 @@
     (delete-file org-roam-db-location))
 
   (it "gets files correctly"
-    (expect (length (org-roam-list-files)) :to-equal 6))
+    (expect (length (org-roam-list-files)) :to-equal 7))
 
   (it "respects org-roam-file-extensions"
     (setq org-roam-file-extensions '("md"))
     (expect (length (org-roam-list-files)) :to-equal 1)
     (setq org-roam-file-extensions '("org" "md"))
-    (expect (length (org-roam-list-files)) :to-equal 7))
+    (expect (length (org-roam-list-files)) :to-equal 8))
 
   (it "respects org-roam-file-exclude-regexp"
     (setq org-roam-file-exclude-regexp (regexp-quote "foo.org"))
-    (expect (length (org-roam-list-files)) :to-equal 5)))
+    (expect (length (org-roam-list-files)) :to-equal 6)))
 
 (describe "org-roam-db-sync"
   (before-all
@@ -63,12 +63,12 @@
   (it "has the correct number of files"
     (expect (caar (org-roam-db-query [:select (funcall count) :from files]))
             :to-equal
-            6))
+            7))
 
   (it "has the correct number of nodes"
     (expect (caar (org-roam-db-query [:select (funcall count) :from nodes]))
             :to-equal
-            7))
+            8))
 
   (it "has the correct number of links"
     (expect (caar (org-roam-db-query [:select (funcall count) :from links]))
@@ -85,6 +85,7 @@
               "0fa5bb3e-3d8c-4966-8bc9-78d32e505d69"
               "5fb4fdc5-b6d2-4f75-8d54-e60053e467ec"
               "77a90980-1994-464e-901f-7e3d3df07fd3"
+              "57FF3CE7-5BDA-4825-8FCA-C09F523E87BA"
               "998b2341-b7fe-434d-848c-5282c0727870")))
 
   (it "reads ref in quotes correctly"
