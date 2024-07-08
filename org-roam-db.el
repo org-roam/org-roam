@@ -569,7 +569,7 @@ INFO is the org-element parsed buffer."
 (defun org-roam-db-insert-link (link)
   "Insert link data for LINK at current point into the Org-roam cache."
   (save-excursion
-    (goto-char (org-element-property :begin link))
+    (goto-char (org-roam-element-begin link))
     (let ((type (org-element-property :type link))
           (path (org-element-property :path link))
           (source (org-roam-id-at-point))
@@ -594,7 +594,7 @@ INFO is the org-element parsed buffer."
 (defun org-roam-db-insert-citation (citation)
   "Insert data for CITATION at current point into the Org-roam cache."
   (save-excursion
-    (goto-char (org-element-property :begin citation))
+    (goto-char (org-roam-element-begin citation))
     (let ((key (org-element-property :key citation))
           (source (org-roam-id-at-point))
           (properties (list :outline (ignore-errors

@@ -398,6 +398,27 @@ If VAL is not specified, user is prompted to select a value."
       (org-delete-property prop))
     prop-to-remove))
 
+;;;; org 9.7+ element-begin/end
+(defun org-roam-element-begin (element)
+  "Return :begin property of ELEMENT."
+  (or (org-element-property :begin element)
+      (org-element-begin element)))
+
+(defun org-roam-element-end (element)
+  "Return :end property of ELEMENT."
+  (or (org-element-property :end element)
+      (org-element-end element)))
+
+(defun org-roam-element-contents-begin (element)
+  "Return :contents-begin property of ELEMENT."
+  (or (org-element-property :contents-begin element)
+      (org-element-contents-begin element)))
+
+(defun org-roam-element-contents-end (element)
+  "Return :contents-end property of ELEMENT."
+  (or (org-element-property :contents-end element)
+      (org-element-contents-end element)))
+
 ;;; Refs
 (defun org-roam-org-ref-path-to-keys (path)
   "Return a list of keys given an org-ref cite: PATH.
