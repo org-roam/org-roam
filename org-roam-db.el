@@ -219,6 +219,7 @@ Performs a database upgrade when required."
 
 ;;; Entrypoint: (org-roam-db-query)
 (define-error 'emacsql-constraint "SQL constraint violation")
+;;;###autoload
 (defun org-roam-db-query (sql &rest args)
   "Run SQL query on Org-roam database with ARGS.
 SQL can be either the emacsql vector representation, or a string."
