@@ -72,6 +72,16 @@
     (let ((node (org-roam-node-from-title-or-alias "batman" t)))
       (expect (org-roam-node-title node) :to-equal "Bruce Wayne"))))
 
+(describe "org-roam-demote-entire-buffer"
+  (after-each
+    (cd root-directory))
+
+  (it "demotes an entire org buffer"
+    (find-file "tests/roam-files/demoteable.org" nil)
+    (org-roam-demote-entire-buffer)
+    (expect (buffer-substring-no-properties (point) (point-max))
+            :to-equal "* Demoteable\n:PROPERTIES:\n:ID: 97bf31cf-dfee-45d8-87a5-2ae0dabc4734\n:END:\n\n** Demoteable h1\n\n*** Demoteable child\n")))
+
 (describe "org-roam--h1-count"
   (after-each
     (cd root-directory))
@@ -118,7 +128,7 @@
   (it "returns the list of titles and aliases"
     (expect (org-roam--get-titles)
             :to-have-same-items-as
-            `("Bar" "Batman" "Bruce Wayne" "Child" "Family" "Foo" "Grand-Parent" "Parent" "ref with space"))))
+            `("Bar" "Batman" "Bruce Wayne" "Child" "Demoteable" "Family" "Foo" "Grand-Parent" "Parent" "ref with space"))))
 
 (describe "org-roam-alias"
   (before-all
@@ -145,7 +155,7 @@
     (find-file "tests/roam-files/with-alias.org" nil)
     (org-roam-alias-remove "Batman")
     (expect (buffer-substring-no-properties (point) (point-max))
-            :to-equal ":PROPERTIES:\n:ID: 57FF3CE7-5BDA-4825-8FCA-C09F523E87BA\n:END:\n#+title: Bruce Wayne\n")))
+            :to-equal ":PROPERTIES:\n:ID: 57ff3ce7-5bda-4825-8fca-c09f523e87ba\n:END:\n#+title: Bruce Wayne\n")))
 
 (provide 'test-org-roam-node)
 
