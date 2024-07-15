@@ -24,6 +24,8 @@
 (require 'buttercup)
 (require 'org-roam)
 
+(defvar root-directory default-directory)
+
 (describe "org-roam-file-p"
   (it "checks if given file respects criteria"
     (expect (org-roam-file-p "tests/roam-files/family.org") :to-equal nil)
@@ -34,6 +36,14 @@
 
     (setq org-roam-file-exclude-regexp (regexp-quote "family.org"))
     (expect (org-roam-file-p "tests/roam-files/family.org") :to-equal nil)))
+
+(describe "org-roam-buffer-p"
+  (it "checks if current buffer respects criteria"
+    (setq org-roam-directory (expand-file-name "tests/roam-files")
+          org-roam-file-exclude-regexp nil)
+    (find-file "tests/roam-files/family.org" nil)
+    (expect (org-roam-buffer-p) :to-equal t)
+    (cd root-directory)))
 
 (describe "org-roam-list-files"
   (before-each
