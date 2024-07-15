@@ -233,33 +233,6 @@ Like `org-fontify-like-in-org-mode', but supports `org-ref'."
       (font-lock-ensure)
       (buffer-string))))
 
-;;;; Shielding regions
-(defface org-roam-shielded
-  '((t :inherit (warning)))
-  "Face for regions that are shielded (marked as read-only).
-This face is used on the region target by org-roam-insertion
-during an `org-roam-capture'."
-  :group 'org-roam-faces)
-
-(defun org-roam-shield-region (beg end)
-  "Shield region against modifications.
-BEG and END are markers for the beginning and end regions.
-REGION must be a cons-cell containing the marker to the region
-beginning and maximum values."
-  (add-text-properties beg end
-                       '(font-lock-face org-roam-shielded
-                                        read-only t)
-                       (marker-buffer beg)))
-
-(defun org-roam-unshield-region (beg end)
-  "Unshield the shielded REGION.
-BEG and END are markers for the beginning and end regions."
-  (let ((inhibit-read-only t))
-    (remove-text-properties beg end
-                            '(font-lock-face org-roam-shielded
-                                             read-only t)
-                            (marker-buffer beg))))
-
 ;;; Org-mode utilities
 ;;;; Motions
 (defun org-roam-up-heading-or-point-min ()
