@@ -24,6 +24,17 @@
 (require 'buttercup)
 (require 'org-roam)
 
+(describe "org-roam-file-p"
+  (it "checks if given file respects criteria"
+    (expect (org-roam-file-p "tests/roam-files/family.org") :to-equal nil)
+
+    (setq org-roam-directory (expand-file-name "tests/roam-files"))
+    (expect (org-roam-file-p "tests/roam-files/family.org") :to-equal t)
+    (expect (org-roam-file-p "tests/roam-files/markdown.md") :to-equal nil)
+
+    (setq org-roam-file-exclude-regexp (regexp-quote "family.org"))
+    (expect (org-roam-file-p "tests/roam-files/family.org") :to-equal nil)))
+
 (describe "org-roam-list-files"
   (before-each
     (setq org-roam-directory (expand-file-name "tests/roam-files")
