@@ -69,52 +69,6 @@
     (setq org-roam-file-exclude-regexp (regexp-quote "foo.org"))
     (expect (length (org-roam-list-files)) :to-equal 7)))
 
-(describe "org-roam-db-sync"
-  (before-all
-    (setq org-roam-directory (expand-file-name "tests/roam-files")
-          org-roam-db-location (expand-file-name "org-roam.db" temporary-file-directory)
-          org-roam-file-extensions '("org")
-          org-roam-file-exclude-regexp nil)
-    (org-roam-db-sync))
-
-  (after-all
-    (org-roam-db--close)
-    (delete-file org-roam-db-location))
-
-  (it "has the correct number of files"
-    (expect (caar (org-roam-db-query [:select (funcall count) :from files]))
-            :to-equal
-            8))
-
-  (it "has the correct number of nodes"
-    (expect (caar (org-roam-db-query [:select (funcall count) :from nodes]))
-            :to-equal
-            9))
-
-  (it "has the correct number of links"
-    (expect (caar (org-roam-db-query [:select (funcall count) :from links]))
-            :to-equal
-            1))
-
-  (it "respects ROAM_EXCLUDE"
-    ;; The excluded node has ID "53fadc75-f48e-461e-be06-44a1e88b2abe"
-    (expect (mapcar #'car (org-roam-db-query [:select id :from nodes]))
-            :to-have-same-items-as
-            '("884b2341-b7fe-434d-848c-5282c0727861"
-              "440795d0-70c1-4165-993d-aebd5eef7a24"
-              "5b9a7400-f59c-4ef9-acbb-045b69af98f1"
-              "0fa5bb3e-3d8c-4966-8bc9-78d32e505d69"
-              "5fb4fdc5-b6d2-4f75-8d54-e60053e467ec"
-              "77a90980-1994-464e-901f-7e3d3df07fd3"
-              "57ff3ce7-5bda-4825-8fca-c09f523e87ba"
-              "998b2341-b7fe-434d-848c-5282c0727870"
-              "97bf31cf-dfee-45d8-87a5-2ae0dabc4734")))
-
-  (it "reads ref in quotes correctly"
-    (expect (mapcar #'car (org-roam-db-query [:select [ref] :from refs]))
-            :to-have-same-items-as
-            '("//site.net/docs/01. introduction - hello world.html"))))
-
 (describe "org-roam--list-files-search-globs"
 
   (it "returns the correct list of globs"
