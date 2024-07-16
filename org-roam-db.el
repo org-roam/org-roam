@@ -503,7 +503,8 @@ INFO is the org-element parsed buffer."
   "Insert aliases for node at point into Org-roam cache."
   (when-let* ((node-id (org-id-get))
               (aliases (org-entry-get (point) "ROAM_ALIASES"))
-              (aliases (split-string-and-unquote aliases)))
+              (aliases (split-string-and-unquote aliases))
+              (aliases (mapcar #'org-link-display-format aliases)))
     (org-roam-db-query [:insert :into aliases
                         :values $v1]
                        (mapcar (lambda (alias)
