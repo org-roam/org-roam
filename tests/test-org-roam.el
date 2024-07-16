@@ -57,17 +57,17 @@
     (delete-file org-roam-db-location))
 
   (it "gets files correctly"
-    (expect (length (org-roam-list-files)) :to-equal 8))
+    (expect (length (org-roam-list-files)) :to-equal 9))
 
   (it "respects org-roam-file-extensions"
     (setq org-roam-file-extensions '("md"))
     (expect (length (org-roam-list-files)) :to-equal 1)
     (setq org-roam-file-extensions '("org" "md"))
-    (expect (length (org-roam-list-files)) :to-equal 9))
+    (expect (length (org-roam-list-files)) :to-equal 10))
 
   (it "respects org-roam-file-exclude-regexp"
     (setq org-roam-file-exclude-regexp (regexp-quote "foo.org"))
-    (expect (length (org-roam-list-files)) :to-equal 7)))
+    (expect (length (org-roam-list-files)) :to-equal 8)))
 
 (describe "org-roam--list-files-search-globs"
 

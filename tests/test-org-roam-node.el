@@ -128,7 +128,9 @@
   (it "returns the list of titles and aliases"
     (expect (org-roam--get-titles)
             :to-have-same-items-as
-            `("Bar" "Batman" "Bruce Wayne" "Child" "Demoteable" "Family" "Foo" "Grand-Parent" "Parent" "ref with space"))))
+            `("Bar" "Batman" "Bruce Wayne" "Child" "Deadline heading" "Demoteable" "Family"
+              "Foo" "Grand-Parent" "Parent" "ref with space" "Scheduled heading" "With Times"))))
+
 
 (describe "org-roam-alias"
   (before-all
