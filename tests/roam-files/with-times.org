@@ -1,0 +1,16 @@
+:PROPERTIES:
+:ID: 9a20ca6c-5555-41c9-a039-ac38bf59c7a9
+:END:
+#+title: With Times
+
+* Scheduled heading
+SCHEDULED: <2024-07-16 Tue>
+:PROPERTIES:
+:ID: a523c198-4cb4-44d2-909c-a0e3258089cd
+:END:
+
+* Deadline heading
+DEADLINE: <2024-07-17 Tue>
+:PROPERTIES:
+:ID: 3ab84701-d1c1-463f-b5c6-715e6ff5a0bf
+:END:

@@ -24,6 +24,42 @@
 (require 'buttercup)
 (require 'org-roam)
 
+(defvar root-directory default-directory)
+
+(describe "org-roam-db-get-scheduled-time"
+  (before-all
+    (setq org-roam-directory (expand-file-name "tests/roam-files")
+          org-roam-db-location (expand-file-name "org-roam.db" temporary-file-directory)
+          org-roam-file-extensions '("org")
+          org-roam-file-exclude-regexp nil)
+    (org-roam-db-sync))
+
+  (after-all
+    (org-roam-db--close)
+    (delete-file org-roam-db-location)
+    (cd root-directory))
+
+  (it "should get scheduled time for current heading node"
+    (org-roam-id-open "a523c198-4cb4-44d2-909c-a0e3258089cd" nil)
+    (expect (org-roam-db-get-scheduled-time) :to-equal "2024-07-16T00:00:00+0000")))
+
+(describe "org-roam-db-get-deadline-time"
+  (before-all
+    (setq org-roam-directory (expand-file-name "tests/roam-files")
+          org-roam-db-location (expand-file-name "org-roam.db" temporary-file-directory)
+          org-roam-file-extensions '("org")
+          org-roam-file-exclude-regexp nil)
+    (org-roam-db-sync))
+
+  (after-all
+    (org-roam-db--close)
+    (delete-file org-roam-db-location)
+    (cd root-directory))
+
+  (it "should get deadline time for current heading node"
+    (org-roam-id-open "3ab84701-d1c1-463f-b5c6-715e6ff5a0bf" nil)
+    (expect (org-roam-db-get-deadline-time) :to-equal "2024-07-17T00:00:00+0000")))
+
 (describe "org-roam-db--file-hash"
   (it "computes the SHA1 of file"
     (expect (org-roam-db--file-hash "tests/roam-files/family.org")
@@ -45,12 +81,12 @@
   (it "has the correct number of files"
     (expect (caar (org-roam-db-query [:select (funcall count) :from files]))
             :to-equal
-            8))
+            9))
 
   (it "has the correct number of nodes"
     (expect (caar (org-roam-db-query [:select (funcall count) :from nodes]))
             :to-equal
-            9))
+            12))
 
   (it "has the correct number of links"
     (expect (caar (org-roam-db-query [:select (funcall count) :from links]))
@@ -69,6 +105,9 @@
               "77a90980-1994-464e-901f-7e3d3df07fd3"
               "57ff3ce7-5bda-4825-8fca-c09f523e87ba"
               "998b2341-b7fe-434d-848c-5282c0727870"
+              "a523c198-4cb4-44d2-909c-a0e3258089cd"
+              "3ab84701-d1c1-463f-b5c6-715e6ff5a0bf"
+              "9a20ca6c-5555-41c9-a039-ac38bf59c7a9"
               "97bf31cf-dfee-45d8-87a5-2ae0dabc4734")))
 
   (it "reads ref in quotes correctly"
