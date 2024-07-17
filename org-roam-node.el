@@ -878,6 +878,7 @@ node."
   (org-with-point-at 1
     (let ((title (nth 4 (org-heading-components)))
           (tags (org-get-tags)))
+      (org-fold-show-all)
       (kill-whole-line)
       (org-roam-end-of-meta-data t)
       (insert "#+title: " title "\n")
