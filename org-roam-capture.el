@@ -1,4 +1,4 @@
-;;; org-roam-capture.el --- Capture functionality -*- coding: utf-8; lexical-binding: t; -*-
+;; org-roam-capture.el --- Capture functionality -*- coding: utf-8; lexical-binding: t; -*-
 
 ;; Copyright © 2020-2022 Jethro Kuan <jethrokuan95@gmail.com>
 
@@ -381,8 +381,11 @@ risk breaking things.")
 
 (defvar org-roam-capture--node nil
   "The node passed during an Org-roam capture.
-This variable is populated dynamically, and is only non-nil
-during the Org-roam capture process.")
+This variable is populated dynamically.
+
+In theory, once the buffer has been populated by org-capture, this value is no longer used.
+
+")
 
 (defvar org-roam-capture--info nil
   "A property-list of additional information passed to the Org-roam template.
@@ -390,30 +393,45 @@ This variable is populated dynamically, and is only non-nil
 during the Org-roam capture process.")
 
 (defconst org-roam-capture--template-keywords (list :target :id :link-description :call-location
-                                                    :region)
+                                                    :region :create-file)
   "Keywords used in `org-roam-capture-templates' specific to Org-roam.")
 
 ;;; Main entry point
 ;;;###autoload
-(cl-defun org-roam-capture- (&key goto keys node info props templates)
+(cl-defun org-roam-capture- (&key goto keys node info props templates filter-fn)
   "Main entry point of `org-roam-capture' module.
 GOTO and KEYS correspond to `org-capture' arguments.
 INFO is a plist for filling up Org-roam's capture templates.
-NODE is an `org-roam-node' construct containing information about the node.
+NODE is an `org-roam-node' construct containing information about the node. Might be nil.
 PROPS is a plist containing additional Org-roam properties for each template.
-TEMPLATES is a list of org-roam templates."
+TEMPLATES is a list of org-roam templates.
+FILTER-FN function to use to filter candidates in org-roam-capture--node
+
+org-roam-capture can be called:
+
+1. with node already created (when using org-roam-node-find), or
+
+2. org-roam-capture (the node needs to be found or created).
+   In this case, the creation of the node will be done when the template is processed
+
+"
   (let* ((props (plist-put props :call-location (point-marker)))
          (org-capture-templates
           (mapcar (lambda (template)
                     (org-roam-capture--convert-template template props))
                   (or templates org-roam-capture-templates)))
-         (_ (setf (org-roam-node-id node) (or (org-roam-node-id node)
-                                              (org-id-new))))
-         (org-roam-capture--node node)
-         (org-roam-capture--info info))
+         )
+    (setq org-roam-capture--node node)
+    (when org-roam-capture--node
+      (setf (org-roam-node-id node) (or (org-roam-node-id node)
+                                        (org-id-new)))
+      (setq org-roam-capture--node node)
+      )
+    (setq org-roam-capture--info info)
     (when (and (not keys)
                (= (length org-capture-templates) 1))
       (setq keys (caar org-capture-templates)))
+    ;; at this point the destination is already set
     (org-capture goto keys)))
 
 ;;;###autoload
@@ -427,13 +445,14 @@ The TEMPLATES, if provided, override the list of capture templates (see
 `org-roam-capture-'.)
 The INFO, if provided, is passed along to the underlying `org-roam-capture-'."
   (interactive "P")
-  (let ((node (org-roam-node-read nil filter-fn)))
-    (org-roam-capture- :goto goto
-                       :info info
-                       :keys keys
-                       :templates templates
-                       :node node
-                       :props '(:immediate-finish nil))))
+  (org-roam-capture- :goto goto
+                     :info info
+                     :keys keys
+                     :templates templates
+                     :node nil
+                     :filter-fn filter-fn
+                     :props '(:immediate-finish nil))
+  )
 
 ;;; Capture process
 (defun org-roam-capture-p ()
@@ -466,6 +485,7 @@ processing by `org-capture'.
 Note: During the capture process this function is run by
 `org-capture-set-target-location', as a (function ...) based
 capture target."
+  
   (let ((id (cond ((run-hook-with-args-until-success 'org-roam-capture-preface-hook))
                   (t (org-roam-capture--setup-target-location)))))
     (org-roam-capture--adjust-point-for-capture-type)
@@ -478,105 +498,255 @@ capture target."
     (org-roam-capture--put :finalize (or (org-capture-get :finalize)
                                          (org-roam-capture--get :finalize)))))
 
-(defun org-roam-capture--setup-target-location ()
-  "Initialize the buffer, and goto the location of the new capture.
-Return the ID of the location."
-  (let (p new-file-p)
+(defun org-roam-capture--setup--file-date-tree (tree-type)
+  (require 'org-datetree)
+  (widen)
+  (funcall
+   (pcase tree-type
+     (`week #'org-datetree-find-iso-week-create)
+     (`month #'org-datetree-find-month-create)
+     (`day #'org-datetree-find-date-create)
+     (_ (error "Invalid datetree interval %S" tree-type))
+     )
+   (calendar-gregorian-from-absolute
+    (cond
+     (org-overriding-default-time
+      ;; Use the overriding default time.
+      (time-to-days org-overriding-default-time))
+     ((org-capture-get :default-time)
+      (time-to-days (org-capture-get :default-time)))
+     ((org-capture-get :time-prompt)
+      ;; Prompt for date.  Bind `org-end-time-was-given' so
+      ;; that `org-read-date-analyze' handles the time range
+      ;; case and returns `prompt-time' with the start value.
+      (let* ((org-time-was-given nil)
+             (org-end-time-was-given nil)
+             (prompt-time (org-read-date
+                           nil t nil "Date for tree entry:")))
+        (org-capture-put
+         :default-time
+         (if (or org-time-was-given
+                 (= (time-to-days prompt-time) (org-today)))
+             prompt-time
+           ;; Use 00:00 when no time is given for another
+           ;; date than today?
+           (apply #'encode-time 0 0
+                  org-extend-today-until
+                  (cl-cdddr (decode-time prompt-time)))))
+        (time-to-days prompt-time)))
+     (t
+      ;; Current date, possibly corrected for late night
+      ;; workers.
+      (org-today)))))    
+  )
+
+
+(defun org-roam-capture--verify-file-parms ()
+  "Verify file related parameters in capture template. "
+  ;; this needs to be cleaned along with its caller
+
+  (let (
+        (path (nth 1 (org-roam-capture--get-target)))
+        )
+    (when (not path)
+      (error "template did not have a target parameter %S" (org-roam-capture--get-target)))
+
+    (when (not (functionp path))
+      (let* (
+        ;; convert to actual path
+        (true-path (and path
+                        (if (functionp path)
+                            nil
+                          (org-roam-capture--target-truepath path)
+                          )))
+        ;; is it new
+        (new-file-p (org-roam-capture--new-file-p true-path))
+        ;; get create-file option from template
+        (create-file  (org-roam-capture--get :create-file))
+        )
+      
+       (when create-file
+         (when (not (or (eq create-file 'no)
+                        (eq create-file 'yes)))
+           (error "Template has illegal create option [%S]. It should either yes or no" create-file)
+           )
+    ;; file does not exist and create-file no
+         (when (and new-file-p
+                    (equal create-file 'no))
+           (error "Template :create-file option [%S] requires destination file must exist [%S]" (org-roam-capture--get :create-file) true-path)
+      )
+    ;; file exist and create-file yes
+         (when (and (not new-file-p)
+                    (equal create-file 'yes)
+                    )
+           (error "Template :create-file option [%S] requires destination file does not exist [%S], but it does." (org-roam-capture--get :create-file) true-path)
+           ))
+       ))))
+
+
+(defun org-roam-capture--setup-target-location-file ()
+  "set up a template destination when a file is required.
+   this function is for cases when we need to ask for the name of the node"
+  
+  ;; with the new create-file option, this can be forced with
+  ;;    org-roam-node-read
+  ;; set the node if missing
+;  (message "TARGET 1>>>>>>>>>>> [%S]" (org-roam-capture--get-target))
+;  (message "TARGET 2>>>>>>>>>>> [%S]" (nth 1 (org-roam-capture--get-target)))
+;  (message "TARGET 3>>>>>>>>>>> [%S]" (functionp (nth 1 (org-roam-capture--get-target))))
+  (when (not org-roam-capture--node)
+    ;; ask for the node
+    (let ((node (org-roam-node-read nil (org-roam-capture--get :filter-fn)
+                                    nil (eq (org-roam-capture--get :create-file) 'no)
+                                    ))
+          )
+      (setf (org-roam-node-id node) (or (org-roam-node-id node)
+                                        (org-id-new)))
+      (setq org-roam-capture--node node)
+      )
+    )
+  
+  ;; Some error checking
+  (org-roam-capture--verify-file-parms)
+
+
+  (let* (position!  ;; mutable value
+                    ;; will contain return position
+         ;; get the path parameter
+         (path (nth 1 (org-roam-capture--get-target)))
+         ;; convert to actual path
+         (true-path (and path
+                         (if (functionp path)
+                             nil
+                           (org-roam-capture--target-truepath path)
+                        )))
+         ;; is it new
+         (new-file-p (and true-path
+                      (org-roam-capture--new-file-p true-path)))
+         ;; get create-file option from template
+         (create-file  (org-roam-capture--get :create-file))
+         )
+    
+    
+    (when true-path
+      (when new-file-p
+        (org-roam-capture--put :new-file true-path))
+      (set-buffer (org-capture-target-buffer true-path))
+      )
+    
     (pcase (org-roam-capture--get-target)
       (`(file ,path)
-       (setq path (org-roam-capture--target-truepath path)
-             new-file-p (org-roam-capture--new-file-p path))
-       (when new-file-p (org-roam-capture--put :new-file path))
-       (set-buffer (org-capture-target-buffer path))
        (widen)
-       (setq p (goto-char (point-min))))
+       (setq position! (goto-char (point-min))))
+
       (`(file+olp ,path ,olp)
-       (setq path (org-roam-capture--target-truepath path)
-             new-file-p (org-roam-capture--new-file-p path))
-       (when new-file-p (org-roam-capture--put :new-file path))
-       (set-buffer (org-capture-target-buffer path))
-       (setq p (point-min))
+       (setq position! (point-min))
        (let ((m (org-roam-capture-find-or-create-olp olp)))
          (goto-char m))
        (widen))
+      
       (`(file+head ,path ,head)
-       (setq path (org-roam-capture--target-truepath path)
-             new-file-p (org-roam-capture--new-file-p path))
-       (set-buffer (org-capture-target-buffer path))
        (when new-file-p
-         (org-roam-capture--put :new-file path)
          (insert (org-roam-capture--fill-template head 'ensure-newline)))
        (widen)
-       (setq p (goto-char (point-min))))
+       (setq position! (goto-char (point-min))))
+      
       (`(file+head+olp ,path ,head ,olp)
-       (setq path (org-roam-capture--target-truepath path)
-             new-file-p (org-roam-capture--new-file-p path))
-       (set-buffer (org-capture-target-buffer path))
-       (widen)
+       (setq position! (point-min))
+       ;(widen)
        (when new-file-p
-         (org-roam-capture--put :new-file path)
          (insert (org-roam-capture--fill-template head 'ensure-newline)))
-       (setq p (point-min))
        (let ((m (org-roam-capture-find-or-create-olp olp)))
          (goto-char m)))
+      
       (`(file+datetree ,path ,tree-type)
-       (setq path (org-roam-capture--target-truepath path))
-       (require 'org-datetree)
-       (widen)
-       (set-buffer (org-capture-target-buffer path))
-       (unless (file-exists-p path)
-         (org-roam-capture--put :new-file path))
-       (funcall
-        (pcase tree-type
-          (`week #'org-datetree-find-iso-week-create)
-          (`month #'org-datetree-find-month-create)
-          (_ #'org-datetree-find-date-create))
-        (calendar-gregorian-from-absolute
-         (cond
-          (org-overriding-default-time
-           ;; Use the overriding default time.
-           (time-to-days org-overriding-default-time))
-          ((org-capture-get :default-time)
-           (time-to-days (org-capture-get :default-time)))
-          ((org-capture-get :time-prompt)
-           ;; Prompt for date.  Bind `org-end-time-was-given' so
-           ;; that `org-read-date-analyze' handles the time range
-           ;; case and returns `prompt-time' with the start value.
-           (let* ((org-time-was-given nil)
-                  (org-end-time-was-given nil)
-                  (prompt-time (org-read-date
-                                nil t nil "Date for tree entry:")))
-             (org-capture-put
-              :default-time
-              (if (or org-time-was-given
-                      (= (time-to-days prompt-time) (org-today)))
-                  prompt-time
-                ;; Use 00:00 when no time is given for another
-                ;; date than today?
-                (apply #'encode-time 0 0
-                       org-extend-today-until
-                       (cl-cdddr (decode-time prompt-time)))))
-             (time-to-days prompt-time)))
-          (t
-           ;; Current date, possibly corrected for late night
-           ;; workers.
-           (org-today)))))
-       (setq p (point)))
+       (org-roam-capture--setup--file-date-tree tree-type)
+       (setq position (point)))
+      (_ (error "Invalid org-roam capture specification %S" (org-roam-capture--get-target)))
+      )
+    position!
+    )    
+  )
+
+(defun org-roam-capture--setup-target-location-function ()
+  "set up a template destination when a function is given"
+  (let*(
+        (path (nth 1 (org-roam-capture--get-target)))
+        (node (funcall path))
+        (point (point))
+        )
+    (assert node "We don't have a node")
+    (setq org-roam-capture--node node)
+    point
+    )
+  )
+  
+
+(defun org-roam-capture--find-node-title-id (title-or-id)
+  (if title-or-id
+      ;; either find the node by id or title
+    (or (org-roam-node-from-id title-or-id)
+          (org-roam-node-from-title-or-alias title-or-id)
+          (user-error "No node with title or id \"%s\"" title-or-id)
+          )
+    ;; else if not title provided, ask for it
+    ;; the node must exist
+    (org-roam-node-read nil (org-roam-capture--get :filter-fn) nil t)
+    )
+  )
+
+(defun org-roam-capture--setup-target-location-node ()
+  "Sets up a destination when the node is known (either by id, title or alias)"
+  (let* ((title-or-id    (nth 1 (org-roam-capture--get-target)) )
+         ;; first try to get ID, then try to get title/alias
+         (node (org-roam-capture--find-node-title-id title-or-id))
+        (position! nil)
+        )
+    (setq org-roam-capture--node node)
+    (set-buffer (org-capture-target-buffer (org-roam-node-file node)))
+    (pcase (org-roam-capture--get-target)
       (`(node ,title-or-id)
-       ;; first try to get ID, then try to get title/alias
-       (let ((node (or (org-roam-node-from-id title-or-id)
-                       (org-roam-node-from-title-or-alias title-or-id)
-                       (user-error "No node with title or id \"%s\"" title-or-id))))
-         (set-buffer (org-capture-target-buffer (org-roam-node-file node)))
-         (goto-char (org-roam-node-point node))
-         (setq p (org-roam-node-point node)))))
+       (widen)
+       (setq position! (goto-char (point-min))))
+      (`(node+olp ,title-or-id ,olp)
+       (setq position! (point-min))
+       (let ((m (org-roam-capture-find-or-create-olp olp)))
+         (goto-char m))
+       (widen))
+      
+      (_ (error "Invalid org-roam capture specification %S" (org-roam-capture--get-target)))
+      )
+    position!
+    )
+  )
+
+(defun org-roam-capture--setup-target-location ()
+  "Initialize the buffer, and goto the location of the new capture.
+Return the ID of the location."
+  ;; if the target is a node... then 
+  ;; otherwise
+  (let* (
+        ;; different processing to node or non-node
+         ;; node does not ask for node
+         (target (car (org-roam-capture--get-target)))
+         ;; set the destination
+         (position (cond ((or (string= target "node")
+                             (string= target "node+olp")
+                          ) (org-roam-capture--setup-target-location-node))
+                        ((string= target "function" )
+                         (org-roam-capture--setup-target-location-function)
+                         )
+                        (t (org-roam-capture--setup-target-location-file))                    
+                        ))
+        )
     ;; Setup `org-id' for the current capture target and return it back to the
     ;; caller.
     (save-excursion
-      (goto-char p)
-      (if-let ((id (org-entry-get p "ID")))
+      (assert position "No position given")
+      (goto-char position)
+      (if-let ((id (org-entry-get position "ID")))
           (setf (org-roam-node-id org-roam-capture--node) id)
-        (org-entry-put p "ID" (org-roam-node-id org-roam-capture--node)))
+        (org-entry-put position "ID" (org-roam-node-id org-roam-capture--node)))
       (prog1
           (org-id-get)
         (run-hooks 'org-roam-capture-new-node-hook)))))
