@@ -664,9 +664,12 @@ This is the ROW within FILE."
           (mapconcat (lambda (glob) (concat "--glob " glob))
                      (org-roam--list-files-search-globs org-roam-file-extensions)
                      " ")
-          (format " \"\\[([^[]]++|(?R))*\\]%s\" "
+          (format " '\\[([^[]]++|(?R))*\\]%s' "
                   (mapconcat (lambda (title)
-                               (format "|(\\b%s\\b)" (shell-quote-argument title)))
+                               (format "|(\\b%s\\b)"
+                                       (mapconcat #'shell-quote-argument
+                                                  (split-string title "'")
+                                                  "'\"'\"'")))
                              titles ""))
           (shell-quote-argument org-roam-directory)))
 

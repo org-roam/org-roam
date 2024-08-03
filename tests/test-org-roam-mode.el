@@ -32,17 +32,22 @@
   (it "returns the correct rg command for unlinked references"
     (expect (org-roam-unlinked-references--rg-command '("foo" "bar"))
             :to-equal
-            "rg --follow --only-matching --vimgrep --pcre2 --ignore-case --glob \"*.org\" --glob \"*.org.gpg\" --glob \"*.org.age\" \"\\[([^[]]++|(?R))*\\]|(\\bfoo\\b)|(\\bbar\\b)\" /tmp/org\\ roam"))
+            "rg --follow --only-matching --vimgrep --pcre2 --ignore-case --glob \"*.org\" --glob \"*.org.gpg\" --glob \"*.org.age\" '\\[([^[]]++|(?R))*\\]|(\\bfoo\\b)|(\\bbar\\b)' /tmp/org\\ roam"))
 
   (it "returns the correct rg command for unlinked references when input includes a single quote"
     (expect (org-roam-unlinked-references--rg-command '("Don't Repeat Yourself" "DRY"))
             :to-equal
-            "rg --follow --only-matching --vimgrep --pcre2 --ignore-case --glob \"*.org\" --glob \"*.org.gpg\" --glob \"*.org.age\" \"\\[([^[]]++|(?R))*\\]|(\\bDon\\'t\\ Repeat\\ Yourself\\b)|(\\bDRY\\b)\" /tmp/org\\ roam"))
+            "rg --follow --only-matching --vimgrep --pcre2 --ignore-case --glob \"*.org\" --glob \"*.org.gpg\" --glob \"*.org.age\" '\\[([^[]]++|(?R))*\\]|(\\bDon'\"'\"'t\\ Repeat\\ Yourself\\b)|(\\bDRY\\b)' /tmp/org\\ roam"))
 
   (it "returns the correct rg command for unlinked references when input includes a double quote"
     (expect (org-roam-unlinked-references--rg-command '("The \"p\" in pterodactyl"))
             :to-equal
-            "rg --follow --only-matching --vimgrep --pcre2 --ignore-case --glob \"*.org\" --glob \"*.org.gpg\" --glob \"*.org.age\" \"\\[([^[]]++|(?R))*\\]|(\\bThe\\ \\\"p\\\"\\ in\\ pterodactyl\\b)\" /tmp/org\\ roam"))
+            "rg --follow --only-matching --vimgrep --pcre2 --ignore-case --glob \"*.org\" --glob \"*.org.gpg\" --glob \"*.org.age\" '\\[([^[]]++|(?R))*\\]|(\\bThe\\ \\\"p\\\"\\ in\\ pterodactyl\\b)' /tmp/org\\ roam"))
+
+  (it "returns the correct rg command for unlinked references when input includes a dollar sign"
+    (expect (org-roam-unlinked-references--rg-command '("Is $USER a problem"))
+            :to-equal
+            "rg --follow --only-matching --vimgrep --pcre2 --ignore-case --glob \"*.org\" --glob \"*.org.gpg\" --glob \"*.org.age\" '\\[([^[]]++|(?R))*\\]|(\\bIs\\ \\$USER\\ a\\ problem\\b)' /tmp/org\\ roam"))
   )
 
 (provide 'test-org-roam-mode)
