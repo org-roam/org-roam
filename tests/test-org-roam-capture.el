@@ -59,3 +59,5 @@
      :to-equal "foo")))
 
 (provide 'test-org-roam-capture)
+
+;;; test-org-roam-capture.el ends here

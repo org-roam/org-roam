@@ -1,15 +1,21 @@
 # Changelog
+
 ## TBD
+
 ### Breaking
 ### Added
+- [#2333](https://github.com/org-roam/org-roam/pull/2333) buffer: allow a custom heading for a backlink section
+- [#2449](https://github.com/org-roam/org-roam/pull/2449) extract rg-command builder function from unlinked-references
 ### Removed
 ### Fixed
 - [#2264](https://github.com/org-roam/org-roam/pull/2264) Support multi-line org titles
 - [#2165](https://github.com/org-roam/org-roam/pull/2165) (fix)org-roam-file-p: don't exclude org-roam-directory
 - [#2168](https://github.com/org-roam/org-roam/pull/2168) (perf)node-read: filter nodes before mapping --to-candidate
+- [#2411](https://github.com/org-roam/org-roam/pull/2411) fix for `org-roam-directory` having spaces and Unlinked References not working
 ### Changed
 
-## 2.2.2
+## 2.2.2 (2022-04-25)
+
 ### Breaking
 ### Added
 - [#2138](https://github.com/org-roam/org-roam/pull/2138) export: add new module
@@ -25,11 +31,11 @@
 - [#2159](https://github.com/org-roam/org-roam/pull/2159) db: fix db syncs on narrowed buffers
 - [#2156](https://github.com/org-roam/org-roam/pull/2157) capture: templates with functions are handled correctly to avoid signaling `char-or-string-p`
 
-
 ### Changed
 - [#2160](https://github.com/org-roam/org-roam/pull/2160) core: ignore files in `org-attach-id-dir` by default
 
-## 2.2.1
+## 2.2.1 (2022-03-15)
+
 ### Breaking
 - [#2054](https://github.com/org-roam/org-roam/pull/2054) node: simplify default `org-roam-node-display-template`.
   This was done so completions work fine by default on all completion systems. To restore the tabular vertical completion interface, set this in your configuration:
@@ -63,7 +69,8 @@
 - [#2109](https://github.com/org-roam/org-roam/pull/2109) capture: `org-roam-node-insert` places cursor after inserted link where appropriate
 - [#2123](https://github.com/org-roam/org-roam/pull/2123), [#2124](https://github.com/org-roam/org-roam/pull/2124) buffer: `org-roam-mode-section-functions` renamed to `org-roam-mode-sections`, supports passing args into the section-rendering function
 
-## 2.2.0
+## 2.2.0 (2022-01-14)
+
 ### Added
 - [#1806](https://github.com/org-roam/org-roam/pull/1806), [#2017](https://github.com/org-roam/org-roam/pull/2017) db: support caching and usage of Org 9.5's in-built citations
 - [#1963](https://github.com/org-roam/org-roam/pull/1963) db: cache file title into files table
@@ -94,7 +101,8 @@
 - [#2016](https://github.com/org-roam/org-roam/pull/2016) db: fix node caching being affected by agenda variables
 - [#2033](https://github.com/org-roam/org-roam/pull/2023) db: respect local variables during db parsing
 
-## 2.1.0
+## 2.1.0 (2021-08-20)
+
 ### Added
 - [#1693](https://github.com/org-roam/org-roam/pull/1693) added `filter-fn` and `templates` parameter to `org-roam-capture`, `org-roam-node-find`, and `org-roam-node-insert`
 - [#1709](https://github.com/org-roam/org-roam/pull/1709) added ability to specify default value in org-roam capture templates
@@ -124,7 +132,10 @@
 - [#1713](https://github.com/org-roam/org-roam/pull/1713) capture: check for file-existence before template insertion
 - [#1725](https://github.com/org-roam/org-roam/pull/1725) db: always compute hash of encrypted file to prevent re-processing of encrypted files
 
-## 2.0.0
+## 2.0.0 (2021-07-17)
+
+A few symbols have been marked as obsolete. Have a look at the content of [org-roam-compat.el](https://github.com/org-roam/org-roam/blob/f819720c510185af713522c592833ec9f2934251/org-roam-compat.el#L159)
+
 ### Added
 - [#1396](https://github.com/org-roam/org-roam/pull/1396) add option to choose between prepending, appending, and omitting `roam_tags` in file completion
 - [#1270](https://github.com/org-roam/org-roam/pull/1270) capture: create OLP if it does not exist. Removes need for OLP setup in `:head`.
@@ -151,7 +162,7 @@
 - [#1409](https://github.com/org-roam/org-roam/issues/1398) prevent inclusion of non-org-roam files in `org-roam-dailies--list-files`
 - [#1542](https://github.com/org-roam/org-roam/issues/1542) fix files not excluded when `org-roam-list-files-commands` is nil
 
-## 1.2.3 (13-11-2020)
+## 1.2.3 (2020-11-13)
 
 Primarily a stabilization and bug-fix release.
 
@@ -182,7 +193,7 @@ Org-roam-dailies has also been revamped to include new features, see [this video
 - [#1233](https://github.com/org-roam/org-roam/issues/1233) fixes bug where descriptive file links become plain links during update for relative paths
 - [#1252](https://github.com/org-roam/org-roam/issues/1252) respect original link type during automatic replacement
 
-## 1.2.2 (06-10-2020)
+## 1.2.2 (2020-10-06)
 
 In this release we support fuzzy links of the form `[[roam:Title]]`, `[[roam:*Headline]]` and `[[roam:Title*Headline]]`. Completion for these fuzzy links is supported via `completion-at-point`.
 
@@ -220,7 +231,7 @@ This change requires you to set `org-roam-directory` to the resolved path of a f
 - [#1057](https://github.com/org-roam/org-roam/pull/1057) Improve performance of database builds by preventing generation of LaTeX and image previews.
 - [#1103](https://github.com/org-roam/org-roam/pull/1103) Fix long build-times for Windows on files with URL links
 
-## 1.2.1 (27-07-2020)
+## 1.2.1 (2020-07-27)
 
 This release consisted of a big deal of refactoring and bug fixes. Notably, we fixed several catastrophic failures on db builds with bad setups (#854), and modularized tag and title extractions.
 
@@ -253,7 +264,7 @@ We also added some new features that had been a long time coming:
 - [#894](https://github.com/org-roam/org-roam/pull/894) Perform link fixes on all Org-roam files
 - [#952](https://github.com/org-roam/org-roam/pull/952) Cache `${foo}` template variables so they do not need to be re-entered twice
 
-## 1.2.0 (12-06-2020)
+## 1.2.0 (2020-06-12)
 
 In this release, we improved the linking process by achieving feature parity between links to files and links to headlines. Before, we used the `file:foo::*bar` format to link to the headline `bar` in file `foo`, but this was prone to breakage upon renaming the file or modifying the headline. This is not the case anymore. Now, we use `org-id` to create IDs for those headlines, which are then stored in our database to compute the relationships and jump around. Note that this will work even if you’re not using `org-id` in your global configuration for Org-mode.
 
@@ -281,7 +292,7 @@ We also add `org-roam-unlinked-references`, which naively finds text that could 
 - [#759](https://github.com/org-roam/org-roam/pull/759), [#760](https://github.com/org-roam/org-roam/pull/760) Tags are only added to the tags table if there are actually tags present
 - [#700](https://github.com/org-roam/org-roam/pull/700), [#733](https://github.com/org-roam/org-roam/pull/733) Allow symlinks within the `org-roam` directory
 
-## 1.1.1 (18-05-2020)
+## 1.1.1 (2020-05-18)
 
 In this release, we added two new features:
 
@@ -321,7 +332,7 @@ As usual, this release comes with a multitude of bug-fixes and refactorings.
 - [#606](https://github.com/org-roam/org-roam/pull/606) Added `org-roam-dev.el` for developer coding standards
 - [#622](https://github.com/org-roam/org-roam/pull/622) Online documentation now points to the Org-based documentation
 
-## 1.1.0 (21-04-2020)
+## 1.1.0 (2020-04-21)
 
 To the average user, this release is mainly a bugfix release with additional options to customize. However, the changes made to the source is significant. Most notably, in this release:
 
@@ -359,7 +370,7 @@ In the coming months, you can expect work on bigger projects (e.g. revamping the
 - [#363](https://github.com/org-roam/org-roam/pull/363), [#473](https://github.com/org-roam/org-roam/pull/473) Modularize org-roam features.
 - [#497](https://github.com/org-roam/org-roam/pull/497) Simplify `org-roam--list-files` implementation
 
-## 1.0.0 (23-03-2020)
+## 1.0.0 (2020-03-23)
 
 Org-roam is now on MELPA! We have squashed most of the bugs, and Org-roam has
 been stable for the most part.
@@ -378,7 +389,7 @@ been stable for the most part.
 - [#293](https://github.com/org-roam/org-roam/pull/293) Fix capture templates not working as expected for `org-roam-find-file`
 - [#275](https://github.com/org-roam/org-roam/pull/275) Fix database rebuild when `org-roam-directory` is set locally
 
-## 1.0.0-rc1 (06-03-2020)
+## 1.0.0-rc1 (2020-03-06)
 
 This is a pre-release before the push to MELPA. It contains large
 internal changes, with little user-facing changes. Most notably, the

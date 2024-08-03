@@ -707,8 +707,6 @@ the current value of `point'."
 
 (defun org-roam-capture--finalize ()
   "Finalize the `org-roam-capture' process."
-  (when-let ((region (org-roam-capture--get :region)))
-    (org-roam-unshield-region (car region) (cdr region)))
   (if org-note-abort
       (when-let ((new-file (org-roam-capture--get :new-file))
                  (_ (yes-or-no-p "Delete file for aborted capture?")))
@@ -740,7 +738,6 @@ This function is to be called in the Org-capture finalization process."
               (buf (marker-buffer mkr)))
     (with-current-buffer buf
       (when-let ((region (org-roam-capture--get :region)))
-        (org-roam-unshield-region (car region) (cdr region))
         (delete-region (car region) (cdr region))
         (set-marker (car region) nil)
         (set-marker (cdr region) nil))
