@@ -42,8 +42,8 @@
 (defcustom org-roam-mode-sections (list #'org-roam-backlinks-section
                                         #'org-roam-reflinks-section)
   "A list of sections for the `org-roam-mode' based buffers.
-Each section is a function that is passed the an `org-roam-node'
-for which the section will be constructed for as the first
+Each section is a function that is passed the `org-roam-node'
+for which the section will be constructed as the first
 argument. Normally this node is `org-roam-buffer-current-node'.
 The function may also accept other optional arguments. Each item
 in the list is either:
@@ -533,17 +533,20 @@ Sorts by title."
   (string< (org-roam-node-title (org-roam-backlink-source-node a))
            (org-roam-node-title (org-roam-backlink-source-node b))))
 
-(cl-defun org-roam-backlinks-section (node &key (unique nil) (show-backlink-p nil))
+(cl-defun org-roam-backlinks-section (node &key (unique nil) (show-backlink-p nil)
+                                           (section-heading "Backlinks:"))
   "The backlinks section for NODE.
 
 When UNIQUE is nil, show all positions where references are found.
 When UNIQUE is t, limit to unique sources.
 
 When SHOW-BACKLINK-P is not null, only show backlinks for which
-this predicate is not nil."
+this predicate is not nil.
+
+SECTION-HEADING is the string used as a heading for the backlink section."
   (when-let ((backlinks (seq-sort #'org-roam-backlinks-sort (org-roam-backlinks-get node :unique unique))))
     (magit-insert-section (org-roam-backlinks)
-      (magit-insert-heading "Backlinks:")
+      (magit-insert-heading section-heading)
       (dolist (backlink backlinks)
         (when (or (null show-backlink-p)
                   (and (not (null show-backlink-p))
@@ -684,22 +687,34 @@ used to control rendering."
        (end-of-line)
        (point)))))
 
-(defun org-roam-unlinked-references-title-regex (titles)
-  "Construct a ripgrep regex pattern from TITLES.
-The output expression should be sanitized for the shell use."
-  (format "\"\\[([^[]]++|(?R))+\\]%s\""
-          (mapconcat 'org-roam-unlinked-references-apply-word-boundary-re titles "")))
-
-(defun org-roam-unlinked-references-apply-word-boundary-re (title)
-  "Wrap TITLE with word boundary regex.
-The output expression should be sanitized for the shell use."
-  (format org-roam-unlinked-references-word-boundary-re (shell-quote-argument title)))
-
 (defun org-roam-unlinked-references-file-glob-args ()
   "Construct file glob arguments for ripgrep."
   (mapconcat (lambda (glob) (concat "-g " glob))
              (org-roam--list-files-search-globs org-roam-file-extensions)
              " "))
+
+(defun org-roam-unlinked-references-title-regex (titles)
+  "Construct a ripgrep regex pattern from TITLES.
+The output expression should be sanitized for the shell use."
+  (format "'\\[([^[]]++|(?R))+\\]%s'"
+          (mapconcat 'org-roam-unlinked-references-apply-word-boundary-re titles "")))
+
+(defun org-roam-unlinked-references-apply-word-boundary-re (title)
+  "Wrap TITLE with word boundary regex.
+The output expression should be sanitized for the shell use."
+  (format org-roam-unlinked-references-word-boundary-re
+          (org-roam-plugin-ja-unlinked-references-sanitize-title title)))
+
+(defun org-roam-unlinked-references-sanitize-title (title)
+    "Sanitize TITLE for shell use."
+    (mapconcat #'shell-quote-argument (split-string title "'") "'\"'\"'"))
+
+(defun org-roam-unlinked-references--rg-command (titles)
+  "Return the ripgrep command searching for TITLES."
+  (concat "rg --follow --only-matching --vimgrep --pcre2 --ignore-case "
+          (org-roam-unlinked-references-file-glob-args) " "
+          (org-roam-unlinked-references-title-regex titles) " "
+          (shell-quote-argument org-roam-directory)))
 
 (defun org-roam-unlinked-references-section (node)
   "The unlinked references section for NODE.
@@ -710,12 +725,7 @@ References from FILE are excluded."
                                 (shell-command-to-string "rg --pcre2-version"))))
     (let* ((titles (cons (org-roam-node-title node)
                          (org-roam-node-aliases node)))
-           (rg-command (concat "rg -L -o --vimgrep -P -i "
-                               (org-roam-unlinked-references-file-glob-args)
-                               " "
-                               (org-roam-unlinked-references-title-regex titles)
-                               " "
-                               org-roam-directory))
+           (rg-command (org-roam-unlinked-references--rg-command titles))
            (results (split-string (shell-command-to-string rg-command) "\n"))
            (match_count 0)
            f f-prev row row-prev col col-prev matched-text)
@@ -730,17 +740,24 @@ References from FILE are excluded."
                       col (string-to-number (match-string 3 line))
                       matched-text (match-string 4 line))
                 (when (and matched-text
-                           (org-roam-unlinked-references-result-filter-p matched-text f row col titles node))
-                  (magit-insert-section section (org-roam-grep-section)
+                           (org-roam-unlinked-references-result-filter-p
+                            matched-text f row col titles node))
+                  (magit-insert-section
+                      section
+                    (org-roam-grep-section)
                     (oset section file f)
                     (oset section row row)
                     (oset section col col)
-                    (insert (propertize (format "%s:%s:%s"
-                                                (truncate-string-to-width (file-name-base f) 15 nil nil t)
-                                                row col) 'font-lock-face 'org-roam-dim)
+                    (insert (propertize
+                             (format "%s:%s:%s"
+                                     (truncate-string-to-width (file-name-base f)
+                                                               15 nil nil t)
+                                     row col)
+                             'font-lock-face 'org-roam-dim)
                             " "
                             (org-roam-fontify-like-in-org-mode
-                             (org-roam-unlinked-references-preview-line f row col f-prev row-prev col-prev))
+                             (org-roam-unlinked-references-preview-line
+                              f row col f-prev row-prev col-prev))
                             "\n")
                     (setq f-prev f
                           row-prev row

@@ -659,7 +659,7 @@ as follows:
     (not (member "daily" (org-roam-node-tags (org-roam-backlink-source-node backlink)))))
 
   (setq org-roam-mode-sections
-        '((org-roam-backlinks-section :unique t :show-backlink-p my/org-roam-show-backlink-p)
+        '((org-roam-backlinks-section :unique t :show-backlink-p my-org-roam-show-backlink-p)
           org-roam-reflinks-section))
 #+end_src
 
@@ -873,7 +873,7 @@ Similarly, the completion candidates are the titles and aliases for all Org-roam
 nodes, and upon choosing a candidate a ~roam:Title~ link will be inserted
 linking to the node of choice.
 
-This is disable by default. To enable it, set ~org-roam-completion-everywhere~
+This is disabled by default. To enable it, set ~org-roam-completion-everywhere~
 to ~t~:
 
 #+begin_src emacs-lisp
@@ -1105,6 +1105,21 @@ defaults write com.apple.LaunchServices/com.apple.launchservices.secure LSHandle
 #+END_SRC
 
 Then restart your computer.
+
+If you're using the [[https://formulae.brew.sh/formula/emacs][Emacs Homebrew formula]], you may need one of the following additional configurations:
+
+a) Add option `-c` to `emacsclient` in the script, and start emacs from command line with `emacs --daemon`
+
+#+begin_src emacs-lisp
+  on open location this_URL
+      set EC to "/usr/local/bin/emacsclient -c --no-wait "
+      set filePath to quoted form of this_URL
+      do shell script EC & filePath & " &> /dev/null &"
+      tell application "Emacs" to activate
+  end open location
+#+end_src
+
+b) Add `(server-start)` in .emacs (in this case you do not need option `-c` for `emacsclient` in the script, and you do not need to start emacs with `emacs --daemon`
 
 ***** Testing org-protocol
 
@@ -1710,7 +1725,7 @@ queries on their Org files.
 ** Building Extensions and Advanced Customization of Org-roam
 
 Because Org-roam's core functionality is small, it is possible and sometimes
-desirable to build extensions on top of it. These extensions may one or more of
+desirable to build extensions on top of it. These extensions may use one or more of
 the following functionalities:
 
 - Access to Org-roam's database

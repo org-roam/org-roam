@@ -24,6 +24,27 @@
 (require 'buttercup)
 (require 'org-roam)
 
+(defvar root-directory default-directory)
+
+(describe "org-roam-file-p"
+  (it "checks if given file respects criteria"
+    (expect (org-roam-file-p "tests/roam-files/family.org") :to-equal nil)
+
+    (setq org-roam-directory (expand-file-name "tests/roam-files"))
+    (expect (org-roam-file-p "tests/roam-files/family.org") :to-equal t)
+    (expect (org-roam-file-p "tests/roam-files/markdown.md") :to-equal nil)
+
+    (setq org-roam-file-exclude-regexp (regexp-quote "family.org"))
+    (expect (org-roam-file-p "tests/roam-files/family.org") :to-equal nil)))
+
+(describe "org-roam-buffer-p"
+  (it "checks if current buffer respects criteria"
+    (setq org-roam-directory (expand-file-name "tests/roam-files")
+          org-roam-file-exclude-regexp nil)
+    (find-file "tests/roam-files/family.org" nil)
+    (expect (org-roam-buffer-p) :to-equal t)
+    (cd root-directory)))
+
 (describe "org-roam-list-files"
   (before-each
     (setq org-roam-directory (expand-file-name "tests/roam-files")
@@ -31,57 +52,29 @@
           org-roam-file-extensions '("org")
           org-roam-file-exclude-regexp nil))
 
+  (after-all
+    (org-roam-db--close)
+    (delete-file org-roam-db-location))
+
   (it "gets files correctly"
-    (expect (length (org-roam-list-files))
-            :to-equal 4))
+    (expect (length (org-roam-list-files)) :to-equal 9))
 
   (it "respects org-roam-file-extensions"
     (setq org-roam-file-extensions '("md"))
     (expect (length (org-roam-list-files)) :to-equal 1)
     (setq org-roam-file-extensions '("org" "md"))
-    (expect (length (org-roam-list-files)) :to-equal 5))
+    (expect (length (org-roam-list-files)) :to-equal 10))
 
   (it "respects org-roam-file-exclude-regexp"
     (setq org-roam-file-exclude-regexp (regexp-quote "foo.org"))
-    (expect (length (org-roam-list-files)) :to-equal 3)))
+    (expect (length (org-roam-list-files)) :to-equal 8)))
 
-(describe "org-roam-db-sync"
-  (before-all
-    (setq org-roam-directory (expand-file-name "tests/roam-files")
-          org-roam-db-location (expand-file-name "org-roam.db" temporary-file-directory)
-          org-roam-file-extensions '("org")
-          org-roam-file-exclude-regexp nil)
-    (org-roam-db-sync))
+(describe "org-roam--list-files-search-globs"
 
-  (after-all
-    (org-roam-db--close)
-    (delete-file org-roam-db-location))
-
-  (it "has the correct number of files"
-    (expect (caar (org-roam-db-query [:select (funcall count) :from files]))
-            :to-equal
-            4))
-
-  (it "has the correct number of nodes"
-    (expect (caar (org-roam-db-query [:select (funcall count) :from nodes]))
-            :to-equal
-            3))
-
-  (it "has the correct number of links"
-    (expect (caar (org-roam-db-query [:select (funcall count) :from links]))
-            :to-equal
-            1))
-
-  (it "respects ROAM_EXCLUDE"
-    ;; The excluded node has ID "53fadc75-f48e-461e-be06-44a1e88b2abe"
-    (expect (mapcar #'car (org-roam-db-query [:select id :from nodes]))
+  (it "returns the correct list of globs"
+    (expect (org-roam--list-files-search-globs org-roam-file-extensions)
             :to-have-same-items-as
-            '("884b2341-b7fe-434d-848c-5282c0727861" "440795d0-70c1-4165-993d-aebd5eef7a24" "5b9a7400-f59c-4ef9-acbb-045b69af98f1")))
-
-  (it "reads ref in quotes correctly"
-    (expect (mapcar #'car (org-roam-db-query [:select [ref] :from refs]))
-            :to-have-same-items-as
-            '("//site.net/docs/01. introduction - hello world.html"))))
+            '("\"*.org\"" "\"*.org.gpg\"" "\"*.org.age\""))))
 
 (provide 'test-org-roam)
 

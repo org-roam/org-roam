@@ -264,14 +264,14 @@ Throw an error if multiple choices exist.
 If NOCASE is non-nil, the query is case insensitive.  It is case sensitive otherwise."
   (let ((matches (seq-uniq
                   (append
-	           (org-roam-db-query (vconcat [:select [id] :from nodes
-						        :where (= title $s1)]
-				               (if nocase [ :collate NOCASE ]))
-			              s)
-	           (org-roam-db-query (vconcat [:select [node-id] :from aliases
-						        :where (= alias $s1)]
-				               (if nocase [ :collate NOCASE ]))
-			              s)))))
+                   (org-roam-db-query (vconcat [:select [id] :from nodes
+                                                :where (= title $s1)]
+                                               (if nocase [ :collate NOCASE ]))
+                                      s)
+                   (org-roam-db-query (vconcat [:select [node-id] :from aliases
+                                                :where (= alias $s1)]
+                                               (if nocase [ :collate NOCASE ]))
+                                      s)))))
     (cond
      ((seq-empty-p matches)
       nil)
