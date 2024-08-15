@@ -663,7 +663,7 @@ instead."
       (group (zero-or-more anything)))
   "Regex for the return result of a ripgrep query.")
 
-(defun org-roam-unlinked-references-result-filter-p (matched-text matched-file row col titles node)
+(defun org-roam-unlinked-references--result-filter-p (matched-text matched-file row col titles node)
   "Filter if the match is considered an unlinked reference.
 Return non-nil if MATCHED-TEXT at ROW and COL in MATCHED-FILE is
 an unlinked reference, or return nil. TITLES and NODE are
@@ -687,33 +687,32 @@ used to control rendering."
        (end-of-line)
        (point)))))
 
-(defun org-roam-unlinked-references-file-glob-args ()
+(defun org-roam-unlinked-references--file-glob-args ()
   "Construct file glob arguments for ripgrep."
   (mapconcat (lambda (glob) (concat "-g " glob))
              (org-roam--list-files-search-globs org-roam-file-extensions)
              " "))
 
-(defun org-roam-unlinked-references-title-regex (titles)
+(defun org-roam-unlinked-references--title-regex (titles)
   "Construct a ripgrep regex pattern from TITLES.
 The output expression should be sanitized for the shell use."
   (format "'\\[([^[]]++|(?R))+\\]%s'"
-          (mapconcat 'org-roam-unlinked-references-apply-word-boundary-re titles "")))
+          (mapconcat 'org-roam-unlinked-references--apply-word-boundary-re titles "")))
 
-(defun org-roam-unlinked-references-apply-word-boundary-re (title)
-  "Wrap TITLE with word boundary regex.
-The output expression should be sanitized for the shell use."
+(defun org-roam-unlinked-references--apply-word-boundary-re (title)
+  "Wrap TITLE with word boundary regex."
   (format org-roam-unlinked-references-word-boundary-re
-          (org-roam-plugin-ja-unlinked-references-sanitize-title title)))
+          (org-roam-unlinked-references--sanitize-title title)))
 
-(defun org-roam-unlinked-references-sanitize-title (title)
-    "Sanitize TITLE for shell use."
-    (mapconcat #'shell-quote-argument (split-string title "'") "'\"'\"'"))
+(defun org-roam-unlinked-references--sanitize-title (title)
+  "Sanitize TITLE for shell use."
+  (mapconcat #'shell-quote-argument (split-string title "'") "'\"'\"'"))
 
 (defun org-roam-unlinked-references--rg-command (titles)
   "Return the ripgrep command searching for TITLES."
   (concat "rg --follow --only-matching --vimgrep --pcre2 --ignore-case "
-          (org-roam-unlinked-references-file-glob-args) " "
-          (org-roam-unlinked-references-title-regex titles) " "
+          (org-roam-unlinked-references--file-glob-args) " "
+          (org-roam-unlinked-references--title-regex titles) " "
           (shell-quote-argument org-roam-directory)))
 
 (defun org-roam-unlinked-references-section (node)
@@ -740,7 +739,7 @@ References from FILE are excluded."
                       col (string-to-number (match-string 3 line))
                       matched-text (match-string 4 line))
                 (when (and matched-text
-                           (org-roam-unlinked-references-result-filter-p
+                           (org-roam-unlinked-references--result-filter-p
                             matched-text f row col titles node))
                   (magit-insert-section
                       section
