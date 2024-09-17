@@ -410,7 +410,7 @@ Org-roam provides (see [[*Completion][Completion]]).
 ** Customizing Node Completions
 
 Node selection is achieved via the ~completing-read~ interface, typically
-through `org-roam-node-read`. The presentation of these nodes are governed by
+through ~org-roam-node-read~. The presentation of these nodes are governed by
 ~org-roam-node-display-template~.
 
 - Variable: org-roam-node-display-template
@@ -628,7 +628,7 @@ There are currently 3 provided widget types:
 - Unlinked references :: View nodes that contain text that match the nodes
   title/alias but are not linked
 
-To configure what sections are displayed in the buffer, set ~org-roam-mode-sections.
+To configure what sections are displayed in the buffer, set ~org-roam-mode-sections~.
 
 #+begin_src emacs-lisp
   (setq org-roam-mode-sections
