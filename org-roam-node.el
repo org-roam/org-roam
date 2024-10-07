@@ -886,14 +886,14 @@ node."
       (org-roam-db-update-file))))
 
 ;;;###autoload
-(defun org-roam-refile ()
+(defun org-roam-refile (node)
   "Refile node at point to an Org-roam node.
 If region is active, then use it instead of the node at point."
-  (interactive)
+  (interactive
+   (list (org-roam-node-read nil nil nil 'require-match)))
   (let* ((regionp (org-region-active-p))
          (region-start (and regionp (region-beginning)))
          (region-end (and regionp (region-end)))
-         (node (org-roam-node-read nil nil nil 'require-match))
          (file (org-roam-node-file node))
          (nbuf (or (find-buffer-visiting file)
                    (find-file-noselect file)))
