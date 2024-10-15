@@ -668,7 +668,7 @@ This is the ROW within FILE."
                   (mapconcat (lambda (title)
                                (format "|(\\b%s\\b)" (shell-quote-argument title)))
                              titles ""))
-          (shell-quote-argument org-roam-directory)))
+          (shell-quote-argument (expand-file-name org-roam-directory))))
 
 (defun org-roam-unlinked-references-section (node)
   "The unlinked references section for NODE.
