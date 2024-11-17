@@ -127,7 +127,6 @@ Performs a database upgrade when required."
     (let ((init-db (not (file-exists-p org-roam-db-location))))
       (make-directory (file-name-directory org-roam-db-location) t)
       (let ((conn (emacsql-sqlite-open org-roam-db-location)))
-        (emacsql conn [:pragma (= foreign_keys ON)])
         (puthash (expand-file-name (file-name-as-directory org-roam-directory))
                  conn
                  org-roam-db--connection)
