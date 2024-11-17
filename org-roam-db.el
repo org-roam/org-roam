@@ -122,29 +122,28 @@ ROAM_REFS."
   "Entrypoint to the Org-roam sqlite database.
 Initializes and stores the database, and the database connection.
 Performs a database upgrade when required."
-  (unless (and (org-roam-db--get-connection)
-               (emacsql-live-p (org-roam-db--get-connection)))
-    (let ((init-db (not (file-exists-p org-roam-db-location))))
-      (make-directory (file-name-directory org-roam-db-location) t)
-      (let ((conn (emacsql-sqlite-open org-roam-db-location)))
+    (or (and-let* ((conn (org-roam-db--get-connection)))
+          (and (emacsql-live-p conn) conn))
         (puthash (expand-file-name (file-name-as-directory org-roam-directory))
-                 conn
-                 org-roam-db--connection)
-        (when init-db
-          (org-roam-db--init conn))
-        (let* ((version (caar (emacsql conn "PRAGMA user_version")))
-               (version (org-roam-db--upgrade-maybe conn version)))
-          (cond
-           ((> version org-roam-db-version)
-            (emacsql-close conn)
-            (user-error
-             "The Org-roam database was created with a newer Org-roam version.  %s"
-             "You need to update the Org-roam package"))
-           ((< version org-roam-db-version)
-            (emacsql-close conn)
-            (error "BUG: The Org-roam database scheme changed %s"
-                   "and there is no upgrade path")))))))
-  (org-roam-db--get-connection))
+                 (emacsql-sqlite-open org-roam-db-location nil
+                                      (if (file-exists-p org-roam-db-location)
+                                          #'org-roam-db--setup
+                                        #'org-roam-db--init))
+                 org-roam-db--connection)))
+
+(defun org-roam-db--setup (conn)
+  (let* ((version (caar (emacsql conn "PRAGMA user_version")))
+         (version (org-roam-db--upgrade-maybe conn version)))
+    (cond
+     ((> version org-roam-db-version)
+      (emacsql-close conn)
+      (user-error
+       "The Org-roam database was created with a newer Org-roam version.  %s"
+       "You need to update the Org-roam package"))
+     ((< version org-roam-db-version)
+      (emacsql-close conn)
+      (error "BUG: The Org-roam database scheme changed %s"
+             "and there is no upgrade path")))))
 
 ;;; Entrypoint: (org-roam-db-query)
 (define-error 'emacsql-constraint "SQL constraint violation")
