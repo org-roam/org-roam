@@ -6,7 +6,7 @@
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
 ;; Version: 2.2.2
-;; Package-Requires: ((emacs "26.1") (dash "2.13") (org "9.4") (emacsql "4.0.0") (magit-section "3.0.0"))
+;; Package-Requires: ((emacs "26.1") (dash "2.13") (org "9.4") (emacsql "4.1.0") (magit-section "3.0.0"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -128,7 +128,6 @@ Performs a database upgrade when required."
     (let ((init-db (not (file-exists-p org-roam-db-location))))
       (make-directory (file-name-directory org-roam-db-location) t)
       (let ((conn (emacsql-sqlite-open org-roam-db-location)))
-        (emacsql conn [:pragma (= foreign_keys ON)])
         (puthash (expand-file-name (file-name-as-directory org-roam-directory))
                  conn
                  org-roam-db--connection)
