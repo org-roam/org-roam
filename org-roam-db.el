@@ -139,7 +139,7 @@ Performs a database upgrade when required."
            ((> version org-roam-db-version)
             (emacsql-close conn)
             (user-error
-             "The Org-roam database was created with a newer Org-roam version.  "
+             "The Org-roam database was created with a newer Org-roam version.  %s"
              "You need to update the Org-roam package"))
            ((< version org-roam-db-version)
             (emacsql-close conn)
