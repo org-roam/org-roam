@@ -449,8 +449,10 @@ See <https://github.com/raxod502/straight.el/issues/520>."
                       (quit "N/A"))))
     (insert (format "- Org: %s\n" (org-version nil 'full)))
     (insert (format "- Org-roam: %s" (org-roam-version)))
-    (insert (format "- sqlite-connector: %s" org-roam-database-connector))))
-
+    (insert (format "- sqlite-connector: %s"
+                    (if-let ((conn (org-roam-db--get-connection)))
+                        (eieio-object-class conn)
+                      "not connected")))))
 
 (provide 'org-roam-utils)
 ;;; org-roam-utils.el ends here
