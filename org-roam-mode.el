@@ -319,7 +319,7 @@ To toggle its display use `org-roam-buffer-toggle' command.")
 
 (define-inline org-roam-buffer--visibility ()
   "Return the current visibility state of the persistent `org-roam-buffer'.
-Valid states are 'visible, 'exists and 'none."
+Valid states are `visible', `exists' and `none'."
   (declare (side-effect-free t))
   (inline-quote
    (cond
