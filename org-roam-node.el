@@ -32,6 +32,7 @@
 ;; interactively.
 ;;
 ;;; Code:
+(require 'crm)
 (require 'org-roam)
 
 ;;; Options
@@ -444,12 +445,11 @@ GROUP BY id")))
 ;;;; Finders
 (defun org-roam-node-marker (node)
   "Get the marker for NODE."
-  (unwind-protect
-      (let* ((file (org-roam-node-file node))
-             (buffer (or (find-buffer-visiting file)
-                         (find-file-noselect file))))
-        (with-current-buffer buffer
-          (move-marker (make-marker) (org-roam-node-point node) buffer)))))
+  (let* ((file (org-roam-node-file node))
+         (buffer (or (find-buffer-visiting file)
+                     (find-file-noselect file))))
+    (with-current-buffer buffer
+      (move-marker (make-marker) (org-roam-node-point node) buffer))))
 
 (defun org-roam-node-open (node &optional cmd force)
   "Go to the node NODE.
@@ -476,7 +476,7 @@ NODE, unless FORCE is non-nil."
                           (org-roam-id-at-point))))
       (goto-char m))
     (move-marker m nil))
-  (org-show-context))
+  (org-fold-show-context))
 
 (defun org-roam-node-visit (node &optional other-window force)
   "From the current buffer, visit NODE. Return the visited buffer.
@@ -1053,7 +1053,7 @@ and when nil is returned the node will be filtered out."
   (let ((node (org-roam-node-at-point 'assert)))
     (save-excursion
       (goto-char (org-roam-node-point node))
-      (org-roam-property-add "ROAM_REFS" (if (memq " " (string-to-list ref))
+      (org-roam-property-add "ROAM_REFS" (if (member " " (string-to-list ref))
                                              (concat "\"" ref "\"")
                                            ref)))))
 

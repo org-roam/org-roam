@@ -35,6 +35,9 @@
 (require 'ol)
 (defvar org-outline-path-cache)
 
+(unless (fboundp 'format-time-string)
+  (defalias 'format-time-string 'org-format-time-string))
+
 ;;; Options
 (defcustom org-roam-db-location (locate-user-emacs-file "org-roam.db")
   "The path to file where the Org-roam database is stored.
@@ -303,12 +306,12 @@ If HASH is non-nil, use that as the file's hash without recalculating it."
 (defun org-roam-db-get-scheduled-time ()
   "Return the scheduled time at point in ISO8601 format."
   (when-let ((time (org-get-scheduled-time (point))))
-    (org-format-time-string "%FT%T%z" time)))
+    (format-time-string "%FT%T%z" time)))
 
 (defun org-roam-db-get-deadline-time ()
   "Return the deadline time at point in ISO8601 format."
   (when-let ((time (org-get-deadline-time (point))))
-    (org-format-time-string "%FT%T%z" time)))
+    (format-time-string "%FT%T%z" time)))
 
 (defun org-roam-db-node-p ()
   "Return t if headline at point is an Org-roam node, else return nil."
@@ -336,7 +339,7 @@ If HASH is non-nil, use that as the file's hash without recalculating it."
       (let* ((begin (match-beginning 0))
              (element (org-element-context))
              (type (org-element-type element))
-             link bounds)
+             link)
         (cond
          ;; Links correctly recognized by Org Mode
          ((eq type 'link)
@@ -574,7 +577,8 @@ in `org-roam-db-sync'."
         (emacsql-with-transaction (org-roam-db)
           (org-with-wide-buffer
            (org-set-regexps-and-options 'tags-only)
-           (org-refresh-category-properties)
+           ;; Org doesn't use this anymore, so we probably should stop too.
+           ;; (org-refresh-category-properties)
            (org-roam-db-clear-file)
            (org-roam-db-insert-file content-hash)
            (org-roam-db-insert-file-node)
