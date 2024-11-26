@@ -337,7 +337,7 @@ If HASH is non-nil, use that as the file's hash without recalculating it."
       (let* ((begin (match-beginning 0))
              (element (org-element-context))
              (type (org-element-type element))
-             link bounds)
+             link)
         (cond
          ;; Links correctly recognized by Org Mode
          ((eq type 'link)
@@ -581,7 +581,8 @@ in `org-roam-db-sync'."
         (emacsql-with-transaction (org-roam-db)
           (org-with-wide-buffer
            (org-set-regexps-and-options 'tags-only)
-           (org-refresh-category-properties)
+           ;; Org doesn't use this anymore, so we probably should stop too.
+           ;; (org-refresh-category-properties)
            (org-roam-db-clear-file)
            (org-roam-db-insert-file content-hash)
            (org-roam-db-insert-file-node)

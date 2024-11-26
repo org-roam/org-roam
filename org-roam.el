@@ -186,7 +186,7 @@ in the list is found.
 By default, `executable-find' will be used to look up the path to
 the executable. If a custom path is required, it can be specified
 together with the method symbol as a cons cell. For example:
-'(find (rg . \"/path/to/rg\"))."
+\\='(find (rg . \"/path/to/rg\"))."
   :type '(set
           (const :tag "find" find)
           (const :tag "fd" fd)

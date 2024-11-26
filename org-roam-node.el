@@ -32,6 +32,7 @@
 ;; interactively.
 ;;
 ;;; Code:
+(require 'crm)
 (require 'org-roam)
 
 ;;; Options
@@ -446,12 +447,11 @@ GROUP BY id")))
 ;;;; Finders
 (defun org-roam-node-marker (node)
   "Get the marker for NODE."
-  (unwind-protect
-      (let* ((file (org-roam-node-file node))
-             (buffer (or (find-buffer-visiting file)
-                         (find-file-noselect file))))
-        (with-current-buffer buffer
-          (move-marker (make-marker) (org-roam-node-point node) buffer)))))
+  (let* ((file (org-roam-node-file node))
+         (buffer (or (find-buffer-visiting file)
+                     (find-file-noselect file))))
+    (with-current-buffer buffer
+      (move-marker (make-marker) (org-roam-node-point node) buffer))))
 
 (defun org-roam-node-open (node &optional cmd force)
   "Go to the node NODE.
@@ -1057,7 +1057,7 @@ and when nil is returned the node will be filtered out."
   (let ((node (org-roam-node-at-point 'assert)))
     (save-excursion
       (goto-char (org-roam-node-point node))
-      (org-roam-property-add "ROAM_REFS" (if (memq " " (string-to-list ref))
+      (org-roam-property-add "ROAM_REFS" (if (member " " (string-to-list ref))
                                              (concat "\"" ref "\"")
                                            ref)))))
 

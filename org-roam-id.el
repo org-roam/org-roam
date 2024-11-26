@@ -55,11 +55,10 @@ With optional argument MARKERP, return the position as a new marker."
   (let ((node (org-roam-populate (org-roam-node-create :id id))))
     (when-let ((file (org-roam-node-file node)))
       (if markerp
-          (unwind-protect
-              (let ((buffer (or (find-buffer-visiting file)
-                                (find-file-noselect file))))
-                (with-current-buffer buffer
-                  (move-marker (make-marker) (org-roam-node-point node) buffer))))
+          (let ((buffer (or (find-buffer-visiting file)
+                            (find-file-noselect file))))
+            (with-current-buffer buffer
+              (move-marker (make-marker) (org-roam-node-point node) buffer)))
         (cons (org-roam-node-file node)
               (org-roam-node-point node))))))
 
