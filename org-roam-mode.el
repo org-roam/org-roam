@@ -86,6 +86,19 @@ applied in order of appearance in the list."
   :group 'org-roam
   :type 'hook)
 
+(defcustom org-roam-buffer-frames nil
+  "Where to search for org-roam-buffer when updating list of
+backlinks.
+
+See the description of `all-frames' argument of
+`get-buffer-window' function."
+  :group 'org-roam
+  :type '(choice (const :tag "All frames" t)
+                 (const :tag "Visible frames" visible)
+                 (const :tag "Visible and iconified frames" 0)
+                 (other :tag "Specific frame" nil)
+                 (const :tag "Current frame" nil)))
+
 ;;; Faces
 (defface org-roam-header-line
   `((((class color) (background light))
@@ -352,7 +365,7 @@ Has no effect when there's no `org-roam-node-at-point'."
   "Reconstruct the persistent `org-roam-buffer'.
 This needs to be quick or infrequent, because this designed to
 run at `post-command-hook'."
-  (and (get-buffer-window org-roam-buffer)
+  (and (get-buffer-window org-roam-buffer org-roam-buffer-frames)
        (org-roam-buffer-persistent-redisplay)))
 
 ;;; Sections
