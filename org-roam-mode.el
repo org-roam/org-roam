@@ -216,6 +216,13 @@ Set both, locally and globally in the same way as
 
 (put 'org-roam-buffer-current-directory 'permanent-local t)
 
+(defvar org-roam-buffer-current-window nil
+  "The window which set `org-roam-buffer-current-node'.
+Set both, locally and globally in the same way as
+`org-roam-buffer-current-node'.")
+
+(put 'org-roam-buffer-current-window 'permanent-local t)
+
 ;;;; Library
 (defun org-roam-buffer-visit-thing ()
   "This is a placeholder command.
@@ -346,7 +353,8 @@ Has no effect when there's no `org-roam-node-at-point'."
   (when-let ((node (org-roam-node-at-point)))
     (unless (equal node org-roam-buffer-current-node)
       (setq org-roam-buffer-current-node node
-            org-roam-buffer-current-directory org-roam-directory)
+            org-roam-buffer-current-directory org-roam-directory
+            org-roam-buffer-current-window (get-buffer-window))
       (with-current-buffer (get-buffer-create org-roam-buffer)
         (org-roam-buffer-render-contents)
         (add-hook 'kill-buffer-hook #'org-roam-buffer--persistent-cleanup-h nil t)))))
@@ -368,12 +376,21 @@ run at `post-command-hook'."
   (and (get-buffer-window org-roam-buffer org-roam-buffer-frames)
        (org-roam-buffer-persistent-redisplay)))
 
+(defun org-roam-buffer-node-visit (node &optional other-window force)
+  (interactive (list (org-roam-node-at-point t)))
+  (if org-roam-buffer-current-window
+      (with-selected-window org-roam-buffer-current-window
+        (org-roam-node-open node nil t)
+        (outline-show-subtree)
+        (org-roam-buffer--redisplay-h))
+    (org-roam-node-visit node nil t)))
+
 ;;; Sections
 ;;;; Node
 (defvar org-roam-node-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map org-roam-mode-map)
-    (define-key map [remap org-roam-buffer-visit-thing] 'org-roam-node-visit)
+    (define-key map [remap org-roam-buffer-visit-thing] 'org-roam-buffer-node-visit)
     map)
   "Keymap for `org-roam-node-section's.")
 
