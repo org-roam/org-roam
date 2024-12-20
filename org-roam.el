@@ -6,7 +6,7 @@
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
 ;; Version: 2.2.2
-;; Package-Requires: ((emacs "26.1") (dash "2.13") (org "9.4") (emacsql "20230228") (magit-section "3.0.0"))
+;; Package-Requires: ((emacs "26.1") (dash "2.13") (org "9.6") (emacsql "20241117") (magit-section "3.0.0"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -185,7 +185,7 @@ in the list is found.
 By default, `executable-find' will be used to look up the path to
 the executable. If a custom path is required, it can be specified
 together with the method symbol as a cons cell. For example:
-'(find (rg . \"/path/to/rg\"))."
+\\='(find (rg . \"/path/to/rg\"))."
   :type '(set (const :tag "find" find)
               (const :tag "fd" fd)
               (const :tag "fdfind" fdfind)

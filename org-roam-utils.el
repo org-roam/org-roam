@@ -72,11 +72,10 @@ Like `string-equal', but case-insensitive."
 (defun org-roam-whitespace-content (s)
   "Return the whitespace content at the end of S."
   (with-temp-buffer
-    (let ((c 0))
-      (insert s)
-      (skip-chars-backward " \t\n")
-      (buffer-substring-no-properties
-       (point) (point-max)))))
+    (insert s)
+    (skip-chars-backward " \t\n")
+    (buffer-substring-no-properties
+     (point) (point-max))))
 
 (defun org-roam-strip-comments (s)
   "Strip Org comments from string S."
@@ -85,7 +84,8 @@ Like `string-equal', but case-insensitive."
     (goto-char (point-min))
     (while (not (eobp))
       (if (org-at-comment-p)
-          (delete-region (point-at-bol) (progn (forward-line) (point)))
+          (delete-region (line-beginning-position)
+                         (progn (forward-line) (point)))
         (forward-line)))
     (buffer-string)))
 
@@ -449,8 +449,10 @@ See <https://github.com/raxod502/straight.el/issues/520>."
                       (quit "N/A"))))
     (insert (format "- Org: %s\n" (org-version nil 'full)))
     (insert (format "- Org-roam: %s" (org-roam-version)))
-    (insert (format "- sqlite-connector: %s" org-roam-database-connector))))
-
+    (insert (format "- sqlite-connector: %s"
+                    (if-let ((conn (org-roam-db--get-connection)))
+                        (eieio-object-class conn)
+                      "not connected")))))
 
 (provide 'org-roam-utils)
 ;;; org-roam-utils.el ends here
