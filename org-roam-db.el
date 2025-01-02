@@ -514,10 +514,14 @@ INFO is the org-element parsed buffer."
               :values $v1]
              (mapcar (lambda (k) (vector source k (point) properties))
                      (org-roam-org-ref-path-to-keys path)))
-          (org-roam-db-query
-           [:insert :into links
-            :values $v1]
-           (vector (point) source path type properties)))))))
+          (let* ((option (and (string-match "::\\(.*\\)\\'" path)
+                              (match-string 1 path)))
+                 (id (if (not option) path
+                       (substring path 0 (match-beginning 0)))))
+            (org-roam-db-query
+             [:insert :into links
+                      :values $v1]
+             (vector (point) source id type properties))))))))
 
 (defun org-roam-db-insert-citation (citation)
   "Insert data for CITATION at current point into the Org-roam cache."
