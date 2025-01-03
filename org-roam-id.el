@@ -67,9 +67,19 @@ With optional argument MARKERP, return the position as a new marker."
   "Go to the entry with id ID.
 Like `org-id-open', but additionally uses the Org-roam database."
   (org-mark-ring-push)
-  (let ((m (or (org-roam-id-find id 'marker)
-               (org-id-find id 'marker)))
-        cmd)
+  (let* ((option (and (string-match "::\\(.*\\)\\'" id)
+                      (match-string 1 id)))
+         (id (if (not option) id
+               (substring id 0 (match-beginning 0))))
+         (m (or (org-roam-id-find id 'marker)
+                (org-id-find id 'marker)))
+         cmd)
+    (when (and (not m) option)
+      ;; Backwards compatibility: if id is not found, try treating
+      ;; whole link as an id.
+      (setq m (org-id-find link 'marker))
+      (when m
+        (setq option nil)))
     (unless m
       (error "Cannot find entry with ID \"%s\"" id))
     ;; Use a buffer-switching command in analogy to finding files
@@ -86,6 +96,14 @@ Like `org-id-open', but additionally uses the Org-roam database."
         (funcall cmd (marker-buffer m)))
     (goto-char m)
     (move-marker m nil)
+    (when option
+      (save-restriction
+        (unless (org-before-first-heading-p)
+          (org-narrow-to-subtree))
+        (org-link-search option nil nil
+                         (org-element-lineage (org-element-at-point) 'headline t))))
+    ;; [Note 2025-03] In Org 9.7, this function calls `org-fold-show-context' directly. Here, the old function
+    ;; `org-show-context' is left as is for backword compatibilikty.
     (org-show-context)))
 
 (org-link-set-parameters "id" :follow #'org-roam-id-open)
