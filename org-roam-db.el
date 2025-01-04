@@ -578,8 +578,10 @@ INFO is the org-element parsed buffer."
                    (substring path 0 (match-beginning 0))))
            (source (org-roam-id-at-point))
            (properties (list :outline (ignore-errors
-                                       ;; This can error if link is not under any headline
-                                       (org-get-outline-path 'with-self 'use-cache)))))
+                                        ;; This can error if link is not under any headline
+                                        (org-get-outline-path 'with-self 'use-cache))))
+           (properties (if option (plist-put properties :search-option option)
+                         properties)))
       ;; For Org-ref links, we need to split the path into the cite keys
       (when (and source path)
         (if (and (boundp 'org-ref-cite-types)
