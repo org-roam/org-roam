@@ -573,7 +573,7 @@ INFO is the org-element parsed buffer."
     (let* ((type (org-element-property :type link))
            (path (org-element-property :path link))
            (option (and (string-match "::\\(.*\\)\\'" path)
-                      (match-string 1 path)))
+                        (match-string 1 path)))
            (path (if (not option) path
                    (substring path 0 (match-beginning 0))))
            (source (org-roam-id-at-point))
