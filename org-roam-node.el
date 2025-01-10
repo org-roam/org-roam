@@ -601,20 +601,27 @@ TEMPLATE is the processed template used to format the entry."
        (pcase-let* ((`(,field-name ,field-width) (split-string field ":"))
                     (getter (intern (concat "org-roam-node-" field-name)))
                     (field-value (funcall getter node)))
+         ;; if the field-name is file, replace it with its
+         ;; relative name
          (when (and (equal field-name "file")
                     field-value)
            (setq field-value (file-relative-name field-value org-roam-directory)))
+         ;; if field name is olp
+         ;; append " > "
          (when (and (equal field-name "olp")
                     field-value)
            (setq field-value (string-join field-value " > ")))
+         ;; if field value is not a list, make it one
          (when (and field-value (not (listp field-value)))
            (setq field-value (list field-value)))
+         ;; ????
          (setq field-value (mapconcat
                             (lambda (v)
                               (concat (or (cdr (assoc field-name org-roam-node-template-prefixes))
                                           "")
                                       v))
                             field-value " "))
+         ;; set the width of the field
          (setq field-width (cond
                             ((not field-width)
                              field-width)
