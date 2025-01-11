@@ -66,12 +66,12 @@
 
   (it "finds the correct file node"
     (let ((location (org-roam-id-find "884b2341-b7fe-434d-848c-5282c0727861")))
-      (expect (car location) :to-equal "/home/runner/work/org-roam/org-roam/tests/roam-files/foo.org")
+      (expect (car location) :to-match ".*/tests/roam-files/foo.org")
       (expect (cdr location) :to-equal 1)))
 
   (it "finds the correct heading node"
     (let ((location (org-roam-id-find "0fa5bb3e-3d8c-4966-8bc9-78d32e505d69")))
-      (expect (car location) :to-equal "/home/runner/work/org-roam/org-roam/tests/roam-files/family.org")
+      (expect (car location) :to-match ".*/tests/roam-files/family.org")
       (expect (cdr location) :to-equal 156))))
 
 (provide 'test-org-roam-id)
