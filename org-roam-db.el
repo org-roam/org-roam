@@ -787,6 +787,11 @@ OLD-FILE is cleared from the database, and NEW-FILE-OR-DIR is added."
   (interactive)
   (prin1 (org-roam-node-at-point)))
 
+;;; Misc
+(defun org-roam-db--get-mtime ()
+  "Get last modification time of database."
+  (file-attribute-modification-time (file-attributes org-roam-db-location)))
+
 (provide 'org-roam-db)
 
 ;;; org-roam-db.el ends here
