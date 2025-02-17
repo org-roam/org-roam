@@ -114,7 +114,8 @@ It takes a single argument REF, which is a propertized string."
 
 (defcustom org-roam-ref-prompt-function nil
   "Function to prompt for ref strings in `org-roam-ref-add'.
-Should take no arguments, prompt the user, and return a string."
+Should take no arguments, prompt the user, and return a string or
+a list of strings, which are passed to `org-roam-ref-add'."
   :group 'org-roam
   :type 'function)
 
@@ -303,6 +304,34 @@ Return nil if there's no node with such REF."
                                :limit 1]
                               type path))))
           (org-roam-populate (org-roam-node-create :id id)))))))
+
+(defun org-roam-nodes-from-ref (ref)
+  "Return a a list of `org-roam-node's from REF reference.
+Return nil if there's no node with such REF."
+  (save-match-data
+    (let (type path)
+      (cond
+       ((string-match org-link-plain-re ref)
+        (setq type (match-string 1 ref)
+              path (match-string 2 ref)))
+       ((string-prefix-p "@" ref)
+        (setq type "cite"
+              path (substring ref 1))))
+      (when (and type path)
+        (when-let ((ids
+                    (mapcar
+                     #'car
+                     (org-roam-db-query
+                      [:select [nodes:id]
+                       :from refs
+                       :left-join nodes
+                       :on (= refs:node-id nodes:id)
+                       :where (= refs:type $s1)
+                       :and (= refs:ref $s2)]
+                      type path))))
+          (mapcar
+           (lambda (id) (org-roam-populate (org-roam-node-create :id id)))
+           ids))))))
 
 (cl-defmethod org-roam-populate ((node org-roam-node))
   "Populate NODE from database.
@@ -1049,17 +1078,22 @@ and when nil is returned the node will be filtered out."
     (org-roam-node-visit node)))
 
 ;;;; Editing
-(defun org-roam-ref-add (ref)
-  "Add REF to the node at point."
+(defun org-roam-ref-add (ref-or-refs)
+  "Add REF-OR-REFS to the node at point.
+
+REF-OR-REFS is either a string or a list of strings. If a list,
+each string will be added in order."
   (interactive `(,(if org-roam-ref-prompt-function
                       (funcall org-roam-ref-prompt-function)
                     (read-string "Ref: "))))
   (let ((node (org-roam-node-at-point 'assert)))
-    (save-excursion
-      (goto-char (org-roam-node-point node))
-      (org-roam-property-add "ROAM_REFS" (if (memq " " (string-to-list ref))
-                                             (concat "\"" ref "\"")
-                                           ref)))))
+    (dolist (ref (if (listp ref-or-refs) ref-or-refs `(,ref-or-refs)))
+      (save-excursion
+        (goto-char (org-roam-node-point node))
+        (org-roam-property-add "ROAM_REFS"
+                               (if (memq " " (string-to-list ref))
+                                   (concat "\"" ref "\"")
+                                 ref))))))
 
 (defun org-roam-ref-remove (&optional ref)
   "Remove a REF from the node at point."
