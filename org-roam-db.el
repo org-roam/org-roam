@@ -41,18 +41,15 @@
                                                   (functionp 'emacsql-sqlite-builtin))
                                                 (functionp 'sqlite-open))
                                            'sqlite-builtin
-                                         'sqlite)
+                                         'sqlite-module)
   "The database connector used by Org-roam.
 This must be set before `org-roam' is loaded.  To use an alternative
 connector you must install the respective package explicitly.
-The default is `sqlite', which uses the `emacsql-sqlite' library
-that is being maintained in the same repository as `emacsql'
-itself.
-If you are using Emacs 29, then the recommended connector is
+If you are using Emacs 29 or newer, then the default connector is
 `sqlite-builtin', which uses the new builtin support for SQLite.
 You need to install the `emacsql-sqlite-builtin' package to use
 this connector.
-If you are using an older Emacs release, then the recommended
+If you are using an older Emacs release, then the default
 connector is `sqlite-module', which uses the module provided by
 the `sqlite3' package.  This is very similar to the previous
 connector and the built-in support in Emacs 29 derives from this
@@ -67,7 +64,7 @@ the official `sqlite3' cli tool, which is not intended
 to be used like this.  See https://nullprogram.com/blog/2014/02/06/."
   :package-version '(forge . "0.3.0")
   :group 'org-roam
-  :type '(choice (const sqlite)
+  :type '(choice
           (const sqlite-builtin)
           (const sqlite-module)
           (const :tag "libsqlite3 (OBSOLETE)" libsqlite3)
@@ -156,7 +153,6 @@ ROAM_REFS."
   (gethash (expand-file-name (file-name-as-directory org-roam-directory))
            org-roam-db--connection))
 
-(declare-function emacsql-sqlite "ext:emacsql-sqlite")
 (declare-function emacsql-sqlite3 "ext:emacsql-sqlite3")
 (declare-function emacsql-libsqlite3 "ext:emacsql-libsqlite3")
 (declare-function emacsql-sqlite-builtin "ext:emacsql-sqlite-builtin")
@@ -165,10 +161,6 @@ ROAM_REFS."
 (defun org-roam-db--conn-fn ()
   "Return the function for creating the database connection."
   (cl-case org-roam-database-connector
-    (sqlite
-     (progn
-       (require 'emacsql-sqlite)
-       #'emacsql-sqlite))
     (sqlite-builtin
      (progn
        (require 'emacsql-sqlite-builtin)
