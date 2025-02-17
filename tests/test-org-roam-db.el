@@ -41,7 +41,7 @@
 
   (it "should get scheduled time for current heading node"
     (org-roam-id-open "a523c198-4cb4-44d2-909c-a0e3258089cd" nil)
-    (expect (org-roam-db-get-scheduled-time) :to-equal "2024-07-16T00:00:00+0000")))
+    (expect (org-roam-db-get-scheduled-time) :to-equal "2024-07-16T00:00:00")))
 
 (describe "org-roam-db-get-deadline-time"
   (before-all
@@ -58,7 +58,7 @@
 
   (it "should get deadline time for current heading node"
     (org-roam-id-open "3ab84701-d1c1-463f-b5c6-715e6ff5a0bf" nil)
-    (expect (org-roam-db-get-deadline-time) :to-equal "2024-07-17T00:00:00+0000")))
+    (expect (org-roam-db-get-deadline-time) :to-equal "2024-07-17T00:00:00")))
 
 (describe "org-roam-db--file-hash"
   (it "computes the SHA1 of file"

@@ -367,12 +367,12 @@ If HASH is non-nil, use that as the file's hash without recalculating it."
 (defun org-roam-db-get-scheduled-time ()
   "Return the scheduled time at point in ISO8601 format."
   (when-let ((time (org-get-scheduled-time (point))))
-    (org-format-time-string "%FT%T%z" time)))
+    (format-time-string "%FT%T" time)))
 
 (defun org-roam-db-get-deadline-time ()
   "Return the deadline time at point in ISO8601 format."
   (when-let ((time (org-get-deadline-time (point))))
-    (org-format-time-string "%FT%T%z" time)))
+    (format-time-string "%FT%T" time)))
 
 (defun org-roam-db-node-p ()
   "Return t if headline at point is an Org-roam node, else return nil."
