@@ -68,10 +68,10 @@ to be used like this.  See https://nullprogram.com/blog/2014/02/06/."
   :package-version '(forge . "0.3.0")
   :group 'org-roam
   :type '(choice (const sqlite)
-                 (const sqlite-builtin)
-                 (const sqlite-module)
-                 (const :tag "libsqlite3 (OBSOLETE)" libsqlite3)
-                 (const :tag "sqlite3 (BROKEN)" sqlite3)))
+          (const sqlite-builtin)
+          (const sqlite-module)
+          (const :tag "libsqlite3 (OBSOLETE)" libsqlite3)
+          (const :tag "sqlite3 (BROKEN)" sqlite3)))
 
 (defcustom org-roam-db-location (locate-user-emacs-file "org-roam.db")
   "The path to file where the Org-roam database is stored.
@@ -126,8 +126,9 @@ is desirable to parse and cache these links (e.g. hiding links in
 a property drawer)."
   :package-version '(org-roam . "2.2.0")
   :group 'org-roam
-  :type '(set (const :tag "keywords" keyword)
-              (const :tag "property drawers" node-property)))
+  :type '(set
+          (const :tag "keywords" keyword)
+          (const :tag "property drawers" node-property)))
 
 (defcustom org-roam-db-extra-links-exclude-keys '((node-property . ("ROAM_REFS"))
                                                   (keyword . ("transclude")))
