@@ -186,11 +186,12 @@ By default, `executable-find' will be used to look up the path to
 the executable. If a custom path is required, it can be specified
 together with the method symbol as a cons cell. For example:
 '(find (rg . \"/path/to/rg\"))."
-  :type '(set (const :tag "find" find)
-              (const :tag "fd" fd)
-              (const :tag "fdfind" fdfind)
-              (const :tag "rg" rg)
-              (const :tag "elisp" nil)))
+  :type '(set
+          (const :tag "find" find)
+          (const :tag "fd" fd)
+          (const :tag "fdfind" fdfind)
+          (const :tag "rg" rg)
+          (const :tag "elisp" nil)))
 
 ;;; Library
 (defun org-roam-file-p (&optional file)
@@ -322,8 +323,9 @@ E.g. (\".org\") => (\"*.org\" \"*.org.gpg\")"
 (defun org-roam--list-files-rg (executable dir)
   "Return all Org-roam files under DIR, using \"rg\", provided as EXECUTABLE."
   (let* ((globs (org-roam--list-files-search-globs org-roam-file-extensions))
-         (command (string-join `(,executable "-L" ,dir "--files"
-                                             ,@(mapcar (lambda (glob) (concat "-g " glob)) globs)) " ")))
+         (command (string-join `(
+                                 ,executable "-L" ,dir "--files"
+                                 ,@(mapcar (lambda (glob) (concat "-g " glob)) globs)) " ")))
     (org-roam--shell-command-files command)))
 
 (declare-function org-roam--directory-files-recursively "org-roam-compat")
