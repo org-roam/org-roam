@@ -309,7 +309,8 @@ Return nil if there's no node with such REF."
 Uses the ID, and fetches remaining details from the database.
 This can be quite costly: avoid, unless dealing with very few
 nodes."
-  (when-let ((node-info (car (org-roam-db-query [:select [file level pos todo priority
+  (when-let ((node-info (car (org-roam-db-query [:select [
+                                                          file level pos todo priority
                                                           scheduled deadline title properties olp]
                                                  :from nodes
                                                  :where (= id $s1)
@@ -417,8 +418,9 @@ FROM
   GROUP BY id, tags )
 GROUP BY id")))
     (cl-loop for row in rows
-             append (pcase-let* ((`(,id ,file ,file-title ,level ,todo ,pos ,priority ,scheduled ,deadline
-                                        ,title ,properties ,olp ,atime ,mtime ,tags ,aliases ,refs)
+             append (pcase-let* ((`(
+                                    ,id ,file ,file-title ,level ,todo ,pos ,priority ,scheduled ,deadline
+                                    ,title ,properties ,olp ,atime ,mtime ,tags ,aliases ,refs)
                                   row)
                                  (all-titles (cons title aliases)))
                       (mapcar (lambda (temp-title)
@@ -887,7 +889,8 @@ node."
 
 ;;;###autoload
 (defun org-roam-refile (node)
-  "Refile node at point to an Org-roam node.
+  "Refile node at point to an org-roam NODE.
+
 If region is active, then use it instead of the node at point."
   (interactive
    (list (org-roam-node-read nil nil nil 'require-match)))
