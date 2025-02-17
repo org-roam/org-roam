@@ -36,7 +36,11 @@ jobs:
     strategy:
       matrix:
         emacs_version:
-          - 27.1
+          # REVIEW: we do not yet have the bootstrapping in place to test
+          #         versions of emacs without built-in sqlite (pre 29.1)
+          # - 27.2
+          # - 28.2
+          - 29.4
           - snapshot
     steps:
       - uses: purcell/setup-emacs@master
