@@ -343,7 +343,6 @@ dependencies that it requires. These include:
 </li><li>s
 </li><li>org
 </li><li>emacsql
-</li><li>emacsql-sqlite
 </li><li>magit-section
 </li></ul>
 
@@ -625,43 +624,9 @@ Next: <a href="#What-to-cache" accesskey="n" rel="next">What to cache</a>, Up: <
 </div>
 <h3 class="section" id="How-to-cache-1"><span>6.1 How to cache<a class="copiable-link" href="#How-to-cache-1"> &para;</a></span></h3>
 
-<p>Org-roam uses a sqlite database to perform caching, but there are multiple Emacs
-libraries that can be used. The default used by Org-roam is
-<a class="uref" href="https://github.com/magit/emacsql/blob/main/emacsql-sqlite-builtin.el"><code class="code">emacs-sqlite-builtin</code></a>.  Below the pros and cons of each package is used:
+<p>Org-roam uses a SQLite database to perform caching.  This integration is
+managed by the <a class="uref" href="https://github.com/magit/emacsql">emacsql</a> library.  It should &ldquo;just work&rdquo;.
 </p>
-<p><a class="uref" href="https://melpa.org/#/emacsql-sqlite-builtin"><strong class="strong"><strong class="strong">emacsql-sqlite-builtin</strong></strong></a>
-</p>
-<p><code class="code">emacsql-sqlite-builtin</code> uses the in-built SQLite support for Emacs 29 and
-later. This is the default option if you are using a version of Emacs that
-supports it.
-</p>
-<div class="example lisp">
-<pre class="lisp-preformatted">(setq org-roam-database-connector 'sqlite-builtin)
-</pre></div>
-
-<p><a class="uref" href="https://github.com/cireu/emacsql-sqlite3"><strong class="strong"><strong class="strong">emacs-sqlite3</strong></strong></a>
-</p>
-<p><code class="code">emacs-sqlite3</code> uses the official sqlite3 binary that can be obtained from your
-system&rsquo;s package manager. This is useful if you have issues producing the
-<code class="code">sqlite3</code> binary required by the other packages. However, it is not recommended
-because it has some compatibility issues with Emacs, but should work for most
-regular cases. See <a class="uref" href="https://nullprogram.com/blog/2014/02/06/">Chris Wellon&rsquo;s blog post</a> for more information.
-</p>
-<p>To use <code class="code">emacsql-sqlite3</code>, ensure that the package is installed, and set:
-</p>
-<div class="example lisp">
-<pre class="lisp-preformatted">(setq org-roam-database-connector 'sqlite3)
-</pre></div>
-
-<p><a class="uref" href="https://melpa.org/#/emacsql-sqlite-module"><strong class="strong"><strong class="strong">emacssql-sqlite-module</strong></strong></a> (previously emacsql-libsqlite3)
-</p>
-<p><code class="code">emacs-sqlite-module</code> is a relatively young package which uses an Emacs module that
-exposes parts of the SQLite C API to Emacs Lisp.
-</p>
-<div class="example lisp">
-<pre class="lisp-preformatted">(setq org-roam-database-connector 'sqlite-module)
-</pre></div>
-
 <hr>
 </div>
 <div class="section-level-extent" id="What-to-cache">
@@ -689,8 +654,8 @@ property to a non-nil value. For example:
 <p>One can also set <code class="code">org-roam-db-node-include-function</code>. For example, to exclude
 all headlines with the <code class="code">ATTACH</code> tag from the Org-roam database, one can set:
 </p>
-<div class="example">
-<pre class="example-preformatted">(setq org-roam-db-node-include-function
+<div class="example lisp">
+<pre class="lisp-preformatted">(setq org-roam-db-node-include-function
       (lambda ()
         (not (member &quot;ATTACH&quot; (org-get-tags)))))
 </pre></div>
