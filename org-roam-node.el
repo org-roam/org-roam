@@ -6,7 +6,7 @@
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
 ;; Version: 2.2.2
-;; Package-Requires: ((emacs "26.1") (dash "2.13") (org "9.4") (magit-section "3.0.0"))
+;; Package-Requires: ((emacs "26.1") (dash "2.13") (org "9.6") (magit-section "3.0.0"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -478,7 +478,7 @@ NODE, unless FORCE is non-nil."
                           (org-roam-id-at-point))))
       (goto-char m))
     (move-marker m nil))
-  (org-show-context))
+  (org-fold-show-context))
 
 (defun org-roam-node-visit (node &optional other-window force)
   "From the current buffer, visit NODE. Return the visited buffer.

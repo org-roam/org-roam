@@ -6,7 +6,7 @@
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
 ;; Version: 2.2.2
-;; Package-Requires: ((emacs "26.1") (dash "2.13") (org "9.4") (emacsql "4.1.0") (magit-section "3.0.0"))
+;; Package-Requires: ((emacs "26.1") (dash "2.13") (org "9.6") (emacsql "4.1.0") (magit-section "3.0.0"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -441,7 +441,7 @@ In interactive calls OTHER-WINDOW is set with
     (with-current-buffer buf
       (widen)
       (goto-char point))
-    (when (org-invisible-p) (org-show-context))
+    (when (org-invisible-p) (org-fold-show-context))
     buf))
 
 (defun org-roam-preview-default-function ()
@@ -630,7 +630,7 @@ instead."
         (forward-line (1- row)))
       (when col
         (forward-char (1- col))))
-    (when (org-invisible-p) (org-show-context))
+    (when (org-invisible-p) (org-fold-show-context))
     buf))
 
 ;;;; Unlinked references
