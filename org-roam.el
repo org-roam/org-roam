@@ -80,7 +80,9 @@
 (require 'magit-section)
 
 (require 'emacsql)
-;; emacsql-sqlite provides an interface to a chosen emacsql SQLite backend (e.g. emacs-sqlite-builtin)
+;; REVIEW: is this require needed?
+;; emacsql-sqlite provides a common interface to an emacsql SQLite backend (e.g. emacs-sqlite-builtin)
+;; not to be confused with a backend itself named emacsql-sqlite that existed in emacsql < 4.0.
 (require 'emacsql-sqlite)
 
 (require 'org)

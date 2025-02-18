@@ -441,8 +441,6 @@ org
 @item
 emacsql
 @item
-emacsql-sqlite
-@item
 magit-section
 @end itemize
 
@@ -685,42 +683,8 @@ can set @code{org-roam-node-display-template} as such:
 @node How to cache
 @section How to cache
 
-Org-roam uses a sqlite database to perform caching, but there are multiple Emacs
-libraries that can be used. The default used by Org-roam is
-@uref{https://github.com/magit/emacsql/blob/main/emacsql-sqlite-builtin.el, @code{emacs-sqlite-builtin}}.  Below the pros and cons of each package is used:
-
-@uref{https://melpa.org/#/emacsql-sqlite-builtin, @strong{@strong{emacsql-sqlite-builtin}}}
-
-@code{emacsql-sqlite-builtin} uses the in-built SQLite support for Emacs 29 and
-later. This is the default option if you are using a version of Emacs that
-supports it.
-
-@lisp
-(setq org-roam-database-connector 'sqlite-builtin)
-@end lisp
-
-@uref{https://github.com/cireu/emacsql-sqlite3, @strong{@strong{emacs-sqlite3}}}
-
-@code{emacs-sqlite3} uses the official sqlite3 binary that can be obtained from your
-system's package manager. This is useful if you have issues producing the
-@code{sqlite3} binary required by the other packages. However, it is not recommended
-because it has some compatibility issues with Emacs, but should work for most
-regular cases. See @uref{https://nullprogram.com/blog/2014/02/06/, Chris Wellon's blog post} for more information.
-
-To use @code{emacsql-sqlite3}, ensure that the package is installed, and set:
-
-@lisp
-(setq org-roam-database-connector 'sqlite3)
-@end lisp
-
-@uref{https://melpa.org/#/emacsql-sqlite-module, @strong{@strong{emacssql-sqlite-module}}} (previously emacsql-libsqlite3)
-
-@code{emacs-sqlite-module} is a relatively young package which uses an Emacs module that
-exposes parts of the SQLite C API to Emacs Lisp.
-
-@lisp
-(setq org-roam-database-connector 'sqlite-module)
-@end lisp
+Org-roam uses a SQLite database to perform caching.  This integration is
+managed by the @uref{https://github.com/magit/emacsql, emacsql} library.  It should ``just work''.
 
 @node What to cache
 @section What to cache
@@ -743,11 +707,11 @@ property to a non-nil value. For example:
 One can also set @code{org-roam-db-node-include-function}. For example, to exclude
 all headlines with the @code{ATTACH} tag from the Org-roam database, one can set:
 
-@example
+@lisp
 (setq org-roam-db-node-include-function
       (lambda ()
         (not (member "ATTACH" (org-get-tags)))))
-@end example
+@end lisp
 
 Org-roam relied on the obtained Org AST for the buffer to parse links. However,
 links appearing in some places (e.g. within property drawers) are not considered
