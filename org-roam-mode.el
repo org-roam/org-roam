@@ -369,7 +369,7 @@ run at `post-command-hook'."
    (node :initform nil))
   "A `magit-section' used by `org-roam-mode' to outline NODE in its own heading.")
 
-(cl-defun org-roam-node-insert-section (&key source-node point properties)
+(cl-defun org-roam-node-insert-section (&key source-node point _properties)
   "Insert section for a link from SOURCE-NODE to some other node.
 The other node is normally `org-roam-buffer-current-node'.
 
@@ -393,7 +393,9 @@ the same time:
    other node) at POINT. Acts a child section of the previous
    one."
   (magit-insert-section section (org-roam-node-section)
-    (let ((outline (if-let ((outline (plist-get properties :outline)))
+    (let ((outline (if-let ((outline (append
+                                      (org-roam-node-olp source-node)
+                                      (list (org-roam-node-title source-node)))))
                        (mapconcat #'org-link-display-format outline " > ")
                      "Top")))
       (insert (concat (propertize (org-roam-node-title source-node)
@@ -534,8 +536,7 @@ SECTION-HEADING is the string used as a heading for the backlink section."
                        (funcall show-backlink-p backlink)))
           (org-roam-node-insert-section
            :source-node (org-roam-backlink-source-node backlink)
-           :point (org-roam-backlink-point backlink)
-           :properties (org-roam-backlink-properties backlink))))
+           :point (org-roam-backlink-point backlink))))
       (insert ?\n))))
 
 ;;;; Reflinks
@@ -590,8 +591,7 @@ Sorts by title."
       (dolist (reflink reflinks)
         (org-roam-node-insert-section
          :source-node (org-roam-reflink-source-node reflink)
-         :point (org-roam-reflink-point reflink)
-         :properties (org-roam-reflink-properties reflink)))
+         :point (org-roam-reflink-point reflink)))
       (insert ?\n))))
 
 ;;;; Grep
