@@ -392,6 +392,8 @@ the same time:
    from SOURCE-NODE's file for the link (that references the
    other node) at POINT. Acts a child section of the previous
    one."
+  (unless (file-exists-p (org-roam-node-file source-node))
+    (cl-return-from org-roam-node-insert-section))
   (magit-insert-section section (org-roam-node-section)
     (let ((outline (if-let ((outline (append
                                       (org-roam-node-olp source-node)
