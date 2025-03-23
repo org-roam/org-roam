@@ -108,7 +108,7 @@ ROAM_REFS."
   :type '(alist))
 
 ;;; Variables
-(defconst org-roam-db-version 19)
+(defconst org-roam-db-version 18)
 
 (defvar org-roam-db--connection (make-hash-table :test #'equal)
   "Database connection to Org-roam database.")
@@ -214,7 +214,7 @@ The query is expected to be able to fail, in this situation, run HANDLER."
        (source :not-null)
        (dest :not-null)
        (type :not-null)
-       properties]
+       (properties :not-null)]
       (:foreign-key [source] :references nodes [id] :on-delete :cascade)))))
 
 (defconst org-roam-db--table-indices
@@ -507,8 +507,11 @@ INFO is the org-element parsed buffer."
            (path (if (not option) path
                    (substring path 0 (match-beginning 0))))
            (source (org-roam-id-at-point))
-           (properties (when option
-                         (list :search-option option))))
+           (properties (list :outline (ignore-errors
+                                        ;; This can error if link is not under any headline
+                                        (org-get-outline-path 'with-self 'use-cache))))
+           (properties (if option (plist-put properties :search-option option)
+                         properties)))
       ;; For Org-ref links, we need to split the path into the cite keys
       (when (and source path)
         (if (and (boundp 'org-ref-cite-types)
@@ -530,7 +533,9 @@ INFO is the org-element parsed buffer."
     (goto-char (org-element-property :begin citation))
     (let ((key (org-element-property :key citation))
           (source (org-roam-id-at-point))
-          (properties nil))
+          (properties (list :outline (ignore-errors
+                                       ;; This can error if link is not under any headline
+                                       (org-get-outline-path 'with-self 'use-cache)))))
       (when (and source key)
         (org-roam-db-query
          [:insert :into citations
