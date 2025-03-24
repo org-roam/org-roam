@@ -108,7 +108,7 @@ ROAM_REFS."
   :type '(alist))
 
 ;;; Variables
-(defconst org-roam-db-version 18)
+(defconst org-roam-db-version 20)
 
 (defvar org-roam-db--connection (make-hash-table :test #'equal)
   "Database connection to Org-roam database.")
