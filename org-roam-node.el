@@ -154,7 +154,7 @@ This path is relative to `org-roam-directory'."
                              (:copier nil))
   "A heading or top level file with an assigned ID property."
   file file-title file-hash file-atime file-mtime
-  id level point todo priority scheduled deadline title properties olp
+  id level point todo priority scheduled deadline closed title properties olp
   tags aliases refs)
 
 ;; Shim `string-glyph-compose' and `string-glyph-decompose' for Emacs versions that do not have it.
@@ -312,12 +312,12 @@ This can be quite costly: avoid, unless dealing with very few
 nodes."
   (when-let ((node-info (car (org-roam-db-query [:select [
                                                           file level pos todo priority
-                                                          scheduled deadline title properties olp]
+                                                          scheduled deadline closed title properties olp]
                                                  :from nodes
                                                  :where (= id $s1)
                                                  :limit 1]
                                                 (org-roam-node-id node)))))
-    (pcase-let* ((`(,file ,level ,pos ,todo ,priority ,scheduled ,deadline ,title ,properties ,olp) node-info)
+    (pcase-let* ((`(,file ,level ,pos ,todo ,priority ,scheduled ,deadline ,closed ,title ,properties ,olp) node-info)
                  (`(,atime ,mtime ,file-title) (car (org-roam-db-query [:select [atime mtime title]
                                                                         :from files
                                                                         :where (= file $s1)]
@@ -341,6 +341,7 @@ nodes."
             (org-roam-node-priority node) priority
             (org-roam-node-scheduled node) scheduled
             (org-roam-node-deadline node) deadline
+            (org-roam-node-closed node) closed
             (org-roam-node-title node) title
             (org-roam-node-properties node) properties
             (org-roam-node-olp node) olp
@@ -362,6 +363,7 @@ nodes."
   priority ,
   scheduled ,
   deadline ,
+  closed ,
   title,
   properties ,
   olp,
@@ -382,6 +384,7 @@ FROM
     priority ,
     scheduled ,
     deadline ,
+    closed ,
     title,
     properties ,
     olp,
@@ -401,6 +404,7 @@ FROM
       nodes.priority as priority,
       nodes.scheduled as scheduled,
       nodes.deadline as deadline,
+      nodes.closed as closed,
       nodes.title as title,
       nodes.properties as properties,
       nodes.olp as olp,
@@ -420,7 +424,7 @@ FROM
 GROUP BY id")))
     (cl-loop for row in rows
              append (pcase-let* ((`(
-                                    ,id ,file ,file-title ,level ,todo ,pos ,priority ,scheduled ,deadline
+                                    ,id ,file ,file-title ,level ,todo ,pos ,priority ,scheduled ,deadline ,closed
                                     ,title ,properties ,olp ,atime ,mtime ,tags ,aliases ,refs)
                                   row)
                                  (all-titles (cons title aliases)))
@@ -436,6 +440,7 @@ GROUP BY id")))
                                                       :priority priority
                                                       :scheduled scheduled
                                                       :deadline deadline
+                                                      :closed closed
                                                       :title temp-title
                                                       :aliases aliases
                                                       :properties properties
