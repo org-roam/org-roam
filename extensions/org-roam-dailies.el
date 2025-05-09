@@ -269,7 +269,7 @@ negative, find note N days in the future."
   "List all files in `org-roam-dailies-directory'.
 EXTRA-FILES can be used to append extra files to the list."
   (let ((dir (expand-file-name org-roam-dailies-directory org-roam-directory))
-        (regexp (rx-to-string `(and "." (or ,@org-roam-file-extensions)))))
+        (regexp (rx-to-string `(seq (literal ".") (or ,@org-roam-file-extensions) eos))))
     (append (--remove (let ((file (file-name-nondirectory it)))
                         (when (or (auto-save-file-name-p file)
                                   (backup-file-name-p file)
