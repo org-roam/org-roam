@@ -47,6 +47,8 @@ embedded properties).
 If it is a string and it will be used as described in org-roam
  (see org-roam-node-display-template)
 
+When it is a string, the following processing is done:
+
 Patterns of form \"${field-name:length}\" are interpolated based
 on the current node.
 
@@ -72,7 +74,24 @@ as many characters as possible and will be aligned accordingly.
 
 A closure can also be assigned to this variable in which case the
 closure is evaluated and the return value is used as the
-template. The closure must evaluate to a valid template string."
+template. The closure must evaluate to a valid template string.
+
+When org-roam-node-display-template is a function, the function is
+expected to return a string, potentially propertized. For example, the
+following function shows the title and base filename of the node:
+
+(defun my--org-roam-format (node)
+  \"formats the node\"
+  (format \"%-40s %s\"
+          (if (org-roam-node-title node)
+              (propertize (org-roam-node-title node) 'face 'org-todo)
+            \"\")
+          (file-name-nondirectory (org-roam-node-file node))))
+
+(setq org-roam-node-display-template 'my--org-roam-format)
+
+
+"
   :group 'org-roam
   :type  '(string function))
 
@@ -573,9 +592,12 @@ Uses org-roam--node-display-template."
 
 (defun org-roam--format-nodes-using-function (nodes)
   "Formats NODES using the function org-roam-node-display-template."
-  (mapcar org-roam-node-display-template nodes )
+  (mapcar (lambda (node)
+            (cons
+             (propertize (funcall org-roam-node-display-template node) 'node node)
+             node))
+          nodes)
   )
-
 
 (defun org-roam-node-read--completions (&optional filter-fn sort-fn)
   "Return an alist for node completion.
