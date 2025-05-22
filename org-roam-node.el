@@ -80,7 +80,7 @@ When org-roam-node-display-template is a function, the function is
 expected to return a string, potentially propertized. For example, the
 following function shows the title and base filename of the node:
 
-(defun my--org-roam-format (node)
+\(defun my--org-roam-format (node)
   \"formats the node\"
   (format \"%-40s %s\"
           (if (org-roam-node-title node)
@@ -88,10 +88,7 @@ following function shows the title and base filename of the node:
             \"\")
           (file-name-nondirectory (org-roam-node-file node))))
 
-(setq org-roam-node-display-template 'my--org-roam-format)
-
-
-"
+\q(setq org-roam-node-display-template 'my--org-roam-format)"
   :group 'org-roam
   :type  '(string function))
 
