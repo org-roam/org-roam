@@ -1,18 +1,84 @@
 # Changelog
 
-## TBD
+## 2.3.0 (2025-05-24)
 
-### Breaking
-### Added
-- [#2333](https://github.com/org-roam/org-roam/pull/2333) buffer: allow a custom heading for a backlink section
-- [#2449](https://github.com/org-roam/org-roam/pull/2449) extract rg-command builder function from unlinked-references
-### Removed
-### Fixed
-- [#2264](https://github.com/org-roam/org-roam/pull/2264) Support multi-line org titles
-- [#2165](https://github.com/org-roam/org-roam/pull/2165) (fix)org-roam-file-p: don't exclude org-roam-directory
-- [#2168](https://github.com/org-roam/org-roam/pull/2168) (perf)node-read: filter nodes before mapping --to-candidate
-- [#2411](https://github.com/org-roam/org-roam/pull/2411) fix for `org-roam-directory` having spaces and Unlinked References not working
-### Changed
+* (perf)node-read: filter before map to candidate by @russmatney in https://github.com/org-roam/org-roam/pull/2168
+* (chore): remove extraneous changelog line by @jethrokuan in https://github.com/org-roam/org-roam/pull/2172
+* (fix)org-roam-file-p: don't exclude org-roam-directory by @toregilhk in https://github.com/org-roam/org-roam/pull/2178
+* (chore) fix version numbers by @jethrokuan in https://github.com/org-roam/org-roam/pull/2182
+* (fix) org-roam-file-p handle opening a buffer with no path by @jethrokuan in https://github.com/org-roam/org-roam/pull/2185
+* (fix)db: update atime on file access by @jethrokuan in https://github.com/org-roam/org-roam/pull/2174
+* Fix org-roam-extract-subtree by @ralfdoering in https://github.com/org-roam/org-roam/pull/2191
+* (node): fix org-roam-node-at-point check by @jethrokuan in https://github.com/org-roam/org-roam/pull/2195
+* (chore): reapply #2178 by @jethrokuan in https://github.com/org-roam/org-roam/pull/2197
+* Solved issue #2192 (Respect blank lines in capture templates) by @alopezrivera in https://github.com/org-roam/org-roam/pull/2203
+* (chore)ci: /s/master/main by @jethrokuan in https://github.com/org-roam/org-roam/pull/2204
+* support custom minibuffer matching function by @cuttlefisch in https://github.com/org-roam/org-roam/pull/2177
+* (db)fix: org-roam-db-connector group by @jethrokuan in https://github.com/org-roam/org-roam/pull/2209
+* ensure unique candidates in `org-roam-ref-find` by @bdarcus in https://github.com/org-roam/org-roam/pull/2208
+* (db)fix: FOREIGN KEY error in narrowed buffer by @psii in https://github.com/org-roam/org-roam/pull/2215
+* (feat): org-roam-property-* code duplication removed (#2217) by @clanghans in https://github.com/org-roam/org-roam/pull/2218
+* (db)fix: file modification detection failing in some edge cases by @kisaragi-hiu in https://github.com/org-roam/org-roam/pull/2221
+* (fix): autoload org-roam-list-files by @jethrokuan in https://github.com/org-roam/org-roam/pull/2226
+* (fix): links not displayed properly in org-roam-buffer by @ntharim in https://github.com/org-roam/org-roam/pull/2236
+* (fix): remove use of deprecated org-font-lock-ensure by @jethrokuan in https://github.com/org-roam/org-roam/pull/2238
+* was missing the FULL parameter to `org-end-of-meta-data` - fixes #2242 by @jmay in https://github.com/org-roam/org-roam/pull/2246
+* (Docs): Fixed typos in the docs by @hnvy in https://github.com/org-roam/org-roam/pull/2256
+* Fix space chars in roam refs by @hwiorn in https://github.com/org-roam/org-roam/pull/2285
+* org-roam-tag-add: use tags separator as crm-separator by @Hugo-Heagren in https://github.com/org-roam/org-roam/pull/2282
+* Support multi-line org titles by @FelixBrendel in https://github.com/org-roam/org-roam/pull/2264
+* (Docs): orgmode.org/elpa has been shut down by @aviad in https://github.com/org-roam/org-roam/pull/2258
+* Minor typo in the commented text of the definition of `org-roam-refile` by @apc in https://github.com/org-roam/org-roam/pull/2263
+* fix outline of link in properties by @bhuztez in https://github.com/org-roam/org-roam/pull/2230
+* (fix): update `org-roam-unlinked-references-section` check by @Elilif in https://github.com/org-roam/org-roam/pull/2254
+* Add support for filtering backlinks. by @swflint in https://github.com/org-roam/org-roam/pull/2247
+* (docs): update documentation on database-connectors by @jethrokuan in https://github.com/org-roam/org-roam/pull/2298
+* (db): default to sqlite-builtin when possible by @jethrokuan in https://github.com/org-roam/org-roam/pull/2299
+* don't complete org-roam nodes in source blocks by @ParetoOptimalDev in https://github.com/org-roam/org-roam/pull/2292
+* (core): add org-roam-node-category by @jethrokuan in https://github.com/org-roam/org-roam/pull/2300
+* add discoverability support for age encrypted org files by @anticomputer in https://github.com/org-roam/org-roam/pull/2302
+* (minor): fix lints on main by @jethrokuan in https://github.com/org-roam/org-roam/pull/2320
+* utils: descendant-of-p: Defend against nils by @qzdl in https://github.com/org-roam/org-roam/pull/2319
+* Add customisable function for prompting when adding refs by @Hugo-Heagren in https://github.com/org-roam/org-roam/pull/2317
+* Fix org-fold-core-style in org-roam-buffer by @hwiorn in https://github.com/org-roam/org-roam/pull/2325
+* depend on snapshot of emacsql by @jethrokuan in https://github.com/org-roam/org-roam/pull/2327
+* (node): org-roam-node-at-point: don't error in non-org buffers by @Hugo-Heagren in https://github.com/org-roam/org-roam/pull/2329
+* (node) add optional NOCASE parameter to org-roam-node-from-title-or-alias by @nuthub in https://github.com/org-roam/org-roam/pull/2403
+* (docs): update org-protocol instructions by @benthamite in https://github.com/org-roam/org-roam/pull/2401
+* Fix some typos by @feltcat in https://github.com/org-roam/org-roam/pull/2430
+* (docs): fix name of my-org-roam-show-backlink-p by @Delapouite in https://github.com/org-roam/org-roam/pull/2447
+* Link Martin Edström's knowledge base by @meedstrom in https://github.com/org-roam/org-roam/pull/2394
+* Update org-roam.org by @marcosbodio in https://github.com/org-roam/org-roam/pull/2441
+* (chore): fix indent blocking ci lint execution by @Delapouite in https://github.com/org-roam/org-roam/pull/2448
+* Fix Issue #2410 - Unlinked References doesnt work if the org-roam-directory has a space in it.  by @vikram-mandyam in https://github.com/org-roam/org-roam/pull/2411
+* (test): add "org-roam--list-files-search-globs" by @Delapouite in https://github.com/org-roam/org-roam/pull/2449
+* Backlink heading by @toregilhk in https://github.com/org-roam/org-roam/pull/2333
+* (test): add org-roam-id-find by @Delapouite in https://github.com/org-roam/org-roam/pull/2450
+* (test): add org-roam-id-at-point by @Delapouite in https://github.com/org-roam/org-roam/pull/2451
+* (test): add org-roam--buffer-promoteable-p by @Delapouite in https://github.com/org-roam/org-roam/pull/2452
+* (test): add org-roam--get-titles by @Delapouite in https://github.com/org-roam/org-roam/pull/2453
+* (test): add org-roam-node-from-{id|title-or-alias} by @Delapouite in https://github.com/org-roam/org-roam/pull/2454
+* (test): add org-roam-alias-{add|remove} by @Delapouite in https://github.com/org-roam/org-roam/pull/2455
+* (docs): add missing versions dates and obsolete notice by @Delapouite in https://github.com/org-roam/org-roam/pull/2456
+* (docs): explain org-roam-file-exclude-regexp by @adamoudad in https://github.com/org-roam/org-roam/pull/2458
+* (test): add org-roam-demote-entire-buffer by @Delapouite in https://github.com/org-roam/org-roam/pull/2459
+* (test): add org-roam-file-p by @Delapouite in https://github.com/org-roam/org-roam/pull/2460
+* (test): add org-roam-buffer-p by @Delapouite in https://github.com/org-roam/org-roam/pull/2461
+* (fix): remove dead-code about org-roam-shield feature by @Delapouite in https://github.com/org-roam/org-roam/pull/2462
+* (test): add org-roam-db--file-hash by @Delapouite in https://github.com/org-roam/org-roam/pull/2464
+* (test): add org-roam-db-get-{scheduled|deadline}-time by @Delapouite in https://github.com/org-roam/org-roam/pull/2465
+* Doc formatting: 2 fixes by @kevinrineer in https://github.com/org-roam/org-roam/pull/2475
+* Take org-roam-node as argument to #'org-roam-refile by @pestctrl in https://github.com/org-roam/org-roam/pull/2388
+* Compatibility with latest org-id version: advise org-id-find rather than overwriting id link by @ricklupton in https://github.com/org-roam/org-roam/pull/2432
+* Depend on emacsql 4.0.0 by @bcc32 in https://github.com/org-roam/org-roam/pull/2466
+* Use regexp match to replace hard-coded path equal test by @manphiz in https://github.com/org-roam/org-roam/pull/2497
+* Align sqlite integration with emacsql 4.0 by @dustinfarris in https://github.com/org-roam/org-roam/pull/2503
+* fix #2425 Prevent data loss when user has called org-roam-extract-subtree on folded org headline by @akashpal-21 in https://github.com/org-roam/org-roam/pull/2444
+* Rely on emacsql-sqlite-open to pick the best available back-end by @tarsius in https://github.com/org-roam/org-roam/pull/2486
+* Set org-roam-directory to a non-existent path to ensure robust test by @manphiz in https://github.com/org-roam/org-roam/pull/2499
+* (perf): Deprecate link :outline properties by @meedstrom in https://github.com/org-roam/org-roam/pull/2509
+* Bump DB version to avoid error by @meedstrom in https://github.com/org-roam/org-roam/pull/2514
+
 
 ## 2.2.2 (2022-04-25)
 

@@ -1,23 +1,23 @@
 #+title: Org-roam User Manual
 #+author: Jethro Kuan
 #+email: jethrokuan95@gmail.com
-#+date: 2020-2022
+#+date: 2020-2025
 #+language: en
 
 #+texinfo_deffn: t
 #+texinfo_dir_category: Emacs
 #+texinfo_dir_title: Org-roam: (org-roam).
 #+texinfo_dir_desc: Roam Research for Emacs.
-#+subtitle: for version 2.2.2
+#+subtitle: for version 2.3.0
 
 #+options: H:4 num:3 toc:nil creator:t ':t
 #+property: header-args :eval never
 #+texinfo: @noindent
 
-This manual is for Org-roam version 2.2.2.
+This manual is for Org-roam version 2.3.0.
 
 #+BEGIN_QUOTE
-Copyright (C) 2020-2022 Jethro Kuan <jethrokuan95@gmail.com>
+Copyright (C) 2020-2025 Jethro Kuan <jethrokuan95@gmail.com>
 
 You can redistribute this document and/or modify it under the terms of the GNU
 General Public License as published by the Free Software Foundation, either
@@ -1735,7 +1735,7 @@ When GOTO is non-nil, go the note without creating an entry."
 :END:
 
 #+BEGIN_QUOTE
-Copyright (C) 2020-2022 Jethro Kuan <jethrokuan95@gmail.com>
+Copyright (C) 2020-2025 Jethro Kuan <jethrokuan95@gmail.com>
 
 You can redistribute this document and/or modify it under the terms
 of the GNU General Public License as published by the Free Software
