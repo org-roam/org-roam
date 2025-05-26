@@ -90,7 +90,7 @@ following function shows the title and base filename of the node:
 
 \q(setq org-roam-node-display-template 'my--org-roam-format)"
   :group 'org-roam
-  :type  '(string function))
+  :type  '(choice string function))
 
 (defcustom org-roam-node-annotation-function #'org-roam-node-read--annotation
   "This function used to attach annotations for `org-roam-node-read'.
@@ -114,7 +114,7 @@ argument, an `org-roam-node', and return a string.
 If a string is provided, it is a template string expanded by
 `org-roam-node--format-entry'."
   :group 'org-roam
-  :type '(string function))
+  :type '(choice string function))
 
 (defcustom org-roam-node-template-prefixes
   '(("tags" . "#")
