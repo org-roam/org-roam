@@ -121,6 +121,13 @@ The following options are supported for the :target property:
        automatically created. The point will be adjusted to the last element in
        the OLP.
 
+   (file+ref+title \"path/to/file\" \"reference\" \"title\")
+       The file will be created, prescribed an ID. If the file doesn't contain a
+       node identified by the given ROAM_REFS reference, a new node will be
+       created for that reference, named using the given title. Just the nodes
+       in the given file are considered. The point will be adjusted to the last
+       element in the referred node.
+
    (file+datetree \"path/to/file\" tree-type)
        The file will be created, prescribed an ID. A date based outline path
        will be created for today's date. The tree-type can be one of the
@@ -320,7 +327,12 @@ streamlined user experience in Org-roam."
                                                         (string :tag "  File")
                                                         (string :tag "  Head Content")
                                                         (list :tag "Outline path"
-                                                              (repeat (string :tag "Headline"))))))
+                                                              (repeat (string :tag "Headline"))))
+                                                  (list :tag "File & Reference & Title"
+                                                        (const :format "" file+ref+title)
+                                                        (string :tag "  File")
+                                                        (string :tag "  Reference")
+                                                        (string :tag "  Title"))))
                                          ((const :format "%v " :prepend) (const t))
                                          ((const :format "%v " :immediate-finish) (const t))
                                          ((const :format "%v " :jump-to-captured) (const t))
@@ -499,6 +511,14 @@ Return the ID of the location."
        (let ((m (org-roam-capture-find-or-create-olp olp)))
          (goto-char m))
        (widen))
+      (`(file+ref+title ,path ,ref ,title)
+       (setq path (org-roam-capture--target-truepath path)
+             new-file-p (org-roam-capture--new-file-p path))
+       (when new-file-p (org-roam-capture--put :new-file path))
+       (set-buffer (org-capture-target-buffer path))
+       (let ((m (org-roam-capture-find-or-create-ref-entry path ref title)))
+         (setq p (goto-char m)))
+       (widen))
       (`(file+head ,path ,head)
        (setq path (org-roam-capture--target-truepath path)
              new-file-p (org-roam-capture--new-file-p path))
@@ -649,6 +669,25 @@ you can catch it with `condition-case'."
              end (save-excursion (org-end-of-subtree t t))))
      (point-marker))))
 
+(defun org-roam-capture-find-or-create-ref-entry (file ref heading)
+  "Return a marker pointing to the first entry in the current buffer, which is
+dedicated to th REF. If no such entry exists, create a new entry with the given
+HEADING. If anything goes wrong, throw an error, and if you need to do something
+based on this error, you can catch it with `condition-case'."
+  (let ((node (org-roam-node-from-ref
+               (org-roam-capture--fill-template ref)
+               :file file)))
+    (unless (derived-mode-p 'org-mode)
+      (error "Buffer %s needs to be in Org mode" (current-buffer)))
+    (org-with-wide-buffer
+     (if node
+         (goto-char (org-roam-node-marker node))
+       (goto-char (point-max))
+       (unless (bolp) (newline))
+       (org-insert-heading nil nil t)
+       (insert (org-roam-capture--fill-template heading)))
+     (point-marker))))
+
 (defun org-roam-capture--adjust-point-for-capture-type (&optional pos)
   "Reposition the point for template insertion dependently on the capture type.
 Return the newly adjusted position of `point'.
@@ -685,6 +724,8 @@ the current value of `point'."
 (defun org-roam-capture--try-capture-to-ref-h ()
   "Try to capture to an existing node that match the ref."
   (when-let ((node (and (plist-get org-roam-capture--info :ref)
+                        (not (eq (car (org-roam-capture--get-target))
+                                 'file+ref+title))
                         (org-roam-node-from-ref
                          (plist-get org-roam-capture--info :ref)))))
     (set-buffer (org-capture-target-buffer (org-roam-node-file node)))
