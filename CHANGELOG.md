@@ -112,6 +112,9 @@
                 (propertize "${tags:10}" 'face 'org-tag)))
   ```
 
+- [#2092](https://github.com/org-roam/org-roam/pull/2092) capture: don't force :immediate-finish
+  `org-roam-capture` will from now on use the `:immediate-capture` value specified by the template.
+
 ### Added
 - [#2042](https://github.com/org-roam/org-roam/pull/2042) db: add `org-roam-db-extra-links-elements` and `org-roam-db-extra-links-exclude-keys` for fine-grained control over additional link parsing
 - [#2049](https://github.com/org-roam/org-roam/pull/2049) capture: allow ID to be used as part of `org-roam-capture-templates`
