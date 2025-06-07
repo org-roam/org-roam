@@ -163,7 +163,8 @@ If FILE, set `default-directory' to FILE's directory and insert its contents."
   (let ((current-org-roam-directory (make-symbol "current-org-roam-directory")))
     `(let ((,current-org-roam-directory org-roam-directory))
        (with-temp-buffer
-         (let ((org-roam-directory ,current-org-roam-directory))
+         (let ((org-roam-directory ,current-org-roam-directory)
+               (org-inhibit-startup t))
            (delay-mode-hooks (org-mode))
            (when ,file
              (insert-file-contents ,file)
