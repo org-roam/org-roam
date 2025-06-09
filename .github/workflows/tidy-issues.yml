@@ -1,0 +1,122 @@
+name: 'Manage stale/dormant issues and PRs'
+
+on:
+  schedule:
+    - cron: '0 1 * * *'  # Daily at 1 AM UTC
+  workflow_dispatch:  # Allow this to be run manually
+    inputs:
+      dry_run:
+        description: 'Dry run: Show what would happen without making changes'
+        required: false
+        default: 'false'
+        type: boolean
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      # Handle stale issues/PRs
+      - name: Mark/close stale issues and PRs
+        uses: actions/stale@v9
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+          # Dry run setting
+          debug-only: ${{ github.event.inputs.dry_run == 'true' }}
+
+          # Messages
+          stale-issue-message: |
+            📅 **Stale Issue Notice**
+
+            This issue has been automatically marked as stale because it has not had recent activity for **6 months**.
+
+            **⏰ This issue will be closed in 2 weeks** if no further activity occurs.
+
+            **To keep this issue open:**
+            - Comment on this issue
+            - Reference it in a commit or PR
+            - Add new information or updates
+
+            Thank you for your contributions to org-roam! 🙏
+
+          close-issue-message: |
+            🔒 **Issue Automatically Closed**
+
+            This issue was automatically closed due to **6 months of inactivity** followed by 2 weeks notice.
+
+            **To reopen:**
+            - If still relevant, comment below and we'll reopen
+            - Or create a new issue with updated information
+
+            If this issue is not reopened in 2 weeks, it will be locked.
+            
+            This helps keep our issue tracker focused and manageable.
+
+          stale-pr-message: |
+            📅 **Stale Pull Request Notice**
+
+            This pull request has been automatically marked as stale because it has not had recent activity for **6 months**.
+
+            **⏰ This PR will be closed in 2 weeks** if no further activity occurs.
+
+            **To keep this PR open:**
+            - Push new commits
+            - Comment with updates
+            - Rebase on latest main branch
+
+            Thank you for your contributions to org-roam! 🙏
+
+          close-pr-message: |
+            🔒 **Pull Request Automatically Closed**
+
+            This pull request was automatically closed due to **6 months of inactivity** followed by 2 weeks notice.
+
+            **To reopen:**
+            - If still relevant, comment below or push new commits
+            - Or create a new PR with updated changes
+
+            If this PR is not reopened in 2 weeks, it will be locked.
+
+          # Timing (6 months + 2 weeks)
+          days-before-stale: 182  # ~6 months
+          days-before-close: 14   # 2 weeks notice
+
+          # Performance
+          operations-per-run: 1000
+
+      # Show dry run summary
+      - name: Dry run summary
+        if: github.event.inputs.dry_run == 'true'
+        run: |
+          echo "🧪 DRY RUN COMPLETED"
+          echo "This was a dry run - no actual changes were made."
+          echo "Check the action logs above to see what would have happened."
+          echo ""
+          echo "To run for real:"
+          echo "1. Go to Actions tab"
+          echo "2. Click 'Run workflow'"
+          echo "3. Leave 'Dry run mode' unchecked"
+          echo "4. Click 'Run workflow'"
+
+  lock:
+    runs-on: ubuntu-latest
+    needs: stale
+    # Only run lock job if NOT in dry run mode
+    if: github.event.inputs.dry_run != 'true'
+    steps:
+      # Lock issues/PRs that have been closed for 2 weeks or more
+      - name: Lock closed issues
+        uses: dessant/lock-threads@v5
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          issue-inactive-days: 14
+          issue-lock-reason: 'resolved'
+          process-only: 'issues'
+
+      - name: Lock closed PRs
+        uses: dessant/lock-threads@v5
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          pr-inactive-days: 14
+          pr-lock-reason: 'resolved'
+          process-only: 'prs'

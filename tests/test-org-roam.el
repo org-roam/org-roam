@@ -28,6 +28,7 @@
 
 (describe "org-roam-file-p"
   (it "checks if given file respects criteria"
+    (setq org-roam-directory "/non-existent")
     (expect (org-roam-file-p "tests/roam-files/family.org") :to-equal nil)
 
     (setq org-roam-directory (expand-file-name "tests/roam-files"))

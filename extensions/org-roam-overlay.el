@@ -1,12 +1,12 @@
 ;;; org-roam-overlay.el --- Link overlay for [id:] links to Org-roam nodes -*- coding: utf-8; lexical-binding: t; -*-
 
-;; Copyright © 2020-2022 Jethro Kuan <jethrokuan95@gmail.com>
+;; Copyright © 2020-2025 Jethro Kuan <jethrokuan95@gmail.com>
 
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
-;; Version: 2.2.2
-;; Package-Requires: ((emacs "26.1") (org "9.4") (org-roam "2.1"))
+;; Version: 2.3.0
+;; Package-Requires: ((emacs "26.1") (org "9.6") (org-roam "2.1"))
 
 ;; This file is NOT part of GNU Emacs.
 

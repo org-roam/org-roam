@@ -153,9 +153,8 @@ dependencies. These include:
 - dash
 - f
 - s
-- org (9.4 is the minimal required version!)
+- org (9.6 is the minimum required version!)
 - emacsql
-- emacsql-sqlite
 - magit-section
 - filenotify-recursive
 

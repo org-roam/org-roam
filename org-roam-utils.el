@@ -1,12 +1,12 @@
 ;;; org-roam-utils.el --- Utilities for Org-roam -*- lexical-binding: t; -*-
 
-;; Copyright © 2020-2022 Jethro Kuan <jethrokuan95@gmail.com>
+;; Copyright © 2020-2025 Jethro Kuan <jethrokuan95@gmail.com>
 
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
-;; Version: 2.2.2
-;; Package-Requires: ((emacs "26.1") (dash "2.13") (org "9.4"))
+;; Version: 2.3.0
+;; Package-Requires: ((emacs "26.1") (dash "2.13") (org "9.6"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -72,11 +72,10 @@ Like `string-equal', but case-insensitive."
 (defun org-roam-whitespace-content (s)
   "Return the whitespace content at the end of S."
   (with-temp-buffer
-    (let ((c 0))
-      (insert s)
-      (skip-chars-backward " \t\n")
-      (buffer-substring-no-properties
-       (point) (point-max)))))
+    (insert s)
+    (skip-chars-backward " \t\n")
+    (buffer-substring-no-properties
+     (point) (point-max))))
 
 (defun org-roam-strip-comments (s)
   "Strip Org comments from string S."
@@ -85,7 +84,8 @@ Like `string-equal', but case-insensitive."
     (goto-char (point-min))
     (while (not (eobp))
       (if (org-at-comment-p)
-          (delete-region (point-at-bol) (progn (forward-line) (point)))
+          (delete-region (line-beginning-position)
+                         (progn (forward-line) (point)))
         (forward-line)))
     (buffer-string)))
 
@@ -163,7 +163,8 @@ If FILE, set `default-directory' to FILE's directory and insert its contents."
   (let ((current-org-roam-directory (make-symbol "current-org-roam-directory")))
     `(let ((,current-org-roam-directory org-roam-directory))
        (with-temp-buffer
-         (let ((org-roam-directory ,current-org-roam-directory))
+         (let ((org-roam-directory ,current-org-roam-directory)
+               (org-inhibit-startup t))
            (delay-mode-hooks (org-mode))
            (when ,file
              (insert-file-contents ,file)
@@ -449,8 +450,10 @@ See <https://github.com/raxod502/straight.el/issues/520>."
                       (quit "N/A"))))
     (insert (format "- Org: %s\n" (org-version nil 'full)))
     (insert (format "- Org-roam: %s" (org-roam-version)))
-    (insert (format "- sqlite-connector: %s" org-roam-database-connector))))
-
+    (insert (format "- sqlite-connector: %s"
+                    (if-let ((conn (org-roam-db--get-connection)))
+                        (eieio-object-class conn)
+                      "not connected")))))
 
 (provide 'org-roam-utils)
 ;;; org-roam-utils.el ends here

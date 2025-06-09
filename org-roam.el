@@ -1,12 +1,12 @@
 ;;; org-roam.el --- A database abstraction layer for Org-mode -*- coding: utf-8; lexical-binding: t; -*-
 
-;; Copyright © 2020-2022 Jethro Kuan <jethrokuan95@gmail.com>
+;; Copyright © 2020-2025 Jethro Kuan <jethrokuan95@gmail.com>
 
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
-;; Version: 2.2.2
-;; Package-Requires: ((emacs "26.1") (dash "2.13") (org "9.4") (emacsql "20230228") (magit-section "3.0.0"))
+;; Version: 2.3.0
+;; Package-Requires: ((emacs "26.1") (dash "2.13") (org "9.6") (emacsql "4.1.0") (magit-section "3.0.0"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -80,6 +80,9 @@
 (require 'magit-section)
 
 (require 'emacsql)
+;; REVIEW: is this require needed?
+;; emacsql-sqlite provides a common interface to an emacsql SQLite backend (e.g. emacs-sqlite-builtin)
+;; not to be confused with a backend itself named emacsql-sqlite that existed in emacsql < 4.0.
 (require 'emacsql-sqlite)
 
 (require 'org)
@@ -185,12 +188,13 @@ in the list is found.
 By default, `executable-find' will be used to look up the path to
 the executable. If a custom path is required, it can be specified
 together with the method symbol as a cons cell. For example:
-'(find (rg . \"/path/to/rg\"))."
-  :type '(set (const :tag "find" find)
-              (const :tag "fd" fd)
-              (const :tag "fdfind" fdfind)
-              (const :tag "rg" rg)
-              (const :tag "elisp" nil)))
+\\='(find (rg . \"/path/to/rg\"))."
+  :type '(set
+          (const :tag "find" find)
+          (const :tag "fd" fd)
+          (const :tag "fdfind" fdfind)
+          (const :tag "rg" rg)
+          (const :tag "elisp" nil)))
 
 ;;; Library
 (defun org-roam-file-p (&optional file)
@@ -322,8 +326,9 @@ E.g. (\".org\") => (\"*.org\" \"*.org.gpg\")"
 (defun org-roam--list-files-rg (executable dir)
   "Return all Org-roam files under DIR, using \"rg\", provided as EXECUTABLE."
   (let* ((globs (org-roam--list-files-search-globs org-roam-file-extensions))
-         (command (string-join `(,executable "-L" ,dir "--files"
-                                             ,@(mapcar (lambda (glob) (concat "-g " glob)) globs)) " ")))
+         (command (string-join `(
+                                 ,executable "-L" ,dir "--files"
+                                 ,@(mapcar (lambda (glob) (concat "-g " glob)) globs)) " ")))
     (org-roam--shell-command-files command)))
 
 (declare-function org-roam--directory-files-recursively "org-roam-compat")

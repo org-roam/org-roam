@@ -1,23 +1,23 @@
 #+title: Org-roam User Manual
 #+author: Jethro Kuan
 #+email: jethrokuan95@gmail.com
-#+date: 2020-2022
+#+date: 2020-2025
 #+language: en
 
 #+texinfo_deffn: t
 #+texinfo_dir_category: Emacs
 #+texinfo_dir_title: Org-roam: (org-roam).
 #+texinfo_dir_desc: Roam Research for Emacs.
-#+subtitle: for version 2.2.2
+#+subtitle: for version 2.3.0
 
 #+options: H:4 num:3 toc:nil creator:t ':t
 #+property: header-args :eval never
 #+texinfo: @noindent
 
-This manual is for Org-roam version 2.2.2.
+This manual is for Org-roam version 2.3.0.
 
 #+BEGIN_QUOTE
-Copyright (C) 2020-2022 Jethro Kuan <jethrokuan95@gmail.com>
+Copyright (C) 2020-2025 Jethro Kuan <jethrokuan95@gmail.com>
 
 You can redistribute this document and/or modify it under the terms of the GNU
 General Public License as published by the Free Software Foundation, either
@@ -224,7 +224,6 @@ dependencies that it requires. These include:
 - s
 - org
 - emacsql
-- emacsql-sqlite
 - magit-section
 
 You can install this manually as well, or get the latest version from MELPA. You
@@ -267,40 +266,6 @@ file:
 #+begin_src bash
 install-info /path/to/my/info/files/org-roam.info /path/to/my/info/files/dir
 #+end_src
-
-** Installation Troubleshooting
-*** C Compiler
-Org-roam relies on an Emacs package called ~emacsql~ and ~emacsql-sqlite~ to
-work with the ~sqlite~ database. Both of them should be installed automatically
-in your Emacs environment as a prerequisite for Org-roam when you install it.
-
-~emacsql-sqlite~ requires a C compiler (e.g. ~gcc~ or ~clang~) to be present in
-your computer. How to install a C compiler depends on the OS that you use.
-
-**** C Compiler for Windows
-
-One of the easiest ways to install a C compiler in Windows is to use [[https://www.msys2.org/][MSYS2]] as at the time of this writing:
-
-1. Download and use the installer in the official MSYS2 website
-2. Run MSYS2 and in its terminal, type the following and answer "Y" to
-   proceed -- this will install ~gcc~ in your PC:
-
-   #+BEGIN_SRC bash
-     pacman -S gcc
-   #+END_SRC
-
-4. On Windows, add ~C:\msys64\usr\bin~ (command =where gcc= in MSYS2 terminal
-   can tell you the correct path) to ~PATH~ in your environmental variables
-
-5. Launch Emacs and call ~M-x org-roam-db-autosync-mode~ (launch Emacs after
-   defining the path, so that Emacs can recognize it)
-
-This will automatically start compiling ~emacsql-sqlite~; you should see a
-message in minibuffer. It may take a while until compilation completes. Once
-complete, you should see a new file ~emacsql-sqlite.exe~ created in a subfolder
-named ~sqlite~ under ~emacsql-sqlite~ installation folder. It's typically in
-your Emacs configuration folder like this:
-~/.config/emacs/elpa/emacsql-sqlite-20190727.1710/sqlite~
 
 * Getting Started
 ** The Org-roam Node
@@ -410,7 +375,7 @@ Org-roam provides (see [[*Completion][Completion]]).
 ** Customizing Node Completions
 
 Node selection is achieved via the ~completing-read~ interface, typically
-through `org-roam-node-read`. The presentation of these nodes are governed by
+through ~org-roam-node-read~. The presentation of these nodes are governed by
 ~org-roam-node-display-template~.
 
 - Variable: org-roam-node-display-template
@@ -457,55 +422,8 @@ can set ~org-roam-node-display-template~ as such:
 
 * Customizing Node Caching
 ** How to cache
-
-Org-roam uses a sqlite database to perform caching, but there are multiple Emacs
-libraries that can be used. The default used by Org-roam is ~emacs-sqlite~.
-Below the pros and cons of each package is used:
-
-[[https://github.com/skeeto/emacsql][**emacs-sqlite**]]
-
-The default option used by Org-roam. This library is the most mature and
-well-supported and is imported by default in Org-roam.
-
-One downside of using ~emacs-sqlite~ is that using it requires compilation and
-can cause issues in some environments (especially Windows). If you have issues
-producing the customized binary required by ~emacs-sqlite~, consider using
-~emacs-sqlite3~.
-
-[[https://github.com/cireu/emacsql-sqlite3][**emacs-sqlite3**]]
-
-~emacs-sqlite3~ uses the official sqlite3 binary that can be obtained from your
-system's package manager. This is useful if you have issues producing the
-~sqlite3~ binary required by the other packages. However, it is not recommended
-because it has some compatibility issues with Emacs, but should work for most
-regular cases. See [[https://nullprogram.com/blog/2014/02/06/][Chris Wellon's blog post]] for more information.
-
-To use ~emacsql-sqlite3~, ensure that the package is installed, and set:
-
-#+begin_src emacs-lisp
-  (setq org-roam-database-connector 'sqlite3)
-#+end_src
-
-[[https://melpa.org/#/emacsql-sqlite-module][**emacssql-sqlite-module**]] (previously emacsql-libsqlite3)
-
-~emacs-sqlite-module~ is a relatively young package which uses an Emacs module that
-exposes parts of the SQLite C API to Emacs Lisp, instead of using subprocess as
-~emacsql-sqlite~ does. It is expected to be a more performant drop-in
-replacement for ~emacs-sqlite~.
-
-#+begin_src emacs-lisp
-  (setq org-roam-database-connector 'sqlite-module)
-#+end_src
-
-[[https://melpa.org/#/emacsql-sqlite-builtin][**emacsql-sqlite-builtin**]]
-
-~emacsql-sqlite-builtin~ uses the in-built SQLite support for Emacs 29 and
-later. This is the recommended option if you are using a version of Emacs that
-supports it.
-
-#+begin_src emacs-lisp
-  (setq org-roam-database-connector 'sqlite-builtin)
-#+end_src
+Org-roam uses a SQLite database to perform caching.  This integration is
+managed by the [[https://github.com/magit/emacsql][emacsql]] library.  It should "just work".
 
 ** What to cache
 
@@ -527,7 +445,7 @@ property to a non-nil value. For example:
 One can also set ~org-roam-db-node-include-function~. For example, to exclude
 all headlines with the ~ATTACH~ tag from the Org-roam database, one can set:
 
-#+begin_src org
+#+begin_src emacs-lisp
 (setq org-roam-db-node-include-function
       (lambda ()
         (not (member "ATTACH" (org-get-tags)))))
@@ -628,7 +546,7 @@ There are currently 3 provided widget types:
 - Unlinked references :: View nodes that contain text that match the nodes
   title/alias but are not linked
 
-To configure what sections are displayed in the buffer, set ~org-roam-mode-sections.
+To configure what sections are displayed in the buffer, set ~org-roam-mode-sections~.
 
 #+begin_src emacs-lisp
   (setq org-roam-mode-sections
@@ -1672,21 +1590,6 @@ to the publishing directory.  Example code follows:
                                          (kill-buffer (file-name-nondirectory svg))
                                          (setq my-publish-time 0)))))
 #+end_src
-** I'm seeing this "Selecting deleted buffer" error. What do I do?
-
-The "selecting deleted buffer" error usually occurs when you don't have a
-working ~emacsql-sqlite~ executable. Org-roam relies on this executable to
-function properly, and doesn't catch this error. This issue is most commonly
-seen on Windows setups. You can browse through the various GitHub issues posted
-about this [[https://github.com/org-roam/org-roam/issues?q=is%3Aissue+selecting+deleted][here]].
-
-To fix this, you can try the following:
-
-1. If on Windows, try replacing your system binary with [[https://github.com/nobiot/emacsql-sqlite.exe][this one]] that has been proven
-   to work
-2. Use the ~emacsql-sqlite3~ option rather than compiling your own emacsql
-   binary (see [[*How to cache][How to cache]]).
-
 * Developer's Guide to Org-roam
 ** Org-roam's Design Principle
 
@@ -1832,7 +1735,7 @@ When GOTO is non-nil, go the note without creating an entry."
 :END:
 
 #+BEGIN_QUOTE
-Copyright (C) 2020-2022 Jethro Kuan <jethrokuan95@gmail.com>
+Copyright (C) 2020-2025 Jethro Kuan <jethrokuan95@gmail.com>
 
 You can redistribute this document and/or modify it under the terms
 of the GNU General Public License as published by the Free Software
