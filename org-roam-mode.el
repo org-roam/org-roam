@@ -688,38 +688,38 @@ References from FILE are excluded."
                                 (shell-command-to-string "rg --pcre2-version"))))
     (let* ((titles (cons (org-roam-node-title node)
                          (org-roam-node-aliases node)))
-	   ;; Create temp file for the regex pattern
+           ;; Create temp file for the regex pattern
            (temp-file (make-temp-file "org-roam-rg-pattern-"))
            (rg-command (org-roam-unlinked-references--rg-command titles temp-file)))
       ;; Use unwind-protect to ensure temp file cleanup even if errors occur
       (unwind-protect
           (let* ((results (split-string (shell-command-to-string rg-command) "\n"))
                  f row col match)
-      (magit-insert-section (unlinked-references)
-        (magit-insert-heading "Unlinked References:")
-        (dolist (line results)
-          (save-match-data
-            (when (string-match org-roam-unlinked-references-result-re line)
-              (setq f (match-string 1 line)
-                    row (string-to-number (match-string 2 line))
-                    col (string-to-number (match-string 3 line))
-                    match (match-string 4 line))
-              (when (and match
-                         (not (file-equal-p (org-roam-node-file node) f))
-                         (member (downcase match) (mapcar #'downcase titles)))
-                (magit-insert-section section (org-roam-grep-section)
-                  (oset section file f)
-                  (oset section row row)
-                  (oset section col col)
-                  (insert (propertize (format "%s:%s:%s"
-                                              (truncate-string-to-width (file-name-base f) 15 nil nil t)
-                                              row col) 'font-lock-face 'org-roam-dim)
-                          " "
-                          (org-roam-fontify-like-in-org-mode
-                           (org-roam-unlinked-references-preview-line f row))
-                          "\n"))))))
-            (insert ?\n)))
-	;; Clean up temp file - this runs even if an error occurs above
+            (magit-insert-section (unlinked-references)
+              (magit-insert-heading "Unlinked References:")
+              (dolist (line results)
+                (save-match-data
+                  (when (string-match org-roam-unlinked-references-result-re line)
+                    (setq f (match-string 1 line)
+                          row (string-to-number (match-string 2 line))
+                          col (string-to-number (match-string 3 line))
+                          match (match-string 4 line))
+                    (when (and match
+                               (not (file-equal-p (org-roam-node-file node) f))
+                               (member (downcase match) (mapcar #'downcase titles)))
+                      (magit-insert-section section (org-roam-grep-section)
+                        (oset section file f)
+                        (oset section row row)
+                        (oset section col col)
+                        (insert (propertize (format "%s:%s:%s"
+                                                    (truncate-string-to-width (file-name-base f) 15 nil nil t)
+                                                    row col) 'font-lock-face 'org-roam-dim)
+                                " "
+                                (org-roam-fontify-like-in-org-mode
+                                 (org-roam-unlinked-references-preview-line f row))
+                                "\n"))))))
+              (insert ?\n)))
+        ;; Clean up temp file - this runs even if an error occurs above
         (delete-file temp-file)))))
 
 (provide 'org-roam-mode)
