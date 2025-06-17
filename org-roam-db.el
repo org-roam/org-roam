@@ -655,12 +655,14 @@ database, see `org-roam-db-sync' command."
       (add-hook 'kill-emacs-hook #'org-roam-db--close-all)
       (advice-add #'rename-file :after  #'org-roam-db-autosync--rename-file-a)
       (advice-add #'delete-file :before #'org-roam-db-autosync--delete-file-a)
+      (advice-add #'vc-delete-file :around #'org-roam-db-autosync--vc-delete-file-a)
       (org-roam-db-sync))
      (t
       (remove-hook 'find-file-hook  #'org-roam-db-autosync--setup-file-h)
       (remove-hook 'kill-emacs-hook #'org-roam-db--close-all)
       (advice-remove #'rename-file #'org-roam-db-autosync--rename-file-a)
       (advice-remove #'delete-file #'org-roam-db-autosync--delete-file-a)
+      (advice-remove #'vc-delete-file #'org-roam-db-autosync--vc-delete-file-a)
       (org-roam-db--close-all)
       ;; Disable local hooks for all org-roam buffers
       (dolist (buf (org-roam-buffer-list))
@@ -687,6 +689,17 @@ FILE is removed from the database."
              (not (backup-file-name-p file))
              (org-roam-file-p file))
     (org-roam-db-clear-file (expand-file-name file))))
+
+(defun org-roam-db-autosync--vc-delete-file-a (fun file)
+  "Maintain cache consistency on file deletion by FUN.
+FILE is removed from the database."
+  (let ((org-roam-file-p (and (not (auto-save-file-name-p file))
+                              (not (backup-file-name-p file))
+                              (org-roam-file-p file))))
+    (apply fun `(,file))
+    (when (and org-roam-file-p
+               (not (file-exists-p file)))
+      (org-roam-db-clear-file (expand-file-name file)))))
 
 (defun org-roam-db-autosync--rename-file-a (old-file new-file-or-dir &rest _args)
   "Maintain cache consistency of file rename.
