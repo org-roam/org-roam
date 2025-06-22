@@ -343,6 +343,24 @@ The hooks must not move the point."
   :group 'org-roam
   :type 'hook)
 
+(defcustom org-roam-capture-delete-aborted-files 'ask
+  "What to do when a new capture is aborted.
+When running `org-capture-kill':
+- if `ask' (the default) ask whether to delete the new file.
+- if t always delete the file
+- if nil never delete
+- any other value is called as a function and should return one of the
+  above values.
+
+Internally, this functionality is controlled by the function
+`org-roam-capture--check-aborted-delete'."
+  :group 'org-roam
+  :type '(choice
+          (const :tag "Ask whether to delete the new file" ask)
+          (const :tag "Always delete the file" t)
+          (const :tag "Never delete the file" nil)
+          (function :tag "Call with no arguments to get one of the above values")))
+
 (defvar org-roam-capture-preface-hook nil
   "Hook run when Org-roam tries to determine capture location of the node.
 If any hook returns a value (which should be an ID), all hooks
@@ -705,11 +723,19 @@ the current value of `point'."
   (when (org-roam-capture-p)
     (add-hook 'org-capture-after-finalize-hook #'org-roam-capture--finalize)))
 
+(defun org-roam-capture--check-aborted-delete ()
+  "Return non-nil if aborted captures' files should be deleted."
+  (pcase org-roam-capture-delete-aborted-files
+    ('ask (yes-or-no-p "Delete file for aborted capture?"))
+    ('nil nil)
+    ('t t)
+    (_ (funcall org-roam-capture-delete-aborted-files))))
+
 (defun org-roam-capture--finalize ()
   "Finalize the `org-roam-capture' process."
   (if org-note-abort
       (when-let ((new-file (org-roam-capture--get :new-file))
-                 (_ (yes-or-no-p "Delete file for aborted capture?")))
+                 (_ (org-roam-capture--check-aborted-delete)))
         (when (find-buffer-visiting new-file)
           (kill-buffer (find-buffer-visiting new-file)))
         (delete-file new-file))
