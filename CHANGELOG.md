@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.3.1 (2025-06-26)
+
+* (fix): Use correct type specifications to suppress warnings by @okomestudio in https://github.com/org-roam/org-roam/pull/2522
+* perf: suppress extra org features in the temp buffer by @dustinfarris in https://github.com/org-roam/org-roam/pull/2524
+
 ## 2.3.0 (2025-05-24)
 
 * (perf)node-read: filter before map to candidate by @russmatney in https://github.com/org-roam/org-roam/pull/2168
