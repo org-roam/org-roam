@@ -108,7 +108,7 @@ ROAM_REFS."
   :type '(alist))
 
 ;;; Variables
-(defconst org-roam-db-version 20)
+(defconst org-roam-db-version 21)
 
 (defvar org-roam-db--connection (make-hash-table :test #'equal)
   "Database connection to Org-roam database.")
@@ -181,6 +181,7 @@ The query is expected to be able to fail, in this situation, run HANDLER."
        priority
        (scheduled text)
        (deadline text)
+       (closed text)
        title
        properties
        olp]
@@ -311,6 +312,12 @@ If HASH is non-nil, use that as the file's hash without recalculating it."
   (when-let ((time (org-get-deadline-time (point))))
     (format-time-string "%FT%T" time)))
 
+(defun org-roam-db-get-closed-time ()
+  "Return the closed time at point in ISO8601 format."
+  (when-let* ((closed (org-entry-get (point) "CLOSED"))
+              (time (org-time-string-to-time closed)))
+    (format-time-string "%FT%T" time)))
+
 (defun org-roam-db-node-p ()
   "Return t if headline at point is an Org-roam node, else return nil."
   (and (org-id-get)
@@ -376,6 +383,7 @@ INFO is the org-element parsed buffer."
                (priority nil)
                (scheduled nil)
                (deadline nil)
+               (closed nil)
                (level 0)
                (tags org-file-tags)
                (properties (org-entry-properties))
@@ -388,7 +396,7 @@ INFO is the org-element parsed buffer."
            [:insert :into nodes
             :values $v1]
            (vector id file level pos todo priority
-                   scheduled deadline title properties olp))
+                   scheduled deadline closed title properties olp))
           (when tags
             (org-roam-db-query
              [:insert :into tags
@@ -410,6 +418,7 @@ INFO is the org-element parsed buffer."
            (level (nth 1 heading-components))
            (scheduled (org-roam-db-get-scheduled-time))
            (deadline (org-roam-db-get-deadline-time))
+           (closed (org-roam-db-get-closed-time))
            (title (or (nth 4 heading-components)
                       (progn (lwarn 'org-roam :warning "Node in %s:%s:%s has no title, skipping..."
                                     file
@@ -427,7 +436,7 @@ INFO is the org-element parsed buffer."
        [:insert :into nodes
         :values $v1]
        (vector id file level pos todo priority
-               scheduled deadline title properties olp)))))
+               scheduled deadline closed title properties olp)))))
 
 (defun org-roam-db-insert-aliases ()
   "Insert aliases for node at point into Org-roam cache."
