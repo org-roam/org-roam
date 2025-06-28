@@ -71,12 +71,6 @@ jobs:
 
             This pull request was automatically closed due to **6 months of inactivity** followed by 2 weeks notice.
 
-            **To reopen:**
-            - If still relevant, comment below or push new commits
-            - Or create a new PR with updated changes
-
-            If this PR is not reopened in 2 weeks, it will be locked.
-
           # Timing (6 months + 2 weeks)
           days-before-stale: 182  # ~6 months
           days-before-close: 14   # 2 weeks notice
@@ -97,26 +91,3 @@ jobs:
           echo "2. Click 'Run workflow'"
           echo "3. Leave 'Dry run mode' unchecked"
           echo "4. Click 'Run workflow'"
-
-  lock:
-    runs-on: ubuntu-latest
-    needs: stale
-    # Only run lock job if NOT in dry run mode
-    if: github.event.inputs.dry_run != 'true'
-    steps:
-      # Lock issues/PRs that have been closed for 2 weeks or more
-      - name: Lock closed issues
-        uses: dessant/lock-threads@v5
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          issue-inactive-days: 14
-          issue-lock-reason: 'resolved'
-          process-only: 'issues'
-
-      - name: Lock closed PRs
-        uses: dessant/lock-threads@v5
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          pr-inactive-days: 14
-          pr-lock-reason: 'resolved'
-          process-only: 'prs'
