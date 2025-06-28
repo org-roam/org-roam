@@ -435,10 +435,6 @@ dependencies that it requires. These include:
 @item
 dash
 @item
-f
-@item
-s
-@item
 org
 @item
 emacsql
