@@ -8,7 +8,7 @@
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
 ;; Version: 2.3.1
-;; Package-Requires: ((emacs "26.1") (dash "2.13") (org-roam "2.1"))
+;; Package-Requires: ((emacs "26.1") (org-roam "2.1"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -37,7 +37,6 @@
 ;; scratch notes or whatever else you can think of.
 ;;
 ;;; Code:
-(require 'dash)
 (require 'org-roam)
 
 ;;; Faces
@@ -270,12 +269,12 @@ negative, find note N days in the future."
 EXTRA-FILES can be used to append extra files to the list."
   (let ((dir (expand-file-name org-roam-dailies-directory org-roam-directory))
         (regexp (rx-to-string `(seq (literal ".") (or ,@org-roam-file-extensions) eos))))
-    (append (--remove (let ((file (file-name-nondirectory it)))
-                        (when (or (auto-save-file-name-p file)
-                                  (backup-file-name-p file)
-                                  (string-match "^\\." file))
-                          it))
-                      (directory-files-recursively dir regexp))
+    (append (seq-remove (lambda (file)
+                          (let ((name (file-name-nondirectory file)))
+                            (or (auto-save-file-name-p name)
+                                (backup-file-name-p name)
+                                (string-match "^\\." name))))
+                        (directory-files-recursively dir regexp))
             extra-files)))
 
 (defun org-roam-dailies--daily-note-p (&optional file)

@@ -6,7 +6,7 @@
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
 ;; Version: 2.3.1
-;; Package-Requires: ((emacs "26.1") (compat "30.1") (dash "2.13") (org "9.6") (emacsql "4.1.0") (magit-section "3.0.0"))
+;; Package-Requires: ((emacs "26.1") (compat "30.1") (org "9.6") (emacsql "4.1.0") (magit-section "3.0.0"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -71,7 +71,6 @@
 ;; majority of them can be found at https://github.com/org-roam and MELPA.
 ;;
 ;;; Code:
-(require 'dash)
 
 (require 'rx)
 (require 'seq)
@@ -253,8 +252,7 @@ If BUFFER is not specified, use the current buffer."
 
 (defun org-roam-buffer-list ()
   "Return a list of buffers that are Org-roam files."
-  (--filter (org-roam-buffer-p it)
-            (buffer-list)))
+  (seq-filter (lambda (buf) (org-roam-buffer-p buf)) (buffer-list)))
 
 (defun org-roam--file-name-extension (filename)
   "Return file name extension for FILENAME.
@@ -294,12 +292,12 @@ Use external shell commands if defined in `org-roam-list-files-commands'."
 (defun org-roam--shell-command-files (cmd)
   "Run CMD in the shell and return a list of files.
 If no files are found, an empty list is returned."
-  (--> cmd
-       (shell-command-to-string it)
-       (ansi-color-filter-apply it)
-       (split-string it "\n")
-       (seq-filter (lambda (s)
-                     (not (or (null s) (string= "" s)))) it)))
+  (thread-last cmd
+               shell-command-to-string
+               ansi-color-filter-apply
+               (funcall (lambda (str) (split-string str "\n")))
+               (seq-filter (lambda (s)
+                             (not (or (null s) (string= "" s)))))))
 
 (defun org-roam--list-files-search-globs (exts)
   "Given EXTS, return a list of search globs.

@@ -221,7 +221,6 @@ Org-roam library. Add the following code to your ~.emacs~:
 You now have Org-roam installed. However, you don't necessarily have the
 dependencies that it requires. These include:
 
-- dash
 - org
 - emacsql
 - magit-section

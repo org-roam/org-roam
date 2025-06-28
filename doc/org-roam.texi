@@ -433,8 +433,6 @@ dependencies that it requires. These include:
 
 @itemize
 @item
-dash
-@item
 org
 @item
 emacsql
