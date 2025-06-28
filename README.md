@@ -151,8 +151,6 @@ In both of the cases you will need to ensure that you have all the required
 dependencies. These include:
 
 - dash
-- f
-- s
 - org (9.6 is the minimum required version!)
 - emacsql
 - magit-section
