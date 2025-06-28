@@ -222,8 +222,6 @@ You now have Org-roam installed. However, you don't necessarily have the
 dependencies that it requires. These include:
 
 - dash
-- f
-- s
 - org
 - emacsql
 - magit-section
