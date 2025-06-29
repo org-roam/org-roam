@@ -1,127 +1,94 @@
 -include ../config.mk
-include ../default.mk
 
-###################################################################
-MANUAL_HTML_ARGS = --css-ref assets/page.css
+## User options ######################################################
+#
+# You can override these settings in "config.mk" or on the command
+# line.
 
-.PHONY: texi install clean AUTHORS.md stats
+sharedir ?= $(HOME)/.local/share
+infodir  ?= $(sharedir)/info
 
-all: info
+EMACS ?= emacs
+BATCH = $(EMACS) -Q --batch
+
+INSTALL_INFO     ?= $(shell command -v ginstall-info || printf install-info)
+MAKEINFO         ?= makeinfo
+MANUAL_HTML_ARGS ?= --css-ref assets/page.css
+
+## Files #############################################################
+
+PKG       = org-roam
+PACKAGES  = org-roam
+
+INFOPAGES = $(addsuffix .info,$(PACKAGES))
+HTMLFILES = $(addsuffix .html,$(PACKAGES))
+
+## Versions ##########################################################
+
+EMACS_VERSION = 26.1
+
+EMACSOLD := $(shell $(BATCH) --eval \
+  "(and (version< emacs-version \"$(EMACS_VERSION)\") (princ \"true\"))")
+ifeq "$(EMACSOLD)" "true"
+  $(error At least version $(EMACS_VERSION) of Emacs is required)
+endif
+
+######################################################################
+
+.PHONY: default
+default: info
 
 ## Build #############################################################
 
-info: $(INFOPAGES) dir
-html: $(HTMLFILES)
-pdf:  $(PDFFILES)
-epub: $(EPUBFILES)
+.PHONY: info
+info: dir
+
+dir: $(INFOPAGES)
+	@printf "Generating dir\n"
+	@echo $^ | xargs -n 1 $(INSTALL_INFO) --dir=$@
 
 %.info: %.texi
 	@printf "Generating $@\n"
 	@$(MAKEINFO) --no-split $< -o $@
 
-dir: org-roam.info
-	@printf "Generating dir\n"
-	@echo $^ | xargs -n 1 $(INSTALL_INFO) --dir=$@
+.PHONY: html
+html: $(HTMLFILES)
+	mv $(PKG).html manual.html
 
 %.html: %.texi
 	@printf "Generating $@\n"
 	@$(MAKEINFO) --html --no-split $(MANUAL_HTML_ARGS) $<
 
-html-dir:
-	@$(MAKEINFO) --html --no-split $(MANUAL_HTML_ARGS) org-roam.texi
-	mv org-roam.html manual.html
-
-%.pdf: %.texi
-	@printf "Generating $@\n"
-	@texi2pdf --clean $< > /dev/null
-
-%.epub: %.texi
-	@printf "Generating $@\n"
-	@$(MAKEINFO) --docbook $< -o epub.xml
-	@xsltproc $(DOCBOOK_XSL) epub.xml 2> /dev/null
-	@echo "application/epub+zip" > mimetype
-	@zip -X --quiet --recurse-paths -0 $@ mimetype
-	@zip -X --quiet --recurse-paths -9 --no-dir-entries $@ META-INF OEBPS
-	@$(RMDIR) $(EPUBTRASH)
-
-## Install ###########################################################
-
-install: install-info install-docs
-
-install-docs: install-info
-	@$(MKDIR) $(DESTDIR)$(docdir)
-	$(CP) AUTHORS.md $(DESTDIR)$(docdir)
-
-install-info: info
-	@$(MKDIR) $(DESTDIR)$(infodir)
-	$(CP) $(INFOPAGES) $(DESTDIR)$(infodir)
-
-## Clean #############################################################
-
-clean:
-	@printf "Cleaning doc/*...\n"
-	@$(RMDIR) dir $(INFOPAGES) $(HTMLFILES) $(HTMLDIRS) $(PDFFILES)
-	@$(RMDIR) $(EPUBFILES) $(EPUBTRASH)
-
-## Release management ################################################
-
-ORG_ARGS  = --batch -Q $(ORG_LOAD_PATH)
-ORG_ARGS += -l ox-extra -l ox-texinfo+
-ORG_ARGS += --eval "(or (require 'org-man nil t) (require 'ol-man))"
-ORG_EVAL  = --eval "(ox-extras-activate '(ignore-headlines))"
 ORG_EVAL += --eval "(setq indent-tabs-mode nil)"
 ORG_EVAL += --eval "(setq org-src-preserve-indentation nil)"
 ORG_EVAL += --funcall org-texinfo-export-to-texinfo
 
-# This target first bumps version strings in the Org source.  The
-# necessary tools might be missing so other targets do not depend
-# on this target and it has to be run explicitly when appropriate.
-#
-#   AMEND=t make texi    Update manual to be amended to HEAD.
-#   VERSION=N make texi  Update manual for release.
-#
-texi:
-	@$(EMACSBIN) $(ORG_ARGS) $(PKG).org $(ORG_EVAL)
-	@printf "\n" >> $(PKG).texi
-	@rm -f $(PKG).texi~
+# NOTE: %.org is not a prerequisite since package archives can’t generate texi
+# from org. texi is generated on org save and committed to repo
+%.texi:
+	@echo "Generating $@"
+	@$(BATCH) $*.org $(ORG_EVAL)
 
-stats:
-	@printf "Generating statistics\n"
-	@gitstats -c style=/assets/stats.css -c max_authors=999 $(TOP) $(statsdir)
+## Install ###########################################################
 
-authors: AUTHORS.md
+.PHONY: install
+install: install-info
 
-AUTHORS.md:
-	@printf "Generating AUTHORS.md..."
-	@test -e $(TOP).git \
-	&& (printf "$$AUTHORS_HEADER\n" > $@ \
-	&& git log --pretty=format:'- %aN <%aE>' | sort -u >> $@ \
-	&& printf "done\n" ; ) \
-	|| printf "FAILED (non-fatal)\n"
+.PHONY: install-info
+install-info: info
+	install -p -m 755 -d $(DESTDIR)$(infodir)
+	install -p -m 644 $(INFOPAGES) $(DESTDIR)$(infodir)
 
-# Templates ##########################################################
+## Clean #############################################################
 
-define AUTHORS_HEADER
-Authors
-=======
+.PHONY: clean
+clean:
+	@echo "Cleaning doc/*..."
+	@rm -rf dir $(INFOPAGES) $(HTMLFILES)
 
-The following people have contributed to Org-Roam.
+## Release management ################################################
 
-Names below are sorted alphabetically.
-
-Author
-------
-
-- Jethro Kuan <jethrokuan95@gmail.com>
-
-Maintainers
-----------
-
-- Jethro Kuan <jethrokuan95@gmail.com>
-- Leo Vivier <leo.vivier+dev@gmail.com>
-
-Contributors
-------------
-
-endef
-export AUTHORS_HEADER
+# Run VERSION=N make -C doc release-texi to explicitly set version when releasing
+.PHONY: release-texi
+release-texi:
+	VERSION=$(VERSION) $(MAKE) -B $(PKG).texi

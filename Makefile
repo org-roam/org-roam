@@ -1,6 +1,7 @@
 .PHONY: clean
 clean:
 	eldev clean all
+	$(MAKE) -C doc clean
 
 .PHONY: prepare
 prepare:
@@ -14,16 +15,17 @@ lint:
 test:
 	eldev -C --unstable -T test
 
+.PHONY: docs
 docs:
-	make -C doc all
+	$(MAKE) -C doc
 
+.PHONY: html
 html:
-	make -C doc html-dir
+	$(MAKE) -C doc html
 
+.PHONY: install
 install: install-docs
 
-install-docs: docs
-	make -C doc install-docs
-
-install-info: info
-	make -C doc install-info
+.PHONY: install-docs
+install-docs:
+	$(MAKE) -C doc install
