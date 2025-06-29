@@ -1028,14 +1028,14 @@ If you're using the [[https://formulae.brew.sh/formula/emacs][Emacs Homebrew for
 
 a) Add option `-c` to `emacsclient` in the script, and start emacs from command line with `emacs --daemon`
 
-#+begin_src emacs-lisp
+  #+begin_src emacs-lisp
   on open location this_URL
       set EC to "/usr/local/bin/emacsclient -c --no-wait "
       set filePath to quoted form of this_URL
       do shell script EC & filePath & " &> /dev/null &"
       tell application "Emacs" to activate
   end open location
-#+end_src
+  #+end_src
 
 b) Add `(server-start)` in .emacs (in this case you do not need option `-c` for `emacsclient` in the script, and you do not need to start emacs with `emacs --daemon`
 
@@ -1800,4 +1800,5 @@ an Org file code block (like =#+BEGIN_SRC emacs-lisp=).
 # after-save-hook: org-texinfo-export-to-info
 # indent-tabs-mode: nil
 # org-src-preserve-indentation: nil
+# org-list-allow-alphabetical: t
 # End:
