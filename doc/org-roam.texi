@@ -1427,7 +1427,6 @@ If you're using the @uref{https://formulae.brew.sh/formula/emacs, Emacs Homebrew
 @enumerate
 @item
 Add option `-c` to `emacsclient` in the script, and start emacs from command line with `emacs --daemon`
-@end enumerate
 
 @lisp
 on open location this_URL
@@ -1438,7 +1437,6 @@ on open location this_URL
 end open location
 @end lisp
 
-@enumerate
 @item
 Add `(server-start)` in .emacs (in this case you do not need option `-c` for `emacsclient` in the script, and you do not need to start emacs with `emacs --daemon`
 @end enumerate
