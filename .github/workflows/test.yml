@@ -1,7 +1,4 @@
-# * test.yml --- Test Emacs packages using makem.sh on GitHub Actions
-
-# https://github.com/alphapapa/makem.sh
-
+---
 # Based on Steve Purcell's examples at
 # <https://github.com/purcell/setup-emacs/blob/master/.github/workflows/test.yml>,
 # <https://github.com/purcell/package-lint/blob/master/.github/workflows/test.yml>.
@@ -23,7 +20,7 @@
 
 # * Code:
 
-name: "CI"
+name: CI
 on:
   pull_request:
   push:
@@ -47,10 +44,10 @@ jobs:
         with:
           version: ${{ matrix.emacs_version }}
 
-      - uses: actions/checkout@v2
-
       - name: Install Eldev
-        run: curl -fsSL https://raw.github.com/org-roam/org-roam/master/github-eldev | sh
+        uses: emacs-eldev/setup-eldev@v1
+
+      - uses: actions/checkout@v4
 
       - name: Install dependencies
         run: make prepare
@@ -60,6 +57,7 @@ jobs:
 
       - name: Test
         run: make test
+
 # Local Variables:
 # eval: (outline-minor-mode)
 # End:

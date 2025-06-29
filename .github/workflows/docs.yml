@@ -1,6 +1,7 @@
+---
 # * docs.yml --- Build the documentation and publish to Github Pages
 
-name: "Docs"
+name: Docs
 on:
   push:
     branches:
@@ -9,23 +10,18 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: true
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
-    - name: Install deps
-      run: |
-        sudo apt-get install texinfo
+      - name: Install deps
+        run: sudo apt install texinfo
 
-    - name: Build docs
-      continue-on-error: false
-      run: make html
+      - name: Build docs
+        run: make html
 
-    - name: Deploy 🚀
-      uses: JamesIves/github-pages-deploy-action@releases/v3
-      with:
-        ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-        BRANCH: gh-pages # The branch the action should deploy to.
-        FOLDER: doc # The folder the action should deploy.
-        CLEAN: true
+      - name: Deploy 🚀
+        uses: JamesIves/github-pages-deploy-action@releases/v4
+        with:
+          branch: gh-pages # The branch the action should deploy to.
+          folder: doc
+          clean: true
