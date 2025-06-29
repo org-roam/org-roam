@@ -58,6 +58,27 @@ jobs:
       - name: Test
         run: make test
 
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install deps
+        run: sudo apt install texinfo
+
+      - name: Build docs
+        run: make html
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: Docs
+          if-no-files-found: error
+          # TODO: optimize images
+          path: |
+            doc/
+            !doc/images/
+
 # Local Variables:
 # eval: (outline-minor-mode)
 # End:
