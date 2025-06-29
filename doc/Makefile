@@ -66,7 +66,7 @@ clean:
 ## Release management ################################################
 
 ORG_ARGS  = --batch -Q $(ORG_LOAD_PATH)
-ORG_ARGS += -l ox-extra -l ox-texinfo+
+ORG_ARGS += -l ox-extra
 ORG_ARGS += --eval "(or (require 'org-man nil t) (require 'ol-man))"
 ORG_EVAL  = --eval "(ox-extras-activate '(ignore-headlines))"
 ORG_EVAL += --eval "(setq indent-tabs-mode nil)"
