@@ -154,7 +154,6 @@ dependencies. These include:
 - org (9.6 is the minimum required version!)
 - emacsql
 - magit-section
-- filenotify-recursive
 
 After installing the package, you will need to properly setup `load-path` to the
 package:
