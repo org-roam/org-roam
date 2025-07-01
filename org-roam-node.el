@@ -810,10 +810,9 @@ Assumes that the cursor was put where the link is."
 (defun org-roam-link-replace-all ()
   "Replace all \"roam:\" links in buffer with \"id:\" links."
   (interactive)
-  (let ((org-roam-link-prefix (concat "[[" org-roam-link-type ":")))
-    (org-with-point-at 1
-      (while (re-search-forward org-roam-link-prefix nil t)
-        (org-roam-link-replace-at-point)))))
+  (org-with-point-at 1
+    (while (search-forward (concat "[[" org-roam-link-type ":") nil t)
+      (org-roam-link-replace-at-point))))
 
 (add-hook 'org-roam-find-file-hook #'org-roam--replace-roam-links-on-save-h)
 (defun org-roam--replace-roam-links-on-save-h ()
