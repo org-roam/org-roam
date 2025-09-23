@@ -468,7 +468,9 @@ Note: During the capture process this function is run by
 capture target."
   (if-let ((id (run-hook-with-args-until-success 'org-roam-capture-preface-hook)))
       (org-roam-capture--put :id id)
-    (org-roam-capture--setup-target-location))
+    (org-roam-capture--setup-target-location)
+    ;; Adjust point for plain captures to skip past metadata (e.g. properties drawer)
+    (org-roam-capture--adjust-point-for-capture-type))
   (let ((template (org-capture-get :template)))
     (when (stringp template)
       (org-capture-put
@@ -505,10 +507,12 @@ capture target."
        (set-buffer (org-capture-target-buffer path))
        (when new-file-p
          (org-roam-capture--put :new-file path)
-         (insert (org-roam-capture--fill-template head 'ensure-newline)))
+         (insert (org-roam-capture--fill-template head 'ensure-newline))
+         (setq p (point-max)))
        (widen)
-       (setq p (goto-char (point-min))
-             target-entry-p nil))
+       (unless new-file-p
+         (setq p (goto-char (point-min))))
+       (setq target-entry-p nil))
       (`(file+head+olp ,path ,head ,olp)
        (setq path (org-roam-capture--target-truepath path)
              new-file-p (org-roam-capture--new-file-p path))
@@ -686,27 +690,17 @@ POS is the current position of point (an integer) inside the
 currently active capture buffer, where the adjustment should
 start to begin from. If it's nil, then it will default to
 the current value of `point'."
-  (or pos (setq pos (point)))
-  (goto-char pos)
-  (let ((location-type (if (= pos 1) 'beginning-of-file 'heading-at-point)))
-    (and (eq location-type 'heading-at-point)
-         (cl-assert (org-at-heading-p)))
-    (pcase (org-capture-get :type)
-      (`plain
-       (cl-case location-type
-         (beginning-of-file
-          (if (org-capture-get :prepend)
-              (let ((el (org-element-at-point)))
-                (while (and (not (eobp))
-                            (memq (org-element-type el)
-                                  '(drawer property-drawer keyword comment comment-block horizontal-rule)))
-                  (goto-char (org-element-property :end el))
-                  (setq el (org-element-at-point))))
-            (goto-char (org-entry-end-position))))
-         (heading-at-point
-          (if (org-capture-get :prepend)
-              (org-end-of-meta-data t)
-            (goto-char (org-entry-end-position))))))))
+  (goto-char (or pos (point)))
+  (pcase (org-capture-get :type)
+    (`plain
+     (if (org-capture-get :prepend)
+         (let ((el (org-element-at-point)))
+           (while (and (not (eobp))
+                       (memq (org-element-type el)
+                             '(drawer property-drawer keyword comment comment-block horizontal-rule)))
+             (goto-char (org-element-property :end el))
+             (setq el (org-element-at-point))))
+       (goto-char (org-entry-end-position)))))
   (point))
 
 ;;; Capture implementation

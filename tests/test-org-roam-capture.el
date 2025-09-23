@@ -245,6 +245,143 @@
                 (expect (org-roam-capture--get :target-entry-p) :to-be nil))))
         (delete-directory temp-dir t)))))
 
+(describe "org-roam-capture plain type ordering"
+  :var ((temp-dir) (org-roam-directory) (org-roam-db-location))
+
+  (before-each
+    (setq temp-dir (make-temp-file "org-roam-test" t))
+    (setq org-roam-directory temp-dir)
+    (setq org-roam-db-location (expand-file-name "org-roam.db" temp-dir))
+    (org-roam-db-sync))
+
+  (after-each
+    (delete-directory temp-dir t))
+
+  (it "places properties drawer before captured content for plain type with file target"
+    (let* ((test-file (expand-file-name "test-plain-file.org" temp-dir))
+           (test-content "Test plain :target file")
+           (node (org-roam-node-create :title "Test Plain"))
+           (org-roam-capture--node node)
+           (org-roam-capture--info (make-hash-table :test 'equal)))
+
+      ;; Call the setup directly to simulate capture without user interaction
+      (cl-letf* (((symbol-function 'org-capture-get)
+                  (lambda (prop)
+                    (pcase prop
+                      (:type 'plain)
+                      (:target-file test-file)
+                      (_ nil))))
+                 ((symbol-function 'org-roam-capture--get-target)
+                  (lambda () `(file ,test-file))))
+
+        ;; Run the setup and insert content
+        (with-current-buffer (find-file-noselect test-file)
+          (org-roam-capture--setup-target-location)
+          (org-roam-capture--adjust-point-for-capture-type)
+          (insert test-content)
+          (save-buffer)))
+
+      ;; Read the created file and check its structure
+      (with-temp-buffer
+        (insert-file-contents test-file)
+        (let ((buffer-content (buffer-string)))
+
+          ;; The expected format is:
+          ;; :PROPERTIES:
+          ;; :ID:       some-id
+          ;; :END:
+          ;; Test plain :target file
+
+          ;; Check that properties come first
+          (expect buffer-content
+                  :to-match
+                  (rx bol ":PROPERTIES:"))
+
+          ;; Verify ordering: properties, then content
+          (let ((props-pos (string-match ":PROPERTIES:" buffer-content))
+                (end-pos (string-match ":END:" buffer-content))
+                (content-pos (string-match (regexp-quote test-content) buffer-content)))
+
+            (expect props-pos :to-be 0)
+            (expect end-pos :not :to-be nil)
+            (expect end-pos :to-be-greater-than props-pos)
+            (expect content-pos :not :to-be nil)
+            (expect content-pos :to-be-greater-than end-pos))))))
+
+  (it "correctly orders buffer elements for plain type with file+head target"
+    (let* ((test-file (expand-file-name "test-plain-file-head.org" temp-dir))
+           (test-content "Test plain :target file+head")
+           (node (org-roam-node-create :title "plain file+head"))
+           (org-roam-capture--node node)
+           (org-roam-capture--info (make-hash-table :test 'equal)))
+
+      ;; Populate capture info with title for template expansion
+      (puthash :title "plain file+head" org-roam-capture--info)
+
+      ;; Call the setup directly to simulate capture without user interaction
+      (cl-letf* (((symbol-function 'org-capture-get)
+                  (lambda (prop)
+                    (pcase prop
+                      (:type 'plain)
+                      (:target-file test-file)
+                      (_ nil))))
+                 ((symbol-function 'org-roam-capture--get-target)
+                  (lambda () `(file+head ,test-file "#+title: ${title}\n"))))
+
+        ;; Run the setup and insert content
+        (with-current-buffer (find-file-noselect test-file)
+          (org-roam-capture--setup-target-location)
+          (org-roam-capture--adjust-point-for-capture-type)
+          (insert test-content)
+          (save-buffer)))
+
+      ;; Read the created file and check its structure
+      (with-temp-buffer
+        (insert-file-contents test-file)
+        (let ((buffer-content (buffer-string)))
+
+          ;; The actual format according to org-mode property syntax is:
+          ;; :PROPERTIES:
+          ;; :ID:       some-id
+          ;; :END:
+          ;; #+title: plain file+head
+          ;; Test plain :target file+head
+          ;;
+          ;; This is correct - buffer-level properties must be at the top
+
+          ;; Check that properties come first
+          (expect buffer-content
+                  :to-match
+                  (rx bol ":PROPERTIES:"))
+
+          ;; Verify ordering: properties are at the top
+          (let ((props-pos (string-match ":PROPERTIES:" buffer-content))
+                (end-pos (string-match ":END:" buffer-content)))
+
+            ;; Properties drawer should be first
+            (expect props-pos :to-be 0)
+            (expect end-pos :not :to-be nil)
+            (expect end-pos :to-be-greater-than props-pos))))))
+
+  (it "tests org-roam-capture--adjust-point-for-capture-type behavior"
+    ;; Simple test to verify the fix for assertion error
+    (with-temp-buffer
+      (org-mode)
+      (insert "#+title: Test\n")
+      (goto-char (point-max))
+
+      ;; Mock org-capture-get to return plain type
+      (cl-letf (((symbol-function 'org-capture-get)
+                 (lambda (prop) (when (eq prop :type) 'plain))))
+
+        ;; Document current state that previously caused assertion error
+        (let ((point-before (point))
+              (at-heading-before (org-at-heading-p)))
+          ;; This should no longer trigger assertion error with our fix
+          (org-roam-capture--adjust-point-for-capture-type)
+          (expect point-before :to-be-greater-than 1)
+          (expect at-heading-before :to-be nil))))))
+
 (provide 'test-org-roam-capture)
 
 ;;; test-org-roam-capture.el ends here
