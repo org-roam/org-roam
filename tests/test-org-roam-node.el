@@ -77,10 +77,22 @@
     (cd root-directory))
 
   (it "demotes an entire org buffer"
-    (find-file "tests/roam-files/demoteable.org" nil)
-    (org-roam-demote-entire-buffer)
-    (expect (buffer-substring-no-properties (point) (point-max))
-            :to-equal "* Demoteable\n:PROPERTIES:\n:ID: 97bf31cf-dfee-45d8-87a5-2ae0dabc4734\n:END:\n\n** Demoteable h1\n\n*** Demoteable child\n")))
+    (let* ((test-file "tests/roam-files/demoteable.org")
+           (buf (find-file-noselect test-file))
+           ;; Store the original content before any modifications
+           (original-content (with-current-buffer buf
+                              (buffer-substring-no-properties (point-min) (point-max)))))
+      (unwind-protect
+          (with-current-buffer buf
+            (org-roam-demote-entire-buffer)
+            (expect (buffer-substring-no-properties (point) (point-max))
+                    :to-equal "* Demoteable\n:PROPERTIES:\n:ID: 97bf31cf-dfee-45d8-87a5-2ae0dabc4734\n:END:\n\n** Demoteable h1\n\n*** Demoteable child\n"))
+        ;; Always restore the original content
+        (with-current-buffer buf
+          (erase-buffer)
+          (insert original-content)
+          (save-buffer)
+          (kill-buffer buf))))))
 
 (describe "org-roam--h1-count"
   (after-each
