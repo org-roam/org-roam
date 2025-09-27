@@ -607,7 +607,7 @@ capture target."
   "Advice to run after the Org-capture template is placed."
   (when (org-roam-capture--get :new-node-p)
     (run-hooks 'org-roam-capture-new-node-hook))
-  (advice-remove #'org-capture-place-template #'org-roam-capture--place-template-a))
+  (advice-remove #'org-capture-place-template #'org-roam-capture-run-new-node-hook-a))
 
 (defun org-roam-capture--create-id-for-entry ()
   "Create the ID for the new entry."

@@ -177,30 +177,54 @@
                               #'org-capture-place-template)
               :to-be nil)))
 
-  (it "org-roam-capture-run-new-node-hook-a runs hook when new node"
-    (let ((hook-ran nil))
+  (describe "org-roam-capture-run-new-node-hook-a"
+    (it "runs hook when new node"
+      (let ((hook-ran nil))
+        (cl-letf* (((symbol-function 'org-roam-capture--get)
+                    (lambda (prop)
+                      (if (eq prop :new-node-p)
+                          t
+                        nil))))
+
+          ;; Add test hook
+          (add-hook 'org-roam-capture-new-node-hook
+                    (lambda () (setq hook-ran t)))
+
+          ;; Add the advice
+          (advice-add #'org-capture-place-template :after #'org-roam-capture-run-new-node-hook-a)
+
+          ;; Call the function
+          (org-roam-capture-run-new-node-hook-a nil)
+
+          ;; Verify hook ran
+          (expect hook-ran :to-be t)
+
+          ;; Clean up
+          (remove-hook 'org-roam-capture-new-node-hook
+                       (lambda () (setq hook-ran t))))))
+
+    (it "removes itself as advice after running"
       (cl-letf* (((symbol-function 'org-roam-capture--get)
                   (lambda (prop)
                     (if (eq prop :new-node-p)
                         t
                       nil))))
 
-        ;; Add test hook
-        (add-hook 'org-roam-capture-new-node-hook
-                  (lambda () (setq hook-ran t)))
-
         ;; Add the advice
         (advice-add #'org-capture-place-template :after #'org-roam-capture-run-new-node-hook-a)
+
+        ;; Verify advice is added
+        (expect (advice-member-p #'org-roam-capture-run-new-node-hook-a
+                                #'org-capture-place-template)
+                :to-be-truthy)
 
         ;; Call the function
         (org-roam-capture-run-new-node-hook-a nil)
 
-        ;; Verify hook ran
-        (expect hook-ran :to-be t)
-
-        ;; Clean up
-        (remove-hook 'org-roam-capture-new-node-hook
-                     (lambda () (setq hook-ran t)))))))
+        ;; Verify advice was removed after running
+        (expect (advice-member-p #'org-roam-capture-run-new-node-hook-a
+                                #'org-capture-place-template)
+                :to-be nil)))))
 
 (describe "org-roam-capture target-entry-p detection"
   (it "detects entry target for file+olp"
