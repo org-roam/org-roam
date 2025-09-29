@@ -847,7 +847,9 @@ of the template are similar to ~org-capture~ templates.
    automatically chooses this template for you.
 2. The template is given a description of ~"default"~.
 3. ~plain~ text is inserted. Other options include Org headings via
-   ~entry~.
+   ~entry~. Note that ~entry~ type captures create regular Org headings
+   without IDs by default. To create an Org-roam node with an ID, use
+   the ~:entry-node t~ option.
 4. Notice that the ~target~ that's usually in Org-capture templates is missing
    here.
 5. ~"%?"~ is the template inserted on each call to ~org-roam-capture-~.
@@ -1220,6 +1222,10 @@ Here is a sane default configuration:
          :target (file+head "%<%Y-%m-%d>.org"
                             "#+title: %<%Y-%m-%d>\n"))))
 #+end_src
+
+Note: The ~entry~ type capture above creates a regular Org heading without an
+ID. If you want each daily entry to be an Org-roam node with its own ID, add
+~:entry-node t~ to the template.
 
 See [[*The Templating System][The Templating System]] for creating new templates.
 
