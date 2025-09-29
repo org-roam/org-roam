@@ -432,8 +432,7 @@ The INFO, if provided, is passed along to the underlying `org-roam-capture-'."
                        :info info
                        :keys keys
                        :templates templates
-                       :node node
-                       :props '(:immediate-finish nil))))
+                       :node node)))
 
 ;;; Capture process
 (defun org-roam-capture-p ()
