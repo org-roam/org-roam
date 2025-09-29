@@ -63,9 +63,11 @@ description   A short string describing the template, which will be shown
               during selection.
 
 type       The type of entry. Valid types are:
-               entry       an Org node, with a headline.  Will be filed
-                           as the child of the target entry or as a
-                           top level entry.  Its default template is:
+               entry       an Org heading.  Will be filed as the child
+                           of the target entry or as a top level entry.
+                           Use :entry-node t to create an ID for this
+                           heading, making it an org-roam node.
+                           Its default template is:
                              \"* %?\n %a\"
                item        a plain list item, will be placed in the
                            first plain list at the target location.
@@ -134,6 +136,11 @@ The following options are supported for the :target property:
 
 The rest of the entry is a property list of additional options.  Recognized
 properties are:
+
+ :entry-node         When set to t for entry-type captures, creates an ID for
+                     the captured entry heading. When nil or not specified,
+                     no ID is created for the entry. Only applies to templates
+                     with type 'entry'.
 
  :prepend            Normally newly captured information will be appended at
                      the target location (last child, last table line,
@@ -390,7 +397,7 @@ This variable is populated dynamically, and is only non-nil
 during the Org-roam capture process.")
 
 (defconst org-roam-capture--template-keywords (list :target :id :link-description :call-location
-                                                    :region)
+                                                    :region :entry-node)
   "Keywords used in `org-roam-capture-templates' specific to Org-roam.")
 
 ;;; Main entry point
@@ -578,12 +585,13 @@ capture target."
                target-entry-p (and (derived-mode-p 'org-mode) (org-at-heading-p))))))
     ;; Setup `org-id' for the current capture target and return it back to the
     ;; caller.
-    ;; Unless it's an entry type, then we want to create an ID for the entry instead
+    ;; For entry type: only create ID if :entry-node is t
     (pcase (org-capture-get :type)
       ('entry
-       (advice-add #'org-capture-place-entry :after #'org-roam-capture--create-id-for-entry)
-       (org-roam-capture--put :new-node-p t)
-       (setq id (org-roam-node-id org-roam-capture--node)))
+       (when (org-roam-capture--get :entry-node)
+         (advice-add #'org-capture-place-entry :after #'org-roam-capture--create-id-for-entry)
+         (org-roam-capture--put :new-node-p t)
+         (setq id (org-roam-node-id org-roam-capture--node))))
       (_
        (save-excursion
          (goto-char p)
@@ -610,7 +618,7 @@ capture target."
   (advice-remove #'org-capture-place-template #'org-roam-capture-run-new-node-hook-a))
 
 (defun org-roam-capture--create-id-for-entry ()
-  "Create the ID for the new entry."
+  "Create the ID for the new entry heading."
   (org-entry-put (point) "ID" (org-roam-capture--get :id))
   (advice-remove #'org-capture-place-entry #'org-roam-capture--create-id-for-entry))
 

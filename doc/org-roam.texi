@@ -1219,7 +1219,9 @@ automatically chooses this template for you.
 The template is given a description of @code{"default"}.
 @item
 @code{plain} text is inserted. Other options include Org headings via
-@code{entry}.
+@code{entry}. Note that @code{entry} type captures create regular Org headings
+without IDs by default. To create an Org-roam node with an ID, use
+the @code{:entry-node t} option.
 @item
 Notice that the @code{target} that's usually in Org-capture templates is missing
 here.
@@ -1702,6 +1704,10 @@ Here is a sane default configuration:
          :target (file+head "%<%Y-%m-%d>.org"
                             "#+title: %<%Y-%m-%d>\n"))))
 @end lisp
+
+Note: The @code{entry} type capture above creates a regular Org heading without an
+ID@. If you want each daily entry to be an Org-roam node with its own ID, add
+@code{:entry-node t} to the template.
 
 See @ref{The Templating System} for creating new templates.
 
@@ -2421,5 +2427,5 @@ When GOTO is non-nil, go the note without creating an entry."
 
 @printindex vr
 
-Emacs 30.1 (Org mode 9.7.29)
+Emacs 30.2 (Org mode 9.7.34)
 @bye
