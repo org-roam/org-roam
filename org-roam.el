@@ -320,9 +320,8 @@ E.g. (\".org\") => (\"*.org\" \"*.org.gpg\")"
 
 (defun org-roam--list-files-elisp (dir)
   "Return all Org-roam files under DIR, using Elisp based implementation."
-  (let ((regex (concat "\\.\\(?:"(mapconcat
-                                  #'regexp-quote org-roam-file-extensions
-                                  "\\|" )"\\)\\(?:\\.gpg\\|\\.age\\)?\\'"))
+  (let ((regex (org-roam--memoize :suffixes-re (rx (regexp (regexp-opt (org-roam--suffixes))) eos)))
+        (file-name-handler-alist (org-roam--file-name-handler-alist))
         result)
     (dolist (file (org-roam--directory-files-recursively dir regex nil nil t) result)
       (when (and (file-readable-p file)
