@@ -124,6 +124,14 @@ SPEC is a list, as per `dolist'."
     (string-prefix-p (replace-regexp-in-string "^\\([A-Za-z]\\):" 'downcase (expand-file-name b) t t)
                      (replace-regexp-in-string "^\\([A-Za-z]\\):" 'downcase (expand-file-name a) t t))))
 
+(defun org-roam--suffixes ()
+  "List all valid suffixes, given `org-roam-file-extensions'."
+  (org-roam--memoize 'org-roam--suffixes
+    (cl-loop for ext in org-roam-file-extensions
+             append (list (concat "." ext)
+                          (concat "." ext ".age")
+                          (concat "." ext ".gpg")))))
+
 (defun org-roam--file-name-handler-alist ()
   "Return a subset of `file-name-handler-alist'.
 This is calculated by looking at user option `org-roam-file-handlers'."
