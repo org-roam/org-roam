@@ -48,12 +48,14 @@
 
 (describe "org-roam-list-files"
   (before-each
+    (sleep-for 0.01) ;; Undo `org-roam--memoize'
     (setq org-roam-directory (expand-file-name "tests/roam-files")
           org-roam-db-location (expand-file-name "org-roam.db" temporary-file-directory)
           org-roam-file-extensions '("org")
           org-roam-file-exclude-regexp nil))
 
   (after-all
+    (sleep-for 0.01)
     (org-roam-db--close)
     (delete-file org-roam-db-location))
 
@@ -63,6 +65,7 @@
   (it "respects org-roam-file-extensions"
     (setq org-roam-file-extensions '("md"))
     (expect (length (org-roam-list-files)) :to-equal 1)
+    (sleep-for 0.01)
     (setq org-roam-file-extensions '("org" "md"))
     (expect (length (org-roam-list-files)) :to-equal 10))
 
