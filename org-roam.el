@@ -196,6 +196,18 @@ together with the method symbol as a cons cell. For example:
           (const :tag "rg" rg)
           (const :tag "elisp" nil)))
 
+(defcustom org-roam-file-handlers t
+  "List of file name handlers to allow.
+If t, allow everything in `file-name-handler-alist'.
+If not t, should be a list of symbols like the cdrs of that variable.
+
+Restricting `file-name-handler-alist' helps the performance of many
+file-name functions, such as `file-name-directory',
+`file-in-directory-p' and `file-truename'."
+  :type '(choice (const :tag "All" t)
+                 (repeat function))
+  :group 'org-roam)
+
 ;;; Library
 (defun org-roam-file-p (&optional file)
   "Return t if FILE is an Org-roam file, nil otherwise.
