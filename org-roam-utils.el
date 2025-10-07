@@ -124,6 +124,18 @@ SPEC is a list, as per `dolist'."
     (string-prefix-p (replace-regexp-in-string "^\\([A-Za-z]\\):" 'downcase (expand-file-name b) t t)
                      (replace-regexp-in-string "^\\([A-Za-z]\\):" 'downcase (expand-file-name a) t t))))
 
+(defun org-roam--file-name-handler-alist ()
+  "Return a subset of `file-name-handler-alist'.
+This is calculated by looking at user option `org-roam-file-handlers'."
+  (if (null org-roam-file-handlers)
+      nil
+    (if (eq t org-roam-file-handlers)
+        file-name-handler-alist
+      (org-roam--memoize 'org-roam--file-name-handler-alist
+        (cl-loop for (regexp . handler) in file-name-handler-alist
+                 when (member handler org-roam-file-handlers)
+                 collect (cons regexp handler))))))
+
 (defmacro org-roam-with-file (file keep-buf-p &rest body)
   "Execute BODY within FILE.
 If FILE is nil, execute BODY in the current buffer.
