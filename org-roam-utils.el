@@ -171,6 +171,28 @@ If FILE, set `default-directory' to FILE's directory and insert its contents."
              (setq-local default-directory (file-name-directory ,file)))
            ,@body)))))
 
+;;; Other utilities
+(defvar org-roam--memo-table (make-hash-table :test #'equal))
+(defvar org-roam--memo-timer
+  (thread-first (timer-create)
+                (timer-set-function #'clrhash (list org-roam--memo-table))
+                (timer-set-time most-negative-fixnum)))
+
+(defmacro org-roam--memoize (key &rest body)
+  "Eval BODY like `progn' and store non-nil result at KEY in a table.
+Repeated calls return the stored value instead of evaluating BODY again.
+
+The stored value is cleared as soon as the current call stack finishes,
+or when the likes of `sit-for' give Emacs a chance to run pending timers.
+
+If BODY ever returns nil, that trips an error."
+  (declare (indent defun))
+  `(or (gethash ,key org-roam--memo-table)
+       (prog1 (puthash ,key ,(cons 'progn body) org-roam--memo-table)
+         (unless (memq org-roam--memo-timer timer-list)
+           (timer-activate org-roam--memo-timer)))
+       (error "Do not memoize %s if BODY can evaluate to nil" ,key)))
+
 ;;; Formatting
 (defun org-roam-format-template (template replacer)
   "Format TEMPLATE with the function REPLACER.
