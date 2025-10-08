@@ -286,7 +286,7 @@ If no files are found, an empty list is returned."
 
 (defun org-roam--list-files-search-globs (exts)
   "Given EXTS, return a list of search globs.
-E.g. (\".org\") => (\"*.org\" \"*.org.gpg\")"
+E.g. (\".org\") => (\"\\\"*.org\\\"\" \"\\\"*.org.gpg\\\"\")"
   (cl-loop for e in exts
            append (list (format "\"*.%s\"" e)
                         (format "\"*.%s.gpg\"" e)
