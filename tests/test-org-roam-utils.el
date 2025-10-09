@@ -59,6 +59,18 @@
         (org-roam-db--file-title)))
     :to-equal "test file"))
 
+(describe "org-roam--memoize"
+  (it "self-clears"
+    (org-roam--memoize :foo (concat "some-" "string"))
+    (expect (gethash :foo org-roam--memo-table) :to-equal "some-string")
+    (dotimes (_ 100000)
+      (concat "block" "for" "some" "milliseconds"
+              "in" "a" "way" "that" "does" "not" "handle" "pending" "timers"
+              "unlike" "the" "Emacs" "function" "`sleep-for'"))
+    (expect (gethash :foo org-roam--memo-table) :to-equal "some-string")
+    (sleep-for 0.01)
+    (expect (gethash :foo org-roam--memo-table) :to-equal nil)))
+
 (provide 'test-org-roam-utils)
 
 ;;; test-org-roam-utils.el ends here

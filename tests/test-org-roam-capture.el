@@ -124,13 +124,9 @@
         (delete-directory temp-dir t)))))
 
 (describe "org-roam-capture advice functions"
-  :var ((org-roam-capture--info))
-
-  (before-each
-    (setq org-roam-capture--info (make-hash-table :test 'equal)))
-
   (it "org-roam-capture--create-id-for-entry creates and removes advice"
     (cl-letf* ((entry-id nil)
+               (org-roam-capture--info (make-hash-table :test 'equal))
                ((symbol-function 'org-entry-put)
                 (lambda (pom prop val)
                   (when (string= prop "ID")
@@ -155,6 +151,7 @@
 
   (it "org-roam-capture--set-target-entry-p-a sets and removes advice"
     (cl-letf* ((captured-value nil)
+               (org-roam-capture--info (make-hash-table :test 'equal))
                ((symbol-function 'org-capture-put)
                 (lambda (prop val)
                   (when (eq prop :target-entry-p)
@@ -270,7 +267,15 @@
         (delete-directory temp-dir t)))))
 
 (describe "org-roam-capture plain type ordering"
-  :var ((temp-dir) (org-roam-directory) (org-roam-db-location))
+  :var (temp-dir original-roam-directory original-roam-db-location)
+
+  (before-all
+    (setq original-roam-directory   org-roam-directory)
+    (setq original-roam-db-location org-roam-db-location))
+
+  (after-all
+    (setq org-roam-directory   original-roam-directory)
+    (setq org-roam-db-location original-roam-db-location))
 
   (before-each
     (setq temp-dir (make-temp-file "org-roam-test" t))
