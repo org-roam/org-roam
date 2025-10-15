@@ -33,6 +33,7 @@
 ;;; Code:
 
 (require 'org-roam)
+(require 'subr-x)
 
 (defun org-roam-require (libs)
   "Require LIBS."
@@ -120,9 +121,29 @@ SPEC is a list, as per `dolist'."
 ;;; File utilities
 (defun org-roam-descendant-of-p (a b)
   "Return t if A is descendant of B."
-  (unless (and a b (equal (file-truename a) (file-truename b)))
+  (unless (and a b (equal (file-truename a) (org-roam--memoize b (file-truename b))))
     (string-prefix-p (replace-regexp-in-string "^\\([A-Za-z]\\):" 'downcase (expand-file-name b) t t)
                      (replace-regexp-in-string "^\\([A-Za-z]\\):" 'downcase (expand-file-name a) t t))))
+
+(defun org-roam--suffixes ()
+  "List all valid suffixes, given `org-roam-file-extensions'."
+  (org-roam--memoize 'org-roam--suffixes
+    (cl-loop for ext in org-roam-file-extensions
+             append (list (concat "." ext)
+                          (concat "." ext ".age")
+                          (concat "." ext ".gpg")))))
+
+(defun org-roam--file-name-handler-alist ()
+  "Return a subset of `file-name-handler-alist'.
+This is calculated by looking at user option `org-roam-file-handlers'."
+  (if (null org-roam-file-handlers)
+      nil
+    (if (eq t org-roam-file-handlers)
+        file-name-handler-alist
+      (org-roam--memoize 'org-roam--file-name-handler-alist
+        (cl-loop for (regexp . handler) in file-name-handler-alist
+                 when (member handler org-roam-file-handlers)
+                 collect (cons regexp handler))))))
 
 (defmacro org-roam-with-file (file keep-buf-p &rest body)
   "Execute BODY within FILE.
@@ -170,6 +191,28 @@ If FILE, set `default-directory' to FILE's directory and insert its contents."
              (insert-file-contents ,file)
              (setq-local default-directory (file-name-directory ,file)))
            ,@body)))))
+
+;;; Other utilities
+(defvar org-roam--memo-table (make-hash-table :test #'equal))
+(defvar org-roam--memo-timer
+  (thread-first (timer-create)
+                (timer-set-function #'clrhash (list org-roam--memo-table))
+                (timer-set-time most-negative-fixnum)))
+
+(defmacro org-roam--memoize (key &rest body)
+  "Eval BODY like `progn' and store non-nil result at KEY in a table.
+Repeated calls return the stored value instead of evaluating BODY again.
+
+The stored value is cleared as soon as the current call stack finishes,
+or when the likes of `sit-for' give Emacs a chance to run pending timers.
+
+If BODY ever returns nil, that trips an error."
+  (declare (indent defun))
+  `(or (gethash ,key org-roam--memo-table)
+       (prog1 (puthash ,key ,(cons 'progn body) org-roam--memo-table)
+         (unless (memq org-roam--memo-timer timer-list)
+           (timer-activate org-roam--memo-timer)))
+       (error "Do not memoize %s if BODY can evaluate to nil" ,key)))
 
 ;;; Formatting
 (defun org-roam-format-template (template replacer)

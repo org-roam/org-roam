@@ -196,6 +196,18 @@ together with the method symbol as a cons cell. For example:
           (const :tag "rg" rg)
           (const :tag "elisp" nil)))
 
+(defcustom org-roam-file-handlers t
+  "List of file name handlers to allow.
+If t, allow everything in `file-name-handler-alist'.
+If not t, should be a list of symbols like the cdrs of that variable.
+
+Restricting `file-name-handler-alist' helps the performance of many
+file-name functions, such as `file-name-directory',
+`file-in-directory-p' and `file-truename'."
+  :type '(choice (const :tag "All" t)
+                 (repeat function))
+  :group 'org-roam)
+
 ;;; Library
 (defun org-roam-file-p (&optional file)
   "Return t if FILE is an Org-roam file, nil otherwise.
@@ -205,32 +217,14 @@ FILE is an Org-roam file if:
 - It's located somewhere under `org-roam-directory'
 - It has a matching file extension (`org-roam-file-extensions')
 - It doesn't match excluded regexp (`org-roam-file-exclude-regexp')"
-  (when (or file (buffer-file-name (buffer-base-buffer)))
-    (let* ((path (or file (buffer-file-name (buffer-base-buffer))))
-           (relative-path (file-relative-name path org-roam-directory))
-           (ext (org-roam--file-name-extension path))
-           (ext (if (or (string= ext "gpg")
-                        (string= ext "age"))
-                    (org-roam--file-name-extension (file-name-sans-extension path))
-                  ext))
-           (org-roam-dir-p (org-roam-descendant-of-p path org-roam-directory))
-           (valid-file-ext-p (member ext org-roam-file-extensions))
-           (match-exclude-regexp-p
-            (cond
-             ((not org-roam-file-exclude-regexp) nil)
-             ((stringp org-roam-file-exclude-regexp)
-              (string-match-p org-roam-file-exclude-regexp relative-path))
-             ((listp org-roam-file-exclude-regexp)
-              (let (is-match)
-                (dolist (exclude-re org-roam-file-exclude-regexp)
-                  (setq is-match (or is-match (string-match-p exclude-re relative-path))))
-                is-match)))))
-      (save-match-data
-        (and
-         path
-         org-roam-dir-p
-         valid-file-ext-p
-         (not match-exclude-regexp-p))))))
+  (let ((file-name-handler-alist (org-roam--file-name-handler-alist)))
+    (and (setq file (or file (buffer-file-name (buffer-base-buffer))))
+         (cl-loop for suffix in (org-roam--suffixes)
+                  thereis (string-suffix-p suffix file))
+         (cl-loop with rel-name = (file-relative-name file org-roam-directory)
+                  for exclude-re in (ensure-list org-roam-file-exclude-regexp)
+                  never (string-match-p exclude-re rel-name))
+         (org-roam-descendant-of-p file org-roam-directory))))
 
 ;;;###autoload
 (defun org-roam-list-files ()
@@ -253,15 +247,6 @@ If BUFFER is not specified, use the current buffer."
   "Return a list of buffers that are Org-roam files."
   (--filter (org-roam-buffer-p it)
             (buffer-list)))
-
-(defun org-roam--file-name-extension (filename)
-  "Return file name extension for FILENAME.
-Like `file-name-extension', but does not strip version number."
-  (save-match-data
-    (let ((file (file-name-nondirectory filename)))
-      (if (and (string-match "\\.[^.]*\\'" file)
-               (not (eq 0 (match-beginning 0))))
-          (substring file (+ (match-beginning 0) 1))))))
 
 (defun org-roam--list-files (dir)
   "Return all Org-roam files located recursively within DIR.
@@ -301,7 +286,7 @@ If no files are found, an empty list is returned."
 
 (defun org-roam--list-files-search-globs (exts)
   "Given EXTS, return a list of search globs.
-E.g. (\".org\") => (\"*.org\" \"*.org.gpg\")"
+E.g. (\".org\") => (\"\\\"*.org\\\"\" \"\\\"*.org.gpg\\\"\")"
   (cl-loop for e in exts
            append (list (format "\"*.%s\"" e)
                         (format "\"*.%s.gpg\"" e)
@@ -335,9 +320,8 @@ E.g. (\".org\") => (\"*.org\" \"*.org.gpg\")"
 
 (defun org-roam--list-files-elisp (dir)
   "Return all Org-roam files under DIR, using Elisp based implementation."
-  (let ((regex (concat "\\.\\(?:"(mapconcat
-                                  #'regexp-quote org-roam-file-extensions
-                                  "\\|" )"\\)\\(?:\\.gpg\\|\\.age\\)?\\'"))
+  (let ((regex (org-roam--memoize :suffixes-re (rx (regexp (regexp-opt (org-roam--suffixes))) eos)))
+        (file-name-handler-alist (org-roam--file-name-handler-alist))
         result)
     (dolist (file (org-roam--directory-files-recursively dir regex nil nil t) result)
       (when (and (file-readable-p file)
