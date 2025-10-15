@@ -553,7 +553,7 @@ INFO is the org-element parsed buffer."
     (secure-hash 'sha1 (current-buffer))))
 
 ;;;; Synchronization
-(defun org-roam-db-update-file (&optional file-path no-require)
+(defun org-roam-db-update-file (&optional file-path _deprecated-arg)
   "Update Org-roam cache for FILE-PATH.
 
 If the file does not exist anymore, remove it from the cache.
@@ -569,8 +569,7 @@ in `org-roam-db-sync'."
                                            :where (= file $s1)] file-path)))
         info)
     (unless (string= content-hash db-hash)
-      (unless no-require
-        (org-roam-require '(org-ref oc)))
+      (require 'org-ref nil t)
       (org-roam-with-file file-path nil
         (emacsql-with-transaction (org-roam-db)
           (org-with-wide-buffer
@@ -590,8 +589,7 @@ in `org-roam-db-sync'."
            (setq info (org-element-parse-buffer))
            (org-roam-db-map-links
             (list #'org-roam-db-insert-link))
-           (when (fboundp 'org-cite-insert)
-             (require 'oc)             ;ensure feature is loaded
+           (when (require 'oc nil t)
              (org-roam-db-map-citations
               info
               (list #'org-roam-db-insert-citation)))))))))
@@ -604,7 +602,8 @@ If FORCE, force a rebuild of the cache from scratch."
   (org-roam-db--close) ;; Force a reconnect
   (when force (delete-file org-roam-db-location))
   (org-roam-db) ;; To initialize the database, no-op if already initialized
-  (org-roam-require '(org-ref oc))
+  (require 'org-ref nil t)
+  (require 'oc nil t)
   (let* ((gc-cons-threshold org-roam-db-gc-threshold)
          (org-agenda-files nil)
          (org-roam-files (org-roam-list-files))
@@ -623,7 +622,7 @@ If FORCE, force a rebuild of the cache from scratch."
       (dolist-with-progress-reporter (file modified-files)
           "Processing modified files..."
         (condition-case err
-            (org-roam-db-update-file file 'no-require)
+            (org-roam-db-update-file file)
           (error
            (org-roam-db-clear-file file)
            (lwarn 'org-roam :error "Failed to process %s with error %s, skipping..."
