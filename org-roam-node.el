@@ -33,6 +33,7 @@
 ;;
 ;;; Code:
 (require 'crm)
+(require 'subr-x)
 (require 'org-roam)
 
 ;;; Options
@@ -190,55 +191,29 @@ Replaced by `id' automatically when `org-roam-link-auto-replace' is non-nil.")
   id level point todo priority scheduled deadline title properties olp
   tags aliases refs)
 
-;; Shim `string-glyph-compose' and `string-glyph-decompose' for Emacs versions that do not have it.
-;; The functions were introduced in emacs commit 3f096eb3405b2fce7c35366eb2dcf025dda55783 and the
-;; (original) functions behind them aren't autoloaded anymore.
-(dolist (sym.replace
-         '((string-glyph-compose . ucs-normalize-NFC-string)
-           (string-glyph-decompose . ucs-normalize-NFD-string)))
-  (let ((emacs-29-symbol (car sym.replace))
-        (previous-implementation (cdr sym.replace)))
-    (unless (fboundp emacs-29-symbol)
-      (defalias emacs-29-symbol previous-implementation))))
-
 (cl-defmethod org-roam-node-slug ((node org-roam-node))
   "Return the slug of NODE."
-  (let ((title (org-roam-node-title node))
-        (slug-trim-chars '(;; Combining Diacritical Marks https://www.unicode.org/charts/PDF/U0300.pdf
-                           768 ; U+0300 COMBINING GRAVE ACCENT
-                           769 ; U+0301 COMBINING ACUTE ACCENT
-                           770 ; U+0302 COMBINING CIRCUMFLEX ACCENT
-                           771 ; U+0303 COMBINING TILDE
-                           772 ; U+0304 COMBINING MACRON
-                           774 ; U+0306 COMBINING BREVE
-                           775 ; U+0307 COMBINING DOT ABOVE
-                           776 ; U+0308 COMBINING DIAERESIS
-                           777 ; U+0309 COMBINING HOOK ABOVE
-                           778 ; U+030A COMBINING RING ABOVE
-                           779 ; U+030B COMBINING DOUBLE ACUTE ACCENT
-                           780 ; U+030C COMBINING CARON
-                           795 ; U+031B COMBINING HORN
-                           803 ; U+0323 COMBINING DOT BELOW
-                           804 ; U+0324 COMBINING DIAERESIS BELOW
-                           805 ; U+0325 COMBINING RING BELOW
-                           807 ; U+0327 COMBINING CEDILLA
-                           813 ; U+032D COMBINING CIRCUMFLEX ACCENT BELOW
-                           814 ; U+032E COMBINING BREVE BELOW
-                           816 ; U+0330 COMBINING TILDE BELOW
-                           817 ; U+0331 COMBINING MACRON BELOW
-                           )))
-    (cl-flet* ((nonspacing-mark-p (char) (memq char slug-trim-chars))
-               (strip-nonspacing-marks (s) (string-glyph-compose
-                                            (apply #'string
-                                                   (seq-remove #'nonspacing-mark-p
-                                                               (string-glyph-decompose s)))))
-               (cl-replace (title pair) (replace-regexp-in-string (car pair) (cdr pair) title)))
-      (let* ((pairs `(("[^[:alnum:][:digit:]]" . "_") ;; convert anything not alphanumeric
-                      ("__*" . "_")                   ;; remove sequential underscores
-                      ("^_" . "")                     ;; remove starting underscore
-                      ("_$" . "")))                   ;; remove ending underscore
-             (slug (-reduce-from #'cl-replace (strip-nonspacing-marks title) pairs)))
-        (downcase slug)))))
+  (org-roam-node-slugify (org-roam-node-title node)))
+
+(defun org-roam-node-slugify (title)
+  "Slugify TITLE."
+  (require 'ucs-normalize)
+  (let ((slug-trim-chars
+         ;; Combining Diacritical Marks https://www.unicode.org/charts/PDF/U0300.pdf
+         ;; For why these specific glyphs: https://github.com/org-roam/org-roam/pull/1460
+         '( #x300 #x301 #x302 #x303 #x304 #x306 #x307
+            #x308 #x309 #x30A #x30B #x30C #x31B #x323
+            #x324 #x325 #x327 #x32D #x32E #x330 #x331)))
+    (thread-last title
+                 (ucs-normalize-NFD-string) ;; aka. `string-glyph-decompose' from Emacs 29
+                 (seq-remove (lambda (char) (memq char slug-trim-chars)))
+                 (apply #'string)
+                 (ucs-normalize-NFC-string) ;; aka. `string-glyph-compose' from Emacs 29
+                 (replace-regexp-in-string "[^[:alnum:]]" "_") ;; convert anything not alphanumeric
+                 (replace-regexp-in-string "__*" "_")          ;; remove sequential underscores
+                 (replace-regexp-in-string "^_" "")            ;; remove starting underscore
+                 (replace-regexp-in-string "_$" "")            ;; remove ending underscore
+                 (downcase))))
 
 (cl-defmethod org-roam-node-formatted ((node org-roam-node))
   "Return a formatted string for NODE."
