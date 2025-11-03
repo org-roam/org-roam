@@ -6,7 +6,7 @@
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
 ;; Version: 2.3.1
-;; Package-Requires: ((emacs "26.1") (compat "30.1") (org "9.6") (emacsql "4.1.0") (magit-section "3.0.0"))
+;; Package-Requires: ((emacs "26.1") (compat "30.1") (org "9.6") (emacsql "4.1.0") (magit-section "3.0.0") (truename-cache "0"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -132,6 +132,29 @@ All Org files, at any level of nesting, are considered part of the Org-roam."
 Each function takes two arguments: the id of the node, and the link description."
   :group 'org-roam
   :type 'hook)
+
+(defcustom org-roam-dir-exclude-regexps
+  (let ((literals
+         (append (unless (file-name-absolute-p org-attach-id-dir)
+                   (list org-attach-id-dir))
+                 '("logseq/version-files/"  ; Duplicates of every Org file
+                   "logseq/bak/"  ; Duplicates of every Org file
+                   ".git/"  ; Many sub-sub-subdirs
+                   ".hg/"))))
+    (list (rx ".pam/")  ; pamparam (many files inside)
+          (rx (or bos "/") (regexp (regexp-opt literals)))))
+  "If a directory name matches any of these regexps, skip it.
+
+Like `org-roam-file-exclude-regexp', this applies to the part of its
+file-name after `org-roam-directory' \(i.e. the relative name\), but
+with a trailing slash.
+
+You can also use `org-roam-file-exclude-regexp' for the same purpose of
+preventing recursion into directories - the separation is just helpful
+for the performance of `org-roam-db-sync', so the dir regexps are not
+also checked against each each file name."
+  :group 'org-roam
+  :type '(repeat regexp))
 
 (defcustom org-roam-file-extensions '("org")
   "List of file extensions to be included by Org-Roam.
