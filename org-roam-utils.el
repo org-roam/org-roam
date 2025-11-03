@@ -2,12 +2,6 @@
 
 ;; Copyright © 2020-2025 Jethro Kuan <jethrokuan95@gmail.com>
 
-;; Author: Jethro Kuan <jethrokuan95@gmail.com>
-;; URL: https://github.com/org-roam/org-roam
-;; Keywords: org-mode, roam, convenience
-;; Version: 2.3.1
-;; Package-Requires: ((emacs "26.1") (dash "2.13") (org "9.6"))
-
 ;; This file is NOT part of GNU Emacs.
 
 ;; This program is free software; you can redistribute it and/or modify
