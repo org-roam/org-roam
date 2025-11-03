@@ -148,6 +148,89 @@ Kills the buffer if KEEP-BUF-P is nil, and FILE is not yet visited."
            (kill-buffer (find-buffer-visiting ,file))))
      res))
 
+(defun org-roam--join-regexps (list-of-regexps)
+  "Turn LIST-OF-REGEXPS into a single regexp."
+  (mapconcat (lambda (regexp)
+               (concat "\\(?:" regexp "\\)"))
+             list-of-regexps
+             "\\|"))
+
+(defun org-roam--dir-exclude-re ()
+  "Return a regexp to match a directory name that should be excluded."
+  (org-roam--memoize 'org-roam--dir-exclude-re
+    (org-roam--join-regexps (cons (regexp-opt org-roam-dir-exclude-literals)
+                                  org-roam-dir-exclude-regexps))))
+
+(defun org-roam--file-exclude-re ()
+  "Return a regexp to match a file name that should be excluded.
+Note you should also try to match `org-roam--dir-exclude-re'."
+  (org-roam--memoize 'org-roam--file-exclude-re
+    (org-roam--join-regexps (cons (regexp-opt org-roam-file-exclude-literals)
+                                  (ensure-list org-roam-file-exclude-regexps)))))
+
+(defun org-roam--suffix-re ()
+  "Return a regexp to match `org-roam-file-extensions' at end of string."
+  (org-roam--memoize 'org-roam--suffix-re
+    (rx (regexp (regexp-opt (cl-loop for ext in org-roam-file-extensions
+                                     append (list (concat "." ext)
+                                                  (concat "." ext ".age")
+                                                  (concat "." ext ".gpg")))))
+        eos)))
+
+;; Inspired by source code of `directory-files-recursively'
+(defun org-roam--list-recursive-subdirs (dir &optional follow-symlinks)
+  "Return a list of DIR, its subdirs, sub-subdirs and so on.
+FOLLOW-SYMLINKS means to include subdirs that are symlinks,
+but can lead to infinite recursion.
+
+The following options filter the subdirs:
+- `org-roam-dir-exclude-literals'
+- `org-roam-dir-exclude-regexps'"
+  (let (result)
+    (dolist (name (file-name-all-completions "" dir))
+      (when (and (directory-name-p name)
+                 (not (member name '("./" "../"))))
+        (let ((subdir (file-name-concat dir name)))
+          (when (and (not (string-match-p (org-roam--dir-exclude-re) subdir))
+                     (or follow-symlinks (not (file-symlink-p subdir))))
+            (setq result (nconc result (org-roam--list-recursive-subdirs
+                                        subdir follow-symlinks)))))))
+    (cons dir result)))
+
+;; PERF: It turns out that getting the attributes together with the file names
+;; in one go is a lot faster than querying the filesystem later for the
+;; attributes of each individual file.  Thus, it is better to provide the
+;; attributes and not need them, than vice versa.
+(defun org-roam-directory-files-and-attributes (&optional dir)
+  "Scan DIR recursively and return an alist \((FILE . ATTR) ...).
+
+Each FILE is an absolute Org file name.
+Each ATTR is a list like that returned by `file-attributes'.
+DIR defaults to `org-roam-directory'.
+
+Affected by user options:
+- `org-roam-dir-exclude-literals'
+- `org-roam-dir-exclude-regexps'
+- `org-roam-file-exclude-literals'
+- `org-roam-file-exclude-regexps'
+- `org-roam-file-extensions'"
+  (let ((current-time-list nil) ; slight perf
+        (default-directory (file-name-as-directory
+                            (expand-file-name (or dir org-roam-directory)))))
+    (prog1 (cl-loop
+            for subdir in (org-roam--list-recursive-subdirs "" t)
+            nconc (cl-loop
+                   for file&attr
+                   in (directory-files-and-attributes subdir nil (org-roam--suffix-re) t 'integer)
+                   when (and (not (eq t (file-attribute-type (cdr file&attr))))
+                             (not (string-match-p (org-roam--file-exclude-re)
+                                                  (concat subdir (car file&attr)))))
+                   do (setcar file&attr (concat default-directory subdir (car file&attr)))
+                   and collect file&attr))
+      ;; Clean up memoizations in case of unit tests or any other weird reason
+      ;; to call repeatedly with different options.
+      (clrhash org-roam--memo-table))))
+
 ;;; Buffer utilities
 (defmacro org-roam-with-temp-buffer (file &rest body)
   "Execute BODY within a temp buffer.
