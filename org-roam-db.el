@@ -737,6 +737,14 @@ OLD-FILE is cleared from the database, and NEW-FILE-OR-DIR is added."
   (interactive)
   (prin1 (org-roam-node-at-point)))
 
+(defun org-roam-db-explore ()
+  "Explore the org-roam DB contents."
+  (interactive)
+  (require 'sqlite-mode nil t)
+  (if (fboundp 'sqlite-mode-open-file)
+      (sqlite-mode-open-file org-roam-db-location)
+    (message "org-roam-db-explore: This command requires Emacs 29")))
+
 (provide 'org-roam-db)
 
 ;;; org-roam-db.el ends here
