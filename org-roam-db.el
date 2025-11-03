@@ -566,7 +566,22 @@ in `org-roam-db-sync'."
         (db-hash (caar (org-roam-db-query [:select hash :from files
                                            :where (= file $s1)] file-path)))
         info)
-    (unless (string= content-hash db-hash)
+    (if (string= content-hash db-hash)
+        ;; Rare case: `org-roam-db-sync' found the mtime did change, but
+        ;; now we find the content has not.  Instead of re-parsing the file
+        ;; anyway, update only the mtime.  This avoids the possibility of
+        ;; a mass rename incurring a long sync.
+        ;; We can also just no-op here!  Updating the mtime just prevents
+        ;; re-calculating the hash of all affected files on every future
+        ;; invocation of `org-roam-db-sync', so it is a perf fix only.
+        (let ((attr (file-attributes file-path)))
+          (org-roam-db-query [:update files
+                              :set ((= atime $s1)
+                                    (= mtime $s2))
+                              :where (= file $s3)]
+                             (file-attribute-access-time attr)
+                             (file-attribute-modification-time attr)
+                             file-path))
       (require 'org-ref nil t)
       (org-roam-with-file file-path nil
         (emacsql-with-transaction (org-roam-db)
@@ -604,17 +619,24 @@ If FORCE, force a rebuild of the cache from scratch."
   (require 'oc nil t)
   (let* ((gc-cons-threshold org-roam-db-gc-threshold)
          (org-agenda-files nil)
-         (org-roam-files (org-roam-list-files))
-         (current-files (org-roam-db--get-current-files))
-         (modified-files nil))
-    (dolist (file org-roam-files)
-      (let ((contents-hash (org-roam-db--file-hash file)))
-        (unless (string= (gethash file current-files)
-                         contents-hash)
-          (push file modified-files)))
-      (remhash file current-files))
+         (db-mtimes
+          (cl-loop with tbl = (make-hash-table :test #'equal)
+                   for (file mtime) in (org-roam-db-query
+                                        [:select [file mtime] :from files])
+                   do (puthash file mtime tbl)
+                   finally return tbl))
+         (modified-files
+          (cl-loop for (file . attr) in (org-roam-directory-files-and-attributes)
+                   as real-mtime = (file-attribute-modification-time attr)
+                   as db-mtime = (gethash file db-mtimes)
+                   do (remhash file db-mtimes)
+                   when (or (not db-mtime)
+                            (not (time-equal-p db-mtime real-mtime)))
+                   collect file))
+         (removed-files
+          (hash-table-keys db-mtimes)))
     (emacsql-with-transaction (org-roam-db)
-      (dolist-with-progress-reporter (file (hash-table-keys current-files))
+      (dolist-with-progress-reporter (file removed-files)
           "Clearing removed files..."
         (org-roam-db-clear-file file))
       (dolist-with-progress-reporter (file modified-files)
