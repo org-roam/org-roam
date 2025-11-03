@@ -62,6 +62,38 @@
         (org-roam-db--file-title)))
     :to-equal "test file"))
 
+(defun test-org-roam-utils--kinda-expensive-func ()
+  (prin1-to-string (list 'foo 'bar (* 234.2 345.0) (/ 255.2 2123.1))))
+
+(describe "org-roam--memoize"
+  :var (;; Different KEY every call.
+        (dur-memoized-n-times
+         (car (benchmark-run-compiled 1
+               (dotimes (i 1000)
+                 (org-roam--memoize i
+                   (test-org-roam-utils--kinda-expensive-func))))))
+
+        ;; Same KEY every call.
+        (dur-memoized-once
+         (car (benchmark-run-compiled 1
+               (dotimes (_ 1000)
+                 (org-roam--memoize :foo
+                   (test-org-roam-utils--kinda-expensive-func))))))
+
+        (dur-unmemoized
+         (car (benchmark-run-compiled 1
+                (dotimes (_ 1000)
+                  (test-org-roam-utils--kinda-expensive-func))))))
+
+  ;; Likely plenty better than 10x, but we leave some headroom in this test.
+  (it "shortens 1000 calls to have the runtime of at most 100 calls"
+    (expect dur-unmemoized :to-be-greater-than (* 10 dur-memoized-once)))
+
+  ;; This case is why `org-roam--memoize' contains a check for
+  ;; (memq org-roam--memo-timer timer-list), or it would be much, much worse.
+  (it "is not much slower than unmemoized, when KEY is new each time"
+    (expect (* 10 dur-unmemoized) :to-be-greater-than dur-memoized-n-times)))
+
 (provide 'test-org-roam-utils)
 
 ;;; test-org-roam-utils.el ends here

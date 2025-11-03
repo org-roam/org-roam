@@ -28,6 +28,28 @@
 
 (require 'org-roam)
 
+(defvar org-roam--memo-table (make-hash-table :test #'equal))
+(defvar org-roam--memo-timer (timer-create))
+(defmacro org-roam--memoize (key &rest body)
+  "Eval BODY like `progn' and store non-nil result at KEY in a table.
+Repeated calls return the stored value instead of evaluating BODY again.
+
+The stored value is cleared as soon as the current call stack finishes,
+or when the likes of `sit-for' give Emacs a chance to run pending timers.
+
+If BODY ever returns nil, that trips an error."
+  (declare (indent defun))
+  `(let ((key ,key))
+     (or (gethash key org-roam--memo-table)
+         (let ((value (progn ,@body)))
+           (if (null value)
+               (error "Do not memoize for key %s if BODY can return nil" key)
+             (puthash key value org-roam--memo-table)
+             (unless (memq org-roam--memo-timer timer-list)
+               (setq org-roam--memo-timer
+                     (run-at-time 0 nil #'clrhash org-roam--memo-table)))
+             value)))))
+
 ;;; String utilities
 ;; TODO Refactor this.
 (defun org-roam-replace-string (old new s)
