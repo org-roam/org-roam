@@ -134,21 +134,45 @@ Each function takes two arguments: the id of the node, and the link description.
   :group 'org-roam
   :type 'hook)
 
+(defcustom org-roam-dir-exclude-literals
+  (list "/logseq/version-files/"
+        "/logseq/bak/"
+        (concat "/" org-attach-id-dir))
+  "If a directory name contains any of these strings, skip it.
+This applies to the part of the file-name after `org-roam-directory'."
+  :group 'org-roam
+  :type '(repeat string))
+
+(defcustom org-roam-dir-exclude-regexps nil
+  "If a directory name matches any of these regexps, skip it.
+This applies to the part of the file-name after `org-roam-directory'."
+  :group 'org-roam
+  :type '(repeat regexp))
+
+(defcustom org-roam-file-exclude-literals (list ".sync-conflict-")
+  "If a file name contains any of these strings, skip it.
+This applies to the part of the file-name after `org-roam-directory'."
+  :group 'org-roam
+  :type '(repeat string))
+
+;; This has a grandfathered default value.
+(defvaralias 'org-roam-file-exclude-regexp 'org-roam-file-exclude-regexps)
+(defcustom org-roam-file-exclude-regexps (list org-attach-id-dir)
+  "If a file name matches any of these regexps, skip it.
+This applies to the part of the file-name after `org-roam-directory'.
+
+List of regexps, but can also be a single string regexp for legacy reasons."
+  :type '(choice (repeat regexp)
+                 regexp
+                 (const :tag "Include everything" nil))
+  :group 'org-roam)
+
 (defcustom org-roam-file-extensions '("org")
   "List of file extensions to be included by Org-Roam.
 While a file extension different from \".org\" may be used, the
 file still needs to be an `org-mode' file, and it is the user's
 responsibility to ensure that."
   :type '(repeat string)
-  :group 'org-roam)
-
-(defcustom org-roam-file-exclude-regexp (list org-attach-id-dir)
-  "Files matching this regexp or list of regexps are excluded from Org-roam."
-  :type '(choice
-          (repeat
-           (string :tag "Regular expression matching files to ignore"))
-          (string :tag "Regular expression matching files to ignore")
-          (const :tag "Include everything" nil))
   :group 'org-roam)
 
 (defcustom org-roam-list-files-commands
