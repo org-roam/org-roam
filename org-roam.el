@@ -354,14 +354,7 @@ E.g. (\".org\") => (\"*.org\" \"*.org.gpg\")"
 
 (defun org-roam--list-files-elisp (dir)
   "Return all Org-roam files under DIR, using Elisp based implementation."
-  (let ((regex (concat "\\.\\(?:"(mapconcat
-                                  #'regexp-quote org-roam-file-extensions
-                                  "\\|" )"\\)\\(?:\\.gpg\\|\\.age\\)?\\'"))
-        result)
-    (dolist (file (org-roam--directory-files-recursively dir regex nil nil t) result)
-      (when (and (file-readable-p file)
-                 (org-roam-file-p file))
-        (push file result)))))
+  (mapcar #'car (org-roam-directory-files-and-attributes dir)))
 
 ;;; Package bootstrap
 (provide 'org-roam)
