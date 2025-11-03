@@ -617,10 +617,10 @@ If FORCE, force a rebuild of the cache from scratch."
           (push file modified-files)))
       (remhash file current-files))
     (emacsql-with-transaction (org-roam-db)
-      (org-roam-dolist-with-progress (file (hash-table-keys current-files))
+      (dolist-with-progress-reporter (file (hash-table-keys current-files))
           "Clearing removed files..."
         (org-roam-db-clear-file file))
-      (org-roam-dolist-with-progress (file modified-files)
+      (dolist-with-progress-reporter (file modified-files)
           "Processing modified files..."
         (condition-case err
             (org-roam-db-update-file file 'no-require)

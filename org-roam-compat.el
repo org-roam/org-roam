@@ -227,6 +227,10 @@ nodes." org-id-locations-file)
   'org-roam-mode-section-functions
   'org-roam-mode-sections "org-roam 2.2.0")
 
+(define-obsolete-function-alias
+  'org-roam-dolist-with-progress
+  'dolist-with-progress-reporter "2025-11-07")
+
 ;;; Obsolete functions
 (make-obsolete 'org-roam-get-keyword 'org-collect-keywords "org-roam 2.0")
 
