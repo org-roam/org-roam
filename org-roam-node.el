@@ -176,12 +176,12 @@ Replaced by `id' automatically when `org-roam-link-auto-replace' is non-nil.")
                              (:constructor org-roam-node-create-from-db
                                            (title aliases                    ; 2
                                                   id file file-title level todo     ; 5
-                                                  point priority scheduled deadline properties ;;5
+                                                  point priority scheduled deadline closed properties ;;6
                                                   olp file-atime file-mtime tags refs)) ;;5
                              (:copier nil))
   "A heading or top level file with an assigned ID property."
   file file-title file-hash file-atime file-mtime
-  id level point todo priority scheduled deadline title properties olp
+  id level point todo priority scheduled deadline closed title properties olp
   tags aliases refs)
 
 ;; Shim `string-glyph-compose' and `string-glyph-decompose' for Emacs versions that do not have it.
@@ -339,12 +339,14 @@ This can be quite costly: avoid, unless dealing with very few
 nodes."
   (when-let ((node-info (car (org-roam-db-query [:select [
                                                           file level pos todo priority
-                                                          scheduled deadline title properties olp]
+                                                          scheduled deadline closed title properties olp]
                                                  :from nodes
                                                  :where (= id $s1)
                                                  :limit 1]
                                                 (org-roam-node-id node)))))
-    (pcase-let* ((`(,file ,level ,pos ,todo ,priority ,scheduled ,deadline ,title ,properties ,olp) node-info)
+    (pcase-let* ((`( ,file ,level ,pos ,todo ,priority
+                     ,scheduled ,deadline ,closed ,title ,properties ,olp)
+                  node-info)
                  (`(,atime ,mtime ,file-title) (car (org-roam-db-query [:select [atime mtime title]
                                                                         :from files
                                                                         :where (= file $s1)]
@@ -368,6 +370,7 @@ nodes."
             (org-roam-node-priority node) priority
             (org-roam-node-scheduled node) scheduled
             (org-roam-node-deadline node) deadline
+            (org-roam-node-closed node) closed
             (org-roam-node-title node) title
             (org-roam-node-properties node) properties
             (org-roam-node-olp node) olp
@@ -394,6 +397,7 @@ SELECT
   priority ,
   scheduled ,
   deadline ,
+  closed ,
   properties ,
 
   olp,
@@ -413,6 +417,7 @@ FROM
     priority ,
     scheduled ,
     deadline ,
+    closed ,
     title,
     properties ,
     olp,
@@ -432,6 +437,7 @@ FROM
       nodes.priority as priority,
       nodes.scheduled as scheduled,
       nodes.deadline as deadline,
+      nodes.closed as closed,
       nodes.title as title,
       nodes.properties as properties,
       nodes.olp as olp,
