@@ -592,6 +592,17 @@ capture target."
     (advice-add #'org-capture-place-template :before #'org-roam-capture--set-target-entry-p-a)
     (advice-add #'org-capture-place-template :after #'org-roam-capture-run-new-node-hook-a)))
 
+(defun org-roam-capture--eval-path (path)
+  "Expand functions, symbols and file names for PATH.
+If PATH is a string, return it as is. If it's a function, call it.
+If it's a variable, return it's value. In any other case, raise an error."
+  (let ((location (cond ((stringp path) path)
+                        ((functionp path) (funcall path))
+                        ((and (symbolp path) (boundp path)) (symbol-value path))
+                        (t nil))))
+    (or location
+        (error "Invalid file location: %S" location))))
+
 (defun org-roam-capture--set-target-entry-p-a (_)
   "Correct `:target-entry-p' in Org-capture template based on `:target.'."
   (org-capture-put :target-entry-p (org-roam-capture--get :target-entry-p))
@@ -619,7 +630,7 @@ PATH is a string that can optionally contain templated text in
 it."
   (or (org-roam-node-file org-roam-capture--node)
       (thread-first
-        path
+        (org-roam-capture--eval-path path)
         (org-roam-capture--fill-template)
         (string-trim)
         (expand-file-name org-roam-directory))))
