@@ -171,6 +171,21 @@
     (expect (buffer-substring-no-properties (point) (point-max))
             :to-equal ":PROPERTIES:\n:ID: 57ff3ce7-5bda-4825-8fca-c09f523e87ba\n:END:\n#+title: Bruce Wayne\n")))
 
+(describe "org-roam-node-slug"
+  (it "transforms the title as intended"
+    (expect (org-roam-node-slug (org-roam-node-create :title "How to convince me that 2 + 2 = 3"))
+            :to-equal "how_to_convince_me_that_2_2_3")
+    (expect (org-roam-node-slug (org-roam-node-create :title "Pros/cons of A/B-testing"))
+            :to-equal "pros_cons_of_a_b_testing")
+    (expect (org-roam-node-slug (org-roam-node-create :title "Löb's Theorem"))
+            :to-equal "lob_s_theorem")
+    (expect (org-roam-node-slug (org-roam-node-create :title "Where's #Waldo? Answer: \"Nowhere\"."))
+            :to-equal "where_s_waldo_answer_nowhere")
+    (expect (org-roam-node-slug (org-roam-node-create :title "中文 (zhōngwén)"))
+            :to-equal "中文_zhongwen")
+    (expect (org-roam-node-slug (org-roam-node-create :title "ローマ字 (rōmaji)"))
+            :to-equal "ローマ字_romaji")))
+
 (provide 'test-org-roam-node)
 
 ;;; test-org-roam-node.el ends here
