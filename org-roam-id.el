@@ -47,7 +47,7 @@ With optional argument MARKERP, return the position as a new marker."
    ((symbolp id) (setq id (symbol-name id)))
    ((numberp id) (setq id (number-to-string id))))
   (let ((node (org-roam-populate (org-roam-node-create :id id))))
-    (when-let ((file (org-roam-node-file node)))
+    (when-let* ((file (org-roam-node-file node)))
       (if markerp
           (let ((buffer (or (find-buffer-visiting file)
                             (find-file-noselect file))))

@@ -208,11 +208,11 @@ which visits the thing at point."
 (defun org-roam-buffer-file-at-point (&optional assert)
   "Return the file at point in the current `org-roam-mode' based buffer.
 If ASSERT, throw an error."
-  (if-let ((file (magit-section-case
-                   (org-roam-node-section (org-roam-node-file (oref it node)))
-                   (org-roam-grep-section (oref it file))
-                   (org-roam-preview-section (oref it file))
-                   (t (cl-assert (derived-mode-p 'org-roam-mode))))))
+  (if-let* ((file (magit-section-case
+                    (org-roam-node-section (org-roam-node-file (oref it node)))
+                    (org-roam-grep-section (oref it file))
+                    (org-roam-preview-section (oref it file))
+                    (t (cl-assert (derived-mode-p 'org-roam-mode))))))
       file
     (when assert
       (user-error "No file at point"))))
@@ -324,7 +324,7 @@ Valid states are `visible', `exists' and `none'."
 (defun org-roam-buffer-persistent-redisplay ()
   "Recompute contents of the persistent `org-roam-buffer'.
 Has no effect when there's no `org-roam-node-at-point'."
-  (when-let ((node (org-roam-node-at-point)))
+  (when-let* ((node (org-roam-node-at-point)))
     (unless (equal node org-roam-buffer-current-node)
       (setq org-roam-buffer-current-node node
             org-roam-buffer-current-directory org-roam-directory)
@@ -387,7 +387,7 @@ the same time:
    other node) at POINT. Acts a child section of the previous
    one."
   (magit-insert-section section (org-roam-node-section)
-    (let ((outline (if-let ((outline (plist-get properties :outline)))
+    (let ((outline (if-let* ((outline (plist-get properties :outline)))
                        (mapconcat #'org-link-display-format outline " > ")
                      "Top")))
       (insert (concat (propertize (org-roam-node-title source-node)
@@ -519,7 +519,7 @@ When SHOW-BACKLINK-P is not null, only show backlinks for which
 this predicate is not nil.
 
 SECTION-HEADING is the string used as a heading for the backlink section."
-  (when-let ((backlinks (seq-sort #'org-roam-backlinks-sort (org-roam-backlinks-get node :unique unique))))
+  (when-let* ((backlinks (seq-sort #'org-roam-backlinks-sort (org-roam-backlinks-get node :unique unique))))
     (magit-insert-section (org-roam-backlinks)
       (magit-insert-heading section-heading)
       (dolist (backlink backlinks)
@@ -577,8 +577,8 @@ Sorts by title."
 
 (defun org-roam-reflinks-section (node)
   "The reflinks section for NODE."
-  (when-let ((refs (org-roam-node-refs node))
-             (reflinks (seq-sort #'org-roam-reflinks-sort (org-roam-reflinks-get node))))
+  (when-let* ((refs (org-roam-node-refs node))
+              (reflinks (seq-sort #'org-roam-reflinks-sort (org-roam-reflinks-get node))))
     (magit-insert-section (org-roam-reflinks)
       (magit-insert-heading "Reflinks:")
       (dolist (reflink reflinks)

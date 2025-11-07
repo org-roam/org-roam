@@ -297,12 +297,12 @@ If HASH is non-nil, use that as the file's hash without recalculating it."
 
 (defun org-roam-db-get-scheduled-time ()
   "Return the scheduled time at point in ISO8601 format."
-  (when-let ((time (org-get-scheduled-time (point))))
+  (when-let* ((time (org-get-scheduled-time (point))))
     (format-time-string "%FT%T" time)))
 
 (defun org-roam-db-get-deadline-time ()
   "Return the deadline time at point in ISO8601 format."
-  (when-let ((time (org-get-deadline-time (point))))
+  (when-let* ((time (org-get-deadline-time (point))))
     (format-time-string "%FT%T" time)))
 
 (defun org-roam-db-node-p ()
@@ -362,7 +362,7 @@ INFO is the org-element parsed buffer."
   (org-with-point-at 1
     (when (and (= (org-outline-level) 0)
                (org-roam-db-node-p))
-      (when-let ((id (org-id-get)))
+      (when-let* ((id (org-id-get)))
         (let* ((file (buffer-file-name (buffer-base-buffer)))
                (title (org-roam-db--file-title))
                (pos (point))
@@ -395,7 +395,7 @@ INFO is the org-element parsed buffer."
 
 (cl-defun org-roam-db-insert-node-data ()
   "Insert node data for headline at point into the Org-roam cache."
-  (when-let ((id (org-id-get)))
+  (when-let* ((id (org-id-get)))
     (let* ((file (buffer-file-name (buffer-base-buffer)))
            (heading-components (org-heading-components))
            (pos (point))
@@ -436,8 +436,8 @@ INFO is the org-element parsed buffer."
 
 (defun org-roam-db-insert-tags ()
   "Insert tags for node at point into Org-roam cache."
-  (when-let ((node-id (org-id-get))
-             (tags (org-get-tags)))
+  (when-let* ((node-id (org-id-get))
+              (tags (org-get-tags)))
     (org-roam-db-query [:insert :into tags
                         :values $v1]
                        (mapcar (lambda (tag)
