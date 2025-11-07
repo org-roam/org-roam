@@ -279,18 +279,17 @@
                  (org-roam-tag-completions)
                  :test 'equal)))
 
-  ;; ;; FIXME: Currently failing due to defect in `org-roam-tag-completions'
-  ;; (it "skips SPECIAL values in org-tag-alist"
-  ;;   (should-not (member :startgroup (org-roam-tag-completions)))
-  ;;   (should-not (member ":startgroup" (org-roam-tag-completions)))
-  ;;   (should-not (member :endgroup (org-roam-tag-completions)))
-  ;;   (should-not (member ":endgroup" (org-roam-tag-completions))))
+  (it "skips SPECIAL values in org-tag-alist"
+    (should-not (member :startgroup (org-roam-tag-completions)))
+    (should-not (member ":startgroup" (org-roam-tag-completions)))
+    (should-not (member :endgroup (org-roam-tag-completions)))
+    (should-not (member ":endgroup" (org-roam-tag-completions))))
 
   (it "has tags that are only in org-tag-alist"
-      (should
-       (cl-subsetp '("@work" "@home" "@tennisclub" "laptop" "pc")
-                   (org-roam-tag-completions)
-                   :test 'equal))))
+    (should
+     (cl-subsetp '("@work" "@home" "@tennisclub" "laptop" "pc")
+                 (org-roam-tag-completions)
+                 :test 'equal))))
 
 (describe "org-roam CAPFs"
   (before-all
