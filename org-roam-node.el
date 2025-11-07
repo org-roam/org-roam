@@ -378,77 +378,78 @@ nodes."
 
 (defun org-roam-node-list ()
   "Return all nodes stored in the database as a list of `org-roam-node's."
-  (let ((rows (org-roam-db-query
-               "
+  (let ((rows (org-roam-db-query "
 SELECT
-  title,
-  aliases,
-
-  id,
-  file,
-  filetitle,
-  \"level\",
-  todo,
-
-  pos,
-  priority ,
-  scheduled ,
-  deadline ,
-  properties ,
-
-  olp,
-  atime,
-  mtime,
-  '(' || group_concat(tags, ' ') || ')' as tags,
-  refs
-FROM
-  (
-  SELECT
-    id,
-    file,
-    filetitle,
-    \"level\",
-    todo,
-    pos,
-    priority ,
-    scheduled ,
-    deadline ,
-    title,
-    properties ,
-    olp,
-    atime,
-    mtime,
-    tags,
-    '(' || group_concat(aliases, ' ') || ')' as aliases,
-    refs
-  FROM
-    (
-    SELECT
-      nodes.id as id,
-      nodes.file as file,
-      nodes.\"level\" as \"level\",
-      nodes.todo as todo,
-      nodes.pos as pos,
-      nodes.priority as priority,
-      nodes.scheduled as scheduled,
-      nodes.deadline as deadline,
-      nodes.title as title,
-      nodes.properties as properties,
-      nodes.olp as olp,
-      files.atime as atime,
-      files.mtime as mtime,
-      files.title as filetitle,
-      tags.tag as tags,
-      aliases.alias as aliases,
-      '(' || group_concat(RTRIM (refs.\"type\", '\"') || ':' || LTRIM(refs.ref, '\"'), ' ') || ')' as refs
-    FROM nodes
-    LEFT JOIN files ON files.file = nodes.file
-    LEFT JOIN tags ON tags.node_id = nodes.id
-    LEFT JOIN aliases ON aliases.node_id = nodes.id
-    LEFT JOIN refs ON refs.node_id = nodes.id
-    GROUP BY nodes.id, tags.tag, aliases.alias )
-  GROUP BY id, tags )
-GROUP BY id
+        title,
+        aliases,
+        id,
+        file,
+        filetitle,
+        \"level\",
+        todo,
+        pos,
+        priority,
+        scheduled,
+        deadline,
+        properties,
+        olp,
+        atime,
+        mtime,
+        '(' || group_concat(tags, ' ') || ')' AS tags,
+        refs
+FROM (
+        SELECT
+                id,
+                file,
+                filetitle,
+                \"level\",
+                todo,
+                pos,
+                priority,
+                scheduled,
+                deadline,
+                title,
+                properties,
+                olp,
+                atime,
+                mtime,
+                tags,
+                '(' || group_concat(aliases, ' ') || ')' AS aliases,
+                refs
+        FROM (
+                SELECT
+                        nodes.id AS id,
+                        nodes.file AS file,
+                        nodes.\"level\" AS \"level\",
+                        nodes.todo AS todo,
+                        nodes.pos AS pos,
+                        nodes.priority AS priority,
+                        nodes.scheduled AS scheduled,
+                        nodes.deadline AS deadline,
+                        nodes.title AS title,
+                        nodes.properties AS properties,
+                        nodes.olp AS olp,
+                        files.atime AS atime,
+                        files.mtime AS mtime,
+                        files.title AS filetitle,
+                        tags.tag AS tags,
+                        aliases.alias AS aliases,
+                        '(' || group_concat(RTRIM(refs. \"type\", '\"') || ':' || LTRIM(refs.ref, '\"'), ' ') || ')' AS refs
+                FROM
+                        nodes
+                LEFT JOIN files ON files.file = nodes.file
+                LEFT JOIN tags ON tags.node_id = nodes.id
+                LEFT JOIN aliases ON aliases.node_id = nodes.id
+                LEFT JOIN refs ON refs.node_id = nodes.id
+        GROUP BY
+                nodes.id,
+                tags.tag,
+                aliases.alias)
+GROUP BY
+        id,
+        tags)
+GROUP BY
+        id
 ")))
     (mapcan
      (lambda (row)
