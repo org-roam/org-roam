@@ -269,7 +269,7 @@ populated."
                                   (org-roam-up-heading-or-point-min)
                                   (funcall outline-level)))))
               (org-roam-up-heading-or-point-min))
-            (when-let ((id (org-id-get)))
+            (when-let* ((id (org-id-get)))
               (org-roam-populate
                (org-roam-node-create
                 :id id
@@ -321,15 +321,15 @@ Return nil if there's no node with such REF."
         (setq type "cite"
               path (substring ref 1))))
       (when (and type path)
-        (when-let ((id (caar (org-roam-db-query
-                              [:select [nodes:id]
-                               :from refs
-                               :left-join nodes
-                               :on (= refs:node-id nodes:id)
-                               :where (= refs:type $s1)
-                               :and (= refs:ref $s2)
-                               :limit 1]
-                              type path))))
+        (when-let* ((id (caar (org-roam-db-query
+                               [:select [nodes:id]
+                                :from refs
+                                :left-join nodes
+                                :on (= refs:node-id nodes:id)
+                                :where (= refs:type $s1)
+                                :and (= refs:ref $s2)
+                                :limit 1]
+                               type path))))
           (org-roam-populate (org-roam-node-create :id id)))))))
 
 (cl-defmethod org-roam-populate ((node org-roam-node))
@@ -337,13 +337,13 @@ Return nil if there's no node with such REF."
 Uses the ID, and fetches remaining details from the database.
 This can be quite costly: avoid, unless dealing with very few
 nodes."
-  (when-let ((node-info (car (org-roam-db-query [:select [
-                                                          file level pos todo priority
-                                                          scheduled deadline title properties olp]
-                                                 :from nodes
-                                                 :where (= id $s1)
-                                                 :limit 1]
-                                                (org-roam-node-id node)))))
+  (when-let* ((node-info (car (org-roam-db-query [:select [
+                                                           file level pos todo priority
+                                                           scheduled deadline title properties olp]
+                                                  :from nodes
+                                                  :where (= id $s1)
+                                                  :limit 1]
+                                                 (org-roam-node-id node)))))
     (pcase-let* ((`(,file ,level ,pos ,todo ,priority ,scheduled ,deadline ,title ,properties ,olp) node-info)
                  (`(,atime ,mtime ,file-title) (car (org-roam-db-query [:select [atime mtime title]
                                                                         :from files
@@ -770,7 +770,7 @@ The INFO, if provided, is passed to the underlying `org-roam-capture-'."
 (defun org-roam-link-follow-link (title-or-alias)
   "Navigate \"roam:\" link to find and open the node with TITLE-OR-ALIAS.
 Assumes that the cursor was put where the link is."
-  (if-let ((node (org-roam-node-from-title-or-alias title-or-alias)))
+  (if-let* ((node (org-roam-node-from-title-or-alias title-or-alias)))
       (progn
         (when org-roam-link-auto-replace
           (org-roam-link-replace-at-point))

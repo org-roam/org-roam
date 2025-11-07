@@ -281,10 +281,10 @@ EXTRA-FILES can be used to append extra files to the list."
 (defun org-roam-dailies--daily-note-p (&optional file)
   "Return t if FILE is an Org-roam daily-note, nil otherwise.
 If FILE is not specified, use the current buffer's file-path."
-  (when-let ((path (expand-file-name
-                    (or file
-                        (buffer-file-name (buffer-base-buffer)))))
-             (directory (expand-file-name org-roam-dailies-directory org-roam-directory)))
+  (when-let* ((path (expand-file-name
+                     (or file
+                         (buffer-file-name (buffer-base-buffer)))))
+              (directory (expand-file-name org-roam-dailies-directory org-roam-directory)))
     (setq path (expand-file-name path))
     (save-match-data
       (and

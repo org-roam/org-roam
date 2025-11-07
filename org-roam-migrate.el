@@ -151,9 +151,9 @@ If the property is already set, replace its value."
              (desc (match-string 2)))
         (when (string-prefix-p "file:" path)
           (setq path (expand-file-name (substring path 5)))
-          (when-let ((node-id (caar (org-roam-db-query [:select [id] :from nodes
-                                                        :where (= file $s1)
-                                                        :and (= level 0)] path))))
+          (when-let* ((node-id (caar (org-roam-db-query [:select [id] :from nodes
+                                                         :where (= file $s1)
+                                                         :and (= level 0)] path))))
             (set-match-data mdata)
             (replace-match (org-link-make-string (concat "id:" node-id)
                                                  desc) nil t)))))))

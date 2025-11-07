@@ -53,7 +53,7 @@ See `org-html--reference' for DATUM, INFO and NAMED-ONLY."
            datum))
          (user-label
           (or user-label
-              (when-let ((path (org-element-property :ID datum)))
+              (when-let* ((path (org-element-property :ID datum)))
                 ;; see `org-html-link' for why we use "ID-"
                 ;; (search for "ID-" in ox-html.el)
                 (concat "ID-" path)))))

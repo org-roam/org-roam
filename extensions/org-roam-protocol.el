@@ -159,7 +159,7 @@ It should contain the FILE key, pointing to the path of the file to open.
   Example protocol string:
 
 org-protocol://roam-node?node=uuid"
-  (when-let ((node (plist-get info :node)))
+  (when-let* ((node (plist-get info :node)))
     (raise-frame)
     (org-roam-node-visit (org-roam-populate (org-roam-node-create :id node)) nil 'force))
   nil)

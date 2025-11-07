@@ -424,7 +424,7 @@ straight.el on Windows.
 See <https://github.com/raxod502/straight.el/issues/520>."
   (when (and (bound-and-true-p straight-symlink-emulation-mode)
              (fboundp 'straight-chase-emulated-symlink))
-    (when-let ((target (straight-chase-emulated-symlink filename)))
+    (when-let* ((target (straight-chase-emulated-symlink filename)))
       (unless (eq target 'broken)
         (setq filename target))))
   (file-chase-links filename))
@@ -445,7 +445,7 @@ See <https://github.com/raxod502/straight.el/issues/520>."
     (insert (format "- Org: %s\n" (org-version nil 'full)))
     (insert (format "- Org-roam: %s" (org-roam-version)))
     (insert (format "- sqlite-connector: %s"
-                    (if-let ((conn (org-roam-db--get-connection)))
+                    (if-let* ((conn (org-roam-db--get-connection)))
                         (eieio-object-class conn)
                       "not connected")))))
 
