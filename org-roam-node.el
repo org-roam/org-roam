@@ -1114,13 +1114,7 @@ and when nil is returned the node will be filtered out."
 (defun org-roam-tag-completions ()
   "Return list of tags for completions within Org-roam."
   (let ((roam-tags (mapcar #'car (org-roam-db-query [:select :distinct [tag] :from tags])))
-        (org-tags (cl-loop for tagg in org-tag-alist
-                           nconc (pcase tagg
-                                   ('(:newline)
-                                    nil)
-                                   (`(,tag . ,_)
-                                    (list tag))
-                                   (_ nil)))))
+        (org-tags (seq-filter #'stringp (mapcar #'car org-tag-alist))))
     (seq-uniq (append roam-tags org-tags))))
 
 ;;;; Editing
