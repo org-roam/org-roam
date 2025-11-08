@@ -113,6 +113,7 @@ See `org-roam-capture-templates' for the template documentation."
                                          ((const :format "%v " :kill-buffer) (const t))))))))
 
 ;;; Handlers
+;;;###autoload
 (defun org-roam-protocol-open-ref (info)
   "Process an org-protocol://roam-ref?ref= style url with INFO.
 
@@ -150,6 +151,7 @@ It opens or creates a note with the given ref.
      :templates org-roam-capture-ref-templates))
   nil)
 
+;;;###autoload
 (defun org-roam-protocol-open-node (info)
   "This handler simply opens the file with emacsclient.
 
@@ -163,11 +165,6 @@ org-protocol://roam-node?node=uuid"
     (raise-frame)
     (org-roam-node-visit (org-roam-populate (org-roam-node-create :id node)) nil 'force))
   nil)
-
-(push '("org-roam-ref"  :protocol "roam-ref"   :function org-roam-protocol-open-ref)
-      org-protocol-protocol-alist)
-(push '("org-roam-node"  :protocol "roam-node"   :function org-roam-protocol-open-node)
-      org-protocol-protocol-alist)
 
 (provide 'org-roam-protocol)
 
