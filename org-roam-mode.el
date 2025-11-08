@@ -179,7 +179,9 @@ information in a section-like manner (see
 `org-roam-mode-sections'), with which the user can
 interact with."
   :group 'org-roam
-  (face-remap-add-relative 'header-line 'org-roam-header-line))
+  (face-remap-add-relative 'header-line 'org-roam-header-line)
+  ;; https://github.com/meedstrom/org-node/issues/149
+  (setq-local font-lock-defaults nil))
 
 ;;; Buffers
 (defvar org-roam-buffer-current-node nil
