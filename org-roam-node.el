@@ -60,10 +60,10 @@ and then reference it here or in the capture templates as
 
 \"length\" is an optional specifier and declares how many
 characters can be used to display the value of the corresponding
-field. If it's not specified, the field will be inserted as is,
-i.e. it won't be aligned nor trimmed. If it's an integer, the
+field. If it\\='s not specified, the field will be inserted as is,
+i.e. it won\\='t be aligned nor trimmed. If it\\='s an integer, the
 field will be aligned accordingly and all the exceeding
-characters will be trimmed out. If it's \"*\", the field will use
+characters will be trimmed out. If it\\='s \"*\", the field will use
 as many characters as possible and will be aligned accordingly.
 
 A closure can also be assigned to this variable in which case the
@@ -78,11 +78,11 @@ following function shows the title and base filename of the node:
   \"formats the node\"
   (format \"%-40s %s\"
           (if (org-roam-node-title node)
-              (propertize (org-roam-node-title node) 'face 'org-todo)
+              (propertize (org-roam-node-title node) \\='face \\='org-todo)
             \"\")
           (file-name-nondirectory (org-roam-node-file node))))
 
-\q(setq org-roam-node-display-template 'my--org-roam-format)"
+\(setq org-roam-node-display-template \\='my--org-roam-format)"
   :group 'org-roam
   :type  '(choice string function))
 
@@ -289,7 +289,8 @@ Return nil if a node with ID does not exist."
 Return nil if the node does not exist.
 Throw an error if multiple choices exist.
 
-If NOCASE is non-nil, the query is case insensitive.  It is case sensitive otherwise."
+If NOCASE is non-nil, the query is case insensitive.
+It is case sensitive otherwise."
   (let ((matches (seq-uniq
                   (append
                    (org-roam-db-query (vconcat [:select [id] :from nodes
@@ -553,7 +554,8 @@ and when nil is returned the node will be filtered out.
 SORT-FN is a function to sort nodes. See `org-roam-node-read-sort-by-file-mtime'
 for an example sort function.
 If REQUIRE-MATCH, the minibuffer prompt will require a match.
-PROMPT is a string to show at the beginning of the mini-buffer, defaulting to \"Node: \""
+PROMPT is a string to show at the beginning of the mini-buffer,
+defaulting to \"Node: \""
   (let* ((nodes (org-roam-node-read--completions filter-fn sort-fn))
          (prompt (or prompt "Node: "))
          (node (completing-read

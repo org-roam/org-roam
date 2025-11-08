@@ -61,15 +61,15 @@ It may be one of the following:
 (defcustom org-roam-graph-extra-config nil
   "Extra options passed to graphviz.
 Example:
- '((\"rankdir\" . \"LR\"))"
-  :type '(alist)
+ ((\"rankdir\" . \"LR\"))"
+  :type 'alist
   :group 'org-roam)
 
 (defcustom org-roam-graph-edge-extra-config nil
   "Extra edge options passed to graphviz.
 Example:
- '((\"dir\" . \"back\"))"
-  :type '(alist)
+ ((\"dir\" . \"back\"))"
+  :type 'alist
   :group 'org-roam)
 
 (defcustom org-roam-graph-node-extra-config
