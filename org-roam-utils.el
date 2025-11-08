@@ -180,12 +180,11 @@ value (possibly nil). Adapted from `s-format'."
 (defvar org-ref-buffer-hacked)
 
 (defvar org-roam-fontification-buffer "*org-roam-fontification-buffer*"
-  "The buffer helps to increase the speed of org-roam-buffer
-fontification.")
+  "The buffer helps to increase the speed of org-roam-buffer fontification.")
 
 (defun org-roam-get-fontification-buffer-create ()
-  "Get or create the `org-roam-fontification-buffer'. Ensures the
-org-mode is activated."
+  "Get or create the `org-roam-fontification-buffer'.
+This buffer used to fontify multiple backlink previews efficiently (`org-mode' is booted just once)."
   (with-current-buffer (get-buffer-create org-roam-fontification-buffer)
     (unless (derived-mode-p 'org-mode)
       (org-mode))
