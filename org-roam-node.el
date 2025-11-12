@@ -888,10 +888,15 @@ and no extra content before the first heading."
    (org-with-point-at 1 (org-at-heading-p))))
 
 (defun org-roam-promote-entire-buffer ()
-  "Promote the current buffer.
+  "Promote the current buffer, and save.
 Converts a file containing a single level-1 headline node to a file
 node."
   (interactive)
+  (org-roam--promote-entire-buffer-internal)
+  (org-roam-db-update-file))
+
+(defun org-roam--promote-entire-buffer-internal ()
+  "Promote the current buffer."
   (unless (org-roam--buffer-promoteable-p)
     (user-error "Cannot promote: multiple root headings or there is extra file-level text"))
   (org-with-point-at 1
@@ -902,8 +907,7 @@ node."
       (org-roam-end-of-meta-data t)
       (insert "#+title: " title "\n")
       (when tags (org-roam-tag-add tags))
-      (org-map-region #'org-promote (point-min) (point-max))
-      (org-roam-db-update-file))))
+      (org-map-region #'org-promote (point-min) (point-max)))))
 
 ;;;###autoload
 (defun org-roam-refile (node)

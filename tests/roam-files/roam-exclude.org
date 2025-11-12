@@ -5,3 +5,33 @@
 #+TITLE: Excluded by Org-roam
 
 This node is excluded by declaring ~ROAM_EXCLUDE: t~.
+
+* Another excluded node
+:PROPERTIES:
+:ID:       b2432fe5-0aab-4e1a-b83c-809a899a79f8
+:END:
+
+This should *in theory* be excluded due to inheriting the =ROAM_EXCLUDE= property...
+
+However, it turns out that org-roam has probably never worked that way!  May be too late to change, then.
+
+* Not excluded
+:PROPERTIES:
+:ID:       295aa41a-4318-4b17-b98c-b2a9e85e4525
+:ROAM_EXCLUDE: nil
+:END:
+
+This should not be excluded, due to overriding the inherited =ROAM_EXCLUDE= property to the magical string "nil", which Org interprets as the Lisp symbol =nil=.  See =org-entry-get=.
+
+** Also not excluded
+:PROPERTIES:
+:ID:       0e02f465-0fd9-404c-b3bc-1138e9c0cdf2
+:END:
+
+** Excluded but without "t"
+:PROPERTIES:
+:ID:       aa3b8409-e918-44af-8f2f-b4639f812573
+:ROAM_EXCLUDE:
+:END:
+
+Technically, it doesn't have to be "t", just anything other than "nil".

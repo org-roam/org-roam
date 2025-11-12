@@ -1,0 +1,30 @@
+#+todo: IDEA | DONE
+* A title with an [[https://gnu.org][embedded link]]
+:PROPERTIES:
+:ID:       70451c3f-0bea-4f0a-8a8e-15d7fd133130
+:END:
+This can be used to test that the node title is transformed by =org-link-display-format=.
+
+* Title linking to [[id:70451c3f-0bea-4f0a-8a8e-15d7fd133130][A title with an embedded link]]
+:PROPERTIES:
+:ID:       b15be55a-a8da-4ce5-8360-96b8eec6845b
+:END:
+This too, except that it's an ID-link that should still count for backlinks.
+
+* IDEA [#A] [100%] A title with a TODO-state, priority and [10/10] multiple statistics-cookies [10/10]
+:PROPERTIES:
+:ID:       ca1a671f-5b08-4248-85aa-c91febba651f
+:END:
+Only the todo-state and priority are to be removed.
+
+* TODO A title that appears on first glance to have a TODO-state
+:PROPERTIES:
+:ID:       2d4e00c3-3346-43b6-a421-e8147bd865c0
+:END:
+"TODO" isn't one of the words in the file-local =#+todo:= settings, so it should naturally stay part of the title, not be removed.
+
+* A title with /italics/, *bold*, _underline_, +strikethrough+ and =monospace=
+:PROPERTIES:
+:ID:       35992759-8187-4f57-9721-a5b04df019b6
+:END:
+These are preserved.
