@@ -40,12 +40,14 @@
   (it "supports normal titles"
     (expect
      (with-temp-buffer
+       (org-mode)
        (insert "#+title:normal title")
        (org-roam-db--file-title))
      :to-equal "normal title"))
   (it "supports multi-line titles"
     (expect
      (with-temp-buffer
+       (org-mode)
        (insert "#+title: title:\n#+title: separated by newline")
        (org-roam-db--file-title))
      :to-equal "title: separated by newline"))
@@ -55,6 +57,7 @@
             org-roam-db-location (expand-file-name "org-roam.db" temporary-file-directory)
             org-roam-file-extensions '("org"))
       (with-temp-buffer
+        (org-mode)
         (write-file (expand-file-name "test file.org" org-roam-directory))
         (org-roam-db--file-title)))
     :to-equal "test file"))

@@ -14,3 +14,17 @@ DEADLINE: <2024-07-17 Tue>
 :PROPERTIES:
 :ID: 3ab84701-d1c1-463f-b5c6-715e6ff5a0bf
 :END:
+
+* DONE Full planning-line
+DEADLINE: <2024-07-17 Tue> CLOSED: <2024-07-17 Tue> SCHEDULED: <2024-07-17 Tue>
+:PROPERTIES:
+:ID:       52a56921-3e2b-46d6-9090-dfe6afcb8504
+:END:
+
+* With CLOSED but no "DONE"
+CLOSED: <2024-07-17 Tue>
+:PROPERTIES:
+:ID:       8d277b3c-b207-4326-8ead-c514e93c7f79
+:END:
+
+That should be fine.

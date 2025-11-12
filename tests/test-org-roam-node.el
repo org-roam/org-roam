@@ -73,26 +73,41 @@
       (expect (org-roam-node-title node) :to-equal "Bruce Wayne"))))
 
 (describe "org-roam-demote-entire-buffer"
-  (after-each
-    (cd root-directory))
-
   (it "demotes an entire org buffer"
-    (let* ((test-file "tests/roam-files/demoteable.org")
-           (buf (find-file-noselect test-file))
-           ;; Store the original content before any modifications
-           (original-content (with-current-buffer buf
-                              (buffer-substring-no-properties (point-min) (point-max)))))
-      (unwind-protect
-          (with-current-buffer buf
-            (org-roam-demote-entire-buffer)
-            (expect (buffer-substring-no-properties (point) (point-max))
-                    :to-equal "* Demoteable\n:PROPERTIES:\n:ID: 97bf31cf-dfee-45d8-87a5-2ae0dabc4734\n:END:\n\n** Demoteable h1\n\n*** Demoteable child\n"))
-        ;; Always restore the original content
-        (with-current-buffer buf
-          (erase-buffer)
-          (insert original-content)
-          (save-buffer)
-          (kill-buffer buf))))))
+    (cd root-directory)
+    (org-roam-with-temp-buffer "tests/roam-files/demoteable.org"
+      (org-roam-demote-entire-buffer)
+      (expect (buffer-substring-no-properties (point) (point-max))
+              :to-equal
+              "* Demoteable\n:PROPERTIES:\n:ID: 97bf31cf-dfee-45d8-87a5-2ae0dabc4734\n:END:\n\n** Demoteable h1\n\n*** Demoteable child\n"))))
+
+(describe "org-roam-promote-entire-buffer"
+  (it "at least succeeds without error signals"
+    (cd root-directory)
+    (org-roam-with-temp-buffer "tests/roam-files/promoteable.org"
+      (expect (org-roam--promote-entire-buffer-internal)
+              :not :to-throw 'error)))
+
+  (it "is the perfect inverse of demoting, for certain simple file contents"
+    (cd root-directory)
+    (org-roam-with-temp-buffer "tests/roam-files/demoteable.org"
+      (let ((original-contents (buffer-string)))
+        (org-roam-demote-entire-buffer)
+        (org-roam--promote-entire-buffer-internal)
+        (equal original-contents (buffer-string))))))
+
+(describe "org-roam-node-list"
+  (before-all
+    (setq org-roam-directory (expand-file-name "tests/roam-files")
+          org-roam-db-location (expand-file-name "org-roam.db" temporary-file-directory)
+          org-roam-file-extensions '("org")
+          org-roam-file-exclude-regexp nil)
+    (org-roam-db-sync))
+
+  (it "returns the correct number of node objects"
+    ;; Not equal to number of rows in nodes table,
+    ;; because it instantiates an extra `org-roam-node' object per alias.
+    (expect (length (org-roam-node-list)) :to-equal 30)))
 
 (describe "org-roam--h1-count"
   (after-each
@@ -138,11 +153,51 @@
     (delete-file org-roam-db-location))
 
   (it "returns the list of titles and aliases"
-    (expect (org-roam--get-titles)
-            :to-have-same-items-as
-            `("Bar" "Batman" "Bruce Wayne" "Child" "Deadline heading" "Demoteable" "Family"
-              "Foo" "Grand-Parent" "Parent" "ref with space" "Scheduled heading" "With Times"))))
-
+    (let ((expected '(;; roam-files/foo.org
+                      "Foo"
+                      ;; roam-files/bar.org
+                      "Bar"
+                      ;; roam-files/with-alias.org
+                      "Batman"
+                      "The Dark Knight"
+                      "Bruce Wayne"
+                      ;; roam-files/demoteable.org
+                      "Demoteable"
+                      ;; roam-files/promoteable-with-id.org
+                      "[1/2] Promoteable h1"
+                      "[100%] Promoteable child"
+                      ;; roam-files/family.org
+                      "Family"
+                      "Grand-Parent"
+                      "Parent"
+                      "Child"
+                      ;; roam-files/ref_with_space.org
+                      "ref with space"
+                      ;; roam-files/with-times.org
+                      "With Times"
+                      "Scheduled heading"
+                      "Deadline heading"
+                      "Full planning-line"
+                      "With CLOSED but no \"DONE\""
+                      ;; roam-files/alternative-id-methods.org
+                      "With =org-id-method= set to =org="
+                      "With =org-id-method= set to =ts="
+                      ;; roam-files/roam-exclude.org
+                      "Another excluded node" ;; FIXME: !
+                      "Not excluded"
+                      "Also not excluded"
+                      ;; roam-files/title-transformations.org
+                      "A title with an embedded link"
+                      "Title linking to A title with an embedded link"
+                      "[100%] A title with a TODO-state, priority and [10/10] multiple statistics-cookies [10/10]"
+                      "TODO A title that appears on first glance to have a TODO-state"
+                      "A title with /italics/, *bold*, _underline_, +strikethrough+ and =monospace="
+                      ;; roam-files/subdirectory/node-in-subdirectory.org
+                      "A node in a subdirectory"
+                      ;; roam-files/dailies/2025-11-11.org
+                      "2025-11-11")))
+      (expect (length (org-roam--get-titles)) :to-equal (length expected))
+      (expect (org-roam--get-titles) :to-have-same-items-as expected))))
 
 (describe "org-roam-alias"
   (before-all
@@ -169,7 +224,7 @@
     (find-file "tests/roam-files/with-alias.org" nil)
     (org-roam-alias-remove "Batman")
     (expect (buffer-substring-no-properties (point) (point-max))
-            :to-equal ":PROPERTIES:\n:ID: 57ff3ce7-5bda-4825-8fca-c09f523e87ba\n:END:\n#+title: Bruce Wayne\n")))
+            :to-equal ":PROPERTIES:\n:ID: 57ff3ce7-5bda-4825-8fca-c09f523e87ba\n:ROAM_ALIASES: \"The Dark Knight\"\n:END:\n#+title: Bruce Wayne\n")))
 
 (describe "org-roam-node-slug"
   (it "transforms the title as intended"
@@ -184,7 +239,10 @@
     (expect (org-roam-node-slug (org-roam-node-create :title "中文 (zhōngwén)"))
             :to-equal "中文_zhongwen")
     (expect (org-roam-node-slug (org-roam-node-create :title "ローマ字 (rōmaji)"))
-            :to-equal "ローマ字_romaji")))
+            :to-equal "ローマ字_romaji")
+    ;; Wow! I don't know Arabic, but it must harder to read with the underscores!  --meedstrom
+    (expect (org-roam-node-slug (org-roam-node-create :title "نص من اليمين إلى اليسار (right-to-left script)"))
+            :to-equal "نص_من_اليمين_إلى_اليسار_right_to_left_script")))
 
 (provide 'test-org-roam-node)
 

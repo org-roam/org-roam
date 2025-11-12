@@ -1,0 +1,4 @@
+:PROPERTIES:
+:ID:       a0abdc75-4bdc-48e9-9560-d79565f78504
+:END:
+#+title: A node in a subdirectory

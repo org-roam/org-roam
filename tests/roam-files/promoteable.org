@@ -1,3 +1,23 @@
-* Promoteable h1
+* TODO [#A] [1/2] Promoteable h1
+SCHEDULED: <2025-11-12 Wed 11:47>
+:PROPERTIES:
+:ID:       77f66521-2dfb-49b0-bcc4-9f02f622343b
+:END:
 
-** Promoteable child
+- NOT IMPLEMENTED as of [2025-11-12 Wed]: the SCHEDULED-line should probably disappear upon promoting this heading into a file-level node, or at least move down to after the :PROPERTIES: drawer.  Otherwise Org thinks there are no properties and thus no file-level node!
+
+- The =TODO [#A] [1/2]= is probably reasonable to leave to the user to fix up manually, if they so desire.
+
+** DONE [#B] [100%] Promoteable child
+CLOSED: [2025-11-12 Wed 12:03]
+:PROPERTIES:
+:ID:       0b6301cb-292a-4a6b-be42-330c2caf9618
+:END:
+Messy
+
+:drawer:
+:end:
+
+content.
+
+** TODO Promoteable child 2

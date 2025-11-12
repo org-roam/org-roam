@@ -78,37 +78,26 @@
     (org-roam-db--close)
     (delete-file org-roam-db-location))
 
-  (it "has the correct number of files"
+  (it "makes the correct number of rows in files table"
     (expect (caar (org-roam-db-query [:select (funcall count) :from files]))
             :to-equal
-            9))
+            13))
 
-  (it "has the correct number of nodes"
+  (it "makes the correct number of rows in nodes table"
     (expect (caar (org-roam-db-query [:select (funcall count) :from nodes]))
             :to-equal
-            12))
+            28))
 
-  (it "has the correct number of links"
+  (it "makes the correct number of rows in links table"
     (expect (caar (org-roam-db-query [:select (funcall count) :from links]))
             :to-equal
-            1))
+            3))
 
   (it "respects ROAM_EXCLUDE"
-    ;; The excluded node has ID "53fadc75-f48e-461e-be06-44a1e88b2abe"
     (expect (mapcar #'car (org-roam-db-query [:select id :from nodes]))
-            :to-have-same-items-as
-            '("884b2341-b7fe-434d-848c-5282c0727861"
-              "440795d0-70c1-4165-993d-aebd5eef7a24"
-              "5b9a7400-f59c-4ef9-acbb-045b69af98f1"
-              "0fa5bb3e-3d8c-4966-8bc9-78d32e505d69"
-              "5fb4fdc5-b6d2-4f75-8d54-e60053e467ec"
-              "77a90980-1994-464e-901f-7e3d3df07fd3"
-              "57ff3ce7-5bda-4825-8fca-c09f523e87ba"
-              "998b2341-b7fe-434d-848c-5282c0727870"
-              "a523c198-4cb4-44d2-909c-a0e3258089cd"
-              "3ab84701-d1c1-463f-b5c6-715e6ff5a0bf"
-              "9a20ca6c-5555-41c9-a039-ac38bf59c7a9"
-              "97bf31cf-dfee-45d8-87a5-2ae0dabc4734")))
+            :not :to-contain "53fadc75-f48e-461e-be06-44a1e88b2abe")
+    (expect (mapcar #'car (org-roam-db-query [:select id :from nodes]))
+            :not :to-contain "aa3b8409-e918-44af-8f2f-b4639f812573"))
 
   (it "reads ref in quotes correctly"
     (expect (mapcar #'car (org-roam-db-query [:select [ref] :from refs]))

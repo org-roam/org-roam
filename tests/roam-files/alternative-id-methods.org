@@ -1,0 +1,11 @@
+#+title: Alternative ID methods
+
+* With =org-id-method= set to =org=
+:PROPERTIES:
+:ID:       nl4ibn507rk0
+:END:
+
+* With =org-id-method= set to =ts=
+:PROPERTIES:
+:ID:       20251111T122245.135537
+:END:
