@@ -214,17 +214,17 @@
 
   (it "adds an alias to a node"
     (cd root-directory)
-    (find-file "tests/roam-files/foo.org" nil)
-    (org-roam-alias-add "qux")
-    (expect (buffer-substring-no-properties (point) (point-max))
-            :to-equal ":PROPERTIES:\n:ID:       884b2341-b7fe-434d-848c-5282c0727861\n:ROAM_ALIASES: qux\n:END:\n#+title: Foo\n"))
+    (org-roam-with-temp-buffer "tests/roam-files/foo.org"
+      (org-roam-alias-add "qux")
+      (expect (buffer-substring-no-properties (point) (point-max))
+              :to-equal ":PROPERTIES:\n:ID:       884b2341-b7fe-434d-848c-5282c0727861\n:ROAM_ALIASES: qux\n:END:\n#+title: Foo\n")))
 
   (it "removes an alias from a node"
     (cd root-directory)
-    (find-file "tests/roam-files/with-alias.org" nil)
-    (org-roam-alias-remove "Batman")
-    (expect (buffer-substring-no-properties (point) (point-max))
-            :to-equal ":PROPERTIES:\n:ID: 57ff3ce7-5bda-4825-8fca-c09f523e87ba\n:ROAM_ALIASES: \"The Dark Knight\"\n:END:\n#+title: Bruce Wayne\n")))
+    (org-roam-with-temp-buffer "tests/roam-files/with-alias.org"
+      (org-roam-alias-remove "Batman")
+      (expect (buffer-substring-no-properties (point) (point-max))
+              :to-equal ":PROPERTIES:\n:ID: 57ff3ce7-5bda-4825-8fca-c09f523e87ba\n:ROAM_ALIASES: \"The Dark Knight\"\n:END:\n#+title: Bruce Wayne\n"))))
 
 (describe "org-roam-node-slug"
   (it "transforms the title as intended"
