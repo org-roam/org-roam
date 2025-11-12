@@ -175,10 +175,8 @@ responsibility to ensure that."
   :type '(repeat string)
   :group 'org-roam)
 
-(defcustom org-roam-list-files-commands
-  (if (member system-type '(windows-nt ms-dos cygwin))
-      nil
-    '(find fd fdfind rg))
+;; TODO: Deprecate, the elisp is faster now.
+(defcustom org-roam-list-files-commands nil
   "Commands that will be used to find Org-roam files.
 
 It should be a list of symbols or cons cells representing any of
