@@ -59,8 +59,6 @@ With optional argument MARKERP, return the position as a new marker."
 (defalias 'org-roam-id-open 'org-id-open
   "Obsolete alias - use `org-id-open' directly.")
 
-(advice-add 'org-id-find :before-until #'org-roam-id-find)
-
 ;;;###autoload
 (defun org-roam-update-org-id-locations (&rest directories)
   "Scan Org-roam files to update `org-id' related state.
