@@ -28,6 +28,28 @@
 
 (require 'org-roam)
 
+(defvar org-roam--memo-table (make-hash-table :test #'equal))
+(defvar org-roam--memo-timer (timer-create))
+(defmacro org-roam--memoize (key &rest body)
+  "Eval BODY like `progn' and store non-nil result at KEY in a table.
+Repeated calls return the stored value instead of evaluating BODY again.
+
+The stored value is cleared as soon as the current call stack finishes,
+or when the likes of `sit-for' give Emacs a chance to run pending timers.
+
+If BODY ever returns nil, that trips an error."
+  (declare (indent defun))
+  `(let ((key ,key))
+     (or (gethash key org-roam--memo-table)
+         (let ((value (progn ,@body)))
+           (if (null value)
+               (error "Do not memoize for key %s if BODY can return nil" key)
+             (puthash key value org-roam--memo-table)
+             (unless (memq org-roam--memo-timer timer-list)
+               (setq org-roam--memo-timer
+                     (run-at-time 0 nil #'clrhash org-roam--memo-table)))
+             value)))))
+
 ;;; String utilities
 ;; TODO Refactor this.
 (defun org-roam-replace-string (old new s)
@@ -125,6 +147,87 @@ Kills the buffer if KEEP-BUF-P is nil, and FILE is not yet visited."
          (when (find-buffer-visiting ,file)
            (kill-buffer (find-buffer-visiting ,file))))
      res))
+
+(defun org-roam--join-regexps (list-of-regexps)
+  "Turn LIST-OF-REGEXPS into a single regexp."
+  (mapconcat (lambda (regexp)
+               (concat "\\(?:" regexp "\\)"))
+             list-of-regexps
+             "\\|"))
+
+(defun org-roam--dir-exclude-re ()
+  "Return a regexp to match a directory name that should be excluded."
+  (org-roam--memoize 'org-roam--dir-exclude-re
+    (org-roam--join-regexps (cons (regexp-opt org-roam-dir-exclude-literals)
+                                  org-roam-dir-exclude-regexps))))
+
+(defun org-roam--file-exclude-re ()
+  "Return a regexp to match a file name that should be excluded.
+Note you should also try to match `org-roam--dir-exclude-re'."
+  (org-roam--memoize 'org-roam--file-exclude-re
+    (org-roam--join-regexps (cons (regexp-opt org-roam-file-exclude-literals)
+                                  (ensure-list org-roam-file-exclude-regexps)))))
+
+(defun org-roam--suffix-re ()
+  "Return a regexp to match `org-roam-file-extensions' at end of string."
+  (org-roam--memoize 'org-roam--suffix-re
+    (rx (regexp (regexp-opt (cl-loop for ext in org-roam-file-extensions
+                                     append (list (concat "." ext)
+                                                  (concat "." ext ".age")
+                                                  (concat "." ext ".gpg")))))
+        eos)))
+
+;; Inspired by source code of `directory-files-recursively'
+(defun org-roam--list-recursive-subdirs (dir &optional follow-symlinks)
+  "Return a list of DIR, its subdirs, sub-subdirs and so on.
+FOLLOW-SYMLINKS means to enter symlinks to other directories, but can
+result in an infinite loop.
+
+The following options filter the subdirs, though not DIR itself:
+- `org-roam-dir-exclude-literals'
+- `org-roam-dir-exclude-regexps'"
+  (let (result)
+    (dolist (name (file-name-all-completions "" dir))
+      (when (and (directory-name-p name)
+                 (not (member name '("./" "../"))))
+        (setq name (file-name-concat dir name))
+        (when (and (not (string-match-p (org-roam--dir-exclude-re) name))
+                   (or follow-symlinks (not (file-symlink-p name))))
+          (setq result (nconc result (org-roam--list-recursive-subdirs name))))))
+    (cons dir result)))
+
+;; PERF: It turns out that getting the attributes together with the file names
+;; in one go is a lot faster than querying the filesystem later for the
+;; attributes of each individual file.  Thus, it is better to provide the
+;; attributes and not need them, than vice versa.
+(defun org-roam-directory-files-and-attributes (&optional dir)
+  "Scan DIR recursively and return an alist \((FILE . ATTR) ...).
+
+Each FILE is an absolute Org file name.
+Each ATTR is a list like that returned by `file-attributes'.
+DIR defaults to `org-roam-directory'.
+
+Affected by user options:
+- `org-roam-dir-exclude-literals'
+- `org-roam-dir-exclude-regexps'
+- `org-roam-file-exclude-literals'
+- `org-roam-file-exclude-regexps'
+- `org-roam-file-extensions'"
+  (let ((current-time-list nil) ; slight perf
+        (default-directory (file-name-as-directory
+                            (expand-file-name (or dir org-roam-directory)))))
+    (prog1 (cl-loop
+            for subdir in (org-roam--list-recursive-subdirs "" t)
+            nconc (cl-loop
+                   for file&attr in (directory-files-and-attributes subdir nil (org-roam--suffix-re) t)
+                   when (and (not (eq t (file-attribute-type (cdr file&attr))))
+                             (not (string-match-p (org-roam--file-exclude-re)
+                                                  (concat subdir (car file&attr)))))
+                   do (setcar file&attr (concat default-directory subdir (car file&attr)))
+                   and collect file&attr))
+      ;; Clean up memoizations in case of unit tests or any other weird reason
+      ;; to call repeatedly with different options.
+      (clrhash org-roam--memo-table))))
 
 ;;; Buffer utilities
 (defmacro org-roam-with-temp-buffer (file &rest body)
