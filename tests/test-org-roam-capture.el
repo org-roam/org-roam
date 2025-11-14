@@ -58,38 +58,76 @@
      (org-roam-capture--fill-template (lambda () "foo"))
      :to-equal "foo")))
 
-(describe "org-roam-capture entry-type ID creation"
-  (it "creates ID for entry-type captures"
-    (let* ((temp-dir (make-temp-file "org-roam-test" t))
-           (test-file (expand-file-name "test.org" temp-dir))
-           (org-roam-directory temp-dir)
-           (org-roam-capture--node (org-roam-node-create :id (org-id-new)))
-           (org-roam-capture--info (make-hash-table :test 'equal))
-           capture-id)
-      (unwind-protect
-          (progn
-            ;; Create initial file content
-            (with-temp-file test-file
-              (insert "#+TITLE: Test File\n\n* Parent Heading\n:PROPERTIES:\n:ID: parent-id\n:END:\n"))
+(describe "org-roam-capture :entry-node option"
+  :var ((temp-dir) (org-roam-directory) (org-roam-db-location))
 
-            ;; Mock org-capture context and get-target
-            (cl-letf* (((symbol-function 'org-capture-get)
-                        (lambda (prop)
-                          (pcase prop
-                            (:type 'entry)
-                            (_ nil))))
-                       ((symbol-function 'org-roam-capture--get-target)
-                        (lambda () `(file ,test-file))))
+  (before-each
+    (setq temp-dir (make-temp-file "org-roam-test" t))
+    (setq org-roam-directory temp-dir)
+    (setq org-roam-db-location (expand-file-name "org-roam.db" temp-dir))
+    (org-roam-db-sync))
 
-              ;; Call the setup function
-              (with-current-buffer (find-file-noselect test-file)
-                (org-roam-capture--setup-target-location)
-                (setq capture-id (org-roam-capture--get :id)))
+  (after-each
+    (delete-directory temp-dir t))
 
-              ;; Verify ID was created and stored for entry type
-              (expect capture-id :not :to-be nil)
-              (expect (org-roam-capture--get :new-node-p) :to-be t)))
-        (delete-directory temp-dir t))))
+  (it "does not create ID for entry-type capture without :entry-node option"
+    (let* ((test-file (expand-file-name "test-parent.org" temp-dir))
+           (org-roam-capture-templates
+            '(("t" "test" entry "* ${title}"
+               :target (file "test-parent.org")
+               :unnarrowed t))))
+
+      ;; Create parent file with an existing heading
+      (with-temp-file test-file
+        (insert "#+TITLE: Parent File\n\n* Existing Heading\n"))
+
+      ;; Mock the node selection to return a new node
+      (cl-letf (((symbol-function 'org-roam-node-read)
+                 (lambda (&rest _)
+                   (org-roam-node-create :title "New Entry Without ID"))))
+
+        (org-roam-capture)
+
+        ;; Finalize the capture
+        (org-capture-finalize))
+
+      ;; Verify the captured entry exists but has no ID
+      (with-temp-buffer
+        (insert-file-contents test-file)
+        (goto-char (point-min))
+        (re-search-forward "^\\* New Entry Without ID$")
+        (let ((has-id (org-entry-get (point) "ID")))
+          (expect has-id :to-be nil)))))
+
+  (it "creates ID for entry-type capture with :entry-node t option"
+    (let* ((test-file (expand-file-name "test-parent-with-id.org" temp-dir))
+           (org-roam-capture-templates
+            '(("t" "test" entry "* ${title}"
+               :target (file "test-parent-with-id.org")
+               :entry-node t
+               :unnarrowed t))))
+
+      ;; Create parent file with an existing heading
+      (with-temp-file test-file
+        (insert "#+TITLE: Parent File\n\n* Existing Heading\n"))
+
+      ;; Mock the node selection to return a new node
+      (cl-letf (((symbol-function 'org-roam-node-read)
+                 (lambda (&rest _)
+                   (org-roam-node-create :title "New Entry With ID"))))
+
+        (org-roam-capture)
+
+        ;; Finalize the capture
+        (org-capture-finalize))
+
+      ;; Verify the captured entry has an ID
+      (with-temp-buffer
+        (insert-file-contents test-file)
+        (goto-char (point-min))
+        (re-search-forward "^\\* New Entry With ID$")
+        (let ((has-id (org-entry-get (point) "ID")))
+          (expect has-id :not :to-be nil)))))
 
   (it "creates ID at target for non-entry-type captures"
     (let* ((temp-dir (make-temp-file "org-roam-test" t))
