@@ -662,19 +662,6 @@ database, see `org-roam-db-sync' command."
         (with-current-buffer buf
           (remove-hook 'after-save-hook #'org-roam-db-autosync--try-update-on-save-h t)))))))
 
-;;;###autoload
-(defun org-roam-db-autosync-enable ()
-  "Activate `org-roam-db-autosync-mode'."
-  (org-roam-db-autosync-mode +1))
-
-(defun org-roam-db-autosync-disable ()
-  "Deactivate `org-roam-db-autosync-mode'."
-  (org-roam-db-autosync-mode -1))
-
-(defun org-roam-db-autosync-toggle ()
-  "Toggle `org-roam-db-autosync-mode' enabled/disabled."
-  (org-roam-db-autosync-mode 'toggle))
-
 (defun org-roam-db-autosync--delete-file-a (file &optional _trash)
   "Maintain cache consistency when file deletes.
 FILE is removed from the database."
