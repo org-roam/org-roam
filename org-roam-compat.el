@@ -234,6 +234,22 @@ nodes." org-id-locations-file)
 ;;; Obsolete functions
 (make-obsolete 'org-roam-get-keyword 'org-collect-keywords "org-roam 2.0")
 
+;;;###autoload
+(defun org-roam-db-autosync-enable ()
+  "Activate `org-roam-db-autosync-mode'."
+  (declare (obsolete org-roam-db-autosync-mode "2025-11-23"))
+  (org-roam-db-autosync-mode +1))
+
+(defun org-roam-db-autosync-disable ()
+  "Deactivate `org-roam-db-autosync-mode'."
+  (declare (obsolete org-roam-db-autosync-mode "2025-11-23"))
+  (org-roam-db-autosync-mode -1))
+
+(defun org-roam-db-autosync-toggle ()
+  "Toggle `org-roam-db-autosync-mode' enabled/disabled."
+  (declare (obsolete org-roam-db-autosync-mode "2025-11-23"))
+  (org-roam-db-autosync-mode 'toggle))
+
 (provide 'org-roam-compat)
 
 ;;; org-roam-compat.el ends here
