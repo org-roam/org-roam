@@ -58,6 +58,21 @@
     (delete-file org-roam-db-location))
 
   (it "gets files correctly"
+    (expect (mapcar #'file-name-nondirectory (org-roam-list-files))
+            :to-have-same-items-as
+            '("with-times.org"
+              "with-alias.org"
+              "title-transformations.org"
+              "roam-exclude.org"
+              "promoteable.org"
+              "alternative-id-methods.org"
+              "family.org"
+              "demoteable.org"
+              "ref_with_space.org"
+              "foo.org"
+              "bar.org"
+              "node-in-subdirectory.org"
+              "2025-11-11.org"))
     (expect (length (org-roam-list-files)) :to-equal 13))
 
   ;; https://github.com/org-roam/org-roam/pull/2178
