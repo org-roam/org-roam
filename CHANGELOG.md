@@ -1,5 +1,8 @@
 # Changelog
 
+## Unreleased
+- (fix): org-roam-extract-subtree: fix property drawer handling and title spacing
+
 ## 2.3.2
 - [#2056](https://github.com/org-roam/org-roam/pull/2056) capture: IDs are now created for entries in capture templates
 
