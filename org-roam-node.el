@@ -901,12 +901,39 @@ node."
     (user-error "Cannot promote: multiple root headings or there is extra file-level text"))
   (org-with-point-at 1
     (let ((title (nth 4 (org-heading-components)))
-          (tags (org-get-tags)))
+          (tags (org-get-tags))
+          planning-props)
       (org-fold-show-all)
       (kill-whole-line)
-      (org-roam-end-of-meta-data t)
+      ;; Parse planning line and extract timestamps to preserve as properties
+      (when (looking-at org-planning-line-re)
+        (let ((line (buffer-substring (point) (line-end-position))))
+          (when (string-match "\\(CLOSED\\|DEADLINE\\|SCHEDULED\\):\\s-*\\(\\[.*?\\]\\|<.*?>\\)" line)
+            (let ((start 0))
+              (while (string-match "\\(CLOSED\\|DEADLINE\\|SCHEDULED\\):\\s-*\\(\\[.*?\\]\\|<.*?>\\)" line start)
+                (push (cons (match-string 1 line) (match-string 2 line)) planning-props)
+                (setq start (match-end 0))))))
+        (kill-whole-line))
+      ;; Unindent property drawer and add planning data
+      (when (looking-at org-property-drawer-re)
+        (let ((drawer-start (point)))
+          (indent-region (point) (match-end 0) 0)
+          ;; Add planning properties to drawer
+          (when planning-props
+            (goto-char drawer-start)
+            (forward-line 1)  ; Move past :PROPERTIES:
+            (dolist (prop planning-props)
+              (insert ":" (car prop) ": " (cdr prop) "\n")))
+          ;; Re-match to get correct end position after modifications
+          (goto-char drawer-start)
+          (when (re-search-forward org-property-drawer-re nil t)
+            (goto-char (match-end 0))
+            (forward-line 1))))
+      (delete-region (point) (save-excursion (skip-chars-forward " \t\n") (point)))
       (insert "#+title: " title "\n")
       (when tags (org-roam-tag-add tags))
+      (unless (looking-at-p "^[ \t]*$")
+        (insert "\n"))
       (org-map-region #'org-promote (point-min) (point-max)))))
 
 ;;;###autoload
@@ -1003,6 +1030,7 @@ If region is active, then use it instead of the node at point."
         (user-error "%s exists. Aborting" file-path))
       (org-cut-subtree)
       (save-buffer)
+      (org-roam-db-update-file)
       (with-current-buffer (find-file-noselect file-path)
         (org-paste-subtree)
         (while (> (org-current-level) 1) (org-promote-subtree))
