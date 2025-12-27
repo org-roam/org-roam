@@ -460,23 +460,22 @@ processing by `org-capture'.
 Note: During the capture process this function is run by
 `org-capture-set-target-location', as a (function ...) based
 capture target."
-  (if-let* ((id (run-hook-with-args-until-success 'org-roam-capture-preface-hook)))
-      (org-roam-capture--put :id id)
-    (org-roam-capture--setup-target-location)
-    ;; Adjust point for plain captures to skip past metadata (e.g. properties drawer)
-    (org-roam-capture--adjust-point-for-capture-type))
-  (let ((template (org-capture-get :template)))
-    (when (stringp template)
-      (org-capture-put
-       :template
-       (org-roam-capture--fill-template template))))
-  (org-roam-capture--put :finalize (or (org-capture-get :finalize)
-                                       (org-roam-capture--get :finalize))))
+  (let ((id (cond ((run-hook-with-args-until-success 'org-roam-capture-preface-hook))
+                  (t (org-roam-capture--setup-target-location)))))
+    (org-roam-capture--adjust-point-for-capture-type)
+    (let ((template (org-capture-get :template)))
+      (when (stringp template)
+        (org-capture-put
+         :template
+         (org-roam-capture--fill-template template))))
+    (org-roam-capture--put :id id)
+    (org-roam-capture--put :finalize (or (org-capture-get :finalize)
+                                         (org-roam-capture--get :finalize)))))
 
 (defun org-roam-capture--setup-target-location ()
-  "Initialize the buffer, and goto the location of the new capture."
-  (let ((target-entry-p t)
-        p new-file-p id)
+  "Initialize the buffer, and goto the location of the new capture.
+Return the ID of the location."
+  (let (p new-file-p)
     (pcase (org-roam-capture--get-target)
       (`(file ,path)
        (setq path (org-roam-capture--target-truepath path)
@@ -484,8 +483,7 @@ capture target."
        (when new-file-p (org-roam-capture--put :new-file path))
        (set-buffer (org-capture-target-buffer path))
        (widen)
-       (setq p (goto-char (point-min))
-             target-entry-p nil))
+       (setq p (goto-char (point-min))))
       (`(file+olp ,path ,olp)
        (setq path (org-roam-capture--target-truepath path)
              new-file-p (org-roam-capture--new-file-p path))
@@ -501,12 +499,9 @@ capture target."
        (set-buffer (org-capture-target-buffer path))
        (when new-file-p
          (org-roam-capture--put :new-file path)
-         (insert (org-roam-capture--fill-template head 'ensure-newline))
-         (setq p (point-max)))
+         (insert (org-roam-capture--fill-template head 'ensure-newline)))
        (widen)
-       (unless new-file-p
-         (setq p (goto-char (point-min))))
-       (setq target-entry-p nil))
+       (setq p (goto-char (point-min))))
       (`(file+head+olp ,path ,head ,olp)
        (setq path (org-roam-capture--target-truepath path)
              new-file-p (org-roam-capture--new-file-p path))
@@ -568,45 +563,17 @@ capture target."
                        (user-error "No node with title or id \"%s\"" title-or-id))))
          (set-buffer (org-capture-target-buffer (org-roam-node-file node)))
          (goto-char (org-roam-node-point node))
-         (setq p (org-roam-node-point node)
-               target-entry-p (and (derived-mode-p 'org-mode) (org-at-heading-p))))))
+         (setq p (org-roam-node-point node)))))
     ;; Setup `org-id' for the current capture target and return it back to the
     ;; caller.
-    ;; Unless it's an entry type, then we want to create an ID for the entry instead
-    (pcase (org-capture-get :type)
-      ('entry
-       (advice-add #'org-capture-place-entry :after #'org-roam-capture--create-id-for-entry)
-       (org-roam-capture--put :new-node-p t)
-       (setq id (org-roam-node-id org-roam-capture--node)))
-      (_
-       (save-excursion
-         (goto-char p)
-         (unless (org-entry-get p "ID")
-           (org-roam-capture--put :new-node-p t))
-         (setq id (or (org-entry-get p "ID")
-                      (org-roam-node-id org-roam-capture--node)))
-         (setf (org-roam-node-id org-roam-capture--node) id)
-         (org-entry-put p "ID" id))))
-    (org-roam-capture--put :id id)
-    (org-roam-capture--put :target-entry-p target-entry-p)
-    (advice-add #'org-capture-place-template :before #'org-roam-capture--set-target-entry-p-a)
-    (advice-add #'org-capture-place-template :after #'org-roam-capture-run-new-node-hook-a)))
-
-(defun org-roam-capture--set-target-entry-p-a (_)
-  "Correct `:target-entry-p' in Org-capture template based on `:target.'."
-  (org-capture-put :target-entry-p (org-roam-capture--get :target-entry-p))
-  (advice-remove #'org-capture-place-template #'org-roam-capture--set-target-entry-p-a))
-
-(defun org-roam-capture-run-new-node-hook-a (_)
-  "Advice to run after the Org-capture template is placed."
-  (when (org-roam-capture--get :new-node-p)
-    (run-hooks 'org-roam-capture-new-node-hook))
-  (advice-remove #'org-capture-place-template #'org-roam-capture-run-new-node-hook-a))
-
-(defun org-roam-capture--create-id-for-entry ()
-  "Create the ID for the new entry."
-  (org-entry-put (point) "ID" (org-roam-capture--get :id))
-  (advice-remove #'org-capture-place-entry #'org-roam-capture--create-id-for-entry))
+    (save-excursion
+      (goto-char p)
+      (if-let ((id (org-entry-get p "ID")))
+          (setf (org-roam-node-id org-roam-capture--node) id)
+        (org-entry-put p "ID" (org-roam-node-id org-roam-capture--node)))
+      (prog1
+          (org-id-get)
+        (run-hooks 'org-roam-capture-new-node-hook)))))
 
 (defun org-roam-capture--get-target ()
   "Get the current capture :target for the capture template in use."
@@ -684,17 +651,27 @@ POS is the current position of point (an integer) inside the
 currently active capture buffer, where the adjustment should
 start to begin from. If it's nil, then it will default to
 the current value of `point'."
-  (goto-char (or pos (point)))
-  (pcase (org-capture-get :type)
-    (`plain
-     (if (org-capture-get :prepend)
-         (let ((el (org-element-at-point)))
-           (while (and (not (eobp))
-                       (memq (org-element-type el)
-                             '(drawer property-drawer keyword comment comment-block horizontal-rule)))
-             (goto-char (org-element-property :end el))
-             (setq el (org-element-at-point))))
-       (goto-char (org-entry-end-position)))))
+  (or pos (setq pos (point)))
+  (goto-char pos)
+  (let ((location-type (if (= pos 1) 'beginning-of-file 'heading-at-point)))
+    (and (eq location-type 'heading-at-point)
+         (cl-assert (org-at-heading-p)))
+    (pcase (org-capture-get :type)
+      (`plain
+       (cl-case location-type
+         (beginning-of-file
+          (if (org-capture-get :prepend)
+              (let ((el (org-element-at-point)))
+                (while (and (not (eobp))
+                            (memq (org-element-type el)
+                                  '(drawer property-drawer keyword comment comment-block horizontal-rule)))
+                  (goto-char (org-element-property :end el))
+                  (setq el (org-element-at-point))))
+            (goto-char (org-entry-end-position))))
+         (heading-at-point
+          (if (org-capture-get :prepend)
+              (org-end-of-meta-data t)
+            (goto-char (org-entry-end-position))))))))
   (point))
 
 ;;; Capture implementation
