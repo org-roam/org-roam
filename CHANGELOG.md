@@ -1,8 +1,5 @@
 # Changelog
 
-## 2.3.2
-- [#2056](https://github.com/org-roam/org-roam/pull/2056) capture: IDs are now created for entries in capture templates
-
 ## 2.3.1 (2025-06-26)
 
 * (fix): Use correct type specifications to suppress warnings by @okomestudio in https://github.com/org-roam/org-roam/pull/2522
