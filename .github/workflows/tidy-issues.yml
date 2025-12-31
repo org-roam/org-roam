@@ -75,6 +75,17 @@ jobs:
           days-before-stale: 182  # ~6 months
           days-before-close: 14   # 2 weeks notice
 
+          # Exempt most triaged issues
+          exempt-all-milestones: true
+          exempt-all-assignees: true
+          # labels trimmed after split:
+          # https://github.com/actions/stale/blob/v9/src/functions/words-to-list.ts
+          exempt-issue-labels: &exempt-labels >-
+            1. bug, 1. compatibility, 1. discussion, 1. docs, 1. enhancement,
+            1. regression, 1. upstream, 3. Priority: High, good first issue,
+            open-to-prs
+          exempt-pr-labels: *exempt-labels
+
           # Performance
           operations-per-run: 1000
 
