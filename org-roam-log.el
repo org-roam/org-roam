@@ -41,7 +41,6 @@
   (run-hooks 'org-roam-log-setup-hook))
 
 (add-hook 'org-roam-log-setup-hook #'org-roam--register-completion-functions-h)
-(add-hook 'org-log-buffer-setup-hook #'org-roam-log--setup)
 
 (provide 'org-roam-log)
 ;;; org-roam-log.el ends here
