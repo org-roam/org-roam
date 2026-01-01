@@ -3,7 +3,8 @@
 <!-- Created by GNU Texinfo 7.1, https://www.gnu.org/software/texinfo/ -->
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<!-- Copyright (C) 2020-2025 Jethro Kuan <jethrokuan95@gmail.com>
+<!-- Copyright (C) 2020-2025 Jethro Kuan <jethrokuan95@gmail.com> and the
+Org-roam contributors
 
 You can redistribute this document and/or modify it under the terms
 of the GNU General Public License as published by the Free Software
@@ -30,8 +31,14 @@ General Public License for more details.
 <style type="text/css">
 <!--
 a.copiable-link {visibility: hidden; text-decoration: none; line-height: 0em}
+a.summary-letter-printindex {text-decoration: none}
 div.example {margin-left: 3.2em}
 span:hover a.copiable-link {visibility: visible}
+strong.def-name {font-family: monospace; font-weight: bold; font-size: larger}
+td.printindex-index-entry {vertical-align: top}
+td.printindex-index-section {vertical-align: top; padding-left: 1em}
+th.entries-header-printindex {text-align:left}
+th.sections-header-printindex {text-align:left; padding-left: 1em}
 ul.mark-bullet {list-style-type: disc}
 -->
 </style>
@@ -53,10 +60,11 @@ Next: <a href="#Introduction" accesskey="n" rel="next">Introduction</a> &nbsp; [
 <h1 class="top" id="Org_002droam-User-Manual"><span>Org-roam User Manual<a class="copiable-link" href="#Org_002droam-User-Manual"> &para;</a></span></h1>
 
 
-<p>This manual is for Org-roam version 2.3.1.
+<p>This manual is for Org-roam version 2.3.1-devel.
 </p>
 <blockquote class="quotation">
-<p>Copyright (C) 2020-2025 Jethro Kuan &lt;jethrokuan95@gmail.com&gt;
+<p>Copyright (C) 2020-2025 Jethro Kuan &lt;jethrokuan95@gmail.com&gt; and the
+Org-roam contributors
 </p>
 <p>You can redistribute this document and/or modify it under the terms of the GNU
 General Public License as published by the Free Software Foundation, either
@@ -339,8 +347,6 @@ dependencies that it requires. These include:
 </p>
 <ul class="itemize mark-bullet">
 <li>dash
-</li><li>f
-</li><li>s
 </li><li>org
 </li><li>emacsql
 </li><li>magit-section
@@ -556,10 +562,9 @@ Previous: <a href="#Creating-and-Linking-Nodes" accesskey="p" rel="prev">Creatin
 through <code class="code">org-roam-node-read</code>. The presentation of these nodes are governed by
 <code class="code">org-roam-node-display-template</code>.
 </p>
-<ul class="itemize mark-bullet">
-<li>Variable: org-roam-node-display-template
-
-<p>Configures display formatting for Org-roam node.
+<dl class="first-defvr first-defvar-alias-first-defvr">
+<dt class="defvr defvar-alias-defvr" id="index-org_002droam_002dnode_002ddisplay_002dtemplate"><span class="category-def">Variable: </span><span><strong class="def-name">org-roam-node-display-template</strong><a class="copiable-link" href="#index-org_002droam_002dnode_002ddisplay_002dtemplate"> &para;</a></span></dt>
+<dd><p>Configures display formatting for Org-roam node.
 </p>
 <p>Patterns of form &ldquo;${field-name:length}&rdquo; are interpolated based
 on the current node.
@@ -587,7 +592,7 @@ as many characters as possible and will be aligned accordingly.
 <p>A closure can also be assigned to this variable in which case the
 closure is evaluated and the return value is used as the
 template. The closure must evaluate to a valid template string.
-</p></li></ul>
+</p></dd></dl>
 
 <p>If you&rsquo;re using a vertical completion framework, such as Ivy and Selectrum,
 Org-roam supports the generation of an aligned, tabular completion interface.
@@ -667,31 +672,29 @@ additionally trying to process these links. Use
 <code class="code">org-roam-db-extra-links-elements</code> to specify which additional Org AST element
 types to consider.
 </p>
-<ul class="itemize mark-bullet">
-<li>Variable: org-roam-db-extra-links-elements
-
-<p>The list of Org element types to include for parsing by Org-roam.
+<dl class="first-defvr first-defvar-alias-first-defvr">
+<dt class="defvr defvar-alias-defvr" id="index-org_002droam_002ddb_002dextra_002dlinks_002delements"><span class="category-def">Variable: </span><span><strong class="def-name">org-roam-db-extra-links-elements</strong><a class="copiable-link" href="#index-org_002droam_002ddb_002dextra_002dlinks_002delements"> &para;</a></span></dt>
+<dd><p>The list of Org element types to include for parsing by Org-roam.
 </p>
 <p>By default, when parsing Org&rsquo;s AST, links within keywords and
 property drawers are not parsed as links. Sometimes however, it
 is desirable to parse and cache these links (e.g. hiding links in
 a property drawer).
-</p></li></ul>
+</p></dd></dl>
 
 <p>Additionally, one may want to ignore certain keys from being excluded within
 property drawers. For example, we would not want <code class="code">ROAM_REFS</code> links to be
 self-referential. Hence, to exclude specific keys, we use
 <code class="code">org-roam-db-extra-links-exclude-keys</code>.
 </p>
-<ul class="itemize mark-bullet">
-<li>Variable: org-roam-db-extra-links-exclude-keys
-
-<p>Keys to ignore when mapping over links.
+<dl class="first-defvr first-defvar-alias-first-defvr">
+<dt class="defvr defvar-alias-defvr" id="index-org_002droam_002ddb_002dextra_002dlinks_002dexclude_002dkeys"><span class="category-def">Variable: </span><span><strong class="def-name">org-roam-db-extra-links-exclude-keys</strong><a class="copiable-link" href="#index-org_002droam_002ddb_002dextra_002dlinks_002dexclude_002dkeys"> &para;</a></span></dt>
+<dd><p>Keys to ignore when mapping over links.
 </p>
 <p>The car of the association list is the Org element type (e.g. keyword). The
 cdr is a list of case-insensitive strings to exclude from being treated as
 links.
-</p></li></ul>
+</p></dd></dl>
 
 <hr>
 </div>
@@ -711,10 +714,9 @@ commands.
 slow operation. You can disable the automatic updating of the database by
 setting <code class="code">org-roam-db-update-on-save</code> to <code class="code">nil</code>.
 </p>
-<ul class="itemize mark-bullet">
-<li>Variable: org-roam-db-update-on-save
-</li></ul>
-
+<dl class="first-defvr first-defvar-alias-first-defvr">
+<dt class="defvr defvar-alias-defvr" id="index-org_002droam_002ddb_002dupdate_002don_002dsave"><span class="category-def">Variable: </span><span><strong class="def-name">org-roam-db-update-on-save</strong><a class="copiable-link" href="#index-org_002droam_002ddb_002dupdate_002don_002dsave"> &para;</a></span></dt>
+</dl>
 <p>If t, update the Org-roam database upon saving the file. Disable this if your
 files are large and updating the database is slow.
 </p>
@@ -745,20 +747,18 @@ new node at point.
 <p>To bring up a buffer that tracks the current node at point, call <code class="code">M-x
 org-roam-buffer-toggle</code>.
 </p>
-<ul class="itemize mark-bullet">
-<li>Function: org-roam-buffer-toggle
-
-<p>Toggle display of the <code class="code">org-roam-buffer</code>.
-</p></li></ul>
+<dl class="first-deffn first-defun-alias-first-deffn">
+<dt class="deffn defun-alias-deffn" id="index-org_002droam_002dbuffer_002dtoggle"><span class="category-def">Function: </span><span><strong class="def-name">org-roam-buffer-toggle</strong><a class="copiable-link" href="#index-org_002droam_002dbuffer_002dtoggle"> &para;</a></span></dt>
+<dd><p>Toggle display of the <code class="code">org-roam-buffer</code>.
+</p></dd></dl>
 
 <p>To bring up a buffer that&rsquo;s dedicated for a specific node, call <code class="code">M-x
 org-roam-buffer-display-dedicated</code>.
 </p>
-<ul class="itemize mark-bullet">
-<li>Function: org-roam-buffer-display-dedicated
-
-<p>Launch node dedicated Org-roam buffer without visiting the node itself.
-</p></li></ul>
+<dl class="first-deffn first-defun-alias-first-deffn">
+<dt class="deffn defun-alias-deffn" id="index-org_002droam_002dbuffer_002ddisplay_002ddedicated"><span class="category-def">Function: </span><span><strong class="def-name">org-roam-buffer-display-dedicated</strong><a class="copiable-link" href="#index-org_002droam_002dbuffer_002ddisplay_002ddedicated"> &para;</a></span></dt>
+<dd><p>Launch node dedicated Org-roam buffer without visiting the node itself.
+</p></dd></dl>
 
 
 <ul class="mini-toc">
@@ -963,16 +963,16 @@ to a node titled &ldquo;Artificial Intelligence&rdquo;.
 
 <p>Alternatively, Org-roam provides some functions to add or remove aliases.
 </p>
-<ul class="itemize mark-bullet">
-<li>Function: org-roam-alias-add alias
-
-<p>Add ALIAS to the node at point. When called interactively, prompt for the
+<dl class="first-deffn first-defun-alias-first-deffn">
+<dt class="deffn defun-alias-deffn" id="index-org_002droam_002dalias_002dadd"><span class="category-def">Function: </span><span><strong class="def-name">org-roam-alias-add</strong> <var class="def-var-arguments">alias</var><a class="copiable-link" href="#index-org_002droam_002dalias_002dadd"> &para;</a></span></dt>
+<dd><p>Add ALIAS to the node at point. When called interactively, prompt for the
 alias to add.
-</p>
-</li><li>Function: org-roam-alias-remove
+</p></dd></dl>
 
-<p>Remove an alias from the node at point.
-</p></li></ul>
+<dl class="first-deffn first-defun-alias-first-deffn">
+<dt class="deffn defun-alias-deffn" id="index-org_002droam_002dalias_002dremove"><span class="category-def">Function: </span><span><strong class="def-name">org-roam-alias-remove</strong><a class="copiable-link" href="#index-org_002droam_002dalias_002dremove"> &para;</a></span></dt>
+<dd><p>Remove an alias from the node at point.
+</p></dd></dl>
 
 <hr>
 </div>
@@ -1026,16 +1026,16 @@ key and a URL at the same time.
 </p>
 <p>Org-roam also provides some functions to add or remove refs.
 </p>
-<ul class="itemize mark-bullet">
-<li>Function: org-roam-ref-add ref
-
-<p>Add REF to the node at point. When called interactively, prompt for the
+<dl class="first-deffn first-defun-alias-first-deffn">
+<dt class="deffn defun-alias-deffn" id="index-org_002droam_002dref_002dadd"><span class="category-def">Function: </span><span><strong class="def-name">org-roam-ref-add</strong> <var class="def-var-arguments">ref</var><a class="copiable-link" href="#index-org_002droam_002dref_002dadd"> &para;</a></span></dt>
+<dd><p>Add REF to the node at point. When called interactively, prompt for the
 ref to add.
-</p>
-</li><li>Function: org-roam-ref-remove
+</p></dd></dl>
 
-<p>Remove a ref from the node at point.
-</p></li></ul>
+<dl class="first-deffn first-defun-alias-first-deffn">
+<dt class="deffn defun-alias-deffn" id="index-org_002droam_002dref_002dremove"><span class="category-def">Function: </span><span><strong class="def-name">org-roam-ref-remove</strong><a class="copiable-link" href="#index-org_002droam_002dref_002dremove"> &para;</a></span></dt>
+<dd><p>Remove a ref from the node at point.
+</p></dd></dl>
 
 <hr>
 </div>
@@ -1176,10 +1176,9 @@ to <code class="code">t</code>:
 <pre class="lisp-preformatted">(setq org-roam-completion-everywhere t)
 </pre></div>
 
-<ul class="itemize mark-bullet">
-<li>Variable: org-roam-completion-everywhere
-</li></ul>
-
+<dl class="first-defvr first-defvar-alias-first-defvr">
+<dt class="defvr defvar-alias-defvr" id="index-org_002droam_002dcompletion_002deverywhere"><span class="category-def">Variable: </span><span><strong class="def-name">org-roam-completion-everywhere</strong><a class="copiable-link" href="#index-org_002droam_002dcompletion_002deverywhere"> &para;</a></span></dt>
+</dl>
 <p>When non-nil, provide link completion matching outside of Org links.
 </p>
 <hr>
@@ -1510,7 +1509,6 @@ the default handler instead, run:
 </p>
 <ol class="enumerate">
 <li> Add option &lsquo;-c&lsquo; to &lsquo;emacsclient&lsquo; in the script, and start emacs from command line with &lsquo;emacs &ndash;daemon&lsquo;
-</li></ol>
 
 <div class="example lisp">
 <pre class="lisp-preformatted">on open location this_URL
@@ -1521,8 +1519,7 @@ the default handler instead, run:
 end open location
 </pre></div>
 
-<ol class="enumerate">
-<li> Add &lsquo;(server-start)&lsquo; in .emacs (in this case you do not need option &lsquo;-c&lsquo; for &lsquo;emacsclient&lsquo; in the script, and you do not need to start emacs with &lsquo;emacs &ndash;daemon&lsquo;
+</li><li> Add &lsquo;(server-start)&lsquo; in .emacs (in this case you do not need option &lsquo;-c&lsquo; for &lsquo;emacsclient&lsquo; in the script, and you do not need to start emacs with &lsquo;emacs &ndash;daemon&lsquo;
 </li></ol>
 
 <ul class="itemize mark-bullet">
@@ -1650,10 +1647,9 @@ generating images using <a class="uref" href="https://graphviz.org/">Graphviz</a
 </p>
 <p>The entry point to graph creation is <code class="code">org-roam-graph</code>.
 </p>
-<ul class="itemize mark-bullet">
-<li>Function: org-roam-graph &amp; optional arg node
-</li></ul>
-
+<dl class="first-deffn first-defun-alias-first-deffn">
+<dt class="deffn defun-alias-deffn" id="index-org_002droam_002dgraph"><span class="category-def">Function: </span><span><strong class="def-name">org-roam-graph</strong> <var class="def-var-arguments">&amp; optional arg node</var><a class="copiable-link" href="#index-org_002droam_002dgraph"> &para;</a></span></dt>
+</dl>
 <p>Build and display a graph for NODE.
 ARG may be any of the following values:
 </p>
@@ -1663,18 +1659,18 @@ ARG may be any of the following values:
 components to node up to <code class="code">N</code> steps away.
 </li></ul>
 
-<ul class="itemize mark-bullet">
-<li>User Option: org-roam-graph-executable
-
-<p>Path to the graphing executable (in this case, Graphviz). Set this if Org-roam
+<dl class="first-defvr first-defopt-alias-first-defvr">
+<dt class="defvr defopt-alias-defvr" id="index-org_002droam_002dgraph_002dexecutable"><span class="category-def">User Option: </span><span><strong class="def-name">org-roam-graph-executable</strong><a class="copiable-link" href="#index-org_002droam_002dgraph_002dexecutable"> &para;</a></span></dt>
+<dd><p>Path to the graphing executable (in this case, Graphviz). Set this if Org-roam
 is unable to find the Graphviz executable on your system.
 </p>
 <p>You may also choose to use <code class="code">neato</code> in place of <code class="code">dot</code>, which generates a more
 compact graph layout.
-</p>
-</li><li>User Option: org-roam-graph-viewer
+</p></dd></dl>
 
-<p>Org-roam defaults to using Firefox (located on PATH) to view the SVG, but you
+<dl class="first-defvr first-defopt-alias-first-defvr">
+<dt class="defvr defopt-alias-defvr" id="index-org_002droam_002dgraph_002dviewer"><span class="category-def">User Option: </span><span><strong class="def-name">org-roam-graph-viewer</strong><a class="copiable-link" href="#index-org_002droam_002dgraph_002dviewer"> &para;</a></span></dt>
+<dd><p>Org-roam defaults to using Firefox (located on PATH) to view the SVG, but you
 may choose to set it to:
 </p>
 <ol class="enumerate">
@@ -1693,7 +1689,7 @@ the second option to set the browser and network file path:
       (let ((org-roam-graph-viewer &quot;/mnt/c/Program Files/Mozilla Firefox/firefox.exe&quot;))
         (org-roam-graph--open (concat &quot;file://///wsl$/Ubuntu&quot; file)))))
 </pre></div>
-</li></ul>
+</dd></dl>
 
 
 <ul class="mini-toc">
@@ -1711,27 +1707,29 @@ Up: <a href="#org_002droam_002dgraph" accesskey="u" rel="up">org-roam-graph</a> 
 supports some of them. See <a class="uref" href="https://graphviz.gitlab.io/_pages/doc/info/attrs.html">https://graphviz.gitlab.io/_pages/doc/info/attrs.html</a>
 for customizable options.
 </p>
-<ul class="itemize mark-bullet">
-<li>User Option: org-roam-graph-filetype
+<dl class="first-defvr first-defopt-alias-first-defvr">
+<dt class="defvr defopt-alias-defvr" id="index-org_002droam_002dgraph_002dfiletype"><span class="category-def">User Option: </span><span><strong class="def-name">org-roam-graph-filetype</strong><a class="copiable-link" href="#index-org_002droam_002dgraph_002dfiletype"> &para;</a></span></dt>
+<dd><p>The file type to generate for graphs. This defaults to <code class="code">&quot;svg&quot;</code>.
+</p></dd></dl>
 
-<p>The file type to generate for graphs. This defaults to <code class="code">&quot;svg&quot;</code>.
-</p>
-</li><li>User Option: org-roam-graph-extra-config
-
-<p>Extra options passed to graphviz for the digraph (The &ldquo;G&rdquo; attributes).
+<dl class="first-defvr first-defopt-alias-first-defvr">
+<dt class="defvr defopt-alias-defvr" id="index-org_002droam_002dgraph_002dextra_002dconfig"><span class="category-def">User Option: </span><span><strong class="def-name">org-roam-graph-extra-config</strong><a class="copiable-link" href="#index-org_002droam_002dgraph_002dextra_002dconfig"> &para;</a></span></dt>
+<dd><p>Extra options passed to graphviz for the digraph (The &ldquo;G&rdquo; attributes).
 Example: <code class="code">'~((&quot;rankdir&quot; . &quot;LR&quot;))</code>
-</p>
-</li><li>User Option: org-roam-graph-node-extra-config
+</p></dd></dl>
 
-<p>An alist of options to style the nodes.
+<dl class="first-defvr first-defopt-alias-first-defvr">
+<dt class="defvr defopt-alias-defvr" id="index-org_002droam_002dgraph_002dnode_002dextra_002dconfig"><span class="category-def">User Option: </span><span><strong class="def-name">org-roam-graph-node-extra-config</strong><a class="copiable-link" href="#index-org_002droam_002dgraph_002dnode_002dextra_002dconfig"> &para;</a></span></dt>
+<dd><p>An alist of options to style the nodes.
 The car of the alist node type such as <code class="code">&quot;id&quot;</code>, or <code class="code">&quot;http&quot;</code>. The cdr of the
 list is another alist of Graphviz node options (the &ldquo;N&rdquo; attributes).
-</p>
-</li><li>User Option: org-roam-graph-edge-extra-config
+</p></dd></dl>
 
-<p>Extra options for edges in the graphviz output (The &ldquo;E&rdquo; attributes).
+<dl class="first-defvr first-defopt-alias-first-defvr">
+<dt class="defvr defopt-alias-defvr" id="index-org_002droam_002dgraph_002dedge_002dextra_002dconfig"><span class="category-def">User Option: </span><span><strong class="def-name">org-roam-graph-edge-extra-config</strong><a class="copiable-link" href="#index-org_002droam_002dgraph_002dedge_002dextra_002dconfig"> &para;</a></span></dt>
+<dd><p>Extra options for edges in the graphviz output (The &ldquo;E&rdquo; attributes).
 Example: <code class="code">'((&quot;dir&quot; . &quot;back&quot;))</code>
-</p></li></ul>
+</p></dd></dl>
 
 <hr>
 </div>
@@ -1761,15 +1759,15 @@ Next: <a href="#Usage" accesskey="n" rel="next">Usage</a>, Up: <a href="#org_002
 
 <p>For <code class="code">org-roam-dailies</code> to work, you need to define two variables:
 </p>
-<ul class="itemize mark-bullet">
-<li>Variable: <code class="code">org-roam-dailies-directory</code>
+<dl class="first-defvr first-defvar-alias-first-defvr">
+<dt class="defvr defvar-alias-defvr" id="index-org_002droam_002ddailies_002ddirectory"><span class="category-def">Variable: </span><span><strong class="def-name">org-roam-dailies-directory</strong><a class="copiable-link" href="#index-org_002droam_002ddailies_002ddirectory"> &para;</a></span></dt>
+<dd><p>Path to daily-notes. This path is relative to <code class="code">org-roam-directory</code>.
+</p></dd></dl>
 
-<p>Path to daily-notes. This path is relative to <code class="code">org-roam-directory</code>.
-</p>
-</li><li>Variable: <code class="code">org-roam-dailies-capture-templates</code>
-
-<p>Capture templates for daily-notes in Org-roam.
-</p></li></ul>
+<dl class="first-defvr first-defvar-alias-first-defvr">
+<dt class="defvr defvar-alias-defvr" id="index-org_002droam_002ddailies_002dcapture_002dtemplates"><span class="category-def">Variable: </span><span><strong class="def-name">org-roam-dailies-capture-templates</strong><a class="copiable-link" href="#index-org_002droam_002ddailies_002dcapture_002dtemplates"> &para;</a></span></dt>
+<dd><p>Capture templates for daily-notes in Org-roam.
+</p></dd></dl>
 
 <p>Here is a sane default configuration:
 </p>
@@ -1796,62 +1794,65 @@ Previous: <a href="#Configuration" accesskey="p" rel="prev">Configuration</a>, U
 
 <p><code class="code">org-roam-dailies</code> provides these interactive functions:
 </p>
-<ul class="itemize mark-bullet">
-<li>Function: <code class="code">org-roam-dailies-capture-today</code> &amp;optional goto
-
-<p>Create an entry in the daily note for today.
+<dl class="first-deffn first-defun-alias-first-deffn">
+<dt class="deffn defun-alias-deffn" id="index-org_002droam_002ddailies_002dcapture_002dtoday"><span class="category-def">Function: </span><span><strong class="def-name">org-roam-dailies-capture-today</strong> <var class="def-var-arguments">&amp;optional goto</var><a class="copiable-link" href="#index-org_002droam_002ddailies_002dcapture_002dtoday"> &para;</a></span></dt>
+<dd><p>Create an entry in the daily note for today.
 </p>
 <p>When <code class="code">goto</code> is non-nil, go to the note without creating an entry.
-</p>
-</li><li>Function: <code class="code">org-roam-dailies-goto-today</code>
+</p></dd></dl>
 
-<p>Find the daily note for today, creating it if necessary.
-</p></li></ul>
+<dl class="first-deffn first-defun-alias-first-deffn">
+<dt class="deffn defun-alias-deffn" id="index-org_002droam_002ddailies_002dgoto_002dtoday"><span class="category-def">Function: </span><span><strong class="def-name">org-roam-dailies-goto-today</strong><a class="copiable-link" href="#index-org_002droam_002ddailies_002dgoto_002dtoday"> &para;</a></span></dt>
+<dd><p>Find the daily note for today, creating it if necessary.
+</p></dd></dl>
 
 <p>There are variants of those commands for <code class="code">-yesterday</code> and <code class="code">-tomorrow</code>:
 </p>
-<ul class="itemize mark-bullet">
-<li>Function: <code class="code">org-roam-dailies-capture-yesterday</code> n &amp;optional goto
-
-<p>Create an entry in the daily note for yesterday.
+<dl class="first-deffn first-defun-alias-first-deffn">
+<dt class="deffn defun-alias-deffn" id="index-org_002droam_002ddailies_002dcapture_002dyesterday"><span class="category-def">Function: </span><span><strong class="def-name">org-roam-dailies-capture-yesterday</strong> <var class="def-var-arguments">n &amp;optional goto</var><a class="copiable-link" href="#index-org_002droam_002ddailies_002dcapture_002dyesterday"> &para;</a></span></dt>
+<dd><p>Create an entry in the daily note for yesterday.
 </p>
 <p>With numeric argument <code class="code">n</code>, use the daily note <code class="code">n</code> days in the past.
-</p>
-</li><li>Function: <code class="code">org-roam-dailies-goto-yesterday</code>
+</p></dd></dl>
 
-<p>With numeric argument N, use the daily-note N days in the future.
-</p></li></ul>
+<dl class="first-deffn first-defun-alias-first-deffn">
+<dt class="deffn defun-alias-deffn" id="index-org_002droam_002ddailies_002dgoto_002dyesterday"><span class="category-def">Function: </span><span><strong class="def-name">org-roam-dailies-goto-yesterday</strong><a class="copiable-link" href="#index-org_002droam_002ddailies_002dgoto_002dyesterday"> &para;</a></span></dt>
+<dd><p>With numeric argument N, use the daily-note N days in the future.
+</p></dd></dl>
 
 <p>There are also commands which allow you to use Emacs’s <code class="code">calendar</code> to find the date
 </p>
-<ul class="itemize mark-bullet">
-<li>Function: <code class="code">org-roam-dailies-capture-date</code>
-
-<p>Create an entry in the daily note for a date using the calendar.
+<dl class="first-deffn first-defun-alias-first-deffn">
+<dt class="deffn defun-alias-deffn" id="index-org_002droam_002ddailies_002dcapture_002ddate"><span class="category-def">Function: </span><span><strong class="def-name">org-roam-dailies-capture-date</strong><a class="copiable-link" href="#index-org_002droam_002ddailies_002dcapture_002ddate"> &para;</a></span></dt>
+<dd><p>Create an entry in the daily note for a date using the calendar.
 </p>
 <p>Prefer past dates, unless <code class="code">prefer-future</code> is non-nil.
 </p>
 <p>With a &rsquo;C-u&rsquo; prefix or when <code class="code">goto</code> is non-nil, go the note without
 creating an entry.
-</p>
-</li><li>Function: <code class="code">org-roam-dailies-goto-date</code>
+</p></dd></dl>
 
-<p>Find the daily note for a date using the calendar, creating it if necessary.
+<dl class="first-deffn first-defun-alias-first-deffn">
+<dt class="deffn defun-alias-deffn" id="index-org_002droam_002ddailies_002dgoto_002ddate"><span class="category-def">Function: </span><span><strong class="def-name">org-roam-dailies-goto-date</strong><a class="copiable-link" href="#index-org_002droam_002ddailies_002dgoto_002ddate"> &para;</a></span></dt>
+<dd><p>Find the daily note for a date using the calendar, creating it if necessary.
 </p>
 <p>Prefer past dates, unless <code class="code">prefer-future</code> is non-nil.
-</p>
-</li><li>Function: <code class="code">org-roam-dailies-find-directory</code>
+</p></dd></dl>
 
-<p>Find and open <code class="code">org-roam-dailies-directory</code>.
-</p>
-</li><li>Function: <code class="code">org-roam-dailies-goto-previous-note</code>
+<dl class="first-deffn first-defun-alias-first-deffn">
+<dt class="deffn defun-alias-deffn" id="index-org_002droam_002ddailies_002dfind_002ddirectory"><span class="category-def">Function: </span><span><strong class="def-name">org-roam-dailies-find-directory</strong><a class="copiable-link" href="#index-org_002droam_002ddailies_002dfind_002ddirectory"> &para;</a></span></dt>
+<dd><p>Find and open <code class="code">org-roam-dailies-directory</code>.
+</p></dd></dl>
 
-<p>When in an daily-note, find the previous one.
-</p>
-</li><li>Function: <code class="code">org-roam-dailies-goto-next-note</code>
+<dl class="first-deffn first-defun-alias-first-deffn">
+<dt class="deffn defun-alias-deffn" id="index-org_002droam_002ddailies_002dgoto_002dprevious_002dnote"><span class="category-def">Function: </span><span><strong class="def-name">org-roam-dailies-goto-previous-note</strong><a class="copiable-link" href="#index-org_002droam_002ddailies_002dgoto_002dprevious_002dnote"> &para;</a></span></dt>
+<dd><p>When in an daily-note, find the previous one.
+</p></dd></dl>
 
-<p>When in an daily-note, find the next one.
-</p></li></ul>
+<dl class="first-deffn first-defun-alias-first-deffn">
+<dt class="deffn defun-alias-deffn" id="index-org_002droam_002ddailies_002dgoto_002dnext_002dnote"><span class="category-def">Function: </span><span><strong class="def-name">org-roam-dailies-goto-next-note</strong><a class="copiable-link" href="#index-org_002droam_002ddailies_002dgoto_002dnext_002dnote"> &para;</a></span></dt>
+<dd><p>When in an daily-note, find the next one.
+</p></dd></dl>
 
 <hr>
 </div>
@@ -2506,16 +2507,15 @@ Next: <a href="#Extending-the-Capture-System" accesskey="n" rel="next">Extending
 <p>The node interface is cleanly defined using <code class="code">cl-defstruct</code>. The primary
 method to access nodes is <code class="code">org-roam-node-at-point</code> and <code class="code">org-roam-node-read</code>:
 </p>
-<ul class="itemize mark-bullet">
-<li>Function: org-roam-node-at-point &amp;optional assert
-
-<p>Return the node at point. If ASSERT, throw an error if there is no node at
+<dl class="first-deffn first-defun-alias-first-deffn">
+<dt class="deffn defun-alias-deffn" id="index-org_002droam_002dnode_002dat_002dpoint"><span class="category-def">Function: </span><span><strong class="def-name">org-roam-node-at-point</strong> <var class="def-var-arguments">&amp;optional assert</var><a class="copiable-link" href="#index-org_002droam_002dnode_002dat_002dpoint"> &para;</a></span></dt>
+<dd><p>Return the node at point. If ASSERT, throw an error if there is no node at
 point.
-</p>
-</li><li>Function: org-roam-node-read &amp;optional initial-input filter-fn sort-fn
-require-match
+</p></dd></dl>
 
-<p>Read and return an &lsquo;org-roam-node&rsquo;.
+<dl class="first-deffn first-defun-alias-first-deffn">
+<dt class="deffn defun-alias-deffn" id="index-org_002droam_002dnode_002dread"><span class="category-def">Function: </span><span><strong class="def-name">org-roam-node-read</strong> <var class="def-var-arguments">&amp;optional initial-input filter-fn sort-fn require-match</var><a class="copiable-link" href="#index-org_002droam_002dnode_002dread"> &para;</a></span></dt>
+<dd><p>Read and return an &lsquo;org-roam-node&rsquo;.
 INITIAL-INPUT is the initial minibuffer prompt value. FILTER-FN
 is a function to filter out nodes: it takes a single argument (an
 <code class="code">org-roam-node</code>), and when nil is returned the node will be
@@ -2523,7 +2523,7 @@ filtered out.
 SORT-FN is a function to sort nodes. See <code class="code">org-roam-node-read-sort-by-file-mtime</code>
 for an example sort function.
 If REQUIRE-MATCH, the minibuffer prompt will require a match.
-</p></li></ul>
+</p></dd></dl>
 
 <p>Once you obtain the node, you can use the accessors for the node, e.g.
 <code class="code">org-roam-node-id</code> or <code class="code">org-roam-node-todo</code>.
@@ -2556,16 +2556,15 @@ Previous: <a href="#Accessing-and-Modifying-Nodes" accesskey="p" rel="prev">Acce
 experience, and sometimes it is desirable to use Org-roam&rsquo;s capturing system
 instead. The exposed function to be used in extensions is <code class="code">org-roam-capture-</code>:
 </p>
-<ul class="itemize mark-bullet">
-<li>Function: org-roam-capture- &amp;key goto keys node info props templates
-
-<p>Main entry point.
+<dl class="first-deffn first-defun-alias-first-deffn">
+<dt class="deffn defun-alias-deffn" id="index-org_002droam_002dcapture_002d"><span class="category-def">Function: </span><span><strong class="def-name">org-roam-capture-</strong> <var class="def-var-arguments">&amp;key goto keys node info props templates</var><a class="copiable-link" href="#index-org_002droam_002dcapture_002d"> &para;</a></span></dt>
+<dd><p>Main entry point.
 GOTO and KEYS correspond to &lsquo;org-capture&rsquo; arguments.
 INFO is a plist for filling up Org-roam&rsquo;s capture templates.
 NODE is an &lsquo;org-roam-node&rsquo; construct containing information about the node.
 PROPS is a plist containing additional Org-roam properties for each template.
 TEMPLATES is a list of org-roam templates.
-</p></li></ul>
+</p></dd></dl>
 
 <p>An example of an extension using <code class="code">org-roam-capture-</code> is <code class="code">org-roam-dailies</code>
 itself:
@@ -2672,6 +2671,33 @@ Next: <a href="#Variable-Index" accesskey="n" rel="next">Variable Index</a>, Pre
 </div>
 <h2 class="appendix" id="Function-Index-1"><span>Appendix C Function Index<a class="copiable-link" href="#Function-Index-1"> &para;</a></span></h2>
 
+<div class="printindex fn-printindex">
+<table class="fn-entries-printindex" border="0">
+<tr><td></td><th class="entries-header-printindex">Index Entry</th><th class="sections-header-printindex">Section</th></tr>
+<tr><td colspan="3"><hr></td></tr>
+<tr><th id="Function-Index_fn_letter-O">O</th></tr>
+<tr><td></td><td class="printindex-index-entry"><a href="#index-org_002droam_002dalias_002dadd"><code>org-roam-alias-add</code></a></td><td class="printindex-index-section"><a href="#Titles-and-Aliases">Titles and Aliases</a></td></tr>
+<tr><td></td><td class="printindex-index-entry"><a href="#index-org_002droam_002dalias_002dremove"><code>org-roam-alias-remove</code></a></td><td class="printindex-index-section"><a href="#Titles-and-Aliases">Titles and Aliases</a></td></tr>
+<tr><td></td><td class="printindex-index-entry"><a href="#index-org_002droam_002dbuffer_002ddisplay_002ddedicated"><code>org-roam-buffer-display-dedicated</code></a></td><td class="printindex-index-section"><a href="#The-Org_002droam-Buffer">The Org-roam Buffer</a></td></tr>
+<tr><td></td><td class="printindex-index-entry"><a href="#index-org_002droam_002dbuffer_002dtoggle"><code>org-roam-buffer-toggle</code></a></td><td class="printindex-index-section"><a href="#The-Org_002droam-Buffer">The Org-roam Buffer</a></td></tr>
+<tr><td></td><td class="printindex-index-entry"><a href="#index-org_002droam_002dcapture_002d"><code>org-roam-capture-</code></a></td><td class="printindex-index-section"><a href="#Extending-the-Capture-System">Extending the Capture System</a></td></tr>
+<tr><td></td><td class="printindex-index-entry"><a href="#index-org_002droam_002ddailies_002dcapture_002ddate"><code>org-roam-dailies-capture-date</code></a></td><td class="printindex-index-section"><a href="#Usage">Usage</a></td></tr>
+<tr><td></td><td class="printindex-index-entry"><a href="#index-org_002droam_002ddailies_002dcapture_002dtoday"><code>org-roam-dailies-capture-today</code></a></td><td class="printindex-index-section"><a href="#Usage">Usage</a></td></tr>
+<tr><td></td><td class="printindex-index-entry"><a href="#index-org_002droam_002ddailies_002dcapture_002dyesterday"><code>org-roam-dailies-capture-yesterday</code></a></td><td class="printindex-index-section"><a href="#Usage">Usage</a></td></tr>
+<tr><td></td><td class="printindex-index-entry"><a href="#index-org_002droam_002ddailies_002dfind_002ddirectory"><code>org-roam-dailies-find-directory</code></a></td><td class="printindex-index-section"><a href="#Usage">Usage</a></td></tr>
+<tr><td></td><td class="printindex-index-entry"><a href="#index-org_002droam_002ddailies_002dgoto_002ddate"><code>org-roam-dailies-goto-date</code></a></td><td class="printindex-index-section"><a href="#Usage">Usage</a></td></tr>
+<tr><td></td><td class="printindex-index-entry"><a href="#index-org_002droam_002ddailies_002dgoto_002dnext_002dnote"><code>org-roam-dailies-goto-next-note</code></a></td><td class="printindex-index-section"><a href="#Usage">Usage</a></td></tr>
+<tr><td></td><td class="printindex-index-entry"><a href="#index-org_002droam_002ddailies_002dgoto_002dprevious_002dnote"><code>org-roam-dailies-goto-previous-note</code></a></td><td class="printindex-index-section"><a href="#Usage">Usage</a></td></tr>
+<tr><td></td><td class="printindex-index-entry"><a href="#index-org_002droam_002ddailies_002dgoto_002dtoday"><code>org-roam-dailies-goto-today</code></a></td><td class="printindex-index-section"><a href="#Usage">Usage</a></td></tr>
+<tr><td></td><td class="printindex-index-entry"><a href="#index-org_002droam_002ddailies_002dgoto_002dyesterday"><code>org-roam-dailies-goto-yesterday</code></a></td><td class="printindex-index-section"><a href="#Usage">Usage</a></td></tr>
+<tr><td></td><td class="printindex-index-entry"><a href="#index-org_002droam_002dgraph"><code>org-roam-graph</code></a></td><td class="printindex-index-section"><a href="#org_002droam_002dgraph">org-roam-graph</a></td></tr>
+<tr><td></td><td class="printindex-index-entry"><a href="#index-org_002droam_002dnode_002dat_002dpoint"><code>org-roam-node-at-point</code></a></td><td class="printindex-index-section"><a href="#Accessing-and-Modifying-Nodes">Accessing and Modifying Nodes</a></td></tr>
+<tr><td></td><td class="printindex-index-entry"><a href="#index-org_002droam_002dnode_002dread"><code>org-roam-node-read</code></a></td><td class="printindex-index-section"><a href="#Accessing-and-Modifying-Nodes">Accessing and Modifying Nodes</a></td></tr>
+<tr><td></td><td class="printindex-index-entry"><a href="#index-org_002droam_002dref_002dadd"><code>org-roam-ref-add</code></a></td><td class="printindex-index-section"><a href="#Refs">Refs</a></td></tr>
+<tr><td></td><td class="printindex-index-entry"><a href="#index-org_002droam_002dref_002dremove"><code>org-roam-ref-remove</code></a></td><td class="printindex-index-section"><a href="#Refs">Refs</a></td></tr>
+<tr><td colspan="3"><hr></td></tr>
+</table>
+</div>
 
 <hr>
 </div>
@@ -2682,8 +2708,29 @@ Previous: <a href="#Function-Index" accesskey="p" rel="prev">Function Index</a>,
 </div>
 <h2 class="appendix" id="Variable-Index-1"><span>Appendix D Variable Index<a class="copiable-link" href="#Variable-Index-1"> &para;</a></span></h2>
 
+<div class="printindex vr-printindex">
+<table class="vr-entries-printindex" border="0">
+<tr><td></td><th class="entries-header-printindex">Index Entry</th><th class="sections-header-printindex">Section</th></tr>
+<tr><td colspan="3"><hr></td></tr>
+<tr><th id="Variable-Index_vr_letter-O">O</th></tr>
+<tr><td></td><td class="printindex-index-entry"><a href="#index-org_002droam_002dcompletion_002deverywhere"><code>org-roam-completion-everywhere</code></a></td><td class="printindex-index-section"><a href="#Completing-anywhere">Completing anywhere</a></td></tr>
+<tr><td></td><td class="printindex-index-entry"><a href="#index-org_002droam_002ddailies_002dcapture_002dtemplates"><code>org-roam-dailies-capture-templates</code></a></td><td class="printindex-index-section"><a href="#Configuration">Configuration</a></td></tr>
+<tr><td></td><td class="printindex-index-entry"><a href="#index-org_002droam_002ddailies_002ddirectory"><code>org-roam-dailies-directory</code></a></td><td class="printindex-index-section"><a href="#Configuration">Configuration</a></td></tr>
+<tr><td></td><td class="printindex-index-entry"><a href="#index-org_002droam_002ddb_002dextra_002dlinks_002delements"><code>org-roam-db-extra-links-elements</code></a></td><td class="printindex-index-section"><a href="#What-to-cache">What to cache</a></td></tr>
+<tr><td></td><td class="printindex-index-entry"><a href="#index-org_002droam_002ddb_002dextra_002dlinks_002dexclude_002dkeys"><code>org-roam-db-extra-links-exclude-keys</code></a></td><td class="printindex-index-section"><a href="#What-to-cache">What to cache</a></td></tr>
+<tr><td></td><td class="printindex-index-entry"><a href="#index-org_002droam_002ddb_002dupdate_002don_002dsave"><code>org-roam-db-update-on-save</code></a></td><td class="printindex-index-section"><a href="#When-to-cache">When to cache</a></td></tr>
+<tr><td></td><td class="printindex-index-entry"><a href="#index-org_002droam_002dgraph_002dedge_002dextra_002dconfig"><code>org-roam-graph-edge-extra-config</code></a></td><td class="printindex-index-section"><a href="#Graph-Options">Graph Options</a></td></tr>
+<tr><td></td><td class="printindex-index-entry"><a href="#index-org_002droam_002dgraph_002dexecutable"><code>org-roam-graph-executable</code></a></td><td class="printindex-index-section"><a href="#org_002droam_002dgraph">org-roam-graph</a></td></tr>
+<tr><td></td><td class="printindex-index-entry"><a href="#index-org_002droam_002dgraph_002dextra_002dconfig"><code>org-roam-graph-extra-config</code></a></td><td class="printindex-index-section"><a href="#Graph-Options">Graph Options</a></td></tr>
+<tr><td></td><td class="printindex-index-entry"><a href="#index-org_002droam_002dgraph_002dfiletype"><code>org-roam-graph-filetype</code></a></td><td class="printindex-index-section"><a href="#Graph-Options">Graph Options</a></td></tr>
+<tr><td></td><td class="printindex-index-entry"><a href="#index-org_002droam_002dgraph_002dnode_002dextra_002dconfig"><code>org-roam-graph-node-extra-config</code></a></td><td class="printindex-index-section"><a href="#Graph-Options">Graph Options</a></td></tr>
+<tr><td></td><td class="printindex-index-entry"><a href="#index-org_002droam_002dgraph_002dviewer"><code>org-roam-graph-viewer</code></a></td><td class="printindex-index-section"><a href="#org_002droam_002dgraph">org-roam-graph</a></td></tr>
+<tr><td></td><td class="printindex-index-entry"><a href="#index-org_002droam_002dnode_002ddisplay_002dtemplate"><code>org-roam-node-display-template</code></a></td><td class="printindex-index-section"><a href="#Customizing-Node-Completions">Customizing Node Completions</a></td></tr>
+<tr><td colspan="3"><hr></td></tr>
+</table>
+</div>
 
-<p>Emacs 30.1 (Org mode 9.7.29)
+<p>Emacs 30.1.90 (Org mode 9.7.25)
 </p></div>
 </div>
 <div class="footnotes-segment">
