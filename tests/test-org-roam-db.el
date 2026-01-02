@@ -3,7 +3,6 @@
 ;; Copyright (C) 2020 Jethro Kuan
 
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
-;; Package-Requires: ((buttercup))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
