@@ -556,9 +556,7 @@ INFO is the org-element parsed buffer."
 (defun org-roam-db-update-file (&optional file-path _deprecated-arg)
   "Update Org-roam cache for FILE-PATH.
 
-If the file does not exist anymore, remove it from the cache.
-
-If the file exists, update the cache with information.
+Assumes FILE-PATH exists. See also `org-roam-db-clear-file'.
 
 If NO-REQUIRE, don't require optional libraries. Set NO-REQUIRE
 when the libraries are already required at some toplevel, e.g.
