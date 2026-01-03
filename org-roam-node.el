@@ -801,15 +801,15 @@ We use this as a substitute for `org-link-bracket-re', because
 
 (defun org-roam-complete-link-at-point ()
   "Complete \"roam:\" link at point to an existing Org-roam node."
-  (when (org-in-regexp org-roam-bracket-completion-re 1)
+  (when (and (org-in-regexp org-roam-bracket-completion-re 1)
+             (not (org-in-src-block-p)))
     (list (match-beginning 2)
           (match-end 2)
           (org-roam--get-titles)
           :exit-function
           (lambda (str &rest _)
             (delete-char (- 0 (length str)))
-            (insert (concat (when (or (org-in-src-block-p)
-                                      (string-blank-p (match-string 1)))
+            (insert (concat (when (string-blank-p (match-string 1))
                               "roam:")
                             str))
             (forward-char 2)))))
