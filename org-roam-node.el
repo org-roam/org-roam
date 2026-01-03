@@ -801,20 +801,18 @@ We use this as a substitute for `org-link-bracket-re', because
 
 (defun org-roam-complete-link-at-point ()
   "Complete \"roam:\" link at point to an existing Org-roam node."
-  (let (roam-p start end)
-    (when (org-in-regexp org-roam-bracket-completion-re 1)
-      (setq roam-p (not (or (org-in-src-block-p)
-                            (string-blank-p (match-string 1))))
-            start (match-beginning 2)
-            end (match-end 2))
-      (list start end
-            (org-roam--get-titles)
-            :exit-function
-            (lambda (str &rest _)
-              (delete-char (- 0 (length str)))
-              (insert (concat (unless roam-p "roam:")
-                              str))
-              (forward-char 2))))))
+  (when (org-in-regexp org-roam-bracket-completion-re 1)
+    (list (match-beginning 2)
+          (match-end 2)
+          (org-roam--get-titles)
+          :exit-function
+          (lambda (str &rest _)
+            (delete-char (- 0 (length str)))
+            (insert (concat (when (or (org-in-src-block-p)
+                                      (string-blank-p (match-string 1)))
+                              "roam:")
+                            str))
+            (forward-char 2)))))
 
 (defun org-roam-complete-everywhere ()
   "Complete symbol at point as a link completion to an Org-roam node.
