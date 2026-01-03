@@ -348,7 +348,7 @@ Has no effect when there's no `org-roam-node-at-point'."
   "Reconstruct the persistent `org-roam-buffer'.
 This needs to be quick or infrequent, because this designed to
 run at `post-command-hook'."
-  (and (get-buffer-window org-roam-buffer)
+  (and (get-buffer-window org-roam-buffer 'visible)
        (org-roam-buffer-persistent-redisplay)))
 
 ;;; Sections
