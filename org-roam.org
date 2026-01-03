@@ -717,9 +717,9 @@ support.
 
 ** Using the Cached Information
 
-It is common to use take reference notes for academic papers. To designate the
-node to be the canonical node for the academic paper, we can use its unique
-citation key:
+It is common to take notes on academic reference meterial. To designate a node
+as the canonical node for a particular reference, we can use its unique citation
+key:
 
 #+begin_src org
 ,* Probabilistic Robotics
@@ -854,7 +854,8 @@ of the template are similar to ~org-capture~ templates.
    This template means don't insert any content, but place the cursor here.
 6. ~:target~ is a compulsory specification in the Org-roam capture template. The
    first element of the list indicates the type of the target, the second
-   element indicates the location of the captured node, and the rest of the
+   element indicates the location of the captured node (note the target location
+   undergoes Org template expansion like the body elements), and the rest of the
    elements indicate prefilled template that will be inserted and the position
    of the point will be adjusted for. The latter behavior varies from type to
    type of the capture target.
