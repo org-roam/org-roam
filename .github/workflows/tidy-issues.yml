@@ -48,8 +48,6 @@ jobs:
             - If still relevant, comment below and we'll reopen
             - Or create a new issue with updated information
 
-            If this issue is not reopened in 2 weeks, it will be locked.
-            
             This helps keep our issue tracker focused and manageable.
 
           stale-pr-message: |
