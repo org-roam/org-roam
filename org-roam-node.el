@@ -28,6 +28,7 @@
 ;;; Code:
 (require 'crm)
 (require 'subr-x)
+(eval-when-compile (require 'rx))
 (require 'org-roam)
 
 ;;; Options
@@ -793,27 +794,41 @@ Assumes that the cursor was put where the link is."
 
 ;;;;;; Completion-at-point interface
 (defconst org-roam-bracket-completion-re
-  "\\[\\[\\(\\(?:roam:\\)?\\)\\([^z-a]*?\\)]]"
-  "Regex for completion within link brackets.
-We use this as a substitute for `org-link-bracket-re', because
-`org-link-bracket-re' requires content within the brackets for a match.")
+  (rx "[["
+      (group (opt "roam:"))
+      ;; Change from ‘org-link-bracket-re’: allow empty URI part
+      (group (zero-or-more
+              (or (not (any "[]\\"))
+                  (and "\\" (zero-or-more "\\\\") (any "[]"))
+                  (and (one-or-more "\\") (not (any "[]"))))))
+      "]]")
+  "Regexp for completion within link brackets.
+Intended for ‘org-roam-complete-link-at-point’, which see.")
 
 (defun org-roam-complete-link-at-point ()
-  "Complete \"roam:\" link at point to an existing Org-roam node."
-  (let (roam-p start end)
-    (when (org-in-regexp org-roam-bracket-completion-re 1)
-      (setq roam-p (not (or (org-in-src-block-p)
-                            (string-blank-p (match-string 1))))
-            start (match-beginning 2)
-            end (match-end 2))
-      (list start end
-            (org-roam--get-titles)
-            :exit-function
-            (lambda (str &rest _)
-              (delete-char (- 0 (length str)))
-              (insert (concat (unless roam-p "roam:")
-                              str))
-              (forward-char 2))))))
+  "Complete inside link brackets to an existing Org-roam node.
+Targets [[$title]] and [[roam:$title]] links. [[id:$id][$description]]
+links are not targeted to allow for changing link descriptions without
+changing the target node."
+  (when-let* ((_ (org-in-regexp org-roam-bracket-completion-re 1))
+              (uri-start (match-beginning 1))
+              (title-start (match-beginning 2))
+              (end (match-end 2))
+              ;; don’t try to complete if point is in the delimiting brackets
+              (_ (<= title-start (point) end))
+              (_ (not (org-in-src-block-p))))
+    (list title-start end
+          (org-roam--get-titles)
+          :exit-function
+          (lambda (str &rest _)
+            "Replace title inserted by completion with ID and title."
+            (delete-region uri-start (point))
+            (insert "id:"
+                    (org-roam-node-id (org-roam-node-from-title-or-alias
+                                       (substring-no-properties str)))
+                    "][" str)
+            ;; Move point after closing brackets
+            (forward-char 2)))))
 
 (defun org-roam-complete-everywhere ()
   "Complete symbol at point as a link completion to an Org-roam node.
@@ -821,7 +836,7 @@ This is a `completion-at-point' function, and is active when
 `org-roam-completion-everywhere' is non-nil.
 
 Unlike `org-roam-complete-link-at-point' this will complete even
-outside of the bracket syntax for links (i.e. \"[[roam:|]]\"),
+outside of the bracket syntax for links (i.e. \"[[|]]\"),
 hence \"everywhere\"."
   (when (and org-roam-completion-everywhere
              (thing-at-point 'word)
@@ -833,7 +848,10 @@ hence \"everywhere\"."
             :exit-function
             (lambda (str _status)
               (delete-char (- (length str)))
-              (insert "[[roam:" str "]]"))
+              (insert "[[id:"
+                      (org-roam-node-id (org-roam-node-from-title-or-alias
+                                         (substring-no-properties str)))
+                      "][" str "]]"))
             ;; Proceed with the next completion function if the returned titles
             ;; do not match. This allows the default Org capfs or custom capfs
             ;; of lower priority to run.
