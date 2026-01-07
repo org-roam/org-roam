@@ -567,7 +567,7 @@ Return the ID of the location."
     ;; caller.
     (save-excursion
       (goto-char p)
-      (if-let ((id (org-entry-get p "ID")))
+      (if-let* ((id (org-entry-get p "ID")))
           (setf (org-roam-node-id org-roam-capture--node) id)
         (org-entry-put p "ID" (org-roam-node-id org-roam-capture--node)))
       (prog1
