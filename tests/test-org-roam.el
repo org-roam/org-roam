@@ -71,24 +71,25 @@
               "ref_with_space.org"
               "foo.org"
               "bar.org"
+              "capfs.org"
               "node-in-subdirectory.org"
               "2025-11-11.org"))
-    (expect (length (org-roam-list-files)) :to-equal 13))
+    (expect (length (org-roam-list-files)) :to-equal 14))
 
   ;; https://github.com/org-roam/org-roam/pull/2178
   (it "does not care if org-roam-directory itself matches an exclude rule"
     (setq org-roam-file-exclude-regexp (regexp-quote org-roam-directory))
-    (expect (length (org-roam-list-files)) :to-equal 13))
+    (expect (length (org-roam-list-files)) :to-equal 14))
 
   (it "respects org-roam-file-extensions"
     (setq org-roam-file-extensions '("md"))
     (expect (length (org-roam-list-files)) :to-equal 1)
     (setq org-roam-file-extensions '("org" "md"))
-    (expect (length (org-roam-list-files)) :to-equal 14))
+    (expect (length (org-roam-list-files)) :to-equal 15))
 
   (it "respects org-roam-file-exclude-regexp"
     (setq org-roam-file-exclude-regexp (regexp-quote "foo.org"))
-    (expect (length (org-roam-list-files)) :to-equal 12)))
+    (expect (length (org-roam-list-files)) :to-equal 13)))
 
 (describe "org-roam--list-files-search-globs"
 
