@@ -58,6 +58,7 @@
                     "ref_with_space.org"
                     "foo.org"
                     "bar.org"
+                    "capfs.org"
                     "node-in-subdirectory.org"
                     "2025-11-11.org"
                     "untitled-1.org"
