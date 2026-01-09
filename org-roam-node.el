@@ -352,7 +352,7 @@ nodes."
             (org-roam-node-aliases node) alias-info)))
   node)
 
-(defun org-roam-node-list ()
+(defun org-roam-node--get-list ()
   "Return all nodes stored in the database as a list of `org-roam-node's."
   (let ((rows (org-roam-db-query
                "
@@ -438,6 +438,22 @@ GROUP BY id
      rows)
     )
   )
+
+(defvar org-roam-node--list nil
+  "Previous value of the nodes.")
+(defvar org-roam-node--list-mtime nil
+  "Last time `org-roam-node--list' was changed.")
+(defun org-roam-node-list (&optional force-refresh)
+  "Return all nodes stored in the database as a list of `org-roam-node's.
+
+Memoizes `org-roam-node--get-list'."
+  (if (and (not force-refresh)
+           org-roam-node--list-mtime
+           (time-less-p (org-roam-db--get-mtime) org-roam-node--list-mtime))
+      org-roam-node--list
+    (setq org-roam-node--list (org-roam-node--get-list))
+    (setq org-roam-node--list-mtime (current-time))
+    org-roam-node--list))
 
 ;;;; Finders
 (defun org-roam-node-marker (node)
