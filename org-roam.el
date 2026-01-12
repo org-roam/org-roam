@@ -134,6 +134,39 @@ Each function takes two arguments: the id of the node, and the link description.
   :group 'org-roam
   :type 'hook)
 
+(defcustom org-roam-dir-exclude-literals
+  (list "/logseq/version-files/"
+        "/logseq/bak/"
+        (concat "/" org-attach-id-dir))
+  "If a directory name contains any of these strings, skip it.
+This applies to the part of the file-name after `org-roam-directory'."
+  :group 'org-roam
+  :type '(repeat string))
+
+(defcustom org-roam-dir-exclude-regexps nil
+  "If a directory name matches any of these regexps, skip it.
+This applies to the part of the file-name after `org-roam-directory'."
+  :group 'org-roam
+  :type '(repeat regexp))
+
+(defcustom org-roam-file-exclude-literals (list ".sync-conflict-")
+  "If a file name contains any of these strings, skip it.
+This applies to the part of the file-name after `org-roam-directory'."
+  :group 'org-roam
+  :type '(repeat string))
+
+;; This has a grandfathered default value.
+(defvaralias 'org-roam-file-exclude-regexp 'org-roam-file-exclude-regexps)
+(defcustom org-roam-file-exclude-regexps (list org-attach-id-dir)
+  "If a file name matches any of these regexps, skip it.
+This applies to the part of the file-name after `org-roam-directory'.
+
+List of regexps, but can also be a single string regexp for legacy reasons."
+  :type '(choice (repeat regexp)
+                 regexp
+                 (const :tag "Include everything" nil))
+  :group 'org-roam)
+
 (defcustom org-roam-file-extensions '("org")
   "List of file extensions to be included by Org-Roam.
 While a file extension different from \".org\" may be used, the
@@ -142,19 +175,8 @@ responsibility to ensure that."
   :type '(repeat string)
   :group 'org-roam)
 
-(defcustom org-roam-file-exclude-regexp (list org-attach-id-dir)
-  "Files matching this regexp or list of regexps are excluded from Org-roam."
-  :type '(choice
-          (repeat
-           (string :tag "Regular expression matching files to ignore"))
-          (string :tag "Regular expression matching files to ignore")
-          (const :tag "Include everything" nil))
-  :group 'org-roam)
-
-(defcustom org-roam-list-files-commands
-  (if (member system-type '(windows-nt ms-dos cygwin))
-      nil
-    '(find fd fdfind rg))
+;; TODO: Deprecate, the elisp is faster now.
+(defcustom org-roam-list-files-commands nil
   "Commands that will be used to find Org-roam files.
 
 It should be a list of symbols or cons cells representing any of
@@ -337,14 +359,7 @@ E.g. (\".org\") => (\"*.org\" \"*.org.gpg\")"
 
 (defun org-roam--list-files-elisp (dir)
   "Return all Org-roam files under DIR, using Elisp based implementation."
-  (let ((regex (concat "\\.\\(?:"(mapconcat
-                                  #'regexp-quote org-roam-file-extensions
-                                  "\\|" )"\\)\\(?:\\.gpg\\|\\.age\\)?\\'"))
-        result)
-    (dolist (file (org-roam--directory-files-recursively dir regex nil nil t) result)
-      (when (and (file-readable-p file)
-                 (org-roam-file-p file))
-        (push file result)))))
+  (mapcar #'car (org-roam-directory-files-and-attributes dir)))
 
 ;;; Package bootstrap
 (provide 'org-roam)
