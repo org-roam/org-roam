@@ -605,13 +605,14 @@ you can catch it with `condition-case'."
          (lmax 1)
          (start (point-min))
          (end (point-max))
+         headings
          found flevel)
     (unless (derived-mode-p 'org-mode)
       (error "Buffer %s needs to be in Org mode" (current-buffer)))
     (org-with-wide-buffer
+     (setq headings (mapcar #'org-roam-capture--fill-template olp))
      (goto-char start)
-     (dolist (heading olp)
-       (setq heading (org-roam-capture--fill-template heading))
+     (dolist (heading headings)
        (let ((re (format org-complex-heading-regexp-format
                          (regexp-quote heading)))
              (cnt 0))
