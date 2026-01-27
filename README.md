@@ -94,8 +94,8 @@ next sample will get you there:
 <summary>Toggle instructions</summary>
 
 Doom's `:lang org` module comes with support for `org-roam`, but it's not
-enabled by default. To activate it pass `+roam2` flag to `org` module in your
-`$DOOMDIR/init.el` (e.g. `(org +roam2)`), save the file and run `doom sync -u`
+enabled by default. To activate it pass `+roam` flag to `org` module in your
+`$DOOMDIR/init.el` (e.g. `(org +roam)`), save the file and run `doom sync -u`
 in your shell.
 
 To provide better stability, Doom pins the package to a specific commit. If you
