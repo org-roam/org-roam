@@ -250,6 +250,11 @@ nodes." org-id-locations-file)
   (declare (obsolete org-roam-db-autosync-mode "2025-11-23"))
   (org-roam-db-autosync-mode 'toggle))
 
+(defun org-roam-buffer-list ()
+  "Return a list of buffers that are Org-roam files."
+  (declare (obsolete nil "2026-02-08"))
+  (seq-filter #'org-roam-buffer-p (buffer-list)))
+
 (provide 'org-roam-compat)
 
 ;;; org-roam-compat.el ends here

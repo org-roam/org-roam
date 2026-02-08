@@ -250,10 +250,6 @@ If BUFFER is not specified, use the current buffer."
            (setq path (buffer-file-name (buffer-base-buffer)))
            (org-roam-file-p path)))))
 
-(defun org-roam-buffer-list ()
-  "Return a list of buffers that are Org-roam files."
-  (seq-filter (lambda (buf) (org-roam-buffer-p buf)) (buffer-list)))
-
 (defun org-roam--file-name-extension (filename)
   "Return file name extension for FILENAME.
 Like `file-name-extension', but does not strip version number."
