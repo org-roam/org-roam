@@ -78,15 +78,36 @@
     (org-roam-db--close)
     (delete-file org-roam-db-location))
 
+  (it "finds both of the untitled nodes"
+    (expect (mapcar #'car (org-roam-db-query [:select id :from nodes]))
+            :to-contain "8yrcl920huk0")
+    (expect (mapcar #'car (org-roam-db-query [:select id :from nodes]))
+            :to-contain "tog19g20huk0"))
+
+  ;; TODO: add some subtags
+  (it "finds every relevant tag"
+    (org-roam-db-query
+     [:select :distinct [tag] :from tags])
+    (let ((tags (flatten-list
+                 (org-roam-db-query [:select :distinct tag :from tags]))))
+      ;; Yes, `should' is supported in Buttercup! No need to learn a DSL.
+      (should (seq-set-equal-p '("tagA1" "tagA2" "tagA3" "tagA4"
+                                 "tagB1" "tagB2" "tagB3" "tagB4")
+                               tags))
+      (should (not (member "tag_from_a_heading_that_lacks_id_A" tags)))
+      (should (not (member "tag_from_a_heading_that_lacks_id_B" tags)))
+      (should (not (member "invalid-tag-A" tags)))
+      (should (not (member "invalid-tag-B" tags)))))
+
   (it "makes the correct number of rows in files table"
     (expect (caar (org-roam-db-query [:select (funcall count) :from files]))
             :to-equal
-            13))
+            17))
 
   (it "makes the correct number of rows in nodes table"
     (expect (caar (org-roam-db-query [:select (funcall count) :from nodes]))
             :to-equal
-            28))
+            36))
 
   (it "makes the correct number of rows in links table"
     (expect (caar (org-roam-db-query [:select (funcall count) :from links]))
