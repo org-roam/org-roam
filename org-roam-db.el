@@ -656,7 +656,7 @@ database, see `org-roam-db-sync' command."
       (advice-remove #'vc-delete-file #'org-roam-db-autosync--vc-delete-file-a)
       (org-roam-db--close-all)
       ;; Disable local hooks for all org-roam buffers
-      (dolist (buf (org-roam-buffer-list))
+      (dolist (buf (seq-filter #'org-roam-buffer-p (buffer-list)))
         (with-current-buffer buf
           (remove-hook 'after-save-hook #'org-roam-db-autosync--try-update-on-save-h t)))))))
 
