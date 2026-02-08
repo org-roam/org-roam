@@ -142,7 +142,9 @@ responsibility to ensure that."
   :type '(repeat string)
   :group 'org-roam)
 
-(defcustom org-roam-file-exclude-regexp (list org-attach-id-dir)
+(defcustom org-roam-file-exclude-regexp
+  (list (rx (or bos "/") ".#") ; Info node `(elisp)File Locks'
+        org-attach-id-dir)
   "Files matching this regexp or list of regexps are excluded from Org-roam."
   :type '(choice
           (repeat
