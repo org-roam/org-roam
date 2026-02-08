@@ -1,0 +1,16 @@
+:PROPERTIES:
+:ID:       c62hm020huk0
+:END:
+#+TITLE: Tags-container B1
+#+FILETAGS: :tagB2:tagB3:
+
+* Tags-container B2  :tagB1:tagB3:tagB4:
+:PROPERTIES:
+:ID:       030dtz10huk0
+:END:
+
+* Tags-container B3  :tag_from_a_heading_that_lacks_id_B:
+* Tags-container B4  :invalid-tag-B:
+:PROPERTIES:
+:ID:       phbe5320huk0
+:END:

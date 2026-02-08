@@ -1,0 +1,16 @@
+:PROPERTIES:
+:ID:       ipy0o420huk0
+:END:
+#+FILETAGS: :tagA2:
+#+TITLE: Tags-container A1
+
+* Tags-container A2 :tagA1:tagA3:tagA4:
+:PROPERTIES:
+:ID:       59ocym20huk0
+:END:
+
+* Tags-container A3 :tag_from_a_heading_that_lacks_id_A:
+* Tags-container A4 :invalid-tag-A:
+:PROPERTIES:
+:ID:       lqclsm20huk0
+:END:

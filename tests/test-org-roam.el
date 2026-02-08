@@ -47,6 +47,24 @@
     (cd root-directory)))
 
 (describe "org-roam-list-files"
+  :var ((expected '("with-times.org"
+                    "with-alias.org"
+                    "title-transformations.org"
+                    "roam-exclude.org"
+                    "promoteable.org"
+                    "alternative-id-methods.org"
+                    "family.org"
+                    "demoteable.org"
+                    "ref_with_space.org"
+                    "foo.org"
+                    "bar.org"
+                    "node-in-subdirectory.org"
+                    "2025-11-11.org"
+                    "untitled-1.org"
+                    "untitled-2.org"
+                    "tags-a.org"
+                    "tags-b.org")))
+
   (before-each
     (setq org-roam-directory (expand-file-name "tests/roam-files")
           org-roam-db-location (expand-file-name "org-roam.db" temporary-file-directory)
@@ -59,36 +77,24 @@
 
   (it "gets files correctly"
     (expect (mapcar #'file-name-nondirectory (org-roam-list-files))
-            :to-have-same-items-as
-            '("with-times.org"
-              "with-alias.org"
-              "title-transformations.org"
-              "roam-exclude.org"
-              "promoteable.org"
-              "alternative-id-methods.org"
-              "family.org"
-              "demoteable.org"
-              "ref_with_space.org"
-              "foo.org"
-              "bar.org"
-              "node-in-subdirectory.org"
-              "2025-11-11.org"))
-    (expect (length (org-roam-list-files)) :to-equal 13))
+            :to-have-same-items-as expected)
+    (expect (length (org-roam-list-files))
+            :to-equal (length expected)))
 
   ;; https://github.com/org-roam/org-roam/pull/2178
   (it "does not care if org-roam-directory itself matches an exclude rule"
     (setq org-roam-file-exclude-regexp (regexp-quote org-roam-directory))
-    (expect (length (org-roam-list-files)) :to-equal 13))
+    (expect (length (org-roam-list-files)) :to-equal (length expected)))
 
   (it "respects org-roam-file-extensions"
     (setq org-roam-file-extensions '("md"))
     (expect (length (org-roam-list-files)) :to-equal 1)
     (setq org-roam-file-extensions '("org" "md"))
-    (expect (length (org-roam-list-files)) :to-equal 14))
+    (expect (length (org-roam-list-files)) :to-equal (+ 1 (length expected))))
 
   (it "respects org-roam-file-exclude-regexp"
     (setq org-roam-file-exclude-regexp (regexp-quote "foo.org"))
-    (expect (length (org-roam-list-files)) :to-equal 12)))
+    (expect (length (org-roam-list-files)) :to-equal (- (length expected) 1))))
 
 (describe "org-roam--list-files-search-globs"
 
