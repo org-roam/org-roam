@@ -175,10 +175,10 @@ Replaced by `id' automatically when `org-roam-link-auto-replace' is non-nil.")
 ;;; Definition
 (cl-defstruct (org-roam-node (:constructor org-roam-node-create)
                              (:constructor org-roam-node-create-from-db
-                                           (title aliases                    ; 2
-                                                  id file file-title level todo     ; 5
-                                                  point priority scheduled deadline properties ;;5
-                                                  olp file-atime file-mtime tags refs)) ;;5
+                                           ( title aliases
+                                             id file file-title level todo
+                                             point priority scheduled deadline properties
+                                             olp file-atime file-mtime tags refs))
                              (:copier nil))
   "A heading or top level file with an assigned ID property."
   file file-title file-hash file-atime file-mtime
@@ -428,16 +428,11 @@ GROUP BY id
 ")))
     (mapcan
      (lambda (row)
-       (let (
-             (all-titles (cons (car row) (nth 1 row)))
-             )
+       (let ((all-titles (cons (car row) (nth 1 row))))
          (mapcar (lambda (temp-title)
                    (apply 'org-roam-node-create-from-db (cons temp-title (cdr row))))
-                 all-titles)
-         ))
-     rows)
-    )
-  )
+                 all-titles)))
+     rows)))
 
 ;;;; Finders
 (defun org-roam-node-marker (node)
