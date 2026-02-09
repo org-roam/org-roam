@@ -31,6 +31,7 @@
 
 ;;;; Declarations
 (defvar org-ref-buffer-hacked)
+(defvar magit-root-section)
 
 ;;; Options
 (defcustom org-roam-mode-sections (list #'org-roam-backlinks-section
@@ -160,6 +161,78 @@ and `:slant'."
   "Face for the dimmer part of the widgets."
   :group 'org-roam-faces)
 
+;;; Imenu
+(defun org-roam-mode-imenu--make-section-entry (name section-start sub-entries)
+  "Create an imenu section entry with NAME at SECTION-START containing SUB-ENTRIES.
+Returns (NAME . ((\"*Section*\" . SECTION-START) . SUB-ENTRIES))."
+  (cons name (cons (cons "*Section*" section-start) sub-entries)))
+
+(defconst org-roam-mode-imenu--section-types
+  '((org-roam-backlinks "Backlinks" org-roam-mode-imenu--node-entries)
+    (org-roam-reflinks "Reflinks" org-roam-mode-imenu--node-entries)
+    (unlinked-references "Unlinked References" org-roam-mode-imenu--grep-entries))
+  "Mapping of section types to their imenu names and entry functions.")
+
+(defun org-roam-mode-imenu--section-entries (section)
+  "Return imenu entries for child sections of SECTION.
+Returns a list of (NAME . POSITION) or (NAME . ALIST) entries."
+  (let ((entries '()))
+    (dolist (child (oref section children))
+      (when-let* ((spec (assq (oref child type) org-roam-mode-imenu--section-types))
+                  (name (nth 1 spec))
+                  (entry-fn (nth 2 spec))
+                  (sub-entries (funcall entry-fn child)))
+        (push (org-roam-mode-imenu--make-section-entry
+               name (oref child start) sub-entries)
+              entries)))
+    (nreverse entries)))
+
+(defun org-roam-mode-imenu--node-entries (section)
+  "Return imenu entries for org-roam-node-section children of SECTION.
+Skips nodes with nil or empty string titles."
+  (let ((entries '()))
+    (dolist (child (oref section children))
+      (when (eq (oref child type) 'org-roam-node-section)
+        (when-let* ((node (oref child node))
+                    (title (org-roam-node-title node))
+                    (_ (not (string-empty-p title))))
+          (let ((sub-entries (org-roam-mode-imenu--preview-entries child))
+                (pos (oref child start)))
+            (push (if sub-entries
+                      `(,title ("*Node*" . ,pos) . ,sub-entries)
+                    (cons title pos))
+                  entries)))))
+    (nreverse entries)))
+
+(defun org-roam-mode-imenu--preview-entries (section)
+  "Return imenu entries for org-roam-preview-section children of SECTION."
+  (let ((entries '()))
+    (dolist (child (oref section children))
+      (when (eq (oref child type) 'org-roam-preview-section)
+        (push (cons "Preview" (oref child start)) entries)))
+    (nreverse entries)))
+
+(defun org-roam-mode-imenu--grep-entries (section)
+  "Return imenu entries for org-roam-grep-section children of SECTION."
+  (let ((entries '()))
+    (dolist (child (oref section children))
+      (when (eq (oref child type) 'org-roam-grep-section)
+        (let* ((file (oref child file))
+               (row (oref child row))
+               (col (oref child col))
+               (name (format "%s:%d:%d"
+                             (file-name-nondirectory file)
+                             (or row 0)
+                             (or col 0))))
+          (push (cons name (oref child start)) entries))))
+    (nreverse entries)))
+
+(defun org-roam-mode-imenu-create-index ()
+  "Create an imenu index for the current `org-roam-mode' buffer.
+Returns a nested alist suitable for `imenu--index-alist'."
+  (when-let* ((root magit-root-section))
+    (org-roam-mode-imenu--section-entries root)))
+
 ;;; Major mode
 (defvar org-roam-mode-map
   (let ((map (make-sparse-keymap)))
@@ -181,7 +254,8 @@ interact with."
   :group 'org-roam
   (face-remap-add-relative 'header-line 'org-roam-header-line)
   ;; https://github.com/meedstrom/org-node/issues/149
-  (setq-local font-lock-defaults nil))
+  (setq-local font-lock-defaults nil)
+  (setq-local imenu-create-index-function #'org-roam-mode-imenu-create-index))
 
 ;;; Buffers
 (defvar org-roam-buffer-current-node nil
