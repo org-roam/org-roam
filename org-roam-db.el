@@ -309,11 +309,10 @@ If HASH is non-nil, use that as the file's hash without recalculating it."
   "Return t if headline at point is an Org-roam node, else return nil."
   ;; In Org-mode 9.7 (Emacs 30.2), `org-id-get' throws an exception if it is
   ;; called outside of an org-mode buffer.
-  (if (derived-mode-p 'org-mode)
-      (and (org-id-get)
-           (not (org-entry-get (point) "ROAM_EXCLUDE"))
-           (funcall org-roam-db-node-include-function))
-    nil))
+  (and (derived-mode-p 'org-mode)
+       (org-id-get)
+       (not (org-entry-get (point) "ROAM_EXCLUDE"))
+       (funcall org-roam-db-node-include-function)))
 
 (defun org-roam-db-map-nodes (fns)
   "Run FNS over all nodes in the current buffer."
