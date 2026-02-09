@@ -81,17 +81,17 @@
   (it "makes the correct number of rows in files table"
     (expect (caar (org-roam-db-query [:select (funcall count) :from files]))
             :to-equal
-            13))
+            14))
 
   (it "makes the correct number of rows in nodes table"
     (expect (caar (org-roam-db-query [:select (funcall count) :from nodes]))
             :to-equal
-            28))
+            30))
 
   (it "makes the correct number of rows in links table"
     (expect (caar (org-roam-db-query [:select (funcall count) :from links]))
             :to-equal
-            3))
+            6))
 
   (it "respects ROAM_EXCLUDE"
     (expect (mapcar #'car (org-roam-db-query [:select id :from nodes]))
