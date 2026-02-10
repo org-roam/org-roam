@@ -107,7 +107,7 @@
   (it "returns the correct number of node objects"
     ;; Not equal to number of rows in nodes table,
     ;; because it instantiates an extra `org-roam-node' object per alias.
-    (expect (length (org-roam-node-list)) :to-equal 30)))
+    (expect (length (org-roam-node-list)) :to-equal 38)))
 
 (describe "org-roam--h1-count"
   (after-each
@@ -192,6 +192,18 @@
                       "[100%] A title with a TODO-state, priority and [10/10] multiple statistics-cookies [10/10]"
                       "TODO A title that appears on first glance to have a TODO-state"
                       "A title with /italics/, *bold*, _underline_, +strikethrough+ and =monospace="
+                      ;; roam-files/untitled-1.org
+                      ""
+                      ;; roam-files/untitled-2.org
+                      ;; ""  ; duplicate dropped by `org-roam--get-titles'
+                      ;; roam-files/tags-a.org
+                      "Tags-container A1"
+                      "Tags-container A2"
+                      "Tags-container A4 :invalid-tag-A:"
+                      ;; roam-files/subdirectory/tags-b.org
+                      "Tags-container B1"
+                      "Tags-container B2"
+                      "Tags-container B4  :invalid-tag-B:"
                       ;; roam-files/subdirectory/node-in-subdirectory.org
                       "A node in a subdirectory"
                       ;; roam-files/dailies/2025-11-11.org
@@ -243,6 +255,39 @@
     ;; Wow! I don't know Arabic, but it must harder to read with the underscores!  --meedstrom
     (expect (org-roam-node-slug (org-roam-node-create :title "نص من اليمين إلى اليسار (right-to-left script)"))
             :to-equal "نص_من_اليمين_إلى_اليسار_right_to_left_script")))
+
+(describe "org-roam-tag-completions"
+  (before-all
+    ;; Example from the Org manual
+    (setq org-tag-alist '((:startgroup . nil)
+                          ("@work" . ?w) ("@home" . ?h) ("@tennisclub" . ?t)
+                          (:endgroup . nil)
+                          ("laptop" . ?l) ("pc" . ?p)))
+    (setq org-roam-directory (expand-file-name "tests/roam-files")
+          org-roam-db-location (expand-file-name "org-roam.db" temporary-file-directory)
+          org-roam-file-extensions '("org")
+          org-roam-file-exclude-regexp nil)
+    (org-roam-db-sync))
+
+  (it "has every tag that is in the DB"
+    (should
+     (cl-subsetp (flatten-list
+                  (org-roam-db-query [:select :distinct tag :from tags]))
+                 (org-roam-tag-completions)
+                 :test 'equal)))
+
+  ;; ;; FIXME: Currently failing due to defect in `org-roam-tag-completions'
+  ;; (it "skips SPECIAL values in org-tag-alist"
+  ;;   (should-not (member :startgroup (org-roam-tag-completions)))
+  ;;   (should-not (member ":startgroup" (org-roam-tag-completions)))
+  ;;   (should-not (member :endgroup (org-roam-tag-completions)))
+  ;;   (should-not (member ":endgroup" (org-roam-tag-completions))))
+
+  (it "has tags that are only in org-tag-alist"
+    (should
+     (cl-subsetp '("@work" "@home" "@tennisclub" "laptop" "pc")
+                 (org-roam-tag-completions)
+                 :test 'equal))))
 
 (provide 'test-org-roam-node)
 
