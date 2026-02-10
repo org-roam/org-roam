@@ -13,4 +13,5 @@
                               (org-with-point-at . 1)
                               (magit-insert-section . defun)
                               (magit-section-case . 0)
+                              (org-roam--memoize . defun)
                               (org-roam-with-file . 2)))))
