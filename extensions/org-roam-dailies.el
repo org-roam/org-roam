@@ -309,7 +309,8 @@ Return (MONTH DAY YEAR) or nil if not an Org time-string."
 
 (defun org-roam-dailies-calendar-mark-entries ()
   "Mark days in the calendar for which a daily-note is present."
-  (when (file-exists-p (expand-file-name org-roam-dailies-directory org-roam-directory))
+  (when (and org-roam-enabled
+             (file-exists-p (expand-file-name org-roam-dailies-directory org-roam-directory)))
     (dolist (date (remove nil
                           (mapcar #'org-roam-dailies-calendar--file-to-date
                                   (org-roam-dailies--list-files))))
