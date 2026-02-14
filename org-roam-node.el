@@ -448,6 +448,17 @@ GROUP BY id
     (with-current-buffer buffer
       (move-marker (make-marker) (org-roam-node-point node) buffer))))
 
+(defun org-roam--maybe-position-after-metadata ()
+  "Position cursor after metadata when at beginning of buffer.
+When point is at position 1 (beginning of buffer), move it past
+metadata (properties, drawers, and keywords).  This prevents
+accidental corruption of the PROPERTIES drawer or title when
+visiting a file-level node."
+  (when (= (point) 1)
+    (save-restriction
+      (widen)
+      (org-roam-end-of-meta-data t))))
+
 (defun org-roam-node-open (node &optional cmd force)
   "Go to the node NODE.
 CMD is the command used to display the buffer. If not provided,
@@ -473,6 +484,7 @@ NODE, unless FORCE is non-nil."
                           (org-roam-id-at-point))))
       (goto-char m))
     (move-marker m nil))
+  (org-roam--maybe-position-after-metadata)
   (org-fold-show-context))
 
 (defun org-roam-node-visit (node &optional other-window force)
