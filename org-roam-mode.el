@@ -670,7 +670,8 @@ of passing it directly through the shell command line."
 
   (concat "rg --follow --only-matching --vimgrep --pcre2 --ignore-case "
           (mapconcat (lambda (glob) (concat "--glob " glob))
-                     (org-roam--list-files-search-globs org-roam-file-extensions)
+                     (cl-loop for sfx in (org-roam-suffixes)
+                              collect (concat "*" sfx))
                      " ")
           " --file " (shell-quote-argument temp-file) " "
           (shell-quote-argument (expand-file-name org-roam-directory))))
