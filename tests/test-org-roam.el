@@ -102,13 +102,6 @@
     (setq org-roam-file-exclude-regexp (regexp-quote "foo.org"))
     (expect (length (org-roam-list-files)) :to-equal 12)))
 
-(describe "org-roam--list-files-search-globs"
-
-  (it "returns the correct list of globs"
-    (expect (org-roam--list-files-search-globs org-roam-file-extensions)
-            :to-have-same-items-as
-            '("\"*.org\"" "\"*.org.gpg\"" "\"*.org.age\""))))
-
 (provide 'test-org-roam)
 
 ;;; test-org-roam.el ends here

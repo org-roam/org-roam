@@ -102,8 +102,8 @@ FN must take two arguments: the key and the value."
   "Calculate a set of file name suffixes out of `org-roam-file-extensions'."
   (cl-loop for ext in org-roam-file-extensions
            collect (concat "." ext)
-           collect (concat "." ext ".age")
-           collect (concat "." ext ".gpg")))
+           collect (concat "." ext ".gpg")
+           collect (concat "." ext ".age")))
 
 (defun org-roam-directory-files-and-attributes (&optional dir)
   "Return an alist \((FILE1 . ATTR1) (FILE2 . ATTR2) ...\).

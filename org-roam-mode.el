@@ -669,8 +669,8 @@ of passing it directly through the shell command line."
                        titles "")))
 
   (concat "rg --follow --only-matching --vimgrep --pcre2 --ignore-case "
-          (mapconcat (lambda (glob) (concat "--glob " glob))
-                     (org-roam--list-files-search-globs org-roam-file-extensions)
+          (mapconcat (lambda (suffix) (concat "--glob \"*" suffix "\""))
+                     (org-roam-suffixes)
                      " ")
           " --file " (shell-quote-argument temp-file) " "
           (shell-quote-argument (expand-file-name org-roam-directory))))
