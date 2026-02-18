@@ -27,6 +27,8 @@
 ;;; Code:
 
 (require 'org-roam)
+(require 'truename-cache)
+(require 'org-attach)                   ; To set `org-attach-id-dir'
 
 ;;; String utilities
 ;; TODO Refactor this.
@@ -95,6 +97,38 @@ FN must take two arguments: the key and the value."
   (unless (and a b (equal (file-truename a) (file-truename b)))
     (string-prefix-p (replace-regexp-in-string "^\\([A-Za-z]\\):" 'downcase (expand-file-name b) t t)
                      (replace-regexp-in-string "^\\([A-Za-z]\\):" 'downcase (expand-file-name a) t t))))
+
+(defun org-roam-suffixes ()
+  "Calculate a set of file name suffixes out of `org-roam-file-extensions'."
+  (cl-loop for ext in org-roam-file-extensions
+           collect (concat "." ext)
+           collect (concat "." ext ".age")
+           collect (concat "." ext ".gpg")))
+
+(defun org-roam-directory-files-and-attributes (&optional dir)
+  "Return an alist \((FILE1 . ATTR1) (FILE2 . ATTR2) ...\).
+These represent files found recursively within DIR or DIRs, defaulting
+to `org-roam-directory'.
+Each ATTR is an output of `file-attributes'.
+
+Affected by user options:
+- `org-roam-dir-exclude-regexps'
+- `org-roam-file-exclude-regexp'
+- `org-roam-file-extensions'"
+  (let ((suffix-re (rx (regexp (regexp-opt (org-roam-suffixes))) eos)))
+    (cl-loop
+     for cell in (truename-cache-collect-files-and-attributes
+                  :dirs-recursive (list (or (ensure-list dir) org-roam-directory))
+                  :dirs-recursive-follow-symlinks t
+                  :resolve-symlinks t
+                  :relative-file-deny (ensure-list org-roam-file-exclude-regexp)
+                  :relative-dir-deny org-roam-dir-exclude-regexps
+                  :full-dir-deny (when (file-name-absolute-p org-attach-id-dir)
+                                   (list org-attach-id-dir))
+                  :local-name-handlers nil
+                  :abbrev 'dir)
+     when (string-match-p suffix-re (car cell))
+     collect cell)))
 
 (defmacro org-roam-with-file (file keep-buf-p &rest body)
   "Execute BODY within FILE.
