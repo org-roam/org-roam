@@ -126,6 +126,10 @@ The following options are supported for the :target property:
        The point will be placed for an existing node, based on either, its
        title, alias or ID.
 
+   (prompt)
+       The point will be placed at the node selected in the initial prompt
+       of the capture process.
+
 The rest of the entry is a property list of additional options.  Recognized
 properties are:
 
@@ -555,6 +559,11 @@ Return the ID of the location."
            ;; workers.
            (org-today)))))
        (setq p (point)))
+      (`(prompt)
+       (let ((node org-roam-capture--node))
+         (set-buffer (org-capture-target-buffer (org-roam-node-file node)))
+         (goto-char (org-roam-node-point node))
+         (setq p (org-roam-node-point node))))
       (`(node ,title-or-id)
        ;; first try to get ID, then try to get title/alias
        (let ((node (or (org-roam-node-from-id title-or-id)
