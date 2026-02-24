@@ -6,7 +6,7 @@
 ;; URL: https://github.com/org-roam/org-roam
 ;; Keywords: org-mode, roam, convenience
 ;; Version: 2.3.1
-;; Package-Requires: ((emacs "26.1") (compat "30.1") (org "9.6") (emacsql "4.1.0") (magit-section "3.0.0"))
+;; Package-Requires: ((emacs "26.1") (compat "30.1") (org "9.6") (emacsql "4.1.0") (magit-section "3.0.0") (truename-cache "0"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -93,8 +93,6 @@
 (require 'org-element)
 (require 'org-capture)
 
-(require 'ansi-color) ; to strip ANSI color codes in `org-roam--list-files'
-
 (eval-when-compile
   (require 'subr-x))
 
@@ -133,6 +131,29 @@ Each function takes two arguments: the id of the node, and the link description.
   :group 'org-roam
   :type 'hook)
 
+(defcustom org-roam-dir-exclude-regexps
+  (let ((literals
+         (append (unless (file-name-absolute-p org-attach-id-dir)
+                   (list org-attach-id-dir))
+                 '("logseq/version-files/"  ; Duplicates of every Org file
+                   "logseq/bak/"  ; Duplicates of every Org file
+                   ".git/"  ; Many sub-sub-subdirs
+                   ".hg/"))))
+    (list (rx ".pam/")  ; pamparam (many files inside)
+          (rx (or bos "/") (regexp (regexp-opt literals)))))
+  "If a directory name matches any of these regexps, skip it.
+
+Like `org-roam-file-exclude-regexp', this applies to the part of its
+file-name after `org-roam-directory' \(i.e. the relative name\), but
+with a trailing slash.
+
+You can also use `org-roam-file-exclude-regexp' for the same purpose of
+preventing recursion into directories - the separation is just helpful
+for the performance of `org-roam-db-sync', so the dir regexps are not
+also checked against each each file name."
+  :group 'org-roam
+  :type '(repeat regexp))
+
 (defcustom org-roam-file-extensions '("org")
   "List of file extensions to be included by Org-Roam.
 While a file extension different from \".org\" may be used, the
@@ -149,53 +170,6 @@ responsibility to ensure that."
           (string :tag "Regular expression matching files to ignore")
           (const :tag "Include everything" nil))
   :group 'org-roam)
-
-(defcustom org-roam-list-files-commands
-  (if (member system-type '(windows-nt ms-dos cygwin))
-      nil
-    '(find fd fdfind rg))
-  "Commands that will be used to find Org-roam files.
-
-It should be a list of symbols or cons cells representing any of
-the following supported file search methods.
-
-The commands will be tried in order until an executable for a
-command is found. The Elisp implementation is used if no command
-in the list is found.
-
-  `find'
-
-    Use find as the file search method.
-    Example command:
-      find /path/to/dir -type f \
-        \( -name \"*.org\" -o -name \"*.org.gpg\" -name \"*.org.age\" \)
-
-  `fd'
-
-    Use fd as the file search method.
-    Example command:
-      fd /path/to/dir/ --type file -e \".org\" -e \".org.gpg\" -e \".org.age\"
-
-  `fdfind'
-
-    Same as `fd'. It's an alias that used in some OSes (e.g. Debian, Ubuntu)
-
-  `rg'
-
-    Use ripgrep as the file search method.
-    Example command:
-       rg /path/to/dir/ --files -g \"*.org\" -g \"*.org.gpg\" -g \"*.org.age\"
-
-By default, `executable-find' will be used to look up the path to
-the executable. If a custom path is required, it can be specified
-together with the method symbol as a cons cell. For example:
-\\='(find (rg . \"/path/to/rg\"))."
-  :type '(set
-          (const :tag "find" find)
-          (const :tag "fd" fd)
-          (const :tag "fdfind" fdfind)
-          (const :tag "rg" rg)
-          (const :tag "elisp" nil)))
 
 ;;; Library
 (defun org-roam-file-p (&optional file)
@@ -238,7 +212,7 @@ FILE is an Org-roam file if:
   "Return a list of all Org-roam files under `org-roam-directory'.
 See `org-roam-file-p' for how each file is determined to be as
 part of Org-Roam."
-  (org-roam--list-files (expand-file-name org-roam-directory)))
+  (mapcar #'car (org-roam-directory-files-and-attributes)))
 
 (defun org-roam-buffer-p (&optional buffer)
   "Return t if BUFFER is for an Org-roam file.
@@ -258,87 +232,6 @@ Like `file-name-extension', but does not strip version number."
       (if (and (string-match "\\.[^.]*\\'" file)
                (not (eq 0 (match-beginning 0))))
           (substring file (+ (match-beginning 0) 1))))))
-
-(defun org-roam--list-files (dir)
-  "Return all Org-roam files located recursively within DIR.
-Use external shell commands if defined in `org-roam-list-files-commands'."
-  (let (path exe)
-    (cl-dolist (cmd org-roam-list-files-commands)
-      (pcase cmd
-        (`(,e . ,path)
-         (setq path (executable-find path)
-               exe  (symbol-name e)))
-        ((pred symbolp)
-         (setq path (executable-find (symbol-name cmd))
-               exe (symbol-name cmd)))
-        (wrong-type
-         (signal 'wrong-type-argument
-                 `((consp symbolp)
-                   ,wrong-type))))
-      (when path (cl-return)))
-    (if-let* ((files (when path
-                       (let ((fn (intern (concat "org-roam--list-files-" exe))))
-                         (unless (fboundp fn) (user-error "%s is not an implemented search method" fn))
-                         (funcall fn path (format "\"%s\"" dir)))))
-              (files (seq-filter #'org-roam-file-p files))
-              (files (mapcar #'expand-file-name files))) ; canonicalize names
-        files
-      (org-roam--list-files-elisp dir))))
-
-(defun org-roam--shell-command-files (cmd)
-  "Run CMD in the shell and return a list of files.
-If no files are found, an empty list is returned."
-  (thread-last cmd
-               shell-command-to-string
-               ansi-color-filter-apply
-               (funcall (lambda (str) (split-string str "\n")))
-               (seq-filter (lambda (s)
-                             (not (or (null s) (string= "" s)))))))
-
-(defun org-roam--list-files-search-globs (exts)
-  "Given EXTS, return a list of search globs.
-E.g. (\".org\") => (\"*.org\" \"*.org.gpg\")"
-  (cl-loop for e in exts
-           append (list (format "\"*.%s\"" e)
-                        (format "\"*.%s.gpg\"" e)
-                        (format "\"*.%s.age\"" e))))
-
-(defun org-roam--list-files-find (executable dir)
-  "Return all Org-roam files under DIR, using \"find\", provided as EXECUTABLE."
-  (let* ((globs (org-roam--list-files-search-globs org-roam-file-extensions))
-         (names (string-join (mapcar (lambda (glob) (concat "-name " glob)) globs) " -o "))
-         (command (string-join `(,executable "-L" ,dir "-type f \\(" ,names "\\)") " ")))
-    (org-roam--shell-command-files command)))
-
-(defun org-roam--list-files-fd (executable dir)
-  "Return all Org-roam files under DIR, using \"fd\", provided as EXECUTABLE."
-  (let* ((globs (org-roam--list-files-search-globs org-roam-file-extensions))
-         (extensions (string-join (mapcar (lambda (glob) (concat "-e " (substring glob 2 -1))) globs) " "))
-         (command (string-join `(,executable "-L" "--type file" ,extensions "." ,dir) " ")))
-    (org-roam--shell-command-files command)))
-
-(defalias 'org-roam--list-files-fdfind #'org-roam--list-files-fd)
-
-(defun org-roam--list-files-rg (executable dir)
-  "Return all Org-roam files under DIR, using \"rg\", provided as EXECUTABLE."
-  (let* ((globs (org-roam--list-files-search-globs org-roam-file-extensions))
-         (command (string-join `(
-                                 ,executable "-L" ,dir "--files"
-                                 ,@(mapcar (lambda (glob) (concat "-g " glob)) globs)) " ")))
-    (org-roam--shell-command-files command)))
-
-(declare-function org-roam--directory-files-recursively "org-roam-compat")
-
-(defun org-roam--list-files-elisp (dir)
-  "Return all Org-roam files under DIR, using Elisp based implementation."
-  (let ((regex (concat "\\.\\(?:"(mapconcat
-                                  #'regexp-quote org-roam-file-extensions
-                                  "\\|" )"\\)\\(?:\\.gpg\\|\\.age\\)?\\'"))
-        result)
-    (dolist (file (org-roam--directory-files-recursively dir regex nil nil t) result)
-      (when (and (file-readable-p file)
-                 (org-roam-file-p file))
-        (push file result)))))
 
 ;;; Package bootstrap
 (provide 'org-roam)

@@ -57,6 +57,13 @@
     (org-roam-db--close)
     (delete-file org-roam-db-location))
 
+  (it "returns absolute paths"
+    (expect (cl-every #'file-name-absolute-p (org-roam-list-files))))
+
+  (it "returns unique paths"
+    (expect (= (length (org-roam-list-files))
+               (length (delete-dups (org-roam-list-files))))))
+
   (it "gets files correctly"
     (expect (mapcar #'file-name-nondirectory (org-roam-list-files))
             :to-have-same-items-as
@@ -80,6 +87,11 @@
     (setq org-roam-file-exclude-regexp (regexp-quote org-roam-directory))
     (expect (length (org-roam-list-files)) :to-equal 13))
 
+  ;; https://github.com/org-roam/org-roam/pull/2178
+  (it "applies org-roam-file-exclude-regexp to the part of file name after org-roam-directory"
+    (setq org-roam-file-exclude-regexp "dailies.*2025")
+    (expect (length (org-roam-list-files)) :to-equal 12))
+
   (it "respects org-roam-file-extensions"
     (setq org-roam-file-extensions '("md"))
     (expect (length (org-roam-list-files)) :to-equal 1)
@@ -89,13 +101,6 @@
   (it "respects org-roam-file-exclude-regexp"
     (setq org-roam-file-exclude-regexp (regexp-quote "foo.org"))
     (expect (length (org-roam-list-files)) :to-equal 12)))
-
-(describe "org-roam--list-files-search-globs"
-
-  (it "returns the correct list of globs"
-    (expect (org-roam--list-files-search-globs org-roam-file-extensions)
-            :to-have-same-items-as
-            '("\"*.org\"" "\"*.org.gpg\"" "\"*.org.age\""))))
 
 (provide 'test-org-roam)
 
