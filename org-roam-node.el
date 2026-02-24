@@ -700,6 +700,9 @@ COMPLETION-A and COMPLETION-B are items in the form of
 ;;;###autoload
 (cl-defun org-roam-node-insert (&optional filter-fn &key templates info)
   "Find an Org-roam node and insert (where the point is) an \"id:\" link to it.
+If a region is active the link is put around the region text.
+If a word is at point the link is put around that word.
+Otherwise the link is inserted with the node's formatted title as description.
 FILTER-FN is a function to filter out nodes: it takes an `org-roam-node',
 and when nil is returned the node will be filtered out.
 The TEMPLATES, if provided, override the list of capture templates (see
@@ -709,12 +712,19 @@ The INFO, if provided, is passed to the underlying `org-roam-capture-'."
   (unwind-protect
       ;; Group functions together to avoid inconsistent state on quit
       (atomic-change-group
-        (let* (region-text
-               beg end
-               (_ (when (region-active-p)
-                    (setq beg (set-marker (make-marker) (region-beginning)))
-                    (setq end (set-marker (make-marker) (region-end)))
-                    (setq region-text (org-link-display-format (buffer-substring-no-properties beg end)))))
+        (let* (beg
+               end
+               (region-text
+                (cond
+                 ((region-active-p)
+                  (setq beg (set-marker (make-marker) (region-beginning)))
+                  (setq end (set-marker (make-marker) (region-end)))
+                  (org-link-display-format (buffer-substring-no-properties beg end)))
+                 ((thing-at-point 'symbol)
+                  (let ((bounds (bounds-of-thing-at-point 'symbol)))
+                    (setq beg (set-marker (make-marker) (car bounds)))
+                    (setq end (set-marker (make-marker) (cdr bounds)))
+                    (org-link-display-format (buffer-substring-no-properties beg end))))))
                (node (org-roam-node-read region-text filter-fn))
                (description (or region-text
                                 (org-roam-node-formatted node))))
