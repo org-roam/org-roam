@@ -476,7 +476,7 @@ NODE, unless FORCE is non-nil."
   (org-fold-show-context))
 
 (defun org-roam-node-visit (node &optional other-window force)
-  "From the current buffer, visit NODE. Return the visited buffer.
+  "From the current buffer, visit NODE.
 Display the buffer in the selected window.  With a prefix
 argument OTHER-WINDOW display the buffer in another window
 instead.
