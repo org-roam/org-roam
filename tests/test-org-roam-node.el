@@ -244,6 +244,53 @@
     (expect (org-roam-node-slug (org-roam-node-create :title "نص من اليمين إلى اليسار (right-to-left script)"))
             :to-equal "نص_من_اليمين_إلى_اليسار_right_to_left_script")))
 
+(describe "org-roam--maybe-position-after-metadata"
+  (before-all
+    (setq org-roam-directory (expand-file-name "tests/roam-files")
+          org-roam-db-location (expand-file-name "org-roam.db" temporary-file-directory)
+          org-roam-file-extensions '("org")
+          org-roam-file-exclude-regexp nil)
+    (org-roam-db-sync))
+
+  (after-all
+    (org-roam-db--close)
+    (delete-file org-roam-db-location)
+    (cd root-directory))
+
+  (after-each
+    (dolist (buf (buffer-list))
+      (when (and (buffer-file-name buf)
+                 (string-match-p "roam-files" (buffer-file-name buf)))
+        (with-current-buffer buf
+          (set-buffer-modified-p nil))
+        (kill-buffer buf))))
+
+  (it "positions after metadata for file-level node"
+    (let ((node (org-roam-node-from-id "884b2341-b7fe-434d-848c-5282c0727861")))
+      ;; foo.org: PROPERTIES (3 lines) + #+title (1 line) = point at line 5
+      (org-roam-node-open node)
+      (expect (line-number-at-pos) :to-equal 5)))
+
+  (it "keeps cursor on heading for subtree node"
+    (let ((node (org-roam-node-from-id "77a90980-1994-464e-901f-7e3d3df07fd3")))
+      ;; family.org Grand-Parent: heading is on line 6, cursor stays there
+      ;; because point is not at position 1 for subtree nodes
+      (org-roam-node-open node)
+      (expect (line-number-at-pos) :to-equal 6)))
+
+  (it "repositions after metadata on force revisit of file-level node"
+    (let ((node (org-roam-node-from-id "884b2341-b7fe-434d-848c-5282c0727861")))
+      ;; First visit positions after metadata
+      (org-roam-node-open node)
+      (expect (line-number-at-pos) :to-equal 5)
+      ;; Move to beginning manually
+      (goto-char (point-min))
+      (expect (line-number-at-pos) :to-equal 1)
+      ;; Force revisit: goto-char sets point to 1 (file-level node pos),
+      ;; so repositioning fires again — this is intended behavior
+      (org-roam-node-open node nil t)
+      (expect (line-number-at-pos) :to-equal 5))))
+
 (provide 'test-org-roam-node)
 
 ;;; test-org-roam-node.el ends here
