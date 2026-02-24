@@ -1,0 +1,24 @@
+:PROPERTIES:
+:ID: unique-id-1
+:END:
+#+title: Test Case for org-roam-subtree-extract
+
+Lorem ipsum dolor sit amet, consectetuer adipiscing elit.
+
+This file will be copied to a =.org= file which will be altered by the extraction process.
+
+* Node to be extracted
+:PROPERTIES:
+:ID: unique-id-2
+:END:
+
+Donec neque quam, dignissim in, mollis nec, sagittis eu, wisi.
+
+This heading has an existing ID, so will be identified as an existing node.
+* Heading without ID
+
+Vivamus id enim.
+
+This heading is not a node (no ID property), but should be converted to a node on extract.
+* Extra heading
+    This heading should stay put.
