@@ -1,0 +1,15 @@
+* CAPF Node 1
+:PROPERTIES:
+:ID:       196b0cfd-e77e-474a-945b-0e9be25120c9
+:END:
+
+[[id:3822ebf2-b598-46b3-910f-0bfe6930f5d8][id link to Node 2]]
+
+* CAPF Node 2
+:PROPERTIES:
+:ID:       3822ebf2-b598-46b3-910f-0bfe6930f5d8
+:END:
+
+[[id:196b0cfd-e77e-474a-945b-0e9be25120c9][id link to Node 1]]
+
+[[roam:CAPF Node 1][roam link with description]]

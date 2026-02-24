@@ -779,16 +779,14 @@ Completions within link brackets are provided by
 ~org-roam-complete-link-at-point~.
 
 The completion candidates are the titles and aliases for all Org-roam nodes.
-Upon choosing a candidate, a ~roam:Title~ link will be inserted, linking to node
-of choice.
+Choosing a candidate inserts an ID link to the chosen node.
 
 ** Completing anywhere
 
 The same completions can be triggered anywhere for the symbol at point if not
 within a bracketed link. This is provided by ~org-roam-complete-everywhere~.
 Similarly, the completion candidates are the titles and aliases for all Org-roam
-nodes, and upon choosing a candidate a ~roam:Title~ link will be inserted
-linking to the node of choice.
+nodes, and choosing a candidate inserts an ID link to the chosen node.
 
 This is disabled by default. To enable it, set ~org-roam-completion-everywhere~
 to ~t~:
