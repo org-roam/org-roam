@@ -306,15 +306,21 @@ E.g. (\".org\") => (\"*.org\" \"*.org.gpg\")"
 (defun org-roam--list-files-find (executable dir)
   "Return all Org-roam files under DIR, using \"find\", provided as EXECUTABLE."
   (let* ((globs (org-roam--list-files-search-globs org-roam-file-extensions))
-         (names (string-join (mapcar (lambda (glob) (concat "-name " glob)) globs) " -o "))
-         (command (string-join `(,executable "-L" ,dir "-type f \\(" ,names "\\)") " ")))
+         (names (string-join (mapcar (lambda (glob) (concat "-name " glob))
+                                     globs)
+                             " -o "))
+         (command (string-join `(,executable "-L" ,dir "-type f \\(" ,names "\\)")
+                               " ")))
     (org-roam--shell-command-files command)))
 
 (defun org-roam--list-files-fd (executable dir)
   "Return all Org-roam files under DIR, using \"fd\", provided as EXECUTABLE."
   (let* ((globs (org-roam--list-files-search-globs org-roam-file-extensions))
-         (extensions (string-join (mapcar (lambda (glob) (concat "-e " (substring glob 2 -1))) globs) " "))
-         (command (string-join `(,executable "-L" "--type file" ,extensions "." ,dir) " ")))
+         (extensions (string-join (mapcar (lambda (glob) (concat "-e " (substring glob 2 -1)))
+                                          globs)
+                                  " "))
+         (command (string-join `(,executable "-L" "--type file" ,extensions "." ,dir)
+                               " ")))
     (org-roam--shell-command-files command)))
 
 (defalias 'org-roam--list-files-fdfind #'org-roam--list-files-fd)
@@ -322,9 +328,10 @@ E.g. (\".org\") => (\"*.org\" \"*.org.gpg\")"
 (defun org-roam--list-files-rg (executable dir)
   "Return all Org-roam files under DIR, using \"rg\", provided as EXECUTABLE."
   (let* ((globs (org-roam--list-files-search-globs org-roam-file-extensions))
-         (command (string-join `(
-                                 ,executable "-L" ,dir "--files"
-                                 ,@(mapcar (lambda (glob) (concat "-g " glob)) globs)) " ")))
+         (command (string-join `(,executable "-L" ,dir "--files"
+                                             ,@(mapcar (lambda (glob) (concat "-g " glob))
+                                                       globs))
+                               " ")))
     (org-roam--shell-command-files command)))
 
 (declare-function org-roam--directory-files-recursively "org-roam-compat")
