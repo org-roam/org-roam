@@ -92,6 +92,7 @@
 (require 'ol)
 (require 'org-element)
 (require 'org-capture)
+(require 'org-protocol)
 
 (require 'ansi-color) ; to strip ANSI color codes in `org-roam--list-files'
 
@@ -339,6 +340,38 @@ E.g. (\".org\") => (\"*.org\" \"*.org.gpg\")"
       (when (and (file-readable-p file)
                  (org-roam-file-p file))
         (push file result)))))
+
+(defvar org-roam-enabled nil)
+(define-minor-mode org-roam-core-mode
+  "Configure Emacs for org-roam."
+  :group 'org-roam
+  :global t
+  (let ((node-protocol '("org-roam-node" :protocol "roam-node" :function org-roam-protocol-open-node))
+        (ref-protocol  '("org-roam-ref"  :protocol "roam-ref"  :function org-roam-protocol-open-ref)))
+    (if org-roam-core-mode
+        (progn
+          (setq org-roam-enabled t)
+          (advice-add 'org-id-find :before-until #'org-roam-id-find)
+          (add-hook 'org-log-buffer-setup-hook #'org-roam-log--setup)
+          (push node-protocol org-protocol-protocol-alist)
+          (push ref-protocol org-protocol-protocol-alist))
+      (setq org-roam-enabled nil)
+      (advice-remove 'org-id-find #'org-roam-id-find)
+      (remove-hook 'org-log-buffer-setup-hook #'org-roam-log--setup)
+      (setq org-protocol-protocol-alist (->> org-protocol-protocol-alist
+                                             (delete node-protocol)
+                                             (delete ref-protocol))))))
+
+;; In general, just loading a .el file should have no effect on the Emacs session,
+;; other than defining functions and variables.
+;; Enabling a mode is what is allowed to mutate other things,
+;; and the effects should be reversible by disabling the mode.
+
+;; However, org-roam has never obeyed that principle, so users won't expect
+;; to have to enable a new mode to make things work again after an update.
+;; Therefore, we enable the mode on load, avoiding any surprises on update.
+;; This at least provides something that the user can disable.
+(org-roam-core-mode 1)
 
 ;;; Package bootstrap
 (provide 'org-roam)
