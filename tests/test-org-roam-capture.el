@@ -81,7 +81,7 @@
       ;; The capture type must be preserved
       (expect (nth 2 result) :to-equal 'entry)
       ;; The target function must be org-roam-capture--prepare-buffer
-      (expect (nth 3 result) :to-equal #'org-roam-capture--prepare-buffer)))
+      (expect (nth 3 result) :to-equal '(function org-roam-capture--prepare-buffer))))
 
   (it "converts plain-type template to valid org-capture format"
     (let* ((org-roam-capture--node (org-roam-node-create :title "Test"))
@@ -93,7 +93,7 @@
            (result (org-roam-capture--convert-template template)))
       (expect (nth 4 result) :to-equal "%?")
       (expect (nth 2 result) :to-equal 'plain)
-      (expect (nth 3 result) :to-equal #'org-roam-capture--prepare-buffer)))
+      (expect (nth 3 result) :to-equal '(function org-roam-capture--prepare-buffer))))
 
   (it "preserves all non-org-roam properties in converted template"
     (let* ((template '("d" "default" entry "* %?"
