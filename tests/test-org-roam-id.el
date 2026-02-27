@@ -74,6 +74,25 @@
       (expect (car location) :to-match ".*/tests/roam-files/family.org")
       (expect (cdr location) :to-equal 156))))
 
+(describe "org-roam-id-complete"
+  (it "returns an id link using org-roam node completion"
+    (let ((node (org-roam-node-create :id "abc-123")))
+      (spy-on 'org-roam-node-read :and-return-value node)
+      (expect (org-roam-id-complete) :to-equal "id:abc-123")
+      (expect 'org-roam-node-read :to-have-been-called-with nil nil nil nil nil)))
+
+  (it "passes completion arguments through to org-roam-node-read"
+    (let ((node (org-roam-node-create :id "def-456")))
+      (spy-on 'org-roam-node-read :and-return-value node)
+      (expect (org-roam-id-complete "init" #'ignore #'ignore 'require-match "Prompt")
+              :to-equal "id:def-456")
+      (expect 'org-roam-node-read :to-have-been-called-with
+              "init" #'ignore #'ignore 'require-match "Prompt"))))
+
+(describe "id link completion integration"
+  (it "registers org-roam-id-complete as id link completion function"
+    (expect (org-link-get-parameter "id" :complete) :to-equal #'org-roam-id-complete)))
+
 (provide 'test-org-roam-id)
 
 ;;; test-org-roam-id.el ends here

@@ -26,6 +26,9 @@
 ;;; Code:
 (require 'org-id)
 
+(declare-function org-roam-node-read "org-roam-node")
+(declare-function org-roam-node-id "org-roam-node")
+
 (defun org-roam-id-at-point ()
   "Return the ID at point, if any.
 Recursively traverses up the headline tree to find the
@@ -60,6 +63,15 @@ With optional argument MARKERP, return the position as a new marker."
   "Obsolete alias - use `org-id-open' directly.")
 
 (advice-add 'org-id-find :before-until #'org-roam-id-find)
+
+(defun org-roam-id-complete (&optional initial-input filter-fn sort-fn require-match prompt)
+  "Read an `org-roam-node', returning an \"id:\" link.
+All args are passed through to `org-roam-node-read'."
+  (concat "id:"
+          (org-roam-node-id
+           (org-roam-node-read initial-input filter-fn sort-fn require-match prompt))))
+
+(org-link-set-parameters "id" :complete #'org-roam-id-complete)
 
 ;;;###autoload
 (defun org-roam-update-org-id-locations (&rest directories)
