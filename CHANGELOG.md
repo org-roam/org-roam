@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+* (feat): add imenu support for org-roam-mode buffers by @takeokunn in https://github.com/org-roam/org-roam/issues/2274
+
 ## 2.3.1 (2025-06-26)
 
 * (fix): Use correct type specifications to suppress warnings by @okomestudio in https://github.com/org-roam/org-roam/pull/2522
