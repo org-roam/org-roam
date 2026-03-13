@@ -136,11 +136,13 @@ If FILE, set `default-directory' to FILE's directory and insert its contents."
     `(let ((,current-org-roam-directory org-roam-directory))
        (with-temp-buffer
          (let ((org-roam-directory ,current-org-roam-directory)
+               (org-agenda-files nil) ; perf
+               (org-element-cache-persistent nil) ; perf
                (org-inhibit-startup t))
-           (delay-mode-hooks (org-mode))
            (when ,file
              (insert-file-contents ,file)
              (setq-local default-directory (file-name-directory ,file)))
+           (delay-mode-hooks (org-mode))
            ,@body)))))
 
 ;;; Formatting
