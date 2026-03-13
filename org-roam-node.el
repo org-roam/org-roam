@@ -175,10 +175,10 @@ Replaced by `id' automatically when `org-roam-link-auto-replace' is non-nil.")
 ;;; Definition
 (cl-defstruct (org-roam-node (:constructor org-roam-node-create)
                              (:constructor org-roam-node-create-from-db
-                                           (title aliases                    ; 2
-                                                  id file file-title level todo     ; 5
-                                                  point priority scheduled deadline properties ;;5
-                                                  olp file-atime file-mtime tags refs)) ;;5
+                                           ( title aliases
+                                             id file file-title level todo
+                                             point priority scheduled deadline properties
+                                             olp file-atime file-mtime tags refs))
                              (:copier nil))
   "A heading or top level file with an assigned ID property."
   file file-title file-hash file-atime file-mtime
@@ -428,16 +428,11 @@ GROUP BY id
 ")))
     (mapcan
      (lambda (row)
-       (let (
-             (all-titles (cons (car row) (nth 1 row)))
-             )
+       (let ((all-titles (cons (car row) (nth 1 row))))
          (mapcar (lambda (temp-title)
                    (apply 'org-roam-node-create-from-db (cons temp-title (cdr row))))
-                 all-titles)
-         ))
-     rows)
-    )
-  )
+                 all-titles)))
+     rows)))
 
 ;;;; Finders
 (defun org-roam-node-marker (node)
@@ -552,24 +547,19 @@ defaulting to \"Node: \""
     (or (cdr (assoc node nodes))
         (org-roam-node-create :title node))))
 
-(defun org-roam--format-nodes-using-template (nodes)
-  "Formats NODES using org-roam template features.
-Uses org-roam--node-display-template."
-  (let  (
-         (wTemplate (org-roam-node--process-display-format org-roam-node-display-template))
-         )
-    (mapcar (lambda (node)
-              (org-roam-node-read--to-candidate node wTemplate)) nodes))
-  )
-
-(defun org-roam--format-nodes-using-function (nodes)
-  "Formats NODES using the function org-roam-node-display-template."
-  (mapcar (lambda (node)
-            (cons
-             (propertize (funcall org-roam-node-display-template node) 'node node)
-             node))
-          nodes)
-  )
+(defun org-roam--format-nodes (nodes)
+  "Format NODES using `org-roam-node-display-template'."
+  (if (functionp org-roam-node-display-template)
+      (mapcar (lambda (node)
+                (cons (propertize (funcall org-roam-node-display-template node)
+                                  'node node)
+                      node))
+              nodes)
+    ;; REVIEW: What the heck does wTemplate stand for?
+    (let ((wTemplate (org-roam-node--process-display-format org-roam-node-display-template)))
+      (mapcar (lambda (node)
+                (org-roam-node-read--to-candidate node wTemplate))
+              nodes))))
 
 (defun org-roam-node-read--completions (&optional filter-fn sort-fn)
   "Return an alist for node completion.
@@ -580,24 +570,15 @@ and when nil is returned the node will be filtered out.
 SORT-FN is a function to sort nodes. See `org-roam-node-read-sort-by-file-mtime'
 for an example sort function.
 The displayed title is formatted according to `org-roam-node-display-template'."
-  (let* (
-         (nodes (org-roam-node-list))
-         (nodes (if filter-fn
-                    (cl-remove-if-not
-                     (lambda (n) (funcall filter-fn n))
-                     nodes)
-                  nodes))
-         (nodes (if (functionp org-roam-node-display-template)
-                    (org-roam--format-nodes-using-function nodes)
-                  (org-roam--format-nodes-using-template nodes)))
-
-         (sort-fn (or sort-fn
-                      (when org-roam-node-default-sort
-                        (intern (concat "org-roam-node-read-sort-by-"
-                                        (symbol-name org-roam-node-default-sort))))))
-         (nodes (if sort-fn (seq-sort sort-fn nodes)
-                  nodes)))
-    nodes))
+  (let ((nodes (org-roam--format-nodes
+                (seq-filter (or filter-fn #'always) (org-roam-node-list))))
+        (sort-fn (or sort-fn
+                     (pcase org-roam-node-default-sort
+                       ('file-mtime 'org-roam-node-read-sort-by-file-mtime)
+                       ('file-atime 'org-roam-node-read-sort-by-file-atime)))))
+    (if sort-fn
+        (seq-sort sort-fn nodes)
+      nodes)))
 
 (defun org-roam-node-read--to-candidate (node template)
   "Return a minibuffer completion candidate given NODE.
