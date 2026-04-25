@@ -1536,7 +1536,7 @@ This has two steps:
 1. Setting of a /roam/ project that publishes your notes.
 2. Configuring the /sitemap.html/ generation.
 3. Setting up =org-publish= to generate the graph.
-  
+
 This will require code like the following:
 #+begin_src emacs-lisp
   (defun roam-sitemap (title list)
