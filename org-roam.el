@@ -206,32 +206,16 @@ FILE is an Org-roam file if:
 - It's located somewhere under `org-roam-directory'
 - It has a matching file extension (`org-roam-file-extensions')
 - It doesn't match excluded regexp (`org-roam-file-exclude-regexp')"
-  (when (or file (buffer-file-name (buffer-base-buffer)))
-    (let* ((path (or file (buffer-file-name (buffer-base-buffer))))
-           (relative-path (file-relative-name path org-roam-directory))
-           (ext (org-roam--file-name-extension path))
-           (ext (if (or (string= ext "gpg")
-                        (string= ext "age"))
-                    (org-roam--file-name-extension (file-name-sans-extension path))
-                  ext))
-           (org-roam-dir-p (org-roam-descendant-of-p path org-roam-directory))
-           (valid-file-ext-p (member ext org-roam-file-extensions))
-           (match-exclude-regexp-p
-            (cond
-             ((not org-roam-file-exclude-regexp) nil)
-             ((stringp org-roam-file-exclude-regexp)
-              (string-match-p org-roam-file-exclude-regexp relative-path))
-             ((listp org-roam-file-exclude-regexp)
-              (let (is-match)
-                (dolist (exclude-re org-roam-file-exclude-regexp)
-                  (setq is-match (or is-match (string-match-p exclude-re relative-path))))
-                is-match)))))
-      (save-match-data
-        (and
-         path
-         org-roam-dir-p
-         valid-file-ext-p
-         (not match-exclude-regexp-p))))))
+  (let ((suffixes (cl-loop for ext in org-roam-file-extensions
+                           collect (concat "." ext)
+                           collect (concat "." ext ".age")
+                           collect (concat "." ext ".gpg"))))
+    (and (setq file (or file (buffer-file-name (buffer-base-buffer))))
+         (cl-loop for suffix in suffixes thereis (string-suffix-p suffix file))
+         (cl-loop with rel-name = (file-relative-name file org-roam-directory)
+                  for exclude-re in (ensure-list org-roam-file-exclude-regexp)
+                  never (string-match-p exclude-re rel-name))
+         (org-roam-descendant-of-p file org-roam-directory))))
 
 ;;;###autoload
 (defun org-roam-list-files ()
