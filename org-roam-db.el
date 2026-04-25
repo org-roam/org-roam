@@ -128,7 +128,11 @@ Performs a database upgrade when required."
         (when init-db
           (org-roam-db--init conn))
         (let* ((version (caar (emacsql conn "PRAGMA user_version")))
-               (version (org-roam-db--upgrade-maybe conn version)))
+               (version (if (integerp version)
+                            (org-roam-db--upgrade-maybe conn version)
+                          (emacsql-close conn)
+                          (error "Org-roam: could not read schema version from %s"
+                                 org-roam-db-location))))
           (cond
            ((> version org-roam-db-version)
             (emacsql-close conn)
