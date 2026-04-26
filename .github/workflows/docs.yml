@@ -13,11 +13,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install deps
-        run: sudo apt install texinfo
-
       - name: Build docs
-        run: make html
+        uses: ./.github/actions/build-docs
 
       - name: Deploy 🚀
         uses: JamesIves/github-pages-deploy-action@releases/v4
