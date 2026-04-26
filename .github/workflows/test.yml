@@ -75,10 +75,8 @@ jobs:
         with:
           name: Docs
           if-no-files-found: error
-          # TODO: optimize images
           path: |
             doc/
-            !doc/images/
 
 # Local Variables:
 # eval: (outline-minor-mode)
