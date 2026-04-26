@@ -69,14 +69,6 @@ jobs:
       - name: Build
         uses: ./.github/actions/build-docs.yml
 
-      - name: Upload
-        uses: actions/upload-artifact@v4
-        with:
-          name: Docs
-          if-no-files-found: error
-          path: |
-            doc/
-
 # Local Variables:
 # eval: (outline-minor-mode)
 # End:

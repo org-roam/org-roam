@@ -1,11 +1,18 @@
 ---
 # * docs.yml --- Build the documentation and publish to Github Pages
+# see https://github.com/actions/starter-workflows/blob/main/pages/static.yml
 
 name: Docs
 on:
   push:
     branches:
       - main
+
+# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
+# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
 
 jobs:
   build:
@@ -16,9 +23,16 @@ jobs:
       - name: Build docs
         uses: ./.github/actions/build-docs.yml
 
-      - name: Deploy 🚀
-        uses: JamesIves/github-pages-deploy-action@releases/v4
-        with:
-          branch: gh-pages # The branch the action should deploy to.
-          folder: doc
-          clean: true
+  deploy:
+    permissions:
+      pages: write                  # to deploy to Pages
+      id-token: write               # to verify the deployment origin
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
