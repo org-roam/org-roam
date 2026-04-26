@@ -1,0 +1,11 @@
+---
+name: Build docs
+
+runs:
+  using: composite
+  steps:
+    - name: Install deps
+      run: sudo apt install texinfo
+
+    - name: Build docs
+      run: make html
