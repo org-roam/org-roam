@@ -89,9 +89,13 @@
       (expect 'org-roam-node-read :to-have-been-called-with
               "init" #'ignore #'ignore 'require-match "Prompt"))))
 
-(describe "id link completion integration"
-  (it "registers org-roam-id-complete as id link completion function"
-    (expect (org-link-get-parameter "id" :complete) :to-equal #'org-roam-id-complete)))
+(describe "roam link completion integration"
+  (it "registers org-roam-id-complete as roam link completion function"
+    (expect (org-link-get-parameter org-roam-link-type :complete)
+            :to-equal #'org-roam-id-complete))
+
+  (it "does not register completion for id links"
+    (expect (org-link-get-parameter "id" :complete) :to-equal nil)))
 
 (provide 'test-org-roam-id)
 

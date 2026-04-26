@@ -28,6 +28,7 @@
 
 (declare-function org-roam-node-read "org-roam-node")
 (declare-function org-roam-node-id "org-roam-node")
+(defvar org-roam-link-type)
 
 (defun org-roam-id-at-point ()
   "Return the ID at point, if any.
@@ -71,7 +72,7 @@ All args are passed through to `org-roam-node-read'."
           (org-roam-node-id
            (org-roam-node-read initial-input filter-fn sort-fn require-match prompt))))
 
-(org-link-set-parameters "id" :complete #'org-roam-id-complete)
+(org-link-set-parameters org-roam-link-type :complete #'org-roam-id-complete)
 
 ;;;###autoload
 (defun org-roam-update-org-id-locations (&rest directories)
