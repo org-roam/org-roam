@@ -1,0 +1,15 @@
+---
+# https://docs.github.com/en/actions/tutorials/create-actions/create-a-composite-action#creating-a-composite-action-within-the-same-repository
+# https://docs.github.com/en/actions/reference/workflows-and-actions/metadata-syntax
+name: Build docs
+
+runs:
+  using: composite
+  steps:
+    - name: Install deps
+      run: sudo apt install texinfo
+      shell: bash
+
+    - name: Build docs
+      run: make html
+      shell: bash
