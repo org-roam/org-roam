@@ -3,7 +3,6 @@
 ;; Copyright (C) 2020 Jethro Kuan
 
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
-;; Package-Requires: ((buttercup))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -32,7 +31,13 @@
   (it "returns the correct rg command for unlinked references"
     (expect (org-roam-unlinked-references--rg-command '("foo" "bar") "/tmp/regex")
             :to-equal
-            "rg --follow --only-matching --vimgrep --pcre2 --ignore-case --glob \"*.org\" --glob \"*.org.gpg\" --glob \"*.org.age\" --file /tmp/regex /tmp/org\\ roam")))
+            "rg --follow --only-matching --vimgrep --pcre2 --ignore-case --glob \"*.org\" --glob \"*.org.gpg\" --glob \"*.org.age\" --file /tmp/regex /tmp/org\\ roam"))
+
+  (it "expands tilde paths before shell quoting"
+    (setq org-roam-directory "~/org/roam")
+    (let ((command (org-roam-unlinked-references--rg-command '("Site Controller") "/tmp/regex")))
+      (expect command :to-match (regexp-quote (expand-file-name org-roam-directory)))
+      (expect command :not :to-match "\\\\~/"))))
 
 (provide 'test-org-roam-mode)
 

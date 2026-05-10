@@ -3,7 +3,6 @@
 ;; Copyright (C) 2020 Jethro Kuan
 
 ;; Author: Jethro Kuan <jethrokuan95@gmail.com>
-;; Package-Requires: ((buttercup))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -107,7 +106,7 @@
   (it "returns the correct number of node objects"
     ;; Not equal to number of rows in nodes table,
     ;; because it instantiates an extra `org-roam-node' object per alias.
-    (expect (length (org-roam-node-list)) :to-equal 30)))
+    (expect (length (org-roam-node-list)) :to-equal 40)))
 
 (describe "org-roam--h1-count"
   (after-each
@@ -157,6 +156,9 @@
                       "Foo"
                       ;; roam-files/bar.org
                       "Bar"
+                      ;; roam-files/capfs.org
+                      "CAPF Node 1"
+                      "CAPF Node 2"
                       ;; roam-files/with-alias.org
                       "Batman"
                       "The Dark Knight"
@@ -192,6 +194,18 @@
                       "[100%] A title with a TODO-state, priority and [10/10] multiple statistics-cookies [10/10]"
                       "TODO A title that appears on first glance to have a TODO-state"
                       "A title with /italics/, *bold*, _underline_, +strikethrough+ and =monospace="
+                      ;; roam-files/untitled-1.org
+                      ""
+                      ;; roam-files/untitled-2.org
+                      ;; ""  ; duplicate dropped by `org-roam--get-titles'
+                      ;; roam-files/tags-a.org
+                      "Tags-container A1"
+                      "Tags-container A2"
+                      "Tags-container A4 :invalid-tag-A:"
+                      ;; roam-files/subdirectory/tags-b.org
+                      "Tags-container B1"
+                      "Tags-container B2"
+                      "Tags-container B4  :invalid-tag-B:"
                       ;; roam-files/subdirectory/node-in-subdirectory.org
                       "A node in a subdirectory"
                       ;; roam-files/dailies/2025-11-11.org
@@ -243,6 +257,105 @@
     ;; Wow! I don't know Arabic, but it must harder to read with the underscores!  --meedstrom
     (expect (org-roam-node-slug (org-roam-node-create :title "نص من اليمين إلى اليسار (right-to-left script)"))
             :to-equal "نص_من_اليمين_إلى_اليسار_right_to_left_script")))
+
+(describe "org-roam-tag-completions"
+  (before-all
+    ;; Example from the Org manual
+    (setq org-tag-alist '((:startgroup . nil)
+                          ("@work" . ?w) ("@home" . ?h) ("@tennisclub" . ?t)
+                          (:endgroup . nil)
+                          ("laptop" . ?l) ("pc" . ?p)))
+    (setq org-roam-directory (expand-file-name "tests/roam-files")
+          org-roam-db-location (expand-file-name "org-roam.db" temporary-file-directory)
+          org-roam-file-extensions '("org")
+          org-roam-file-exclude-regexp nil)
+    (org-roam-db-sync))
+
+  (it "has every tag that is in the DB"
+    (should
+     (cl-subsetp (flatten-list
+                  (org-roam-db-query [:select :distinct tag :from tags]))
+                 (org-roam-tag-completions)
+                 :test 'equal)))
+
+  (it "skips SPECIAL values in org-tag-alist"
+    (should-not (member :startgroup (org-roam-tag-completions)))
+    (should-not (member ":startgroup" (org-roam-tag-completions)))
+    (should-not (member :endgroup (org-roam-tag-completions)))
+    (should-not (member ":endgroup" (org-roam-tag-completions))))
+
+  (it "has tags that are only in org-tag-alist"
+    (should
+     (cl-subsetp '("@work" "@home" "@tennisclub" "laptop" "pc")
+                 (org-roam-tag-completions)
+                 :test 'equal))))
+
+(describe "org-roam CAPFs"
+  (before-all
+    (setq org-roam-directory (expand-file-name "tests/roam-files")
+          org-roam-db-location (expand-file-name "org-roam.db" temporary-file-directory)
+          org-roam-file-extensions '("org")
+          org-roam-file-exclude-regexp nil)
+    (org-roam-db-sync)
+    (setq auto-save-default nil)
+    ;; needed to set up hooks
+    (org-roam-db-autosync-mode)
+    (setq org-roam-completion-everywhere t))
+
+  (after-all
+    (org-roam-db--close)
+    (delete-file org-roam-db-location))
+
+  (it "work within links"
+    (find-file "tests/roam-files/capfs.org")
+
+    ;; don’t offer completions when editing link descriptions
+    (search-forward "id link")
+    (expect (org-roam-complete-link-at-point) :to-equal nil)
+    (search-forward "[[id:")
+    (expect (org-roam-complete-link-at-point) :to-equal nil)
+    (search-forward "roam link with description")
+    (expect (org-roam-complete-link-at-point) :to-equal nil)
+
+    (end-of-buffer)
+    (insert "[[")
+    (save-excursion (insert "]]"))
+    (expect (org-roam-complete-everywhere) :to-equal nil)
+    (expect (pcase (org-roam-complete-link-at-point)
+              (`(,(pred integerp) ,(pred integerp)
+                 ,(pred (seq-every-p #'stringp))
+                 :exit-function ,(pred functionp))
+               t)))
+
+    (insert "roam:")
+    (expect (pcase (org-roam-complete-link-at-point)
+              (`(,(pred integerp) ,(pred integerp)
+                 ,(pred (seq-every-p #'stringp))
+                 :exit-function ,(pred functionp))
+               t)))
+
+    ;; don’t offer completions in brackets
+    (forward-char 1)
+    (expect (org-roam-complete-link-at-point) :to-equal nil)
+
+    (set-buffer-modified-p nil)
+    (kill-current-buffer))
+
+  (it "work outside links"
+    (find-file "tests/roam-files/capfs.org")
+
+    (end-of-buffer)
+    (insert "CAPF")
+    (expect (org-roam-complete-link-at-point) :to-equal nil)
+    (expect (pcase (org-roam-complete-everywhere)
+              (`(,(pred integerp) ,(pred integerp)
+                 ,(pred (seq-every-p #'stringp))
+                 :exit-function ,(pred functionp)
+                 :exclusive no)
+               t)))
+
+    (set-buffer-modified-p nil)
+    (kill-current-buffer)))
 
 (provide 'test-org-roam-node)
 

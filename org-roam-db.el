@@ -311,7 +311,10 @@ If HASH is non-nil, use that as the file's hash without recalculating it."
 
 (defun org-roam-db-node-p ()
   "Return t if headline at point is an Org-roam node, else return nil."
-  (and (org-id-get)
+  ;; In Org-mode 9.7 (Emacs 30.2), `org-id-get' throws an exception if it is
+  ;; called outside of an org-mode buffer.
+  (and (derived-mode-p 'org-mode)
+       (org-id-get)
        (not (org-entry-get (point) "ROAM_EXCLUDE"))
        (funcall org-roam-db-node-include-function)))
 
@@ -660,7 +663,7 @@ database, see `org-roam-db-sync' command."
       (advice-remove #'vc-delete-file #'org-roam-db-autosync--vc-delete-file-a)
       (org-roam-db--close-all)
       ;; Disable local hooks for all org-roam buffers
-      (dolist (buf (org-roam-buffer-list))
+      (dolist (buf (seq-filter #'org-roam-buffer-p (buffer-list)))
         (with-current-buffer buf
           (remove-hook 'after-save-hook #'org-roam-db-autosync--try-update-on-save-h t)))))))
 
