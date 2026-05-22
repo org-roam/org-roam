@@ -438,5 +438,33 @@ See <https://github.com/raxod502/straight.el/issues/520>."
                         (eieio-object-class conn)
                       "not connected")))))
 
+(defun org-roam-with-batch (expr &optional name)
+  (let* (
+         (expr-str (prin1-to-string expr))
+         (name (or name (format "org-roam-with-batch--%s" (truncate-string-to-width expr-str 50 nil nil t))))
+         (buffer (generate-new-buffer
+                  (concat "*" name "*")))
+         (emacs (executable-find "emacs"))
+         (deps (package--dependencies 'org-roam))
+         (dep-dirs (mapcar
+                    (lambda (pkg)
+                      (package-desc-dir
+                       (cadr (assq pkg package-alist))))
+                    deps))
+         (load-deps (prin1-to-string `(mapc
+                                       (lambda (dep-dir)
+                                         (add-to-list 'load-path dep-dir))
+                                       ',dep-dirs)))
+         (pkg-dir (package-desc-dir
+                   (cadr (assq 'org-roam package-alist))))
+         (load-newer "(setopt load-prefer-newer t)")
+         )
+    (start-process
+     name
+     buffer
+     emacs "--batch" "--eval" load-newer "--eval" load-deps "-L" pkg-dir "-l" "org-roam" "--eval" expr-str)
+    )
+  )
+
 (provide 'org-roam-utils)
 ;;; org-roam-utils.el ends here
