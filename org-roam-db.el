@@ -265,7 +265,7 @@ This is equivalent to removing the node from the graph.
 If FILE is nil, clear the current buffer."
   (setq file (or file (buffer-file-name (buffer-base-buffer))))
   (org-roam-db-query [:delete :from files
-                      :where (= file $s1)]
+                              :where (= file $s1)]
                      file))
 
 ;;;; Updating tables
@@ -292,7 +292,7 @@ If HASH is non-nil, use that as the file's hash without recalculating it."
          (hash (or hash (org-roam-db--file-hash file))))
     (org-roam-db-query
      [:insert :into files
-      :values $v1]
+              :values $v1]
      (list (vector file file-title hash atime mtime)))))
 
 (defun org-roam-db-get-scheduled-time ()
@@ -383,13 +383,13 @@ INFO is the org-element parsed buffer."
                     (error-message-string err)
                     title id file))
            [:insert :into nodes
-            :values $v1]
+                    :values $v1]
            (vector id file level pos todo priority
                    scheduled deadline title properties olp))
           (when tags
             (org-roam-db-query
              [:insert :into tags
-              :values $v1]
+                      :values $v1]
              (mapcar (lambda (tag)
                        (vector id (substring-no-properties tag)))
                      tags)))
@@ -422,7 +422,7 @@ INFO is the org-element parsed buffer."
                 (error-message-string err)
                 title id file))
        [:insert :into nodes
-        :values $v1]
+                :values $v1]
        (vector id file level pos todo priority
                scheduled deadline title properties olp)))))
 
@@ -432,7 +432,7 @@ INFO is the org-element parsed buffer."
               (aliases (org-entry-get (point) "ROAM_ALIASES"))
               (aliases (split-string-and-unquote aliases)))
     (org-roam-db-query [:insert :into aliases
-                        :values $v1]
+                                :values $v1]
                        (mapcar (lambda (alias)
                                  (vector node-id alias))
                                aliases))))
@@ -442,7 +442,7 @@ INFO is the org-element parsed buffer."
   (when-let* ((node-id (org-id-get))
               (tags (org-get-tags)))
     (org-roam-db-query [:insert :into tags
-                        :values $v1]
+                                :values $v1]
                        (mapcar (lambda (tag)
                                  (vector node-id (substring-no-properties tag))) tags))))
 
@@ -490,7 +490,7 @@ INFO is the org-element parsed buffer."
                         "%s:%s\tInvalid ref %s, skipping..." (buffer-file-name) (point) ref)))))
       (when rows
         (org-roam-db-query [:insert :into refs
-                            :values $v1]
+                                    :values $v1]
                            rows)))))
 
 (defun org-roam-db-insert-link (link)
@@ -516,12 +516,12 @@ INFO is the org-element parsed buffer."
                      (member type org-ref-cite-types)))
             (org-roam-db-query
              [:insert :into citations
-              :values $v1]
+                      :values $v1]
              (mapcar (lambda (k) (vector source k (point) properties))
                      (org-roam-org-ref-path-to-keys path)))
           (org-roam-db-query
            [:insert :into links
-            :values $v1]
+                    :values $v1]
            (vector (point) source path type properties)))))))
 
 (defun org-roam-db-insert-citation (citation)
@@ -536,7 +536,7 @@ INFO is the org-element parsed buffer."
       (when (and source key)
         (org-roam-db-query
          [:insert :into citations
-          :values $v1]
+                  :values $v1]
          (vector source key (point) properties))))))
 
 ;;;; Fetching
@@ -567,7 +567,7 @@ in `org-roam-db-sync'."
   (setq file-path (or file-path (buffer-file-name (buffer-base-buffer))))
   (let ((content-hash (org-roam-db--file-hash file-path))
         (db-hash (caar (org-roam-db-query [:select hash :from files
-                                           :where (= file $s1)] file-path)))
+                                                   :where (= file $s1)] file-path)))
         info)
     (unless (string= content-hash db-hash)
       (require 'org-ref nil t)
@@ -628,6 +628,16 @@ If FORCE, force a rebuild of the cache from scratch."
            (org-roam-db-clear-file file)
            (lwarn 'org-roam :error "Failed to process %s with error %s, skipping..."
                   file (error-message-string err))))))))
+
+;;;###autoload
+(defun org-roam-db-sync--batch (&optional force)
+  "Run org-roam-db-sync in Emacs batch-mode. This is helpful for sync operation in very large directories."
+  (interactive)
+  (org-roam-with-batch `(let ((org-roam-directory ,org-roam-directory)
+                              (org-roam-db-location ,org-roam-db-location))
+                          (message "Starting org-roam-db-sync in %s for %s" org-roam-directory org-roam-db-location)
+                          (org-roam-db-sync ,force))
+                       "org-roam-db-sync--batch"))
 
 ;;;###autoload
 (define-minor-mode org-roam-db-autosync-mode
