@@ -28,6 +28,11 @@
 
 (require 'org-roam)
 
+;; org-roam-db is only loaded at runtime (via org-roam.el's
+;; `cl-eval-when' (load eval) form), so declare the function it provides
+;; that is referenced here. This is informational only.
+(declare-function org-roam-db--get-connection "org-roam-db")
+
 ;;; String utilities
 ;; TODO Refactor this.
 (defun org-roam-replace-string (old new s)

@@ -31,6 +31,15 @@
 (eval-when-compile (require 'rx))
 (require 'org-roam)
 
+(declare-function ucs-normalize-NFC-string "ucs-normalize" (str))
+(declare-function ucs-normalize-NFD-string "ucs-normalize" (str))
+
+;; org-roam-capture and org-roam-id are only loaded at runtime (via
+;; org-roam.el's `cl-eval-when' (load eval) form). Declare the functions
+;; they provide that are referenced here; informational only.
+(declare-function org-roam-capture- "org-roam-capture")
+(declare-function org-roam-id-at-point "org-roam-id")
+
 ;;; Options
 ;;;; Completing-read
 (defcustom org-roam-node-display-template "${title}"

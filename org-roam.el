@@ -198,6 +198,8 @@ together with the method symbol as a cons cell. For example:
           (const :tag "elisp" nil)))
 
 ;;; Library
+(declare-function org-roam-descendant-of-p "org-roam-utils")
+
 (defun org-roam-file-p (&optional file)
   "Return t if FILE is an Org-roam file, nil otherwise.
 If FILE is not specified, use the current buffer's file-path.
