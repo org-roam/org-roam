@@ -27,6 +27,25 @@
 ;;; Code:
 (require 'org-roam)
 
+;; These functions are provided by sibling modules that are only loaded at
+;; runtime (org-roam.el requires them inside a `cl-eval-when' (load eval)
+;; form, and the capture pieces are used inside `with-eval-after-load').
+;; Declare them so the byte-compiler does not warn; this is purely
+;; informational and does not change behaviour.  These declarations (here and
+;; in the other modules) should become unnecessary once org-roam moves to
+;; conventional `require' ordering; see
+;; https://github.com/org-roam/org-roam/issues/2569.
+(declare-function org-roam-message "org-roam-utils")
+(declare-function org-roam-update-org-id-locations "org-roam-id")
+(declare-function org-roam-capture--get "org-roam-capture")
+(declare-function org-roam-capture--get-if-new-target-a "org-roam-compat")
+(declare-function org-roam-db-autosync-mode "org-roam-db")
+
+;; Declared in org-roam-capture, which is loaded before this `add-to-list'
+;; runs (the call is wrapped in `with-eval-after-load'). Forward declare it
+;; so the byte-compiler does not treat it as a free variable; informational.
+(defvar org-roam-capture--template-keywords)
+
 ;;; Backports
 ;; REVIEW Remove when 26.x support is dropped. This is exact the same as
 ;; `directory-files-recursively' from Emacs 26, but with FOLLOW-SYMLINKS

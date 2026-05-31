@@ -29,6 +29,12 @@
 (require 'ol)
 (defvar org-outline-path-cache)
 
+;; org-roam-node and org-roam-id are only loaded at runtime (via
+;; org-roam.el's `cl-eval-when' (load eval) form). Declare the functions
+;; they provide that are referenced here; informational only.
+(declare-function org-roam-node-at-point "org-roam-node")
+(declare-function org-roam-id-at-point "org-roam-id")
+
 ;;; Options
 (defcustom org-roam-db-location (locate-user-emacs-file "org-roam.db")
   "The path to file where the Org-roam database is stored.
