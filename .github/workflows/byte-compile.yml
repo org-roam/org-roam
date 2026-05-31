@@ -1,0 +1,46 @@
+---
+# Byte-compile org-roam and load it, to catch byte-compilation breakage
+# and load-time errors. Warnings are not yet treated as errors because one
+# pre-existing warning remains (an EIEIO "Unknown slot" report in
+# org-roam-node.el that requires reordering class definitions to fix).
+
+name: Byte-compile
+
+on: [push, pull_request]
+
+jobs:
+  byte-compile:
+    runs-on: ubuntu-latest
+    # The snapshot build tracks the latest Emacs development build, which
+    # can break for reasons unrelated to org-roam; allow it to fail without
+    # failing the whole workflow.
+    continue-on-error: ${{ matrix.emacs_version == 'snapshot' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        emacs_version:
+          # 29.4 is the lowest version org-roam can build against: its
+          # transitive dependency `org` from ELPA requires Emacs >= 28.2,
+          # and pre-29.1 lacks the built-in sqlite support that emacsql
+          # needs. The same floor is used by the main test workflow.
+          - '29.4'
+          - '30.1'
+          - snapshot
+    steps:
+      - uses: purcell/setup-emacs@master
+        with:
+          version: ${{ matrix.emacs_version }}
+
+      - name: Install Eldev
+        uses: emacs-eldev/setup-eldev@v1
+
+      - uses: actions/checkout@v5
+
+      - name: Install dependencies
+        run: eldev prepare
+
+      - name: Byte-compile
+        run: eldev --unstable compile
+
+      - name: Load
+        run: eldev --unstable eval '(require (quote org-roam))'
