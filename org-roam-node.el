@@ -948,8 +948,8 @@ If region is active, then use it instead of the node at point."
             (org-kill-new (buffer-substring region-start region-end))
             (org-save-markers-in-region region-start region-end))
         (when (org-before-first-heading-p)
-            (org-roam-demote-entire-buffer)
-            (goto-char 1))
+          (org-roam-demote-entire-buffer)
+          (goto-char 1))
         (org-copy-subtree 1 nil t))
       (with-current-buffer nbuf
         (org-with-wide-buffer
